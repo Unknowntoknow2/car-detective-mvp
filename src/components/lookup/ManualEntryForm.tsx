@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { useManualValuation } from '@/hooks/useManualValuation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ManualEntryFormData, AccidentDetails } from './types/manualEntry';
 import { VehicleBasicInfo } from './form-parts/VehicleBasicInfo';
