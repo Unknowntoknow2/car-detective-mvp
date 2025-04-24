@@ -1,102 +1,84 @@
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { MakeModelSelect } from './form-parts/MakeModelSelect';
-import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
-import { ConditionAndFuelInputs } from './form-parts/ConditionAndFuelInputs';
+import { Form } from '@/components/ui/form';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 import { manualEntryFormSchema, ManualEntryFormData } from './types/manualEntry';
+import MakeModelSelect from './form-parts/MakeModelSelect';
+import VehicleDetailsInputs from './form-parts/VehicleDetailsInputs';
+import ConditionAndFuelInputs from './form-parts/ConditionAndFuelInputs';
+import { useNavigate } from 'react-router-dom';
 
 interface ManualEntryFormProps {
-  onSubmitSuccess: (data: ManualEntryFormData) => void;
+  onSubmit: (data: ManualEntryFormData) => void;
+  isLoading?: boolean;
 }
 
-export const ManualEntryForm = ({ onSubmitSuccess }: ManualEntryFormProps) => {
-  const [selectedMake, setSelectedMake] = useState<string>('');
-  const [conditionValue, setConditionValue] = useState<string>('good');
-  
+const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
+  onSubmit,
+  isLoading = false,
+}) => {
+  const navigate = useNavigate();
   const form = useForm<ManualEntryFormData>({
     resolver: zodResolver(manualEntryFormSchema),
     defaultValues: {
       make: '',
       model: '',
-      year: '2020',
-      mileage: '50000',
-      fuelType: 'Gasoline',
-      condition: 'good',
+      year: 0,
+      mileage: 0,
+      fuelType: '',
+      condition: '',
       zipCode: '',
     },
   });
 
-  // Generate years from 1980 to current year
-  const generateYears = () => {
-    const years = [];
-    const currentYear = new Date().getFullYear();
-    for (let year = currentYear; year >= 1980; year--) {
-      years.push(year.toString());
+  const handleFormSubmit = (data: ManualEntryFormData) => {
+    if (isLoading) return;
+    
+    try {
+      onSubmit(data);
+      toast.success('Vehicle information submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Failed to submit vehicle information. Please try again.');
     }
-    return years;
   };
 
-  const years = generateYears();
+  const handleCancel = () => {
+    navigate('/');
+  };
 
   return (
-    <Card className="p-6 w-full max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Enter Your Vehicle Details</h2>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmitSuccess)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MakeModelSelect 
-              form={form} 
-              selectedMake={selectedMake} 
-              setSelectedMake={setSelectedMake} 
-            />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Vehicle Details</h3>
+          <Separator />
+          
+          <MakeModelSelect form={form} />
+          <VehicleDetailsInputs form={form} />
+          <ConditionAndFuelInputs form={form} />
+        </div>
 
-            <VehicleDetailsInputs form={form} years={years} />
-
-            <ConditionAndFuelInputs 
-              form={form} 
-              conditionValue={conditionValue} 
-              setConditionValue={setConditionValue} 
-            />
-
-            <FormField
-              control={form.control}
-              name="zipCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ZIP Code (Optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. 90210"
-                      {...field}
-                      maxLength={5}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Helps us provide a more accurate valuation for your area
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <Button type="submit" className="w-full">Get Valuation</Button>
-        </form>
-      </Form>
-    </Card>
+        <div className="flex gap-4 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Loading...' : 'Submit'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };
+
+export default ManualEntryForm;

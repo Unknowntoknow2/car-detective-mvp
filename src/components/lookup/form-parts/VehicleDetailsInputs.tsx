@@ -1,46 +1,37 @@
 
+import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
 
 interface VehicleDetailsInputsProps {
   form: UseFormReturn<ManualEntryFormData>;
-  years: string[];
 }
 
-export const VehicleDetailsInputs = ({ form, years }: VehicleDetailsInputsProps) => {
+const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form }) => {
   return (
-    <>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <FormField
         control={form.control}
         name="year"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Year</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              defaultValue={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FormControl>
+              <Input 
+                type="number" 
+                placeholder="e.g., 2020" 
+                {...field} 
+                value={field.value === 0 ? '' : field.value.toString()}
+                onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseInt(e.target.value, 10))}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-
+      
       <FormField
         control={form.control}
         name="mileage"
@@ -48,17 +39,34 @@ export const VehicleDetailsInputs = ({ form, years }: VehicleDetailsInputsProps)
           <FormItem>
             <FormLabel>Mileage</FormLabel>
             <FormControl>
-              <Input
-                type="number"
-                min="0"
-                placeholder="e.g. 50000"
-                {...field}
+              <Input 
+                type="number" 
+                placeholder="e.g., 25000" 
+                {...field} 
+                value={field.value === 0 ? '' : field.value.toString()}
+                onChange={(e) => field.onChange(e.target.value === '' ? 0 : parseInt(e.target.value, 10))}
               />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-    </>
+      
+      <FormField
+        control={form.control}
+        name="zipCode"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Zip Code (optional)</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., 90210" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
 };
+
+export default VehicleDetailsInputs;
