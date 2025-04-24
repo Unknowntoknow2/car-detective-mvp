@@ -1,61 +1,260 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* ... keep existing CSS variables */
+    /* Core design tokens - colors */
+    --color-primary: 0, 98, 255;
+    --color-primary-hover: 0, 81, 219;
+    --color-primary-light: 229, 240, 255;
+    
+    --color-surface: 249, 250, 251;
+    --color-surface-card: 255, 255, 255;
+    
+    --color-text-primary: 17, 24, 39;
+    --color-text-secondary: 75, 85, 99;
+    
+    /* ShadCN compatibility */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.5rem;
+    
+    /* Sidebar specific variables */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 10% 3.9%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 240 5.9% 90%;
+    --sidebar-ring: 221 83% 53%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 221 83% 53%;
+    
+    /* Sidebar specific variables */
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 221 83% 53%;
   }
 
   body {
-    @apply bg-background text-text-primary antialiased;
-    font-family: var(--font-primary);
+    @apply bg-surface text-text-primary antialiased font-sans;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  
+  ::selection {
+    @apply bg-primary/20 text-primary-dark;
   }
 }
 
 @layer components {
+  /* Modern enterprise buttons */
   .button-primary {
-    @apply bg-primary px-6 py-3 rounded-lg font-semibold text-white 
-           transition-all duration-200 hover:bg-primary-hover;
+    @apply relative bg-primary text-white font-medium px-6 py-3 rounded-lg
+           shadow-btn transition-all duration-300 hover:bg-primary-hover 
+           hover:shadow-hover active:translate-y-0.5 active:shadow-none
+           disabled:opacity-50 disabled:pointer-events-none
+           before:absolute before:inset-0 before:rounded-lg before:bg-white 
+           before:opacity-0 before:transition-opacity hover:before:opacity-10;
   }
 
   .button-secondary {
-    @apply bg-surface border border-border px-6 py-3 rounded-lg 
-           text-text-primary transition-colors hover:bg-border/10;
+    @apply relative bg-white border border-border text-text-primary font-medium
+           px-6 py-3 rounded-lg transition-all duration-300 hover:bg-surface-dark
+           hover:border-border-dark active:translate-y-0.5
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .button-ghost {
+    @apply relative text-text-primary font-medium px-6 py-3 rounded-lg 
+           transition-all duration-300 hover:bg-surface-dark
+           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .button-outline {
+    @apply relative bg-transparent border border-primary text-primary font-medium
+           px-6 py-3 rounded-lg transition-all duration-300 hover:bg-primary-light
+           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
   }
 
+  /* Form elements */
   .input-field {
-    @apply border border-border px-4 py-3 rounded-lg w-full
-           focus:outline-none focus:ring-2 focus:ring-primary/20;
+    @apply bg-white border border-border rounded-lg px-4 py-3 w-full text-text-primary
+           transition-all duration-200 placeholder:text-text-tertiary
+           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+           disabled:opacity-50 disabled:bg-surface;
   }
 
   .select-field {
-    @apply bg-white border border-border px-4 py-3 rounded-lg
-           focus:outline-none focus:ring-2 focus:ring-primary/20;
+    @apply bg-white border border-border rounded-lg px-4 py-3 w-full 
+           appearance-none text-text-primary transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+           disabled:opacity-50 disabled:bg-surface;
   }
 
+  /* Cards */
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-surface-card rounded-xl shadow-md p-6 border border-border/50 transition-all
+           hover:shadow-lg;
+  }
+
+  .card-premium {
+    @apply bg-gradient-card rounded-xl shadow-lg p-6 border border-primary/10 transition-all
+           hover:shadow-xl;
   }
 
   .info-card {
-    @apply bg-surface border border-border rounded-lg p-4;
+    @apply bg-surface rounded-lg border border-border p-4 transition-all;
   }
 
+  /* Progress steps */
   .step {
-    @apply flex items-center gap-2;
+    @apply flex items-center gap-3 relative;
   }
 
   .step-number {
-    @apply w-8 h-8 rounded-full bg-primary text-white font-semibold
-           flex items-center justify-center;
+    @apply w-10 h-10 rounded-full bg-primary text-white font-semibold
+           flex items-center justify-center shadow-sm z-10;
+  }
+  
+  .step-connector {
+    @apply absolute left-5 top-10 w-0.5 h-full -z-10 bg-border;
+  }
+  
+  .step-active .step-number {
+    @apply bg-gradient-primary shadow-md;
+  }
+  
+  .step-completed .step-number {
+    @apply bg-success text-white;
+  }
+  
+  /* Shimmer effect for loading states */
+  .shimmer {
+    @apply relative overflow-hidden before:absolute before:inset-0 
+           before:bg-gradient-to-r before:from-transparent before:via-white/20 
+           before:to-transparent before:animate-shimmer;
+  }
+  
+  /* Glass morphism */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-glass;
+  }
+  
+  /* Neumorphism */
+  .neumorph {
+    @apply bg-gradient-neumorph rounded-xl shadow-md p-6 border-none;
+  }
+  
+  /* Tooltip */
+  .tooltip {
+    @apply relative inline-block;
+  }
+  
+  .tooltip-text {
+    @apply invisible absolute z-50 w-auto p-2 bg-text-primary text-white text-xs
+           rounded-md opacity-0 transition-opacity duration-300 whitespace-nowrap;
+  }
+  
+  .tooltip:hover .tooltip-text {
+    @apply visible opacity-100;
   }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-primary-accent 
-           bg-clip-text text-transparent;
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+  
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .backdrop-blur {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  
+  .transition-gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
 }
