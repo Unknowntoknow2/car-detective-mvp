@@ -355,7 +355,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your business email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -375,7 +375,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your secure password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -398,7 +398,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Re-enter your secure password"
+                  placeholder="Re-enter your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -433,7 +433,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="Enter your business phone"
+                placeholder="Enter your phone number"
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value);
@@ -480,7 +480,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your business email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -493,7 +493,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your secure password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -532,7 +532,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="Enter your business phone"
+                placeholder="Enter your phone number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -580,14 +580,14 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             <Input
               id="email"
               type="email"
-              placeholder="Enter your business email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="text-sm">
-            Enter your business email address and we'll send you a link to reset your password.
+            Enter your email address and we'll send you a link to reset your password.
           </div>
         </div>
       );
@@ -649,14 +649,14 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             <Input
               id="phone"
               type="tel"
-              placeholder="Enter your business phone"
+              placeholder="Enter your phone number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
             />
           </div>
           <div className="text-sm">
-            Enter your business phone number and we'll look up your associated username.
+            Enter your phone number and we'll look up your associated username.
           </div>
         </div>
       );
