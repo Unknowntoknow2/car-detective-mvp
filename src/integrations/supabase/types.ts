@@ -87,6 +87,60 @@ export type Database = {
         }
         Relationships: []
       }
+      valuations: {
+        Row: {
+          body_type: string | null
+          color: string | null
+          condition_score: number | null
+          confidence_score: number | null
+          created_at: string
+          estimated_value: number | null
+          id: string
+          is_vin_lookup: boolean
+          make: string | null
+          model: string | null
+          plate: string | null
+          state: string | null
+          user_id: string
+          vin: string | null
+          year: number | null
+        }
+        Insert: {
+          body_type?: string | null
+          color?: string | null
+          condition_score?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          estimated_value?: number | null
+          id?: string
+          is_vin_lookup?: boolean
+          make?: string | null
+          model?: string | null
+          plate?: string | null
+          state?: string | null
+          user_id: string
+          vin?: string | null
+          year?: number | null
+        }
+        Update: {
+          body_type?: string | null
+          color?: string | null
+          condition_score?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          estimated_value?: number | null
+          id?: string
+          is_vin_lookup?: boolean
+          make?: string | null
+          model?: string | null
+          plate?: string | null
+          state?: string | null
+          user_id?: string
+          vin?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
