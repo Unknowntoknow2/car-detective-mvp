@@ -146,10 +146,12 @@ const ConfidenceBadge = ({ score }: { score: number }) => {
       </Badge>
     );
   } else if (score >= 60) {
-    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
-      <Shield className="h-3 w-3 mr-1" />
-      Good ({score}%)
-    </Badge>;
+    return (
+      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+        <Shield className="h-3 w-3 mr-1" />
+        Good ({score}%)
+      </Badge>
+    );
   } else if (score >= 40) {
     return (
       <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">

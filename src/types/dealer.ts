@@ -14,6 +14,7 @@ export interface Valuation {
   condition_score: number;
   created_at: string;
   is_vin_lookup: boolean;
+  vin?: string; // Add the vin property as optional
 }
 
 export interface DealerSignupData {
