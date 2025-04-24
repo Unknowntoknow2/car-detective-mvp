@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionHeader } from "@/components/ui/design-system";
 import { Button } from "@/components/ui/button";
-import { CarFront, Search, FileText } from 'lucide-react';
-import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
-import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
-import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import { CarFront, Search, FileText, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefObject } from 'react';
+
+// Import custom form components with proper types
+import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
+import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
+import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 
 interface ValuationFormProps {
   formRef: RefObject<HTMLDivElement>;
