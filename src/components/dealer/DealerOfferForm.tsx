@@ -42,7 +42,7 @@ export function DealerOfferForm({ reportId, onSubmit, isSubmitting }: DealerOffe
     if (!user) return;
     
     onSubmit({
-      offer_amount: values.amount,
+      offer_amount: values.amount, // This will be a number due to the transform in the schema
       message: values.message,
     });
   };
