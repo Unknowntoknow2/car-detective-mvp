@@ -11,39 +11,42 @@ export type Database = {
     Tables: {
       decoded_vehicles: {
         Row: {
-          body_type: string | null
+          bodyType: string | null
           created_at: string
           drivetrain: string | null
           engine: string | null
           id: string
           make: string | null
           model: string | null
+          timestamp: string | null
           transmission: string | null
           trim: string | null
           vin: string
           year: number | null
         }
         Insert: {
-          body_type?: string | null
+          bodyType?: string | null
           created_at?: string
           drivetrain?: string | null
           engine?: string | null
           id?: string
           make?: string | null
           model?: string | null
+          timestamp?: string | null
           transmission?: string | null
           trim?: string | null
           vin: string
           year?: number | null
         }
         Update: {
-          body_type?: string | null
+          bodyType?: string | null
           created_at?: string
           drivetrain?: string | null
           engine?: string | null
           id?: string
           make?: string | null
           model?: string | null
+          timestamp?: string | null
           transmission?: string | null
           trim?: string | null
           vin?: string
