@@ -1,7 +1,6 @@
-
 import { calculateConfidenceScore } from './confidenceScore';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
-import type { VehicleCondition } from './priceAdjustments';
+import type { VehicleCondition } from './adjustments/types';
 
 // Sample base prices for testing - in production this would come from a database
 const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {

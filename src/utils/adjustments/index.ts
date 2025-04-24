@@ -8,6 +8,14 @@ export * from './accidentAdjustments';
 export * from './featureAdjustments';
 export * from './descriptions';
 
+import { VehicleCondition } from './types';
+import { getMileageAdjustment } from './mileageAdjustments';
+import { getConditionAdjustment } from './conditionAdjustments';
+import { getZipAdjustment } from './locationAdjustments';
+import { getTrimAdjustment } from './trimAdjustments';
+import { getAccidentHistoryAdjustment } from './accidentAdjustments';
+import { getPremiumFeaturesAdjustment } from './featureAdjustments';
+
 export function calculateTotalAdjustment(params: {
   mileage: number;
   condition: VehicleCondition;
