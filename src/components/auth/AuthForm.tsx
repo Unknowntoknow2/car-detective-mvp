@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tab } from '@headlessui/react';
-import { Mail, Phone, Eye, EyeOff, Lock } from 'lucide-react';
+import { Mail, Phone, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,6 @@ import { toast } from 'sonner';
 import { AuthMode, AuthType } from '@/types/auth';
 
 const AuthForm = ({ mode }: { mode: AuthMode }) => {
-  // State for form fields
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -29,30 +28,29 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailExistsError, setEmailExistsError] = useState('');
   const [phoneExistsError, setPhoneExistsError] = useState('');
-  
+
   const navigate = useNavigate();
   const { session } = useAuth();
 
-  // Redirect if user is already logged in
   useEffect(() => {
     if (session) {
       navigate('/');
     }
   }, [session, navigate]);
 
-  // Validate email format
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Validate phone number format (basic validation)
   const isValidPhone = (phone: string) => {
     return /^\+?[1-9]\d{9,14}$/.test(phone);
   };
 
-  // Check if email already exists
   const checkEmailExists = async (email: string) => {
-    if (!isValidEmail(email)) return;
+    if (!isValidEmail(email)) {
+      setEmailExistsError('');
+      return;
+    }
     
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -62,20 +60,21 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         }
       });
 
-      // If there's no error or it's not the user not found error, it means the user exists
       if (error && error.message.includes("User not found")) {
         setEmailExistsError('');
       } else {
-        setEmailExistsError('An account with this email already exists.');
+        setEmailExistsError('An account with this email already exists. Please log in or reset your password.');
       }
     } catch (error) {
       console.error('Error checking email:', error);
     }
   };
 
-  // Check if phone already exists (this is a mock implementation as Supabase doesn't directly provide this)
   const checkPhoneExists = async (phone: string) => {
-    if (!isValidPhone(phone)) return;
+    if (!isValidPhone(phone)) {
+      setPhoneExistsError('');
+      return;
+    }
     
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -85,25 +84,34 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         }
       });
 
-      // Similar logic to email check
       if (error && error.message.includes("Phone number not found")) {
         setPhoneExistsError('');
       } else {
-        setPhoneExistsError('An account with this phone number already exists.');
+        setPhoneExistsError('An account with this phone number already exists. Please log in using OTP.');
       }
     } catch (error) {
       console.error('Error checking phone:', error);
     }
   };
 
-  // Handle auth submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Validate fields based on auth mode and type
       if (mode === 'signup') {
+        if (authType === 'email' && emailExistsError) {
+          toast.error(emailExistsError);
+          setIsLoading(false);
+          return;
+        }
+        
+        if (authType === 'phone' && phoneExistsError) {
+          toast.error(phoneExistsError);
+          setIsLoading(false);
+          return;
+        }
+
         if (authType === 'email') {
           if (!isValidEmail(email)) {
             toast.error('Please enter a valid email address');
@@ -135,20 +143,34 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             return;
           }
 
-          // Sign up with email
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: window.location.origin + '/auth/callback',
-              data: {
-                agreed_to_terms: agreeToTerms,
+          try {
+            const { error } = await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                emailRedirectTo: window.location.origin + '/auth/callback',
+                data: {
+                  agreed_to_terms: agreeToTerms,
+                }
               }
-            }
-          });
+            });
 
-          if (error) throw error;
-          toast.success('Sign up successful! Please check your email for verification.');
+            if (error) {
+              if (error.status === 400 && error.message.toLowerCase().includes('email')) {
+                toast.error('An account with this email already exists. Please log in or reset your password.');
+                setEmailExistsError('An account with this email already exists. Please log in or reset your password.');
+              } else {
+                throw error;
+              }
+              setIsLoading(false);
+              return;
+            }
+
+            toast.success('Sign up successful! Please check your email for verification.');
+          } catch (error: any) {
+            console.error('Signup error:', error);
+            toast.error(error.message || 'Failed to sign up');
+          }
         } else if (authType === 'phone') {
           if (!isValidPhone(phone)) {
             toast.error('Please enter a valid phone number');
@@ -168,16 +190,30 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             return;
           }
 
-          // Sign up with phone
-          const { error } = await supabase.auth.signInWithOtp({
-            phone,
-            options: {
-              shouldCreateUser: true,
-            }
-          });
+          try {
+            const { error } = await supabase.auth.signInWithOtp({
+              phone,
+              options: {
+                shouldCreateUser: true,
+              }
+            });
 
-          if (error) throw error;
-          toast.success('Verification code sent to your phone');
+            if (error) {
+              if (error.status === 409 || (error.status === 400 && error.message.toLowerCase().includes('phone'))) {
+                toast.error('An account with this phone number already exists. Please log in using OTP.');
+                setPhoneExistsError('An account with this phone number already exists. Please log in using OTP.');
+              } else {
+                throw error;
+              }
+              setIsLoading(false);
+              return;
+            }
+
+            toast.success('Verification code sent to your phone');
+          } catch (error: any) {
+            console.error('Phone signup error:', error);
+            toast.error(error.message || 'Failed to sign up');
+          }
         }
       } else if (mode === 'login') {
         if (authType === 'email') {
@@ -187,15 +223,19 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             return;
           }
 
-          // Sign in with email
-          const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+          try {
+            const { error } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
 
-          if (error) throw error;
-          toast.success('Successfully logged in!');
-          navigate('/');
+            if (error) throw error;
+            toast.success('Successfully logged in!');
+            navigate('/');
+          } catch (error: any) {
+            console.error('Login error:', error);
+            toast.error(error.message || 'Failed to log in');
+          }
         } else if (authType === 'phone') {
           if (!isValidPhone(phone)) {
             toast.error('Please enter a valid phone number');
@@ -204,7 +244,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           }
 
           if (!otp) {
-            // First step: request OTP
             const { error } = await supabase.auth.signInWithOtp({
               phone,
             });
@@ -212,7 +251,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             if (error) throw error;
             toast.success('Verification code sent to your phone');
           } else {
-            // Second step: verify OTP
             const { error } = await supabase.auth.verifyOtp({
               phone,
               token: otp,
@@ -264,15 +302,12 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           return;
         }
 
-        // This is a mock functionality
         setTimeout(() => {
           toast.success('If this phone number matches an account, we will show the associated email.');
-          // Mock showing a masked email
           toast.info('Associated email: m****@gmail.com');
         }, 1500);
       }
     } catch (error: any) {
-      // Handle specific error codes
       if (error.message.includes('already registered')) {
         toast.error('An account with this email already exists.');
       } else if (error.message.includes('Invalid login credentials')) {
@@ -287,7 +322,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     }
   };
 
-  // Render different forms based on auth mode
   const renderForm = () => {
     if (mode === 'signup') {
       return (
@@ -619,7 +653,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     return null;
   };
 
-  // Generate title based on auth mode
   const getTitle = () => {
     switch (mode) {
       case 'signup': return 'Create Account';
@@ -631,7 +664,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     }
   };
 
-  // Generate description based on auth mode
   const getDescription = () => {
     switch (mode) {
       case 'signup': return 'Create a new account to save your valuations';
@@ -643,7 +675,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     }
   };
 
-  // Generate button text based on auth mode and stage
   const getButtonText = () => {
     if (isLoading) return 'Loading...';
     
@@ -660,7 +691,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     }
   };
 
-  // Generate link to switch between login and signup
   const getToggleLink = () => {
     if (mode === 'signup') {
       return (
