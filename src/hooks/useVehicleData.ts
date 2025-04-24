@@ -5,13 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 interface Make {
   id: string;
   make_name: string;
-  logo_url: string;
+  logo_url: string | null;
+  nhtsa_make_id?: number;
 }
 
 interface Model {
   id: string;
   model_name: string;
   make_id: string;
+  nhtsa_model_id?: number;
 }
 
 export function useVehicleData() {
