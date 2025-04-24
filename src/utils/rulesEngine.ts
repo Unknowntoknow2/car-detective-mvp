@@ -1,6 +1,5 @@
-
+import { VehicleCondition } from './adjustments/types';
 import rulesConfig from './valuationRules.json';
-import { VehicleCondition } from './priceAdjustments';
 
 export interface AdjustmentBreakdown {
   label: string;
