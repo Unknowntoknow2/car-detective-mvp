@@ -22,9 +22,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   const [termsError, setTermsError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
 
   const validateTerms = () => {
     if (!agreeToTerms) {
@@ -50,6 +47,15 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
 
   const handleEmailSignup = async (email: string, password: string): Promise<void> => {
     if (!validateTerms()) return Promise.resolve();
+    
+    // Double check for existing email before proceeding
+    if (emailError.includes('already exists')) {
+      toast.error('Email already in use', {
+        description: 'This email is already registered. Please try logging in instead.',
+      });
+      return Promise.resolve();
+    }
+    
     setIsLoading(true);
 
     try {
@@ -78,6 +84,15 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
 
   const handlePhoneSignup = async (phone: string): Promise<void> => {
     if (!validateTerms()) return Promise.resolve();
+    
+    // Double check for existing phone before proceeding
+    if (phoneError.includes('already exists')) {
+      toast.error('Phone already in use', {
+        description: 'This phone number is already registered. Please try logging in instead.',
+      });
+      return Promise.resolve();
+    }
+    
     setIsLoading(true);
 
     try {
@@ -97,18 +112,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       handleSignupError(error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleSignupClick = () => {
-    if (authType === 'email') {
-      if (email && password) {
-        handleEmailSignup(email, password);
-      }
-    } else {
-      if (phone) {
-        handlePhoneSignup(phone);
-      }
     }
   };
 
@@ -164,8 +167,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       <Button 
         type="button" 
         className="w-full mt-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200" 
-        disabled={isLoading || (authType === 'email' && !!emailError) || (authType === 'phone' && !!phoneError)}
-        onClick={handleSignupClick}
+        disabled={isLoading || (authType === 'email' && !!emailError) || (authType === 'phone' && !!phoneError) || !agreeToTerms}
+        onClick={() => authType === 'email' ? handleEmailSignup(document.getElementById('email') as HTMLInputElement).value, document.getElementById('password') as HTMLInputElement).value) : handlePhoneSignup(document.getElementById('phone-number') as HTMLInputElement).value)}
       >
         {isLoading ? 'Processing...' : 'Create Account'}
       </Button>

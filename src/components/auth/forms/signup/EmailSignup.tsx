@@ -29,7 +29,6 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
 
   const checkEmailExists = async (email: string) => {
     if (!validateEmail(email)) {
-      setEmailError('');
       return;
     }
     
@@ -41,8 +40,7 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
       setIsCheckingEmail(true);
       
       try {
-        // Use signInWithOtp method to check if email exists
-        // This is a better approach as it doesn't require admin privileges
+        // Using signInWithOtp to check if the email exists
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
@@ -50,11 +48,23 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
           }
         });
         
-        // If error contains "User not found", email is available
-        if (error && error.message.includes("User not found")) {
+        // If the error contains "Email not confirmed", that means the account exists
+        // If error contains "User already registered", that means the account exists
+        // If error contains "Invalid login credentials", that means the account exists
+        if (error && 
+            (error.message.includes("Email not confirmed") || 
+             error.message.includes("User already registered") || 
+             error.message.includes("Invalid login credentials"))) {
+          setEmailError('An account with this email already exists. Try logging in instead.');
+        } else if (error && error.message.includes("User not found")) {
+          // This means email is available
+          setEmailError('');
+        } else if (error) {
+          // Some other error - don't block the user
+          console.error('Error checking email:', error);
           setEmailError('');
         } else {
-          // No error or different error means user likely exists
+          // No error means the OTP was sent, which suggests an account exists
           setEmailError('An account with this email already exists. Try logging in instead.');
         }
       } catch (error) {
