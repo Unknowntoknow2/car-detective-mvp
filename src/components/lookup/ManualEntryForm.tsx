@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { ManualEntryFormData, AccidentDetails } from './types/manualEntry';
 import { VehicleBasicInfo } from './form-parts/VehicleBasicInfo';
 import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 import { VehicleConditionSlider } from './form-parts/VehicleConditionSlider';
+import { VehicleFeatureSelect } from './form-parts/VehicleFeatureSelect';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { useManualValuation } from '@/hooks/useManualValuation';
 import { 
@@ -55,6 +55,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     severity: '',
     area: ''
   });
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
   const getConditionLabel = (value: number): string => {
     if (value <= 25) return 'poor';
@@ -103,7 +104,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       condition: getConditionLabel(conditionValue),
       zipCode,
       accident: isPremium ? accident : undefined,
-      accidentDetails: isPremium && accident === 'yes' ? accidentDetails : undefined
+      accidentDetails: isPremium && accident === 'yes' ? accidentDetails : undefined,
+      selectedFeatures: selectedFeatures
     };
 
     if (onSubmit) {
@@ -117,7 +119,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       year: selectedYear as number,
       mileage: parsedMileage,
       condition: getConditionLabel(conditionValue),
-      fuelType: fuelType || 'Gasoline'
+      fuelType: fuelType || 'Gasoline',
+      selectedFeatures
     });
 
     if (result) {
@@ -152,14 +155,18 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         setZipCode={setZipCode}
         fuelType={fuelType}
         setFuelType={setFuelType}
-        condition={condition}
-        setCondition={setCondition}
         isDisabled={isFormLoading}
       />
 
       <VehicleConditionSlider
         value={conditionValue}
         onChange={setConditionValue}
+        disabled={isFormLoading}
+      />
+
+      <VehicleFeatureSelect
+        selectedFeatures={selectedFeatures}
+        onFeaturesChange={setSelectedFeatures}
         disabled={isFormLoading}
       />
 

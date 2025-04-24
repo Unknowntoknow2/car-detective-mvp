@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { Slider } from "@/components/ui/slider";
+import { Slider } from '@/components/ui/slider';
+import { Tooltip } from '@/components/ui/tooltip';
 import { 
-  Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Info } from 'lucide-react';
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
 
 interface VehicleConditionSliderProps {
   value: number;
@@ -15,17 +14,11 @@ interface VehicleConditionSliderProps {
   disabled?: boolean;
 }
 
-const CONDITIONS = [
-  { value: 25, label: 'Poor', color: 'bg-red-500' },
-  { value: 50, label: 'Fair', color: 'bg-yellow-500' },
-  { value: 75, label: 'Good', color: 'bg-green-500' },
-  { value: 90, label: 'Excellent', color: 'bg-emerald-500' }
-];
-
-const getConditionFromValue = (value: number) => {
-  return CONDITIONS.reduce((prev, curr) => {
-    return Math.abs(curr.value - value) < Math.abs(prev.value - value) ? curr : prev;
-  });
+const conditionDescriptions = {
+  poor: "Mechanical faults, accident history, interior damage",
+  fair: "Noticeable wear, faded paint, high mileage, noisy engine",
+  good: "Minor wear, no major defects, regular maintenance",
+  excellent: "No scratches, no mechanical issues, full service records"
 };
 
 export const VehicleConditionSlider = ({ 
@@ -33,53 +26,46 @@ export const VehicleConditionSlider = ({
   onChange,
   disabled = false 
 }: VehicleConditionSliderProps) => {
-  const currentCondition = getConditionFromValue(value);
+  const getConditionLabel = (val: number): string => {
+    if (val <= 25) return 'poor';
+    if (val <= 50) return 'fair';
+    if (val <= 75) return 'good';
+    return 'excellent';
+  };
+
+  const currentCondition = getConditionLabel(value);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Vehicle Condition
-        </label>
+    <div className="w-full space-y-4">
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-medium">Vehicle Condition</label>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Info className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-semibold capitalize">{currentCondition}</span>
             </TooltipTrigger>
-            <TooltipContent className="w-80">
-              <h4 className="font-semibold mb-2">{currentCondition.label} Condition</h4>
-              <p className="text-sm">
-                {currentCondition.label === 'Poor' && 'Vehicle has mechanical faults, accident history, or interior damage'}
-                {currentCondition.label === 'Fair' && 'Vehicle shows noticeable wear, faded paint, or high mileage'}
-                {currentCondition.label === 'Good' && 'Vehicle has minor wear, no major defects, with regular maintenance'}
-                {currentCondition.label === 'Excellent' && 'Vehicle is like new with no scratches and full service records'}
-              </p>
+            <TooltipContent>
+              <p className="text-sm">{conditionDescriptions[currentCondition]}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      <div className="pt-2">
-        <Slider
-          defaultValue={[value]}
-          max={90}
-          min={25}
-          step={1}
-          disabled={disabled}
-          onValueChange={([newValue]) => onChange(newValue)}
-          className="w-full"
-        />
-        <div className="flex justify-between mt-2">
-          {CONDITIONS.map((condition) => (
-            <div 
-              key={condition.value} 
-              className="flex flex-col items-center"
-            >
-              <div className={`w-2 h-2 rounded-full ${condition.value === value ? condition.color : 'bg-gray-300'}`} />
-              <span className="text-xs mt-1">{condition.label}</span>
-            </div>
-          ))}
-        </div>
+      
+      <Slider
+        value={[value]}
+        min={25}
+        max={90}
+        step={1}
+        onValueChange={([newValue]) => onChange(newValue)}
+        disabled={disabled}
+        className="w-full"
+      />
+      
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>Poor</span>
+        <span>Fair</span>
+        <span>Good</span>
+        <span>Excellent</span>
       </div>
     </div>
   );

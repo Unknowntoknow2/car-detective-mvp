@@ -165,6 +165,30 @@ export type Database = {
         }
         Relationships: []
       }
+      features: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          name: string
+          value_impact: number
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          name: string
+          value_impact: number
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          value_impact?: number
+        }
+        Relationships: []
+      }
       makes: {
         Row: {
           created_at: string
@@ -373,6 +397,39 @@ export type Database = {
           year?: number | null
         }
         Relationships: []
+      }
+      vehicle_features: {
+        Row: {
+          created_at: string | null
+          feature_id: string
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feature_id: string
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feature_id?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicle_features_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
