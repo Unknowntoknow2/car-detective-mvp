@@ -138,6 +138,56 @@ export type Database = {
         }
         Relationships: []
       }
+      makes: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          make_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          make_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          make_name?: string
+        }
+        Relationships: []
+      }
+      models: {
+        Row: {
+          created_at: string
+          id: string
+          make_id: string
+          model_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          make_id: string
+          model_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          make_id?: string
+          model_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "models_make_id_fkey"
+            columns: ["make_id"]
+            isOneToOne: false
+            referencedRelation: "makes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plate_lookups: {
         Row: {
           color: string | null

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
+import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
 
 export function LookupTabs() {
   const navigate = useNavigate();
@@ -39,13 +40,7 @@ export function LookupTabs() {
       <TabsContent value="manual">
         <div className="space-y-4 p-6 bg-white rounded-lg shadow-sm">
           <h4 className="text-lg font-semibold">Manual Vehicle Entry</h4>
-          <Input placeholder="Make" />
-          <Input placeholder="Model" />
-          <Input placeholder="Year" type="number" />
-          <Input placeholder="Mileage" type="number" />
-          <Button onClick={() => navigate("/lookup/manual")} className="w-full">
-            Submit
-          </Button>
+          <ManualEntryForm />
         </div>
       </TabsContent>
     </Tabs>
