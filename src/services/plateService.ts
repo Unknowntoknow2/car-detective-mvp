@@ -23,8 +23,8 @@ export async function lookupPlate(plate: string, state: string): Promise<PlateLo
   }
 }
 
-// Mock function for MVP (would be replaced with actual API call)
-async function mockPlateLookup(plate: string, state: string): Promise<PlateLookupResponse> {
+// Export the mockPlateLookup function
+export async function mockPlateLookup(plate: string, state: string): Promise<PlateLookupResponse> {
   // Basic validation
   if (!plate || plate.length < 2 || plate.length > 8) {
     return { error: 'Invalid plate format. Plate must be between 2-8 characters.' };
