@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SearchCheck } from 'lucide-react';
 
 interface VinLookupFormProps {
   vin: string;
@@ -20,25 +21,30 @@ export const VinLookupForm = ({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
         <label htmlFor="vin" className="text-sm font-medium">
-          VIN (17 characters)
+          Vehicle Identification Number (VIN)
         </label>
         <Input
           id="vin"
           value={vin}
           onChange={(e) => onVinChange(e.target.value.toUpperCase())}
-          placeholder="e.g. 1HGCM82633A004352"
+          placeholder="Enter your 17-character VIN number"
           maxLength={17}
-          className="uppercase"
+          className="uppercase font-mono text-lg tracking-wider"
           pattern="[A-HJ-NPR-Z0-9]{17}"
-          title="VIN must be 17 characters and contain only alphanumeric characters (excluding I, O, Q)"
+          title="Please enter a valid 17-character VIN (no I, O, or Q allowed)"
           required
         />
         <p className="text-xs text-muted-foreground">
-          Enter a 17-character VIN to decode vehicle information
+          Tip: Your VIN can be found on your vehicle registration, insurance card, or driver's side door jamb
         </p>
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading || vin.length !== 17}>
-        {isLoading ? 'Looking Up...' : 'Lookup VIN'}
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={isLoading || vin.length !== 17}
+      >
+        <SearchCheck className="mr-2" />
+        {isLoading ? 'Looking Up Vehicle Details...' : 'Get Vehicle Details'}
       </Button>
     </form>
   );
