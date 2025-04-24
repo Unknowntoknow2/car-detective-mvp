@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,10 +28,19 @@ export const PlateLookupForm = ({
 
   useEffect(() => {
     if (autoSubmit && plate && state && !isLoading) {
-      // Create a synthetic FormEvent instead of casting Event
+      // Create a more comprehensive synthetic FormEvent
       const syntheticEvent = {
         preventDefault: () => {},
-        target: document.createElement('form')
+        target: document.createElement('form'),
+        currentTarget: document.createElement('form'),
+        nativeEvent: new Event('submit'),
+        type: 'submit',
+        bubbles: true,
+        cancelable: true,
+        defaultPrevented: false,
+        isDefaultPrevented: () => false,
+        isPropagationStopped: () => false,
+        persist: () => {}
       } as React.FormEvent;
       
       onSubmit(syntheticEvent);
