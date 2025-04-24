@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,9 +13,8 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
-  // Get the current origin (hostname) for redirect URL
-  const origin = window.location.origin;
-  const redirectTo = `${origin}/`;
+  // Use the deployed frontend URL for redirects
+  const redirectTo = "https://car-detective.vercel.app/";
 
   useEffect(() => {
     const checkSession = async () => {
