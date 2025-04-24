@@ -34,7 +34,6 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const navigate = useNavigate();
   const { 
     makes, 
-    models, 
     getModelsByMake,
     getYearOptions,
     isLoading: isDataLoading,
@@ -72,7 +71,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     
     const parsedMileage = parseInt(mileage, 10);
     if (isNaN(parsedMileage) || parsedMileage <= 0) {
-      toast.error('Please enter a valid positive mileage');
+      toast.error('Please enter a valid positive mileage greater than zero');
       return;
     }
 
@@ -132,12 +131,6 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 
   return (
     <div className="space-y-6">
-      {isPremium && (
-        <div className="text-sm text-yellow-700 bg-yellow-100 p-4 rounded">
-          Your premium valuation includes verified CARFAX® accident data and comprehensive vehicle history.
-        </div>
-      )}
-
       <VehicleBasicInfo
         selectedMakeId={selectedMakeId}
         setSelectedMakeId={setSelectedMakeId}
