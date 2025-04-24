@@ -8,6 +8,10 @@ import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
 export function LookupTabs() {
   const navigate = useNavigate();
 
+  const handleManualSubmit = async () => {
+    navigate("/lookup/manual");
+  };
+
   return (
     <Tabs defaultValue="vin" className="w-full">
       <TabsList className="grid w-full grid-cols-3">

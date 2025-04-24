@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,14 @@ import { useVehicleData } from '@/hooks/useVehicleData';
 import { useManualValuation } from '@/hooks/useManualValuation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
-export const ManualEntryForm: React.FC = () => {
+interface ManualEntryFormProps {
+  onSubmit?: (data: ManualEntryFormData) => Promise<void>;
+  isLoading?: boolean;
+}
+
+export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLoading: externalLoading }) => {
   const navigate = useNavigate();
   const { 
     makes, 
@@ -61,7 +66,20 @@ export const ManualEntryForm: React.FC = () => {
       return;
     }
 
-    // Perform valuation
+    // If external onSubmit is provided, use it
+    if (onSubmit) {
+      await onSubmit({
+        make: selectedMake.make_name,
+        model: selectedModel,
+        year: selectedYear as number,
+        mileage: parsedMileage,
+        condition: 'good', // Default condition, could be expanded later
+        fuelType: 'Gasoline' // Default fuel type, could be expanded later
+      });
+      return;
+    }
+
+    // Otherwise use the internal calculation and navigation
     const result = await calculateValuation({
       make: selectedMake.make_name,
       model: selectedModel,
@@ -72,8 +90,7 @@ export const ManualEntryForm: React.FC = () => {
     });
 
     if (result) {
-      // Navigate to valuation page - removed the id property access that was causing the error
-      // Just navigate to the valuation page without an ID, or handle it differently
+      // Navigate to valuation page without an ID
       navigate(`/valuation`);
     }
   };
@@ -91,12 +108,15 @@ export const ManualEntryForm: React.FC = () => {
     );
   }
 
+  // Determine loading state from either internal or external sources
+  const isFormLoading = externalLoading || isDataLoading || isValuationLoading;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Make Selection */}
       <Select 
         onValueChange={setSelectedMakeId}
-        disabled={isDataLoading}
+        disabled={isFormLoading}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select Make" />
@@ -122,7 +142,7 @@ export const ManualEntryForm: React.FC = () => {
       {/* Model Selection */}
       <Select 
         onValueChange={setSelectedModel}
-        disabled={!selectedMakeId || isDataLoading}
+        disabled={!selectedMakeId || isFormLoading}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select Model" />
@@ -139,7 +159,7 @@ export const ManualEntryForm: React.FC = () => {
       {/* Year Selection */}
       <Select 
         onValueChange={(value) => setSelectedYear(Number(value))}
-        disabled={isDataLoading}
+        disabled={isFormLoading}
       >
         <SelectTrigger>
           <SelectValue placeholder="Select Year" />
@@ -159,16 +179,16 @@ export const ManualEntryForm: React.FC = () => {
         placeholder="Enter Mileage" 
         value={mileage}
         onChange={(e) => setMileage(e.target.value)}
-        disabled={isDataLoading}
+        disabled={isFormLoading}
       />
 
       {/* Submit Button */}
       <Button 
         onClick={handleSubmit} 
-        disabled={isDataLoading || isValuationLoading}
+        disabled={isFormLoading}
         className="col-span-full"
       >
-        {(isDataLoading || isValuationLoading) ? (
+        {isFormLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Loading...
