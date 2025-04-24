@@ -1,3 +1,6 @@
+
+import { PlateLookupInfo } from './lookup';
+
 export interface VinDecoderResponse {
   data?: DecodedVehicleInfo;
   error?: string;
