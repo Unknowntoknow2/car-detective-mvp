@@ -11,7 +11,7 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerato
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { VehicleScoring } from '@/components/lookup/scoring/VehicleScoring';
+import { VehicleScoring } from '@/components/lookup/VehicleScoring';
 
 const ManualLookupPage = () => {
   const { calculateValuation, vehicleInfo, isLoading, reset } = useManualValuation();

@@ -12,7 +12,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { VehicleDetailsGrid } from './VehicleDetailsGrid';
-import { VehicleScoring } from './scoring/VehicleScoring';
+import { VehicleScoring } from './VehicleScoring';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
