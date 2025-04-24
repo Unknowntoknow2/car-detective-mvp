@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
+import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { Button } from '@/components/ui/button';
 import { useManualValuation, ManualVehicleInfo } from '@/hooks/useManualValuation';
 import { useSaveValuation } from '@/hooks/useSaveValuation';

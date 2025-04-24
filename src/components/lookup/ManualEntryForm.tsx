@@ -72,7 +72,9 @@ export const ManualEntryForm: React.FC = () => {
     });
 
     if (result) {
-      navigate(`/valuation/${result.id}`);
+      // Navigate to valuation page - removed the id property access that was causing the error
+      // Just navigate to the valuation page without an ID, or handle it differently
+      navigate(`/valuation`);
     }
   };
 
