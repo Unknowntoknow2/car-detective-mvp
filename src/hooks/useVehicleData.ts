@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface Make {
   id: string;
@@ -44,7 +43,6 @@ export function useVehicleData() {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load vehicle data';
         setError(errorMessage);
-        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
