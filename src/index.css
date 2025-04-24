@@ -137,7 +137,7 @@
   
   .button-outline {
     @apply relative bg-transparent border border-primary text-primary font-medium
-           px-6 py-3 rounded-lg transition-all duration-300 hover:bg-primary-light
+           px-6 py-3 rounded-lg transition-all duration-300 hover:bg-primary-light/50
            active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
   }
 
@@ -159,16 +159,17 @@
   /* Cards */
   .card {
     @apply bg-surface-card rounded-xl shadow-md p-6 border border-border/50 transition-all
-           hover:shadow-lg;
+           hover:shadow-lg hover:border-border;
   }
 
   .card-premium {
     @apply bg-gradient-card rounded-xl shadow-lg p-6 border border-primary/10 transition-all
-           hover:shadow-xl;
+           hover:shadow-xl hover:border-primary/20;
   }
 
   .info-card {
-    @apply bg-surface rounded-lg border border-border p-4 transition-all;
+    @apply bg-surface rounded-lg border border-border p-4 transition-all
+          hover:border-border-dark;
   }
 
   /* Progress steps */
@@ -202,12 +203,14 @@
   
   /* Glass morphism */
   .glass {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-glass;
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-glass
+           hover:bg-white/90 transition-all;
   }
   
   /* Neumorphism */
   .neumorph {
-    @apply bg-gradient-neumorph rounded-xl shadow-md p-6 border-none;
+    @apply bg-gradient-neumorph rounded-xl shadow-md p-6 border-none
+           hover:shadow-lg transition-all;
   }
   
   /* Tooltip */
@@ -245,6 +248,32 @@
            hover:shadow-[0_6px_0_0_#004ECC] hover:-translate-y-0.5
            active:translate-y-1 active:shadow-[0_0px_0_0_#004ECC]
            disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  /* Form tabs transitions */
+  .tab-content {
+    @apply transition-all duration-300 transform;
+  }
+  
+  .tab-content[data-state="inactive"] {
+    @apply opacity-0 translate-y-2;
+  }
+  
+  .tab-content[data-state="active"] {
+    @apply opacity-100 translate-y-0;
+  }
+  
+  /* Enhanced hover effects */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+  }
+  
+  .hover-glow {
+    @apply transition-shadow duration-300 hover:shadow-[0_0_15px_rgba(0,98,255,0.3)];
+  }
+  
+  .hover-border-accent {
+    @apply transition-colors duration-200 hover:border-primary/30;
   }
 }
 
