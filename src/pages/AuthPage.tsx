@@ -14,6 +14,10 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
+  // Get the current origin (hostname) for redirect URL
+  const origin = window.location.origin;
+  const redirectTo = `${origin}/`;
+
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -33,6 +37,9 @@ export default function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: redirectTo
+          }
         });
         if (error) throw error;
         toast.success("Sign up successful! Please check your email for verification.");
