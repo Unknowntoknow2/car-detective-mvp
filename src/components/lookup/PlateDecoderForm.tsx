@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +5,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { usePlateLookup } from '@/hooks/usePlateLookup';
 import { PlateLookupInfo } from '@/types/lookup';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Download } from 'lucide-react';
+import { downloadPdf } from '@/utils/pdfGenerator';
 
-// List of US state codes
 const US_STATES = [
   { value: 'AL', label: 'Alabama' },
   { value: 'AK', label: 'Alaska' },
@@ -133,7 +133,6 @@ interface PlateInfoCardProps {
 }
 
 const PlateInfoCard = ({ vehicleInfo }: PlateInfoCardProps) => {
-  // Helper function to display field value with "Unknown" fallback
   const displayField = (value: string | number | null | undefined) => {
     if (value === undefined || value === null) return "Unknown";
     if (typeof value === 'string' && (
@@ -173,6 +172,15 @@ const PlateInfoCard = ({ vehicleInfo }: PlateInfoCardProps) => {
           </div>
         </div>
       </CardContent>
+      <CardFooter className="flex justify-end pt-4">
+        <Button 
+          onClick={() => downloadPdf(vehicleInfo)}
+          variant="outline"
+        >
+          <Download className="mr-2" />
+          Download Report
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
