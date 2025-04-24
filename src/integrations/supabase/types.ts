@@ -9,7 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      decoded_vehicles: {
+        Row: {
+          body_type: string | null
+          created_at: string
+          drivetrain: string | null
+          engine: string | null
+          id: string
+          make: string | null
+          model: string | null
+          transmission: string | null
+          trim: string | null
+          vin: string
+          year: number | null
+        }
+        Insert: {
+          body_type?: string | null
+          created_at?: string
+          drivetrain?: string | null
+          engine?: string | null
+          id?: string
+          make?: string | null
+          model?: string | null
+          transmission?: string | null
+          trim?: string | null
+          vin: string
+          year?: number | null
+        }
+        Update: {
+          body_type?: string | null
+          created_at?: string
+          drivetrain?: string | null
+          engine?: string | null
+          id?: string
+          make?: string | null
+          model?: string | null
+          transmission?: string | null
+          trim?: string | null
+          vin?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      plate_lookups: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          make: string | null
+          model: string | null
+          plate: string
+          state: string
+          year: number | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          make?: string | null
+          model?: string | null
+          plate: string
+          state: string
+          year?: number | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          make?: string | null
+          model?: string | null
+          plate?: string
+          state?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
