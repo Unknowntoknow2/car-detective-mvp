@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "sonner";
 import { Download, Trash2 } from 'lucide-react';
-import { downloadPdf } from '@/utils/pdfGenerator';
+import { downloadPdf } from '@/utils/pdf';
 
 interface SavedValuation {
   id: string;

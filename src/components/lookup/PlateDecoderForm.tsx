@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePlateLookup } from '@/hooks/usePlateLookup';
-import { convertVehicleInfoToReportData, downloadPdf } from '@/utils/pdfGenerator';
+import { convertVehicleInfoToReportData, downloadPdf } from '@/utils/pdf';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
 import { PlateLookupForm } from './plate/PlateLookupForm';

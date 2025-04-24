@@ -1,5 +1,6 @@
 
-import { DecodedVehicleInfo, PlateLookupInfo } from '@/types/lookup';
+import { PlateLookupInfo } from '@/types/lookup';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData, ValuationReportOptions } from './types';
 
 export function convertVehicleInfoToReportData(

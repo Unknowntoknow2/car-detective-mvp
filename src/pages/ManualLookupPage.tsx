@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useManualValuation, ManualVehicleInfo } from '@/hooks/useManualValuation';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';

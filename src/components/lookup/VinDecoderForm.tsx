@@ -8,7 +8,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
 import { VehicleInfoCard } from './VehicleInfoCard';

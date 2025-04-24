@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { Valuation } from '@/types/dealer';
 import { AlertCircle, CheckCircle, Shield, AlertTriangle } from 'lucide-react';
