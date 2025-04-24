@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ import DealerDashboard from "./pages/DealerDashboard";
 import DealerSignup from "./pages/dealer/signup";
 import ProfilePage from "./pages/ProfilePage";
 import DealerOffersPage from "./pages/dealer/DealerOffersPage";
+import PremiumPage from "./pages/PremiumPage";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +70,7 @@ const App = () => (
                 <DealerOffersPage />
               </ProtectedRoute>
             } />
+            <Route path="/premium" element={<PremiumPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

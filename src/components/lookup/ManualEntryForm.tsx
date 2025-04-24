@@ -1,15 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { useManualValuation } from '@/hooks/useManualValuation';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -21,9 +12,14 @@ import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 interface ManualEntryFormProps {
   onSubmit?: (data: ManualEntryFormData) => Promise<void>;
   isLoading?: boolean;
+  submitButtonText?: string;
 }
 
-export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLoading: externalLoading }) => {
+export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
+  onSubmit, 
+  isLoading: externalLoading,
+  submitButtonText = 'Get Vehicle Valuation'
+}) => {
   const navigate = useNavigate();
   const { 
     makes, 
@@ -49,7 +45,6 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLo
   });
 
   const handleSubmit = async () => {
-    // Validation
     if (!selectedMakeId) {
       toast.error('Please select a make');
       return;
@@ -74,7 +69,6 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLo
       return;
     }
 
-    // Find make name from ID
     const selectedMake = makes.find(m => m.id === selectedMakeId);
     if (!selectedMake) {
       toast.error('Invalid make selected');
@@ -179,7 +173,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLo
             Loading...
           </>
         ) : (
-          'Get Vehicle Valuation'
+          submitButtonText
         )}
       </Button>
     </div>
