@@ -37,8 +37,13 @@ export const VehicleInfoCard = ({
       </CardHeader>
       <CardContent>
         <VehicleDetailsGrid vehicleInfo={vehicleInfo} />
-        <div className="mt-6">
+        
+        <div className="mt-8 pt-6 border-t border-border/60">
+          <h3 className="text-lg font-semibold mb-4">Valuation & Scoring</h3>
           <VehicleScoring />
+          <p className="text-xs text-muted-foreground mt-4 italic">
+            * Values are estimates based on available market data. Premium reports include detailed market analysis.
+          </p>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between pt-4">

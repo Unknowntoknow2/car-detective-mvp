@@ -11,6 +11,7 @@ import { downloadPdf } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { VehicleScoring } from '@/components/lookup/VehicleScoring';
 
 const ManualLookupPage = () => {
   const { calculateValuation, vehicleInfo, isLoading, reset } = useManualValuation();
@@ -119,9 +120,15 @@ const ManualLookupPage = () => {
                   <p className="text-muted-foreground mb-4">Estimated Value</p>
                   <div className="text-sm">
                     <p>Confidence Score: {vehicleInfo?.confidenceScore}%</p>
+                    <p className="mt-1">Based on 117 comparable vehicles in your area</p>
                     <p className="mt-2 text-xs">Values are estimates based on available data and market conditions</p>
                   </div>
                 </div>
+              </div>
+              
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4">Valuation Breakdown</h3>
+                <VehicleScoring />
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
