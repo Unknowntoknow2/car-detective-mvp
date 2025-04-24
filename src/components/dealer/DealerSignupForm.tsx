@@ -17,13 +17,25 @@ import { Input } from '@/components/ui/input';
 import { DealerSignupData } from '@/types/dealer';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { isValidEmail, isValidPhone, validatePassword } from '@/components/auth/forms/signup/validation';
 
 const dealerFormSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  business_name: z.string().min(2, 'Business name is required'),
-  contact_name: z.string().min(2, 'Contact name is required'),
-  phone: z.string().optional(),
+  email: z.string()
+    .min(1, 'Email is required')
+    .refine(isValidEmail, 'Invalid email format'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .refine((value) => validatePassword(value) === '', {
+      message: validatePassword('dummy') // This triggers the validation message
+    }),
+  business_name: z.string()
+    .min(2, 'Business name must be at least 2 characters')
+    .max(100, 'Business name cannot exceed 100 characters'),
+  contact_name: z.string()
+    .min(2, 'Contact name must be at least 2 characters')
+    .max(100, 'Contact name cannot exceed 100 characters'),
+  phone: z.string()
+    .refine(isValidPhone, 'Please enter a valid phone number (e.g. +1234567890)'),
 });
 
 export function DealerSignupForm() {
@@ -61,12 +73,12 @@ export function DealerSignupForm() {
       if (dealerError) throw dealerError;
 
       toast.success('Registration successful', {
-        description: 'Your application is pending approval.',
+        description: 'Your application has been submitted and is pending approval.',
       });
       form.reset();
     } catch (error: any) {
       toast.error('Registration failed', {
-        description: error.message,
+        description: error.message || 'Please try again later',
       });
     } finally {
       setIsLoading(false);
@@ -83,7 +95,11 @@ export function DealerSignupForm() {
             <FormItem>
               <FormLabel>Business Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your business name" {...field} />
+                <Input 
+                  placeholder="Enter your business name"
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -97,7 +113,11 @@ export function DealerSignupForm() {
             <FormItem>
               <FormLabel>Contact Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter contact person name" {...field} />
+                <Input 
+                  placeholder="Enter contact person name"
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -111,8 +131,16 @@ export function DealerSignupForm() {
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input placeholder="Enter phone number (optional)" {...field} />
+                <Input 
+                  placeholder="Enter phone number (e.g. +1234567890)"
+                  {...field}
+                  type="tel"
+                  disabled={isLoading}
+                />
               </FormControl>
+              <FormDescription>
+                Please include country code (e.g. +1 for US)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -125,7 +153,12 @@ export function DealerSignupForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
+                <Input 
+                  type="email"
+                  placeholder="Enter your email"
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -139,17 +172,26 @@ export function DealerSignupForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Create a password" {...field} />
+                <Input 
+                  type="password"
+                  placeholder="Create a password"
+                  {...field}
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormDescription>
-                Must be at least 8 characters
+                Password must contain at least 8 characters, including uppercase, lowercase, and numbers
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading || !form.formState.isValid}
+        >
           {isLoading ? 'Processing...' : 'Submit Application'}
         </Button>
       </form>
