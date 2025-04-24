@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,8 @@ import {
 } from '@/components/ui/card';
 import { VehicleDetailsGrid } from './VehicleDetailsGrid';
 import { VehicleScoring } from './VehicleScoring';
+import { ForecastChart } from './forecast/ForecastChart';
+import { generateValuationForecast } from '@/utils/forecasting/valuation-forecast';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -29,6 +30,9 @@ export const VehicleInfoCard = ({
   isSaving = false,
   isUserLoggedIn = false 
 }: VehicleInfoCardProps) => {
+  const basePrice = 24500;
+  const forecastData = generateValuationForecast(basePrice);
+
   return (
     <Card className="mt-6 border-2 border-primary/20">
       <CardHeader>
@@ -41,7 +45,7 @@ export const VehicleInfoCard = ({
         <div className="mt-8 pt-6 border-t border-border/60">
           <h3 className="text-lg font-semibold mb-4">Valuation & Scoring</h3>
           <VehicleScoring 
-            baseValue={24500}
+            baseValue={basePrice}
             valuationBreakdown={[
               {
                 factor: "Mileage",
@@ -60,9 +64,32 @@ export const VehicleInfoCard = ({
               }
             ]}
             confidenceScore={92}
-            estimatedValue={24500}
+            estimatedValue={basePrice}
             comparableVehicles={117}
           />
+        </div>
+        
+        <div className="mt-8">
+          <ForecastChart 
+            data={forecastData.forecast} 
+            basePrice={basePrice}
+          />
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="p-4 bg-primary/5 rounded-lg">
+              <p className="font-medium">Best Time to Sell</p>
+              <p className="text-lg">{forecastData.bestTimeToSell}</p>
+            </div>
+            <div className="p-4 bg-primary/5 rounded-lg">
+              <p className="font-medium">12-Month Change</p>
+              <p className="text-lg">{forecastData.percentageChange.toFixed(1)}%</p>
+            </div>
+            <div className="p-4 bg-primary/5 rounded-lg">
+              <p className="font-medium">Value Range</p>
+              <p className="text-lg">
+                ${forecastData.lowestValue.toLocaleString()} - ${forecastData.highestValue.toLocaleString()}
+              </p>
+            </div>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between pt-4">

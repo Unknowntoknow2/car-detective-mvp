@@ -1,4 +1,3 @@
-
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { ReportData, PremiumReportInput } from './types';
 
@@ -222,6 +221,43 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
       y -= 16;
     });
     y -= 20;
+  }
+
+  // Forecast section
+  if (input.forecast) {
+    y -= 30;
+    page.drawText('12-Month Value Forecast', { 
+      x: 50, 
+      y, 
+      size: 16, 
+      font: boldFont, 
+      color: primaryColor 
+    });
+    y -= 25;
+    
+    page.drawText(`Best Time to Sell: ${input.forecast.bestTimeToSell}`, { 
+      x: 60, 
+      y, 
+      size: 12, 
+      font 
+    });
+    y -= 20;
+    
+    page.drawText(`Projected 12-Month Change: ${input.forecast.percentageChange.toFixed(1)}%`, { 
+      x: 60, 
+      y, 
+      size: 12, 
+      font 
+    });
+    y -= 20;
+    
+    page.drawText(`Value Range: $${input.forecast.lowestValue.toLocaleString()} - $${input.forecast.highestValue.toLocaleString()}`, { 
+      x: 60, 
+      y, 
+      size: 12, 
+      font 
+    });
+    y -= 35;
   }
 
   // Footer

@@ -1,5 +1,5 @@
-
 import { CarfaxData } from '../carfax/mockCarfaxService';
+import { ForecastResult } from '../forecasting/valuation-forecast';
 
 export interface ReportData {
   make: string;
@@ -44,4 +44,5 @@ export interface PremiumReportInput {
     adjustments: { label: string; value: number }[];
   };
   carfaxData?: CarfaxData;
+  forecast?: ForecastResult;
 }
