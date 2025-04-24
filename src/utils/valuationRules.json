@@ -1,4 +1,3 @@
-
 {
   "adjustments": {
     "mileage": [
@@ -65,5 +64,13 @@
       }
     },
     "featureValueCap": 0.15
+  },
+  "confidenceRules": {
+    "vin": 30,
+    "zip": 15,
+    "mileage": 15,
+    "yearMakeModel": 20,
+    "condition": 10,
+    "carfax": 10
   }
 }

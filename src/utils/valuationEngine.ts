@@ -1,5 +1,5 @@
 
-import { calculateConfidenceScore } from './confidenceScore';
+import { calculateConfidenceScore } from './confidenceCalculator';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import type { VehicleCondition } from './adjustments/types';
 
