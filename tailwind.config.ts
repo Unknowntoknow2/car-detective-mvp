@@ -204,6 +204,9 @@ export default {
         'none': 'none',
         'blur': 'blur(20px)',
       },
+      borderColor: {
+        'border-dark': 'hsl(var(--border) / 0.7)',
+      }
     }
   },
   plugins: [require("tailwindcss-animate")],
