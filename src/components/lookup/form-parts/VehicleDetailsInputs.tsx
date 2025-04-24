@@ -53,7 +53,23 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form
         )}
       />
       
-      <ZipCodeInput form={form} />
+      <FormField
+        control={form.control}
+        name="zipCode"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>ZIP Code</FormLabel>
+            <FormControl>
+              <ZipCodeInput 
+                zipCode={field.value || ''} 
+                setZipCode={(value) => field.onChange(value)}
+                isDisabled={form.formState.isSubmitting}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 };
