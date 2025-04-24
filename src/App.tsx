@@ -15,6 +15,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import MyValuationsPage from "./pages/MyValuationsPage";
 import NotFound from "./pages/NotFound";
 import DealerDashboard from "./pages/DealerDashboard";
+import DealerSignup from "./pages/DealerSignup";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
                 <DealerDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/dealer/signup" element={<DealerSignup />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

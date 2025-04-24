@@ -1,4 +1,3 @@
-
 export interface Valuation {
   id: string;
   make: string;
@@ -15,4 +14,23 @@ export interface Valuation {
   condition_score: number;
   created_at: string;
   is_vin_lookup: boolean;
+}
+
+export interface DealerSignupData {
+  email: string;
+  password: string;
+  business_name: string;
+  contact_name: string;
+  phone?: string;
+}
+
+export interface Dealer {
+  id: string;
+  business_name: string;
+  contact_name: string;
+  phone?: string;
+  email: string;
+  verified: boolean;
+  created_at: string;
+  updated_at: string;
 }
