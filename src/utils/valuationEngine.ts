@@ -1,3 +1,4 @@
+
 import { calculateConfidenceScore } from './confidenceScore';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import type { VehicleCondition } from './adjustments/types';
@@ -13,8 +14,7 @@ const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {
     'Civic': 22000,
     'Accord': 27000,
     'CR-V': 29000
-  },
-  // Add more makes/models as needed
+  }
 };
 
 const DEFAULT_BASE_PRICE = 20000;
@@ -41,16 +41,10 @@ export interface ValuationResult {
   priceRange: [number, number];
 }
 
-/**
- * Get base price for a vehicle from our sample data
- */
 function getBasePrice(make: string, model: string): number {
   return SAMPLE_BASE_PRICES[make]?.[model] || DEFAULT_BASE_PRICE;
 }
 
-/**
- * Calculate complete vehicle valuation including all adjustments
- */
 export function calculateValuation(input: ValuationInput): ValuationResult {
   // Get base price from our sample data
   const basePrice = getBasePrice(input.make, input.model);
