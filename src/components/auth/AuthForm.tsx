@@ -100,21 +100,21 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
 
     try {
       if (mode === 'signup') {
-        if (authType === 'email' && emailExistsError) {
-          toast.error(emailExistsError);
-          setIsLoading(false);
-          return;
-        }
-        
-        if (authType === 'phone' && phoneExistsError) {
-          toast.error(phoneExistsError);
-          setIsLoading(false);
-          return;
-        }
-
         if (authType === 'email') {
+          if (!email) {
+            toast.error('Email is required');
+            setIsLoading(false);
+            return;
+          }
+          
           if (!isValidEmail(email)) {
-            toast.error('Please enter a valid email address');
+            toast.error('Please enter a valid business email');
+            setIsLoading(false);
+            return;
+          }
+          
+          if (!password) {
+            toast.error('Password cannot be empty');
             setIsLoading(false);
             return;
           }
@@ -172,6 +172,12 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             toast.error(error.message || 'Failed to sign up');
           }
         } else if (authType === 'phone') {
+          if (!phone) {
+            toast.error('Phone number is required');
+            setIsLoading(false);
+            return;
+          }
+          
           if (!isValidPhone(phone)) {
             toast.error('Please enter a valid phone number');
             setIsLoading(false);
@@ -217,8 +223,14 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         }
       } else if (mode === 'login') {
         if (authType === 'email') {
-          if (!isValidEmail(email) || !password) {
-            toast.error('Please enter a valid email and password');
+          if (!email) {
+            toast.error('Email is required');
+            setIsLoading(false);
+            return;
+          }
+          
+          if (!password) {
+            toast.error('Password cannot be empty');
             setIsLoading(false);
             return;
           }
@@ -237,8 +249,8 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             toast.error(error.message || 'Failed to log in');
           }
         } else if (authType === 'phone') {
-          if (!isValidPhone(phone)) {
-            toast.error('Please enter a valid phone number');
+          if (!phone) {
+            toast.error('Phone number is required');
             setIsLoading(false);
             return;
           }
@@ -263,8 +275,8 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           }
         }
       } else if (mode === 'forgot-password') {
-        if (!isValidEmail(email)) {
-          toast.error('Please enter a valid email address');
+        if (!email) {
+          toast.error('Email is required');
           setIsLoading(false);
           return;
         }
@@ -276,8 +288,8 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         if (error) throw error;
         toast.success('Password reset instructions sent to your email');
       } else if (mode === 'reset-password') {
-        if (password.length < 6) {
-          toast.error('Password must be at least 6 characters long');
+        if (!password) {
+          toast.error('Password cannot be empty');
           setIsLoading(false);
           return;
         }
@@ -296,8 +308,8 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         toast.success('Password reset successful');
         navigate('/auth');
       } else if (mode === 'forgot-email') {
-        if (!isValidPhone(phone)) {
-          toast.error('Please enter a valid phone number');
+        if (!phone) {
+          toast.error('Phone number is required');
           setIsLoading(false);
           return;
         }
@@ -343,7 +355,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Enter your business email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -363,7 +375,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Enter your secure password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -386,7 +398,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Re-enter your secure password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -421,7 +433,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+1234567890"
+                placeholder="Enter your business phone"
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value);
@@ -468,7 +480,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Enter your business email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -481,7 +493,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Enter your secure password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -510,7 +522,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             <div className="text-sm space-x-1 text-right">
               <a href="/auth/forgot-password" className="text-primary hover:underline">Forgot Password?</a>
               <span>•</span>
-              <a href="/auth/forgot-email" className="text-primary hover:underline">Forgot Email?</a>
+              <a href="/auth/forgot-email" className="text-primary hover:underline">Forgot Username?</a>
             </div>
           </TabsContent>
           
@@ -520,7 +532,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+1234567890"
+                placeholder="Enter your business phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -554,7 +566,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             
             {!otp && (
               <div className="text-sm space-x-1 text-right">
-                <a href="/auth/forgot-email" className="text-primary hover:underline">Forgot Phone Number?</a>
+                <a href="/auth/forgot-email" className="text-primary hover:underline">Forgot Username?</a>
               </div>
             )}
           </TabsContent>
@@ -568,14 +580,14 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="Enter your business email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="text-sm">
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your business email address and we'll send you a link to reset your password.
           </div>
         </div>
       );
@@ -588,7 +600,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="Enter your new secure password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -611,7 +623,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="Re-enter your new secure password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -637,14 +649,14 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
             <Input
               id="phone"
               type="tel"
-              placeholder="+1234567890"
+              placeholder="Enter your business phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
             />
           </div>
           <div className="text-sm">
-            Enter your phone number and we'll look up your associated email address.
+            Enter your business phone number and we'll look up your associated username.
           </div>
         </div>
       );
