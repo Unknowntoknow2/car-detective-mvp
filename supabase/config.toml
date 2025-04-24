@@ -3,3 +3,6 @@ project_id = "xltxqqzattxogxtqrggt"
 
 [functions.decode-vin]
 verify_jwt = false
+
+[functions.fetch-vehicle-data]
+verify_jwt = false
