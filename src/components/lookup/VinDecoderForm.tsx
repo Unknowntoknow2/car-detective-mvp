@@ -1,6 +1,5 @@
+
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
   Card, 
   CardContent, 
@@ -13,6 +12,7 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerato
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
 import { VehicleInfoCard } from './VehicleInfoCard';
+import { VinLookupForm } from './vin/VinLookupForm';
 
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
@@ -70,30 +70,12 @@ export const VinDecoderForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="vin" className="text-sm font-medium">
-                VIN (17 characters)
-              </label>
-              <Input
-                id="vin"
-                value={vin}
-                onChange={(e) => setVin(e.target.value.toUpperCase())}
-                placeholder="e.g. 1HGCM82633A004352"
-                maxLength={17}
-                className="uppercase"
-                pattern="[A-HJ-NPR-Z0-9]{17}"
-                title="VIN must be 17 characters and contain only alphanumeric characters (excluding I, O, Q)"
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter a 17-character VIN to decode vehicle information
-              </p>
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading || vin.length !== 17}>
-              {isLoading ? 'Looking Up...' : 'Lookup VIN'}
-            </Button>
-          </form>
+          <VinLookupForm
+            vin={vin}
+            isLoading={isLoading}
+            onVinChange={setVin}
+            onSubmit={handleSubmit}
+          />
         </CardContent>
       </Card>
 

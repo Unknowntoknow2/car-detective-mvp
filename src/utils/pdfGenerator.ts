@@ -1,3 +1,4 @@
+
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { PlateLookupInfo } from '@/types/lookup';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -35,7 +36,7 @@ export function convertVehicleInfoToReportData(
 ): ReportData {
   const defaultData = {
     mileage: "Unknown",
-    estimatedValue: "Not Available",
+    estimatedValue: 0, // Changed from "Not Available" to 0 to match number type
     confidenceScore: 0,
     condition: "Not Specified",
     fuelType: "Not Specified",
@@ -49,7 +50,7 @@ export function convertVehicleInfoToReportData(
     model: vehicle.model || 'Unknown',
     year: vehicle.year || 'Unknown',
     mileage: mergedData.mileage?.toString() || "Unknown",
-    estimatedValue: mergedData.estimatedValue?.toString() || "Not Available",
+    estimatedValue: typeof mergedData.estimatedValue === 'number' ? mergedData.estimatedValue : 0, // Ensure we always have a number
     condition: mergedData.condition,
     fuelType: mergedData.fuelType,
     zipCode: mergedData.zipCode,
@@ -167,7 +168,7 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
   });
 
   yPosition -= 30;
-  drawTextPair('Estimated Value', `$${reportData.estimatedValue}`);
+  drawTextPair('Estimated Value', `$${reportData.estimatedValue.toLocaleString()}`);
 
   // Disclaimer
   yPosition -= 50;
