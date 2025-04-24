@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -28,22 +29,28 @@ export const PlateLookupForm = ({
 
   useEffect(() => {
     if (autoSubmit && plate && state && !isLoading) {
-      // Create a more comprehensive synthetic FormEvent
+      // Create a complete synthetic FormEvent that satisfies the React.FormEvent interface
+      const nativeEvent = new Event('submit');
       const syntheticEvent = {
         preventDefault: () => {},
         target: document.createElement('form'),
         currentTarget: document.createElement('form'),
-        nativeEvent: new Event('submit'),
+        nativeEvent,
         type: 'submit',
         bubbles: true,
         cancelable: true,
         defaultPrevented: false,
         isDefaultPrevented: () => false,
         isPropagationStopped: () => false,
-        persist: () => {}
-      } as React.FormEvent;
+        persist: () => {},
+        isTrusted: true,
+        eventPhase: 0,
+        timeStamp: Date.now(),
+        stopPropagation: () => {}
+      };
       
-      onSubmit(syntheticEvent);
+      // Use a proper type assertion with 'as unknown as React.FormEvent'
+      onSubmit(syntheticEvent as unknown as React.FormEvent);
     }
   }, [autoSubmit, plate, state, isLoading, onSubmit]);
 

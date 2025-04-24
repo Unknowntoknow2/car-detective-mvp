@@ -21,22 +21,28 @@ export const VinLookupForm = ({
 }: VinLookupFormProps) => {
   useEffect(() => {
     if (autoSubmit && vin.length === 17 && !isLoading) {
-      // Create a more comprehensive synthetic FormEvent
+      // Create a complete synthetic FormEvent that satisfies the React.FormEvent interface
+      const nativeEvent = new Event('submit');
       const syntheticEvent = {
         preventDefault: () => {},
         target: document.createElement('form'),
         currentTarget: document.createElement('form'),
-        nativeEvent: new Event('submit'),
+        nativeEvent,
         type: 'submit',
         bubbles: true,
         cancelable: true,
         defaultPrevented: false,
         isDefaultPrevented: () => false,
         isPropagationStopped: () => false,
-        persist: () => {}
-      } as React.FormEvent;
+        persist: () => {},
+        isTrusted: true,
+        eventPhase: 0,
+        timeStamp: Date.now(),
+        stopPropagation: () => {}
+      };
       
-      onSubmit(syntheticEvent);
+      // Use a proper type assertion with 'as unknown as React.FormEvent'
+      onSubmit(syntheticEvent as unknown as React.FormEvent);
     }
   }, [autoSubmit, vin, isLoading, onSubmit]);
 
