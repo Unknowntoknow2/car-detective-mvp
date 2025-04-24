@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { VehicleScoring } from './VehicleScoring';
 import { ForecastChart } from './forecast/ForecastChart';
 import { generateValuationForecast } from '@/utils/forecasting/valuation-forecast';
 import { CarfaxSummary } from './CarfaxSummary';
+import { VehicleHistory } from './VehicleHistory';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
 
 interface VehicleInfoCardProps {
@@ -68,6 +68,11 @@ export const VehicleInfoCard = ({
         <VehicleDetailsGrid vehicleInfo={vehicleInfo} />
         
         {carfaxData && <CarfaxSummary carfaxData={carfaxData} />}
+        
+        <VehicleHistory 
+          vin={vehicleInfo.vin} 
+          valuationId={vehicleInfo.id || ''} 
+        />
         
         <div className="mt-8 pt-6 border-t border-border/60">
           <h3 className="text-lg font-semibold mb-4">Valuation & Scoring</h3>

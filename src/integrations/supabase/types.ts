@@ -461,6 +461,38 @@ export type Database = {
           },
         ]
       }
+      vehicle_histories: {
+        Row: {
+          fetched_at: string | null
+          id: string
+          provider: string
+          report_url: string
+          valuation_id: string
+        }
+        Insert: {
+          fetched_at?: string | null
+          id?: string
+          provider: string
+          report_url: string
+          valuation_id: string
+        }
+        Update: {
+          fetched_at?: string | null
+          id?: string
+          provider?: string
+          report_url?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_histories_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
