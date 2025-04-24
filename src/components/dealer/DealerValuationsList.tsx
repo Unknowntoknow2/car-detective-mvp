@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
+import { Valuation } from '@/types/dealer';
 
 export const DealerValuationsList = () => {
   const { data: valuations, isLoading } = useQuery({
@@ -17,11 +18,11 @@ export const DealerValuationsList = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as Valuation[];
     }
   });
 
-  const handleDownloadReport = async (valuation: any) => {
+  const handleDownloadReport = async (valuation: Valuation) => {
     try {
       const reportData = convertVehicleInfoToReportData(
         {
@@ -32,9 +33,9 @@ export const DealerValuationsList = () => {
         {
           estimatedValue: valuation.estimated_value,
           confidenceScore: valuation.confidence_score,
-          mileage: valuation.mileage || 0,
-          condition: valuation.condition || 'unknown',
-          fuelType: valuation.fuel_type || 'unknown',
+          mileage: valuation.mileage,
+          condition: valuation.condition,
+          fuelType: valuation.fuel_type,
           zipCode: valuation.zip_code
         }
       );

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DealerValuationsList } from '@/components/dealer/DealerValuationsList';
 import { DealerStats } from '@/components/dealer/DealerStats';
-import { Card } from '@/components/ui/card';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
