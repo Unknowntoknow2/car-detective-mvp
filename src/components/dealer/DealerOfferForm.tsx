@@ -41,8 +41,11 @@ export function DealerOfferForm({ reportId, onSubmit, isSubmitting }: DealerOffe
   const handleSubmit = (values: z.infer<typeof offerSchema>) => {
     if (!user) return;
     
+    // Explicitly convert amount to number
+    const offer_amount = parseFloat(values.amount);
+    
     onSubmit({
-      offer_amount: values.amount, // This will be a number due to the transform in the schema
+      offer_amount, 
       message: values.message,
     });
   };
