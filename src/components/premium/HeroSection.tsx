@@ -1,7 +1,21 @@
 
 import { BreadcrumbPath } from '@/components/ui/design-system';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from '@/components/ui/design-system';
+import { ChevronRight } from 'lucide-react';
+import { Check3DIcon } from '@/components/ui/icons';
+import { PremiumCard } from './PremiumCard';
+import { RefObject } from 'react';
 
-export function HeroSection() {
+interface HeroSectionProps {
+  scrollToFeatures: () => void;
+  scrollToForm: () => void;
+  cardRef: RefObject<HTMLDivElement>;
+  cardRotation: { x: number; y: number; };
+}
+
+export function HeroSection({ scrollToFeatures, scrollToForm, cardRef, cardRotation }: HeroSectionProps) {
   return (
     <div className="bg-gradient-primary py-20 relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-10"></div>

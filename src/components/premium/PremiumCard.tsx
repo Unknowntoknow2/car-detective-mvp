@@ -1,7 +1,6 @@
 
-import { Icon } from 'lucide-react';
 import { DesignCard } from '@/components/ui/design-system';
-import { FileBarChart, History, FileLineChart } from 'lucide-react';
+import { FileBarChart, History, FileLineChart, BadgeCheck } from 'lucide-react';
 
 export function PremiumCard() {
   return (

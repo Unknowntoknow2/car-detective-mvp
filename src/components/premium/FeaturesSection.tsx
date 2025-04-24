@@ -4,8 +4,13 @@ import {
   Award, TrendingUp, BarChart4, ShieldCheck, 
   Database, ClipboardCheck 
 } from 'lucide-react';
+import { RefObject } from 'react';
 
-export function FeaturesSection() {
+interface FeaturesSectionProps {
+  featuresRef: RefObject<HTMLDivElement>;
+}
+
+export function FeaturesSection({ featuresRef }: FeaturesSectionProps) {
   const features = [
     {
       icon: <Award className="h-5 w-5" />,

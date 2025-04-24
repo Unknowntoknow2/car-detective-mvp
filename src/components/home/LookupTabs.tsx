@@ -86,8 +86,8 @@ export function LookupTabs() {
             
             <div className="border-t border-border pt-8">
               <ConditionSliderWithTooltip 
-                value={conditionValue}
-                onChange={setConditionValue}
+                score={conditionValue}
+                onScoreChange={setConditionValue}
               />
             </div>
             

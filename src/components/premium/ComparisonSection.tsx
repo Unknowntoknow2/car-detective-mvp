@@ -1,8 +1,14 @@
 
 import { SectionHeader } from '@/components/ui/design-system';
 import { CheckCircleIcon, XCircleIcon } from '@/components/ui/icons';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-export function ComparisonSection() {
+interface ComparisonSectionProps {
+  scrollToForm: () => void;
+}
+
+export function ComparisonSection({ scrollToForm }: ComparisonSectionProps) {
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-surface to-surface-dark">
       <div className="max-w-6xl mx-auto">

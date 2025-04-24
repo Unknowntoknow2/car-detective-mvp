@@ -2,14 +2,20 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionHeader } from "@/components/ui/design-system";
+import { Button } from "@/components/ui/button";
 import { CarFront, Search, FileText } from 'lucide-react';
 import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RefObject } from 'react';
 
-export function ValuationForm() {
+interface ValuationFormProps {
+  formRef: RefObject<HTMLDivElement>;
+}
+
+export function ValuationForm({ formRef }: ValuationFormProps) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,7 +45,7 @@ export function ValuationForm() {
   };
 
   return (
-    <section className="py-20 px-4">
+    <section ref={formRef} className="py-20 px-4">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           title="Start Your Premium Valuation"
