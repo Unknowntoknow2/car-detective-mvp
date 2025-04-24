@@ -2,7 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-export function HeroSection() {
+interface HeroSectionProps {
+  onFreeValuationClick: () => void;
+}
+
+export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-primary/10 to-background">
       <div className="container mx-auto max-w-5xl text-center">
@@ -13,11 +17,11 @@ export function HeroSection() {
           Get precision car valuations powered by AI, real-time market data, and optional CARFAX-backed insights.
         </p>
         <div className="flex justify-center gap-4 flex-wrap">
-          <Button asChild size="lg">
-            <Link to="/lookup/vin">Start Free Valuation</Link>
+          <Button asChild size="lg" onClick={onFreeValuationClick}>
+            <Link to="#">Start Free Valuation</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link to="/lookup/premium">Explore Premium Report</Link>
+            <Link to="/lookup/premium">Premium Valuation: Including CARFAX ($29.99)</Link>
           </Button>
         </div>
       </div>
