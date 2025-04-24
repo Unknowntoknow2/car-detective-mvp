@@ -64,11 +64,17 @@ interface VehicleInfoCardProps {
 }
 
 const VehicleInfoCard = ({ vehicleInfo }: VehicleInfoCardProps) => {
-  // Helper function to display field value with fallback
-  const displayField = (value: string | number | null | undefined, fallback = 'N/A') => {
-    if (value === undefined || value === null || value === '') return fallback;
-    if (typeof value === 'string' && value.trim() === '') return fallback;
-    if (value === 'Not Available') return fallback;
+  // Helper function to display field value with "Unknown" fallback
+  const displayField = (value: string | number | null | undefined) => {
+    if (value === undefined || value === null) return "Unknown";
+    if (typeof value === 'string' && (
+      value.trim() === '' || 
+      value === 'N/A' || 
+      value === 'Not Applicable' || 
+      value === 'Not Available'
+    )) {
+      return "Unknown";
+    }
     return value;
   };
 

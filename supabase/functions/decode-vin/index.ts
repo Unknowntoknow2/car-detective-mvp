@@ -29,18 +29,25 @@ serve(async (req) => {
     const results = data.Results;
 
     // Log all results for debugging
-    console.log("Raw API results:", JSON.stringify(results.slice(0, 10), null, 2)); // Log first 10 items to avoid overly large logs
+    console.log("Raw API results:", JSON.stringify(results.slice(0, 10), null, 2));
 
-    // Enhanced extract function with improved fallback handling
-    const extract = (label: string, fallback = "Not Available") => {
+    // Enhanced extract function with consistent "Unknown" fallback
+    const extract = (label: string) => {
       const result = results.find((r) => r.Variable === label);
       const value = result?.Value;
       
-      // Log what we found for debugging
       console.log(`Extracting ${label}: found '${value}'`);
       
-      // Only use fallback if value is null, empty string, or only whitespace
-      return (value && value.trim() !== "") ? value : fallback;
+      // Return "Unknown" for null, empty string, "null", "N/A", or "Not Applicable"
+      if (!value || 
+          value.trim() === "" || 
+          value === "null" || 
+          value === "N/A" || 
+          value === "Not Applicable" || 
+          value === "Not Available") {
+        return "Unknown";
+      }
+      return value;
     };
 
     // For numeric values
@@ -50,9 +57,8 @@ serve(async (req) => {
       return !isNaN(parsed) ? parsed : null;
     };
 
-    // Try multiple keys for transmission in specific order of preference
+    // Try multiple keys for transmission with consistent "Unknown" fallback
     const getTransmission = () => {
-      // Try these fields in order of preference
       const transmissionFields = [
         "Transmission Style", 
         "Transmission",
@@ -60,19 +66,18 @@ serve(async (req) => {
       ];
       
       for (const field of transmissionFields) {
-        const value = extract(field, null);
-        if (value !== null) {
+        const value = extract(field);
+        if (value !== "Unknown") {
           console.log(`Found transmission in field: ${field} with value: ${value}`);
           return value;
         }
       }
       
-      return "Not Available"; // Final fallback
+      return "Unknown";
     };
 
-    // Try multiple keys for trim in specific order of preference
+    // Try multiple keys for trim with consistent "Unknown" fallback
     const getTrim = () => {
-      // Try these fields in order of preference
       const trimFields = [
         "Trim", 
         "Trim2",
@@ -80,14 +85,14 @@ serve(async (req) => {
       ];
       
       for (const field of trimFields) {
-        const value = extract(field, null);
-        if (value !== null && value !== "Not Available") {
+        const value = extract(field);
+        if (value !== "Unknown") {
           console.log(`Found trim in field: ${field} with value: ${value}`);
           return value;
         }
       }
       
-      return "Not Available"; // Final fallback
+      return "Unknown";
     };
 
     const vehicleInfo = {
@@ -103,7 +108,7 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
     };
 
-    console.log("Processed vehicle info with fallbacks:", vehicleInfo);
+    console.log("Processed vehicle info with standardized fallbacks:", vehicleInfo);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!, 
