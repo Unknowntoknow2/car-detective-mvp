@@ -7,9 +7,9 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { manualEntryFormSchema, ManualEntryFormData } from './types/manualEntry';
-import MakeModelSelect from './form-parts/MakeModelSelect';
-import VehicleDetailsInputs from './form-parts/VehicleDetailsInputs';
-import ConditionAndFuelInputs from './form-parts/ConditionAndFuelInputs';
+import { MakeModelSelect } from './form-parts/MakeModelSelect';
+import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
+import { ConditionAndFuelInputs } from './form-parts/ConditionAndFuelInputs';
 import { useNavigate } from 'react-router-dom';
 
 interface ManualEntryFormProps {

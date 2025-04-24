@@ -4,12 +4,13 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
+import { ZipCodeInput } from './ZipCodeInput';
 
 interface VehicleDetailsInputsProps {
   form: UseFormReturn<ManualEntryFormData>;
 }
 
-const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form }) => {
+export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
       <FormField
@@ -52,21 +53,7 @@ const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form }) => 
         )}
       />
       
-      <FormField
-        control={form.control}
-        name="zipCode"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Zip Code (optional)</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., 90210" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <ZipCodeInput form={form} />
     </div>
   );
 };
-
-export default VehicleDetailsInputs;

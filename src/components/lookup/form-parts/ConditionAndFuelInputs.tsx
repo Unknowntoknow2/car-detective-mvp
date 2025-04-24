@@ -1,84 +1,55 @@
 
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
+import { FormSelect } from './FormSelect';
 
-const fuelTypes = ['Gasoline', 'Diesel', 'Hybrid', 'Electric'];
-const conditions = ['Excellent', 'Good', 'Fair', 'Poor'];
+const fuelTypes = [
+  { value: 'Gasoline', label: 'Gasoline' },
+  { value: 'Diesel', label: 'Diesel' },
+  { value: 'Hybrid', label: 'Hybrid' },
+  { value: 'Electric', label: 'Electric' }
+];
+
+const conditions = [
+  { value: 'excellent', label: 'Excellent' },
+  { value: 'good', label: 'Good' },
+  { value: 'fair', label: 'Fair' },
+  { value: 'poor', label: 'Poor' }
+];
+
+const conditionDescriptions: Record<string, string> = {
+  excellent: "Vehicle is like new with no visible issues",
+  good: "Vehicle is well maintained with minimal wear",
+  fair: "Vehicle has moderate wear and may need minor repairs",
+  poor: "Vehicle has significant wear and likely needs repairs"
+};
 
 interface ConditionAndFuelInputsProps {
   form: UseFormReturn<ManualEntryFormData>;
-  conditionValue: string;
-  setConditionValue: (value: string) => void;
 }
 
-export const ConditionAndFuelInputs = ({ form, conditionValue, setConditionValue }: ConditionAndFuelInputsProps) => {
+export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({ form }) => {
+  const [selectedCondition, setSelectedCondition] = React.useState(form.getValues().condition);
+
   return (
     <>
-      <FormField
-        control={form.control}
+      <FormSelect
+        form={form}
         name="fuelType"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Fuel Type</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              defaultValue={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select fuel type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {fuelTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
+        label="Fuel Type"
+        placeholder="Select fuel type"
+        options={fuelTypes}
       />
 
-      <FormField
-        control={form.control}
+      <FormSelect
+        form={form}
         name="condition"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Condition</FormLabel>
-            <Select
-              onValueChange={(value) => {
-                field.onChange(value);
-                setConditionValue(value);
-              }}
-              defaultValue={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {conditions.map((condition) => (
-                  <SelectItem key={condition.toLowerCase()} value={condition.toLowerCase()}>
-                    {condition}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormDescription className="mt-2">
-              {conditionValue === 'excellent' && "Vehicle is like new with no visible issues"}
-              {conditionValue === 'good' && "Vehicle is well maintained with minimal wear"}
-              {conditionValue === 'fair' && "Vehicle has moderate wear and may need minor repairs"}
-              {conditionValue === 'poor' && "Vehicle has significant wear and likely needs repairs"}
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
+        label="Condition"
+        placeholder="Select condition"
+        options={conditions}
+        description={selectedCondition ? conditionDescriptions[selectedCondition] : undefined}
+        onChange={setSelectedCondition}
       />
     </>
   );
