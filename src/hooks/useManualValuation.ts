@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateTotalAdjustment, VehicleCondition } from '@/utils/priceAdjustments';
+import { calculateConfidenceScore } from '@/utils/confidenceScore';
 
 export type ManualVehicleInfo = {
   make: string;
@@ -36,7 +37,14 @@ export function useManualValuation() {
       
       const valuation = Math.round(baseValue + totalAdjustment);
       
-      const confidenceScore = Math.round(70 + Math.random() * 25);
+      const confidenceScore = calculateConfidenceScore({
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        zip: data.zipCode
+      });
       
       const result: ManualVehicleInfo = {
         ...data,
