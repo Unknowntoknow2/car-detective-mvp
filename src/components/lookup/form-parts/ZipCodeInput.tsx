@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
+import { MapPin } from 'lucide-react';
 
 interface ZipCodeInputProps {
   zipCode: string;
@@ -14,54 +14,37 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
   setZipCode,
   isDisabled = false
 }) => {
-  const [isValidatingZip, setIsValidatingZip] = useState(false);
-  const [isZipValid, setIsZipValid] = useState<boolean | null>(null);
-
-  const validateZipCode = async (zip: string) => {
-    if (zip.length !== 5 || !/^\d{5}$/.test(zip)) {
-      setIsZipValid(false);
-      return false;
-    }
-    
-    try {
-      setIsValidatingZip(true);
-      const response = await fetch(`https://api.zippopotam.us/us/${zip}`);
-      const isValid = response.ok;
-      setIsZipValid(isValid);
-      
-      if (!isValid) {
-        toast.error("Invalid ZIP code. Please enter a valid US ZIP code.");
-      }
-      
-      return isValid;
-    } catch (error) {
-      console.error("ZIP validation error:", error);
-      setIsZipValid(false);
-      toast.error("Failed to validate ZIP code. Please try again.");
-      return false;
-    } finally {
-      setIsValidatingZip(false);
-    }
+  const validateZipCode = (value: string) => {
+    return /^\d{5}(-\d{4})?$/.test(value);
   };
 
   const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    setZipCode(value.slice(0, 5));
-    if (value.length !== 5) {
-      setIsZipValid(null);
+    const value = e.target.value;
+    
+    // Allow only numbers and hyphens, and limit to ZIP format
+    if (/^[\d-]*$/.test(value) && value.length <= 10) {
+      setZipCode(value);
     }
   };
 
   return (
-    <Input 
-      placeholder="ZIP Code (optional)" 
-      value={zipCode}
-      onChange={handleZipChange}
-      onBlur={() => zipCode.length === 5 && validateZipCode(zipCode)}
-      maxLength={5}
-      disabled={isDisabled || isValidatingZip}
-      className={`${isZipValid === true ? "border-green-500" : 
-                   isZipValid === false ? "border-red-500" : ""}`}
-    />
+    <div className="relative">
+      <Input
+        type="text"
+        placeholder="ZIP Code (e.g. 90210)"
+        value={zipCode}
+        onChange={handleZipChange}
+        disabled={isDisabled}
+        className="h-12 pl-10 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary"
+        aria-invalid={zipCode.length > 0 && !validateZipCode(zipCode)}
+      />
+      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      
+      {zipCode.length > 0 && !validateZipCode(zipCode) && (
+        <p className="text-xs text-destructive mt-1">
+          Please enter a valid ZIP code (e.g. 90210 or 90210-1234)
+        </p>
+      )}
+    </div>
   );
 };
