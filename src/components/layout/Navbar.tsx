@@ -22,19 +22,6 @@ export function Navbar() {
           <span className="font-bold text-xl">CarDetective</span>
         </Link>
         <nav className="ml-auto flex gap-4 items-center">
-          <Link to="/">
-            <Button variant="ghost">Home</Button>
-          </Link>
-          <Link to="/lookup/vin">
-            <Button variant="ghost">VIN Lookup</Button>
-          </Link>
-          <Link to="/lookup/plate">
-            <Button variant="ghost">Plate Lookup</Button>
-          </Link>
-          <Link to="/lookup/manual">
-            <Button variant="ghost">Manual Entry</Button>
-          </Link>
-          
           {isLoading ? (
             <div className="h-9 w-24 bg-muted animate-pulse rounded-md"></div>
           ) : user ? (
