@@ -6,12 +6,12 @@ export interface ReportData {
   make: string;
   model: string;
   year: number | string;
-  mileage: string;
+  mileage: number | string;
   vin?: string;
   plate?: string;
   state?: string;
   color?: string;
-  estimatedValue: string;
+  estimatedValue: number;
   fuelType?: string;
   condition?: string;
   location?: string;
@@ -79,8 +79,8 @@ export function convertVehicleInfoToReportData(
 }
 
 export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupInfo | ReportData, additionalData?: {
-  mileage?: string;
-  estimatedValue?: string;
+  mileage?: number | string;
+  estimatedValue?: number;
   condition?: string;
   fuelType?: string;
   zipCode?: string;
@@ -88,7 +88,7 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
   // Convert to ReportData if needed
   const reportData: ReportData = 'mileage' in vehicleInfo && 'estimatedValue' in vehicleInfo
     ? vehicleInfo as ReportData
-    : convertVehicleInfoToReportData(vehicleInfo as any, additionalData);
+    : convertVehicleInfoToReportData(vehicleInfo as any, additionalData as any);
 
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();

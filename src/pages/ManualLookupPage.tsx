@@ -62,11 +62,12 @@ const ManualLookupPage = () => {
         model: vehicleInfo.model,
         year: vehicleInfo.year
       } as any, {
-        mileage: vehicleInfo.mileage.toString(),
-        estimatedValue: vehicleInfo.valuation?.toString() || 'Not available',
+        mileage: vehicleInfo.mileage,
+        estimatedValue: vehicleInfo.valuation || 0,
         fuelType: vehicleInfo.fuelType,
         condition: vehicleInfo.condition,
-        zipCode: vehicleInfo.zipCode
+        zipCode: vehicleInfo.zipCode,
+        confidenceScore: vehicleInfo.confidenceScore
       });
       
       await downloadPdf(reportData);
