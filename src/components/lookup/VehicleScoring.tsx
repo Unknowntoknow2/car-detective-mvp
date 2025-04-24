@@ -1,67 +1,15 @@
 
 import React from 'react';
-import { Info, TrendingUp, TrendingDown, ChartBar } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { VehicleScoreInfo } from './scoring/VehicleScoreInfo';
+import { ValuationBreakdown, ValuationBreakdownItem } from './scoring/ValuationBreakdown';
 
-interface ValuationBreakdownItem {
-  factor: string;
-  impact: number;
-  description: string;
-}
-
-interface VehicleScoringProps {
+export interface VehicleScoringProps {
   baseValue: number;
   valuationBreakdown: ValuationBreakdownItem[];
   confidenceScore: number;
   estimatedValue: number;
   comparableVehicles: number;
 }
-
-const VehicleScoreInfo = ({ 
-  label, 
-  value, 
-  tooltipContent
-}: {
-  label: string;
-  value: string | number;
-  tooltipContent: React.ReactNode;
-}) => (
-  <div className="space-y-1">
-    <div className="flex items-center gap-2">
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            {tooltipContent}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-    <p className={`text-lg font-semibold ${label === "Confidence Score" ? "text-primary" : ""}`}>
-      {typeof value === 'number' && label !== "Confidence Score" 
-        ? `$${value.toLocaleString()}`
-        : value}
-    </p>
-  </div>
-);
 
 export const VehicleScoring = ({ 
   baseValue,
@@ -88,45 +36,11 @@ export const VehicleScoring = ({
             </div>
           }
         />
-        <Popover>
-          <PopoverTrigger className="text-sm text-muted-foreground hover:text-primary mt-2 flex items-center gap-1">
-            <Info className="h-4 w-4" />
-            View detailed breakdown
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="space-y-4">
-              <div className="border-b pb-2">
-                <h4 className="font-medium">Valuation Breakdown</h4>
-                <p className="text-sm text-muted-foreground">
-                  Based on {comparableVehicles} similar vehicles in your area
-                </p>
-              </div>
-              {valuationBreakdown.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {item.impact > 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-500" />
-                    )}
-                    <span>{item.factor}</span>
-                  </div>
-                  <HoverCard>
-                    <HoverCardTrigger className="flex items-center gap-1">
-                      <span className={item.impact > 0 ? "text-green-500" : "text-red-500"}>
-                        {item.impact > 0 ? "+" : ""}{item.impact}%
-                      </span>
-                      <Info className="h-3 w-3 text-muted-foreground" />
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-80">
-                      <p className="text-sm">{item.description}</p>
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <ValuationBreakdown 
+          valuationBreakdown={valuationBreakdown}
+          baseValue={baseValue}
+          comparableVehicles={comparableVehicles}
+        />
       </div>
       
       <VehicleScoreInfo 

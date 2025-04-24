@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -20,7 +19,6 @@ const ManualLookupPage = () => {
   const [showingResults, setShowingResults] = useState(false);
 
   const handleSubmit = async (data: ManualEntryFormData) => {
-    // Convert the form data to the expected ManualVehicleInfo format
     const vehicleData: ManualVehicleInfo = {
       make: data.make,
       model: data.model,
@@ -58,9 +56,8 @@ const ManualLookupPage = () => {
   const handleDownloadReport = async () => {
     if (!vehicleInfo) return;
     
-    // Create a report compatible with the downloadPdf function
     const reportData = {
-      vin: "", // Adding required properties for compatible type
+      vin: "",
       plate: "",
       state: "",
       make: vehicleInfo.make,
@@ -128,7 +125,29 @@ const ManualLookupPage = () => {
               
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Valuation Breakdown</h3>
-                <VehicleScoring />
+                <VehicleScoring 
+                  baseValue={vehicleInfo?.valuation || 0}
+                  valuationBreakdown={[
+                    {
+                      factor: "Mileage",
+                      impact: -3.5,
+                      description: "Vehicle has higher mileage than average"
+                    },
+                    {
+                      factor: "Condition",
+                      impact: 2.0,
+                      description: "Vehicle condition is above average"
+                    },
+                    {
+                      factor: "Location",
+                      impact: 1.5,
+                      description: "Vehicle prices in your ZIP code are slightly higher than national average"
+                    }
+                  ]}
+                  confidenceScore={92}
+                  estimatedValue={vehicleInfo?.valuation || 0}
+                  comparableVehicles={117}
+                />
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
