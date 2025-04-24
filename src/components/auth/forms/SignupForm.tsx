@@ -23,6 +23,9 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   const [termsError, setTermsError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
 
   const validateTerms = () => {
     if (!agreeToTerms) {
@@ -98,6 +101,18 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     }
   };
 
+  const handleSignupClick = () => {
+    if (authType === 'email') {
+      if (email && password) {
+        handleEmailSignup(email, password);
+      }
+    } else {
+      if (phone) {
+        handlePhoneSignup(phone);
+      }
+    }
+  };
+
   return (
     <Tabs defaultValue="email" className="w-full" onValueChange={(value) => setAuthType(value as AuthType)}>
       <TabsList className="grid w-full grid-cols-2 rounded-xl overflow-hidden">
@@ -114,7 +129,11 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       <TabsContent value="email" className="mt-4">
         <EmailSignup
           isLoading={isLoading}
-          onSignup={handleEmailSignup}
+          onSignup={(email, password) => {
+            setEmail(email);
+            setPassword(password);
+            handleEmailSignup(email, password);
+          }}
           emailError={emailError}
           setEmailError={setEmailError}
         />
@@ -123,7 +142,10 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       <TabsContent value="phone" className="mt-4">
         <PhoneSignup
           isLoading={isLoading}
-          onSignup={handlePhoneSignup}
+          onSignup={(phone) => {
+            setPhone(phone);
+            handlePhoneSignup(phone);
+          }}
           phoneError={phoneError}
           setPhoneError={setPhoneError}
         />
@@ -151,9 +173,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         type="button" 
         className="w-full mt-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200" 
         disabled={isLoading || (authType === 'email' && !!emailError) || (authType === 'phone' && !!phoneError)}
-        onClick={() => authType === 'email' ? 
-          handleEmailSignup : 
-          handlePhoneSignup}
+        onClick={handleSignupClick}
       >
         {isLoading ? 'Processing...' : 'Create Account'}
       </Button>

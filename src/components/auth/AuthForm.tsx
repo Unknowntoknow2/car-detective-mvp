@@ -108,10 +108,10 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         <CardDescription className="text-sm text-muted-foreground">{getDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="px-6 pb-6">
-        <ScrollArea className="max-h-[400px] pr-4">
+        <div className="max-h-[400px] overflow-y-auto pr-4 mb-6">
           {renderForm()}
-        </ScrollArea>
-        <div className="mt-6">
+        </div>
+        <div>
           {getToggleLink()}
         </div>
       </CardContent>

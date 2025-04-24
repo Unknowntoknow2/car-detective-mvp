@@ -41,37 +41,26 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
       setIsCheckingEmail(true);
       
       try {
-        // First attempt to get user by email to check if it exists
-        const { data: { user }, error: getUserError } = await supabase.auth.admin.getUserByEmail(email)
-          .catch(() => ({ data: { user: null }, error: null }));
+        // Use signInWithOtp method to check if email exists
+        // This is a better approach as it doesn't require admin privileges
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: false,
+          }
+        });
         
-        if (user) {
-          // If the user exists, set the error
-          setEmailError('An account with this email already exists. Try logging in instead.');
-        } else {
-          // If no user is found, the email is available
+        // If error contains "User not found", email is available
+        if (error && error.message.includes("User not found")) {
           setEmailError('');
+        } else {
+          // No error or different error means user likely exists
+          setEmailError('An account with this email already exists. Try logging in instead.');
         }
       } catch (error) {
-        // Fallback method if admin API fails
-        try {
-          const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: {
-              shouldCreateUser: false,
-            }
-          });
-          
-          // If there's an error about user not found, email is available
-          if (error && error.message.includes("User not found")) {
-            setEmailError('');
-          } else {
-            // No error or different error means user likely exists
-            setEmailError('An account with this email already exists. Try logging in instead.');
-          }
-        } catch (fallbackError) {
-          console.error('Error checking email:', fallbackError);
-        }
+        console.error('Error checking email:', error);
+        // If there's an error in the check, don't block the user
+        setEmailError('');
       } finally {
         setIsCheckingEmail(false);
       }
