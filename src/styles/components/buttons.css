@@ -1,0 +1,38 @@
+
+@layer components {
+  .button-primary {
+    @apply relative bg-primary text-white font-medium px-6 py-3 rounded-lg
+           shadow-btn transition-all duration-300 hover:bg-primary-hover 
+           hover:shadow-hover active:translate-y-0.5 active:shadow-none
+           disabled:opacity-50 disabled:pointer-events-none
+           before:absolute before:inset-0 before:rounded-lg before:bg-white 
+           before:opacity-0 before:transition-opacity hover:before:opacity-10;
+  }
+
+  .button-secondary {
+    @apply relative bg-white border border-border text-text-primary font-medium
+           px-6 py-3 rounded-lg transition-all duration-300 hover:bg-surface-dark
+           hover:border-border-dark/70 active:translate-y-0.5
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .button-ghost {
+    @apply relative text-text-primary font-medium px-6 py-3 rounded-lg 
+           transition-all duration-300 hover:bg-surface-dark
+           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .button-outline {
+    @apply relative bg-transparent border border-primary text-primary font-medium
+           px-6 py-3 rounded-lg transition-all duration-300 hover:bg-primary-light/50
+           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .button-3d {
+    @apply relative bg-primary text-white font-medium px-6 py-3 rounded-lg
+           transform transition-all duration-300 shadow-[0_4px_0_0_#004ECC]
+           hover:shadow-[0_6px_0_0_#004ECC] hover:-translate-y-0.5
+           active:translate-y-1 active:shadow-[0_0px_0_0_#004ECC]
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+}

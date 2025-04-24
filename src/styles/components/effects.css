@@ -1,0 +1,31 @@
+
+@layer components {
+  .shimmer {
+    @apply relative overflow-hidden before:absolute before:inset-0 
+           before:bg-gradient-to-r before:from-transparent before:via-white/20 
+           before:to-transparent before:animate-shimmer;
+  }
+  
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-glass
+           hover:bg-white/90 transition-all;
+  }
+  
+  .neumorph {
+    @apply bg-gradient-neumorph rounded-xl shadow-md p-6 border-none
+           hover:shadow-lg transition-all;
+  }
+  
+  .tooltip {
+    @apply relative inline-block;
+  }
+  
+  .tooltip-text {
+    @apply invisible absolute z-50 w-auto p-2 bg-text-primary text-white text-xs
+           rounded-md opacity-0 transition-opacity duration-300 whitespace-nowrap;
+  }
+  
+  .tooltip:hover .tooltip-text {
+    @apply visible opacity-100;
+  }
+}

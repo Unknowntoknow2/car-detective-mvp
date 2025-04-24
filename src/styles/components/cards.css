@@ -1,0 +1,25 @@
+
+@layer components {
+  .card {
+    @apply bg-surface-card rounded-xl shadow-md p-6 border border-border/50 transition-all
+           hover:shadow-lg hover:border-border;
+  }
+
+  .card-premium {
+    @apply bg-gradient-card rounded-xl shadow-lg p-6 border border-primary/10 transition-all
+           hover:shadow-xl hover:border-primary/20;
+  }
+
+  .info-card {
+    @apply bg-surface rounded-lg border border-border p-4 transition-all
+           hover:border-border-dark/70;
+  }
+
+  .card-3d {
+    @apply relative bg-white rounded-xl overflow-hidden transition-all duration-300
+           shadow-lg hover:shadow-xl transform hover:-translate-y-1
+           before:absolute before:inset-0 before:bg-gradient-to-br 
+           before:from-primary/5 before:to-transparent before:opacity-0
+           hover:before:opacity-100 before:transition-opacity;
+  }
+}

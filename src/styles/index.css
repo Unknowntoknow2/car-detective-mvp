@@ -1,0 +1,16 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import './base/variables.css';
+@import './base/reset.css';
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/cards.css';
+@import './components/steps.css';
+@import './components/effects.css';
+@import './utilities/animations.css';
+@import './utilities/transforms.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
