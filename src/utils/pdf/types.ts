@@ -1,6 +1,4 @@
 
-import { PlateLookupInfo } from '@/types/lookup';
-import { DecodedVehicleInfo } from '@/types/vehicle';
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface ReportData {
@@ -34,4 +32,16 @@ export interface ValuationReportOptions {
   fuelType?: string;
   carfaxData?: CarfaxData;
   isPremium?: boolean;
+}
+
+export interface PremiumReportInput {
+  vehicleInfo: ReportData;
+  valuation: {
+    basePrice: number;
+    estimatedValue: number;
+    priceRange: [number, number];
+    confidenceScore: number;
+    adjustments: { label: string; value: number }[];
+  };
+  carfaxData?: CarfaxData;
 }
