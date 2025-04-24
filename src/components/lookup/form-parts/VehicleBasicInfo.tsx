@@ -4,6 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useVehicleData } from '@/hooks/useVehicleData';
 
+const CONDITIONS = [
+  { value: "excellent", label: "Excellent" },
+  { value: "good", label: "Good" },
+  { value: "fair", label: "Fair" },
+  { value: "poor", label: "Poor" }
+];
+
+const FUEL_TYPES = ["Gasoline", "Diesel", "Hybrid", "Electric"];
+
 interface VehicleBasicInfoProps {
   selectedMakeId: string;
   setSelectedMakeId: (id: string) => void;
@@ -17,10 +26,10 @@ interface VehicleBasicInfoProps {
   setZipCode: (zip: string) => void;
   fuelType: string;
   setFuelType: (type: string) => void;
+  condition: string;
+  setCondition: (condition: string) => void;
   isDisabled?: boolean;
 }
-
-const FUEL_TYPES = ["Gasoline", "Diesel", "Hybrid", "Electric"];
 
 export const VehicleBasicInfo: React.FC<VehicleBasicInfoProps> = ({
   selectedMakeId,
@@ -35,9 +44,33 @@ export const VehicleBasicInfo: React.FC<VehicleBasicInfoProps> = ({
   setZipCode,
   fuelType,
   setFuelType,
+  condition,
+  setCondition,
   isDisabled = false
 }) => {
   const { makes, getModelsByMake, getYearOptions } = useVehicleData();
+
+  const validateZipCode = (zip: string) => {
+    // Basic US ZIP code validation
+    if (zip.length === 5 && /^\d{5}$/.test(zip)) {
+      // Here we could call an API to validate the ZIP code
+      // For now we just do format validation
+      return true;
+    }
+    return false;
+  };
+
+  const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-numeric chars
+    setZipCode(value.slice(0, 5)); // Limit to 5 digits
+  };
+
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-numeric chars
+    if (value === '' || parseInt(value, 10) > 0) {
+      setMileage(value);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -80,9 +113,9 @@ export const VehicleBasicInfo: React.FC<VehicleBasicInfoProps> = ({
         disabled={isDisabled}
       >
         <SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-[300px] overflow-y-auto shadow-xl scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {getYearOptions().map(year => (
-            <SelectItem key={year} value={String(year)}>
+            <SelectItem key={year} value={String(year)} className="hover:bg-gray-100 transition-colors">
               {year}
             </SelectItem>
           ))}
@@ -90,19 +123,22 @@ export const VehicleBasicInfo: React.FC<VehicleBasicInfoProps> = ({
       </Select>
 
       <Input 
-        type="number" 
+        type="text" 
+        inputMode="numeric"
         placeholder="Enter Mileage" 
         value={mileage}
-        onChange={(e) => setMileage(e.target.value)}
+        onChange={handleMileageChange}
         disabled={isDisabled}
+        className="appearance-none"
       />
 
       <Input 
         placeholder="ZIP Code" 
         value={zipCode}
-        onChange={(e) => setZipCode(e.target.value)}
+        onChange={handleZipChange}
         maxLength={5}
         disabled={isDisabled}
+        className={zipCode.length === 5 && validateZipCode(zipCode) ? "border-green-500" : ""}
       />
 
       <Select 
@@ -113,6 +149,19 @@ export const VehicleBasicInfo: React.FC<VehicleBasicInfoProps> = ({
         <SelectContent>
           {FUEL_TYPES.map(type => (
             <SelectItem key={type} value={type}>{type}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      
+      <Select 
+        onValueChange={setCondition}
+        value={condition}
+        disabled={isDisabled}
+      >
+        <SelectTrigger><SelectValue placeholder="Vehicle Condition" /></SelectTrigger>
+        <SelectContent>
+          {CONDITIONS.map(cond => (
+            <SelectItem key={cond.value} value={cond.value}>{cond.label}</SelectItem>
           ))}
         </SelectContent>
       </Select>

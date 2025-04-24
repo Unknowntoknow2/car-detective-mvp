@@ -23,7 +23,8 @@ export function useVehicleData() {
   useEffect(() => {
     const fetchMakesAndModels = async () => {
       try {
-        // Fetch makes
+        setIsLoading(true);
+        // Fetch makes with logos
         const { data: makesData, error: makesError } = await supabase
           .from('makes')
           .select('*')
@@ -34,7 +35,8 @@ export function useVehicleData() {
         // Fetch all models
         const { data: modelsData, error: modelsError } = await supabase
           .from('models')
-          .select('*');
+          .select('*')
+          .order('model_name');
 
         if (modelsError) throw modelsError;
 
@@ -43,6 +45,7 @@ export function useVehicleData() {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load vehicle data';
         setError(errorMessage);
+        console.error("Error loading vehicle data:", err);
       } finally {
         setIsLoading(false);
       }

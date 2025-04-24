@@ -22,12 +22,14 @@ interface ManualEntryFormProps {
   onSubmit?: (data: ManualEntryFormData) => Promise<void>;
   isLoading?: boolean;
   submitButtonText?: string;
+  isPremium?: boolean;
 }
 
 export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
   onSubmit, 
   isLoading: externalLoading,
-  submitButtonText = 'Get Vehicle Valuation'
+  submitButtonText = 'Get Vehicle Valuation',
+  isPremium = false
 }) => {
   const navigate = useNavigate();
   const { 
@@ -46,6 +48,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [mileage, setMileage] = useState<string>('');
   const [zipCode, setZipCode] = useState<string>('');
   const [fuelType, setFuelType] = useState<string>('');
+  const [condition, setCondition] = useState<string>('good');
   const [accident, setAccident] = useState<string>('no');
   const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
     count: '',
@@ -68,8 +71,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     }
     
     const parsedMileage = parseInt(mileage, 10);
-    if (isNaN(parsedMileage) || parsedMileage < 0) {
-      toast.error('Please enter a valid mileage');
+    if (isNaN(parsedMileage) || parsedMileage <= 0) {
+      toast.error('Please enter a valid positive mileage');
       return;
     }
 
@@ -90,7 +93,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       year: selectedYear as number,
       mileage: parsedMileage,
       fuelType,
-      condition: 'good',
+      condition,
       zipCode,
       accident,
       accidentDetails: accident === 'yes' ? accidentDetails : undefined
@@ -106,7 +109,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       model: selectedModel,
       year: selectedYear as number,
       mileage: parsedMileage,
-      condition: 'good',
+      condition,
       fuelType: fuelType || 'Gasoline'
     });
 
@@ -129,10 +132,11 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="text-sm text-yellow-700 bg-yellow-100 p-4 rounded">
-        You may optionally enter known accident information if you don't have a CARFAX report. 
-        Premium users will receive verified data directly from CARFAX.
-      </div>
+      {isPremium && (
+        <div className="text-sm text-yellow-700 bg-yellow-100 p-4 rounded">
+          Your premium valuation includes verified CARFAX® accident data and comprehensive vehicle history.
+        </div>
+      )}
 
       <VehicleBasicInfo
         selectedMakeId={selectedMakeId}
@@ -147,6 +151,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         setZipCode={setZipCode}
         fuelType={fuelType}
         setFuelType={setFuelType}
+        condition={condition}
+        setCondition={setCondition}
         isDisabled={isFormLoading}
       />
 

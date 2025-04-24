@@ -40,6 +40,7 @@ export default function PremiumPage() {
         <ManualEntryForm 
           onSubmit={handlePremiumSubmit}
           submitButtonText="Get Premium Valuation with CARFAX"
+          isPremium={true}
         />
       </div>
     </main>

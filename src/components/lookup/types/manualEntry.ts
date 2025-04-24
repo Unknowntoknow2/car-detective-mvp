@@ -1,4 +1,5 @@
 
+// If this file doesn't exist, we'll create it
 export interface AccidentDetails {
   count: string;
   severity: string;
@@ -6,13 +7,13 @@ export interface AccidentDetails {
 }
 
 export interface ManualEntryFormData {
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  fuelType?: string;
-  condition?: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
   zipCode?: string;
-  accident?: string;
+  fuelType: string;
+  condition: string;
+  accident: string;
   accidentDetails?: AccidentDetails;
 }
