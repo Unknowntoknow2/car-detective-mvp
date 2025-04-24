@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tab } from '@headlessui/react';
@@ -192,9 +191,6 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
-            options: {
-              redirectTo: window.location.origin,
-            }
           });
 
           if (error) throw error;
