@@ -35,12 +35,25 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConditionSliderWithTooltip } from '@/components/valuation/ConditionSliderWithTooltip';
+import { AccidentHistoryInput } from '@/components/valuation/AccidentHistoryInput';
+import { FeaturesSelector } from '@/components/valuation/FeaturesSelector';
+import { ZipMarketAnalysis } from '@/components/valuation/ZipMarketAnalysis';
+import { PhotoUploader } from '@/components/valuation/PhotoUploader';
 
 export default function PremiumPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const featuresRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  
+  // State for new form fields
+  const [conditionValue, setConditionValue] = useState(75);
+  const [zipCode, setZipCode] = useState('');
+  const [hasAccidents, setHasAccidents] = useState('no');
+  const [accidentCount, setAccidentCount] = useState('');
+  const [accidentSeverity, setAccidentSeverity] = useState('');
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -429,7 +442,7 @@ export default function PremiumPage() {
               className="mb-12"
             />
             
-            <Tabs defaultValue="vin" className="space-y-8">
+            <Tabs defaultValue="manual" className="space-y-8">
               <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
                 <TabsTrigger 
                   value="vin" 
@@ -501,7 +514,7 @@ export default function PremiumPage() {
                       size="md"
                     />
                   </CardHeader>
-                  <CardContent className="pt-8">
+                  <CardContent className="pt-8 space-y-8">
                     <ManualEntryForm 
                       onSubmit={async (data) => {
                         try {
@@ -531,6 +544,46 @@ export default function PremiumPage() {
                       isPremium={true}
                       isLoading={isSubmitting}
                     />
+                    
+                    {/* New components */}
+                    <div className="border-t border-border pt-8">
+                      <div className="grid gap-8">
+                        {/* Photo Uploader Component */}
+                        <PhotoUploader disabled={isSubmitting} />
+                        
+                        {/* Condition Slider */}
+                        <ConditionSliderWithTooltip 
+                          value={conditionValue}
+                          onChange={setConditionValue}
+                          disabled={isSubmitting}
+                        />
+                        
+                        {/* ZIP-based Market Analysis */}
+                        <ZipMarketAnalysis
+                          zipCode={zipCode}
+                          setZipCode={setZipCode}
+                          disabled={isSubmitting}
+                        />
+                        
+                        {/* Premium Features Component */}
+                        <FeaturesSelector
+                          selectedFeatures={selectedFeatures}
+                          onFeaturesChange={setSelectedFeatures}
+                          disabled={isSubmitting}
+                        />
+                        
+                        {/* Accident History Input */}
+                        <AccidentHistoryInput
+                          hasAccidents={hasAccidents}
+                          setHasAccidents={setHasAccidents}
+                          accidentCount={accidentCount}
+                          setAccidentCount={setAccidentCount}
+                          accidentSeverity={accidentSeverity}
+                          setAccidentSeverity={setAccidentSeverity}
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

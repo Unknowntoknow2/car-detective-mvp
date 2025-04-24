@@ -1,98 +1,162 @@
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { VinDecoderForm } from "../lookup/VinDecoderForm";
+import { Link } from "react-router-dom";
+import { AccidentHistoryInput } from '../valuation/AccidentHistoryInput';
+import { ConditionSliderWithTooltip } from '../valuation/ConditionSliderWithTooltip';
+import { ManualEntryForm } from '../lookup/ManualEntryForm';
+import { PlateDecoderForm } from '../lookup/PlateDecoderForm';
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { US_STATES } from "@/utils/constants";
-import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
-import { toast } from "sonner";
+import { CarFront, Search, FileText } from "lucide-react";
 
 export function LookupTabs() {
-  const navigate = useNavigate();
-  const [vin, setVin] = useState("");
-  const [plate, setPlate] = useState("");
-  const [state, setState] = useState("");
-
-  const handleVinSubmit = () => {
-    if (vin.length !== 17) {
-      toast.error("Please enter a valid 17-character VIN");
-      return;
-    }
-    navigate(`/lookup/vin?vin=${encodeURIComponent(vin)}`);
-  };
-
-  const handlePlateSubmit = () => {
-    if (!plate) {
-      toast.error("Please enter a license plate number");
-      return;
-    }
-    if (!state) {
-      toast.error("Please select a state");
-      return;
-    }
-    navigate(`/lookup/plate?plate=${encodeURIComponent(plate)}&state=${encodeURIComponent(state)}`);
-  };
+  const [conditionValue, setConditionValue] = useState(75);
+  const [hasAccidents, setHasAccidents] = useState('no');
+  const [accidentCount, setAccidentCount] = useState('');
+  const [accidentSeverity, setAccidentSeverity] = useState('');
 
   return (
-    <Tabs defaultValue="vin" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
-        <TabsTrigger value="plate">Plate Lookup</TabsTrigger>
-        <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+    <Tabs defaultValue="vin" className="max-w-4xl mx-auto">
+      <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
+        <TabsTrigger 
+          value="vin" 
+          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <CarFront className="w-5 h-5" />
+            <span>VIN Lookup</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="plate" 
+          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <Search className="w-5 h-5" />
+            <span>Plate Lookup</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="manual" 
+          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FileText className="w-5 h-5" />
+            <span>Manual Entry</span>
+          </div>
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="vin">
-        <div className="space-y-4 p-6 bg-white rounded-lg shadow-sm">
-          <h4 className="text-lg font-semibold">Vehicle Identification Number (VIN)</h4>
-          <Input 
-            placeholder="Enter 17-character VIN" 
-            value={vin}
-            onChange={(e) => setVin(e.target.value.toUpperCase())}
-            maxLength={17}
-            className="font-mono tracking-wider uppercase"
-          />
-          <Button onClick={handleVinSubmit} className="w-full">
-            Get Vehicle Details
-          </Button>
-        </div>
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle>VIN Lookup</CardTitle>
+            <CardDescription>Enter your Vehicle Identification Number for a detailed analysis</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <VinDecoderForm />
+          </CardContent>
+        </Card>
       </TabsContent>
 
       <TabsContent value="plate">
-        <div className="space-y-4 p-6 bg-white rounded-lg shadow-sm">
-          <h4 className="text-lg font-semibold">License Plate Lookup</h4>
-          <Input 
-            placeholder="Plate Number" 
-            value={plate}
-            onChange={(e) => setPlate(e.target.value.toUpperCase())}
-            maxLength={8}
-            className="uppercase"
-          />
-          <Select value={state} onValueChange={setState}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select State" />
-            </SelectTrigger>
-            <SelectContent>
-              {US_STATES.map((state) => (
-                <SelectItem key={state.value} value={state.value}>
-                  {state.label} ({state.value})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button onClick={handlePlateSubmit} className="w-full">
-            Lookup by Plate
-          </Button>
-        </div>
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle>License Plate Lookup</CardTitle>
+            <CardDescription>Look up your vehicle using license plate information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PlateDecoderForm />
+          </CardContent>
+        </Card>
       </TabsContent>
 
       <TabsContent value="manual">
-        <div className="space-y-4 p-6 bg-white rounded-lg shadow-sm">
-          <h4 className="text-lg font-semibold">Manual Vehicle Entry</h4>
-          <ManualEntryForm />
-        </div>
+        <Card className="border-2 border-primary/20">
+          <CardHeader>
+            <CardTitle>Manual Entry</CardTitle>
+            <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <ManualEntryForm />
+            
+            <div className="border-t border-border pt-8">
+              <ConditionSliderWithTooltip 
+                value={conditionValue}
+                onChange={setConditionValue}
+              />
+            </div>
+            
+            <div className="border-t border-border pt-8">
+              <AccidentHistoryInput
+                hasAccidents={hasAccidents}
+                setHasAccidents={setHasAccidents}
+                accidentCount={accidentCount}
+                setAccidentCount={setAccidentCount}
+                accidentSeverity={accidentSeverity}
+                setAccidentSeverity={setAccidentSeverity}
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline">Reset Form</Button>
+            <Button>Get Valuation</Button>
+          </CardFooter>
+        </Card>
       </TabsContent>
+      
+      <div className="mt-8 flex justify-center">
+        <Card className="border-2 border-primary w-full">
+          <CardHeader className="bg-primary/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Premium Valuation</CardTitle>
+                <CardDescription className="mt-1">CARFAX® Report Included</CardDescription>
+              </div>
+              <div className="text-lg font-bold">$29.99</div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium text-primary">Premium Features</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <span className="text-primary">✓</span>
+                    Full CARFAX® Vehicle History
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-primary">✓</span>
+                    Accident Damage Assessment
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-primary">✓</span>
+                    Service Record Verification
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-primary">✓</span>
+                    12-Month Value Forecast
+                  </li>
+                </ul>
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-medium text-primary">Why Upgrade?</h4>
+                <p className="text-sm text-text-secondary">
+                  Our premium valuation includes a complete CARFAX® report ($44 value) and advanced 
+                  market analysis, showing you how specific features and history affect your vehicle's value.
+                </p>
+                <Button className="w-full" size="lg" asChild>
+                  <Link to="/premium">Get Premium Valuation</Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </Tabs>
   );
 }
