@@ -1,62 +1,81 @@
-
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { PlateLookupInfo } from '@/types/lookup';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export interface ReportData {
-  vin?: string;
-  plate?: string;
-  state?: string;
   make: string;
   model: string;
   year: number | string;
   mileage: string;
-  fuelType?: string;
-  condition?: string;
-  zipCode?: string;
+  vin?: string;
+  plate?: string;
+  state?: string;
   color?: string;
   estimatedValue: string;
+  fuelType?: string;
+  condition?: string;
+  location?: string;
+  transmission?: string;
+  zipCode?: string;
+  confidenceScore?: number;
+  adjustments?: { label: string; value: number }[];
 }
 
-// Helper function to convert vehicle info to report data
-export function convertVehicleInfoToReportData(info: DecodedVehicleInfo | PlateLookupInfo, additionalData?: {
-  mileage?: string;
-  estimatedValue?: string;
-  condition?: string;
-  fuelType?: string;
-  zipCode?: string;
-}): ReportData {
-  // Default values for required fields
-  const estimatedValue = additionalData?.estimatedValue || "Not available";
-  const mileage = additionalData?.mileage || "Not available";
-  
-  // Basic properties common to both types
-  const reportData: ReportData = {
-    make: info.make || "Not specified",
-    model: info.model || "Not specified",
-    year: info.year || "Not specified",
-    mileage,
-    estimatedValue,
-    condition: additionalData?.condition || "Not specified",
-    fuelType: additionalData?.fuelType || "Not specified",
-    zipCode: additionalData?.zipCode || "Not specified",
+export function convertVehicleInfoToReportData(
+  vehicle: Partial<DecodedVehicleInfo | PlateLookupInfo>, 
+  valuationData?: {
+    mileage?: number | string;
+    estimatedValue?: number;
+    confidenceScore?: number;
+    condition?: string;
+    adjustments?: { label: string; value: number }[];
+    zipCode?: string;
+    fuelType?: string;
+  }
+): ReportData {
+  const defaultData = {
+    mileage: "Unknown",
+    estimatedValue: "Not Available",
+    confidenceScore: 0,
+    condition: "Not Specified",
+    fuelType: "Not Specified",
+    zipCode: "Not Available"
   };
 
-  // Add specific fields for vehicle info type
-  if ('vin' in info) {
-    reportData.vin = info.vin;
-  }
-  
-  if ('plate' in info && 'state' in info) {
-    reportData.plate = info.plate;
-    reportData.state = info.state;
-  }
-  
-  if ('color' in info) {
-    reportData.color = info.color || "Not specified";
+  const mergedData = { ...defaultData, ...valuationData };
+
+  const baseReportData: ReportData = {
+    make: vehicle.make || 'Unknown',
+    model: vehicle.model || 'Unknown',
+    year: vehicle.year || 'Unknown',
+    mileage: mergedData.mileage?.toString() || "Unknown",
+    estimatedValue: mergedData.estimatedValue?.toString() || "Not Available",
+    condition: mergedData.condition,
+    fuelType: mergedData.fuelType,
+    zipCode: mergedData.zipCode,
+    confidenceScore: mergedData.confidenceScore,
+    adjustments: mergedData.adjustments || []
+  };
+
+  // Add VIN-specific or Plate-specific details
+  if ('vin' in vehicle) {
+    baseReportData.vin = vehicle.vin;
   }
 
-  return reportData;
+  if ('plate' in vehicle && 'state' in vehicle) {
+    baseReportData.plate = vehicle.plate;
+    baseReportData.state = vehicle.state;
+  }
+
+  if ('color' in vehicle) {
+    baseReportData.color = vehicle.color || undefined;
+  }
+
+  if ('transmission' in vehicle) {
+    baseReportData.transmission = vehicle.transmission || undefined;
+  }
+
+  return baseReportData;
 }
 
 export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupInfo | ReportData, additionalData?: {

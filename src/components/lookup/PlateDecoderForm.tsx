@@ -96,12 +96,20 @@ export const PlateDecoderForm = () => {
   const handleDownloadPdf = () => {
     if (!vehicleInfo) return;
     
-    downloadPdf(vehicleInfo, {
-      mileage: "Unknown",
-      estimatedValue: "24,500",
+    const reportData = convertVehicleInfoToReportData(vehicleInfo, {
+      mileage: 76000,
+      estimatedValue: 24500,
       condition: "Good",
-      zipCode: "10001"
+      zipCode: "10001",
+      confidenceScore: 92,
+      adjustments: [
+        { label: "Location", value: 1.5 },
+        { label: "Vehicle Condition", value: 2.0 },
+        { label: "Market Demand", value: 4.0 }
+      ]
     });
+    
+    downloadPdf(reportData);
   };
 
   return (

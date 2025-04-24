@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
-import { downloadPdf } from '@/utils/pdfGenerator';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
 import { VehicleInfoCard } from './VehicleInfoCard';
@@ -45,12 +44,20 @@ export const VinDecoderForm = () => {
   const handleDownloadPdf = () => {
     if (!vehicleInfo) return;
     
-    downloadPdf(vehicleInfo, {
-      mileage: "Unknown",
-      estimatedValue: "24,500",
+    const reportData = convertVehicleInfoToReportData(vehicleInfo, {
+      mileage: 76000,
+      estimatedValue: 24500,
       condition: "Good",
-      zipCode: "10001"
+      zipCode: "10001",
+      confidenceScore: 92,
+      adjustments: [
+        { label: "Mileage", value: -3.5 },
+        { label: "Condition", value: 2.0 },
+        { label: "Market Demand", value: 4.0 }
+      ]
     });
+    
+    downloadPdf(reportData);
   };
 
   return (
