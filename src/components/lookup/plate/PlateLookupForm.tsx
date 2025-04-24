@@ -29,7 +29,13 @@ export const PlateLookupForm = ({
 
   useEffect(() => {
     if (autoSubmit && plate && state && !isLoading) {
-      onSubmit(new Event('submit') as React.FormEvent);
+      // Create a synthetic FormEvent instead of casting Event
+      const syntheticEvent = {
+        preventDefault: () => {},
+        target: document.createElement('form')
+      } as React.FormEvent;
+      
+      onSubmit(syntheticEvent);
     }
   }, [autoSubmit, plate, state, isLoading, onSubmit]);
 

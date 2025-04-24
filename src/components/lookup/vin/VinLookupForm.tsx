@@ -21,7 +21,13 @@ export const VinLookupForm = ({
 }: VinLookupFormProps) => {
   useEffect(() => {
     if (autoSubmit && vin.length === 17 && !isLoading) {
-      onSubmit(new Event('submit') as React.FormEvent);
+      // Create a synthetic FormEvent instead of casting Event
+      const syntheticEvent = {
+        preventDefault: () => {},
+        target: document.createElement('form')
+      } as React.FormEvent;
+      
+      onSubmit(syntheticEvent);
     }
   }, [autoSubmit, vin, isLoading, onSubmit]);
 
