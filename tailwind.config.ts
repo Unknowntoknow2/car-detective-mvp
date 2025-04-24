@@ -20,7 +20,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
-        display: ["Montserrat", "sans-serif"],
+        display: ["Playfair Display", "serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {

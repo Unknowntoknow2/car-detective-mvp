@@ -213,6 +213,30 @@ export type Database = {
         }
         Relationships: []
       }
+      makes_duplicate: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          make_name: string
+          nhtsa_make_id: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          make_name: string
+          nhtsa_make_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          make_name?: string
+          nhtsa_make_id?: number | null
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           created_at: string

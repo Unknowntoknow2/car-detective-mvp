@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -223,6 +223,29 @@
   .tooltip:hover .tooltip-text {
     @apply visible opacity-100;
   }
+
+  /* 3D elements */
+  .card-3d {
+    @apply relative bg-white rounded-xl overflow-hidden transition-all duration-300
+           shadow-lg hover:shadow-xl transform hover:-translate-y-1
+           before:absolute before:inset-0 before:bg-gradient-to-br 
+           before:from-primary/5 before:to-transparent before:opacity-0
+           hover:before:opacity-100 before:transition-opacity;
+  }
+
+  .input-3d {
+    @apply bg-white border border-border/80 rounded-lg px-4 py-3 w-full shadow-sm
+           transition-all duration-200 hover:shadow-md focus:shadow-md
+           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary;
+  }
+
+  .button-3d {
+    @apply relative bg-primary text-white font-medium px-6 py-3 rounded-lg
+           transform transition-all duration-300 shadow-[0_4px_0_0_#004ECC]
+           hover:shadow-[0_6px_0_0_#004ECC] hover:-translate-y-0.5
+           active:translate-y-1 active:shadow-[0_0px_0_0_#004ECC]
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
 }
 
 @layer utilities {
@@ -256,5 +279,25 @@
     transform: translateZ(0);
     backface-visibility: hidden;
     perspective: 1000px;
+  }
+
+  /* 3D transform effects */
+  .rotate-y-3d {
+    transform: perspective(1000px) rotateY(var(--rotate-y, 0deg));
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  
+  .rotate-x-3d {
+    transform: perspective(1000px) rotateX(var(--rotate-x, 0deg));
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  
+  .translate-z-3d {
+    transform: perspective(1000px) translateZ(var(--translate-z, 0px));
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
   }
 }
