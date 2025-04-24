@@ -4,6 +4,7 @@ import { PlateLookupInfo } from '@/types/lookup';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { mockPlateLookup } from '@/services/plateService';
+import { PlateLookupResponse } from '@/types/api';
 
 export function usePlateLookup() {
   const [vehicleInfo, setVehicleInfo] = useState<PlateLookupInfo | null>(null);
@@ -39,20 +40,28 @@ export function usePlateLookup() {
       // If not found, use mock service for now and store result
       const mockData = await mockPlateLookup(plate, state);
       
+      if (mockData.error) {
+        throw new Error(mockData.error);
+      }
+
+      if (!mockData.data) {
+        throw new Error('No vehicle data found');
+      }
+
       const { error: insertError } = await supabase
         .from('plate_lookups')
-        .insert([mockData]);
+        .insert([mockData.data]);
 
       if (insertError) {
         throw insertError;
       }
 
-      setVehicleInfo(mockData);
+      setVehicleInfo(mockData.data);
       toast({
         title: "Success",
         description: `Vehicle information found for plate: ${plate}, state: ${state}`,
       });
-      return mockData;
+      return mockData.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
