@@ -1,4 +1,3 @@
-
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { PlateLookupInfo } from '@/types/lookup';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -36,7 +35,7 @@ export function convertVehicleInfoToReportData(
 ): ReportData {
   const defaultData = {
     mileage: "Unknown",
-    estimatedValue: 0, // Changed from "Not Available" to 0 to match number type
+    estimatedValue: 0,
     confidenceScore: 0,
     condition: "Not Specified",
     fuelType: "Not Specified",
@@ -50,7 +49,7 @@ export function convertVehicleInfoToReportData(
     model: vehicle.model || 'Unknown',
     year: vehicle.year || 'Unknown',
     mileage: mergedData.mileage?.toString() || "Unknown",
-    estimatedValue: typeof mergedData.estimatedValue === 'number' ? mergedData.estimatedValue : 0, // Ensure we always have a number
+    estimatedValue: typeof mergedData.estimatedValue === 'number' ? mergedData.estimatedValue : 0,
     condition: mergedData.condition,
     fuelType: mergedData.fuelType,
     zipCode: mergedData.zipCode,
@@ -58,7 +57,6 @@ export function convertVehicleInfoToReportData(
     adjustments: mergedData.adjustments || []
   };
 
-  // Add VIN-specific or Plate-specific details
   if ('vin' in vehicle) {
     baseReportData.vin = vehicle.vin;
   }
@@ -85,27 +83,24 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
   condition?: string;
   fuelType?: string;
   zipCode?: string;
+  confidenceScore?: number;
+  confidenceLevel?: string;
 }) {
-  // Convert to ReportData if needed
   const reportData: ReportData = 'mileage' in vehicleInfo && 'estimatedValue' in vehicleInfo
     ? vehicleInfo as ReportData
     : convertVehicleInfoToReportData(vehicleInfo as any, additionalData as any);
 
-  // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage();
   const { width, height } = page.getSize();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  // Set up colors
-  const primaryColor = rgb(0.12, 0.46, 0.70); // Blue
-  const textColor = rgb(0, 0, 0); // Black
+  const primaryColor = rgb(0.12, 0.46, 0.70);
+  const textColor = rgb(0, 0, 0);
 
-  // Page margins
   const margin = 50;
 
-  // Draw title
   page.drawText('Vehicle Valuation Report', {
     x: margin,
     y: height - margin,
@@ -114,7 +109,6 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
     color: primaryColor,
   });
 
-  // Vehicle Details Section
   let yPosition = height - margin - 50;
   const labelFontSize = 12;
   const valueFontSize = 14;
@@ -139,7 +133,6 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
     yPosition -= 30;
   };
 
-  // Detailed sections
   drawTextPair('Vehicle', `${reportData.year} ${reportData.make} ${reportData.model}`);
   if (reportData.vin) {
     drawTextPair('VIN', reportData.vin);
@@ -157,7 +150,6 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
     drawTextPair('Color', reportData.color);
   }
 
-  // Valuation Section
   yPosition -= 20;
   page.drawText('Valuation Details', {
     x: margin,
@@ -169,8 +161,12 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
 
   yPosition -= 30;
   drawTextPair('Estimated Value', `$${reportData.estimatedValue.toLocaleString()}`);
+  
+  if (additionalData?.confidenceScore) {
+    drawTextPair('Confidence Score', `${additionalData.confidenceScore}%`);
+    drawTextPair('Confidence Level', additionalData.confidenceLevel || 'Moderate');
+  }
 
-  // Disclaimer
   yPosition -= 50;
   page.drawText('Disclaimer: This valuation is for informational purposes only.', {
     x: margin,
@@ -180,10 +176,7 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
     color: rgb(0.6, 0.6, 0.6),
   });
 
-  // Serialize PDF to bytes
   const pdfBytes = await pdfDoc.save();
-
-  // Create a blob and trigger download
   const blob = new Blob([pdfBytes], { type: 'application/pdf' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);

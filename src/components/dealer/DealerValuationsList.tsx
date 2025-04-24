@@ -71,6 +71,11 @@ export const DealerValuationsList = () => {
                     Mileage: {valuation.mileage.toLocaleString()}
                   </p>
                 )}
+                {valuation.confidence_score && (
+                  <p className="text-sm text-muted-foreground">
+                    Confidence: {valuation.confidence_score}%
+                  </p>
+                )}
               </div>
               <Button
                 variant="outline"

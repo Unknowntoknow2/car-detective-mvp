@@ -1,5 +1,4 @@
-
-import { calculateConfidenceScore } from './confidenceCalculator';
+import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import type { VehicleCondition } from './adjustments/types';
 
@@ -38,6 +37,7 @@ export interface ValuationResult {
   adjustments: AdjustmentBreakdown[];
   estimatedValue: number;
   confidenceScore: number;
+  confidenceLevel: string;
   priceRange: [number, number];
 }
 
@@ -68,7 +68,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
   // Calculate estimated value
   const estimatedValue = Math.round(basePrice + totalAdjustment);
 
-  // Calculate confidence score
+  // Calculate confidence score and level
   const confidenceScore = calculateConfidenceScore({
     vin: input.vin,
     zip: input.zip,
@@ -92,6 +92,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     adjustments,
     estimatedValue,
     confidenceScore,
+    confidenceLevel: getConfidenceLevel(confidenceScore),
     priceRange
   };
 }
