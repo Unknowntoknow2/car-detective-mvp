@@ -1,5 +1,6 @@
 
 import { VehicleCondition } from '../adjustments/types';
+import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface AdjustmentBreakdown {
   label: string;
@@ -18,6 +19,7 @@ export interface RulesEngineInput {
   accidentCount?: number;
   premiumFeatures?: string[];
   basePrice: number;
+  carfaxData?: CarfaxData; // Add CARFAX data
 }
 
 export interface AdjustmentCalculator {

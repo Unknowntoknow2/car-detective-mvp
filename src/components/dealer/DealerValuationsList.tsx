@@ -3,12 +3,17 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 import { Valuation } from '@/types/dealer';
+import { AlertCircle, CheckCircle, Shield, AlertTriangle } from 'lucide-react';
+import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
 
 export const DealerValuationsList = () => {
+  const [loadingCarfax, setLoadingCarfax] = useState<Record<string, boolean>>({});
+
   const { data: valuations, isLoading } = useQuery({
     queryKey: ['dealer-valuations'],
     queryFn: async () => {
@@ -22,8 +27,16 @@ export const DealerValuationsList = () => {
     }
   });
 
-  const handleDownloadReport = async (valuation: Valuation) => {
+  const handleDownloadReport = async (valuation: Valuation, includePremium = false) => {
     try {
+      setLoadingCarfax({...loadingCarfax, [valuation.id]: true});
+      
+      // Get CARFAX data if this is a premium report and we have a VIN
+      let carfaxData = undefined;
+      if (includePremium && valuation.vin) {
+        carfaxData = await getCarfaxReport(valuation.vin);
+      }
+      
       const reportData = convertVehicleInfoToReportData(
         {
           make: valuation.make,
@@ -36,15 +49,19 @@ export const DealerValuationsList = () => {
           mileage: valuation.mileage,
           condition: valuation.condition,
           fuelType: valuation.fuel_type,
-          zipCode: valuation.zip_code
+          zipCode: valuation.zip_code,
+          carfaxData,
+          isPremium: includePremium
         }
       );
       
       await downloadPdf(reportData);
-      toast.success('PDF report downloaded');
+      toast.success(`${includePremium ? 'Premium' : 'Standard'} PDF report downloaded`);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       toast.error('Failed to download PDF report');
+    } finally {
+      setLoadingCarfax({...loadingCarfax, [valuation.id]: false});
     }
   };
 
@@ -62,6 +79,13 @@ export const DealerValuationsList = () => {
               <div>
                 <h3 className="font-semibold">
                   {valuation.year} {valuation.make} {valuation.model}
+                  {valuation.vin && (
+                    <span className="ml-2">
+                      <Badge variant="outline" className="ml-2">
+                        VIN Available
+                      </Badge>
+                    </span>
+                  )}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Estimated Value: ${valuation.estimated_value?.toLocaleString()}
@@ -72,17 +96,33 @@ export const DealerValuationsList = () => {
                   </p>
                 )}
                 {valuation.confidence_score && (
-                  <p className="text-sm text-muted-foreground">
-                    Confidence: {valuation.confidence_score}%
-                  </p>
+                  <div className="flex items-center mt-1">
+                    <p className="text-sm text-muted-foreground mr-1">
+                      Confidence:
+                    </p>
+                    <ConfidenceBadge score={valuation.confidence_score} />
+                  </div>
                 )}
               </div>
-              <Button
-                variant="outline"
-                onClick={() => handleDownloadReport(valuation)}
-              >
-                Download Report
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownloadReport(valuation)}
+                  size="sm"
+                >
+                  Standard Report
+                </Button>
+                {valuation.vin && (
+                  <Button
+                    variant="default"
+                    onClick={() => handleDownloadReport(valuation, true)}
+                    disabled={loadingCarfax[valuation.id]}
+                    size="sm"
+                  >
+                    {loadingCarfax[valuation.id] ? 'Loading CARFAX...' : 'Premium Report'}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -94,4 +134,35 @@ export const DealerValuationsList = () => {
       </div>
     </Card>
   );
+};
+
+// Helper component for displaying confidence badges
+const ConfidenceBadge = ({ score }: { score: number }) => {
+  if (score >= 80) {
+    return (
+      <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
+        <CheckCircle className="h-3 w-3 mr-1" />
+        High ({score}%)
+      </Badge>
+    );
+  } else if (score >= 60) {
+    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+      <Shield className="h-3 w-3 mr-1" />
+      Good ({score}%)
+    </Badge>;
+  } else if (score >= 40) {
+    return (
+      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+        <AlertCircle className="h-3 w-3 mr-1" />
+        Moderate ({score}%)
+      </Badge>
+    );
+  } else {
+    return (
+      <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+        <AlertTriangle className="h-3 w-3 mr-1" />
+        Low ({score}%)
+      </Badge>
+    );
+  }
 };

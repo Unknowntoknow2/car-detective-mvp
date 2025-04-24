@@ -6,6 +6,7 @@ import { LocationCalculator } from './calculators/locationCalculator';
 import { TrimCalculator } from './calculators/trimCalculator';
 import { AccidentCalculator } from './calculators/accidentCalculator';
 import { FeaturesCalculator } from './calculators/featuresCalculator';
+import { CarfaxCalculator } from './calculators/carfaxCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -14,7 +15,8 @@ export class RulesEngine {
     new LocationCalculator(),
     new TrimCalculator(),
     new AccidentCalculator(),
-    new FeaturesCalculator()
+    new FeaturesCalculator(),
+    new CarfaxCalculator() // Add CARFAX calculator
   ];
 
   public calculateAdjustments(input: RulesEngineInput): AdjustmentBreakdown[] {

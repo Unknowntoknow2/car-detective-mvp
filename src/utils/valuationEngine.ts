@@ -1,6 +1,8 @@
+
 import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import type { VehicleCondition } from './adjustments/types';
+import { CarfaxData } from './carfax/mockCarfaxService';
 
 // Sample base prices for testing - in production this would come from a database
 const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {
@@ -30,6 +32,7 @@ export interface ValuationInput {
   accidentCount?: number;
   premiumFeatures?: string[];
   hasCarfax?: boolean;
+  carfaxData?: CarfaxData; // Add CARFAX data
 }
 
 export interface ValuationResult {
@@ -39,6 +42,7 @@ export interface ValuationResult {
   confidenceScore: number;
   confidenceLevel: string;
   priceRange: [number, number];
+  carfaxData?: CarfaxData; // Add CARFAX data
 }
 
 function getBasePrice(make: string, model: string): number {
@@ -59,7 +63,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     trim: input.trim,
     accidentCount: input.accidentCount,
     premiumFeatures: input.premiumFeatures,
-    basePrice: basePrice
+    basePrice: basePrice,
+    carfaxData: input.carfaxData // Pass CARFAX data to rules engine
   });
   
   // Calculate total adjustment
@@ -77,7 +82,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     make: input.make,
     model: input.model,
     condition: input.condition,
-    hasCarfax: input.hasCarfax
+    hasCarfax: input.hasCarfax || !!input.carfaxData // Consider CARFAX for confidence score
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)
@@ -93,6 +98,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     estimatedValue,
     confidenceScore,
     confidenceLevel: getConfidenceLevel(confidenceScore),
-    priceRange
+    priceRange,
+    carfaxData: input.carfaxData // Include CARFAX data in result
   };
 }

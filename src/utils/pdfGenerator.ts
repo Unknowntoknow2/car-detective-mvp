@@ -1,6 +1,8 @@
+
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { PlateLookupInfo } from '@/types/lookup';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { CarfaxData } from './carfax/mockCarfaxService';
 
 export interface ReportData {
   make: string;
@@ -19,6 +21,8 @@ export interface ReportData {
   zipCode?: string;
   confidenceScore?: number;
   adjustments?: { label: string; value: number }[];
+  carfaxData?: CarfaxData; // Add CARFAX data
+  isPremium?: boolean; // Flag to determine if this is a premium report
 }
 
 export function convertVehicleInfoToReportData(
@@ -31,6 +35,8 @@ export function convertVehicleInfoToReportData(
     adjustments?: { label: string; value: number }[];
     zipCode?: string;
     fuelType?: string;
+    carfaxData?: CarfaxData;
+    isPremium?: boolean;
   }
 ): ReportData {
   const defaultData = {
@@ -54,7 +60,9 @@ export function convertVehicleInfoToReportData(
     fuelType: mergedData.fuelType,
     zipCode: mergedData.zipCode,
     confidenceScore: mergedData.confidenceScore,
-    adjustments: mergedData.adjustments || []
+    adjustments: mergedData.adjustments || [],
+    carfaxData: mergedData.carfaxData,
+    isPremium: mergedData.isPremium
   };
 
   if ('vin' in vehicle) {
@@ -100,6 +108,17 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
   const textColor = rgb(0, 0, 0);
 
   const margin = 50;
+
+  // Add premium indicator if applicable
+  if (reportData.isPremium) {
+    page.drawText('PREMIUM REPORT', {
+      x: width - 150,
+      y: height - margin,
+      size: 12,
+      font: boldFont,
+      color: rgb(0.8, 0.2, 0.2),
+    });
+  }
 
   page.drawText('Vehicle Valuation Report', {
     x: margin,
@@ -162,9 +181,35 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
   yPosition -= 30;
   drawTextPair('Estimated Value', `$${reportData.estimatedValue.toLocaleString()}`);
   
-  if (additionalData?.confidenceScore) {
-    drawTextPair('Confidence Score', `${additionalData.confidenceScore}%`);
-    drawTextPair('Confidence Level', additionalData.confidenceLevel || 'Moderate');
+  if (reportData.confidenceScore) {
+    drawTextPair('Confidence Score', `${reportData.confidenceScore}%`);
+  }
+
+  // Add CARFAX details if available
+  if (reportData.carfaxData) {
+    yPosition -= 20;
+    page.drawText('Vehicle History (CARFAX)', {
+      x: margin,
+      y: yPosition,
+      size: 18,
+      font: boldFont,
+      color: primaryColor,
+    });
+    
+    yPosition -= 30;
+    
+    const carfax = reportData.carfaxData;
+    drawTextPair('Accident Reports', carfax.accidentsReported > 0 
+      ? `${carfax.accidentsReported} (${carfax.damageSeverity || 'minor'} damage)` 
+      : 'None reported');
+    drawTextPair('Previous Owners', carfax.owners.toString());
+    drawTextPair('Service Records', carfax.serviceRecords.toString());
+    
+    if (carfax.salvageTitle) {
+      drawTextPair('Title Status', carfax.brandedTitle || 'Salvage/Branded');
+    } else {
+      drawTextPair('Title Status', 'Clean');
+    }
   }
 
   yPosition -= 50;
@@ -176,10 +221,21 @@ export async function downloadPdf(vehicleInfo: DecodedVehicleInfo | PlateLookupI
     color: rgb(0.6, 0.6, 0.6),
   });
 
+  if (reportData.isPremium) {
+    yPosition -= 20;
+    page.drawText('This premium report includes verified vehicle history data.', {
+      x: margin,
+      y: yPosition,
+      size: 10,
+      font: boldFont,
+      color: rgb(0.6, 0.6, 0.6),
+    });
+  }
+
   const pdfBytes = await pdfDoc.save();
   const blob = new Blob([pdfBytes], { type: 'application/pdf' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `vehicle_valuation_${reportData.year}_${reportData.make}_${reportData.model}.pdf`;
+  link.download = `vehicle_valuation_${reportData.year}_${reportData.make}_${reportData.model}${reportData.isPremium ? '_premium' : ''}.pdf`;
   link.click();
 }
