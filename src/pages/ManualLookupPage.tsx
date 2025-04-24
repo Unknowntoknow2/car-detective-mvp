@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useManualValuation, ManualVehicleInfo } from '@/hooks/useManualValuation';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
-import { downloadPdf } from '@/utils/pdfGenerator';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
@@ -56,22 +56,19 @@ const ManualLookupPage = () => {
   const handleDownloadReport = async () => {
     if (!vehicleInfo) return;
     
-    const reportData = {
-      vin: "",
-      plate: "",
-      state: "",
-      make: vehicleInfo.make,
-      model: vehicleInfo.model,
-      year: vehicleInfo.year,
-      mileage: vehicleInfo.mileage.toString(),
-      fuelType: vehicleInfo.fuelType,
-      condition: vehicleInfo.condition,
-      zipCode: vehicleInfo.zipCode,
-      color: 'Not specified',
-      estimatedValue: vehicleInfo.valuation?.toString() || 'Not available',
-    };
-    
     try {
+      const reportData = convertVehicleInfoToReportData({
+        make: vehicleInfo.make,
+        model: vehicleInfo.model,
+        year: vehicleInfo.year
+      } as any, {
+        mileage: vehicleInfo.mileage.toString(),
+        estimatedValue: vehicleInfo.valuation?.toString() || 'Not available',
+        fuelType: vehicleInfo.fuelType,
+        condition: vehicleInfo.condition,
+        zipCode: vehicleInfo.zipCode
+      });
+      
       await downloadPdf(reportData);
       toast.success('PDF report downloaded');
     } catch (error) {

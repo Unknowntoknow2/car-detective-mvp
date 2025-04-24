@@ -42,6 +42,17 @@ export const VinDecoderForm = () => {
     });
   };
 
+  const handleDownloadPdf = () => {
+    if (!vehicleInfo) return;
+    
+    downloadPdf(vehicleInfo, {
+      mileage: "Unknown",
+      estimatedValue: "24,500",
+      condition: "Good",
+      zipCode: "10001"
+    });
+  };
+
   return (
     <div className="w-full max-w-xl mx-auto">
       <Card className="border-2 border-primary/20">
@@ -82,7 +93,7 @@ export const VinDecoderForm = () => {
       {vehicleInfo && (
         <VehicleInfoCard 
           vehicleInfo={vehicleInfo} 
-          onDownloadPdf={() => downloadPdf(vehicleInfo)}
+          onDownloadPdf={handleDownloadPdf}
           onSaveValuation={handleSaveValuation}
           isSaving={isSaving}
           isUserLoggedIn={!!user}
