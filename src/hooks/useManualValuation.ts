@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { calculateValuation } from '@/utils/valuationEngine';
-import type { ValuationResult } from '@/utils/valuationEngine';
+import type { AdjustmentBreakdown } from '@/utils/rulesEngine';
 
 export type ManualVehicleInfo = {
   make: string;
@@ -17,7 +17,7 @@ export type ManualVehicleInfo = {
   premiumFeatures?: string[];
   valuation?: number;
   confidenceScore?: number;
-  adjustments?: { label: string; value: number; description?: string }[];
+  adjustments?: AdjustmentBreakdown[];
   priceRange?: [number, number];
 };
 

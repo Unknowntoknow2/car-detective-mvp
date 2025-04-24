@@ -1,6 +1,7 @@
 
 import { calculateConfidenceScore } from './confidenceScore';
-import { calculateTotalAdjustment, getAdjustmentBreakdown, VehicleCondition } from './priceAdjustments';
+import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
+import type { VehicleCondition } from './priceAdjustments';
 
 // Sample base prices for testing - in production this would come from a database
 const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {
@@ -35,7 +36,7 @@ export interface ValuationInput {
 
 export interface ValuationResult {
   basePrice: number;
-  adjustments: { label: string; value: number; description?: string }[];
+  adjustments: AdjustmentBreakdown[];
   estimatedValue: number;
   confidenceScore: number;
   priceRange: [number, number];
@@ -55,21 +56,21 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
   // Get base price from our sample data
   const basePrice = getBasePrice(input.make, input.model);
   
-  // Calculate detailed adjustment breakdown
-  const adjustmentDetails = getAdjustmentBreakdown({
+  // Calculate adjustments using the rules engine
+  const adjustments = rulesEngine.calculateAdjustments({
+    make: input.make,
+    model: input.model,
     mileage: input.mileage,
-    condition: input.condition as VehicleCondition,
+    condition: input.condition,
     zipCode: input.zip,
-    basePrice,
     trim: input.trim,
     accidentCount: input.accidentCount,
     premiumFeatures: input.premiumFeatures,
-    make: input.make,
-    model: input.model
+    basePrice: basePrice
   });
   
-  // Sum all adjustments
-  const totalAdjustment = adjustmentDetails.reduce((sum, item) => sum + item.value, 0);
+  // Calculate total adjustment
+  const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
 
   // Calculate estimated value
   const estimatedValue = Math.round(basePrice + totalAdjustment);
@@ -95,7 +96,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
 
   return {
     basePrice,
-    adjustments: adjustmentDetails,
+    adjustments,
     estimatedValue,
     confidenceScore,
     priceRange

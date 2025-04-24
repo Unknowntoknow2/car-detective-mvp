@@ -1,0 +1,69 @@
+
+{
+  "adjustments": {
+    "mileage": [
+      { "min": 0, "max": 29999, "percent": 0.025 },
+      { "min": 30000, "max": 59999, "percent": 0 },
+      { "min": 60000, "max": 99999, "percent": -0.05 },
+      { "min": 100000, "max": 149999, "percent": -0.10 },
+      { "min": 150000, "max": 999999, "percent": -0.15 }
+    ],
+    "condition": {
+      "excellent": 0.05,
+      "good": 0.0,
+      "fair": -0.075,
+      "poor": -0.15
+    },
+    "zip": {
+      "hot": ["90210", "10001", "60611", "94102", "98101"],
+      "cold": ["78572", "30401", "63115", "35203", "59101"],
+      "adjustments": {
+        "hot": 0.03,
+        "cold": -0.02,
+        "default": 0
+      }
+    },
+    "premiumFeatures": {
+      "leather seats": { "value": 0.02, "description": "Leather upholstery" },
+      "sunroof": { "value": 0.015, "description": "Sunroof or moonroof" },
+      "navigation": { "value": 0.01, "description": "Built-in navigation system" },
+      "premium audio": { "value": 0.02, "description": "Premium audio system" },
+      "adaptive cruise": { "value": 0.02, "description": "Adaptive cruise control" },
+      "blind spot": { "value": 0.01, "description": "Blind spot monitoring" },
+      "heated seats": { "value": 0.01, "description": "Heated seats" },
+      "360 camera": { "value": 0.02, "description": "360-degree camera system" }
+    },
+    "accidents": [
+      { "count": 0, "percent": 0 },
+      { "count": 1, "percent": -0.05 },
+      { "count": 2, "percent": -0.12 },
+      { "count": 3, "percent": -0.20 }
+    ],
+    "trims": {
+      "Toyota": {
+        "Camry": [
+          { "trim": "LE", "percent": -0.05 },
+          { "trim": "SE", "percent": 0 },
+          { "trim": "XLE", "percent": 0.07 },
+          { "trim": "XSE", "percent": 0.10 }
+        ],
+        "RAV4": [
+          { "trim": "LE", "percent": -0.05 },
+          { "trim": "XLE", "percent": 0 },
+          { "trim": "Adventure", "percent": 0.07 },
+          { "trim": "Limited", "percent": 0.10 },
+          { "trim": "TRD Off-Road", "percent": 0.15 }
+        ]
+      },
+      "Honda": {
+        "Civic": [
+          { "trim": "LX", "percent": -0.03 },
+          { "trim": "Sport", "percent": 0 },
+          { "trim": "EX", "percent": 0.05 },
+          { "trim": "Touring", "percent": 0.10 }
+        ]
+      }
+    },
+    "featureValueCap": 0.15
+  }
+}
