@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle, 
+  CardFooter 
+} from '@/components/ui/card';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Download, Info, BookmarkPlus } from 'lucide-react';
