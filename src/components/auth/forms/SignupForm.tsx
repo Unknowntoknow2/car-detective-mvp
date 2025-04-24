@@ -115,6 +115,21 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     }
   };
 
+  const handleSubmit = () => {
+    if (authType === 'email') {
+      const emailInput = document.getElementById('email') as HTMLInputElement;
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+      if (emailInput && passwordInput) {
+        handleEmailSignup(emailInput.value, passwordInput.value);
+      }
+    } else {
+      const phoneInput = document.getElementById('phone-number') as HTMLInputElement;
+      if (phoneInput) {
+        handlePhoneSignup(phoneInput.value);
+      }
+    }
+  };
+
   return (
     <Tabs defaultValue="email" className="w-full" onValueChange={(value) => setAuthType(value as AuthType)}>
       <TabsList className="grid w-full grid-cols-2 rounded-xl overflow-hidden">
@@ -168,7 +183,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         type="button" 
         className="w-full mt-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200" 
         disabled={isLoading || (authType === 'email' && !!emailError) || (authType === 'phone' && !!phoneError) || !agreeToTerms}
-        onClick={() => authType === 'email' ? handleEmailSignup(document.getElementById('email') as HTMLInputElement).value, document.getElementById('password') as HTMLInputElement).value) : handlePhoneSignup(document.getElementById('phone-number') as HTMLInputElement).value)}
+        onClick={handleSubmit}
       >
         {isLoading ? 'Processing...' : 'Create Account'}
       </Button>
