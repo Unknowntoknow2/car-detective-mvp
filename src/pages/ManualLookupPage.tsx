@@ -45,8 +45,11 @@ const ManualLookupPage = () => {
   const handleDownloadReport = async () => {
     if (!vehicleInfo) return;
     
-    // Convert to the format expected by downloadPdf
+    // Create a report compatible with the downloadPdf function
     const reportData = {
+      vin: "", // Adding required properties for compatible type
+      plate: "",
+      state: "",
       make: vehicleInfo.make,
       model: vehicleInfo.model,
       year: vehicleInfo.year,
