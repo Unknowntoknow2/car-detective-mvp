@@ -28,21 +28,37 @@ serve(async (req) => {
     const data = await response.json();
     const results = data.Results;
 
-    const extract = (label: string) =>
-      results.find((r) => r.Variable === label)?.Value || null;
+    // Enhanced extract function with fallback values
+    const extract = (label: string, fallback = "Not Available") => {
+      const value = results.find((r) => r.Variable === label)?.Value;
+      // If value is null, empty, or just whitespace, use the fallback
+      return (value && value.trim() !== "") ? value : fallback;
+    };
+
+    // For numeric values, we need a different approach
+    const extractNumber = (label: string) => {
+      const value = results.find((r) => r.Variable === label)?.Value;
+      const parsed = value ? parseInt(value) : null;
+      return !isNaN(parsed) ? parsed : null;
+    };
 
     const vehicleInfo = {
       vin,
       make: extract("Make"),
       model: extract("Model"),
-      year: parseInt(extract("Model Year")) || null,
+      year: extractNumber("Model Year"),
       trim: extract("Trim"),
       engine: extract("Engine Model"),
-      transmission: extract("Transmission Style") || extract("Transmission"),
+      // Try multiple fields for transmission with fallbacks
+      transmission: extract("Transmission Style") !== "Not Available" 
+        ? extract("Transmission Style") 
+        : extract("Transmission"),
       drivetrain: extract("Drive Type"),
       bodyType: extract("Body Class"),
       timestamp: new Date().toISOString(),
     };
+
+    console.log("Processed vehicle info with fallbacks:", vehicleInfo);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!, 
