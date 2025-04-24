@@ -133,6 +133,20 @@ interface PlateInfoCardProps {
 }
 
 const PlateInfoCard = ({ vehicleInfo }: PlateInfoCardProps) => {
+  // Helper function to display field value with "Unknown" fallback
+  const displayField = (value: string | number | null | undefined) => {
+    if (value === undefined || value === null) return "Unknown";
+    if (typeof value === 'string' && (
+      value.trim() === '' || 
+      value === 'N/A' || 
+      value === 'Not Applicable' || 
+      value === 'Not Available'
+    )) {
+      return "Unknown";
+    }
+    return value;
+  };
+
   return (
     <Card className="mt-6 border-2 border-primary/20">
       <CardHeader>
@@ -143,19 +157,19 @@ const PlateInfoCard = ({ vehicleInfo }: PlateInfoCardProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Make</p>
-            <p className="text-lg font-semibold">{vehicleInfo.make}</p>
+            <p className="text-lg font-semibold">{displayField(vehicleInfo.make)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Model</p>
-            <p className="text-lg font-semibold">{vehicleInfo.model}</p>
+            <p className="text-lg font-semibold">{displayField(vehicleInfo.model)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Year</p>
-            <p className="text-lg font-semibold">{vehicleInfo.year}</p>
+            <p className="text-lg font-semibold">{displayField(vehicleInfo.year)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Color</p>
-            <p className="text-lg font-semibold">{vehicleInfo.color || 'N/A'}</p>
+            <p className="text-lg font-semibold">{displayField(vehicleInfo.color)}</p>
           </div>
         </div>
       </CardContent>
