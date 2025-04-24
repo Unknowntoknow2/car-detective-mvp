@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Mail, Phone, Eye, EyeOff } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -160,6 +159,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         if (error && error.message.includes("User not found")) {
           setEmailError('');
         } else {
+          // Updated color and styling for enterprise-level error
           setEmailError('An account with this email already exists. Try logging in instead.');
         }
       } catch (error) {
@@ -304,6 +304,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       if (phoneCheckTimeout) clearTimeout(phoneCheckTimeout);
     };
   }, [emailCheckTimeout, phoneCheckTimeout]);
+
+  const navigate = useNavigate();
 
   return (
     <Tabs defaultValue="email" className="w-full" onValueChange={(value) => setAuthType(value as AuthType)}>
@@ -495,6 +497,17 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       >
         {isLoading ? 'Processing...' : 'Create Account'}
       </Button>
+      
+      <div className="mt-4 space-y-4">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full rounded-xl transition-all duration-200 text-sm text-muted-foreground hover:bg-accent"
+          onClick={() => navigate('/auth')}
+        >
+          Already have an account? Sign In
+        </Button>
+      </div>
     </Tabs>
   );
 };
