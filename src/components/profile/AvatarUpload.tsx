@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Profile } from '@/types/profile';
+import { toast } from "@/components/ui/use-toast";
 
 interface AvatarUploadProps {
   profile: Profile | null;
@@ -20,8 +21,10 @@ export const AvatarUpload = ({ profile, onAvatarChange, isLoading }: AvatarUploa
       
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        toast.error('File too large', {
-          description: 'Avatar must be less than 2MB'
+        toast({
+          title: 'File too large',
+          description: 'Avatar must be less than 2MB',
+          variant: "destructive"
         });
         return;
       }
@@ -29,8 +32,10 @@ export const AvatarUpload = ({ profile, onAvatarChange, isLoading }: AvatarUploa
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        toast.error('Invalid file type', {
-          description: 'Please upload a JPEG, PNG, GIF, or WebP image'
+        toast({
+          title: 'Invalid file type',
+          description: 'Please upload a JPEG, PNG, GIF, or WebP image',
+          variant: "destructive"
         });
         return;
       }
