@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Phone, Eye, EyeOff, Info } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { AuthType } from '@/types/auth';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
 
 interface SignupFormProps {
   isLoading: boolean;
@@ -26,14 +26,12 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [authType, setAuthType] = useState<AuthType>('email');
   
-  // Form validation states
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [termsError, setTermsError] = useState('');
   
-  // Account existence validation with debouncing
   const [emailCheckTimeout, setEmailCheckTimeout] = useState<NodeJS.Timeout | null>(null);
   const [phoneCheckTimeout, setPhoneCheckTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
@@ -76,7 +74,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       return false;
     }
     
-    // Check for at least one uppercase, one lowercase, and one number
     const hasUppercase = /[A-Z]/.test(value);
     const hasLowercase = /[a-z]/.test(value);
     const hasNumber = /[0-9]/.test(value);
@@ -139,12 +136,10 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       return;
     }
     
-    // Clear any existing timeout
     if (emailCheckTimeout) {
       clearTimeout(emailCheckTimeout);
     }
     
-    // Set a new timeout to check after typing stops
     const timeout = setTimeout(async () => {
       setIsCheckingEmail(true);
       
@@ -159,7 +154,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         if (error && error.message.includes("User not found")) {
           setEmailError('');
         } else {
-          // Updated color and styling for enterprise-level error
           setEmailError('An account with this email already exists. Try logging in instead.');
         }
       } catch (error) {
@@ -178,12 +172,10 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       return;
     }
     
-    // Clear any existing timeout
     if (phoneCheckTimeout) {
       clearTimeout(phoneCheckTimeout);
     }
     
-    // Set a new timeout to check after typing stops
     const timeout = setTimeout(async () => {
       setIsCheckingPhone(true);
       
@@ -211,7 +203,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   };
 
   const handleSignup = async () => {
-    // Validate form based on active auth type
     let isValid = true;
     
     if (authType === 'email') {
@@ -220,14 +211,12 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
                 validateConfirmPassword(confirmPassword) && 
                 validateTerms();
       
-      // Check for duplicate account
       if (emailError.includes('already exists')) {
         return;
       }
     } else {
       isValid = validatePhone(phone, true) && validateTerms();
       
-      // Check for duplicate account
       if (phoneError.includes('already exists')) {
         return;
       }
@@ -297,7 +286,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     }
   };
 
-  // Clear any timeouts on component unmount
   useEffect(() => {
     return () => {
       if (emailCheckTimeout) clearTimeout(emailCheckTimeout);
