@@ -1,11 +1,16 @@
 
 import React from 'react';
+import { ConfidenceScore } from './scoring/ConfidenceScore';
+import { BreakdownList } from './scoring/BreakdownList';
 import { VehicleScoreInfo } from './scoring/VehicleScoreInfo';
-import { ValuationBreakdown, ValuationBreakdownItem } from './scoring/ValuationBreakdown';
 
 export interface VehicleScoringProps {
   baseValue: number;
-  valuationBreakdown: ValuationBreakdownItem[];
+  valuationBreakdown: {
+    factor: string;
+    impact: number;
+    description: string;
+  }[];
   confidenceScore: number;
   estimatedValue: number;
   comparableVehicles: number;
@@ -36,27 +41,16 @@ export const VehicleScoring = ({
             </div>
           }
         />
-        <ValuationBreakdown 
-          valuationBreakdown={valuationBreakdown}
+        <BreakdownList 
+          items={valuationBreakdown}
           baseValue={baseValue}
           comparableVehicles={comparableVehicles}
         />
       </div>
       
-      <VehicleScoreInfo 
-        label="Confidence Score"
-        value={`${confidenceScore}%`}
-        tooltipContent={
-          <div>
-            <p className="font-medium mb-1">Data Confidence Rating</p>
-            <p className="text-sm">Based on {comparableVehicles} comparable vehicles in your area.</p>
-            <ul className="text-sm list-disc pl-4 mt-2">
-              <li>Market sample size</li>
-              <li>Data completeness</li>
-              <li>Regional price accuracy</li>
-            </ul>
-          </div>
-        }
+      <ConfidenceScore 
+        score={confidenceScore}
+        comparableVehicles={comparableVehicles}
       />
       
       <VehicleScoreInfo 
@@ -72,3 +66,4 @@ export const VehicleScoring = ({
     </div>
   );
 };
+
