@@ -1,22 +1,12 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { useVehicleData } from '@/hooks/useVehicleData';
-import { useManualValuation } from '@/hooks/useManualValuation';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ManualEntryFormData, AccidentDetails } from './types/manualEntry';
 import { VehicleBasicInfo } from './form-parts/VehicleBasicInfo';
 import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
+import { VehicleConditionSlider } from './form-parts/VehicleConditionSlider';
 
 interface ManualEntryFormProps {
   onSubmit?: (data: ManualEntryFormData) => Promise<void>;
@@ -47,13 +37,20 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [mileage, setMileage] = useState<string>('');
   const [zipCode, setZipCode] = useState<string>('');
   const [fuelType, setFuelType] = useState<string>('');
-  const [condition, setCondition] = useState<string>('good');
+  const [conditionValue, setConditionValue] = useState(75);
   const [accident, setAccident] = useState<string>('no');
   const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
     count: '',
     severity: '',
     area: ''
   });
+
+  const getConditionLabel = (value: number): string => {
+    if (value <= 25) return 'poor';
+    if (value <= 50) return 'fair';
+    if (value <= 75) return 'good';
+    return 'excellent';
+  };
 
   const handleSubmit = async () => {
     if (!selectedMakeId) {
@@ -92,7 +89,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       year: selectedYear as number,
       mileage: parsedMileage,
       fuelType,
-      condition,
+      condition: getConditionLabel(conditionValue),
       zipCode,
       accident: isPremium ? accident : undefined,
       accidentDetails: isPremium && accident === 'yes' ? accidentDetails : undefined
@@ -144,9 +141,13 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         setZipCode={setZipCode}
         fuelType={fuelType}
         setFuelType={setFuelType}
-        condition={condition}
-        setCondition={setCondition}
         isDisabled={isFormLoading}
+      />
+
+      <VehicleConditionSlider
+        value={conditionValue}
+        onChange={setConditionValue}
+        disabled={isFormLoading}
       />
 
       {isPremium && (
