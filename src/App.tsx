@@ -15,7 +15,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import MyValuationsPage from "./pages/MyValuationsPage";
 import NotFound from "./pages/NotFound";
 import DealerDashboard from "./pages/DealerDashboard";
-import DealerSignup from "./pages/DealerSignup";
+import DealerSignup from "./pages/dealer/signup";
 
 const queryClient = new QueryClient();
 
