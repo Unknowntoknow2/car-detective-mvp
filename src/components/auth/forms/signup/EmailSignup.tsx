@@ -41,21 +41,37 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
       setIsCheckingEmail(true);
       
       try {
-        const { data, error } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            shouldCreateUser: false,
-          }
-        });
-
-        // If there's no error about user not found, an account likely exists
-        if (!error || !error.message.includes("User not found")) {
+        // First attempt to get user by email to check if it exists
+        const { data: { user }, error: getUserError } = await supabase.auth.admin.getUserByEmail(email)
+          .catch(() => ({ data: { user: null }, error: null }));
+        
+        if (user) {
+          // If the user exists, set the error
           setEmailError('An account with this email already exists. Try logging in instead.');
         } else {
+          // If no user is found, the email is available
           setEmailError('');
         }
       } catch (error) {
-        console.error('Error checking email:', error);
+        // Fallback method if admin API fails
+        try {
+          const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              shouldCreateUser: false,
+            }
+          });
+          
+          // If there's an error about user not found, email is available
+          if (error && error.message.includes("User not found")) {
+            setEmailError('');
+          } else {
+            // No error or different error means user likely exists
+            setEmailError('An account with this email already exists. Try logging in instead.');
+          }
+        } catch (fallbackError) {
+          console.error('Error checking email:', fallbackError);
+        }
       } finally {
         setIsCheckingEmail(false);
       }
