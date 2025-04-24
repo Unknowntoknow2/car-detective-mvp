@@ -1,100 +1,51 @@
 
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/contexts/AuthContext';
-
-const offerSchema = z.object({
-  amount: z.string().transform((val) => parseFloat(val)),
-  message: z.string().optional(),
-});
+import React, { useState } from 'react';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 interface DealerOfferFormProps {
-  reportId: string;
-  onSubmit: (data: { offer_amount: number; message?: string }) => void;
-  isSubmitting?: boolean;
+  onSubmit: (data: { amount: number; message: string }) => void;
+  isLoading?: boolean;
 }
 
-export function DealerOfferForm({ reportId, onSubmit, isSubmitting }: DealerOfferFormProps) {
-  const { user } = useAuth();
-  const form = useForm<z.infer<typeof offerSchema>>({
-    resolver: zodResolver(offerSchema),
-    defaultValues: {
-      amount: '',
-      message: '',
-    },
-  });
+export function DealerOfferForm({ onSubmit, isLoading = false }: DealerOfferFormProps) {
+  const [amount, setAmount] = useState<number>(0);
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = (values: z.infer<typeof offerSchema>) => {
-    if (!user) return;
-    
-    // Explicitly convert amount to number
-    const offer_amount = parseFloat(values.amount);
-    
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     onSubmit({
-      offer_amount, 
-      message: values.message,
+      amount: Number(amount),
+      message
     });
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Offer Amount</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="amount">Offer Amount ($)</Label>
+        <Input
+          id="amount"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          min={0}
+          required
         />
-
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Message (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add a message to the vehicle owner"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Include any additional information or terms.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      <div>
+        <Label htmlFor="message">Message (Optional)</Label>
+        <Input
+          id="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Add a note about your offer..."
         />
-
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit Offer'}
-        </Button>
-      </form>
-    </Form>
+      </div>
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? 'Submitting...' : 'Submit Offer'}
+      </Button>
+    </form>
   );
 }
