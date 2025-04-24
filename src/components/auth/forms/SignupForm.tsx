@@ -35,6 +35,19 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     return true;
   };
 
+  const handleSignupError = (error: any) => {
+    console.error('Signup error:', error);
+    if (error.message.includes('rate limit')) {
+      toast.error('Too many attempts', {
+        description: 'Please wait a moment before trying again.',
+      });
+    } else {
+      toast.error('Sign up failed', {
+        description: error.message || 'An unexpected error occurred. Please try again later.',
+      });
+    }
+  };
+
   const handleEmailSignup = async (email: string, password: string) => {
     if (!validateTerms()) return;
     setIsLoading(true);
@@ -57,16 +70,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         description: 'Please check your email for a verification link to complete your registration.',
       });
     } catch (error: any) {
-      console.error('Signup error:', error);
-      if (error.message.includes('rate limit')) {
-        toast.error('Too many attempts', {
-          description: 'Please wait a moment before trying again.',
-        });
-      } else {
-        toast.error('Sign up failed', {
-          description: error.message || 'An unexpected error occurred. Please try again later.',
-        });
-      }
+      handleSignupError(error);
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +94,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         description: 'Please check your phone for the verification code to complete your registration.',
       });
     } catch (error: any) {
-      console.error('Signup error:', error);
       handleSignupError(error);
     } finally {
       setIsLoading(false);
