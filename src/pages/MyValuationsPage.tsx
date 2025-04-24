@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,20 +9,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "sonner";
+import { Download, Trash2 } from 'lucide-react';
+import { downloadPdf } from '@/utils/pdfGenerator';
 
-interface Valuation {
+interface SavedValuation {
   id: string;
   created_at: string;
-  vin: string | null;
-  plate: string | null;
-  make: string | null;
-  model: string | null;
-  year: number | null;
-  estimated_value: number | null;
+  vin?: string | null;
+  plate?: string | null;
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
+  valuation?: number | null;
 }
 
 export default function MyValuationsPage() {
-  const [valuations, setValuations] = useState<Valuation[]>([]);
+  const [valuations, setValuations] = useState<SavedValuation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -36,12 +38,12 @@ export default function MyValuationsPage() {
     const fetchValuations = async () => {
       try {
         const { data, error } = await supabase
-          .from('valuations')
+          .from('saved_valuations')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setValuations(data);
+        setValuations(data || []);
       } catch (error: any) {
         toast.error('Failed to fetch valuations');
         console.error('Error:', error.message);
@@ -53,6 +55,23 @@ export default function MyValuationsPage() {
     fetchValuations();
   }, [user, navigate]);
 
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('saved_valuations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setValuations(valuations.filter(v => v.id !== id));
+      toast.success('Valuation deleted successfully');
+    } catch (error: any) {
+      toast.error('Failed to delete valuation');
+      console.error('Error:', error.message);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -61,7 +80,7 @@ export default function MyValuationsPage() {
     });
   };
 
-  const formatCurrency = (value: number | null) => {
+  const formatCurrency = (value: number | null | undefined) => {
     if (!value) return 'N/A';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -76,15 +95,15 @@ export default function MyValuationsPage() {
         <div className="mx-auto max-w-5xl">
           <Card>
             <CardHeader>
-              <CardTitle>My Valuations</CardTitle>
-              <CardDescription>View your saved vehicle valuations</CardDescription>
+              <CardTitle>My Saved Valuations</CardTitle>
+              <CardDescription>View and manage your saved vehicle valuations</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <p className="text-center py-4">Loading valuations...</p>
               ) : valuations.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">No valuations found</p>
+                  <p className="text-muted-foreground mb-4">No valuations saved</p>
                   <Button onClick={() => navigate('/lookup/vin')}>
                     Get Your First Valuation
                   </Button>
@@ -97,15 +116,12 @@ export default function MyValuationsPage() {
                       <TableHead>Vehicle</TableHead>
                       <TableHead>Identifier</TableHead>
                       <TableHead className="text-right">Value</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {valuations.map((valuation) => (
-                      <TableRow
-                        key={valuation.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/valuation/${valuation.id}`)}
-                      >
+                      <TableRow key={valuation.id}>
                         <TableCell>{formatDate(valuation.created_at)}</TableCell>
                         <TableCell>
                           {valuation.year} {valuation.make} {valuation.model}
@@ -114,7 +130,32 @@ export default function MyValuationsPage() {
                           {valuation.vin ? `VIN: ${valuation.vin}` : `Plate: ${valuation.plate}`}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(valuation.estimated_value)}
+                          {formatCurrency(valuation.valuation)}
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              const vehicleInfo = {
+                                vin: valuation.vin,
+                                make: valuation.make,
+                                model: valuation.model,
+                                year: valuation.year,
+                                plate: valuation.plate
+                              };
+                              downloadPdf(vehicleInfo as any);
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDelete(valuation.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -4,8 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { Download, Info } from 'lucide-react';
+import { Download, Info, BookmarkPlus } from 'lucide-react';
 import { downloadPdf } from '@/utils/pdfGenerator';
+import { useSaveValuation } from '@/hooks/useSaveValuation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Tooltip,
   TooltipContent,
@@ -16,12 +18,28 @@ import {
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
   const { vehicleInfo, isLoading, error, lookupVin } = useVinDecoder();
+  const { saveValuation, isSaving } = useSaveValuation();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (vin) {
       await lookupVin(vin);
     }
+  };
+
+  const handleSaveValuation = async () => {
+    if (!vehicleInfo) return;
+
+    const saved = await saveValuation({
+      vin: vehicleInfo.vin,
+      make: vehicleInfo.make,
+      model: vehicleInfo.model,
+      year: vehicleInfo.year,
+      valuation: 24500,
+      confidenceScore: 92,
+      conditionScore: 85
+    });
   };
 
   return (
@@ -61,16 +79,34 @@ export const VinDecoderForm = () => {
         </CardContent>
       </Card>
 
-      {vehicleInfo && <VehicleInfoCard vehicleInfo={vehicleInfo} />}
+      {vehicleInfo && (
+        <VehicleInfoCard 
+          vehicleInfo={vehicleInfo} 
+          onDownloadPdf={() => downloadPdf(vehicleInfo)}
+          onSaveValuation={handleSaveValuation}
+          isSaving={isSaving}
+          isUserLoggedIn={!!user}
+        />
+      )}
     </div>
   );
 };
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
+  onDownloadPdf: () => void;
+  onSaveValuation?: () => void;
+  isSaving?: boolean;
+  isUserLoggedIn?: boolean;
 }
 
-const VehicleInfoCard = ({ vehicleInfo }: VehicleInfoCardProps) => {
+const VehicleInfoCard = ({ 
+  vehicleInfo, 
+  onDownloadPdf, 
+  onSaveValuation, 
+  isSaving = false,
+  isUserLoggedIn = false 
+}: VehicleInfoCardProps) => {
   const displayField = (value: string | number | null | undefined) => {
     if (value === undefined || value === null) return "Unknown";
     if (typeof value === 'string' && (
@@ -202,14 +238,24 @@ const VehicleInfoCard = ({ vehicleInfo }: VehicleInfoCardProps) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end pt-4">
+      <CardFooter className="flex justify-between pt-4">
         <Button 
-          onClick={() => downloadPdf(vehicleInfo)}
+          onClick={onDownloadPdf}
           variant="outline"
         >
           <Download className="mr-2" />
           Download Report
         </Button>
+        {isUserLoggedIn && (
+          <Button 
+            onClick={onSaveValuation}
+            disabled={isSaving}
+            variant="secondary"
+          >
+            <BookmarkPlus className="mr-2" />
+            {isSaving ? 'Saving...' : 'Save to Dashboard'}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { usePlateLookup } from '@/hooks/usePlateLookup';
 import { PlateLookupInfo } from '@/types/lookup';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download } from 'lucide-react';
+import { Download, BookmarkPlus } from 'lucide-react';
 import { downloadPdf } from '@/utils/pdfGenerator';
+import { useSaveValuation } from '@/hooks/useSaveValuation';
+import { useAuth } from '@/contexts/AuthContext';
 
 const US_STATES = [
   { value: 'AL', label: 'Alabama' },
@@ -66,12 +68,29 @@ export const PlateDecoderForm = () => {
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
   const { vehicleInfo, isLoading, error, lookupVehicle } = usePlateLookup();
+  const { saveValuation, isSaving } = useSaveValuation();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (plate && state) {
       await lookupVehicle(plate, state);
     }
+  };
+
+  const handleSaveValuation = async () => {
+    if (!vehicleInfo) return;
+
+    const saved = await saveValuation({
+      plate: vehicleInfo.plate,
+      state: vehicleInfo.state,
+      make: vehicleInfo.make,
+      model: vehicleInfo.model,
+      year: vehicleInfo.year,
+      valuation: 24500,
+      confidenceScore: 92,
+      conditionScore: 85
+    });
   };
 
   return (
@@ -123,16 +142,34 @@ export const PlateDecoderForm = () => {
         </CardContent>
       </Card>
 
-      {vehicleInfo && <PlateInfoCard vehicleInfo={vehicleInfo} />}
+      {vehicleInfo && (
+        <PlateInfoCard 
+          vehicleInfo={vehicleInfo} 
+          onDownloadPdf={() => downloadPdf(vehicleInfo)}
+          onSaveValuation={handleSaveValuation}
+          isSaving={isSaving}
+          isUserLoggedIn={!!user}
+        />
+      )}
     </div>
   );
 };
 
 interface PlateInfoCardProps {
   vehicleInfo: PlateLookupInfo;
+  onDownloadPdf: () => void;
+  onSaveValuation?: () => void;
+  isSaving?: boolean;
+  isUserLoggedIn?: boolean;
 }
 
-const PlateInfoCard = ({ vehicleInfo }: PlateInfoCardProps) => {
+const PlateInfoCard = ({ 
+  vehicleInfo, 
+  onDownloadPdf, 
+  onSaveValuation, 
+  isSaving = false,
+  isUserLoggedIn = false 
+}: PlateInfoCardProps) => {
   const displayField = (value: string | number | null | undefined) => {
     if (value === undefined || value === null) return "Unknown";
     if (typeof value === 'string' && (
@@ -172,14 +209,24 @@ const PlateInfoCard = ({ vehicleInfo }: PlateInfoCardProps) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end pt-4">
+      <CardFooter className="flex justify-between pt-4">
         <Button 
-          onClick={() => downloadPdf(vehicleInfo)}
+          onClick={onDownloadPdf}
           variant="outline"
         >
           <Download className="mr-2" />
           Download Report
         </Button>
+        {isUserLoggedIn && (
+          <Button 
+            onClick={onSaveValuation}
+            disabled={isSaving}
+            variant="secondary"
+          >
+            <BookmarkPlus className="mr-2" />
+            {isSaving ? 'Saving...' : 'Save to Dashboard'}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

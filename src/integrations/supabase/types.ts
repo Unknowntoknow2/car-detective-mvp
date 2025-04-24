@@ -87,6 +87,45 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_valuations: {
+        Row: {
+          condition_score: number | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          make: string | null
+          model: string | null
+          user_id: string
+          valuation: number | null
+          vin: string | null
+          year: number | null
+        }
+        Insert: {
+          condition_score?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          make?: string | null
+          model?: string | null
+          user_id: string
+          valuation?: number | null
+          vin?: string | null
+          year?: number | null
+        }
+        Update: {
+          condition_score?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          make?: string | null
+          model?: string | null
+          user_id?: string
+          valuation?: number | null
+          vin?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       valuations: {
         Row: {
           body_type: string | null
