@@ -3,8 +3,7 @@ import { BreadcrumbPath } from '@/components/ui/design-system';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/ui/design-system';
-import { ChevronRight } from 'lucide-react';
-import { Check3DIcon } from '@/components/ui/icons';
+import { ChevronRight, Check } from 'lucide-react';
 import { PremiumCard } from './PremiumCard';
 import { RefObject } from 'react';
 
@@ -48,7 +47,7 @@ export function HeroSection({ scrollToFeatures, scrollToForm, cardRef, cardRotat
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5 flex-shrink-0">
-                    <Check3DIcon className="h-3 w-3 text-white" />
+                    <Check className="h-3 w-3 text-white" />
                   </div>
                   <span className="text-white/90">{item}</span>
                 </li>

@@ -45,7 +45,7 @@ export function FeaturesSection({ featuresRef }: FeaturesSectionProps) {
   ];
 
   return (
-    <section ref={featuresRef} className="py-20 px-4">
+    <section ref={featuresRef} className="py-20 px-4 bg-gradient-to-b from-surface to-surface-dark">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           title="Why Choose Premium Valuation"

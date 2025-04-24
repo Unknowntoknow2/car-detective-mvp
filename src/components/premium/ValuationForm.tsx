@@ -8,6 +8,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefObject } from 'react';
 
+// Define proper props interfaces for the imported components
+interface FormSubmitProps {
+  onSubmit: (data: any) => Promise<void>;
+  isLoading: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
+}
+
 // Import custom form components with proper types
 import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
@@ -47,7 +55,7 @@ export function ValuationForm({ formRef }: ValuationFormProps) {
   };
 
   return (
-    <section ref={formRef} className="py-20 px-4">
+    <section ref={formRef} className="py-20 px-4 bg-gradient-to-b from-surface to-background">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           title="Start Your Premium Valuation"
@@ -89,7 +97,12 @@ export function ValuationForm({ formRef }: ValuationFormProps) {
                 />
               </CardHeader>
               <CardContent className="pt-8">
-                <VinDecoderForm onSubmit={handleSubmit} isLoading={isSubmitting} />
+                <VinDecoderForm 
+                  onSubmit={handleSubmit} 
+                  isLoading={isSubmitting} 
+                  submitButtonText="Get Premium Valuation with CARFAX"
+                  isPremium={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -104,7 +117,12 @@ export function ValuationForm({ formRef }: ValuationFormProps) {
                 />
               </CardHeader>
               <CardContent className="pt-8">
-                <PlateDecoderForm onSubmit={handleSubmit} isLoading={isSubmitting} />
+                <PlateDecoderForm 
+                  onSubmit={handleSubmit} 
+                  isLoading={isSubmitting}
+                  submitButtonText="Get Premium Valuation with CARFAX"
+                  isPremium={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>
