@@ -31,6 +31,9 @@ export function Navbar() {
           <Link to="/lookup/plate">
             <Button variant="ghost">Plate Lookup</Button>
           </Link>
+          <Link to="/lookup/manual">
+            <Button variant="ghost">Manual Entry</Button>
+          </Link>
           
           {isLoading ? (
             <div className="h-9 w-24 bg-muted animate-pulse rounded-md"></div>

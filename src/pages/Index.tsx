@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClipboardCheck } from "lucide-react";
 
 const Index = () => {
   return (
@@ -31,6 +32,11 @@ const Index = () => {
                     Lookup Plate
                   </Button>
                 </Link>
+                <Link to="/lookup/manual">
+                  <Button size="lg" variant="secondary" className="text-lg px-8">
+                    Manual Entry
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -40,7 +46,7 @@ const Index = () => {
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
             <h2 className="text-3xl font-bold text-center mb-12">Our Services</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className="border-2 border-primary/20">
                 <CardHeader>
                   <CardTitle className="text-2xl">VIN Decoder</CardTitle>
@@ -71,6 +77,23 @@ const Index = () => {
                 <CardFooter>
                   <Link to="/lookup/plate" className="w-full">
                     <Button className="w-full">Try Plate Lookup</Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+
+              <Card className="border-2 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Manual Entry</CardTitle>
+                  <CardDescription>Enter details yourself</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Enter your vehicle details manually to get an instant valuation. Specify make, model, year, condition and more.
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Link to="/lookup/manual" className="w-full">
+                    <Button className="w-full">Try Manual Entry</Button>
                   </Link>
                 </CardFooter>
               </Card>

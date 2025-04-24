@@ -18,6 +18,7 @@ export const useSaveValuation = () => {
     valuation: number | null;
     confidenceScore?: number | null;
     conditionScore?: number | null;
+    is_vin_lookup?: boolean;
   }) => {
     if (!user) {
       toast.error("Please log in to save valuations");

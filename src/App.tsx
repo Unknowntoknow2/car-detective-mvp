@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import VinLookupPage from "./pages/VinLookupPage";
 import PlateLookupPage from "./pages/PlateLookupPage";
+import ManualLookupPage from "./pages/ManualLookupPage";
 import AuthPage from "./pages/AuthPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/lookup/vin" element={<VinLookupPage />} />
             <Route path="/lookup/plate" element={<PlateLookupPage />} />
+            <Route path="/lookup/manual" element={<ManualLookupPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/signup" element={<AuthPage />} />
             <Route path="/auth/forgot-password" element={<AuthPage />} />
