@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,6 +13,7 @@ interface PlateLookupFormProps {
   onPlateChange: (value: string) => void;
   onStateChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  autoSubmit?: boolean;
 }
 
 export const PlateLookupForm = ({
@@ -21,9 +22,16 @@ export const PlateLookupForm = ({
   isLoading,
   onPlateChange,
   onStateChange,
-  onSubmit
+  onSubmit,
+  autoSubmit = false
 }: PlateLookupFormProps) => {
   const [touched, setTouched] = useState({ plate: false, state: false });
+
+  useEffect(() => {
+    if (autoSubmit && plate && state && !isLoading) {
+      onSubmit(new Event('submit') as React.FormEvent);
+    }
+  }, [autoSubmit, plate, state, isLoading, onSubmit]);
 
   const validatePlate = (value: string) => {
     if (value.length < 2) {

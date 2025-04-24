@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchCheck } from 'lucide-react';
@@ -9,14 +9,22 @@ interface VinLookupFormProps {
   isLoading: boolean;
   onVinChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  autoSubmit?: boolean;
 }
 
 export const VinLookupForm = ({
   vin,
   isLoading,
   onVinChange,
-  onSubmit
+  onSubmit,
+  autoSubmit = false
 }: VinLookupFormProps) => {
+  useEffect(() => {
+    if (autoSubmit && vin.length === 17 && !isLoading) {
+      onSubmit(new Event('submit') as React.FormEvent);
+    }
+  }, [autoSubmit, vin, isLoading, onSubmit]);
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -48,4 +56,4 @@ export const VinLookupForm = ({
       </Button>
     </form>
   );
-};
+}
