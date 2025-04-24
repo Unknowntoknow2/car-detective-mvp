@@ -5,74 +5,57 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 215 100% 32%; /* Blue for automotive theme */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 215 100% 96%; /* Light blue accent */
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 215 100% 32%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+    /* ... keep existing CSS variables */
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-text-primary antialiased;
+    font-family: var(--font-primary);
+  }
+}
+
+@layer components {
+  .button-primary {
+    @apply bg-primary px-6 py-3 rounded-lg font-semibold text-white 
+           transition-all duration-200 hover:bg-primary-hover;
+  }
+
+  .button-secondary {
+    @apply bg-surface border border-border px-6 py-3 rounded-lg 
+           text-text-primary transition-colors hover:bg-border/10;
+  }
+
+  .input-field {
+    @apply border border-border px-4 py-3 rounded-lg w-full
+           focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+
+  .select-field {
+    @apply bg-white border border-border px-4 py-3 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+
+  .info-card {
+    @apply bg-surface border border-border rounded-lg p-4;
+  }
+
+  .step {
+    @apply flex items-center gap-2;
+  }
+
+  .step-number {
+    @apply w-8 h-8 rounded-full bg-primary text-white font-semibold
+           flex items-center justify-center;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary-accent 
+           bg-clip-text text-transparent;
   }
 }
