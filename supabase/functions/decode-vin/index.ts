@@ -28,18 +28,66 @@ serve(async (req) => {
     const data = await response.json();
     const results = data.Results;
 
-    // Enhanced extract function with fallback values
+    // Log all results for debugging
+    console.log("Raw API results:", JSON.stringify(results.slice(0, 10), null, 2)); // Log first 10 items to avoid overly large logs
+
+    // Enhanced extract function with improved fallback handling
     const extract = (label: string, fallback = "Not Available") => {
-      const value = results.find((r) => r.Variable === label)?.Value;
-      // If value is null, empty, or just whitespace, use the fallback
+      const result = results.find((r) => r.Variable === label);
+      const value = result?.Value;
+      
+      // Log what we found for debugging
+      console.log(`Extracting ${label}: found '${value}'`);
+      
+      // Only use fallback if value is null, empty string, or only whitespace
       return (value && value.trim() !== "") ? value : fallback;
     };
 
-    // For numeric values, we need a different approach
+    // For numeric values
     const extractNumber = (label: string) => {
       const value = results.find((r) => r.Variable === label)?.Value;
       const parsed = value ? parseInt(value) : null;
       return !isNaN(parsed) ? parsed : null;
+    };
+
+    // Try multiple keys for transmission in specific order of preference
+    const getTransmission = () => {
+      // Try these fields in order of preference
+      const transmissionFields = [
+        "Transmission Style", 
+        "Transmission",
+        "Transmission Type"
+      ];
+      
+      for (const field of transmissionFields) {
+        const value = extract(field, null);
+        if (value !== null) {
+          console.log(`Found transmission in field: ${field} with value: ${value}`);
+          return value;
+        }
+      }
+      
+      return "Not Available"; // Final fallback
+    };
+
+    // Try multiple keys for trim in specific order of preference
+    const getTrim = () => {
+      // Try these fields in order of preference
+      const trimFields = [
+        "Trim", 
+        "Trim2",
+        "Series"
+      ];
+      
+      for (const field of trimFields) {
+        const value = extract(field, null);
+        if (value !== null && value !== "Not Available") {
+          console.log(`Found trim in field: ${field} with value: ${value}`);
+          return value;
+        }
+      }
+      
+      return "Not Available"; // Final fallback
     };
 
     const vehicleInfo = {
@@ -47,12 +95,9 @@ serve(async (req) => {
       make: extract("Make"),
       model: extract("Model"),
       year: extractNumber("Model Year"),
-      trim: extract("Trim"),
+      trim: getTrim(),
       engine: extract("Engine Model"),
-      // Try multiple fields for transmission with fallbacks
-      transmission: extract("Transmission Style") !== "Not Available" 
-        ? extract("Transmission Style") 
-        : extract("Transmission"),
+      transmission: getTransmission(),
       drivetrain: extract("Drive Type"),
       bodyType: extract("Body Class"),
       timestamp: new Date().toISOString(),
