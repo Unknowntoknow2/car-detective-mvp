@@ -12,7 +12,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { VehicleDetailsGrid } from './VehicleDetailsGrid';
-import { VehicleScoring } from './VehicleScoring';
+import { VehicleScoring } from './scoring/VehicleScoring';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -54,19 +54,9 @@ export const VehicleInfoCard = ({
                 description: "Vehicle condition is above average based on service history and reported condition"
               },
               {
-                factor: "Location",
-                impact: 1.5,
-                description: "Vehicle prices in your ZIP code are slightly higher than national average"
-              },
-              {
                 factor: "Market Demand",
                 impact: 4.0,
                 description: "This model currently has high demand in your region (based on 30-day sales data)"
-              },
-              {
-                factor: "Age Depreciation",
-                impact: -2.5,
-                description: "Standard depreciation for a vehicle of this age and model year"
               }
             ]}
             confidenceScore={92}

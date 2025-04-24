@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -10,7 +11,7 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdfGenerato
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { VehicleScoring } from '@/components/lookup/VehicleScoring';
+import { VehicleScoring } from '@/components/lookup/scoring/VehicleScoring';
 
 const ManualLookupPage = () => {
   const { calculateValuation, vehicleInfo, isLoading, reset } = useManualValuation();
@@ -137,12 +138,12 @@ const ManualLookupPage = () => {
                       description: "Vehicle condition is above average"
                     },
                     {
-                      factor: "Location",
-                      impact: 1.5,
-                      description: "Vehicle prices in your ZIP code are slightly higher than national average"
+                      factor: "Market Demand",
+                      impact: 4.0,
+                      description: "This model currently has high demand in your region"
                     }
                   ]}
-                  confidenceScore={92}
+                  confidenceScore={vehicleInfo?.confidenceScore || 0}
                   estimatedValue={vehicleInfo?.valuation || 0}
                   comparableVehicles={117}
                 />
