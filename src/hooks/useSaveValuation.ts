@@ -11,6 +11,7 @@ export const useSaveValuation = () => {
   const saveValuation = async (valuationData: {
     vin?: string | null;
     plate?: string | null;
+    state?: string | null;
     make?: string | null;
     model?: string | null;
     year?: number | null;

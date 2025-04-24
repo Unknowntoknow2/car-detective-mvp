@@ -17,6 +17,7 @@ interface SavedValuation {
   created_at: string;
   vin?: string | null;
   plate?: string | null;
+  state?: string | null;
   make?: string | null;
   model?: string | null;
   year?: number | null;
@@ -127,7 +128,10 @@ export default function MyValuationsPage() {
                           {valuation.year} {valuation.make} {valuation.model}
                         </TableCell>
                         <TableCell>
-                          {valuation.vin ? `VIN: ${valuation.vin}` : `Plate: ${valuation.plate}`}
+                          {valuation.vin ? 
+                            `VIN: ${valuation.vin}` : 
+                            `Plate: ${valuation.plate}${valuation.state ? ` (${valuation.state})` : ''}`
+                          }
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(valuation.valuation)}
@@ -142,7 +146,8 @@ export default function MyValuationsPage() {
                                 make: valuation.make,
                                 model: valuation.model,
                                 year: valuation.year,
-                                plate: valuation.plate
+                                plate: valuation.plate,
+                                state: valuation.state
                               };
                               downloadPdf(vehicleInfo as any);
                             }}
