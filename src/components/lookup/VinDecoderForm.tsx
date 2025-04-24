@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Download, Info, BookmarkPlus } from 'lucide-react';
@@ -46,7 +46,7 @@ export const VinDecoderForm = () => {
     <div className="w-full max-w-xl mx-auto">
       <Card className="border-2 border-primary/20">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">VIN Decoder</CardTitle>
+          <CardTitle className="text-2xl font-bold">VIN Lookup</CardTitle>
           <CardDescription>
             Enter a Vehicle Identification Number (VIN) to get detailed information
           </CardDescription>
@@ -73,7 +73,7 @@ export const VinDecoderForm = () => {
               </p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading || vin.length !== 17}>
-              {isLoading ? 'Decoding...' : 'Decode VIN'}
+              {isLoading ? 'Looking Up...' : 'Lookup VIN'}
             </Button>
           </form>
         </CardContent>
