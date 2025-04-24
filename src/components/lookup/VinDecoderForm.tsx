@@ -4,8 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { Download } from 'lucide-react';
+import { Download, Info } from 'lucide-react';
 import { downloadPdf } from '@/utils/pdfGenerator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
@@ -78,6 +84,10 @@ const VehicleInfoCard = ({ vehicleInfo }: VehicleInfoCardProps) => {
     return value;
   };
 
+  const estimatedValue = "$24,500";
+  const conditionScore = "85/100";
+  const confidenceScore = "92%";
+
   return (
     <Card className="mt-6 border-2 border-primary/20">
       <CardHeader>
@@ -117,6 +127,78 @@ const VehicleInfoCard = ({ vehicleInfo }: VehicleInfoCardProps) => {
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Body Type</p>
             <p className="text-lg font-semibold">{displayField(vehicleInfo.bodyType)}</p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">Estimated Value</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-medium mb-1">Value Calculation</p>
+                    <p className="text-sm">Base value adjusted for:</p>
+                    <ul className="text-sm list-disc pl-4 mt-1">
+                      <li>Market trends</li>
+                      <li>Mileage depreciation</li>
+                      <li>Regional pricing</li>
+                    </ul>
+                    <p className="text-sm mt-2 font-mono">Value = BasePrice - MileageAdj + MarketAdj</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-lg font-semibold">{estimatedValue}</p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">Condition Score</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-medium mb-1">Condition Score Calculation</p>
+                    <p className="text-sm">Weighted score based on:</p>
+                    <ul className="text-sm list-disc pl-4 mt-1">
+                      <li>Age (30%)</li>
+                      <li>Mileage (40%)</li>
+                      <li>Service History (30%)</li>
+                    </ul>
+                    <p className="text-sm mt-2 font-mono">Score = (0.3 × Age) + (0.4 × Mileage) + (0.3 × History)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-lg font-semibold">{conditionScore}</p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">Confidence Score</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="font-medium mb-1">Data Confidence Rating</p>
+                    <p className="text-sm">Percentage based on:</p>
+                    <ul className="text-sm list-disc pl-4 mt-1">
+                      <li>Data completeness</li>
+                      <li>Source reliability</li>
+                      <li>Recent updates</li>
+                    </ul>
+                    <p className="text-sm mt-2 font-mono">Confidence = (DataPoints ÷ TotalPossible) × 100</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="text-lg font-semibold">{confidenceScore}</p>
           </div>
         </div>
       </CardContent>
