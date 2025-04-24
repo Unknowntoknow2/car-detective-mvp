@@ -12,9 +12,12 @@ export type ManualVehicleInfo = {
   fuelType: string;
   condition: string;
   zipCode?: string;
+  trim?: string;
+  accidentCount?: number;
+  premiumFeatures?: string[];
   valuation?: number;
   confidenceScore?: number;
-  adjustments?: { label: string; value: number }[];
+  adjustments?: { label: string; value: number; description?: string }[];
   priceRange?: [number, number];
 };
 
@@ -34,7 +37,10 @@ export function useManualValuation() {
         year: data.year,
         mileage: data.mileage,
         condition: data.condition,
-        zip: data.zipCode
+        zip: data.zipCode,
+        trim: data.trim,
+        accidentCount: data.accidentCount,
+        premiumFeatures: data.premiumFeatures
       });
       
       const valuationResult: ManualVehicleInfo = {

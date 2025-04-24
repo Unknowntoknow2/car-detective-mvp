@@ -1,6 +1,6 @@
 
 import { calculateConfidenceScore } from './confidenceScore';
-import { calculateTotalAdjustment, VehicleCondition } from './priceAdjustments';
+import { calculateTotalAdjustment, getAdjustmentBreakdown, VehicleCondition } from './priceAdjustments';
 
 // Sample base prices for testing - in production this would come from a database
 const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {
@@ -27,12 +27,15 @@ export interface ValuationInput {
   zip?: string;
   condition: string;
   vin?: string;
+  trim?: string;
+  accidentCount?: number;
+  premiumFeatures?: string[];
   hasCarfax?: boolean;
 }
 
 export interface ValuationResult {
   basePrice: number;
-  adjustments: { label: string; value: number }[];
+  adjustments: { label: string; value: number; description?: string }[];
   estimatedValue: number;
   confidenceScore: number;
   priceRange: [number, number];
@@ -52,16 +55,24 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
   // Get base price from our sample data
   const basePrice = getBasePrice(input.make, input.model);
   
-  // Calculate all adjustments
-  const adjustments = calculateTotalAdjustment({
+  // Calculate detailed adjustment breakdown
+  const adjustmentDetails = getAdjustmentBreakdown({
     mileage: input.mileage,
     condition: input.condition as VehicleCondition,
     zipCode: input.zip,
-    basePrice: basePrice
+    basePrice,
+    trim: input.trim,
+    accidentCount: input.accidentCount,
+    premiumFeatures: input.premiumFeatures,
+    make: input.make,
+    model: input.model
   });
+  
+  // Sum all adjustments
+  const totalAdjustment = adjustmentDetails.reduce((sum, item) => sum + item.value, 0);
 
   // Calculate estimated value
-  const estimatedValue = Math.round(basePrice + adjustments);
+  const estimatedValue = Math.round(basePrice + totalAdjustment);
 
   // Calculate confidence score
   const confidenceScore = calculateConfidenceScore({
@@ -80,22 +91,6 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
   const priceRange: [number, number] = [
     Math.round(estimatedValue - variation),
     Math.round(estimatedValue + variation)
-  ];
-
-  // Create detailed adjustments breakdown
-  const adjustmentDetails = [
-    {
-      label: 'Mileage Impact',
-      value: Math.round(adjustments * 0.4) // 40% of total adjustment for example
-    },
-    {
-      label: 'Condition Impact',
-      value: Math.round(adjustments * 0.4) // 40% of total adjustment
-    },
-    {
-      label: 'Location Impact',
-      value: Math.round(adjustments * 0.2) // 20% of total adjustment
-    }
   ];
 
   return {
