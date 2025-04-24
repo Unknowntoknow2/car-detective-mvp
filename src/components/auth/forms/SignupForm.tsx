@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Mail, Phone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -49,8 +48,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     }
   };
 
-  const handleEmailSignup = async (email: string, password: string) => {
-    if (!validateTerms()) return;
+  const handleEmailSignup = async (email: string, password: string): Promise<void> => {
+    if (!validateTerms()) return Promise.resolve();
     setIsLoading(true);
 
     try {
@@ -77,8 +76,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     }
   };
 
-  const handlePhoneSignup = async (phone: string) => {
-    if (!validateTerms()) return;
+  const handlePhoneSignup = async (phone: string): Promise<void> => {
+    if (!validateTerms()) return Promise.resolve();
     setIsLoading(true);
 
     try {
@@ -129,11 +128,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       <TabsContent value="email" className="mt-4">
         <EmailSignup
           isLoading={isLoading}
-          onSignup={(email, password) => {
-            setEmail(email);
-            setPassword(password);
-            handleEmailSignup(email, password);
-          }}
+          onSignup={handleEmailSignup}
           emailError={emailError}
           setEmailError={setEmailError}
         />
@@ -142,10 +137,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       <TabsContent value="phone" className="mt-4">
         <PhoneSignup
           isLoading={isLoading}
-          onSignup={(phone) => {
-            setPhone(phone);
-            handlePhoneSignup(phone);
-          }}
+          onSignup={handlePhoneSignup}
           phoneError={phoneError}
           setPhoneError={setPhoneError}
         />
