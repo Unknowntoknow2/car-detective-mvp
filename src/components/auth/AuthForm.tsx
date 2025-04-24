@@ -28,7 +28,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
       case 'login': return 'Sign In';
       case 'forgot-password': return 'Forgot Password';
       case 'reset-password': return 'Reset Password';
-      case 'forgot-email': return 'Recover Email';
+      case 'forgot-email': return 'Recover Username';
       default: return 'Authentication';
     }
   };
@@ -39,7 +39,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
       case 'login': return 'Sign in to access your saved valuations';
       case 'forgot-password': return 'Receive a password reset link via email';
       case 'reset-password': return 'Create a new password for your account';
-      case 'forgot-email': return 'Find your account email using your phone number';
+      case 'forgot-email': return 'Find your account username using your phone number';
       default: return '';
     }
   };
@@ -67,7 +67,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         <Button
           type="button"
           variant="ghost"
-          className="w-full"
+          className="w-full rounded-xl transition-all duration-200"
           onClick={() => navigate('/auth')}
         >
           Already have an account? Sign In
@@ -78,7 +78,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         <Button
           type="button"
           variant="ghost"
-          className="w-full"
+          className="w-full rounded-xl transition-all duration-200"
           onClick={() => navigate('/auth/signup')}
         >
           Don't have an account? Sign Up
@@ -89,7 +89,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         <Button
           type="button"
           variant="ghost"
-          className="w-full"
+          className="w-full rounded-xl transition-all duration-200"
           onClick={() => navigate('/auth')}
         >
           Back to Sign In
@@ -101,14 +101,16 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{getTitle()}</CardTitle>
-        <CardDescription>{getDescription()}</CardDescription>
+    <Card className="w-full max-w-md shadow-lg rounded-2xl overflow-hidden">
+      <CardHeader className="space-y-1 px-6 py-5">
+        <CardTitle className="text-2xl font-bold">{getTitle()}</CardTitle>
+        <CardDescription className="text-sm text-muted-foreground">{getDescription()}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-6 py-4 max-h-[70vh] overflow-y-auto">
         {renderForm()}
-        {getToggleLink()}
+        <div className="mt-4">
+          {getToggleLink()}
+        </div>
       </CardContent>
     </Card>
   );
