@@ -20,7 +20,6 @@ import { AlertTriangle } from 'lucide-react';
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
   const { vehicleInfo, isLoading, error, lookupVin } = useVinDecoder();
-  const { saveValuation, isSaving } = useSaveValuation();
   const { user } = useAuth();
   const [carfaxData, setCarfaxData] = useState(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
@@ -46,20 +45,6 @@ export const VinDecoderForm = () => {
         toast.error('Could not retrieve vehicle history report.');
       }
     }
-  };
-
-  const handleSaveValuation = async () => {
-    if (!vehicleInfo) return;
-
-    const saved = await saveValuation({
-      vin: vehicleInfo.vin,
-      make: vehicleInfo.make,
-      model: vehicleInfo.model,
-      year: vehicleInfo.year,
-      valuation: 24500,
-      confidenceScore: carfaxData ? 92 : 85,
-      conditionScore: 85
-    });
   };
 
   const handleDownloadPdf = () => {
@@ -113,9 +98,6 @@ export const VinDecoderForm = () => {
         <VehicleInfoCard 
           vehicleInfo={vehicleInfo} 
           onDownloadPdf={handleDownloadPdf}
-          onSaveValuation={handleSaveValuation}
-          isSaving={isSaving}
-          isUserLoggedIn={!!user}
           carfaxData={carfaxData}
         />
       )}
