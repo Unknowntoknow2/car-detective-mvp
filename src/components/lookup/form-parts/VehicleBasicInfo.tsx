@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -210,6 +209,8 @@ export const VehicleBasicInfo: React.FC<VehicleBasicInfoProps> = ({
         </SelectContent>
       </Select>
       
+      {/* We keep the condition dropdown even though we'll also use the slider
+         This allows us to either use the dropdown directly or sync it with the slider */}
       <Select 
         onValueChange={setCondition}
         value={condition}

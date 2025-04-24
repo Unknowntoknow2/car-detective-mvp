@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,15 @@ import { ManualEntryFormData, AccidentDetails } from './types/manualEntry';
 import { VehicleBasicInfo } from './form-parts/VehicleBasicInfo';
 import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 import { VehicleConditionSlider } from './form-parts/VehicleConditionSlider';
+import { useVehicleData } from '@/hooks/useVehicleData';
+import { useManualValuation } from '@/hooks/useManualValuation';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 
 interface ManualEntryFormProps {
   onSubmit?: (data: ManualEntryFormData) => Promise<void>;
@@ -37,6 +47,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [mileage, setMileage] = useState<string>('');
   const [zipCode, setZipCode] = useState<string>('');
   const [fuelType, setFuelType] = useState<string>('');
+  const [condition, setCondition] = useState<string>('good');
   const [conditionValue, setConditionValue] = useState(75);
   const [accident, setAccident] = useState<string>('no');
   const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
@@ -105,7 +116,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       model: selectedModel,
       year: selectedYear as number,
       mileage: parsedMileage,
-      condition,
+      condition: getConditionLabel(conditionValue),
       fuelType: fuelType || 'Gasoline'
     });
 
@@ -141,6 +152,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         setZipCode={setZipCode}
         fuelType={fuelType}
         setFuelType={setFuelType}
+        condition={condition}
+        setCondition={setCondition}
         isDisabled={isFormLoading}
       />
 
@@ -155,6 +168,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           <Select 
             onValueChange={setAccident}
             disabled={isFormLoading}
+            value={accident}
           >
             <SelectTrigger>
               <SelectValue placeholder="Any Accidents?" />
