@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { downloadPdf } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 const ManualLookupPage = () => {
   const { calculateValuation, vehicleInfo, isLoading, reset } = useManualValuation();
@@ -17,8 +18,19 @@ const ManualLookupPage = () => {
   const { user } = useAuth();
   const [showingResults, setShowingResults] = useState(false);
 
-  const handleSubmit = async (data: ManualVehicleInfo) => {
-    const result = await calculateValuation(data);
+  const handleSubmit = async (data: ManualEntryFormData) => {
+    // Convert the form data to the expected ManualVehicleInfo format
+    const vehicleData: ManualVehicleInfo = {
+      make: data.make,
+      model: data.model,
+      year: data.year,
+      mileage: data.mileage,
+      fuelType: data.fuelType,
+      condition: data.condition,
+      zipCode: data.zipCode
+    };
+    
+    const result = await calculateValuation(vehicleData);
     if (result) {
       setShowingResults(true);
     }
@@ -81,7 +93,7 @@ const ManualLookupPage = () => {
         <h1 className="text-3xl font-bold mb-8 text-center">Manual Vehicle Entry</h1>
         
         {!showingResults ? (
-          <ManualEntryForm onSubmitSuccess={handleSubmit} />
+          <ManualEntryForm onSubmit={handleSubmit} isLoading={isLoading} />
         ) : (
           <div className="max-w-4xl mx-auto">
             <Card className="p-8 mb-8">

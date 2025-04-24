@@ -14,11 +14,13 @@ import { useNavigate } from 'react-router-dom';
 
 interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
+  onSubmitSuccess?: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
 }
 
 const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   onSubmit,
+  onSubmitSuccess,
   isLoading = false,
 }) => {
   const navigate = useNavigate();
@@ -41,6 +43,11 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     try {
       onSubmit(data);
       toast.success('Vehicle information submitted successfully!');
+      
+      // Call onSubmitSuccess if it exists
+      if (onSubmitSuccess) {
+        onSubmitSuccess(data);
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Failed to submit vehicle information. Please try again.');

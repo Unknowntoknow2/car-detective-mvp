@@ -4,14 +4,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { carMakes, getModelsForMake } from '@/utils/carData';
 import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
+import { useState } from 'react';
 
 interface MakeModelSelectProps {
   form: UseFormReturn<ManualEntryFormData>;
-  selectedMake: string;
-  setSelectedMake: (make: string) => void;
 }
 
-export const MakeModelSelect = ({ form, selectedMake, setSelectedMake }: MakeModelSelectProps) => {
+export const MakeModelSelect = ({ form }: MakeModelSelectProps) => {
+  const [selectedMake, setSelectedMake] = useState<string>(form.getValues().make || '');
+
   return (
     <>
       <FormField
