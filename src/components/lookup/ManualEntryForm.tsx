@@ -1,22 +1,17 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { ManualEntryFormData, AccidentDetails } from './types/manualEntry';
+import { ManualEntryFormData } from './types/manualEntry';
 import { VehicleBasicInfo } from './form-parts/VehicleBasicInfo';
-import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 import { VehicleConditionSlider } from './form-parts/VehicleConditionSlider';
 import { VehicleFeatureSelect } from './form-parts/VehicleFeatureSelect';
+import { PremiumFields } from './form-parts/PremiumFields';
+import { ValuationFormActions } from './form-parts/ValuationFormActions';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { useManualValuation } from '@/hooks/useManualValuation';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 
 interface ManualEntryFormProps {
   onSubmit?: (data: ManualEntryFormData) => Promise<void>;
@@ -32,13 +27,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   isPremium = false
 }) => {
   const navigate = useNavigate();
-  const { 
-    makes, 
-    getModelsByMake,
-    getYearOptions,
-    isLoading: isDataLoading,
-    error: dataLoadError 
-  } = useVehicleData();
+  const { makes, getModelsByMake, isLoading: isDataLoading, error: dataLoadError } = useVehicleData();
   const { calculateValuation, isLoading: isValuationLoading } = useManualValuation();
 
   const [selectedMakeId, setSelectedMakeId] = useState<string>('');
@@ -50,42 +39,22 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [condition, setCondition] = useState<string>('good');
   const [conditionValue, setConditionValue] = useState(75);
   const [accident, setAccident] = useState<string>('no');
-  const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
+  const [accidentDetails, setAccidentDetails] = useState({
     count: '',
     severity: '',
     area: ''
   });
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
-  const getConditionLabel = (value: number): string => {
-    if (value <= 25) return 'poor';
-    if (value <= 50) return 'fair';
-    if (value <= 75) return 'good';
-    return 'excellent';
-  };
-
   const handleSubmit = async () => {
-    if (!selectedMakeId) {
-      toast.error('Please select a make');
-      return;
-    }
-    if (!selectedModel) {
-      toast.error('Please select a model');
-      return;
-    }
-    if (!selectedYear) {
-      toast.error('Please select a year');
+    if (!selectedMakeId || !selectedModel || !selectedYear) {
+      toast.error('Please fill in all required fields');
       return;
     }
     
     const parsedMileage = parseInt(mileage, 10);
     if (isNaN(parsedMileage) || parsedMileage <= 0) {
-      toast.error('Please enter a valid positive mileage greater than zero');
-      return;
-    }
-
-    if (zipCode && zipCode.length !== 5) {
-      toast.error('Please enter a valid ZIP code');
+      toast.error('Please enter a valid mileage');
       return;
     }
 
@@ -105,7 +74,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       zipCode,
       accident: isPremium ? accident : undefined,
       accidentDetails: isPremium && accident === 'yes' ? accidentDetails : undefined,
-      selectedFeatures: selectedFeatures
+      selectedFeatures
     };
 
     if (onSubmit) {
@@ -119,13 +88,19 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       year: selectedYear as number,
       mileage: parsedMileage,
       condition: getConditionLabel(conditionValue),
-      fuelType: fuelType || 'Gasoline',
-      selectedFeatures
+      fuelType: fuelType || 'Gasoline'
     });
 
     if (result) {
       navigate(`/valuation`);
     }
+  };
+
+  const getConditionLabel = (value: number): string => {
+    if (value <= 25) return 'poor';
+    if (value <= 50) return 'fair';
+    if (value <= 75) return 'good';
+    return 'excellent';
   };
 
   if (dataLoadError) {
@@ -155,6 +130,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         setZipCode={setZipCode}
         fuelType={fuelType}
         setFuelType={setFuelType}
+        condition={condition}
+        setCondition={setCondition}
         isDisabled={isFormLoading}
       />
 
@@ -171,45 +148,20 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       />
 
       {isPremium && (
-        <>
-          <Select 
-            onValueChange={setAccident}
-            disabled={isFormLoading}
-            value={accident}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Any Accidents?" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="no">No</SelectItem>
-              <SelectItem value="yes">Yes</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {accident === "yes" && (
-            <AccidentDetailsForm
-              accidentDetails={accidentDetails}
-              setAccidentDetails={setAccidentDetails}
-              disabled={isFormLoading}
-            />
-          )}
-        </>
+        <PremiumFields
+          accident={accident}
+          setAccident={setAccident}
+          accidentDetails={accidentDetails}
+          setAccidentDetails={setAccidentDetails}
+          isDisabled={isFormLoading}
+        />
       )}
 
-      <Button 
-        onClick={handleSubmit} 
-        disabled={isFormLoading}
-        className="w-full"
-      >
-        {isFormLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Loading...
-          </>
-        ) : (
-          submitButtonText
-        )}
-      </Button>
+      <ValuationFormActions
+        isLoading={isFormLoading}
+        submitButtonText={submitButtonText}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };
