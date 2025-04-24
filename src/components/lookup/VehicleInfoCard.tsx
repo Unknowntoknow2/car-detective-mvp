@@ -17,26 +17,35 @@ import { generateValuationForecast } from '@/utils/forecasting/valuation-forecas
 import { CarfaxSummary } from './CarfaxSummary';
 import { VehicleHistory } from './VehicleHistory';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
+import { useSaveValuation } from '@/hooks/useSaveValuation';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
   onDownloadPdf: () => void;
-  onSaveValuation?: () => void;
-  isSaving?: boolean;
-  isUserLoggedIn?: boolean;
   carfaxData?: CarfaxData;
 }
 
 export const VehicleInfoCard = ({ 
   vehicleInfo, 
   onDownloadPdf, 
-  onSaveValuation, 
-  isSaving = false,
-  isUserLoggedIn = false,
   carfaxData 
 }: VehicleInfoCardProps) => {
   const basePrice = 24500;
   const forecastData = generateValuationForecast(basePrice);
+  const { saveValuation, isSaving } = useSaveValuation();
+
+  const handleSaveValuation = () => {
+    saveValuation({
+      vin: vehicleInfo.vin,
+      make: vehicleInfo.make,
+      model: vehicleInfo.model,
+      year: vehicleInfo.year,
+      valuation: basePrice,
+      confidenceScore: carfaxData ? 92 : 85,
+      conditionScore: 75,
+      is_vin_lookup: true
+    });
+  };
 
   return (
     <Card className="mt-6 border-2 border-primary/20">
@@ -71,7 +80,7 @@ export const VehicleInfoCard = ({
         
         <VehicleHistory 
           vin={vehicleInfo.vin} 
-          valuationId={vehicleInfo.id || ''} 
+          valuationId={vehicleInfo.vin} // Use VIN as a fallback identifier
         />
         
         <div className="mt-8 pt-6 border-t border-border/60">
@@ -137,16 +146,14 @@ export const VehicleInfoCard = ({
           <Download className="mr-2" />
           Download Report
         </Button>
-        {isUserLoggedIn && (
-          <Button 
-            onClick={onSaveValuation}
-            disabled={isSaving}
-            variant="secondary"
-          >
-            <BookmarkPlus className="mr-2" />
-            {isSaving ? 'Saving...' : 'Save to Dashboard'}
-          </Button>
-        )}
+        <Button 
+          onClick={handleSaveValuation}
+          disabled={isSaving}
+          variant="secondary"
+        >
+          <BookmarkPlus className="mr-2" />
+          {isSaving ? 'Saving...' : 'Save to Dashboard'}
+        </Button>
       </CardFooter>
     </Card>
   );
