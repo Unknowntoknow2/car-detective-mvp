@@ -14,8 +14,9 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
-  // Use the deployed frontend URL for redirects
-  const redirectTo = "https://car-detective.vercel.app/";
+  // Hardcoded deployed frontend URLs
+  const siteUrl = "https://car-detective.vercel.app";
+  const redirectUrl = "https://car-detective.vercel.app/auth/callback";
 
   useEffect(() => {
     const checkSession = async () => {
@@ -37,7 +38,7 @@ export default function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: redirectTo
+            emailRedirectTo: redirectUrl,
           }
         });
         if (error) throw error;
