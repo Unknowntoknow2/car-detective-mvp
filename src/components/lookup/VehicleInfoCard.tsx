@@ -40,10 +40,39 @@ export const VehicleInfoCard = ({
         
         <div className="mt-8 pt-6 border-t border-border/60">
           <h3 className="text-lg font-semibold mb-4">Valuation & Scoring</h3>
-          <VehicleScoring />
-          <p className="text-xs text-muted-foreground mt-4 italic">
-            * Values are estimates based on available market data. Premium reports include detailed market analysis.
-          </p>
+          <VehicleScoring 
+            baseValue={24500}
+            valuationBreakdown={[
+              {
+                factor: "Mileage",
+                impact: -3.5,
+                description: "Vehicle has higher mileage than average (76,000 mi vs. market avg of 65,000 mi)"
+              },
+              {
+                factor: "Condition",
+                impact: 2.0,
+                description: "Vehicle condition is above average based on service history and reported condition"
+              },
+              {
+                factor: "Location",
+                impact: 1.5,
+                description: "Vehicle prices in your ZIP code are slightly higher than national average"
+              },
+              {
+                factor: "Market Demand",
+                impact: 4.0,
+                description: "This model currently has high demand in your region (based on 30-day sales data)"
+              },
+              {
+                factor: "Age Depreciation",
+                impact: -2.5,
+                description: "Standard depreciation for a vehicle of this age and model year"
+              }
+            ]}
+            confidenceScore={92}
+            estimatedValue={24500}
+            comparableVehicles={117}
+          />
         </div>
       </CardContent>
       <CardFooter className="flex justify-between pt-4">
