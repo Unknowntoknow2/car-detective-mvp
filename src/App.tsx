@@ -5,10 +5,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import VinLookupPage from "./pages/VinLookupPage";
 import PlateLookupPage from "./pages/PlateLookupPage";
 import AuthPage from "./pages/AuthPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import MyValuationsPage from "./pages/MyValuationsPage";
 import NotFound from "./pages/NotFound";
 
@@ -26,7 +29,16 @@ const App = () => (
             <Route path="/lookup/vin" element={<VinLookupPage />} />
             <Route path="/lookup/plate" element={<PlateLookupPage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/valuations" element={<MyValuationsPage />} />
+            <Route path="/auth/signup" element={<AuthPage />} />
+            <Route path="/auth/forgot-password" element={<AuthPage />} />
+            <Route path="/auth/forgot-email" element={<AuthPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/valuations" element={
+              <ProtectedRoute>
+                <MyValuationsPage />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
