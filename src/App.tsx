@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +14,7 @@ import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import MyValuationsPage from "./pages/MyValuationsPage";
 import NotFound from "./pages/NotFound";
+import DealerDashboard from "./pages/DealerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +39,11 @@ const App = () => (
             <Route path="/valuations" element={
               <ProtectedRoute>
                 <MyValuationsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dealer/dashboard" element={
+              <ProtectedRoute>
+                <DealerDashboard />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

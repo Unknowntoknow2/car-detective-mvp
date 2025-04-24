@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      dealers: {
+        Row: {
+          business_name: string
+          contact_name: string
+          created_at: string | null
+          email: string
+          id: string
+          phone: string | null
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          business_name: string
+          contact_name: string
+          created_at?: string | null
+          email: string
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          business_name?: string
+          contact_name?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       decoded_vehicles: {
         Row: {
           bodyType: string | null
@@ -185,10 +218,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_dealer: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "user" | "dealer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -303,6 +339,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["user", "dealer"],
+    },
   },
 } as const
