@@ -27,7 +27,7 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
   const [emailCheckTimeout, setEmailCheckTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
-  const checkEmailExists = (email: string) => {
+  const checkEmailExists = async (email: string) => {
     if (!validateEmail(email)) {
       setEmailError('');
       return;
@@ -41,17 +41,18 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
       setIsCheckingEmail(true);
       
       try {
-        const { error } = await supabase.auth.signInWithOtp({
+        const { data, error } = await supabase.auth.signInWithOtp({
           email,
           options: {
             shouldCreateUser: false,
           }
         });
 
-        if (error && error.message.includes("User not found")) {
-          setEmailError('');
-        } else {
+        // If there's no error about user not found, an account likely exists
+        if (!error || !error.message.includes("User not found")) {
           setEmailError('An account with this email already exists. Try logging in instead.');
+        } else {
+          setEmailError('');
         }
       } catch (error) {
         console.error('Error checking email:', error);

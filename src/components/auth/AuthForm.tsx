@@ -10,6 +10,7 @@ import { LoginForm } from './forms/LoginForm';
 import { ForgotPasswordForm } from './forms/ForgotPasswordForm';
 import { ForgotEmailForm } from './forms/ForgotEmailForm';
 import { ResetPasswordForm } from './forms/ResetPasswordForm';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AuthForm = ({ mode }: { mode: AuthMode }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -106,10 +107,14 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
         <CardTitle className="text-2xl font-bold">{getTitle()}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">{getDescription()}</CardDescription>
       </CardHeader>
-      <CardContent className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-        {renderForm()}
+      <CardContent className="px-6 py-4">
+        <ScrollArea className="max-h-[450px]">
+          <div className="pr-4">
+            {renderForm()}
+          </div>
+        </ScrollArea>
         <div className="mt-4">
-          {getToggleLink()}
+          {mode !== 'signup' && getToggleLink()}
         </div>
       </CardContent>
     </Card>

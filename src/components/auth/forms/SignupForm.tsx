@@ -23,8 +23,6 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   const [termsError, setTermsError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
-  
-  const navigate = useNavigate();
 
   const validateTerms = () => {
     if (!agreeToTerms) {
@@ -153,18 +151,11 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         type="button" 
         className="w-full mt-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200" 
         disabled={isLoading || (authType === 'email' && !!emailError) || (authType === 'phone' && !!phoneError)}
-        onClick={() => authType === 'email' ? handleEmailSignup : handlePhoneSignup}
+        onClick={() => authType === 'email' ? 
+          handleEmailSignup : 
+          handlePhoneSignup}
       >
         {isLoading ? 'Processing...' : 'Create Account'}
-      </Button>
-      
-      <Button
-        type="button"
-        variant="ghost"
-        className="w-full mt-4 rounded-xl transition-all duration-200 text-sm text-muted-foreground hover:bg-accent"
-        onClick={() => navigate('/auth')}
-      >
-        Already have an account? Sign In
       </Button>
     </Tabs>
   );
