@@ -1,6 +1,6 @@
 
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
-import { InfoCircle, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface CarfaxSummaryProps {
@@ -21,7 +21,7 @@ export const CarfaxSummary = ({ carfaxData }: CarfaxSummaryProps) => {
   return (
     <div className="mt-6 border border-border/60 rounded-lg p-4">
       <div className="flex items-center gap-2 mb-3">
-        <InfoCircle className="h-5 w-5 text-primary" />
+        <Info className="h-5 w-5 text-primary" />
         <h3 className="text-lg font-medium">Vehicle History Report</h3>
       </div>
       

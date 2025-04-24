@@ -6,6 +6,11 @@ export interface AdjustmentBreakdown {
   label: string;
   value: number;
   description?: string;
+  detailedAdjustments?: {
+    factor: string;
+    impact: number;
+    description: string;
+  }[];
 }
 
 export interface RulesEngineInput {
