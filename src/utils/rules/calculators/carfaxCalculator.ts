@@ -10,6 +10,7 @@ export class CarfaxCalculator implements AdjustmentCalculator {
     const carfax = input.carfaxData;
     let totalAdjustment = 0;
     let description = '';
+    let detailedAdjustments: {factor: string, impact: number, description: string}[] = [];
     
     // Accident history adjustment
     if (carfax.accidentsReported > 0) {
@@ -25,24 +26,51 @@ export class CarfaxCalculator implements AdjustmentCalculator {
       if (carfax.damageSeverity) {
         description += ` with ${carfax.damageSeverity} damage`;
       }
+      
+      detailedAdjustments.push({
+        factor: "Accident History",
+        impact: accidentAdjustment,
+        description: `${carfax.accidentsReported} accident${carfax.accidentsReported > 1 ? 's' : ''} with ${carfax.damageSeverity || 'minor'} damage`
+      });
     }
     
     // Salvage title adjustment
     if (carfax.salvageTitle) {
-      totalAdjustment -= 4000;
+      const salvageAdjustment = -4000;
+      totalAdjustment += salvageAdjustment;
       description += description ? ', salvage title' : 'Salvage title';
+      
+      detailedAdjustments.push({
+        factor: "Salvage Title",
+        impact: salvageAdjustment,
+        description: "Vehicle has a salvage/rebuilt title"
+      });
     }
     
     // Service history adjustment
     if (carfax.serviceRecords > 6) {
-      totalAdjustment += 200;
+      const serviceBonus = 200;
+      totalAdjustment += serviceBonus;
       description += description ? ', complete service history' : 'Complete service history';
+      
+      detailedAdjustments.push({
+        factor: "Service History",
+        impact: serviceBonus,
+        description: "Well-maintained with complete service records"
+      });
     }
     
     // One owner bonus
     if (carfax.owners === 1) {
-      totalAdjustment += 100;
+      const oneOwnerBonus = 100;
+      totalAdjustment += oneOwnerBonus;
       description += description ? ', one-owner vehicle' : 'One-owner vehicle';
+      
+      detailedAdjustments.push({
+        factor: "Ownership History",
+        impact: oneOwnerBonus,
+        description: "Single-owner vehicle"
+      });
     }
     
     // If no adjustments, return null
@@ -51,7 +79,8 @@ export class CarfaxCalculator implements AdjustmentCalculator {
     return {
       label: 'Vehicle History',
       value: totalAdjustment,
-      description
+      description,
+      detailedAdjustments // Include detailed breakdown for UI display
     };
   }
 }

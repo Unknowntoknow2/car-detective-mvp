@@ -13,17 +13,38 @@ import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { useAuth } from '@/contexts/AuthContext';
 import { VehicleInfoCard } from './VehicleInfoCard';
 import { VinLookupForm } from './vin/VinLookupForm';
+import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
+import { toast } from 'sonner';
+import { AlertTriangle } from 'lucide-react';
 
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
   const { vehicleInfo, isLoading, error, lookupVin } = useVinDecoder();
   const { saveValuation, isSaving } = useSaveValuation();
   const { user } = useAuth();
+  const [carfaxData, setCarfaxData] = useState(null);
+  const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
+  const [carfaxError, setCarfaxError] = useState(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (vin) {
+      setCarfaxData(null);
+      setCarfaxError(null);
       await lookupVin(vin);
+      
+      // Fetch CARFAX data after VIN lookup succeeds
+      try {
+        setIsLoadingCarfax(true);
+        const carfaxReport = await getCarfaxReport(vin);
+        setCarfaxData(carfaxReport);
+        setIsLoadingCarfax(false);
+      } catch (err) {
+        console.error('Error fetching CARFAX data:', err);
+        setCarfaxError('Unable to retrieve vehicle history report.');
+        setIsLoadingCarfax(false);
+        toast.error('Could not retrieve vehicle history report.');
+      }
     }
   };
 
@@ -36,7 +57,7 @@ export const VinDecoderForm = () => {
       model: vehicleInfo.model,
       year: vehicleInfo.year,
       valuation: 24500,
-      confidenceScore: 92,
+      confidenceScore: carfaxData ? 92 : 85,
       conditionScore: 85
     });
   };
@@ -49,12 +70,14 @@ export const VinDecoderForm = () => {
       estimatedValue: 24500,
       condition: "Good",
       zipCode: "10001",
-      confidenceScore: 92,
+      confidenceScore: carfaxData ? 92 : 85,
       adjustments: [
         { label: "Mileage", value: -3.5 },
         { label: "Condition", value: 2.0 },
-        { label: "Market Demand", value: 4.0 }
-      ]
+        { label: "Market Demand", value: 4.0 },
+        ...(carfaxData && carfaxData.accidentsReported > 0 ? [{ label: "Accident History", value: -3.0 }] : [])
+      ],
+      carfaxData: carfaxData // Pass CARFAX data to PDF generator
     });
     
     downloadPdf(reportData);
@@ -72,10 +95,17 @@ export const VinDecoderForm = () => {
         <CardContent>
           <VinLookupForm
             vin={vin}
-            isLoading={isLoading}
+            isLoading={isLoading || isLoadingCarfax}
             onVinChange={setVin}
             onSubmit={handleSubmit}
           />
+          
+          {carfaxError && !isLoadingCarfax && (
+            <div className="mt-4 p-4 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-md text-amber-700">
+              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm">{carfaxError} This doesn't affect the vehicle details lookup.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -86,6 +116,7 @@ export const VinDecoderForm = () => {
           onSaveValuation={handleSaveValuation}
           isSaving={isSaving}
           isUserLoggedIn={!!user}
+          carfaxData={carfaxData}
         />
       )}
     </div>

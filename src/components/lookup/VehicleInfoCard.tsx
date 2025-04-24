@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
-import { Download, BookmarkPlus } from 'lucide-react';
+import { Download, BookmarkPlus, AlertTriangle, ShieldCheck } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -14,6 +15,8 @@ import { VehicleDetailsGrid } from './VehicleDetailsGrid';
 import { VehicleScoring } from './VehicleScoring';
 import { ForecastChart } from './forecast/ForecastChart';
 import { generateValuationForecast } from '@/utils/forecasting/valuation-forecast';
+import { CarfaxSummary } from './CarfaxSummary';
+import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -21,6 +24,7 @@ interface VehicleInfoCardProps {
   onSaveValuation?: () => void;
   isSaving?: boolean;
   isUserLoggedIn?: boolean;
+  carfaxData?: CarfaxData;
 }
 
 export const VehicleInfoCard = ({ 
@@ -28,7 +32,8 @@ export const VehicleInfoCard = ({
   onDownloadPdf, 
   onSaveValuation, 
   isSaving = false,
-  isUserLoggedIn = false 
+  isUserLoggedIn = false,
+  carfaxData 
 }: VehicleInfoCardProps) => {
   const basePrice = 24500;
   const forecastData = generateValuationForecast(basePrice);
@@ -36,11 +41,33 @@ export const VehicleInfoCard = ({
   return (
     <Card className="mt-6 border-2 border-primary/20">
       <CardHeader>
-        <CardTitle className="text-2xl">Vehicle Information</CardTitle>
-        <CardDescription>Details found for VIN: {vehicleInfo.vin}</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-2xl">Vehicle Information</CardTitle>
+            <CardDescription>Details found for VIN: {vehicleInfo.vin}</CardDescription>
+          </div>
+          
+          {carfaxData && (
+            <div className="flex items-center gap-2">
+              {carfaxData.accidentsReported > 0 || carfaxData.salvageTitle ? (
+                <div className="flex items-center text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                  <AlertTriangle className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">History Issues</span>
+                </div>
+              ) : (
+                <div className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                  <ShieldCheck className="h-4 w-4 mr-1" />
+                  <span className="text-sm font-medium">Clean History</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <VehicleDetailsGrid vehicleInfo={vehicleInfo} />
+        
+        {carfaxData && <CarfaxSummary carfaxData={carfaxData} />}
         
         <div className="mt-8 pt-6 border-t border-border/60">
           <h3 className="text-lg font-semibold mb-4">Valuation & Scoring</h3>
@@ -61,9 +88,14 @@ export const VehicleInfoCard = ({
                 factor: "Market Demand",
                 impact: 4.0,
                 description: "This model currently has high demand in your region (based on 30-day sales data)"
-              }
+              },
+              ...(carfaxData && carfaxData.accidentsReported > 0 ? [{
+                factor: "Accident History",
+                impact: -3.0,
+                description: `${carfaxData.accidentsReported} reported accident${carfaxData.accidentsReported > 1 ? 's' : ''} with ${carfaxData.damageSeverity || 'minor'} damage`
+              }] : [])
             ]}
-            confidenceScore={92}
+            confidenceScore={carfaxData ? 92 : 85}
             estimatedValue={basePrice}
             comparableVehicles={117}
           />
