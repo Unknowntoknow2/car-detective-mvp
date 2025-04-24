@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DesignCard } from "@/components/ui/design-system";
-import { InfoCircle, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { Info, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 
 interface ConditionSliderProps {
   value: number;
@@ -33,7 +33,7 @@ export const ConditionSliderWithTooltip: React.FC<ConditionSliderProps> = ({
   const getConditionIcon = (value: number) => {
     if (value <= 25) return <XCircle className="h-5 w-5 text-error" />;
     if (value <= 50) return <AlertCircle className="h-5 w-5 text-warning" />;
-    if (value <= 75) return <InfoCircle className="h-5 w-5 text-info" />;
+    if (value <= 75) return <Info className="h-5 w-5 text-info" />;
     return <CheckCircle className="h-5 w-5 text-success" />;
   };
 
