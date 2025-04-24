@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { calculateTotalAdjustment, VehicleCondition } from '@/utils/priceAdjustments';
 
 export type ManualVehicleInfo = {
   make: string;
@@ -25,40 +25,17 @@ export function useManualValuation() {
     setError(null);
     
     try {
-      // This is a simplified valuation algorithm - in a real app, you'd call an API
-      // Mock calculation based on vehicle details
-      const baseValue = 20000; // Base value
+      const baseValue = 20000;
       
-      // Year adjustment (newer cars worth more)
-      const yearFactor = (data.year - 1980) / 45; // Normalized between 0 and 1
+      const totalAdjustment = calculateTotalAdjustment({
+        mileage: data.mileage,
+        condition: data.condition as VehicleCondition,
+        zipCode: data.zipCode,
+        basePrice: baseValue
+      });
       
-      // Mileage adjustment (lower mileage worth more)
-      const mileageFactor = Math.max(0, 1 - (data.mileage / 200000));
+      const valuation = Math.round(baseValue + totalAdjustment);
       
-      // Condition adjustment
-      const conditionFactors = {
-        'excellent': 1.2,
-        'good': 1.0,
-        'fair': 0.8,
-        'poor': 0.6
-      };
-      
-      const conditionFactor = conditionFactors[data.condition as keyof typeof conditionFactors] || 1.0;
-      
-      // Fuel type adjustment
-      const fuelTypeFactors = {
-        'electric': 1.3,
-        'hybrid': 1.2,
-        'gasoline': 1.0,
-        'diesel': 0.9
-      };
-      
-      const fuelTypeFactor = fuelTypeFactors[data.fuelType.toLowerCase() as keyof typeof fuelTypeFactors] || 1.0;
-      
-      // Calculate valuation
-      const valuation = Math.round(baseValue * yearFactor * mileageFactor * conditionFactor * fuelTypeFactor);
-      
-      // Calculate confidence score (70-95%)
       const confidenceScore = Math.round(70 + Math.random() * 25);
       
       const result: ManualVehicleInfo = {
@@ -68,7 +45,6 @@ export function useManualValuation() {
       };
       
       setVehicleInfo(result);
-      
       toast.success("Vehicle valuation completed");
       return result;
     } catch (err) {
