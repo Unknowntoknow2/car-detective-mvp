@@ -21,7 +21,7 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
             <Link to="#">Start Free Valuation</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link to="/lookup/premium">Premium Valuation: Including CARFAX ($29.99)</Link>
+            <Link to="/premium">Premium Valuation: Including CARFAX ($29.99)</Link>
           </Button>
         </div>
       </div>

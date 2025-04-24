@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VinDecoderForm } from "../lookup/VinDecoderForm";
+import { Link } from "react-router-dom";
 
 export function PremiumTabs() {
   return (
@@ -56,8 +57,8 @@ export function PremiumTabs() {
                 Professional PDF Report
               </li>
             </ul>
-            <Button className="w-full" size="lg">
-              Get Premium Report
+            <Button className="w-full" size="lg" asChild>
+              <Link to="/premium">Get Premium Report</Link>
             </Button>
           </CardContent>
         </Card>
