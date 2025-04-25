@@ -1,6 +1,6 @@
 
 import { Label } from '@/components/ui/label';
-import { FormData } from '@/hooks/usePremiumValuationForm';
+import { FormData } from '@/types/premium-valuation';
 import { Slider } from '@/components/ui/slider';
 import { useEffect, useState } from 'react';
 import {

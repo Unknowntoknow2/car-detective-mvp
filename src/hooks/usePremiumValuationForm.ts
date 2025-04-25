@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { FormData } from '@/types/premium-valuation';
+import { FormData, FeatureOption } from '@/types/premium-valuation';
 import { featureOptions } from '@/utils/feature-calculations';
 import { useFormValidation } from './useFormValidation';
 import { useStepNavigation } from './useStepNavigation';

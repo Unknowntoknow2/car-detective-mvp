@@ -1,7 +1,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FormData } from '@/hooks/usePremiumValuationForm';
+import { FormData } from '@/types/premium-valuation';
 import { useState, useEffect } from 'react';
 
 interface MileageStepProps {

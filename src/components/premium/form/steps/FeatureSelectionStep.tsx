@@ -1,6 +1,6 @@
 
 import { Label } from '@/components/ui/label';
-import { FormData, FeatureOption } from '@/hooks/usePremiumValuationForm';
+import { FormData, FeatureOption } from '@/types/premium-valuation';
 import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Check } from 'lucide-react';

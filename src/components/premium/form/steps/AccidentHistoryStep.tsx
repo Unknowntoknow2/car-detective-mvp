@@ -1,6 +1,6 @@
 
 import { Label } from '@/components/ui/label';
-import { FormData } from '@/hooks/usePremiumValuationForm';
+import { FormData } from '@/types/premium-valuation';
 import { useEffect } from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Textarea } from '@/components/ui/textarea';

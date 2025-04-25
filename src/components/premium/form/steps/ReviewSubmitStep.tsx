@@ -1,5 +1,5 @@
 
-import { FormData, FeatureOption } from '@/hooks/usePremiumValuationForm';
+import { FormData, FeatureOption } from '@/types/premium-valuation';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, RefreshCcw } from 'lucide-react';
 
