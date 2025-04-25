@@ -8,7 +8,7 @@ interface MarketListingsResponse {
   error: any;
 }
 
-export const fetchMarketListings = async (make: string, model: string, year: number): Promise<MarketListingsResponse> => {
+export const fetchMarketListings = async (make: string, model: string, year: number): Promise<{ data: MarketListing[] | null; error: any }> => {
   const response = await supabase
     .from('market_listings')
     .select('source, price, url')
