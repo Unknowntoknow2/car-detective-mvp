@@ -9,7 +9,8 @@ interface MarketListingsResponse {
 }
 
 export const fetchMarketListings = async (make: string, model: string, year: number): Promise<MarketListingsResponse> => {
-  const response = await supabase
+  // Get market listings from database
+  const { data, error } = await supabase
     .from('market_listings')
     .select('source, price, url')
     .eq('make', make)
@@ -18,10 +19,10 @@ export const fetchMarketListings = async (make: string, model: string, year: num
     .order('created_at', { ascending: false })
     .limit(10);
     
-  // Use explicit return with type casting to avoid deep inference
+  // Return a simple object with explicit types
   return {
-    data: response.data as MarketListing[] | null,
-    error: response.error
+    data: data as MarketListing[] | null,
+    error
   };
 };
 
