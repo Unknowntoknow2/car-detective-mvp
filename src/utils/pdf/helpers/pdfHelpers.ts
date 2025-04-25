@@ -1,5 +1,5 @@
 
-import { PDFPage, PDFFont, RGB } from 'pdf-lib';
+import { PDFPage, PDFFont, rgb, Color } from 'pdf-lib';
 
 interface DrawTextPairOptions {
   font: PDFFont;
@@ -7,8 +7,8 @@ interface DrawTextPairOptions {
   yPosition: number;
   margin: number;
   width: number;
-  labelColor?: RGB;
-  valueColor?: RGB;
+  labelColor?: Color;
+  valueColor?: Color;
 }
 
 export function drawTextPair(
@@ -24,7 +24,7 @@ export function drawTextPair(
     y: yPosition,
     size: 12,
     font: font,
-    color: labelColor || { type: 'RGB', red: 0.4, green: 0.4, blue: 0.4 }
+    color: labelColor || rgb(0.4, 0.4, 0.4)
   });
 
   page.drawText(value, {
@@ -32,6 +32,6 @@ export function drawTextPair(
     y: yPosition,
     size: 14,
     font: boldFont,
-    color: valueColor || { type: 'RGB', red: 0, green: 0, blue: 0 }
+    color: valueColor || rgb(0, 0, 0)
   });
 }
