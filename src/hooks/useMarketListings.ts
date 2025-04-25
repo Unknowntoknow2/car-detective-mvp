@@ -35,7 +35,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
 
       try {
         // First check if we already have recent market data in our database
-        const result = await supabase
+        const { data, error: fetchError } = await supabase
           .from('market_listings')
           .select('*')
           .eq('make', make)
@@ -43,9 +43,8 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           .eq('year', year)
           .order('created_at', { ascending: false })
           .limit(10);
-          
-        const fetchError = result.error;
-        const existingListings = result.data as MarketListing[] | null;
+        
+        const existingListings = data as MarketListing[] | null;
 
         if (!fetchError && existingListings && existingListings.length > 0) {
           // Process existing listings into the format we need
@@ -74,39 +73,27 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
         }
 
         // If no existing recent data, fetch from the edge function
-        const response = await supabase.functions.invoke('fetch-market-listings', {
+        const { data: responseData, error: responseError } = await supabase.functions.invoke('fetch-market-listings', {
           body: { zipCode, make, model, year }
         });
 
-        if (response.error) throw response.error;
+        if (responseError) throw responseError;
         
-        if (response.data) {
-          setMarketData(response.data as MarketData);
+        if (responseData) {
+          const typedData = responseData as MarketData;
+          setMarketData(typedData);
           
           // Store the market listings in our database for future reference
-          const marketEntries = Object.entries(response.data.averages).map(([source, price]) => ({
-            source,
-            price: price as number,
-            url: response.data.sources[source],
-            make,
-            model,
-            year,
-            valuation_id: crypto.randomUUID()
-          }));
-          
-          if (marketEntries.length > 0) {
-            // Insert each entry individually to avoid type issues
-            for (const entry of marketEntries) {
-              await supabase.from('market_listings').insert({
-                source: entry.source,
-                price: entry.price,
-                url: entry.url,
-                make: entry.make,
-                model: entry.model,
-                year: entry.year,
-                valuation_id: entry.valuation_id
-              });
-            }
+          for (const [source, price] of Object.entries(typedData.averages)) {
+            await supabase.from('market_listings').insert({
+              source,
+              price: price as number,
+              url: typedData.sources[source],
+              make,
+              model,
+              year,
+              valuation_id: crypto.randomUUID()
+            });
           }
         }
       } catch (err) {
