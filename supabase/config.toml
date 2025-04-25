@@ -6,3 +6,7 @@ verify_jwt = false
 
 [functions.fetch-market-listings]
 verify_jwt = false
+
+[functions.valuation-forecast]
+verify_jwt = true
+
