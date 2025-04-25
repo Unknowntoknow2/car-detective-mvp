@@ -1,105 +1,94 @@
 
 import { Label } from '@/components/ui/label';
-import { FormData, FeatureOption } from '@/types/premium-valuation';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormData } from '@/types/premium-valuation';
 import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { featureOptions } from '@/utils/feature-calculations';
+import { Plus } from 'lucide-react';
 
 interface FeatureSelectionStepProps {
   step: number;
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   updateValidity: (step: number, isValid: boolean) => void;
-  featureOptions: FeatureOption[];
 }
 
 export function FeatureSelectionStep({
   step,
   formData,
   setFormData,
-  updateValidity,
-  featureOptions
+  updateValidity
 }: FeatureSelectionStepProps) {
-  // This step is always valid as features are optional
+  // Features are optional, so this step is always valid
   useEffect(() => {
     updateValidity(step, true);
-  }, []);
+  }, [step, updateValidity]);
 
   const toggleFeature = (featureId: string) => {
     setFormData(prev => {
       const features = prev.features.includes(featureId)
         ? prev.features.filter(id => id !== featureId)
         : [...prev.features, featureId];
-      
       return { ...prev, features };
     });
+  };
+
+  const calculateFeatureValue = (featureId: string): number => {
+    const feature = featureOptions.find(f => f.id === featureId);
+    return feature?.value || 0;
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Vehicle Features</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Premium Features</h2>
         <p className="text-gray-600 mb-6">
-          Select all features that your vehicle has. Each feature can affect the vehicle's value.
+          Select all features present in your vehicle to ensure an accurate valuation.
         </p>
       </div>
-      
-      <div>
-        <Label className="text-gray-700 mb-3 block">Additional Features</Label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {featureOptions.map(feature => (
-            <FeatureCard
-              key={feature.id}
-              feature={feature}
-              isSelected={formData.features.includes(feature.id)}
-              onClick={() => toggleFeature(feature.id)}
-            />
-          ))}
-        </div>
-        <p className="mt-4 text-sm text-gray-500">
-          Premium features can significantly increase your vehicle's value. Select all that apply.
-        </p>
-      </div>
-    </div>
-  );
-}
 
-interface FeatureCardProps {
-  feature: FeatureOption;
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-function FeatureCard({ feature, isSelected, onClick }: FeatureCardProps) {
-  return (
-    <Card
-      className={`p-4 cursor-pointer transition-all flex items-center justify-between ${
-        isSelected 
-          ? 'border-navy-500 bg-navy-50' 
-          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-      }`}
-      onClick={onClick}
-    >
-      <div className="flex items-center space-x-3">
-        <div 
-          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            isSelected ? 'bg-navy-100 text-navy-700' : 'bg-gray-100 text-gray-600'
-          }`}
-        >
-          {/* Replace with actual icon component if available */}
-          <span className="text-sm">{feature.icon}</span>
-        </div>
-        <div>
-          <p className="font-medium text-gray-900">{feature.name}</p>
-          <p className="text-sm text-green-600">+${feature.value}</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {featureOptions.map(feature => (
+          <Card
+            key={feature.id}
+            className={`p-4 cursor-pointer transition-all ${
+              formData.features.includes(feature.id)
+                ? 'border-primary bg-primary/5'
+                : 'hover:border-gray-300 hover:bg-gray-50'
+            }`}
+            onClick={() => toggleFeature(feature.id)}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <Checkbox
+                  checked={formData.features.includes(feature.id)}
+                  onCheckedChange={() => toggleFeature(feature.id)}
+                  className="pointer-events-none"
+                />
+              </div>
+              <div className="flex-grow">
+                <p className="font-medium text-gray-900">{feature.name}</p>
+                <p className="text-sm text-green-600">+${feature.value.toLocaleString()}</p>
+              </div>
+              {formData.features.includes(feature.id) && (
+                <Plus className="h-4 w-4 text-primary transform rotate-45" />
+              )}
+            </div>
+          </Card>
+        ))}
       </div>
-      
-      {isSelected && (
-        <div className="h-5 w-5 text-navy-600">
-          <Check className="h-5 w-5" />
+
+      {formData.features.length > 0 && (
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="font-medium text-gray-700">Selected Features Value:</span>
+            <span className="font-semibold text-green-600">
+              +${formData.features.reduce((sum, id) => sum + calculateFeatureValue(id), 0).toLocaleString()}
+            </span>
+          </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
