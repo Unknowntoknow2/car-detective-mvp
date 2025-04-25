@@ -8,7 +8,7 @@ export const fetchMarketListings = async (
   year: number
 ): Promise<MarketListingsResponse> => {
   const { data, error } = await supabase
-    .from<MarketListing>('market_listings')
+    .from('market_listings')
     .select('source, price, url')
     .eq('make', make)
     .eq('model', model)
@@ -17,7 +17,7 @@ export const fetchMarketListings = async (
     .limit(10);
     
   return {
-    data: data ?? null,
+    data: data as MarketListing[] | null,
     error
   };
 };
@@ -46,6 +46,5 @@ export const storeMarketListings = async (
     })
   );
   
-  await supabase.from<MarketListingInsert>('market_listings').insert(inserts);
+  await supabase.from('market_listings').insert(inserts);
 };
-
