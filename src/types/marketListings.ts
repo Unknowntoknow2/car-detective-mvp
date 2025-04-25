@@ -1,4 +1,3 @@
-
 export interface MarketData {
   averages: Record<string, number>;
   sources: Record<string, string>;
