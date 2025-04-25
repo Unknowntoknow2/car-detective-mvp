@@ -1,10 +1,11 @@
 
 import { FormData, FeatureOption } from '@/types/premium-valuation';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { CheckCircle, RefreshCcw, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface ReviewSubmitStepProps {
   step: number;
@@ -46,8 +47,30 @@ export function ReviewSubmitStep({
     return feature ? feature.name : '';
   });
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <motion.div 
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Review & Submit</h2>
         <p className="text-gray-600 mb-6">
@@ -57,7 +80,7 @@ export function ReviewSubmitStep({
 
       <Card className="border-gray-200">
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="font-medium text-gray-900">Vehicle Information</h3>
               
@@ -91,7 +114,7 @@ export function ReviewSubmitStep({
               </div>
             </div>
             
-            <div className="space-y-4">
+            <motion.div variants={itemVariants} className="space-y-4">
               <h3 className="font-medium text-gray-900">Additional Details</h3>
               
               <div className="space-y-2">
@@ -119,12 +142,12 @@ export function ReviewSubmitStep({
                   <span className="font-medium">{formData.zipCode || 'Not specified'}</span>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
           
           <Separator />
           
-          <div>
+          <motion.div variants={itemVariants}>
             <h3 className="font-medium text-gray-900 mb-2">Selected Features</h3>
             {selectedFeatures.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -138,19 +161,25 @@ export function ReviewSubmitStep({
             ) : (
               <p className="text-gray-500 text-sm">No additional features selected</p>
             )}
-          </div>
+          </motion.div>
           
           <Separator />
           
-          <div className="flex justify-between items-center py-2">
+          <motion.div 
+            variants={itemVariants} 
+            className="flex justify-between items-center py-2"
+          >
             <span className="font-medium">Features Value Added:</span>
             <span className="font-semibold text-green-600">+${featureValueTotal.toLocaleString()}</span>
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
       
       {!isFormValid && (
-        <div className="bg-amber-50 border border-amber-200 rounded-md p-4 flex items-start">
+        <motion.div 
+          variants={itemVariants}
+          className="bg-amber-50 border border-amber-200 rounded-md p-4 flex items-start"
+        >
           <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-medium text-amber-800">Complete all required information</h4>
@@ -158,27 +187,35 @@ export function ReviewSubmitStep({
               Please ensure all required vehicle information is provided for the most accurate valuation.
             </p>
           </div>
-        </div>
+        </motion.div>
       )}
       
-      <div className="flex flex-col sm:flex-row gap-4 pt-2">
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col sm:flex-row gap-4 pt-2"
+      >
         <Button
           onClick={handleFormSubmit}
           disabled={!isFormValid || isSubmitting}
-          className="bg-navy-600 hover:bg-navy-700 text-white flex-1"
+          className="bg-navy-600 hover:bg-navy-700 text-white flex-1 transition-all duration-300 group"
         >
-          {isSubmitting ? 'Processing...' : 'Get Premium Valuation'}
+          {isSubmitting ? 'Processing...' : (
+            <>
+              Get Premium Valuation
+              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
         </Button>
         
         <Button
           onClick={handleReset}
           variant="outline"
-          className="text-gray-700"
+          className="text-gray-700 transition-all duration-300"
         >
           <RefreshCcw className="h-4 w-4 mr-2" />
           Start Over
         </Button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

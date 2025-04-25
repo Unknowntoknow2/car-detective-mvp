@@ -5,6 +5,7 @@ import { ProgressIndicator } from './ProgressIndicator';
 import { FormSteps } from './FormSteps';
 import { FormStepNavigation } from './FormStepNavigation';
 import { AccuracyMeter } from './AccuracyMeter';
+import { motion } from 'framer-motion';
 
 interface FormStepLayoutProps {
   currentStep: number;
@@ -14,6 +15,8 @@ interface FormStepLayoutProps {
   onPrevious: () => void;
   children: ReactNode;
   stepValidities: Record<number, boolean>;
+  stepCompletionStatus: Record<number, boolean>;
+  encouragementMessage?: string;
 }
 
 export function FormStepLayout({
@@ -23,14 +26,31 @@ export function FormStepLayout({
   onNext,
   onPrevious,
   children,
-  stepValidities
+  stepValidities,
+  stepCompletionStatus,
+  encouragementMessage
 }: FormStepLayoutProps) {
   return (
     <div className="space-y-6">
-      <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+      <ProgressIndicator 
+        currentStep={currentStep} 
+        totalSteps={totalSteps} 
+        stepCompletionStatus={stepCompletionStatus}
+      />
       
       <div className="space-y-6">
         <AccuracyMeter stepValidities={stepValidities} totalSteps={totalSteps} />
+        
+        {encouragementMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-3 rounded shadow-sm"
+          >
+            <p className="text-sm font-medium">{encouragementMessage}</p>
+          </motion.div>
+        )}
         
         <Card className="overflow-hidden border-2 border-gray-200 shadow-lg transition-all duration-300">
           <div className="p-6">

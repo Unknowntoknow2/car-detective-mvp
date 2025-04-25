@@ -12,7 +12,14 @@ import { FormStepLayout } from './FormStepLayout';
 import { ValuationResult } from './ValuationResult';
 import { usePremiumValuationForm } from '@/hooks/usePremiumValuationForm';
 import { useFormAutosave } from '@/hooks/useFormAutosave';
+import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
+
+const fadeVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
+};
 
 export function PremiumValuationForm() {
   const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
@@ -32,35 +39,63 @@ export function PremiumValuationForm() {
     featureOptions
   } = usePremiumValuationForm();
   
-  // Initialize form data from localStorage
   const [initialLoad, setInitialLoad] = useState(true);
+  const [stepCompletionStatus, setStepCompletionStatus] = useState<Record<number, boolean>>({});
+  const { loadSavedData, clearSavedForm } = useFormAutosave(formData);
   
+  // Initialize form data from localStorage on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem('valuationForm');
-    if (savedData && initialLoad) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        if (parsedData && parsedData.identifierType) {
-          setFormData(parsedData);
-          toast.info("Restored your previous form data");
-        }
-      } catch (error) {
-        console.error('Error loading saved form data:', error);
-        localStorage.removeItem('valuationForm');
+    if (initialLoad) {
+      const savedFormData = loadSavedData();
+      if (savedFormData) {
+        setFormData(savedFormData);
       }
       setInitialLoad(false);
     }
-  }, [initialLoad, setFormData]);
+  }, [initialLoad, loadSavedData, setFormData]);
   
-  // Auto-save form data
-  const { clearSavedForm } = useFormAutosave(formData);
+  // Update step completion status based on step validities
+  useEffect(() => {
+    setStepCompletionStatus(prevStatus => ({
+      ...prevStatus,
+      [currentStep]: stepValidities[currentStep]
+    }));
+  }, [stepValidities, currentStep]);
   
   // Enhanced reset function
   const handleFullReset = () => {
     handleReset();
     clearSavedForm();
-    toast.success("Form has been reset");
   };
+
+  // Encouraging messages for each step
+  const getStepEncouragementMessage = () => {
+    switch (currentStep) {
+      case 1: return "Start by identifying your vehicle";
+      case 2: return "Great! Now let's gather some key details";
+      case 3: return "Almost halfway there! Every detail helps with accuracy";
+      case 4: return "You're making great progress! Let's assess condition now";
+      case 5: return "Just a couple more steps to go!";
+      case 6: return "Almost done! Let's finalize with features";
+      case 7: return "Perfect! Review your information and get your valuation";
+      default: return "";
+    }
+  };
+
+  // Wrap step content with animation
+  const renderStepWithAnimation = (stepContent: React.ReactNode) => (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={`step-${currentStep}`}
+        variants={fadeVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
+        {stepContent}
+      </motion.div>
+    </AnimatePresence>
+  );
 
   return (
     <FormStepLayout
@@ -70,66 +105,82 @@ export function PremiumValuationForm() {
       onNext={goToNextStep}
       onPrevious={goToPreviousStep}
       stepValidities={stepValidities}
+      stepCompletionStatus={stepCompletionStatus}
+      encouragementMessage={getStepEncouragementMessage()}
     >
-      <VehicleIdentificationStep 
-        step={1} 
-        formData={formData} 
-        setFormData={setFormData}
-        updateValidity={updateStepValidity}
-        lookupVehicle={lookupVehicle}
-        isLoading={isLoading}
-      />
-      
-      {formData.mileage === null && (
-        <MileageStep 
-          step={2} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      {formData.fuelType === null && (
-        <FuelTypeStep 
-          step={3} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      <FeatureSelectionStep 
-        step={4} 
-        formData={formData} 
-        setFormData={setFormData}
-        updateValidity={updateStepValidity}
-        featureOptions={featureOptions}
-      />
-      
-      <ConditionStep 
-        step={5} 
-        formData={formData} 
-        setFormData={setFormData}
-        updateValidity={updateStepValidity}
-      />
-      
-      <AccidentHistoryStep 
-        step={6} 
-        formData={formData} 
-        setFormData={setFormData}
-        updateValidity={updateStepValidity}
-      />
-      
-      <ReviewSubmitStep 
-        step={7} 
-        formData={formData}
-        featureOptions={featureOptions} 
-        handleSubmit={handleSubmit}
-        handleReset={handleFullReset}
-        isFormValid={isFormValid}
-      />
+      {renderStepWithAnimation(
+        <>
+          {currentStep === 1 && (
+            <VehicleIdentificationStep 
+              step={1} 
+              formData={formData} 
+              setFormData={setFormData}
+              updateValidity={updateStepValidity}
+              lookupVehicle={lookupVehicle}
+              isLoading={isLoading}
+            />
+          )}
+          
+          {currentStep === 2 && formData.mileage === null && (
+            <MileageStep 
+              step={2} 
+              formData={formData} 
+              setFormData={setFormData}
+              updateValidity={updateStepValidity}
+            />
+          )}
+          
+          {currentStep === 3 && formData.fuelType === null && (
+            <FuelTypeStep 
+              step={3} 
+              formData={formData} 
+              setFormData={setFormData}
+              updateValidity={updateStepValidity}
+            />
+          )}
+          
+          {currentStep === 4 && (
+            <FeatureSelectionStep 
+              step={4} 
+              formData={formData} 
+              setFormData={setFormData}
+              updateValidity={updateStepValidity}
+              featureOptions={featureOptions}
+            />
+          )}
+          
+          {currentStep === 5 && (
+            <ConditionStep 
+              step={5} 
+              formData={formData} 
+              setFormData={setFormData}
+              updateValidity={updateStepValidity}
+            />
+          )}
+          
+          {currentStep === 6 && (
+            <AccidentHistoryStep 
+              step={6} 
+              formData={formData} 
+              setFormData={setFormData}
+              updateValidity={updateStepValidity}
+            />
+          )}
+          
+          {currentStep === 7 && (
+            <ReviewSubmitStep 
+              step={7} 
+              formData={formData}
+              featureOptions={featureOptions} 
+              handleSubmit={handleSubmit}
+              handleReset={handleFullReset}
+              isFormValid={isFormValid}
+            />
+          )}
 
-      <ValuationResult valuationId={valuationId} />
+          {valuationId && <ValuationResult valuationId={valuationId} />}
+        </>
+      )}
     </FormStepLayout>
   );
 }
