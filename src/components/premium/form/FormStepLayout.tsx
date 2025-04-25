@@ -14,6 +14,7 @@ interface FormStepLayoutProps {
   children: ReactNode;
   stepValidities: Record<number, boolean>;
   stepCompletionStatus: Record<number, boolean>;
+  encouragementMessage?: string; // Added this prop as optional
 }
 
 export function FormStepLayout({
@@ -24,7 +25,8 @@ export function FormStepLayout({
   onPrevious,
   children,
   stepValidities,
-  stepCompletionStatus
+  stepCompletionStatus,
+  encouragementMessage
 }: FormStepLayoutProps) {
   return (
     <div className="space-y-6">
@@ -36,6 +38,10 @@ export function FormStepLayout({
       
       <Card className="overflow-hidden border-2 border-gray-200">
         <div className="p-6">
+          {encouragementMessage && (
+            <p className="mb-4 text-sm font-medium text-primary">{encouragementMessage}</p>
+          )}
+          
           <FormSteps currentStep={currentStep}>
             {children}
           </FormSteps>
