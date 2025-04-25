@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 interface MarketData {
   averages: { [source: string]: number };
@@ -16,6 +17,9 @@ interface MarketListing {
   valuation_id: string;
   created_at?: string;
   listing_date?: string;
+  make?: string;
+  model?: string;
+  year?: number;
 }
 
 export const useMarketListings = (zipCode: string, make: string, model: string, year: number) => {
@@ -32,7 +36,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
 
       try {
         // First check if we already have recent market data in our database
-        const { data: existingListings, error: fetchError } = await supabase
+        const { data: existingListings, error: fetchError }: PostgrestSingleResponse<MarketListing[]> = await supabase
           .from('market_listings')
           .select('*')
           .eq('make', make)
