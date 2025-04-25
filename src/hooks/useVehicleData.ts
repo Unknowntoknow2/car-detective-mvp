@@ -7,6 +7,7 @@ interface Make {
   make_name: string;
   logo_url: string | null;
   nhtsa_make_id?: number;
+  updated_at: string;
 }
 
 interface Model {
@@ -14,6 +15,7 @@ interface Model {
   model_name: string;
   make_id: string;
   nhtsa_model_id?: number;
+  updated_at: string;
 }
 
 export function useVehicleData() {
@@ -60,6 +62,10 @@ export function useVehicleData() {
     return models.filter(model => model.make_id === makeId);
   };
 
+  const getMakeById = (makeId: string) => {
+    return makes.find(make => make.id === makeId);
+  };
+
   const getCurrentYear = () => new Date().getFullYear();
   const getYearOptions = () => {
     const currentYear = getCurrentYear();
@@ -70,6 +76,7 @@ export function useVehicleData() {
     makes,
     models,
     getModelsByMake,
+    getMakeById,
     getYearOptions,
     isLoading,
     error,

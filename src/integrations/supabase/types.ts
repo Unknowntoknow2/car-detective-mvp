@@ -231,6 +231,7 @@ export type Database = {
           logo_url: string | null
           make_name: string
           nhtsa_make_id: number | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string
@@ -238,6 +239,7 @@ export type Database = {
           logo_url?: string | null
           make_name: string
           nhtsa_make_id?: number | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string
@@ -245,30 +247,7 @@ export type Database = {
           logo_url?: string | null
           make_name?: string
           nhtsa_make_id?: number | null
-        }
-        Relationships: []
-      }
-      makes_duplicate: {
-        Row: {
-          created_at: string
-          id: string
-          logo_url: string | null
-          make_name: string
-          nhtsa_make_id: number | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          make_name: string
-          nhtsa_make_id?: number | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          make_name?: string
-          nhtsa_make_id?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -317,6 +296,7 @@ export type Database = {
           make_id: string
           model_name: string
           nhtsa_model_id: number | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string
@@ -324,6 +304,7 @@ export type Database = {
           make_id: string
           model_name: string
           nhtsa_model_id?: number | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string
@@ -331,8 +312,16 @@ export type Database = {
           make_id?: string
           model_name?: string
           nhtsa_model_id?: number | null
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_models_make"
+            columns: ["make_id"]
+            isOneToOne: false
+            referencedRelation: "makes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "models_make_id_fkey"
             columns: ["make_id"]
