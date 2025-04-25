@@ -44,6 +44,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           .order('created_at', { ascending: false })
           .limit(10);
         
+        // Explicitly cast data to MarketListing[] type to avoid deep type inference
         const existingListings = data as MarketListing[] | null;
 
         if (!fetchError && existingListings && existingListings.length > 0) {
@@ -80,11 +81,13 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
         if (responseError) throw responseError;
         
         if (responseData) {
+          // Explicitly cast to MarketData to avoid deep type inference
           const typedData = responseData as MarketData;
           setMarketData(typedData);
           
           // Store the market listings in our database for future reference
           for (const [source, price] of Object.entries(typedData.averages)) {
+            // Insert each market listing individually
             await supabase.from('market_listings').insert({
               source,
               price: price as number,
@@ -93,7 +96,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
               model,
               year,
               valuation_id: crypto.randomUUID()
-            });
+            } as MarketListing);
           }
         }
       } catch (err) {
