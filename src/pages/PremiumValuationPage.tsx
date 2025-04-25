@@ -3,8 +3,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PremiumValuationForm } from '@/components/premium/form/PremiumValuationForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 export default function PremiumValuationPage() {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AnnouncementBar />
@@ -20,7 +25,17 @@ export default function PremiumValuationPage() {
             </p>
           </div>
           
-          <PremiumValuationForm />
+          {user ? (
+            <PremiumValuationForm />
+          ) : (
+            <div className="bg-white p-8 rounded-lg shadow-md text-center">
+              <h2 className="text-xl font-semibold mb-4">Authentication Required</h2>
+              <p className="mb-6">You need to be logged in to create a premium valuation.</p>
+              <Button asChild>
+                <Link to="/auth">Sign In / Register</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

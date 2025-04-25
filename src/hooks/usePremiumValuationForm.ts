@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type FeatureOption = {
   id: string;
@@ -27,6 +28,7 @@ export type FormData = {
 };
 
 export const usePremiumValuationForm = () => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [valuationId, setValuationId] = useState<string | undefined>(undefined);
   const [formData, setFormData] = useState<FormData>({
@@ -147,6 +149,11 @@ export const usePremiumValuationForm = () => {
   const handleSubmit = async () => {
     if (isFormValid) {
       try {
+        if (!user) {
+          toast("Please sign in to save your valuation");
+          return;
+        }
+
         const featureValueTotal = calculateFeatureValue(formData.features);
         const accidentCount = formData.hasAccident ? 1 : 0;
         const zipDemandFactor = 1.0;
@@ -172,7 +179,7 @@ export const usePremiumValuationForm = () => {
             is_vin_lookup: formData.identifierType === 'vin',
             vin: formData.identifierType === 'vin' ? formData.identifier : null,
             plate: formData.identifierType === 'plate' ? formData.identifier : null,
-            user_id: '00000000-0000-0000-0000-000000000000'
+            user_id: user.id
           })
           .select()
           .single();
