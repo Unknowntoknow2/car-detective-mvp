@@ -1,7 +1,8 @@
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Check } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { CheckCircle } from "lucide-react";
 
 interface Feature {
   id: string;
@@ -12,39 +13,51 @@ interface Feature {
 interface FeatureGridProps {
   features: string[];
   featureList: Feature[];
-  onFeatureToggle: (featureId: string) => void;
+  onFeatureToggle: (id: string) => void;
 }
 
 export function FeatureGrid({ features, featureList, onFeatureToggle }: FeatureGridProps) {
+  // Group features by category
+  const featureCategories = {
+    "Comfort": featureList.filter(f => ["heated", "vent"].includes(f.id)),
+    "Convenience": featureList.filter(f => ["power", "remote", "wireless"].includes(f.id)),
+    "Entertainment": featureList.filter(f => ["nav", "audio"].includes(f.id)),
+    "Interior": featureList.filter(f => ["leather", "sunroof"].includes(f.id)),
+    "Performance": featureList.filter(f => ["awd", "sport"].includes(f.id)),
+    "Safety": featureList.filter(f => ["camera", "cruise", "blind", "lane"].includes(f.id))
+  };
+  
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {featureList.map(feature => (
-        <Card
-          key={feature.id}
-          onClick={() => onFeatureToggle(feature.id)}
-          className={`
-            group relative overflow-hidden transition-all duration-300
-            hover:shadow-lg hover:scale-[1.02] cursor-pointer
-            ${features.includes(feature.id) ? 'border-primary/50 bg-primary/5' : 'border-border/50'}
-          `}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {features.includes(feature.id) && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
-                <span className="font-medium">{feature.name}</span>
-              </div>
-              <Badge 
-                variant={features.includes(feature.id) ? "default" : "outline"}
-                className="transition-colors"
+    <div className="space-y-6">
+      {Object.entries(featureCategories).map(([category, categoryFeatures]) => (
+        <div key={category} className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground">{category}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {categoryFeatures.map((feature) => (
+              <Card 
+                key={feature.id}
+                className={`p-3 cursor-pointer transition-all ${
+                  features.includes(feature.id) 
+                    ? 'bg-primary/10 border-primary/30' 
+                    : 'hover:bg-muted/50'
+                }`}
+                onClick={() => onFeatureToggle(feature.id)}
               >
-                +${feature.impact}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{feature.name}</p>
+                    <Badge variant="outline" className="mt-1 bg-background">
+                      +${feature.impact}
+                    </Badge>
+                  </div>
+                  {features.includes(feature.id) && (
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );

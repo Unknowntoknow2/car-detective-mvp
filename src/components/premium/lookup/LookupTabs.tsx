@@ -13,7 +13,7 @@ interface LookupTabsProps {
 
 export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProps) {
   return (
-    <Tabs value={lookup} onValueChange={onLookupChange}>
+    <Tabs value={lookup} onValueChange={(value: string) => onLookupChange(value as 'vin' | 'plate' | 'manual')}>
       <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-background border rounded-lg">
         <TabsTrigger 
           value="vin" 
@@ -39,11 +39,11 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
       </TabsList>
 
       <TabsContent value="vin" className="pt-6">
-        <VinLookup {...formProps} />
+        <VinLookup />
       </TabsContent>
 
       <TabsContent value="plate" className="pt-6">
-        <PlateLookup {...formProps} />
+        <PlateLookup />
       </TabsContent>
 
       <TabsContent value="manual" className="pt-6">

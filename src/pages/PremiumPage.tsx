@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/premium/HeroSection';
 import { FeaturesSection } from '@/components/premium/FeaturesSection';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
 import { ValuationForm } from '@/components/premium/ValuationForm';
+import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
 
 export default function PremiumPage() {
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -53,6 +54,7 @@ export default function PremiumPage() {
           cardRef={cardRef}
           cardRotation={cardRotation}
         />
+        <PremiumServicesGrid />
         <FeaturesSection featuresRef={featuresRef} />
         <ComparisonSection scrollToForm={scrollToForm} />
         <ValuationForm formRef={formRef} />
