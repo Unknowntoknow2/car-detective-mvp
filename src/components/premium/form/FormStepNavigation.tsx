@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface FormStepNavigationProps {
   currentStep: number;
@@ -18,28 +18,25 @@ export function FormStepNavigation({
   isStepValid
 }: FormStepNavigationProps) {
   return (
-    <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-      {currentStep > 1 ? (
-        <Button 
-          variant="outline" 
-          onClick={goToPreviousStep}
-          className="flex items-center gap-1 text-gray-700"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </Button>
-      ) : (
-        <div></div> // Empty div to maintain spacing
-      )}
-      
+    <div className="flex justify-between mt-6">
+      <Button
+        variant="outline"
+        onClick={goToPreviousStep}
+        disabled={currentStep === 1}
+        className="flex items-center gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Previous
+      </Button>
+
       {currentStep < totalSteps && (
-        <Button 
+        <Button
           onClick={goToNextStep}
           disabled={!isStepValid}
-          className="bg-navy-600 hover:bg-navy-700 text-white"
+          className="flex items-center gap-2"
         >
           Next
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <ArrowRight className="h-4 w-4" />
         </Button>
       )}
     </div>

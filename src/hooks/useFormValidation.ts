@@ -1,33 +1,22 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
-export const useFormValidation = (totalSteps: number) => {
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [stepValidities, setStepValidities] = useState({
-    1: false,
-    2: true,
-    3: true,
-    4: true,
-    5: true,
-    6: true,
-    7: true
-  });
-
-  const updateStepValidity = (step: number, isValid: boolean) => {
+export function useFormValidation(totalSteps: number) {
+  const [stepValidities, setStepValidities] = useState<Record<number, boolean>>({});
+  
+  const updateStepValidity = useCallback((step: number, isValid: boolean) => {
     setStepValidities(prev => ({
       ...prev,
       [step]: isValid
     }));
-  };
+  }, []);
 
-  useEffect(() => {
-    const allStepsValid = Object.values(stepValidities).every(valid => valid);
-    setIsFormValid(allStepsValid);
-  }, [stepValidities]);
+  const isFormValid = Object.values(stepValidities).length === totalSteps && 
+    Object.values(stepValidities).every(Boolean);
 
   return {
-    isFormValid,
     stepValidities,
-    updateStepValidity
+    updateStepValidity,
+    isFormValid
   };
-};
+}

@@ -1,20 +1,31 @@
 
-import React from 'react';
+import { ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const variants = {
+  enter: { opacity: 0, x: 20 },
+  center: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 },
+};
 
 interface FormStepsProps {
   currentStep: number;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function FormSteps({ currentStep, children }: FormStepsProps) {
-  // Filter children to only show the current step
-  const childrenArray = React.Children.toArray(children);
-  const currentChild = childrenArray.find((child) => {
-    if (React.isValidElement(child) && typeof child.props.step === 'number') {
-      return child.props.step === currentStep;
-    }
-    return false;
-  });
-
-  return <div className="space-y-6">{currentChild}</div>;
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={currentStep}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        variants={variants}
+        transition={{ duration: 0.3 }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
 }
