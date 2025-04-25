@@ -32,7 +32,18 @@ export const VehicleInfoCard = ({
   carfaxData 
 }: VehicleInfoCardProps) => {
   const basePrice = 24500;
-  const forecastData = generateValuationForecast(basePrice);
+  
+  const forecastData = generateValuationForecast(basePrice, 
+    vehicleInfo.bodyType || 'sedan', 
+    {
+      vehicleAge: new Date().getFullYear() - vehicleInfo.year,
+      mileage: 76000,
+      marketDemand: carfaxData ? (carfaxData.accidentsReported > 0 ? 4 : 7) : 6,
+      seasonality: true,
+      baseDepreciation: vehicleInfo.make?.toLowerCase().includes('luxury') ? 0.9 : 0.7
+    }
+  );
+  
   const { saveValuation, isSaving } = useSaveValuation();
 
   const handleSaveValuation = () => {
@@ -92,7 +103,7 @@ export const VehicleInfoCard = ({
         
         <VehicleHistory 
           vin={vehicleInfo.vin} 
-          valuationId={vehicleInfo.vin} // Use VIN as a fallback identifier
+          valuationId={vehicleInfo.vin}
         />
         
         <div className="mt-8 pt-6 border-t border-border/60">
@@ -131,6 +142,7 @@ export const VehicleInfoCard = ({
           <ForecastChart 
             data={forecastData.forecast} 
             basePrice={basePrice}
+            valueTrend={forecastData.valueTrend}
           />
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="p-4 bg-primary/5 rounded-lg">
@@ -139,7 +151,9 @@ export const VehicleInfoCard = ({
             </div>
             <div className="p-4 bg-primary/5 rounded-lg">
               <p className="font-medium">12-Month Change</p>
-              <p className="text-lg">{forecastData.percentageChange.toFixed(1)}%</p>
+              <p className={`text-lg ${forecastData.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {forecastData.percentageChange.toFixed(1)}%
+              </p>
             </div>
             <div className="p-4 bg-primary/5 rounded-lg">
               <p className="font-medium">Value Range</p>

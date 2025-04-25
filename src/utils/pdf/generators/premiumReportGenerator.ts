@@ -65,6 +65,26 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
     y -= 20;
   });
   y -= 15;
+  
+  // Add 12-Month Forecast section
+  if (input.forecast) {
+    page.drawText('12-Month Value Forecast', { x: 50, y, size: 16, font: boldFont, color: primaryColor });
+    y -= 25;
+    
+    const forecastInfo = [
+      `Projected Value (12 months): $${input.forecast.estimatedValueAt12Months.toLocaleString()}`,
+      `Projected Change: ${input.forecast.percentageChange >= 0 ? '+' : ''}${input.forecast.percentageChange.toFixed(1)}%`,
+      `Best Time to Sell: ${input.forecast.bestTimeToSell}`,
+      `Market Trend: ${input.forecast.valueTrend === 'increasing' ? 'Appreciating' : 
+                          input.forecast.valueTrend === 'decreasing' ? 'Depreciating' : 'Stable'}`
+    ];
+    
+    forecastInfo.forEach(info => {
+      page.drawText(info, { x: 50, y, size: 12, font });
+      y -= 20;
+    });
+    y -= 15;
+  }
 
   // Add footer
   const footerY = 60;

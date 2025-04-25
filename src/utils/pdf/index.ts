@@ -1,12 +1,33 @@
 
 import { convertVehicleInfoToReportData } from './dataConverter';
 import { generateValuationPdf, generatePremiumReport } from './pdfGeneratorService';
-import type { ReportData, ValuationReportOptions, PremiumReportInput } from './types';
+import type { ReportData, ValuationReportOptions, PremiumReportInput, ForecastData } from './types';
+import { generateValuationForecast } from '../forecasting/valuation-forecast';
 
 export async function downloadPdf(vehicleInfo: any, additionalData?: ValuationReportOptions) {
   const reportData = 'mileage' in vehicleInfo && 'estimatedValue' in vehicleInfo
     ? vehicleInfo as ReportData
     : convertVehicleInfoToReportData(vehicleInfo as any, additionalData as any);
+  
+  // Generate forecast data if not already provided
+  let forecastData: ForecastData | undefined = additionalData?.forecast;
+  if (!forecastData && reportData.estimatedValue) {
+    const forecast = generateValuationForecast(
+      reportData.estimatedValue,
+      reportData.bodyType || 'sedan',
+      {
+        vehicleAge: new Date().getFullYear() - (reportData.year || 2020),
+        mileage: reportData.mileage || 50000,
+      }
+    );
+    
+    forecastData = {
+      estimatedValueAt12Months: forecast.forecast[11].value,
+      percentageChange: forecast.percentageChange,
+      bestTimeToSell: forecast.bestTimeToSell,
+      valueTrend: forecast.valueTrend
+    };
+  }
 
   const pdfBytes = reportData.isPremium 
     ? await generatePremiumReport({
@@ -21,7 +42,8 @@ export async function downloadPdf(vehicleInfo: any, additionalData?: ValuationRe
           confidenceScore: reportData.confidenceScore || 0,
           adjustments: reportData.adjustments || []
         },
-        carfaxData: reportData.carfaxData
+        carfaxData: reportData.carfaxData,
+        forecast: forecastData
       })
     : await generateValuationPdf(reportData);
   
@@ -33,4 +55,4 @@ export async function downloadPdf(vehicleInfo: any, additionalData?: ValuationRe
 }
 
 export { convertVehicleInfoToReportData };
-export type { ReportData, ValuationReportOptions, PremiumReportInput };
+export type { ReportData, ValuationReportOptions, PremiumReportInput, ForecastData };
