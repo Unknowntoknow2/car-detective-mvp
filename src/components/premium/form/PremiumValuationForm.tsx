@@ -58,7 +58,7 @@ const featureOptions: FeatureOption[] = [
 export function PremiumValuationForm() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-  const [valuationId, setValuationId] = useState<string | null>(null);
+  const [valuationId, setValuationId] = useState<string | undefined>(undefined);
   const [formData, setFormData] = useState<FormData>({
     identifierType: 'vin',
     identifier: '',
@@ -183,7 +183,7 @@ export function PremiumValuationForm() {
       6: true,
       7: true
     });
-    setValuationId(null);
+    setValuationId(undefined);
   };
 
   const calculateFeatureValue = (selectedFeatures: string[]): number => {
@@ -221,7 +221,11 @@ export function PremiumValuationForm() {
             auction_avg_price: auctionAvgPrice,
             feature_value_total: featureValueTotal,
             base_price: basePrice,
-            zip_code: formData.zipCode || '00000'
+            state: formData.zipCode ? formData.zipCode.substring(0, 2) : null,
+            is_vin_lookup: formData.identifierType === 'vin',
+            vin: formData.identifierType === 'vin' ? formData.identifier : null,
+            plate: formData.identifierType === 'plate' ? formData.identifier : null,
+            user_id: '00000000-0000-0000-0000-000000000000' // Placeholder user ID
           })
           .select()
           .single();

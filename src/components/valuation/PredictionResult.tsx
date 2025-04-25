@@ -17,7 +17,7 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     if (valuationId) {
       getPrediction();
     }
-  }, [valuationId]);
+  }, [valuationId, getPrediction]);
 
   if (!valuationId) {
     return (

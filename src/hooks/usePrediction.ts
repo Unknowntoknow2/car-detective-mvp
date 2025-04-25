@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -8,7 +8,7 @@ export function usePrediction(valuationId: string | undefined) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getPrediction = async () => {
+  const getPrediction = useCallback(async () => {
     if (!valuationId) return;
     
     setIsLoading(true);
@@ -32,7 +32,7 @@ export function usePrediction(valuationId: string | undefined) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [valuationId]);
 
   return {
     price,
