@@ -1,0 +1,18 @@
+
+{
+  "home": {
+    "headline": "Know Your Car's True Value – No More Guesswork!",
+    "ctaFree": "Free Valuation",
+    "ctaPremium": "Premium Valuation ($29.99)",
+    "subheadline": "Experience precise, data‑driven valuations powered by real‑time market data"
+  },
+  "nav": {
+    "home": "Home",
+    "lookup": "Lookup",
+    "premium": "Premium",
+    "profile": "Profile"
+  },
+  "announcements": {
+    "premium": "New! Dealer-beat Offers & Marketplace Price Averages now live in Premium Valuation."
+  }
+}

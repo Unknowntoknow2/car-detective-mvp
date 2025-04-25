@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,9 @@ import ProfilePage from "./pages/ProfilePage";
 import DealerOffersPage from "./pages/dealer/DealerOffersPage";
 import PremiumPage from "./pages/PremiumPage";
 import FreeValuationPage from "./pages/FreeValuationPage";
+
+// Import i18n config
+import './i18n/config';
 
 const queryClient = new QueryClient();
 

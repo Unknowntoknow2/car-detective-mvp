@@ -1,0 +1,18 @@
+
+{
+  "home": {
+    "headline": "Conoce el Verdadero Valor de tu Auto – ¡Sin Conjeturas!",
+    "ctaFree": "Valuación Gratuita",
+    "ctaPremium": "Valuación Premium ($29.99)",
+    "subheadline": "Experimenta valuaciones precisas impulsadas por datos del mercado en tiempo real"
+  },
+  "nav": {
+    "home": "Inicio",
+    "lookup": "Búsqueda",
+    "premium": "Premium",
+    "profile": "Perfil"
+  },
+  "announcements": {
+    "premium": "¡Nuevo! Ofertas superiores a concesionarios y promedios de precios del mercado ahora disponibles en Valuación Premium."
+  }
+}
