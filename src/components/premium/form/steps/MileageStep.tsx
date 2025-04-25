@@ -6,13 +6,15 @@ import { Label } from '@/components/ui/label';
 import { FormData } from '@/types/premium-valuation';
 
 interface MileageStepProps {
-  state: FormData;
-  dispatch: React.Dispatch<any>;
+  step: number;
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  updateValidity: (step: number, isValid: boolean) => void;
 }
 
-export default function MileageStep({ state, dispatch }: MileageStepProps) {
+export default function MileageStep({ step, formData, setFormData, updateValidity }: MileageStepProps) {
   const [inputValue, setInputValue] = useState<string>(
-    state.mileage ? state.mileage.toString() : ''
+    formData.mileage ? formData.mileage.toString() : ''
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -37,22 +39,32 @@ export default function MileageStep({ state, dispatch }: MileageStepProps) {
       setInputValue(value);
       
       if (value === '') {
-        dispatch({ type: 'SET_MILEAGE', payload: null });
+        setFormData(prev => ({ ...prev, mileage: null }));
         setError('');
+        updateValidity(step, false);
       } else {
         const mileage = parseInt(value, 10);
         
         if (mileage < 0) {
           setError('Mileage cannot be negative');
+          updateValidity(step, false);
         } else if (mileage > 999999) {
           setError('Mileage seems too high');
+          updateValidity(step, false);
         } else {
-          dispatch({ type: 'SET_MILEAGE', payload: mileage });
+          setFormData(prev => ({ ...prev, mileage }));
           setError('');
+          updateValidity(step, true);
         }
       }
     }
   };
+
+  // Set initial validity state on mount
+  useEffect(() => {
+    const isValid = formData.mileage !== null && formData.mileage >= 0 && formData.mileage <= 999999;
+    updateValidity(step, isValid);
+  }, []);
 
   return (
     <div className="space-y-6">
