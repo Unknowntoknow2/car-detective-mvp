@@ -13,7 +13,8 @@ export function convertVehicleInfoToReportData(
     confidenceScore: 0,
     condition: "Not Specified",
     fuelType: "Not Specified",
-    zipCode: "Not Available"
+    zipCode: "Not Available",
+    adjustments: []
   };
 
   const mergedData = { ...defaultData, ...valuationData };

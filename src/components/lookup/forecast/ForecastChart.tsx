@@ -30,7 +30,17 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await generateValuationForecast(valuationId);
+        const response = await fetch('/api/valuation-forecast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ valuationId })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch forecast data');
+        }
+        
+        const data = await response.json();
         setForecastData(data);
       } catch (err) {
         setError('Failed to load forecast data');

@@ -51,7 +51,8 @@ export const DealerValuationsList = () => {
           fuelType: valuation.fuel_type,
           zipCode: valuation.zip_code,
           carfaxData,
-          isPremium: includePremium
+          isPremium: includePremium,
+          adjustments: [] // Add the required adjustments property
         }
       );
       

@@ -11,27 +11,31 @@ export async function downloadPdf(vehicleInfo: any, additionalData?: ValuationRe
   
   // Generate forecast data if not already provided
   let forecastData: ForecastData | undefined = additionalData?.forecast;
-  if (!forecastData && reportData.estimatedValue) {
-    const forecast = generateValuationForecast(
-      reportData.estimatedValue,
-      reportData.bodyType || 'sedan',
-      {
-        vehicleAge: new Date().getFullYear() - (reportData.year || 2020),
-        mileage: reportData.mileage || 50000,
-      }
-    );
-    
-    forecastData = {
-      estimatedValueAt12Months: forecast.forecast[11].value,
-      percentageChange: forecast.percentageChange,
-      bestTimeToSell: forecast.bestTimeToSell,
-      valueTrend: forecast.valueTrend
-    };
+  if (!forecastData && reportData.estimatedValue && reportData.vin) {
+    try {
+      const forecast = await generateValuationForecast(reportData.vin);
+      
+      forecastData = {
+        estimatedValueAt12Months: forecast.forecast[11].value,
+        percentageChange: forecast.percentageChange,
+        bestTimeToSell: forecast.bestTimeToSell,
+        valueTrend: forecast.valueTrend
+      };
+    } catch (error) {
+      console.error("Failed to generate forecast for PDF:", error);
+    }
   }
 
   const pdfBytes = reportData.isPremium 
     ? await generatePremiumReport({
-        vehicleInfo: reportData,
+        vehicleInfo: {
+          vin: reportData.vin,
+          year: typeof reportData.year === 'string' ? parseInt(reportData.year, 10) : reportData.year,
+          make: reportData.make,
+          model: reportData.model,
+          mileage: typeof reportData.mileage === 'string' ? parseInt(reportData.mileage, 10) : reportData.mileage,
+          zipCode: reportData.zipCode
+        },
         valuation: {
           basePrice: reportData.estimatedValue,
           estimatedValue: reportData.estimatedValue,

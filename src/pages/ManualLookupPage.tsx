@@ -67,7 +67,8 @@ const ManualLookupPage = () => {
         fuelType: vehicleInfo.fuelType,
         condition: vehicleInfo.condition,
         zipCode: vehicleInfo.zipCode,
-        confidenceScore: vehicleInfo.confidenceScore
+        confidenceScore: vehicleInfo.confidenceScore,
+        adjustments: []
       });
       
       await downloadPdf(reportData);
