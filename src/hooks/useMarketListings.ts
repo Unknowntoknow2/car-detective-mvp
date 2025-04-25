@@ -35,7 +35,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
 
       try {
         // First check if we already have recent market data in our database
-        const { data: existingListings, error: fetchError } = await supabase
+        const result = await supabase
           .from('market_listings')
           .select('*')
           .eq('make', make)
@@ -43,6 +43,9 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           .eq('year', year)
           .order('created_at', { ascending: false })
           .limit(10);
+          
+        const fetchError = result.error;
+        const existingListings = result.data as MarketListing[] | null;
 
         if (!fetchError && existingListings && existingListings.length > 0) {
           // Process existing listings into the format we need
@@ -71,20 +74,20 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
         }
 
         // If no existing recent data, fetch from the edge function
-        const { data, error } = await supabase.functions.invoke('fetch-market-listings', {
+        const response = await supabase.functions.invoke('fetch-market-listings', {
           body: { zipCode, make, model, year }
         });
 
-        if (error) throw error;
+        if (response.error) throw response.error;
         
-        if (data) {
-          setMarketData(data as MarketData);
+        if (response.data) {
+          setMarketData(response.data as MarketData);
           
           // Store the market listings in our database for future reference
-          const marketEntries = Object.entries(data.averages).map(([source, price]) => ({
+          const marketEntries = Object.entries(response.data.averages).map(([source, price]) => ({
             source,
             price: price as number,
-            url: data.sources[source],
+            url: response.data.sources[source],
             make,
             model,
             year,
