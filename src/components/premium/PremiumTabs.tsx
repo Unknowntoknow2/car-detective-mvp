@@ -4,16 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VinDecoderForm } from "../lookup/VinDecoderForm";
 import { Link } from "react-router-dom";
+import { Check } from "lucide-react";
 
 export function PremiumTabs() {
   return (
     <Tabs defaultValue="basic" className="max-w-4xl mx-auto">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="basic">Free Valuation</TabsTrigger>
-        <TabsTrigger value="premium">Premium Report</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+        <TabsTrigger 
+          value="basic" 
+          className="py-3 px-4 rounded-md data-[state=active]:shadow-sm"
+        >
+          Free Valuation
+        </TabsTrigger>
+        <TabsTrigger 
+          value="premium" 
+          className="py-3 px-4 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+        >
+          Premium Report
+        </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="basic">
+      <TabsContent value="basic" className="mt-6">
         <Card>
           <CardHeader>
             <CardTitle>Free Valuation</CardTitle>
@@ -25,39 +36,41 @@ export function PremiumTabs() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="premium">
+      <TabsContent value="premium" className="mt-6">
         <Card className="border-2 border-primary">
           <CardHeader className="bg-primary/5">
-            <CardTitle className="flex items-center justify-between">
-              Premium Valuation
-              <span className="text-lg">$29.99</span>
-            </CardTitle>
-            <CardDescription>Complete vehicle history and premium insights</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Premium Valuation</CardTitle>
+                <CardDescription className="mt-1">Complete vehicle history and premium insights</CardDescription>
+              </div>
+              <div className="text-lg font-bold">$29.99</div>
+            </div>
           </CardHeader>
           <CardContent className="pt-6">
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Full CARFAX® History Report
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span>Full CARFAX® History Report</span>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Verified Dealer Offers
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span>Verified Dealer Offers</span>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                12-Month Resale Trend Forecast
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span>12-Month Resale Trend Forecast</span>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Detailed Confidence Score
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span>Detailed Confidence Score</span>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="text-primary">✓</span>
-                Professional PDF Report
+              <li className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span>Professional PDF Report</span>
               </li>
             </ul>
-            <Button className="w-full" size="lg" asChild>
+            <Button className="w-full mt-4" size="lg" asChild>
               <Link to="/premium">Get Premium Report</Link>
             </Button>
           </CardContent>

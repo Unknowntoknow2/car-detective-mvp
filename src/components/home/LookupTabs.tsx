@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { ConditionSliderWithTooltip } from '../valuation/ConditionSliderWithTool
 import { ManualEntryForm } from '../lookup/ManualEntryForm';
 import { PlateDecoderForm } from '../lookup/PlateDecoderForm';
 import { useState } from "react";
-import { CarFront, Search, FileText } from "lucide-react";
+import { CarFront, Search, FileText, Check } from "lucide-react";
 
 export function LookupTabs() {
   const [conditionValue, setConditionValue] = useState(75);
@@ -22,7 +21,7 @@ export function LookupTabs() {
       <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
         <TabsTrigger 
           value="vin" 
-          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <CarFront className="w-5 h-5" />
@@ -32,7 +31,7 @@ export function LookupTabs() {
         
         <TabsTrigger 
           value="plate" 
-          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <Search className="w-5 h-5" />
@@ -42,7 +41,7 @@ export function LookupTabs() {
         
         <TabsTrigger 
           value="manual" 
-          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+          className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <FileText className="w-5 h-5" />
@@ -51,7 +50,7 @@ export function LookupTabs() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="vin">
+      <TabsContent value="vin" className="mt-6 z-0">
         <Card className="border-2 border-primary/20">
           <CardHeader>
             <CardTitle>VIN Lookup</CardTitle>
@@ -63,7 +62,7 @@ export function LookupTabs() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="plate">
+      <TabsContent value="plate" className="mt-6 z-0">
         <Card className="border-2 border-primary/20">
           <CardHeader>
             <CardTitle>License Plate Lookup</CardTitle>
@@ -75,7 +74,7 @@ export function LookupTabs() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="manual">
+      <TabsContent value="manual" className="mt-6 z-0">
         <Card className="border-2 border-primary/20">
           <CardHeader>
             <CardTitle>Manual Entry</CardTitle>
@@ -125,21 +124,21 @@ export function LookupTabs() {
               <div className="space-y-4">
                 <h4 className="font-medium text-primary">Premium Features</h4>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Full CARFAX® Vehicle History
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <span>Full CARFAX® Vehicle History</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Accident Damage Assessment
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <span>Accident Damage Assessment</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    Service Record Verification
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <span>Service Record Verification</span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-primary">✓</span>
-                    12-Month Value Forecast
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                    <span>12-Month Value Forecast</span>
                   </li>
                 </ul>
               </div>

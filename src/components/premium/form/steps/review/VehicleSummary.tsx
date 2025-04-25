@@ -21,13 +21,13 @@ export function VehicleSummary({ formData }: VehicleSummaryProps) {
   ].filter(Boolean);
 
   return (
-    <Card className="border-gray-200">
+    <Card className="border-gray-200 shadow-sm">
       <CardContent className="p-6">
         <div className="grid gap-4">
           {getSummaryFields().map((field, index) => (
-            <div key={index} className="flex justify-between items-start py-2 border-b border-gray-100 last:border-0">
-              <span className="text-gray-600">{field.label}:</span>
-              <span className="text-right font-medium">{field.value}</span>
+            <div key={index} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
+              <span className="text-gray-600 font-medium">{field.label}:</span>
+              <span className="text-right font-medium text-gray-800">{field.value}</span>
             </div>
           ))}
         </div>

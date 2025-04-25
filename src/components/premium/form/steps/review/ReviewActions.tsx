@@ -15,7 +15,7 @@ export function ReviewActions({ isFormValid, handleSubmit, handleReset }: Review
       <Button
         onClick={handleSubmit}
         disabled={!isFormValid}
-        className="bg-navy-600 hover:bg-navy-700 text-white flex-1 transition-all duration-300"
+        className="bg-primary hover:bg-primary-hover text-white flex-1 transition-all duration-300"
       >
         <CheckCircle className="mr-2 h-4 w-4" />
         Get Premium Valuation
@@ -24,7 +24,7 @@ export function ReviewActions({ isFormValid, handleSubmit, handleReset }: Review
       <Button
         onClick={handleReset}
         variant="outline"
-        className="text-gray-700 transition-all duration-300"
+        className="text-gray-700 hover:bg-gray-100 transition-all duration-300"
       >
         <RefreshCcw className="mr-2 h-4 w-4" />
         Start Over

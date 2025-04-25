@@ -30,47 +30,49 @@ export function ComparisonSection({ scrollToForm }: ComparisonSectionProps) {
           <h2 className="text-3xl md:text-4xl font-display font-bold">
             Free vs Premium Comparison
           </h2>
-          <p className="text-text-secondary max-w-2xl mx-auto">
+          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
             See how our Premium service provides the most comprehensive valuation data available 
             anywhere—combining CARFAX®, dealer offers, and advanced AI.
           </p>
         </div>
         
         <Card className="border-2 border-border shadow-lg rounded-xl overflow-hidden">
+          <CardHeader className="bg-background p-0">
+            <div className="grid grid-cols-3 w-full">
+              <div className="p-6 text-left font-medium text-lg border-b border-r">
+                Features
+              </div>
+              <div className="p-6 text-center font-medium border-b border-r">
+                <div className="flex flex-col items-center">
+                  <span>Free</span>
+                  <span className="text-sm font-normal text-text-secondary">$0</span>
+                </div>
+              </div>
+              <div className="p-6 text-center font-medium bg-primary/5 border-b">
+                <div className="flex flex-col items-center">
+                  <span>Premium</span>
+                  <span className="text-sm font-normal text-primary">$29.99</span>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="text-left p-6 font-medium text-lg w-1/2">Features</th>
-                    <th className="p-6 font-medium text-lg text-center w-1/4">
-                      <div className="flex flex-col items-center">
-                        <span>Free</span>
-                        <span className="text-sm font-normal text-text-secondary">$0</span>
-                      </div>
-                    </th>
-                    <th className="p-6 font-medium text-lg text-center w-1/4 bg-primary/5">
-                      <div className="flex flex-col items-center">
-                        <span>Premium</span>
-                        <span className="text-sm font-normal text-primary">$29.99</span>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
                 <tbody>
                   {features.map((feature, index) => (
                     <tr key={index} className={`border-b last:border-0 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/10'}`}>
-                      <td className="p-4 px-6 font-medium">{feature.name}</td>
-                      <td className="p-4 text-center">
+                      <td className="p-4 px-6 font-medium w-1/2">{feature.name}</td>
+                      <td className="p-4 text-center w-1/4">
                         {typeof feature.free === 'boolean' ? (
                           feature.free ? 
                             <Check className="h-5 w-5 text-success mx-auto" /> : 
                             <X className="h-5 w-5 text-muted-foreground mx-auto" />
                         ) : (
-                          <span className="text-sm">{feature.free}</span>
+                          <span className="text-sm font-medium">{feature.free}</span>
                         )}
                       </td>
-                      <td className="p-4 text-center bg-primary/5">
+                      <td className="p-4 text-center w-1/4 bg-primary/5">
                         {typeof feature.premium === 'boolean' ? (
                           feature.premium ? 
                             <Check className="h-5 w-5 text-success mx-auto" /> : 
@@ -90,8 +92,8 @@ export function ComparisonSection({ scrollToForm }: ComparisonSectionProps) {
         <div className="mt-10 flex flex-col items-center">
           <Button 
             onClick={scrollToForm} 
-            className="button-3d gap-2"
             size="lg"
+            className="bg-primary hover:bg-primary-hover text-white px-8 py-6 h-auto text-base font-medium gap-2 rounded-md shadow-md transition-all duration-300"
           >
             Get Premium Valuation Now
             <ChevronRight className="h-4 w-4" />

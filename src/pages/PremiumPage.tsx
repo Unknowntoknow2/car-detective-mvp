@@ -1,4 +1,3 @@
-
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useRef, useState } from 'react';
@@ -20,7 +19,6 @@ export default function PremiumPage() {
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // State for vehicle data - this would be populated from form submission
   const [vehicleData, setVehicleData] = useState({
     vin: "1HGCM82633A004352", // Example VIN
     make: "Honda",
@@ -37,7 +35,6 @@ export default function PremiumPage() {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  // Handle 3D card effect
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current) return;
     
@@ -73,15 +70,30 @@ export default function PremiumPage() {
         <ComparisonSection scrollToForm={scrollToForm} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Tabs defaultValue="valuation" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="valuation">Valuation</TabsTrigger>
-              <TabsTrigger value="history">Vehicle History</TabsTrigger>
-              <TabsTrigger value="market">Market Offers</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger 
+                value="valuation" 
+                className="py-3 text-base font-medium rounded-t-lg data-[state=active]:bg-primary data-[state=active]:text-white z-10"
+              >
+                Valuation
+              </TabsTrigger>
+              <TabsTrigger 
+                value="history" 
+                className="py-3 text-base font-medium rounded-t-lg data-[state=active]:bg-primary data-[state=active]:text-white z-10"
+              >
+                Vehicle History
+              </TabsTrigger>
+              <TabsTrigger 
+                value="market" 
+                className="py-3 text-base font-medium rounded-t-lg data-[state=active]:bg-primary data-[state=active]:text-white z-10"
+              >
+                Market Offers
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="valuation">
+            <TabsContent value="valuation" className="mt-6 z-0">
               <ValuationForm formRef={formRef} />
             </TabsContent>
-            <TabsContent value="history">
+            <TabsContent value="history" className="mt-6 z-0">
               <VehicleHistoryTab 
                 vin={vehicleData.vin}
                 valuationId={vehicleData.vin}
@@ -98,7 +110,7 @@ export default function PremiumPage() {
                 }} 
               />
             </TabsContent>
-            <TabsContent value="market">
+            <TabsContent value="market" className="mt-6 z-0">
               <MarketOffersTab 
                 zipCode={vehicleData.zipCode}
                 make={vehicleData.make}
