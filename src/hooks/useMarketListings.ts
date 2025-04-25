@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 interface MarketData {
   averages: { [source: string]: number };
@@ -36,7 +35,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
 
       try {
         // First check if we already have recent market data in our database
-        const { data: existingListings, error: fetchError }: PostgrestSingleResponse<MarketListing[]> = await supabase
+        const { data: existingListings, error: fetchError } = await supabase
           .from('market_listings')
           .select('*')
           .eq('make', make)
@@ -93,14 +92,18 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           }));
           
           if (marketEntries.length > 0) {
-            const formattedEntries: MarketListing[] = marketEntries.map(entry => ({
-              source: entry.source,
-              price: entry.price,
-              url: entry.url,
-              valuation_id: entry.valuation_id
-            }));
-            
-            await supabase.from('market_listings').insert(formattedEntries);
+            // Insert each entry individually to avoid type issues
+            for (const entry of marketEntries) {
+              await supabase.from('market_listings').insert({
+                source: entry.source,
+                price: entry.price,
+                url: entry.url,
+                make: entry.make,
+                model: entry.model,
+                year: entry.year,
+                valuation_id: entry.valuation_id
+              });
+            }
           }
         }
       } catch (err) {
