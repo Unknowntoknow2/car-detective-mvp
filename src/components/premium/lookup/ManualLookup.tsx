@@ -13,6 +13,14 @@ export function ManualLookup({
   mileage, setMileage, fuel, setFuel, zip, setZip,
   condition, setCondition, accident, setAccident 
 }: any) {
+  
+  // Handle accident change with proper type checking
+  const handleAccidentChange = (value: string) => {
+    if (value === 'no' || value === 'yes') {
+      setAccident(value);
+    }
+  };
+
   return (
     <Card className="p-6 border border-border/50">
       <div className="flex items-center gap-2 mb-4">
@@ -159,7 +167,7 @@ export function ManualLookup({
           </div>
           <div>
             <Label>Accident History</Label>
-            <RadioGroup onValueChange={setAccident} value={accident} className="flex space-x-4 mt-2">
+            <RadioGroup onValueChange={handleAccidentChange} value={accident} className="flex space-x-4 mt-2">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="no" id="acc-no" />
                 <Label htmlFor="acc-no" className="font-normal">No</Label>

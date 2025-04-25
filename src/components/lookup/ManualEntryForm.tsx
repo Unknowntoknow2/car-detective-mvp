@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
@@ -38,7 +37,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [fuelType, setFuelType] = useState<string>('');
   const [condition, setCondition] = useState<string>('good');
   const [conditionValue, setConditionValue] = useState(75);
-  const [accident, setAccident] = useState<string>('no');
+  const [accident, setAccident] = useState<'no' | 'yes'>('no');
   const [accidentDetails, setAccidentDetails] = useState({
     count: '',
     severity: '',
@@ -103,6 +102,12 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     return 'excellent';
   };
 
+  const handleAccidentChange = (value: string) => {
+    if (value === 'no' || value === 'yes') {
+      setAccident(value);
+    }
+  };
+
   if (dataLoadError) {
     return (
       <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -150,7 +155,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       {isPremium && (
         <PremiumFields
           accident={accident}
-          setAccident={setAccident}
+          setAccident={handleAccidentChange}
           accidentDetails={accidentDetails}
           setAccidentDetails={setAccidentDetails}
           isDisabled={isFormLoading}
