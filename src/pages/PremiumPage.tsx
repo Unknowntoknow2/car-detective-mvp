@@ -16,6 +16,8 @@ export default function PremiumPage() {
       <AnnouncementBar />
       <Navbar />
       <main>
+        <PremiumHero />
+        
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <CarfaxBadge />
