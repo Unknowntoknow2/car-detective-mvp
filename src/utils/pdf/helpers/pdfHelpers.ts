@@ -24,7 +24,7 @@ export function drawTextPair(
     y: yPosition,
     size: 12,
     font: font,
-    color: labelColor || { r: 0.4, g: 0.4, b: 0.4 }
+    color: labelColor || { red: 0.4, green: 0.4, blue: 0.4 }
   });
 
   page.drawText(value, {
@@ -32,6 +32,6 @@ export function drawTextPair(
     y: yPosition,
     size: 14,
     font: boldFont,
-    color: valueColor || { r: 0, g: 0, b: 0 }
+    color: valueColor || { red: 0, green: 0, blue: 0 }
   });
 }
