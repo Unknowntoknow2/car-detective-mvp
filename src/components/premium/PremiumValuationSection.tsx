@@ -4,6 +4,7 @@ import { SectionHeader } from '@/components/ui/design-system';
 import { PremiumInfoCards } from './features/PremiumInfoCards';
 import { PremiumValuationForm } from './form/PremiumValuationForm';
 
+// Change from named export to default export
 export default function PremiumValuationSection() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

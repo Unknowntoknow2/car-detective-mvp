@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/premium/HeroSection';
 import { FeaturesSection } from '@/components/premium/FeaturesSection';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
-import { PremiumValuationSection } from '@/components/premium/PremiumValuationSection';
+import PremiumValuationSection from '@/components/premium/PremiumValuationSection';
 import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BadgeCheck, ArrowRight } from "lucide-react";
