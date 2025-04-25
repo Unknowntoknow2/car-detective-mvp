@@ -12,6 +12,8 @@ export function useVehicleLookup() {
     setVehicle(null);
     
     try {
+      console.log(`Looking up ${identifierType}: ${identifier}`);
+      
       const { data, error } = await supabase.functions.invoke('unified-decode', {
         body: { 
           type: identifierType,
@@ -20,14 +22,25 @@ export function useVehicleLookup() {
         }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) {
+        console.error('Lookup error:', error);
+        throw error;
+      }
+      
+      if (data.error) {
+        console.error('Decode error:', data.error);
+        throw new Error(data.error);
+      }
 
+      console.log('Decoded vehicle:', data.decoded);
       setVehicle(data.decoded);
+      
       toast.success(`Found: ${data.decoded.year} ${data.decoded.make} ${data.decoded.model}`);
       return data.decoded;
+      
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to lookup vehicle';
+      console.error('Lookup failed:', message);
       toast.error(message);
       return null;
     } finally {

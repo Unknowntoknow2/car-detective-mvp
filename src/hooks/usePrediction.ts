@@ -9,23 +9,37 @@ export function usePrediction(valuationId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   const getPrediction = useCallback(async () => {
-    if (!valuationId) return;
+    if (!valuationId) {
+      console.error('No valuation ID provided');
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
     
     try {
+      console.log('Getting prediction for valuation:', valuationId);
+      
       const { data, error } = await supabase.functions.invoke('predict', {
         body: { valuationId }
       });
       
-      if (error) throw new Error(error.message);
-      if (!data || !data.predictedPrice) throw new Error('Invalid prediction response');
+      if (error) {
+        console.error('Prediction error:', error);
+        throw new Error(error.message);
+      }
       
+      if (!data || !data.predictedPrice) {
+        throw new Error('Invalid prediction response');
+      }
+      
+      console.log('Received prediction:', data.predictedPrice);
       setPrice(data.predictedPrice);
       return data.predictedPrice;
+      
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to get prediction';
+      console.error('Prediction failed:', message);
       setError(message);
       toast.error(message);
       return null;
