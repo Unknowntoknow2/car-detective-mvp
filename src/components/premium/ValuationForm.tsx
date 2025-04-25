@@ -8,14 +8,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefObject } from 'react';
 
-// Define proper props interfaces for the imported components
-interface FormSubmitProps {
-  onSubmit: (data: any) => Promise<void>;
-  isLoading: boolean;
-  submitButtonText?: string;
-  isPremium?: boolean;
-}
-
 // Import custom form components with proper types
 import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
