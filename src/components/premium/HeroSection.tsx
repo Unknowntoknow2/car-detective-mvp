@@ -1,15 +1,10 @@
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { 
-  Shield, 
-  Car, 
-  FileBarChart, 
-  Zap, 
-  Building, 
-  ChartBar
-} from "lucide-react";
+import { CarfaxBadge } from "./hero/CarfaxBadge";
+import { PriceDisplay } from "./hero/PriceDisplay";
+import { FeatureCards } from "./hero/FeatureCards";
 import { Card, CardContent } from "@/components/ui/card";
+import { FileBarChart, Shield, Building, Zap, ChartBar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface HeroSectionProps {
@@ -36,65 +31,9 @@ export function HeroSection({
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <Badge 
-              variant="outline" 
-              className="bg-primary/10 text-primary border-primary/20 px-3 py-1 text-sm"
-            >
-              CARFAX® Report Included ($44 value)
-            </Badge>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight">
-              Premium <span className="text-gradient bg-gradient-primary">Valuation</span><br />
-              <span className="text-3xl md:text-4xl font-medium">Beyond Just Numbers</span>
-            </h1>
-            
-            <p className="text-lg text-text-secondary max-w-xl">
-              Get the complete picture with our premium valuation service—featuring full CARFAX® history, dealer offers, and 12-month value forecasting for just $29.99.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Button 
-                size="lg" 
-                className="button-3d"
-                onClick={scrollToForm}
-              >
-                Get Premium Valuation
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={scrollToFeatures}
-                className="border-primary/30 text-primary hover:bg-primary-light/20"
-              >
-                See All Features
-              </Button>
-            </div>
-            
-            <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Card className="bg-white/50 border-primary/10 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-5 flex items-start gap-4">
-                  <div className="bg-primary/10 p-3 rounded-full">
-                    <Shield className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium mb-1">Full CARFAX® History</h3>
-                    <p className="text-sm text-text-secondary">Complete accident & service records with title verification</p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/50 border-primary/10 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-5 flex items-start gap-4">
-                  <div className="bg-green-100 p-3 rounded-full">
-                    <Building className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium mb-1">Dealer-Beat Offers</h3>
-                    <p className="text-sm text-text-secondary">Compare CarMax, Carvana, and local dealer bids</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <CarfaxBadge />
+            <PriceDisplay />
+            <FeatureCards />
           </motion.div>
           
           <div className="relative hidden lg:block">
