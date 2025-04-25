@@ -1,60 +1,20 @@
 
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormData } from '@/types/premium-valuation';
-import { useState, useEffect } from 'react';
 
 interface MileageStepProps {
-  step: number;
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  updateValidity: (step: number, isValid: boolean) => void;
+  state: FormData;
+  dispatch: React.Dispatch<any>;
 }
 
-export function MileageStep({
-  step,
-  formData,
-  setFormData,
-  updateValidity
-}: MileageStepProps) {
+export default function MileageStep({ state, dispatch }: MileageStepProps) {
   const [inputValue, setInputValue] = useState<string>(
-    formData.mileage ? formData.mileage.toString() : ''
+    state.mileage ? state.mileage.toString() : ''
   );
-  const [error, setError] = useState<string>('');
-
-  // Initialize validity
-  useEffect(() => {
-    updateValidity(step, Boolean(formData.mileage));
-  }, []);
-
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow empty input or numeric input
-    if (value === '' || /^\d+$/.test(value)) {
-      setInputValue(value);
-      
-      if (value === '') {
-        setFormData(prev => ({ ...prev, mileage: null }));
-        updateValidity(step, false);
-        setError('');
-      } else {
-        const mileage = parseInt(value, 10);
-        
-        if (mileage < 0) {
-          setError('Mileage cannot be negative');
-          updateValidity(step, false);
-        } else if (mileage > 999999) {
-          setError('Mileage seems too high');
-          updateValidity(step, false);
-        } else {
-          setFormData(prev => ({ ...prev, mileage }));
-          updateValidity(step, true);
-          setError('');
-        }
-      }
-    }
-  };
+  const [error, setError] = useState<string | null>(null);
 
   // Format the mileage with commas when input loses focus
   const handleBlur = () => {
@@ -67,6 +27,31 @@ export function MileageStep({
   // Remove commas when input gets focus for easier editing
   const handleFocus = () => {
     setInputValue(inputValue.replace(/,/g, ''));
+  };
+
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Allow empty input or numeric input
+    if (value === '' || /^\d+$/.test(value)) {
+      setInputValue(value);
+      
+      if (value === '') {
+        dispatch({ type: 'SET_MILEAGE', payload: null });
+        setError('');
+      } else {
+        const mileage = parseInt(value, 10);
+        
+        if (mileage < 0) {
+          setError('Mileage cannot be negative');
+        } else if (mileage > 999999) {
+          setError('Mileage seems too high');
+        } else {
+          dispatch({ type: 'SET_MILEAGE', payload: mileage });
+          setError('');
+        }
+      }
+    }
   };
 
   return (
