@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, BarChart2 } from 'lucide-react';
 import type { ForecastPoint, ForecastResult } from '@/utils/forecasting/valuation-forecast';
+import { generateValuationForecast } from '@/utils/forecasting/valuation-forecast';
 
 interface ForecastChartProps {
   valuationId: string;
@@ -30,17 +31,7 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch('/api/valuation-forecast', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ valuationId })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch forecast data');
-        }
-        
-        const data = await response.json();
+        const data = await generateValuationForecast(valuationId);
         setForecastData(data);
       } catch (err) {
         setError('Failed to load forecast data');
