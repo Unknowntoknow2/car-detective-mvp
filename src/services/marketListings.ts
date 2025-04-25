@@ -2,10 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MarketData, MarketListing, MarketListingInsert, MarketListingsResponse } from '@/types/marketListings';
 
-export const fetchMarketListings = async (make: string, model: string, year: number): Promise<MarketListingsResponse> => {
-  // Get market listings from database with explicit field selection
+export const fetchMarketListings = async (
+  make: string, 
+  model: string, 
+  year: number
+): Promise<MarketListingsResponse> => {
   const { data, error } = await supabase
-    .from('market_listings')
+    .from<MarketListing>('market_listings')
     .select('source, price, url')
     .eq('make', make)
     .eq('model', model)
@@ -14,7 +17,7 @@ export const fetchMarketListings = async (make: string, model: string, year: num
     .limit(10);
     
   return {
-    data: data as MarketListing[] | null,
+    data: data ?? null,
     error
   };
 };
@@ -31,17 +34,18 @@ export const storeMarketListings = async (
   model: string,
   year: number
 ) => {
-  for (const [source, price] of Object.entries(marketData.averages)) {
-    const newListing: MarketListingInsert = {
+  const inserts: MarketListingInsert[] = Object.entries(marketData.averages).map(
+    ([source, price]) => ({
       source,
       price: Number(price),
-      url: marketData.sources[source],
+      url: marketData.sources[source] ?? null,
       make,
       model,
       year,
       valuation_id: crypto.randomUUID()
-    };
-    
-    await supabase.from('market_listings').insert(newListing);
-  }
+    })
+  );
+  
+  await supabase.from<MarketListingInsert>('market_listings').insert(inserts);
 };
+

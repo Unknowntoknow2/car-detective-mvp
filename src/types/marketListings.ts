@@ -21,3 +21,4 @@ export interface MarketListingsResponse {
   data: MarketListing[] | null;
   error: any;
 }
+
