@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,20 +21,28 @@ export function PriceDisplay() {
 
     try {
       setIsLoading(true);
+      toast.info("Preparing checkout...");
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {},
       });
 
-      if (error || !data?.url) {
-        throw new Error(error?.message || 'Failed to create checkout session');
+      if (error) {
+        console.error('Checkout error:', error);
+        throw new Error(error.message || 'Failed to create checkout session');
       }
 
+      if (!data?.url) {
+        throw new Error('No checkout URL received');
+      }
+
+      console.log('Redirecting to:', data.url);
+      
       // Redirect to Stripe Checkout
       window.location.href = data.url;
     } catch (error) {
       console.error('Payment error:', error);
       toast.error("Failed to process payment. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -57,7 +65,10 @@ export function PriceDisplay() {
           disabled={isLoading}
         >
           {isLoading ? (
-            "Processing..."
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
           ) : (
             <>
               Purchase Premium <ArrowRight className="ml-2 h-4 w-4" />

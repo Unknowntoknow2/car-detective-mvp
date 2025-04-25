@@ -33,6 +33,9 @@ serve(async (req) => {
       throw new Error('Not authenticated')
     }
 
+    const origin = req.headers.get('origin') || '';
+    console.log('Origin for redirect URLs:', origin);
+
     // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -50,24 +53,29 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/valuation/premium-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/premium`,
+      success_url: `${origin}/valuation/premium-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/premium`,
       customer_email: user.email,
     })
 
     // Create an order record
-    const { error: orderError } = await supabaseClient.from('orders').insert({
-      user_id: user.id,
-      stripe_session_id: session.id,
-      amount: 2999,
-      currency: 'usd',
-      status: 'pending'
-    })
+    const { error: orderError } = await supabaseClient
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        stripe_session_id: session.id,
+        amount: 2999,
+        currency: 'usd',
+        status: 'pending'
+      })
 
     if (orderError) {
       console.error('Error creating order:', orderError)
       throw new Error('Failed to create order')
     }
+
+    console.log('Checkout session created:', session.id);
+    console.log('Redirect URL:', session.url);
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),
@@ -77,6 +85,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Checkout error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
