@@ -188,3 +188,5 @@ export default function PremiumValuationSection() {
     </div>
   );
 }
+
+export { PremiumValuationSection as default };
