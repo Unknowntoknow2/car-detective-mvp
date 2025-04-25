@@ -2,8 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MarketData, MarketListing, MarketListingInsert } from '@/types/marketListings';
 
-// Use a more explicit type that avoids deep inference from Supabase's return type
-export const fetchMarketListings = async (make: string, model: string, year: number) => {
+// Define a simple explicit return type to avoid deep type inference
+interface MarketListingsResponse {
+  data: MarketListing[] | null;
+  error: any;
+}
+
+export const fetchMarketListings = async (make: string, model: string, year: number): Promise<MarketListingsResponse> => {
   const response = await supabase
     .from('market_listings')
     .select('source, price, url')
@@ -13,7 +18,7 @@ export const fetchMarketListings = async (make: string, model: string, year: num
     .order('created_at', { ascending: false })
     .limit(10);
     
-  // Cast the response to avoid excessive type inference
+  // Cast the response to our explicit type
   return {
     data: response.data as MarketListing[] | null,
     error: response.error
