@@ -2,15 +2,15 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MarketData, MarketListing, MarketListingInsert } from '@/types/marketListings';
 
-// Define a simple response type to avoid deep inference
-interface MarketListingsResponse {
-  data: MarketListing[] | null;
+// Define a simple response interface with explicit typing
+interface DatabaseResponse<T> {
+  data: T | null;
   error: any;
 }
 
-export const fetchMarketListings = async (make: string, model: string, year: number): Promise<MarketListingsResponse> => {
-  // Get market listings from database
-  const { data, error } = await supabase
+export const fetchMarketListings = async (make: string, model: string, year: number): Promise<DatabaseResponse<MarketListing[]>> => {
+  // Get market listings from database - use destructuring to simplify
+  const result = await supabase
     .from('market_listings')
     .select('source, price, url')
     .eq('make', make)
@@ -21,8 +21,8 @@ export const fetchMarketListings = async (make: string, model: string, year: num
     
   // Return a simple object with explicit types
   return {
-    data: data as MarketListing[] | null,
-    error
+    data: result.data as MarketListing[] | null,
+    error: result.error
   };
 };
 
