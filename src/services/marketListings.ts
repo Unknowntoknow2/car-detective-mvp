@@ -2,8 +2,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MarketData, MarketListingInsert } from '@/types/marketListings';
 
-export const fetchMarketListings = async (make: string, model: string, year: number) => {
-  const { data, error } = await supabase
+// Define a simplified return type for the fetch operation
+type FetchListingsResult = {
+  data: {
+    source: string;
+    price: number;
+    url: string | null;
+  }[] | null;
+  error: Error | null;
+}
+
+export const fetchMarketListings = async (make: string, model: string, year: number): Promise<FetchListingsResult> => {
+  const response = await supabase
     .from('market_listings')
     .select('source, price, url')
     .eq('make', make)
@@ -12,7 +22,7 @@ export const fetchMarketListings = async (make: string, model: string, year: num
     .order('created_at', { ascending: false })
     .limit(10);
     
-  return { data, error };
+  return response;
 };
 
 export const fetchNewListings = async (zipCode: string, make: string, model: string, year: number) => {
