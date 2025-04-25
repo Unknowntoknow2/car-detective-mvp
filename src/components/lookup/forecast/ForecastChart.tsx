@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -12,9 +12,9 @@ import {
   Legend
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, BarChart2 } from 'lucide-react';
-import type { ForecastPoint, ForecastResult } from '@/utils/forecasting/valuation-forecast';
-import { generateValuationForecast } from '@/utils/forecasting/valuation-forecast';
+import { useForecast } from '@/hooks/useForecast';
+import { ForecastTrendIndicator } from './ForecastTrendIndicator';
+import { ForecastMetrics } from './ForecastMetrics';
 
 interface ForecastChartProps {
   valuationId: string;
@@ -22,29 +22,7 @@ interface ForecastChartProps {
 }
 
 export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
-  const [forecastData, setForecastData] = useState<ForecastResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchForecast() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await generateValuationForecast(valuationId);
-        setForecastData(data);
-      } catch (err) {
-        setError('Failed to load forecast data');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (valuationId) {
-      fetchForecast();
-    }
-  }, [valuationId]);
+  const { forecastData, isLoading, error } = useForecast(valuationId);
 
   if (isLoading) {
     return (
@@ -77,22 +55,6 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
       maximumFractionDigits: 0 
     }).format(value);
 
-  const getTrendColor = () => {
-    switch (forecastData.valueTrend) {
-      case 'increasing': return 'text-green-600';
-      case 'decreasing': return 'text-red-600';
-      default: return 'text-blue-600';
-    }
-  };
-
-  const getTrendIcon = () => {
-    switch (forecastData.valueTrend) {
-      case 'increasing': return <TrendingUp className="h-5 w-5 text-green-600" />;
-      case 'decreasing': return <TrendingDown className="h-5 w-5 text-red-600" />;
-      default: return <BarChart2 className="h-5 w-5 text-blue-600" />;
-    }
-  };
-
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -100,23 +62,14 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
           <CardTitle className="text-xl font-bold">12-Month Value Forecast</CardTitle>
           <CardDescription>Projected value trend based on market data analysis</CardDescription>
         </div>
-        <div className={`flex items-center gap-1 ${getTrendColor()} bg-opacity-10 px-2 py-1 rounded-full`}>
-          {getTrendIcon()}
-          <span className="text-sm font-medium">
-            {forecastData.valueTrend === 'increasing' ? 'Appreciating' : 
-             forecastData.valueTrend === 'decreasing' ? 'Depreciating' : 'Stable'}
-          </span>
-        </div>
+        <ForecastTrendIndicator trend={forecastData.valueTrend} />
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={forecastData.forecast}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis 
-                dataKey="month" 
-                className="text-xs"
-              />
+              <XAxis dataKey="month" className="text-xs" />
               <YAxis 
                 domain={['auto', 'auto']}
                 tickFormatter={formatCurrency}
@@ -150,24 +103,12 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="p-4 bg-primary/5 rounded-lg">
-            <p className="font-medium">Best Time to Sell</p>
-            <p className="text-lg">{forecastData.bestTimeToSell}</p>
-          </div>
-          <div className="p-4 bg-primary/5 rounded-lg">
-            <p className="font-medium">12-Month Change</p>
-            <p className={`text-lg ${forecastData.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {forecastData.percentageChange}%
-            </p>
-          </div>
-          <div className="p-4 bg-primary/5 rounded-lg">
-            <p className="font-medium">Value Range</p>
-            <p className="text-lg">
-              ${forecastData.lowestValue.toLocaleString()} - ${forecastData.highestValue.toLocaleString()}
-            </p>
-          </div>
-        </div>
+        <ForecastMetrics 
+          bestTimeToSell={forecastData.bestTimeToSell}
+          percentageChange={forecastData.percentageChange}
+          lowestValue={forecastData.lowestValue}
+          highestValue={forecastData.highestValue}
+        />
       </CardContent>
     </Card>
   );
