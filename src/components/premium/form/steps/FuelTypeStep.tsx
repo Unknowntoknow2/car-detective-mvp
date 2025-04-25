@@ -1,8 +1,14 @@
 
+import { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { FormData } from '@/types/premium-valuation';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEffect } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FuelTypeStepProps {
   step: number;
@@ -11,20 +17,15 @@ interface FuelTypeStepProps {
   updateValidity: (step: number, isValid: boolean) => void;
 }
 
-export function FuelTypeStep({
-  step,
-  formData,
-  setFormData,
-  updateValidity
-}: FuelTypeStepProps) {
-  // Initialize validity
+export function FuelTypeStep({ step, formData, setFormData, updateValidity }: FuelTypeStepProps) {
+  // Set initial validity on mount
   useEffect(() => {
     updateValidity(step, Boolean(formData.fuelType));
   }, []);
 
   const handleFuelTypeChange = (value: string) => {
     setFormData(prev => ({ ...prev, fuelType: value }));
-    updateValidity(step, Boolean(value));
+    updateValidity(step, true);
   };
 
   return (
