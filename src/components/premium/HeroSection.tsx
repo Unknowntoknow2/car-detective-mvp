@@ -1,155 +1,217 @@
 
-import { BreadcrumbPath } from '@/components/ui/design-system';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { SectionHeader } from '@/components/ui/design-system';
-import { ChevronRight, CheckCircle, Shield, BarChart3, FileCheck } from 'lucide-react';
-import { PremiumCard } from './PremiumCard';
-import { RefObject } from 'react';
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { 
+  Shield, 
+  Car, 
+  FileBarChart, 
+  Zap, 
+  Building, 
+  ChartBar
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface HeroSectionProps {
   scrollToFeatures: () => void;
   scrollToForm: () => void;
-  cardRef: RefObject<HTMLDivElement>;
-  cardRotation: { x: number; y: number; };
+  cardRef: React.RefObject<HTMLDivElement>;
+  cardRotation: { x: number; y: number };
 }
 
-export function HeroSection({ scrollToFeatures, scrollToForm, cardRef, cardRotation }: HeroSectionProps) {
+export function HeroSection({ 
+  scrollToFeatures, 
+  scrollToForm, 
+  cardRef, 
+  cardRotation 
+}: HeroSectionProps) {
   return (
-    <div className="relative py-20 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-5"></div>
-      
-      {/* Light rays effect */}
-      <div className="absolute inset-0 bg-gradient-radial from-slate-700/20 via-transparent to-transparent opacity-40"></div>
-      
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
-        <BreadcrumbPath 
-          className="text-slate-300 mb-8" 
-          items={[
-            { label: 'Home', href: '/' },
-            { label: 'Premium Valuation' }
-          ]}
-        />
-        
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <Badge className="bg-primary/90 text-white hover:bg-primary mb-2 py-1.5 px-3 text-sm font-medium">
-              CARFAX® Included
+    <section className="py-16 md:py-24 px-4 relative overflow-hidden bg-gradient-to-b from-primary/5 to-background">
+      <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-10"></div>
+      <div className="container mx-auto max-w-7xl relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            <Badge 
+              variant="outline" 
+              className="bg-primary/10 text-primary border-primary/20 px-3 py-1 text-sm"
+            >
+              CARFAX® Report Included ($44 value)
             </Badge>
             
-            <div className="space-y-3">
-              <h1 className="text-4xl md:text-5xl font-bold text-white font-display leading-tight">
-                Premium Vehicle Valuation
-              </h1>
-              <p className="text-xl text-slate-300 max-w-lg">
-                Unlock comprehensive insights with our professional-grade valuation service
-              </p>
-            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight">
+              Premium <span className="text-gradient bg-gradient-primary">Valuation</span><br />
+              <span className="text-3xl md:text-4xl font-medium">Beyond Just Numbers</span>
+            </h1>
             
-            <ul className="space-y-4 mt-8">
-              {[
-                "Complete CARFAX® accident and service history analysis",
-                "Dealer network price comparison across your area",
-                "12-month value forecast with market trend analysis",
-                "Personalized PDF report with detailed breakdown"
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-0.5 flex-shrink-0">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-slate-200">{item}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-lg text-text-secondary max-w-xl">
+              Get the complete picture with our premium valuation service—featuring full CARFAX® history, dealer offers, and 12-month value forecasting for just $29.99.
+            </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button 
+                size="lg" 
+                className="button-3d"
                 onClick={scrollToForm}
-                size="lg"
-                className="bg-primary hover:bg-primary-hover text-white transition-all duration-300 transform hover:-translate-y-1 shadow-lg"
               >
-                Start Premium Valuation
-                <ChevronRight className="ml-2 h-5 w-5" />
+                Get Premium Valuation
               </Button>
               <Button 
-                onClick={scrollToFeatures}
-                variant="outline"
+                variant="outline" 
                 size="lg"
-                className="border-slate-500 text-slate-200 hover:bg-slate-700 hover:text-white hover:border-slate-400 transition-all duration-300"
+                onClick={scrollToFeatures}
+                className="border-primary/30 text-primary hover:bg-primary-light/20"
               >
-                Learn More
+                See All Features
               </Button>
             </div>
-          </div>
+            
+            <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <Card className="bg-white/50 border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-5 flex items-start gap-4">
+                  <div className="bg-primary/10 p-3 rounded-full">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-1">Full CARFAX® History</h3>
+                    <p className="text-sm text-text-secondary">Complete accident & service records with title verification</p>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/50 border-primary/10 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-5 flex items-start gap-4">
+                  <div className="bg-green-100 p-3 rounded-full">
+                    <Building className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-1">Dealer-Beat Offers</h3>
+                    <p className="text-sm text-text-secondary">Compare CarMax, Carvana, and local dealer bids</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
           
-          {/* Premium benefits card */}
-          <div className="relative hidden md:block preserve-3d">
-            <div 
-              ref={cardRef}
-              className="relative preserve-3d transition-all duration-200 ease-out transform"
+          <div className="relative hidden lg:block">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="absolute -top-8 right-4 z-20 transform translate-x-0 translate-y-0"
+            >
+              <Card className="w-full max-w-md border-2 border-primary/20 bg-white/90 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 rounded-full bg-primary flex items-center justify-center">
+                      <FileBarChart className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold">Premium Analysis</h3>
+                      <p className="text-sm text-text-secondary">CARFAX® Integration</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-muted/30 border border-border rounded-lg p-4">
+                        <h4 className="text-sm text-text-secondary font-medium mb-1">Estimated Value</h4>
+                        <p className="text-2xl font-bold text-primary">$24,350</p>
+                      </div>
+                      <div className="bg-muted/30 border border-border rounded-lg p-4">
+                        <h4 className="text-sm text-text-secondary font-medium mb-1">Confidence</h4>
+                        <p className="text-2xl font-bold text-success">95%</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Feature Adjustments</span>
+                        <span className="font-medium">+$1,240</span>
+                      </div>
+                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                        <div className="h-full w-3/4 bg-gradient-primary rounded-full"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-muted/20 border border-border rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-medium">CARFAX® Highlights</h4>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          Clean
+                        </Badge>
+                      </div>
+                      <ul className="text-sm space-y-1 text-text-secondary">
+                        <li className="flex items-center gap-2">
+                          <Zap className="h-3 w-3 text-primary" />
+                          <span>2 owners, no accidents</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Zap className="h-3 w-3 text-primary" />
+                          <span>Regular service history</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Zap className="h-3 w-3 text-primary" />
+                          <span>Clean title verified</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="absolute bottom-8 left-12 z-10"
               style={{
-                transform: `perspective(1000px) rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`
+                perspective: "1000px",
+                transformStyle: "preserve-3d",
               }}
             >
-              <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-2xl text-white">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold">Premium Report</h3>
-                  <Badge className="bg-primary text-white">Exclusive</Badge>
-                </div>
-                
-                <div className="space-y-5">
-                  <div className="flex items-start gap-4">
-                    <Shield className="h-10 w-10 text-primary p-2 bg-primary/10 rounded-lg" />
-                    <div>
-                      <h4 className="text-lg font-semibold">CARFAX® Integration</h4>
-                      <p className="text-slate-300 text-sm">Complete vehicle history analysis included</p>
+              <div
+                ref={cardRef}
+                style={{
+                  transform: `rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
+                  transition: "transform 0.1s ease-out",
+                }}
+                className="w-full max-w-sm"
+              >
+                <Card className="border-2 border-border bg-white/80 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2.5 rounded-full bg-green-100 flex items-center justify-center">
+                        <ChartBar className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">Market Forecast</h3>
+                        <p className="text-xs text-text-secondary">12-Month Projection</p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <BarChart3 className="h-10 w-10 text-primary p-2 bg-primary/10 rounded-lg" />
-                    <div>
-                      <h4 className="text-lg font-semibold">Market Trends</h4>
-                      <p className="text-slate-300 text-sm">Future value projections based on market data</p>
+                    
+                    <div className="space-y-4">
+                      <div className="h-32 bg-muted/30 rounded-lg border border-border flex items-center justify-center">
+                        <p className="text-sm text-text-secondary">Interactive Value Chart</p>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-text-secondary">Best time to sell</span>
+                        <span className="font-medium">3 months</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-4">
-                    <FileCheck className="h-10 w-10 text-primary p-2 bg-primary/10 rounded-lg" />
-                    <div>
-                      <h4 className="text-lg font-semibold">Detailed Reports</h4>
-                      <p className="text-slate-300 text-sm">Professional PDF with complete breakdown</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-slate-300 text-sm">Starting at</span>
-                      <div className="text-3xl font-bold">$49.99</div>
-                    </div>
-                    <Button 
-                      onClick={scrollToForm}
-                      className="bg-white text-slate-900 hover:bg-slate-100"
-                    >
-                      Get Started
-                    </Button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
-      
-      {/* Wave divider */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" fill="none" preserveAspectRatio="none">
-          <path d="M0 0L48 8C96 16 192 32 288 37.3C384 43 480 37 576 32C672 27 768 21 864 24C960 27 1056 37 1152 42.7C1248 48 1344 48 1392 48H1440V80H0V0Z" fill="#F9FAFB"/>
-        </svg>
-      </div>
-    </div>
+    </section>
   );
 }

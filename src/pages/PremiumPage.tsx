@@ -5,8 +5,11 @@ import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/premium/HeroSection';
 import { FeaturesSection } from '@/components/premium/FeaturesSection';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
-import { ValuationForm } from '@/components/premium/ValuationForm';
+import { PremiumValuationSection } from '@/components/premium/PremiumValuationSection';
 import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BadgeCheck, ArrowRight } from "lucide-react";
+import { Button } from '@/components/ui/button';
 
 export default function PremiumPage() {
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
@@ -48,6 +51,16 @@ export default function PremiumPage() {
     <div className="flex min-h-screen flex-col bg-surface">
       <Navbar />
       <main className="flex-1 animate-fade-in">
+        {/* Announcement Banner */}
+        <Alert className="bg-primary/10 border-primary/20 rounded-none">
+          <AlertDescription className="flex items-center justify-center py-1 text-sm font-medium text-primary">
+            <BadgeCheck className="h-4 w-4 mr-2" /> New! Dealer-beat Offers & Open-Marketplace Data now in Premium Valuation
+            <Button variant="link" className="ml-2 h-auto p-0 text-primary" onClick={scrollToForm}>
+              Get Started <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          </AlertDescription>
+        </Alert>
+        
         <HeroSection 
           scrollToFeatures={scrollToFeatures} 
           scrollToForm={scrollToForm}
@@ -57,7 +70,9 @@ export default function PremiumPage() {
         <PremiumServicesGrid />
         <FeaturesSection featuresRef={featuresRef} />
         <ComparisonSection scrollToForm={scrollToForm} />
-        <ValuationForm formRef={formRef} />
+        <div ref={formRef}>
+          <PremiumValuationSection />
+        </div>
       </main>
       <Footer />
     </div>

@@ -1,72 +1,132 @@
 
-import { SectionHeader, DesignCard, FeatureItem } from '@/components/ui/design-system';
+import { Card, CardContent } from "@/components/ui/card";
 import { 
-  Award, TrendingUp, BarChart4, ShieldCheck, 
-  Database, ClipboardCheck 
-} from 'lucide-react';
-import { RefObject } from 'react';
+  FileText, 
+  Car, 
+  ChartBar, 
+  Shield, 
+  FileBarChart, 
+  Camera, 
+  Store, 
+  Calendar
+} from "lucide-react";
 
 interface FeaturesSectionProps {
-  featuresRef: RefObject<HTMLDivElement>;
+  featuresRef: React.RefObject<HTMLDivElement>;
 }
 
 export function FeaturesSection({ featuresRef }: FeaturesSectionProps) {
   const features = [
     {
-      icon: <Award className="h-5 w-5" />,
-      title: "CARFAX® Integration",
-      description: "Complete vehicle history analysis for superior accuracy in valuations"
+      icon: <Shield className="h-8 w-8 text-primary" />,
+      title: "Full CARFAX® Report",
+      description: "Complete vehicle history with accident records, service history, and title verification",
+      metric: "$44 Value",
+      color: "blue"
     },
     {
-      icon: <TrendingUp className="h-5 w-5" />,
-      title: "Market Trend Analysis",
-      description: "Future value projections based on historical market data"
+      icon: <Camera className="h-8 w-8 text-green-600" />,
+      title: "AI Photo Analysis",
+      description: "Upload up to 5 photos for AI to analyze condition, damage, and wear patterns",
+      metric: "+15% Accuracy",
+      color: "green"
     },
     {
-      icon: <BarChart4 className="h-5 w-5" />,
-      title: "Dealer Price Comparison",
-      description: "See how your vehicle compares to current dealer listings"
+      icon: <Store className="h-8 w-8 text-orange-500" />,
+      title: "Dealer-Beat Offers",
+      description: "Compare offers from CarMax, Carvana, and local dealers who compete for your business",
+      metric: "Increased Offers",
+      color: "orange"
     },
     {
-      icon: <ShieldCheck className="h-5 w-5" />,
-      title: "Confidence Scoring",
-      description: "Know exactly how accurate your valuation is with confidence metrics"
+      icon: <ChartBar className="h-8 w-8 text-purple-600" />,
+      title: "Open Marketplace Data",
+      description: "See average prices on Facebook, Craigslist, and other platforms in your area",
+      metric: "Real-time Data",
+      color: "purple"
     },
     {
-      icon: <Database className="h-5 w-5" />,
-      title: "Comprehensive Data",
-      description: "Leveraging millions of data points for precise valuations"
+      icon: <Calendar className="h-8 w-8 text-indigo-600" />,
+      title: "12-Month Forecast",
+      description: "Predictive analysis of your vehicle's value over the next year with optimal selling time",
+      metric: "Strategic Timing",
+      color: "indigo"
     },
     {
-      icon: <ClipboardCheck className="h-5 w-5" />,
-      title: "Detailed Reports",
-      description: "Professional PDF reports with complete valuation breakdown"
+      icon: <FileBarChart className="h-8 w-8 text-rose-600" />,
+      title: "Feature Value Calculator",
+      description: "See exactly how much each option and feature adds to your vehicle's worth",
+      metric: "+20% Granularity",
+      color: "rose"
+    },
+    {
+      icon: <Car className="h-8 w-8 text-cyan-600" />,
+      title: "ZIP Market Analysis",
+      description: "Location-adjusted valuation based on supply and demand in your specific region",
+      metric: "Localized Accuracy",
+      color: "cyan"
+    },
+    {
+      icon: <FileText className="h-8 w-8 text-amber-600" />,
+      title: "Professional PDF Report",
+      description: "Comprehensive, shareable report with all insights and data in a professional format",
+      metric: "Shareable Report",
+      color: "amber"
     }
   ];
 
+  const getColorClass = (color: string) => {
+    const colorMap: Record<string, string> = {
+      blue: "bg-primary/10 text-primary",
+      green: "bg-green-100 text-green-600",
+      orange: "bg-orange-100 text-orange-500",
+      purple: "bg-purple-100 text-purple-600",
+      indigo: "bg-indigo-100 text-indigo-600",
+      rose: "bg-rose-100 text-rose-600",
+      cyan: "bg-cyan-100 text-cyan-600",
+      amber: "bg-amber-100 text-amber-600"
+    };
+    return colorMap[color] || "bg-primary/10 text-primary";
+  };
+  
   return (
-    <section ref={featuresRef} className="py-20 px-4 bg-gradient-to-b from-surface to-surface-dark">
-      <div className="max-w-6xl mx-auto">
-        <SectionHeader
-          title="Why Choose Premium Valuation"
-          description="Get the most accurate and comprehensive vehicle valuation with our premium service"
-          align="center"
-          className="mb-16"
-        />
+    <section ref={featuresRef} className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+      <div className="container mx-auto max-w-6xl">
+        <div className="text-center mb-16 space-y-4">
+          <h2 className="text-3xl md:text-4xl font-display font-bold">
+            Premium Valuation Features
+          </h2>
+          <p className="text-text-secondary max-w-2xl mx-auto">
+            Our premium valuation service combines multiple data sources, AI analysis, and market intelligence 
+            to deliver the most accurate and comprehensive vehicle valuation available.
+          </p>
+        </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, i) => (
-            <DesignCard 
-              key={i} 
-              variant="outline"
-              className="card-3d hover:border-primary/30 hover:bg-primary-light/20 transition-all"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <Card 
+              key={index} 
+              className="overflow-hidden hover:shadow-lg transition-shadow border-border/50 bg-white"
             >
-              <FeatureItem
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-              />
-            </DesignCard>
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-lg ${getColorClass(feature.color)}`}>
+                    {feature.icon}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-medium">{feature.title}</h3>
+                    </div>
+                    <p className="text-sm text-text-secondary">{feature.description}</p>
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <span className="inline-block py-1 px-3 bg-muted/30 text-xs font-medium rounded-full">
+                    {feature.metric}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
