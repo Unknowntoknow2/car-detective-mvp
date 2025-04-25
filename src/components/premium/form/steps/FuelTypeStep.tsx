@@ -1,6 +1,6 @@
 
 import { Label } from '@/components/ui/label';
-import { FormData } from '../PremiumValuationForm';
+import { FormData } from '@/hooks/usePremiumValuationForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEffect } from 'react';
 

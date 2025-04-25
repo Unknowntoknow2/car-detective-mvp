@@ -9,10 +9,10 @@ import { ReviewSubmitStep } from './steps/ReviewSubmitStep';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { FormStepLayout } from './FormStepLayout';
 import { ValuationResult } from './ValuationResult';
-import { usePremiumValuationForm } from '@/hooks/usePremiumValuationForm';
+import { usePremiumValuationForm, FeatureOption } from '@/hooks/usePremiumValuationForm';
 
 // Feature options for selection step
-const featureOptions = [
+const featureOptions: FeatureOption[] = [
   { id: 'leather', name: 'Leather Seats', icon: 'car', value: 800 },
   { id: 'sunroof', name: 'Sunroof/Moonroof', icon: 'sun', value: 600 },
   { id: 'navigation', name: 'Navigation System', icon: 'map', value: 500 },
