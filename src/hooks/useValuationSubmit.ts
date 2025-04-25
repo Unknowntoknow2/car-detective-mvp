@@ -14,14 +14,14 @@ export const useValuationSubmit = () => {
     
     try {
       if (!user) {
-        toast("Please sign in to save your valuation");
+        toast.error("Please sign in to save your valuation");
         return;
       }
 
       const featureValueTotal = calculateFeatureValue(formData.features);
       const accidentCount = formData.hasAccident ? 1 : 0;
-      const zipDemandFactor = 1.0;
-      const basePrice = formData.year * 100 + 5000;
+      const zipDemandFactor = 1.0; // This could be calculated based on ZIP code analysis
+      const basePrice = formData.year * 100 + 5000; // Simple base calculation, adjust as needed
       const dealerAvgPrice = basePrice * 1.15;
       const auctionAvgPrice = basePrice * 0.9;
       
@@ -48,15 +48,15 @@ export const useValuationSubmit = () => {
         .select()
         .single();
         
-      if (error) throw new Error(error.message);
+      if (error) throw error;
       
       setValuationId(data.id);
-      toast("Your premium valuation has been generated successfully.");
+      toast.success("Your premium valuation has been generated successfully.");
       
       console.log("Valuation saved with ID:", data.id);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save valuation';
-      toast(errorMessage);
+      toast.error(errorMessage);
       console.error("Valuation error:", err);
     }
   };

@@ -164,10 +164,9 @@ export function PremiumValuationForm() {
             <ReviewSubmitStep 
               step={7} 
               formData={formData}
-              featureOptions={featureOptions} 
+              isFormValid={isFormValid}
               handleSubmit={handleSubmit}
               handleReset={handleFullReset}
-              isFormValid={isFormValid}
             />
           )}
 
