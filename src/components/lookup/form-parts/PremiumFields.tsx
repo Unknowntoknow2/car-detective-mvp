@@ -15,7 +15,7 @@ import { AlertCircle, ShieldAlert, CheckCircle } from 'lucide-react';
 import { DesignCard } from '@/components/ui/design-system';
 
 interface PremiumFieldsProps {
-  accident: string;
+  accident: 'no' | 'yes';
   setAccident: (value: string) => void;
   accidentDetails: AccidentDetails;
   setAccidentDetails: (details: AccidentDetails) => void;

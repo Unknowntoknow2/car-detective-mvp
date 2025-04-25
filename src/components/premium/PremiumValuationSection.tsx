@@ -76,6 +76,14 @@ export default function PremiumValuationSection() {
     }
   };
 
+  // This function is added to handle the type conversion safely
+  const handleAccidentChange = (value: string) => {
+    // Only set the state if the value is either "no" or "yes"
+    if (value === "no" || value === "yes") {
+      setAccident(value);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -130,7 +138,7 @@ export default function PremiumValuationSection() {
                 <CardTitle className="text-xl">Accident History</CardTitle>
                 <PremiumFields
                   accident={accident}
-                  setAccident={setAccident}
+                  setAccident={handleAccidentChange}
                   accidentDetails={accidentDetails}
                   setAccidentDetails={setAccidentDetails}
                   isDisabled={false}
