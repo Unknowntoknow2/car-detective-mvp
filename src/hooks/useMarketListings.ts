@@ -8,6 +8,16 @@ interface MarketData {
   sources: { [source: string]: string };
 }
 
+interface MarketListing {
+  id?: string;
+  source: string;
+  price: number;
+  url?: string;
+  valuation_id: string;
+  created_at?: string;
+  listing_date?: string;
+}
+
 export const useMarketListings = (zipCode: string, make: string, model: string, year: number) => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,16 +80,23 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           // Store the market listings in our database for future reference
           const marketEntries = Object.entries(data.averages).map(([source, price]) => ({
             source,
-            price,
+            price: price as number,
             url: data.sources[source],
             make,
             model,
             year,
-            valuation_id: crypto.randomUUID() // Generate a unique ID for this lookup
+            valuation_id: crypto.randomUUID()
           }));
           
           if (marketEntries.length > 0) {
-            await supabase.from('market_listings').insert(marketEntries);
+            const formattedEntries: MarketListing[] = marketEntries.map(entry => ({
+              source: entry.source,
+              price: entry.price,
+              url: entry.url,
+              valuation_id: entry.valuation_id
+            }));
+            
+            await supabase.from('market_listings').insert(formattedEntries);
           }
         }
       } catch (err) {
