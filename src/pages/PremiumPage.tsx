@@ -3,7 +3,9 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { CarfaxBadge } from '@/components/premium/hero/CarfaxBadge';
-import { ValuationForm } from '@/components/premium/ValuationForm';
+import { PremiumHero } from '@/components/premium/sections/PremiumHero';
+import { PremiumValuationTabs } from '@/components/premium/sections/PremiumValuationTabs';
+import { FeatureCards } from '@/components/premium/hero/FeatureCards';
 import { useRef } from 'react';
 
 export default function PremiumPage() {
@@ -23,12 +25,14 @@ export default function PremiumPage() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Get the most accurate valuation with our professional-grade service, including CARFAX® report and market analysis.
             </p>
+            
+            <FeatureCards />
           </div>
         </section>
 
         <section ref={formRef} id="premium-valuation" className="py-12">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ValuationForm formRef={formRef} />
+          <div className="max-w-7xl mx-auto">
+            <PremiumValuationTabs />
           </div>
         </section>
       </main>
