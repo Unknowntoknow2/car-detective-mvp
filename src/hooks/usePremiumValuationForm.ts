@@ -181,17 +181,12 @@ export const usePremiumValuationForm = () => {
         
         setValuationId(data.id);
         
-        toast({
-          description: "Your premium valuation has been generated successfully.",
-        });
+        toast("Your premium valuation has been generated successfully.");
         
         console.log("Valuation saved with ID:", data.id);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to save valuation';
-        toast({
-          description: errorMessage,
-          variant: "destructive"
-        });
+        toast(errorMessage);
         console.error("Valuation error:", err);
       }
     }
@@ -211,6 +206,7 @@ export const usePremiumValuationForm = () => {
     goToNextStep,
     goToPreviousStep,
     handleReset,
-    handleSubmit
+    handleSubmit,
+    featureOptions
   };
 };
