@@ -3,23 +3,21 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Simple type definitions to avoid excessive type inference
 interface MarketData {
-  averages: { [source: string]: number };
-  sources: { [source: string]: string };
+  averages: Record<string, number>;
+  sources: Record<string, string>;
 }
 
-// Define a separate interface for the market listing DB entry to avoid deep type inference
-interface MarketListing {
-  id?: string;
+// Completely separate interface for database operations
+interface MarketListingInsert {
   source: string;
   price: number;
-  url?: string | null;
+  url: string | null;
   valuation_id: string;
-  created_at?: string | null;
-  listing_date?: string | null;
-  make?: string | null;
-  model?: string | null;
-  year?: number | null;
+  make: string | null;
+  model: string | null;
+  year: number | null;
 }
 
 export const useMarketListings = (zipCode: string, make: string, model: string, year: number) => {
@@ -38,19 +36,15 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
         // First check if we already have recent market data in our database
         const { data, error: fetchError } = await supabase
           .from('market_listings')
-          .select('*')
+          .select('source, price, url')
           .eq('make', make)
           .eq('model', model)
           .eq('year', year)
           .order('created_at', { ascending: false })
           .limit(10);
         
-        // Use a simpler type assertion without relying on deep inference
-        const existingListings = (data || []) as Array<{
-          source: string;
-          price: number;
-          url?: string | null;
-        }>;
+        // Simple array type
+        const existingListings = data || [];
 
         if (!fetchError && existingListings.length > 0) {
           // Process existing listings into the format we need
@@ -79,20 +73,32 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
         }
 
         // If no existing recent data, fetch from the edge function
-        const { data: responseData, error: responseError } = await supabase.functions.invoke('fetch-market-listings', {
+        const response = await supabase.functions.invoke('fetch-market-listings', {
           body: { zipCode, make, model, year }
         });
 
-        if (responseError) throw responseError;
+        if (response.error) throw response.error;
+        
+        // Explicitly define the type
+        const responseData = response.data as {
+          zipCode: string;
+          averages: Record<string, number>;
+          sources: Record<string, string>;
+        };
         
         if (responseData) {
-          // Use a simple type assertion to avoid deep inference
-          const marketResponse = responseData as unknown as MarketData;
+          // Create a properly typed market data object
+          const marketResponse: MarketData = {
+            averages: responseData.averages,
+            sources: responseData.sources
+          };
+          
           setMarketData(marketResponse);
           
           // Store the market listings in our database for future reference
           for (const [source, price] of Object.entries(marketResponse.averages)) {
-            const newListing: MarketListing = {
+            // Create a properly typed object for insertion
+            const newListing: MarketListingInsert = {
               source,
               price: Number(price),
               url: marketResponse.sources[source],
@@ -102,7 +108,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
               valuation_id: crypto.randomUUID()
             };
             
-            // Insert each listing individually with a clean, simple object
+            // Insert with the properly typed object
             await supabase.from('market_listings').insert(newListing);
           }
         }
