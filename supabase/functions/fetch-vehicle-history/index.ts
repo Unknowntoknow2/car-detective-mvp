@@ -16,51 +16,54 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Parse request body
     const { vin, valuationId } = await req.json()
 
-    // Here you would normally call the CARFAX API
-    // For now, we'll use a mock implementation
-    const mockReportUrl = `https://carfax.com/report/${vin}`
+    if (!vin || !valuationId) {
+      return new Response(JSON.stringify({ error: 'VIN and ValuationID are required' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      })
+    }
 
-    // Insert the vehicle history record
-    const { data, error } = await supabase
+    // Mock CARFAX report generation (replace with actual service in production)
+    const mockCarfaxReport = {
+      reportUrl: `https://mock-carfax.com/report/${vin}`,
+      owners: 2,
+      accidentsReported: 1,
+      damageTypes: ['Minor collision'],
+      serviceRecords: 3,
+      titleEvents: ['Clean title'],
+      estimatedValueImpact: -500
+    }
+
+    // Store vehicle history in Supabase
+    const { error: historyError } = await supabase
       .from('vehicle_histories')
       .insert({
         valuation_id: valuationId,
-        report_url: mockReportUrl,
-        provider: 'CARFAX'
+        report_url: mockCarfaxReport.reportUrl,
+        provider: 'CARFAX',
+        report_data: mockCarfaxReport
       })
-      .select()
 
-    if (error) throw error
+    if (historyError) throw historyError
 
     return new Response(JSON.stringify({ 
-      reportUrl: mockReportUrl,
-      success: true 
+      reportUrl: mockCarfaxReport.reportUrl,
+      reportData: mockCarfaxReport 
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
-      status: 200
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
+
   } catch (error) {
     console.error('Vehicle history fetch error:', error)
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      success: false 
-    }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     })
   }

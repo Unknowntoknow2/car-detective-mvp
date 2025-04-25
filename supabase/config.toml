@@ -1,8 +1,8 @@
 
 project_id = "xltxqqzattxogxtqrggt"
 
-[functions.decode-vin]
+[functions.fetch-vehicle-history]
 verify_jwt = false
 
-[functions.fetch-vehicle-data]
+[functions.fetch-market-listings]
 verify_jwt = false

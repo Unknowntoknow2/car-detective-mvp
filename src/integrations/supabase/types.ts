@@ -36,6 +36,41 @@ export type Database = {
         }
         Relationships: []
       }
+      dealer_leads: {
+        Row: {
+          created_at: string | null
+          id: string
+          status: string
+          updated_at: string | null
+          user_id: string
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_leads_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dealer_offers: {
         Row: {
           created_at: string | null
@@ -236,6 +271,44 @@ export type Database = {
           nhtsa_make_id?: number | null
         }
         Relationships: []
+      }
+      market_listings: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_date: string | null
+          price: number
+          source: string
+          url: string | null
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_date?: string | null
+          price: number
+          source: string
+          url?: string | null
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_date?: string | null
+          price?: number
+          source?: string
+          url?: string | null
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_listings_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       models: {
         Row: {
