@@ -18,7 +18,7 @@ import { AlertTriangle } from 'lucide-react';
 
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
-  const { vehicleInfo, isLoading, error, lookupVin } = useVinDecoder();
+  const { result, isLoading, error, lookupVin } = useVinDecoder();
   const { user } = useAuth();
   const [carfaxData, setCarfaxData] = useState(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
@@ -47,9 +47,9 @@ export const VinDecoderForm = () => {
   };
 
   const handleDownloadPdf = () => {
-    if (!vehicleInfo) return;
+    if (!result) return;
     
-    const reportData = convertVehicleInfoToReportData(vehicleInfo, {
+    const reportData = convertVehicleInfoToReportData(result, {
       mileage: 76000,
       estimatedValue: 24500,
       condition: "Good",
@@ -93,9 +93,9 @@ export const VinDecoderForm = () => {
         </CardContent>
       </Card>
 
-      {vehicleInfo && (
+      {result && (
         <VehicleInfoCard 
-          vehicleInfo={vehicleInfo} 
+          vehicleInfo={result} 
           onDownloadPdf={handleDownloadPdf}
           carfaxData={carfaxData}
         />

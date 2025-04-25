@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 export const PlateDecoderForm = () => {
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
-  const { vehicleInfo, isLoading, lookupVehicle, error } = usePlateLookup();
+  const { result, isLoading, lookupVehicle, error } = usePlateLookup();
   const { saveValuation, isSaving } = useSaveValuation();
   const { user } = useAuth();
 
@@ -29,15 +29,15 @@ export const PlateDecoderForm = () => {
   };
 
   const handleSaveValuation = async () => {
-    if (!vehicleInfo) return;
+    if (!result) return;
 
     try {
       await saveValuation({
-        plate: vehicleInfo.plate,
-        state: vehicleInfo.state,
-        make: vehicleInfo.make,
-        model: vehicleInfo.model,
-        year: vehicleInfo.year,
+        plate: result.plate,
+        state: result.state,
+        make: result.make,
+        model: result.model,
+        year: result.year,
         valuation: 24500,
         confidenceScore: 92,
         conditionScore: 85
@@ -49,10 +49,10 @@ export const PlateDecoderForm = () => {
   };
 
   const handleDownloadPdf = () => {
-    if (!vehicleInfo) return;
+    if (!result) return;
     
     try {
-      const reportData = convertVehicleInfoToReportData(vehicleInfo, {
+      const reportData = convertVehicleInfoToReportData(result, {
         mileage: 76000,
         estimatedValue: 24500,
         condition: "Good",
@@ -95,9 +95,9 @@ export const PlateDecoderForm = () => {
 
       {isLoading && <LoadingState />}
 
-      {vehicleInfo && !isLoading && (
+      {result && !isLoading && (
         <PlateInfoCard 
-          vehicleInfo={vehicleInfo} 
+          vehicleInfo={result} 
           onDownloadPdf={handleDownloadPdf}
           onSaveValuation={handleSaveValuation}
           isSaving={isSaving}
