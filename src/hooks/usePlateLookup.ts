@@ -1,83 +1,76 @@
 
 import { useState } from 'react';
-import { PlateLookupInfo } from '@/types/lookup';
-import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { lookupPlate } from '@/services/plateService';
+import { useToast } from '@/components/ui/use-toast';
+
+interface PlateLookupResult {
+  plate: string;
+  state: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  color?: string;
+  vin?: string;
+}
 
 export function usePlateLookup() {
-  const [vehicleInfo, setVehicleInfo] = useState<PlateLookupInfo | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<PlateLookupResult | null>(null);
+  const { toast } = useToast();
 
-  const lookupVehicle = async (plate: string, state: string) => {
+  const lookupVehicle = async (plate: string, state: string): Promise<PlateLookupResult | null> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // First check if we already have this plate in our database
-      const { data: existingData, error: fetchError } = await supabase
-        .from('plate_lookups')
-        .select('*')
-        .eq('plate', plate)
-        .eq('state', state)
-        .maybeSingle();
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      if (existingData) {
-        setVehicleInfo(existingData as PlateLookupInfo);
-        toast({
-          title: "Success",
-          description: `Found existing vehicle information for plate: ${plate}, state: ${state}`,
-        });
-        return existingData;
-      }
-
-      // If not found, use mock service and store result
-      const data = await lookupPlate(plate, state);
+      const response = await fetch(`/api/lookup-plate?plate=${plate}&state=${state}`);
       
-      const { error: insertError } = await supabase
-        .from('plate_lookups')
-        .insert([data]);
-
-      if (insertError) {
-        throw insertError;
+      if (!response.ok) {
+        throw new Error(`Plate lookup failed: ${response.statusText}`);
       }
-
-      setVehicleInfo(data);
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      const plateResult: PlateLookupResult = {
+        plate,
+        state,
+        make: data.make || 'Unknown',
+        model: data.model || 'Unknown',
+        year: data.year || 0,
+        color: data.color,
+        vin: data.vin
+      };
+      
+      setResult(plateResult);
       toast({
-        title: "Success",
-        description: `Vehicle information found for plate: ${plate}, state: ${state}`,
+        title: "Vehicle Found",
+        description: `${plateResult.year} ${plateResult.make} ${plateResult.model}`,
       });
-      return data;
+      
+      return plateResult;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error during plate lookup';
       setError(errorMessage);
-      setVehicleInfo(null);
       toast({
-        variant: "destructive",
-        title: "Error",
+        title: "Plate Lookup Failed",
         description: errorMessage,
+        variant: "destructive"
       });
+      
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const reset = () => {
-    setVehicleInfo(null);
-    setError(null);
-  };
-
   return {
-    vehicleInfo,
+    lookupVehicle,
     isLoading,
     error,
-    lookupVehicle,
-    reset
+    result
   };
 }

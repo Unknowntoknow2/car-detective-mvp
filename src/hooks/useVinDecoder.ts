@@ -1,80 +1,77 @@
 
 import { useState } from 'react';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+
+interface VinDecoderResult {
+  vin: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  trim?: string;
+  fuelType?: string;
+  engine?: string;
+  mileage?: number;
+}
 
 export function useVinDecoder() {
-  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<VinDecoderResult | null>(null);
+  const { toast } = useToast();
 
-  const lookupVin = async (vin: string) => {
+  const lookupVin = async (vin: string): Promise<VinDecoderResult | null> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // First check if we already have this VIN in our database
-      const { data: existingData, error: fetchError } = await supabase
-        .from('decoded_vehicles')
-        .select('*')
-        .eq('vin', vin)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "not found"
-        throw fetchError;
+      const response = await fetch(`/api/decode-vin?vin=${vin}`);
+      
+      if (!response.ok) {
+        throw new Error(`VIN lookup failed: ${response.statusText}`);
       }
-
-      if (existingData) {
-        setVehicleInfo(existingData as DecodedVehicleInfo);
-        toast({
-          title: "Success",
-          description: `Found existing vehicle information for VIN: ${vin}`,
-        });
-        return existingData;
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
       }
-
-      // If not found, call our edge function to decode and store
-      const response = await supabase.functions.invoke('decode-vin', {
-        body: { vin },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      const data = response.data as DecodedVehicleInfo;
-      setVehicleInfo(data);
+      
+      const decodedVehicle: VinDecoderResult = {
+        vin,
+        make: data.make || 'Unknown',
+        model: data.model || 'Unknown',
+        year: data.year || 0,
+        trim: data.trim,
+        fuelType: data.fuel_type,
+        engine: data.engine
+      };
+      
+      setResult(decodedVehicle);
       toast({
-        title: "Success",
-        description: `Vehicle information decoded for VIN: ${vin}`,
+        title: "VIN Decoded Successfully",
+        description: `${decodedVehicle.year} ${decodedVehicle.make} ${decodedVehicle.model}`,
       });
-      return data;
+      
+      return decodedVehicle;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to decode VIN';
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error during VIN lookup';
       setError(errorMessage);
-      setVehicleInfo(null);
       toast({
-        variant: "destructive",
-        title: "Error",
+        title: "VIN Decode Failed",
         description: errorMessage,
+        variant: "destructive"
       });
+      
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const reset = () => {
-    setVehicleInfo(null);
-    setError(null);
-  };
-
   return {
-    vehicleInfo,
+    lookupVin,
     isLoading,
     error,
-    lookupVin,
-    reset
+    result
   };
 }

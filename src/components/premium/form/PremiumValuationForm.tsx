@@ -12,7 +12,7 @@ import { ReviewSubmitStep } from './steps/ReviewSubmitStep';
 import { ProgressIndicator } from './ProgressIndicator';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { FormStepNavigation } from './FormStepNavigation';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 export type FeatureOption = {
   id: string;
@@ -54,6 +54,7 @@ const featureOptions: FeatureOption[] = [
 ];
 
 export function PremiumValuationForm() {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     identifierType: 'vin',
@@ -117,7 +118,7 @@ export function PremiumValuationForm() {
         description: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
       });
     }
-  }, [vehicle]);
+  }, [vehicle, toast]);
 
   // Check if form is valid for submission
   useEffect(() => {

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useUnifiedDecoder } from './useUnifiedDecoder';
 import { useVinDecoder } from './useVinDecoder';
 import { usePlateLookup } from './usePlateLookup';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 type VehicleInfo = {
   make: string;
@@ -21,6 +21,7 @@ export function useVehicleLookup() {
   const vinDecoder = useVinDecoder();
   const plateLookup = usePlateLookup();
   const unifiedDecoder = useUnifiedDecoder();
+  const { toast } = useToast();
 
   const lookupVehicle = async (identifierType: 'vin' | 'plate', identifier: string, state?: string) => {
     setIsLoading(true);
