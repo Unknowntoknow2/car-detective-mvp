@@ -1,7 +1,4 @@
 
-import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { FormSteps } from './FormSteps';
 import { VehicleIdentificationStep } from './steps/VehicleIdentificationStep';
 import { MileageStep } from './steps/MileageStep';
 import { FuelTypeStep } from './steps/FuelTypeStep';
@@ -9,38 +6,13 @@ import { FeatureSelectionStep } from './steps/FeatureSelectionStep';
 import { ConditionStep } from './steps/ConditionStep';
 import { AccidentHistoryStep } from './steps/AccidentHistoryStep';
 import { ReviewSubmitStep } from './steps/ReviewSubmitStep';
-import { ProgressIndicator } from './ProgressIndicator';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
-import { FormStepNavigation } from './FormStepNavigation';
-import { useToast } from '@/components/ui/use-toast';
-import { PredictionResult } from '@/components/valuation/PredictionResult';
-import { supabase } from '@/integrations/supabase/client';
-
-export type FeatureOption = {
-  id: string;
-  name: string;
-  icon: string;
-  value: number;
-};
-
-export type FormData = {
-  identifierType: 'vin' | 'plate';
-  identifier: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number | null;
-  fuelType: string | null;
-  features: string[];
-  condition: number;
-  conditionLabel: string;
-  hasAccident: boolean;
-  accidentDescription: string;
-  zipCode: string;
-};
+import { FormStepLayout } from './FormStepLayout';
+import { ValuationResult } from './ValuationResult';
+import { usePremiumValuationForm } from '@/hooks/usePremiumValuationForm';
 
 // Feature options for selection step
-const featureOptions: FeatureOption[] = [
+const featureOptions = [
   { id: 'leather', name: 'Leather Seats', icon: 'car', value: 800 },
   { id: 'sunroof', name: 'Sunroof/Moonroof', icon: 'sun', value: 600 },
   { id: 'navigation', name: 'Navigation System', icon: 'map', value: 500 },
@@ -56,298 +28,89 @@ const featureOptions: FeatureOption[] = [
 ];
 
 export function PremiumValuationForm() {
-  const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [valuationId, setValuationId] = useState<string | undefined>(undefined);
-  const [formData, setFormData] = useState<FormData>({
-    identifierType: 'vin',
-    identifier: '',
-    make: '',
-    model: '',
-    year: 0,
-    mileage: null,
-    fuelType: null,
-    features: [],
-    condition: 50, // Default to middle (Fair-Good)
-    conditionLabel: 'Fair',
-    hasAccident: false,
-    accidentDescription: '',
-    zipCode: ''
-  });
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [stepValidities, setStepValidities] = useState({
-    1: false,
-    2: true, // Mileage might be provided from lookup
-    3: true, // Fuel type might be provided from lookup
-    4: true, // Features are optional
-    5: true, // Condition has default
-    6: true, // Accident has default (No)
-    7: true  // Review step is always valid
-  });
-
   const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
-
-  // Update form with vehicle data when lookup completes
-  useEffect(() => {
-    if (vehicle) {
-      setFormData(prev => ({
-        ...prev,
-        make: vehicle.make || '',
-        model: vehicle.model || '',
-        year: vehicle.year || 0,
-        mileage: vehicle.mileage || null,
-        fuelType: vehicle.fuelType || null
-      }));
-      
-      // Determine which steps need to be shown
-      setStepValidities(prev => ({
-        ...prev,
-        1: true,
-        2: Boolean(vehicle.mileage),
-        3: Boolean(vehicle.fuelType)
-      }));
-      
-      // Move to next required step
-      if (!vehicle.mileage) {
-        setCurrentStep(2);
-      } else if (!vehicle.fuelType) {
-        setCurrentStep(3);
-      } else {
-        setCurrentStep(4);
-      }
-      
-      toast({
-        title: "Vehicle Found",
-        description: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-      });
-    }
-  }, [vehicle, toast]);
-
-  // Check if form is valid for submission
-  useEffect(() => {
-    const allStepsValid = Object.values(stepValidities).every(valid => valid);
-    setIsFormValid(allStepsValid);
-  }, [stepValidities]);
-
-  // Handle next step navigation
-  const goToNextStep = () => {
-    if (currentStep < totalSteps) {
-      // Find the next step that needs to be shown
-      let nextStep = currentStep + 1;
-      while (nextStep <= totalSteps && 
-             ((nextStep === 2 && formData.mileage !== null) || 
-              (nextStep === 3 && formData.fuelType !== null))) {
-        nextStep++;
-      }
-      setCurrentStep(nextStep);
-    }
-  };
-
-  // Handle previous step navigation
-  const goToPreviousStep = () => {
-    if (currentStep > 1) {
-      // Find the previous step that needs to be shown
-      let prevStep = currentStep - 1;
-      while (prevStep >= 1 && 
-             ((prevStep === 2 && formData.mileage !== null) || 
-              (prevStep === 3 && formData.fuelType !== null))) {
-        prevStep--;
-      }
-      setCurrentStep(prevStep);
-    }
-  };
-
-  const handleReset = () => {
-    setFormData({
-      identifierType: 'vin',
-      identifier: '',
-      make: '',
-      model: '',
-      year: 0,
-      mileage: null,
-      fuelType: null,
-      features: [],
-      condition: 50,
-      conditionLabel: 'Fair',
-      hasAccident: false,
-      accidentDescription: '',
-      zipCode: ''
-    });
-    setCurrentStep(1);
-    setStepValidities({
-      1: false,
-      2: true,
-      3: true,
-      4: true,
-      5: true,
-      6: true,
-      7: true
-    });
-    setValuationId(undefined);
-  };
-
-  const calculateFeatureValue = (selectedFeatures: string[]): number => {
-    return selectedFeatures.reduce((total, featureId) => {
-      const feature = featureOptions.find(f => f.id === featureId);
-      return total + (feature?.value || 0);
-    }, 0);
-  };
-
-  const handleSubmit = async () => {
-    if (isFormValid) {
-      try {
-        // Gather valuation data
-        const featureValueTotal = calculateFeatureValue(formData.features);
-        const accidentCount = formData.hasAccident ? 1 : 0;
-        
-        // Calculate factors for the database
-        const zipDemandFactor = 1.0; // This would normally be calculated based on zip code
-        const basePrice = formData.year * 100 + 5000; // Simple base price formula
-        const dealerAvgPrice = basePrice * 1.15; // Example dealer price
-        const auctionAvgPrice = basePrice * 0.9; // Example auction price
-        
-        // Insert valuation data
-        const { data, error } = await supabase
-          .from('valuations')
-          .insert({
-            make: formData.make,
-            model: formData.model,
-            year: formData.year,
-            mileage: formData.mileage || 0,
-            condition_score: formData.condition,
-            accident_count: accidentCount,
-            zip_demand_factor: zipDemandFactor,
-            dealer_avg_price: dealerAvgPrice,
-            auction_avg_price: auctionAvgPrice,
-            feature_value_total: featureValueTotal,
-            base_price: basePrice,
-            state: formData.zipCode ? formData.zipCode.substring(0, 2) : null,
-            is_vin_lookup: formData.identifierType === 'vin',
-            vin: formData.identifierType === 'vin' ? formData.identifier : null,
-            plate: formData.identifierType === 'plate' ? formData.identifier : null,
-            user_id: '00000000-0000-0000-0000-000000000000' // Placeholder user ID
-          })
-          .select()
-          .single();
-          
-        if (error) {
-          throw new Error(error.message);
-        }
-        
-        // Store the valuation ID
-        setValuationId(data.id);
-        
-        toast({
-          title: "Valuation Complete",
-          description: "Your premium valuation has been generated successfully.",
-        });
-        
-        console.log("Valuation saved with ID:", data.id);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to save valuation';
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        console.error("Valuation error:", err);
-      }
-    }
-  };
-
-  // Update step validity
-  const updateStepValidity = (step: number, isValid: boolean) => {
-    setStepValidities(prev => ({
-      ...prev,
-      [step]: isValid
-    }));
-  };
-
-  // Total number of steps
-  const totalSteps = 7;
+  const {
+    currentStep,
+    totalSteps,
+    formData,
+    setFormData,
+    isFormValid,
+    valuationId,
+    stepValidities,
+    updateStepValidity,
+    goToNextStep,
+    goToPreviousStep,
+    handleReset,
+    handleSubmit
+  } = usePremiumValuationForm();
 
   return (
-    <div className="space-y-6">
-      <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+    <FormStepLayout
+      currentStep={currentStep}
+      totalSteps={totalSteps}
+      isStepValid={stepValidities[currentStep]}
+      onNext={goToNextStep}
+      onPrevious={goToPreviousStep}
+    >
+      <VehicleIdentificationStep 
+        step={1} 
+        formData={formData} 
+        setFormData={setFormData}
+        updateValidity={updateStepValidity}
+        lookupVehicle={lookupVehicle}
+        isLoading={isLoading}
+      />
       
-      <Card className="overflow-hidden border-2 border-gray-200 shadow-lg">
-        <div className="p-6">
-          <FormSteps currentStep={currentStep}>
-            <VehicleIdentificationStep 
-              step={1} 
-              formData={formData} 
-              setFormData={setFormData}
-              updateValidity={updateStepValidity}
-              lookupVehicle={lookupVehicle}
-              isLoading={isLoading}
-            />
-            
-            {formData.mileage === null && (
-              <MileageStep 
-                step={2} 
-                formData={formData} 
-                setFormData={setFormData}
-                updateValidity={updateStepValidity}
-              />
-            )}
-            
-            {formData.fuelType === null && (
-              <FuelTypeStep 
-                step={3} 
-                formData={formData} 
-                setFormData={setFormData}
-                updateValidity={updateStepValidity}
-              />
-            )}
-            
-            <FeatureSelectionStep 
-              step={4} 
-              formData={formData} 
-              setFormData={setFormData}
-              updateValidity={updateStepValidity}
-              featureOptions={featureOptions}
-            />
-            
-            <ConditionStep 
-              step={5} 
-              formData={formData} 
-              setFormData={setFormData}
-              updateValidity={updateStepValidity}
-            />
-            
-            <AccidentHistoryStep 
-              step={6} 
-              formData={formData} 
-              setFormData={setFormData}
-              updateValidity={updateStepValidity}
-            />
-            
-            <ReviewSubmitStep 
-              step={7} 
-              formData={formData}
-              featureOptions={featureOptions} 
-              handleSubmit={handleSubmit}
-              handleReset={handleReset}
-              isFormValid={isFormValid}
-            />
-          </FormSteps>
-          
-          <FormStepNavigation 
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            goToNextStep={goToNextStep}
-            goToPreviousStep={goToPreviousStep}
-            isStepValid={stepValidities[currentStep]}
-          />
-        </div>
-      </Card>
-      
-      {valuationId && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
-          <PredictionResult valuationId={valuationId} />
-        </div>
+      {formData.mileage === null && (
+        <MileageStep 
+          step={2} 
+          formData={formData} 
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
       )}
-    </div>
+      
+      {formData.fuelType === null && (
+        <FuelTypeStep 
+          step={3} 
+          formData={formData} 
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      )}
+      
+      <FeatureSelectionStep 
+        step={4} 
+        formData={formData} 
+        setFormData={setFormData}
+        updateValidity={updateStepValidity}
+        featureOptions={featureOptions}
+      />
+      
+      <ConditionStep 
+        step={5} 
+        formData={formData} 
+        setFormData={setFormData}
+        updateValidity={updateStepValidity}
+      />
+      
+      <AccidentHistoryStep 
+        step={6} 
+        formData={formData} 
+        setFormData={setFormData}
+        updateValidity={updateStepValidity}
+      />
+      
+      <ReviewSubmitStep 
+        step={7} 
+        formData={formData}
+        featureOptions={featureOptions} 
+        handleSubmit={handleSubmit}
+        handleReset={handleReset}
+        isFormValid={isFormValid}
+      />
+
+      <ValuationResult valuationId={valuationId} />
+    </FormStepLayout>
   );
 }
