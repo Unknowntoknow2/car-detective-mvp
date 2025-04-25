@@ -1,18 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MarketData, MarketListingInsert } from '@/types/marketListings';
+import { MarketData, MarketListing, MarketListingInsert } from '@/types/marketListings';
 
-// Define a simplified return type for the fetch operation
-type FetchListingsResult = {
-  data: {
-    source: string;
-    price: number;
-    url: string | null;
-  }[] | null;
-  error: Error | null;
-}
-
-export const fetchMarketListings = async (make: string, model: string, year: number): Promise<FetchListingsResult> => {
+// Use a more explicit type that avoids deep inference from Supabase's return type
+export const fetchMarketListings = async (make: string, model: string, year: number) => {
   const response = await supabase
     .from('market_listings')
     .select('source, price, url')
@@ -22,7 +13,11 @@ export const fetchMarketListings = async (make: string, model: string, year: num
     .order('created_at', { ascending: false })
     .limit(10);
     
-  return response;
+  // Cast the response to avoid excessive type inference
+  return {
+    data: response.data as MarketListing[] | null,
+    error: response.error
+  };
 };
 
 export const fetchNewListings = async (zipCode: string, make: string, model: string, year: number) => {
