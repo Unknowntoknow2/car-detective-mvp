@@ -1,11 +1,13 @@
 
 import React from 'react';
-import { ShieldCheck, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import { useVehicleHistory } from '@/hooks/useVehicleHistory';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface VehicleHistoryProps {
-  historyData: {
+  vin?: string;
+  valuationId?: string;
+  historyData?: {
     reportUrl: string;
     reportData: {
       owners: number;
@@ -18,7 +20,53 @@ interface VehicleHistoryProps {
   };
 }
 
-export const VehicleHistoryTab: React.FC<VehicleHistoryProps> = ({ historyData }) => {
+export const VehicleHistoryTab: React.FC<VehicleHistoryProps> = ({ 
+  vin, 
+  valuationId,
+  historyData: propHistoryData
+}) => {
+  const { historyData: fetchedHistoryData, isLoading, error } = useVehicleHistory(
+    vin || '', 
+    valuationId || ''
+  );
+  
+  const historyData = propHistoryData || fetchedHistoryData;
+  
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-6 w-36 rounded-full" />
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {Array(4).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-lg" />
+          ))}
+        </div>
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <div className="flex justify-center">
+          <Skeleton className="h-10 w-48 rounded-lg" />
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !historyData) {
+    return (
+      <div className="p-8 text-center">
+        <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium">Could not load vehicle history</h3>
+        <p className="text-muted-foreground mt-2">
+          {error || "Vehicle history data is not available for this vehicle."}
+        </p>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Try again later or contact support if the problem persists.
+        </p>
+      </div>
+    );
+  }
+  
   const { reportUrl, reportData } = historyData;
   const hasIssues = reportData.accidentsReported > 0;
 

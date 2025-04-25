@@ -1,8 +1,7 @@
 
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useRef } from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { HeroSection } from '@/components/premium/HeroSection';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
 import { FeaturesSection } from '@/components/premium/FeaturesSection';
@@ -20,6 +19,15 @@ export default function PremiumPage() {
   const featuresRef = useRef<HTMLDivElement>(null);
   const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
+  
+  // State for vehicle data - this would be populated from form submission
+  const [vehicleData, setVehicleData] = useState({
+    vin: "1HGCM82633A004352", // Example VIN
+    make: "Honda",
+    model: "Accord",
+    year: 2022,
+    zipCode: "90210"
+  });
   
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -75,8 +83,10 @@ export default function PremiumPage() {
             </TabsContent>
             <TabsContent value="history">
               <VehicleHistoryTab 
+                vin={vehicleData.vin}
+                valuationId={vehicleData.vin}
                 historyData={{
-                  reportUrl: "https://mock-carfax.com/report/123",
+                  reportUrl: "https://www.carfax.com/VehicleHistory/p/Report.cfx?partner=SBS_0&vin=" + vehicleData.vin,
                   reportData: {
                     owners: 2,
                     accidentsReported: 1,
@@ -90,6 +100,10 @@ export default function PremiumPage() {
             </TabsContent>
             <TabsContent value="market">
               <MarketOffersTab 
+                zipCode={vehicleData.zipCode}
+                make={vehicleData.make}
+                model={vehicleData.model}
+                year={vehicleData.year}
                 averages={{
                   'Facebook Marketplace': 24500,
                   'Craigslist': 23800,

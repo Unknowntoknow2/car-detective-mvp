@@ -1,16 +1,69 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, ExternalLink } from 'lucide-react';
+import { DollarSign, ExternalLink, AlertTriangle, Loader2 } from 'lucide-react';
 import { useMarketListings } from '@/hooks/useMarketListings';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface MarketOffersProps {
-  averages: { [source: string]: number };
-  sources: { [source: string]: string };
+  zipCode?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  averages?: { [source: string]: number };
+  sources?: { [source: string]: string };
 }
 
-export const MarketOffersTab: React.FC<MarketOffersProps> = ({ averages, sources }) => {
+export const MarketOffersTab: React.FC<MarketOffersProps> = ({ 
+  zipCode, 
+  make, 
+  model, 
+  year,
+  averages: propAverages,
+  sources: propSources
+}) => {
+  const { marketData, isLoading, error } = useMarketListings(
+    zipCode || '',
+    make || '',
+    model || '',
+    year || 0
+  );
+  
+  const averages = propAverages || marketData?.averages;
+  const sources = propSources || marketData?.sources;
+  
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-6 w-36 rounded-full" />
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {Array(4).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          ))}
+        </div>
+        <Skeleton className="h-24 w-full rounded-lg" />
+      </div>
+    );
+  }
+  
+  if (error || !averages || !sources) {
+    return (
+      <div className="p-8 text-center">
+        <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium">Could not load market offers</h3>
+        <p className="text-muted-foreground mt-2">
+          {error || "Market data is not available for this vehicle."}
+        </p>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Try providing more details about your vehicle or try again later.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
