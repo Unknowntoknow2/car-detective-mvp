@@ -1,9 +1,10 @@
 
-import { Label } from '@/components/ui/label';
-import { FormData } from '@/types/premium-valuation';
 import { useEffect } from 'react';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import { FormData } from '@/types/premium-valuation';
+import { AlertTriangle } from 'lucide-react';
 
 interface AccidentHistoryStepProps {
   step: number;
@@ -18,28 +19,21 @@ export function AccidentHistoryStep({
   setFormData,
   updateValidity
 }: AccidentHistoryStepProps) {
-  // This step is valid by default (No accidents)
   useEffect(() => {
-    updateValidity(step, true);
-  }, []);
+    const isValid = !formData.hasAccident || (formData.hasAccident && formData.accidentDescription.trim() !== '');
+    updateValidity(step, isValid);
+  }, [formData.hasAccident, formData.accidentDescription, step, updateValidity]);
 
   const handleAccidentChange = (value: string) => {
-    if (value === 'yes' || value === 'no') {
-      const hasAccident = value === 'yes';
-      
-      setFormData(prev => ({
-        ...prev,
-        hasAccident,
-        // Clear accident description if "No" is selected
-        accidentDescription: hasAccident ? prev.accidentDescription : ''
-      }));
-      
-      // This step is always valid regardless of selection
-      updateValidity(step, true);
-    }
+    const hasAccident = value === "true";
+    setFormData(prev => ({
+      ...prev,
+      hasAccident,
+      accidentDescription: hasAccident ? prev.accidentDescription : ''
+    }));
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       accidentDescription: e.target.value
@@ -54,41 +48,47 @@ export function AccidentHistoryStep({
           Information about previous accidents helps provide a more accurate valuation.
         </p>
       </div>
-      
+
       <div className="space-y-6">
         <div>
           <Label className="text-gray-700 mb-3 block">
             Has this vehicle ever been in an accident?
           </Label>
-          
-          <ToggleGroup 
-            type="single" 
-            value={formData.hasAccident ? 'yes' : 'no'}
+          <RadioGroup
+            value={String(formData.hasAccident)}
             onValueChange={handleAccidentChange}
-            className="justify-start"
+            className="flex space-x-4 mt-2"
           >
-            <ToggleGroupItem value="no" className="bg-white">No</ToggleGroupItem>
-            <ToggleGroupItem value="yes" className="bg-white">Yes</ToggleGroupItem>
-          </ToggleGroup>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="acc-no" />
+              <Label htmlFor="acc-no">No</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="acc-yes" />
+              <Label htmlFor="acc-yes">Yes</Label>
+            </div>
+          </RadioGroup>
         </div>
-        
+
         {formData.hasAccident && (
-          <div className="space-y-3 animate-fade-in">
-            <Label htmlFor="accident-description" className="text-gray-700">
-              Describe the accident(s) briefly
-            </Label>
+          <div className="space-y-3 animate-in fade-in">
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="h-4 w-4 text-warning mt-1" />
+              <Label htmlFor="acc-details" className="text-gray-700">
+                Please describe the accident(s)
+              </Label>
+            </div>
             
             <Textarea
-              id="accident-description"
+              id="acc-details"
+              placeholder="When did it occur? What was the severity? What repairs were made?"
               value={formData.accidentDescription}
-              onChange={handleDescriptionChange}
-              placeholder="Please describe when the accident occurred, the severity, and any repairs made..."
-              rows={4}
-              className="w-full"
+              onChange={handleDetailsChange}
+              className="min-h-[100px]"
             />
             
             <p className="text-sm text-gray-500">
-              Providing accurate details about previous accidents helps us determine how they impact your vehicle's value.
+              Providing accurate details about previous accidents helps us determine their impact on the vehicle's value.
             </p>
           </div>
         )}
