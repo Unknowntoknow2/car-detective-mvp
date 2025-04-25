@@ -1,3 +1,4 @@
+
 export interface MarketData {
   averages: Record<string, number>;
   sources: Record<string, string>;
@@ -14,4 +15,9 @@ export interface MarketListingInsert extends MarketListing {
   make: string | null;
   model: string | null;
   year: number | null;
+}
+
+export interface MarketListingsResponse {
+  data: MarketListing[] | null;
+  error: any;
 }

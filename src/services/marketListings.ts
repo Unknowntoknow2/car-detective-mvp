@@ -1,7 +1,8 @@
-import { supabase } from '@/integrations/supabase/client';
-import { MarketData, MarketListing, MarketListingInsert } from '@/types/marketListings';
 
-export const fetchMarketListings = async (make: string, model: string, year: number) => {
+import { supabase } from '@/integrations/supabase/client';
+import { MarketData, MarketListing, MarketListingInsert, MarketListingsResponse } from '@/types/marketListings';
+
+export const fetchMarketListings = async (make: string, model: string, year: number): Promise<MarketListingsResponse> => {
   // Get market listings from database with explicit field selection
   const { data, error } = await supabase
     .from('market_listings')
