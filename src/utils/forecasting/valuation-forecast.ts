@@ -1,4 +1,5 @@
 
+import { linearRegression } from 'simple-statistics';
 import { supabase } from '@/integrations/supabase/client';
 
 export type ForecastPoint = {
@@ -15,6 +16,28 @@ export type ForecastResult = {
   lowestValue: number;
   highestValue: number;
 };
+
+function runLinearForecast(prices: number[], months: string[]) {
+  const x = prices.map((_, i) => i);
+  const y = prices;
+
+  // Fit linear model y = m*x + b
+  const { m, b } = linearRegression(x.map((xi, i) => [xi, y[i]]));
+
+  // Build forecast for next 12 months
+  const lastDate = new Date(months[months.length - 1]);
+  const forecastMonths: string[] = [];
+  const forecastValues: number[] = [];
+
+  for (let i = 1; i <= 12; i++) {
+    const d = new Date(lastDate);
+    d.setMonth(d.getMonth() + i);
+    forecastMonths.push(d.toLocaleString('default', { month: 'short', year: 'numeric' }));
+    forecastValues.push(Math.round(m * (x.length + i - 1) + b));
+  }
+
+  return { months: forecastMonths, values: forecastValues };
+}
 
 export async function generateValuationForecast(
   valuationId: string
