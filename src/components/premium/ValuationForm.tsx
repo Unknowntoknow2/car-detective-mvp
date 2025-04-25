@@ -12,6 +12,7 @@ import { RefObject } from 'react';
 import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 interface ValuationFormProps {
   formRef: RefObject<HTMLDivElement>;
@@ -89,12 +90,7 @@ export function ValuationForm({ formRef }: ValuationFormProps) {
                 />
               </CardHeader>
               <CardContent className="pt-8">
-                <VinDecoderForm 
-                  onSubmit={handleSubmit} 
-                  isLoading={isSubmitting} 
-                  submitButtonText="Get Premium Valuation with CARFAX"
-                  isPremium={true}
-                />
+                <VinDecoderForm />
               </CardContent>
             </Card>
           </TabsContent>
@@ -109,12 +105,7 @@ export function ValuationForm({ formRef }: ValuationFormProps) {
                 />
               </CardHeader>
               <CardContent className="pt-8">
-                <PlateDecoderForm 
-                  onSubmit={handleSubmit} 
-                  isLoading={isSubmitting}
-                  submitButtonText="Get Premium Valuation with CARFAX"
-                  isPremium={true}
-                />
+                <PlateDecoderForm />
               </CardContent>
             </Card>
           </TabsContent>
@@ -131,9 +122,9 @@ export function ValuationForm({ formRef }: ValuationFormProps) {
               <CardContent className="pt-8">
                 <ManualEntryForm 
                   onSubmit={handleSubmit}
+                  isLoading={isSubmitting}
                   submitButtonText="Get Premium Valuation with CARFAX"
                   isPremium={true}
-                  isLoading={isSubmitting}
                 />
               </CardContent>
             </Card>
