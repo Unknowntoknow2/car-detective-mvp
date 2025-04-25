@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePrediction } from "@/hooks/usePrediction";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 interface PredictionResultProps {
   valuationId?: string;
@@ -10,6 +11,13 @@ interface PredictionResultProps {
 
 export function PredictionResult({ valuationId }: PredictionResultProps) {
   const { price, isLoading, error, getPrediction } = usePrediction(valuationId);
+
+  // Auto-fetch prediction when component mounts and valuationId is available
+  useEffect(() => {
+    if (valuationId) {
+      getPrediction();
+    }
+  }, [valuationId]);
 
   if (!valuationId) {
     return (
@@ -37,6 +45,11 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
 
         {error ? (
           <p className="text-destructive">{error}</p>
+        ) : isLoading ? (
+          <div className="flex items-center space-x-2">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <p className="text-muted-foreground">Calculating...</p>
+          </div>
         ) : price ? (
           <p className="text-3xl font-bold">${price.toLocaleString()}</p>
         ) : (

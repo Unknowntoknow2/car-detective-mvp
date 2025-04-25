@@ -13,6 +13,8 @@ import { ProgressIndicator } from './ProgressIndicator';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { FormStepNavigation } from './FormStepNavigation';
 import { useToast } from '@/components/ui/use-toast';
+import { PredictionResult } from '@/components/valuation/PredictionResult';
+import { supabase } from '@/integrations/supabase/client';
 
 export type FeatureOption = {
   id: string;
@@ -56,6 +58,7 @@ const featureOptions: FeatureOption[] = [
 export function PremiumValuationForm() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [valuationId, setValuationId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     identifierType: 'vin',
     identifier: '',
@@ -180,16 +183,71 @@ export function PremiumValuationForm() {
       6: true,
       7: true
     });
+    setValuationId(null);
   };
 
-  const handleSubmit = () => {
+  const calculateFeatureValue = (selectedFeatures: string[]): number => {
+    return selectedFeatures.reduce((total, featureId) => {
+      const feature = featureOptions.find(f => f.id === featureId);
+      return total + (feature?.value || 0);
+    }, 0);
+  };
+
+  const handleSubmit = async () => {
     if (isFormValid) {
-      toast({
-        title: "Valuation Complete",
-        description: "Your premium valuation has been generated successfully.",
-      });
-      // In a real app, you would submit the data to your backend here
-      console.log("Form submitted:", formData);
+      try {
+        // Gather valuation data
+        const featureValueTotal = calculateFeatureValue(formData.features);
+        const accidentCount = formData.hasAccident ? 1 : 0;
+        
+        // Calculate factors for the database
+        const zipDemandFactor = 1.0; // This would normally be calculated based on zip code
+        const basePrice = formData.year * 100 + 5000; // Simple base price formula
+        const dealerAvgPrice = basePrice * 1.15; // Example dealer price
+        const auctionAvgPrice = basePrice * 0.9; // Example auction price
+        
+        // Insert valuation data
+        const { data, error } = await supabase
+          .from('valuations')
+          .insert({
+            make: formData.make,
+            model: formData.model,
+            year: formData.year,
+            mileage: formData.mileage || 0,
+            condition_score: formData.condition,
+            accident_count: accidentCount,
+            zip_demand_factor: zipDemandFactor,
+            dealer_avg_price: dealerAvgPrice,
+            auction_avg_price: auctionAvgPrice,
+            feature_value_total: featureValueTotal,
+            base_price: basePrice,
+            zip_code: formData.zipCode || '00000'
+          })
+          .select()
+          .single();
+          
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        // Store the valuation ID
+        setValuationId(data.id);
+        
+        toast({
+          title: "Valuation Complete",
+          description: "Your premium valuation has been generated successfully.",
+        });
+        
+        console.log("Valuation saved with ID:", data.id);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to save valuation';
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        console.error("Valuation error:", err);
+      }
     }
   };
 
@@ -279,6 +337,13 @@ export function PremiumValuationForm() {
           />
         </div>
       </Card>
+      
+      {valuationId && (
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
+          <PredictionResult valuationId={valuationId} />
+        </div>
+      )}
     </div>
   );
 }
