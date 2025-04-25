@@ -2,13 +2,17 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MarketData, MarketListing, MarketListingInsert, MarketListingsResponse } from '@/types/marketListings';
 
+/**
+ * Fetch the last 10 market listings for a given make/model/year.
+ * We use `any` on the from() call to stop TS from inferring your entire DB schema.
+ */
 export const fetchMarketListings = async (
   make: string, 
   model: string, 
   year: number
 ): Promise<MarketListingsResponse> => {
   const { data, error } = await supabase
-    .from('market_listings')
+    .from('market_listings') as any
     .select('source, price, url')
     .eq('make', make)
     .eq('model', model)
@@ -17,7 +21,7 @@ export const fetchMarketListings = async (
     .limit(10);
     
   return {
-    data: data as MarketListing[] | null,
+    data: (data as MarketListing[] | null),
     error
   };
 };
@@ -46,5 +50,6 @@ export const storeMarketListings = async (
     })
   );
   
-  await supabase.from('market_listings').insert(inserts);
+  // Using any to prevent type inference issues
+  await (supabase.from('market_listings') as any).insert(inserts);
 };
