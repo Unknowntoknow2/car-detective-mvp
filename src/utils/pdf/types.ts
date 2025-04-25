@@ -1,3 +1,4 @@
+
 import { CarfaxData } from '../carfax/mockCarfaxService';
 import { ForecastResult } from '../forecasting/valuation-forecast';
 
@@ -20,6 +21,7 @@ export interface ReportData {
   adjustments?: { label: string; value: number }[];
   carfaxData?: CarfaxData;
   isPremium?: boolean;
+  bodyType?: string;
 }
 
 export interface ValuationReportOptions {
@@ -34,6 +36,8 @@ export interface ValuationReportOptions {
   }>;
   carfaxData?: CarfaxData;
   forecast?: ForecastData;
+  fuelType?: string;
+  isPremium?: boolean;
 }
 
 export interface ForecastData {

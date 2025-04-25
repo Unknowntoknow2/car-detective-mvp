@@ -50,5 +50,9 @@ export function convertVehicleInfoToReportData(
     baseReportData.transmission = vehicle.transmission || undefined;
   }
 
+  if ('bodyType' in vehicle) {
+    baseReportData.bodyType = vehicle.bodyType;
+  }
+
   return baseReportData;
 }
