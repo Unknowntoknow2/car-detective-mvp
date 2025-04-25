@@ -14,5 +14,13 @@
   },
   "announcements": {
     "premium": "¡Nuevo! Ofertas superiores a concesionarios y promedios de precios del mercado ahora disponibles en Valuación Premium."
+  },
+  "privacy": {
+    "cookieTitle": "Consentimiento de Cookies",
+    "cookieMessage": "Utilizamos cookies para mejorar tu experiencia. Al continuar, aceptas nuestro uso de cookies de acuerdo con nuestra",
+    "privacyPolicy": "Política de Privacidad",
+    "accept": "Aceptar Todo",
+    "decline": "Rechazar",
+    "close": "Cerrar"
   }
 }

@@ -14,5 +14,13 @@
   },
   "announcements": {
     "premium": "New! Dealer-beat Offers & Marketplace Price Averages now live in Premium Valuation."
+  },
+  "privacy": {
+    "cookieTitle": "Cookie Consent",
+    "cookieMessage": "We use cookies to improve your experience. By continuing, you consent to our use of cookies in accordance with our",
+    "privacyPolicy": "Privacy Policy",
+    "accept": "Accept All",
+    "decline": "Decline",
+    "close": "Close"
   }
 }

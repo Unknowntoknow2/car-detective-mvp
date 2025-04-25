@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
+import { CookieBanner } from "@/components/privacy/CookieBanner";
 import Index from "./pages/Index";
 import VinLookupPage from "./pages/VinLookupPage";
 import PlateLookupPage from "./pages/PlateLookupPage";
@@ -21,6 +23,7 @@ import ProfilePage from "./pages/ProfilePage";
 import DealerOffersPage from "./pages/dealer/DealerOffersPage";
 import PremiumPage from "./pages/PremiumPage";
 import FreeValuationPage from "./pages/FreeValuationPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 // Import i18n config
 import './i18n/config';
@@ -46,6 +49,7 @@ const App = () => (
             <Route path="/auth/forgot-email" element={<AuthPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route 
               path="/profile" 
               element={
@@ -79,6 +83,7 @@ const App = () => (
             <Route path="/premium" element={<PremiumPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieBanner />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
