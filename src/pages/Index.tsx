@@ -5,6 +5,7 @@ import { KeyFeatures } from "@/components/home/KeyFeatures";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { ComparisonTable } from "@/components/home/ComparisonTable";
 import { ValuePropositionSection } from "@/components/home/ValuePropositionSection";
+import { PremiumServicesGrid } from "@/components/home/PremiumServicesGrid";
 import { PremiumTabs } from "@/components/premium/PremiumTabs";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -23,6 +24,7 @@ export default function Index() {
         <HeroSection onFreeValuationClick={scrollToValuation} />
         <KeyFeatures />
         <ValuePropositionSection />
+        <PremiumServicesGrid />
         <TestimonialsSection />
         <ComparisonTable />
         <div ref={valuationRef}>
