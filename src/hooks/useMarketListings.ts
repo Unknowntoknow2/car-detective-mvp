@@ -8,17 +8,18 @@ interface MarketData {
   sources: { [source: string]: string };
 }
 
+// Define a separate interface for the market listing DB entry to avoid deep type inference
 interface MarketListing {
   id?: string;
   source: string;
   price: number;
-  url?: string;
+  url?: string | null;
   valuation_id: string;
-  created_at?: string;
-  listing_date?: string;
-  make?: string;
-  model?: string;
-  year?: number;
+  created_at?: string | null;
+  listing_date?: string | null;
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
 }
 
 export const useMarketListings = (zipCode: string, make: string, model: string, year: number) => {
@@ -44,10 +45,14 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           .order('created_at', { ascending: false })
           .limit(10);
         
-        // Explicitly cast data to MarketListing[] type to avoid deep type inference
-        const existingListings = data as MarketListing[] | null;
+        // Use a simpler type assertion without relying on deep inference
+        const existingListings = (data || []) as Array<{
+          source: string;
+          price: number;
+          url?: string | null;
+        }>;
 
-        if (!fetchError && existingListings && existingListings.length > 0) {
+        if (!fetchError && existingListings.length > 0) {
           // Process existing listings into the format we need
           const sources: Record<string, string> = {};
           const pricesBySource: Record<string, number[]> = {};
@@ -81,22 +86,24 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
         if (responseError) throw responseError;
         
         if (responseData) {
-          // Explicitly cast to MarketData to avoid deep type inference
-          const typedData = responseData as MarketData;
-          setMarketData(typedData);
+          // Use a simple type assertion to avoid deep inference
+          const marketResponse = responseData as unknown as MarketData;
+          setMarketData(marketResponse);
           
           // Store the market listings in our database for future reference
-          for (const [source, price] of Object.entries(typedData.averages)) {
-            // Insert each market listing individually
-            await supabase.from('market_listings').insert({
+          for (const [source, price] of Object.entries(marketResponse.averages)) {
+            const newListing: MarketListing = {
               source,
-              price: price as number,
-              url: typedData.sources[source],
+              price: Number(price),
+              url: marketResponse.sources[source],
               make,
               model,
               year,
               valuation_id: crypto.randomUUID()
-            } as MarketListing);
+            };
+            
+            // Insert each listing individually with a clean, simple object
+            await supabase.from('market_listings').insert(newListing);
           }
         }
       } catch (err) {
