@@ -18,6 +18,7 @@ import { CarfaxSummary } from './CarfaxSummary';
 import { VehicleHistory } from './VehicleHistory';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
+import { MarketingBanner } from '@/components/marketing/MarketingBanner';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -75,6 +76,17 @@ export const VehicleInfoCard = ({
       </CardHeader>
       <CardContent>
         <VehicleDetailsGrid vehicleInfo={vehicleInfo} />
+        
+        {!carfaxData && (
+          <div className="my-6">
+            <MarketingBanner 
+              headline="Want the complete CARFAX® history report?"
+              subtext="Upgrade to Premium and get full vehicle history, accident details, service records, and more."
+              ctaText="Get Premium with CARFAX®"
+              ctaHref="/premium"
+            />
+          </div>
+        )}
         
         {carfaxData && <CarfaxSummary carfaxData={carfaxData} />}
         
