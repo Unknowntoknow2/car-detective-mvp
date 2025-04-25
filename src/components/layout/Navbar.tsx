@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,16 +28,15 @@ export function Navbar() {
           </span>
         </Link>
         
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1">
           <NavLink href="/">Home</NavLink>
-          <NavLink href="/valuations">Valuations</NavLink>
+          <NavLink href="/free">Free Valuation</NavLink>
           <NavLink href="/premium" isActive>Premium</NavLink>
+          <NavLink href="/valuations">Valuations</NavLink>
           <NavLink href="/about">About</NavLink>
           <NavLink href="/contact">Contact</NavLink>
         </nav>
         
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden p-2 rounded-md hover:bg-surface"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -50,7 +48,6 @@ export function Navbar() {
           )}
         </button>
         
-        {/* Auth Buttons & User Menu */}
         <div className="hidden md:flex items-center space-x-4">
           {isLoading ? (
             <div className="h-9 w-24 bg-surface animate-pulse rounded-md"></div>
@@ -116,13 +113,13 @@ export function Navbar() {
         </div>
       </div>
       
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-border animate-fade-in">
           <div className="px-4 py-2 space-y-1">
             <MobileNavLink href="/">Home</MobileNavLink>
-            <MobileNavLink href="/valuations">Valuations</MobileNavLink>
+            <MobileNavLink href="/free">Free Valuation</MobileNavLink>
             <MobileNavLink href="/premium" isActive>Premium</MobileNavLink>
+            <MobileNavLink href="/valuations">Valuations</MobileNavLink>
             <MobileNavLink href="/about">About</MobileNavLink>
             <MobileNavLink href="/contact">Contact</MobileNavLink>
             
@@ -159,7 +156,6 @@ export function Navbar() {
   );
 }
 
-// Desktop Navigation Link
 function NavLink({ href, children, isActive = false }: { 
   href: string; 
   children: React.ReactNode;
@@ -182,7 +178,6 @@ function NavLink({ href, children, isActive = false }: {
   );
 }
 
-// Mobile Navigation Link
 function MobileNavLink({ href, children, isActive = false }: { 
   href: string; 
   children: React.ReactNode;
@@ -202,7 +197,6 @@ function MobileNavLink({ href, children, isActive = false }: {
   );
 }
 
-// Simple file icon
 const FileIcon = ({ className }: { className?: string }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 

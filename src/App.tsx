@@ -19,6 +19,7 @@ import DealerSignup from "./pages/dealer/signup";
 import ProfilePage from "./pages/ProfilePage";
 import DealerOffersPage from "./pages/dealer/DealerOffersPage";
 import PremiumPage from "./pages/PremiumPage";
+import FreeValuationPage from "./pages/FreeValuationPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/free" element={<FreeValuationPage />} />
             <Route path="/lookup/vin" element={<VinLookupPage />} />
             <Route path="/lookup/plate" element={<PlateLookupPage />} />
             <Route path="/lookup/manual" element={<ManualLookupPage />} />
