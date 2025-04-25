@@ -9,3 +9,9 @@ verify_jwt = false
 
 [functions.valuation-forecast]
 verify_jwt = true
+
+[functions.decode-vin]
+verify_jwt = false
+
+[functions.unified-decode]
+verify_jwt = false

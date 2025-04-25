@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
 
 interface VinDecoderResult {
   vin: string;
@@ -24,16 +26,17 @@ export function useVinDecoder() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/decode-vin?vin=${vin}`);
+      // Call the Supabase edge function directly
+      const { data, error } = await supabase.functions.invoke('decode-vin', {
+        body: { vin }
+      });
       
-      if (!response.ok) {
-        throw new Error(`VIN lookup failed: ${response.statusText}`);
+      if (error) {
+        throw new Error(`VIN lookup failed: ${error.message}`);
       }
       
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
+      if (!data || data.error) {
+        throw new Error(data?.error || 'Invalid response from VIN decoder');
       }
       
       const decodedVehicle: VinDecoderResult = {
@@ -42,7 +45,7 @@ export function useVinDecoder() {
         model: data.model || 'Unknown',
         year: data.year || 0,
         trim: data.trim,
-        fuelType: data.fuel_type,
+        fuelType: data.fuelType || data.fuel_type,
         engine: data.engine
       };
       
@@ -62,6 +65,7 @@ export function useVinDecoder() {
         variant: "destructive"
       });
       
+      console.error('VIN decode error:', err);
       return null;
     } finally {
       setIsLoading(false);

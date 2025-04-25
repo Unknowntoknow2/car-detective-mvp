@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { toast } from 'sonner';
 
 type DecodeType = 'vin' | 'plate' | 'manual';
 
@@ -34,6 +35,7 @@ export function useUnifiedDecoder() {
     setError(null);
     
     try {
+      // Use the Supabase edge function directly
       const { data, error: fnError } = await supabase.functions.invoke('unified-decode', {
         body: {
           type,
@@ -46,11 +48,15 @@ export function useUnifiedDecoder() {
       
       const decodedInfo = data.decoded as DecodedVehicleInfo;
       setVehicleInfo(decodedInfo);
+      
+      toast.success(`Found: ${decodedInfo.year} ${decodedInfo.make} ${decodedInfo.model}`);
       return decodedInfo;
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to decode vehicle information';
       setError(errorMessage);
+      toast.error(errorMessage);
+      console.error('Decode error:', err);
       return null;
     } finally {
       setIsLoading(false);
