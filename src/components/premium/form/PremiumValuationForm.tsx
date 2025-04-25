@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VehicleIdentificationStep } from './steps/VehicleIdentificationStep';
-import { MileageStep } from './steps/MileageStep';
+import MileageStep from './steps/MileageStep';
 import { FuelTypeStep } from './steps/FuelTypeStep';
 import { FeatureSelectionStep } from './steps/FeatureSelectionStep';
 import { ConditionStep } from './steps/ConditionStep';
@@ -43,7 +42,6 @@ export function PremiumValuationForm() {
   const [stepCompletionStatus, setStepCompletionStatus] = useState<Record<number, boolean>>({});
   const { loadSavedData, clearSavedForm } = useFormAutosave(formData);
   
-  // Initialize form data from localStorage on component mount
   useEffect(() => {
     if (initialLoad) {
       const savedFormData = loadSavedData();
@@ -54,7 +52,6 @@ export function PremiumValuationForm() {
     }
   }, [initialLoad, loadSavedData, setFormData]);
   
-  // Update step completion status based on step validities
   useEffect(() => {
     setStepCompletionStatus(prevStatus => ({
       ...prevStatus,
@@ -62,13 +59,11 @@ export function PremiumValuationForm() {
     }));
   }, [stepValidities, currentStep]);
   
-  // Enhanced reset function
   const handleFullReset = () => {
     handleReset();
     clearSavedForm();
   };
 
-  // Encouraging messages for each step
   const getStepEncouragementMessage = () => {
     switch (currentStep) {
       case 1: return "Start by identifying your vehicle";
@@ -82,7 +77,6 @@ export function PremiumValuationForm() {
     }
   };
 
-  // Wrap step content with animation
   const renderStepWithAnimation = (stepContent: React.ReactNode) => (
     <AnimatePresence mode="wait">
       <motion.div
