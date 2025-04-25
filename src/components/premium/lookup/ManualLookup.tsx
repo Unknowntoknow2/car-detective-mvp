@@ -1,3 +1,4 @@
+
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,7 +17,7 @@ export function ManualLookup({
         <div className="space-y-6">
           <div>
             <Label>Make</Label>
-            <Select onValueChange={setMake} className="z-50">
+            <Select onValueChange={setMake}>
               <SelectTrigger>
                 <SelectValue placeholder="Select Make" />
               </SelectTrigger>
@@ -29,7 +30,7 @@ export function ManualLookup({
           </div>
           <div>
             <Label>Model</Label>
-            <Select onValueChange={setModel} disabled={!make} className="z-50">
+            <Select onValueChange={setModel} disabled={!make}>
               <SelectTrigger>
                 <SelectValue placeholder={make? 'Select Model':'Select make first'} />
               </SelectTrigger>
@@ -90,7 +91,7 @@ export function ManualLookup({
               defaultValue={[condition]}
               max={100}
               step={1}
-              onValueChange={[v=>setCondition(v)]}
+              onValueChange={(values) => setCondition(values[0])}
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>Poor</span><span>Fair</span><span>Good</span><span>Excellent</span>
