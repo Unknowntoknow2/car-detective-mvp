@@ -1,15 +1,15 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LookupTabs } from './lookup/LookupTabs';
 import { FeatureGrid } from './features/FeatureGrid';
 import { SectionHeader } from '@/components/ui/design-system';
-import { Form } from '@/components/ui/form';
 import { PremiumFields } from '@/components/lookup/form-parts/PremiumFields';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AccidentDetails } from '@/components/lookup/types/manualEntry';
+import { Shield, FileText, Car } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function PremiumValuationSection() {
   const navigate = useNavigate();
@@ -76,10 +76,8 @@ export default function PremiumValuationSection() {
     }
   };
 
-  // This function is added to handle the type conversion safely
   const handleAccidentChange = (value: string) => {
-    // Only set the state if the value is either "no" or "yes"
-    if (value === "no" || value === "yes") {
+    if (value === 'no' || value === 'yes') {
       setAccident(value);
     }
   };
@@ -88,17 +86,48 @@ export default function PremiumValuationSection() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
-          {/* Header Section */}
           <div className="text-center space-y-4">
+            <Badge variant="outline" className="bg-primary/5 text-primary mb-4">
+              CARFAX® Report Included ($44 value)
+            </Badge>
             <SectionHeader
               title="Premium Vehicle Valuation"
-              description="Get the most accurate valuation with our professional-grade service"
+              description="Get the most accurate valuation with our professional-grade service, including CARFAX® report, dealer offers, and market analysis"
               size="lg"
               className="max-w-3xl mx-auto"
             />
           </div>
 
-          {/* Main Valuation Card */}
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <Shield className="h-8 w-8 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">CARFAX® Integration</h3>
+                <p className="text-sm text-muted-foreground">
+                  Complete vehicle history analysis for superior accuracy in valuations
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <FileText className="h-8 w-8 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Market Analysis</h3>
+                <p className="text-sm text-muted-foreground">
+                  Future value projections based on historical market data
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <Car className="h-8 w-8 text-primary mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Dealer Network</h3>
+                <p className="text-sm text-muted-foreground">
+                  Compare prices across local dealers and get competitive offers
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card className="border-2 border-border/50 shadow-xl rounded-xl overflow-hidden">
             <CardHeader className="border-b bg-muted/30 px-6 py-8">
               <CardTitle className="text-2xl font-display">
@@ -107,7 +136,6 @@ export default function PremiumValuationSection() {
             </CardHeader>
 
             <CardContent className="p-6 space-y-8">
-              {/* Lookup Methods */}
               <LookupTabs
                 lookup={lookup}
                 onLookupChange={setLookup}
@@ -119,11 +147,10 @@ export default function PremiumValuationSection() {
                   fuel, setFuel,
                   zip, setZip,
                   condition, setCondition,
-                  accident, setAccident
+                  accident, setAccident: handleAccidentChange
                 }}
               />
 
-              {/* Features Section */}
               <div className="space-y-6 pt-4">
                 <CardTitle className="text-xl">Vehicle Features</CardTitle>
                 <FeatureGrid
@@ -133,7 +160,6 @@ export default function PremiumValuationSection() {
                 />
               </div>
 
-              {/* Accident History */}
               <div className="space-y-4 pt-4">
                 <CardTitle className="text-xl">Accident History</CardTitle>
                 <PremiumFields
@@ -145,7 +171,6 @@ export default function PremiumValuationSection() {
                 />
               </div>
 
-              {/* CTA Section */}
               <div className="flex justify-center pt-6">
                 <Button 
                   size="lg"
@@ -153,7 +178,7 @@ export default function PremiumValuationSection() {
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Processing..." : "Get Premium Valuation with CARFAX"}
+                  {isSubmitting ? "Processing..." : "Get Premium Valuation with CARFAX®"}
                 </Button>
               </div>
             </CardContent>
