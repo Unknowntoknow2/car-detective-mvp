@@ -9,4 +9,3 @@ verify_jwt = false
 
 [functions.valuation-forecast]
 verify_jwt = true
-

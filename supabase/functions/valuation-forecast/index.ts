@@ -1,49 +1,15 @@
 
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { linearRegression } from 'https://esm.sh/simple-statistics@7.8.8'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
-import { corsHeaders } from '../_shared/cors.ts'
 
-interface MarketPrice {
-  month: string;
-  avg_price: number;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function runLinearForecast(prices: number[], months: string[]) {
-  // Simple linear regression implementation
-  const n = prices.length;
-  const x = Array.from({ length: n }, (_, i) => i);
-  
-  // Calculate means
-  const meanX = x.reduce((a, b) => a + b, 0) / n;
-  const meanY = prices.reduce((a, b) => a + b, 0) / n;
-  
-  // Calculate coefficients
-  let numerator = 0;
-  let denominator = 0;
-  
-  for (let i = 0; i < n; i++) {
-    numerator += (x[i] - meanX) * (prices[i] - meanY);
-    denominator += Math.pow(x[i] - meanX, 2);
-  }
-  
-  const m = numerator / denominator;
-  const b = meanY - m * meanX;
-  
-  // Project next 12 months
-  const start = prices.length;
-  const forecastMonths = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(months[months.length - 1]);
-    date.setMonth(date.getMonth() + i + 1);
-    return date.toLocaleString('default', { month: 'short', year: 'numeric' });
-  });
-  
-  const forecastValues = forecastMonths.map((_, i) => 
-    Math.round(m * (start + i) + b)
-  );
-  
-  return { months: forecastMonths, values: forecastValues };
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -98,7 +64,7 @@ Deno.serve(async (req) => {
     }, {}) ?? {}
 
     // Calculate monthly averages
-    const monthlyAverages: MarketPrice[] = Object.entries(monthlyPrices).map(([month, prices]) => ({
+    const monthlyAverages = Object.entries(monthlyPrices).map(([month, prices]) => ({
       month,
       avg_price: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
     }))
