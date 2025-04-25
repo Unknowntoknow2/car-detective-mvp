@@ -35,9 +35,9 @@ export const PlateDecoderForm = () => {
       await saveValuation({
         plate: result.plate,
         state: result.state,
-        make: result.make,
-        model: result.model,
-        year: result.year,
+        make: result.make || "Unknown",
+        model: result.model || "Unknown",
+        year: result.year || 0,
         valuation: 24500,
         confidenceScore: 92,
         conditionScore: 85
@@ -97,7 +97,14 @@ export const PlateDecoderForm = () => {
 
       {result && !isLoading && (
         <PlateInfoCard 
-          vehicleInfo={result} 
+          vehicleInfo={{
+            plate: result.plate,
+            state: result.state,
+            make: result.make || "Unknown",
+            model: result.model || "Unknown",
+            year: result.year || 0,
+            color: result.color || null
+          }} 
           onDownloadPdf={handleDownloadPdf}
           onSaveValuation={handleSaveValuation}
           isSaving={isSaving}

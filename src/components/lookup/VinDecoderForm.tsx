@@ -95,7 +95,17 @@ export const VinDecoderForm = () => {
 
       {result && (
         <VehicleInfoCard 
-          vehicleInfo={result} 
+          vehicleInfo={{
+            vin: result.vin,
+            make: result.make || '',
+            model: result.model || '',
+            year: result.year || 0,
+            trim: result.trim,
+            engine: result.engine,
+            transmission: 'Automatic', // Adding the missing required field
+            drivetrain: 'FWD', // Providing a default value
+            bodyType: 'Unknown' // Providing a default value
+          }} 
           onDownloadPdf={handleDownloadPdf}
           carfaxData={carfaxData}
         />
