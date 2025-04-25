@@ -139,7 +139,6 @@ export function PremiumValuationForm() {
               formData={formData} 
               setFormData={setFormData}
               updateValidity={updateStepValidity}
-              featureOptions={featureOptions}
             />
           )}
           

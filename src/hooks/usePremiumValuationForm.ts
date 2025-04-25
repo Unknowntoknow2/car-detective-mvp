@@ -1,8 +1,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { FormData, FeatureOption } from '@/types/premium-valuation';
-import { featureOptions } from '@/utils/feature-calculations';
+import { FormData } from '@/types/premium-valuation';
 import { useFormValidation } from './useFormValidation';
 import { useStepNavigation } from './useStepNavigation';
 import { useValuationSubmit } from './useValuationSubmit';
@@ -60,6 +59,6 @@ export const usePremiumValuationForm = () => {
     goToPreviousStep,
     handleReset,
     handleSubmit: () => handleSubmit(formData, user, isFormValid),
-    featureOptions
+    featureOptions: [] // We keep this to maintain the return type, but it's not used
   };
 };
