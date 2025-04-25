@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import ManualLookupPage from "./pages/ManualLookupPage";
 import FreeValuationPage from "./pages/FreeValuationPage";
 import PremiumPage from "./pages/PremiumPage";
 import Index from "./pages/Index";
+import PremiumSuccessPage from "./pages/PremiumSuccessPage";
 
 // Import i18n config
 import './i18n/config';
@@ -31,6 +31,7 @@ const App = () => (
             <Route path="/lookup/manual" element={<ManualLookupPage />} />
             <Route path="/valuation/free" element={<FreeValuationPage />} />
             <Route path="/valuation/premium" element={<PremiumPage />} />
+            <Route path="/valuation/premium-success" element={<PremiumSuccessPage />} />
             <Route path="/premium" element={<PremiumPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
