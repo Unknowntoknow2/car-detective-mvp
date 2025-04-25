@@ -1,181 +1,183 @@
 
 import { FormData, FeatureOption } from '@/types/premium-valuation';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, RefreshCcw } from 'lucide-react';
+import { CheckCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { useState } from 'react';
 
 interface ReviewSubmitStepProps {
   step: number;
   formData: FormData;
   featureOptions: FeatureOption[];
+  isFormValid: boolean;
   handleSubmit: () => void;
   handleReset: () => void;
-  isFormValid: boolean;
 }
 
 export function ReviewSubmitStep({
   step,
   formData,
   featureOptions,
+  isFormValid,
   handleSubmit,
-  handleReset,
-  isFormValid
+  handleReset
 }: ReviewSubmitStepProps) {
-  // Calculate total value from selected features
-  const calculateFeatureValue = () => {
-    return formData.features.reduce((total, featureId) => {
-      const feature = featureOptions.find(f => f.id === featureId);
-      return total + (feature?.value || 0);
-    }, 0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFormSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await handleSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const featureValue = calculateFeatureValue();
-  
-  // Format any number with commas
-  const formatNumber = (num: number | null) => {
-    if (num === null) return 'Not provided';
-    return num.toLocaleString();
-  };
+  // Calculate the total value added by selected features
+  const featureValueTotal = formData.features.reduce((total, featureId) => {
+    const feature = featureOptions.find(f => f.id === featureId);
+    return total + (feature ? feature.value : 0);
+  }, 0);
+
+  // Format features for display
+  const selectedFeatures = formData.features.map(featureId => {
+    const feature = featureOptions.find(f => f.id === featureId);
+    return feature ? feature.name : '';
+  });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Review & Submit</h2>
         <p className="text-gray-600 mb-6">
-          Please review your vehicle information before submitting for a premium valuation.
+          Please review your vehicle information before submitting your valuation request.
         </p>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-8">
-          <section className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Vehicle Information</h3>
-            <div className="bg-white p-4 rounded-md border border-gray-200 space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Make</p>
-                  <p className="font-medium">{formData.make || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Model</p>
-                  <p className="font-medium">{formData.model || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Year</p>
-                  <p className="font-medium">{formData.year || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Mileage</p>
-                  <p className="font-medium">{formatNumber(formData.mileage)} miles</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Fuel Type</p>
-                  <p className="font-medium">{formData.fuelType || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Condition</p>
-                  <p className="font-medium">{formData.conditionLabel} ({formData.condition}%)</p>
-                </div>
-              </div>
-            </div>
-          </section>
-          
-          <section className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Features & History</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-md border border-gray-200 h-full">
-                <h4 className="font-medium text-gray-900 mb-2">Selected Features</h4>
-                {formData.features.length > 0 ? (
-                  <div className="space-y-2">
-                    {formData.features.map(featureId => {
-                      const feature = featureOptions.find(f => f.id === featureId);
-                      return feature ? (
-                        <div key={featureId} className="flex justify-between">
-                          <span className="text-sm">{feature.name}</span>
-                          <span className="text-sm text-green-600">+${feature.value}</span>
-                        </div>
-                      ) : null;
-                    })}
-                    <div className="pt-2 mt-2 border-t border-gray-100 font-medium flex justify-between">
-                      <span>Total Feature Value</span>
-                      <span className="text-green-600">+${featureValue}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">No additional features selected</p>
-                )}
-              </div>
+
+      <Card className="border-gray-200">
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="font-medium text-gray-900">Vehicle Information</h3>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200 h-full">
-                <h4 className="font-medium text-gray-900 mb-2">Accident History</h4>
-                {formData.hasAccident ? (
-                  <div>
-                    <p className="text-sm text-amber-600 font-medium mb-1">
-                      Vehicle has been in an accident
-                    </p>
-                    <p className="text-sm">
-                      {formData.accidentDescription || 'No details provided'}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-green-600">
-                    No accident history reported
-                  </p>
-                )}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Make:</span>
+                  <span className="font-medium">{formData.make || 'Not specified'}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Model:</span>
+                  <span className="font-medium">{formData.model || 'Not specified'}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Year:</span>
+                  <span className="font-medium">{formData.year || 'Not specified'}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Mileage:</span>
+                  <span className="font-medium">
+                    {formData.mileage ? `${formData.mileage.toLocaleString()} miles` : 'Not specified'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Fuel Type:</span>
+                  <span className="font-medium">{formData.fuelType || 'Not specified'}</span>
+                </div>
               </div>
             </div>
-          </section>
-        </div>
-        
-        <div className="md:col-span-1">
-          <div className="bg-navy-50 p-5 rounded-md border border-navy-100 sticky top-4">
-            <h3 className="text-lg font-medium text-navy-900 mb-4">Premium Valuation</h3>
             
             <div className="space-y-4">
-              <div>
-                <p className="text-sm text-navy-700 mb-1">Vehicle</p>
-                <p className="font-medium">
-                  {formData.year} {formData.make} {formData.model}
-                </p>
-              </div>
+              <h3 className="font-medium text-gray-900">Additional Details</h3>
               
-              <div className="pt-4 border-t border-navy-100">
-                <div className="flex items-center text-green-600 mb-3">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-medium">Includes CARFAX® Report</span>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Condition:</span>
+                  <span className="font-medium">{formData.conditionLabel}</span>
                 </div>
                 
-                <div className="flex items-center text-green-600 mb-3">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-medium">Market Analysis Included</span>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Accident History:</span>
+                  <span className="font-medium">{formData.hasAccident ? 'Yes' : 'No'}</span>
                 </div>
                 
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-medium">Full History Check</span>
-                </div>
-              </div>
-              
-              <div className="pt-4 mt-2 border-t border-navy-100 space-y-4">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!isFormValid}
-                  className="w-full bg-navy-600 hover:bg-navy-700 text-white"
-                >
-                  Get Premium Valuation
-                </Button>
+                {formData.hasAccident && (
+                  <div className="mt-1">
+                    <span className="text-gray-600 block">Accident Details:</span>
+                    <span className="font-medium text-sm">
+                      {formData.accidentDescription || 'No details provided'}
+                    </span>
+                  </div>
+                )}
                 
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  className="w-full text-navy-600 border-navy-200"
-                >
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  Reset Form
-                </Button>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">ZIP Code:</span>
+                  <span className="font-medium">{formData.zipCode || 'Not specified'}</span>
+                </div>
               </div>
             </div>
           </div>
+          
+          <Separator />
+          
+          <div>
+            <h3 className="font-medium text-gray-900 mb-2">Selected Features</h3>
+            {selectedFeatures.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {selectedFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center">
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">No additional features selected</p>
+            )}
+          </div>
+          
+          <Separator />
+          
+          <div className="flex justify-between items-center py-2">
+            <span className="font-medium">Features Value Added:</span>
+            <span className="font-semibold text-green-600">+${featureValueTotal.toLocaleString()}</span>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {!isFormValid && (
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4 flex items-start">
+          <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="text-sm font-medium text-amber-800">Complete all required information</h4>
+            <p className="mt-1 text-sm text-amber-700">
+              Please ensure all required vehicle information is provided for the most accurate valuation.
+            </p>
+          </div>
         </div>
+      )}
+      
+      <div className="flex flex-col sm:flex-row gap-4 pt-2">
+        <Button
+          onClick={handleFormSubmit}
+          disabled={!isFormValid || isSubmitting}
+          className="bg-navy-600 hover:bg-navy-700 text-white flex-1"
+        >
+          {isSubmitting ? 'Processing...' : 'Get Premium Valuation'}
+        </Button>
+        
+        <Button
+          onClick={handleReset}
+          variant="outline"
+          className="text-gray-700"
+        >
+          <RefreshCcw className="h-4 w-4 mr-2" />
+          Start Over
+        </Button>
       </div>
     </div>
   );

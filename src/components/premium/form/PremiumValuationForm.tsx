@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import { VehicleIdentificationStep } from './steps/VehicleIdentificationStep';
 import { MileageStep } from './steps/MileageStep';
 import { FuelTypeStep } from './steps/FuelTypeStep';
@@ -10,6 +11,8 @@ import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { FormStepLayout } from './FormStepLayout';
 import { ValuationResult } from './ValuationResult';
 import { usePremiumValuationForm } from '@/hooks/usePremiumValuationForm';
+import { useFormAutosave } from '@/hooks/useFormAutosave';
+import { toast } from 'sonner';
 
 export function PremiumValuationForm() {
   const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
@@ -28,6 +31,36 @@ export function PremiumValuationForm() {
     handleSubmit,
     featureOptions
   } = usePremiumValuationForm();
+  
+  // Initialize form data from localStorage
+  const [initialLoad, setInitialLoad] = useState(true);
+  
+  useEffect(() => {
+    const savedData = localStorage.getItem('valuationForm');
+    if (savedData && initialLoad) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (parsedData && parsedData.identifierType) {
+          setFormData(parsedData);
+          toast.info("Restored your previous form data");
+        }
+      } catch (error) {
+        console.error('Error loading saved form data:', error);
+        localStorage.removeItem('valuationForm');
+      }
+      setInitialLoad(false);
+    }
+  }, [initialLoad, setFormData]);
+  
+  // Auto-save form data
+  const { clearSavedForm } = useFormAutosave(formData);
+  
+  // Enhanced reset function
+  const handleFullReset = () => {
+    handleReset();
+    clearSavedForm();
+    toast.success("Form has been reset");
+  };
 
   return (
     <FormStepLayout
@@ -36,6 +69,7 @@ export function PremiumValuationForm() {
       isStepValid={stepValidities[currentStep]}
       onNext={goToNextStep}
       onPrevious={goToPreviousStep}
+      stepValidities={stepValidities}
     >
       <VehicleIdentificationStep 
         step={1} 
@@ -91,7 +125,7 @@ export function PremiumValuationForm() {
         formData={formData}
         featureOptions={featureOptions} 
         handleSubmit={handleSubmit}
-        handleReset={handleReset}
+        handleReset={handleFullReset}
         isFormValid={isFormValid}
       />
 
