@@ -493,55 +493,76 @@ export type Database = {
       }
       valuations: {
         Row: {
+          accident_count: number | null
+          auction_avg_price: number | null
+          base_price: number | null
           body_type: string | null
           color: string | null
           condition_score: number | null
           confidence_score: number | null
           created_at: string
+          dealer_avg_price: number | null
           estimated_value: number | null
+          feature_value_total: number | null
           id: string
           is_vin_lookup: boolean
           make: string | null
+          mileage: number | null
           model: string | null
           plate: string | null
           state: string | null
           user_id: string
           vin: string | null
           year: number | null
+          zip_demand_factor: number | null
         }
         Insert: {
+          accident_count?: number | null
+          auction_avg_price?: number | null
+          base_price?: number | null
           body_type?: string | null
           color?: string | null
           condition_score?: number | null
           confidence_score?: number | null
           created_at?: string
+          dealer_avg_price?: number | null
           estimated_value?: number | null
+          feature_value_total?: number | null
           id?: string
           is_vin_lookup?: boolean
           make?: string | null
+          mileage?: number | null
           model?: string | null
           plate?: string | null
           state?: string | null
           user_id: string
           vin?: string | null
           year?: number | null
+          zip_demand_factor?: number | null
         }
         Update: {
+          accident_count?: number | null
+          auction_avg_price?: number | null
+          base_price?: number | null
           body_type?: string | null
           color?: string | null
           condition_score?: number | null
           confidence_score?: number | null
           created_at?: string
+          dealer_avg_price?: number | null
           estimated_value?: number | null
+          feature_value_total?: number | null
           id?: string
           is_vin_lookup?: boolean
           make?: string | null
+          mileage?: number | null
           model?: string | null
           plate?: string | null
           state?: string | null
           user_id?: string
           vin?: string | null
           year?: number | null
+          zip_demand_factor?: number | null
         }
         Relationships: []
       }
