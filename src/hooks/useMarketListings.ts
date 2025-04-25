@@ -43,7 +43,6 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
           .order('created_at', { ascending: false })
           .limit(10);
         
-        // Simple array type
         const existingListings = data || [];
 
         if (!fetchError && existingListings.length > 0) {
@@ -79,12 +78,7 @@ export const useMarketListings = (zipCode: string, make: string, model: string, 
 
         if (response.error) throw response.error;
         
-        // Explicitly define the type
-        const responseData = response.data as {
-          zipCode: string;
-          averages: Record<string, number>;
-          sources: Record<string, string>;
-        };
+        const responseData = response.data;
         
         if (responseData) {
           // Create a properly typed market data object
