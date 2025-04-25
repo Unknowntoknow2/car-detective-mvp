@@ -1,0 +1,41 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Custom colors */
+  :root {
+    --navy-50: #f0f4fa;
+    --navy-100: #d0dff0;
+    --navy-200: #a0bfdf;
+    --navy-300: #709fcf;
+    --navy-400: #407fbf;
+    --navy-500: #2563a0;
+    --navy-600: #1a4b82;
+    --navy-700: #103464;
+    --navy-800: #082746;
+    --navy-900: #041a28;
+    
+    --charcoal-50: #f5f5f6;
+    --charcoal-100: #e1e2e4;
+    --charcoal-200: #c3c5c8;
+    --charcoal-300: #a5a8ae;
+    --charcoal-400: #878b93;
+    --charcoal-500: #6a6e79;
+    --charcoal-600: #52555e;
+    --charcoal-700: #403E43;
+    --charcoal-800: #27282c;
+    --charcoal-900: #18191b;
+  }
+}
+
+@layer utilities {
+  .bg-navy-gradient {
+    @apply bg-gradient-to-r from-navy-600 to-navy-800;
+  }
+  
+  .bg-charcoal-gradient {
+    @apply bg-gradient-to-r from-charcoal-700 to-charcoal-900;
+  }
+}

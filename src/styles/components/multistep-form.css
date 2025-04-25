@@ -1,0 +1,85 @@
+
+@layer components {
+  .form-step {
+    @apply animate-fade-in;
+  }
+  
+  .step-indicator {
+    @apply flex items-center space-x-2 mb-4;
+  }
+  
+  .step-circle {
+    @apply w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium;
+  }
+  
+  .step-circle-active {
+    @apply bg-navy-600 text-white;
+  }
+  
+  .step-circle-inactive {
+    @apply bg-gray-200 text-gray-600;
+  }
+  
+  .step-circle-completed {
+    @apply bg-green-600 text-white;
+  }
+  
+  .step-line {
+    @apply flex-1 h-0.5 bg-gray-200;
+  }
+  
+  .step-line-active {
+    @apply bg-navy-600;
+  }
+  
+  .feature-card {
+    @apply border rounded-lg p-4 transition-all cursor-pointer;
+  }
+  
+  .feature-card-selected {
+    @apply border-navy-400 bg-navy-50;
+  }
+  
+  .feature-card-unselected {
+    @apply border-gray-200 hover:border-gray-300 hover:bg-gray-50;
+  }
+  
+  .condition-marker {
+    @apply absolute w-2 h-6 bg-gray-300 rounded;
+  }
+  
+  .condition-marker-poor {
+    @apply bg-red-400 left-0;
+  }
+  
+  .condition-marker-fair {
+    @apply bg-amber-400 left-1/3 -translate-x-1/2;
+  }
+  
+  .condition-marker-good {
+    @apply bg-green-400 left-2/3 -translate-x-1/2;
+  }
+  
+  .condition-marker-excellent {
+    @apply bg-blue-400 right-0;
+  }
+  
+  .form-navigation {
+    @apply flex justify-between mt-8 pt-6 border-t border-gray-200;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
