@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { ShieldCheck, AlertTriangle } from 'lucide-react';
+import { useVehicleHistory } from '@/hooks/useVehicleHistory';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface VehicleHistoryProps {
   historyData: {

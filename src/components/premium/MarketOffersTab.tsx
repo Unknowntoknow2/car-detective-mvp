@@ -2,6 +2,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { DollarSign, ExternalLink } from 'lucide-react';
+import { useMarketListings } from '@/hooks/useMarketListings';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MarketOffersProps {
   averages: { [source: string]: number };
