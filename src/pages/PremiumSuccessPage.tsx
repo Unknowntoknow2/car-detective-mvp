@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +15,6 @@ export default function PremiumSuccessPage() {
   const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    // If no session ID or no user, redirect to premium page
     if (!sessionId || !user) {
       toast.error("Invalid or missing session information");
       navigate('/premium');
@@ -27,7 +25,6 @@ export default function PremiumSuccessPage() {
       try {
         console.log('Updating order status for session:', sessionId);
         
-        // First check if this session has already been processed
         const { data: existingOrders, error: fetchError } = await supabase
           .from('orders')
           .select('*')
@@ -39,14 +36,12 @@ export default function PremiumSuccessPage() {
           throw new Error('Could not verify order status');
         }
         
-        // If already completed, no need to update
         if (existingOrders && existingOrders.length > 0) {
           console.log('Order already marked as completed');
           setIsLoading(false);
           return;
         }
 
-        // Update the order status to completed
         const { error: updateError } = await supabase
           .from('orders')
           .update({ status: 'completed' })
@@ -94,17 +89,17 @@ export default function PremiumSuccessPage() {
           </p>
           <div className="pt-4 space-y-2">
             <Button 
-              onClick={() => navigate('/valuation/premium')} 
+              onClick={() => navigate('/dashboard')} 
               className="w-full"
             >
-              View Your Premium Report
+              Go to Dashboard
             </Button>
             <Button 
-              onClick={() => navigate('/')} 
+              onClick={() => navigate('/premium')} 
               variant="outline"
               className="w-full mt-2"
             >
-              Return to Home
+              View Premium Features
             </Button>
           </div>
         </div>

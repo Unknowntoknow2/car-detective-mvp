@@ -12,6 +12,8 @@ import FreeValuationPage from "./pages/FreeValuationPage";
 import PremiumPage from "./pages/PremiumPage";
 import Index from "./pages/Index";
 import PremiumSuccessPage from "./pages/PremiumSuccessPage";
+import UserDashboardPage from "./pages/UserDashboardPage";
+import MyValuationsPage from "./pages/MyValuationsPage";
 
 // Import i18n config
 import './i18n/config';
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/valuation/premium" element={<PremiumPage />} />
             <Route path="/valuation/premium-success" element={<PremiumSuccessPage />} />
             <Route path="/premium" element={<PremiumPage />} />
+            <Route path="/dashboard" element={<UserDashboardPage />} />
+            <Route path="/valuations" element={<MyValuationsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
