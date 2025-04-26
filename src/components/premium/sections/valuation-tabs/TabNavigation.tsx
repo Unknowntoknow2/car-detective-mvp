@@ -1,7 +1,6 @@
-
 import { useRef, useEffect, useState } from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Car, Search, FileText, Camera, Building, PieChart, TrendingUp, FileText2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Car, Search, FileText, Camera, Building, PieChart, TrendingUp } from "lucide-react";
 import { ValuationServiceId } from "./services";
 import { Button } from "@/components/ui/button";
 
@@ -49,7 +48,6 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
     }
   }, []);
   
-  // Scroll active tab into view
   useEffect(() => {
     if (!tabsContainerRef.current) return;
     
@@ -62,7 +60,6 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
       const tabLeft = activeTabElement.offsetLeft;
       const tabRight = tabLeft + activeTabElement.clientWidth;
       
-      // If tab is not fully visible
       if (tabLeft < containerLeft || tabRight > containerRight) {
         activeTabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
@@ -77,7 +74,7 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
     { id: 'dealers', label: 'Dealer Offers', icon: <Building className="h-4 w-4" /> },
     { id: 'market', label: 'Market Analysis', icon: <PieChart className="h-4 w-4" /> },
     { id: 'forecast', label: '12-Month Forecast', icon: <TrendingUp className="h-4 w-4" /> },
-    { id: 'carfax', label: 'CARFAX® Report', icon: <FileText2 className="h-4 w-4" /> },
+    { id: 'carfax', label: 'CARFAX® Report', icon: <FileText className="h-4 w-4" /> },
   ];
 
   return (
