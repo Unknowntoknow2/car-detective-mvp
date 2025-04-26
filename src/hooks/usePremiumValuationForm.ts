@@ -26,7 +26,7 @@ export const usePremiumValuationForm = () => {
   });
 
   const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);
-  const { currentStep, totalSteps, goToNextStep, goToPreviousStep } = useStepNavigation(formData);
+  const { currentStep, totalSteps, goToNextStep, goToPreviousStep, goToStep } = useStepNavigation(formData);
   const { valuationId, handleSubmit: submitValuation, isSubmitting, submitError } = useValuationSubmit();
 
   // Validation rules for each step
@@ -81,6 +81,9 @@ export const usePremiumValuationForm = () => {
         }
         
         toast.success("Vehicle information loaded from previous lookup");
+        
+        // Remove the data from localStorage to prevent reloading
+        localStorage.removeItem("premium_vehicle");
       } catch (error) {
         console.error("Error parsing saved vehicle data:", error);
       }
@@ -111,6 +114,9 @@ export const usePremiumValuationForm = () => {
       localStorage.removeItem("premium_vehicle");
       sessionStorage.removeItem("analyzed_vehicle");
       
+      // Reset to first step
+      goToStep(1);
+      
       toast.info("Form data has been reset");
     }
   };
@@ -126,6 +132,7 @@ export const usePremiumValuationForm = () => {
     updateStepValidity,
     goToNextStep,
     goToPreviousStep,
+    goToStep,
     handleReset,
     isSubmitting,
     submitError,

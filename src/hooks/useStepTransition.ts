@@ -60,5 +60,40 @@ export function useStepTransition(
     }
   };
 
-  return { getStepConfig };
+  /**
+   * Determines if a step should be skipped based on form data
+   * @param step Step number to check
+   * @returns Boolean indicating if step should be skipped
+   */
+  const shouldSkipStep = (step: number): boolean => {
+    const config = getStepConfig(step);
+    return config ? !config.shouldShow : false;
+  };
+
+  /**
+   * Finds the next valid step that should be shown
+   * @param currentStep Current step number
+   * @param direction Direction to move (1 for forward, -1 for backward)
+   * @returns Next valid step number
+   */
+  const findNextValidStep = (currentStep: number, direction: 1 | -1 = 1): number => {
+    let nextStep = currentStep + direction;
+    
+    // Find the next step that should be shown
+    while (nextStep >= 1 && nextStep <= 7) {
+      if (!shouldSkipStep(nextStep)) {
+        return nextStep;
+      }
+      nextStep += direction;
+    }
+    
+    // If no valid step found, return the current step
+    return currentStep;
+  };
+
+  return { 
+    getStepConfig,
+    shouldSkipStep,
+    findNextValidStep
+  };
 }
