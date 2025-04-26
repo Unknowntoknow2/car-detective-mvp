@@ -77,95 +77,52 @@ export function PlateLookup({
   onStateChange, 
   onLookup 
 }: PlateLookupProps) {
-  const [error, setError] = useState<string | null>(null);
-
-  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow only letters and numbers, convert to uppercase
-    const formattedValue = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    if (onPlateChange) onPlateChange(formattedValue);
-    if (error) setError(null);
-  };
-
-  const handleStateChange = (value: string) => {
-    if (onStateChange) onStateChange(value);
-    if (error) setError(null);
-  };
-
-  const handleSubmit = () => {
-    if (!plateValue) {
-      setError("Please enter a license plate number");
-      return;
-    }
-    if (!stateValue) {
-      setError("Please select a state");
-      return;
-    }
-    if (onLookup) onLookup();
-  };
-
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-200">
-            Quick Lookup
+          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/30">
+            Alternative
           </Badge>
-          <p className="text-sm text-slate-500">Simple & Fast</p>
+          <p className="text-sm text-slate-500">Simple & Convenient</p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-2">
-            <label htmlFor="plate" className="block text-sm font-medium text-slate-700 mb-1">
-              License Plate
-            </label>
-            <Input 
-              id="plate"
-              value={plateValue}
-              onChange={handlePlateChange}
-              placeholder="Enter plate number" 
-              className="text-lg tracking-wide h-12 uppercase" 
-              maxLength={8}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1">
-              State
-            </label>
-            <Select value={stateValue} onValueChange={handleStateChange}>
-              <SelectTrigger id="state" className="h-12">
-                <SelectValue placeholder="Select state" />
-              </SelectTrigger>
-              <SelectContent>
-                {US_STATES.map((state) => (
-                  <SelectItem key={state.value} value={state.value}>
-                    {state.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <Input 
+          value={plateValue}
+          onChange={(e) => onPlateChange?.(e.target.value.toUpperCase())}
+          placeholder="Enter License Plate (e.g., ABC123)" 
+          className="text-lg font-mono tracking-wide uppercase h-12" 
+        />
+        
+        <div className="pt-1">
+          <Select
+            value={stateValue}
+            onValueChange={(value) => onStateChange?.(value)}
+          >
+            <SelectTrigger className="w-full h-12">
+              <SelectValue placeholder="Select State" />
+            </SelectTrigger>
+            <SelectContent>
+              {US_STATES.map((state) => (
+                <SelectItem key={state.value} value={state.value} className="py-3">
+                  {state.label} ({state.value})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
-        {error && (
-          <div className="flex items-start gap-2 text-red-600 text-sm mt-2">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>{error}</p>
-          </div>
-        )}
-        
-        <div className="flex items-start gap-2 text-xs text-slate-500 mt-2">
+        <div className="flex items-start gap-2 text-xs text-slate-500">
           <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
           <p>
-            For privacy and security reasons, only limited vehicle information is available with
-            license plate lookup. For complete details, use VIN lookup.
+            Enter your license plate and state. This works best for vehicles registered in the United States.
           </p>
         </div>
       </div>
       
       <div className="flex justify-end">
         <Button 
-          onClick={handleSubmit}
+          onClick={onLookup}
           disabled={isLoading || !plateValue || !stateValue}
           className="px-6"
         >

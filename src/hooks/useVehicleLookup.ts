@@ -8,7 +8,12 @@ export const useVehicleLookup = () => {
   const [vehicle, setVehicle] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupVehicle = async (type: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string, manualData?: any) => {
+  const lookupVehicle = async (
+    type: 'vin' | 'plate' | 'manual' | 'photo', 
+    identifier: string, 
+    state?: string, 
+    manualData?: any
+  ) => {
     setIsLoading(true);
     setError(null);
     

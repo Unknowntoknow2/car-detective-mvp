@@ -1,106 +1,74 @@
 
+import { Shield, AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
-import { Info, AlertTriangle, CheckCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface CarfaxSummaryProps {
   carfaxData: CarfaxData;
 }
 
-export const CarfaxSummary = ({ carfaxData }: CarfaxSummaryProps) => {
-  const getAccidentSeverityColor = (severity?: string) => {
-    if (!severity) return "bg-yellow-500";
-    switch (severity) {
-      case "severe": return "bg-red-500";
-      case "moderate": return "bg-orange-500";
-      case "minor": return "bg-yellow-500";
-      default: return "bg-yellow-500";
-    }
-  };
-
+export function CarfaxSummary({ carfaxData }: CarfaxSummaryProps) {
+  const { accidentsReported, owners, serviceRecords, salvageTitle } = carfaxData;
+  const hasIssues = accidentsReported > 0 || salvageTitle;
+  
   return (
-    <div className="mt-6 border border-border/60 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Info className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-medium">Vehicle History Report</h3>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">Accident History</p>
-          <div className="flex items-center gap-2">
-            {carfaxData.accidentsReported > 0 ? (
-              <>
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                <p className="text-base">
-                  {carfaxData.accidentsReported} reported accident{carfaxData.accidentsReported > 1 ? 's' : ''}
-                  {carfaxData.damageSeverity && (
-                    <Badge className={`ml-2 ${getAccidentSeverityColor(carfaxData.damageSeverity)} text-white`}>
-                      {carfaxData.damageSeverity} damage
-                    </Badge>
-                  )}
-                </p>
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <p className="text-base">No accidents reported</p>
-              </>
-            )}
+    <Card className="mt-6">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>CARFAX Report Summary</CardTitle>
+        {hasIssues ? (
+          <div className="flex items-center text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            <span className="text-xs font-medium">History Issues</span>
           </div>
-        </div>
-        
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">Title Information</p>
-          <div className="flex items-center gap-2">
-            {carfaxData.salvageTitle ? (
-              <>
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-                <p className="text-base">
-                  Salvage Title
-                  {carfaxData.brandedTitle && (
-                    <Badge variant="outline" className="ml-2 text-red-500 border-red-200">
-                      {carfaxData.brandedTitle}
-                    </Badge>
-                  )}
-                </p>
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <p className="text-base">Clean Title</p>
-              </>
-            )}
+        ) : (
+          <div className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+            <Shield className="h-4 w-4 mr-1" />
+            <span className="text-xs font-medium">Clean History</span>
           </div>
-        </div>
-        
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">Ownership</p>
-          <div className="flex items-center gap-2">
-            <p className="text-base">
-              {carfaxData.owners === 1 
-                ? "One-owner vehicle"
-                : `${carfaxData.owners} previous owners`}
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="border border-slate-200 rounded-md p-3">
+            <p className="text-sm text-slate-500">Accidents</p>
+            <p className={`text-lg font-semibold ${accidentsReported > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+              {accidentsReported} Reported
+            </p>
+          </div>
+          
+          <div className="border border-slate-200 rounded-md p-3">
+            <p className="text-sm text-slate-500">Owners</p>
+            <p className="text-lg font-semibold">
+              {owners} {owners === 1 ? 'Owner' : 'Owners'}
+            </p>
+          </div>
+          
+          <div className="border border-slate-200 rounded-md p-3">
+            <p className="text-sm text-slate-500">Service Records</p>
+            <p className="text-lg font-semibold">
+              {serviceRecords} Records
+            </p>
+          </div>
+          
+          <div className="border border-slate-200 rounded-md p-3">
+            <p className="text-sm text-slate-500">Title</p>
+            <p className={`text-lg font-semibold ${salvageTitle ? 'text-amber-600' : 'text-green-600'}`}>
+              {salvageTitle ? 'Salvage' : 'Clean'}
             </p>
           </div>
         </div>
         
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">Service History</p>
-          <div className="flex items-center gap-2">
-            {carfaxData.serviceRecords > 6 ? (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <p className="text-base">Complete service history ({carfaxData.serviceRecords} records)</p>
-              </>
-            ) : carfaxData.serviceRecords > 0 ? (
-              <p className="text-base">{carfaxData.serviceRecords} service records found</p>
-            ) : (
-              <p className="text-base">No service records found</p>
-            )}
-          </div>
+        <div className="mt-4 flex justify-end">
+          <a 
+            href={carfaxData.reportUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-primary hover:underline text-sm font-medium"
+          >
+            View Full CARFAX Report →
+          </a>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
-};
+}

@@ -1,6 +1,5 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 import { CarFront, FileText, Search, Camera, Building, ChartBar, Calendar, Shield } from "lucide-react";
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
@@ -41,8 +40,7 @@ export function PremiumValuationTabs() {
   };
 
   const handleManualSubmit = (data: ManualEntryFormData) => {
-    // This function will be called when the manual entry form is submitted
-    toast.success("Vehicle information submitted successfully");
+    lookupVehicle('manual', 'manual-entry', undefined, data);
   };
 
   const services = [
@@ -65,10 +63,10 @@ export function PremiumValuationTabs() {
             <TabsTrigger
               key={service.id}
               value={service.id}
-              className="flex flex-col items-center gap-2 py-4 px-6 rounded-lg min-w-[110px] data-[state=active]:bg-primary data-[state=active]:text-white transition-colors"
+              className="flex flex-col items-center justify-center gap-2 py-4 px-2 sm:px-6 rounded-lg min-w-[90px] sm:min-w-[110px] data-[state=active]:bg-primary data-[state=active]:text-white transition-colors"
             >
               <service.icon className="h-5 w-5" />
-              <span className="font-medium text-sm whitespace-nowrap">{service.title}</span>
+              <span className="font-medium text-xs sm:text-sm text-center whitespace-nowrap">{service.title}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -107,11 +105,21 @@ export function PremiumValuationTabs() {
             <PhotoUploadTab />
           </TabsContent>
           
-          {["dealers", "market", "forecast", "carfax"].map((tabId) => (
-            <TabsContent key={tabId} value={tabId}>
-              <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
-            </TabsContent>
-          ))}
+          <TabsContent value="dealers">
+            <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+          </TabsContent>
+          
+          <TabsContent value="market">
+            <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+          </TabsContent>
+          
+          <TabsContent value="forecast">
+            <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+          </TabsContent>
+          
+          <TabsContent value="carfax">
+            <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+          </TabsContent>
         </div>
       </Tabs>
     </div>

@@ -8,12 +8,14 @@ export interface ManualEntryFormData {
   condition: string;
   zipCode?: string;
   accident?: 'yes' | 'no';
-  accidentDetails?: {
-    count: string;
-    severity: string;
-    area: string;
-  };
+  accidentDetails?: AccidentDetails;
   selectedFeatures?: string[];
+}
+
+export interface AccidentDetails {
+  count: string;
+  severity: string;
+  area: string;
 }
 
 export interface VehicleFeature {
