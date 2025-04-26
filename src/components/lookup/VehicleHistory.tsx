@@ -1,5 +1,5 @@
 
-import { Shield, AlertTriangle, Clock, Tools, FileText } from 'lucide-react';
+import { Shield, AlertTriangle, Clock, FileText, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -117,7 +117,7 @@ export function VehicleHistory({ vin, valuationId }: VehicleHistoryProps) {
       <CardContent>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="flex items-start space-x-2">
-            <Users className="h-5 w-5 text-slate-600 mt-0.5" />
+            <User className="h-5 w-5 text-slate-600 mt-0.5" />
             <div>
               <h3 className="text-sm font-medium">Ownership</h3>
               <p className="text-sm text-slate-600">{owners} previous {owners === 1 ? 'owner' : 'owners'}</p>
@@ -135,7 +135,7 @@ export function VehicleHistory({ vin, valuationId }: VehicleHistoryProps) {
           </div>
           
           <div className="flex items-start space-x-2">
-            <Tools className="h-5 w-5 text-slate-600 mt-0.5" />
+            <Clock className="h-5 w-5 text-slate-600 mt-0.5" />
             <div>
               <h3 className="text-sm font-medium">Service Records</h3>
               <p className="text-sm text-slate-600">{serviceRecords} records found</p>
