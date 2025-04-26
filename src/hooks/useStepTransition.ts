@@ -1,52 +1,58 @@
 
 import { FormData } from '@/types/premium-valuation';
+import { StepConfig } from '@/types/steps';
 
-export function useStepHandler(
+export function useStepTransition(
   currentStep: number,
   formData: FormData,
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>,
-  updateStepValidity: (step: number, isValid: boolean) => void,
-  lookupVehicle: (identifierType: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string) => Promise<any>,
-  isLoading: boolean
+  isLoading: boolean,
+  lookupVehicle: (identifierType: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string) => Promise<any>
 ) {
-  const handleStepChange = (step: number) => {
+  const getStepConfig = (step: number): StepConfig | null => {
     switch (step) {
       case 1:
         return {
           component: 'VehicleIdentificationStep',
+          shouldShow: true,
           props: {
             lookupVehicle,
             isLoading
           }
         };
       case 2:
-        return formData.mileage === null ? {
+        return {
           component: 'MileageStep',
+          shouldShow: formData.mileage === null,
           props: {}
-        } : null;
+        };
       case 3:
-        return formData.fuelType === null ? {
+        return {
           component: 'FuelTypeStep',
+          shouldShow: formData.fuelType === null,
           props: {}
-        } : null;
+        };
       case 4:
         return {
           component: 'FeatureSelectionStep',
+          shouldShow: true,
           props: {}
         };
       case 5:
         return {
           component: 'ConditionStep',
+          shouldShow: true,
           props: {}
         };
       case 6:
         return {
           component: 'AccidentHistoryStep',
+          shouldShow: true,
           props: {}
         };
       case 7:
         return {
           component: 'ReviewSubmitStep',
+          shouldShow: true,
           props: {}
         };
       default:
@@ -54,5 +60,5 @@ export function useStepHandler(
     }
   };
 
-  return { handleStepChange };
+  return { getStepConfig };
 }

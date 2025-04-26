@@ -10,7 +10,7 @@ import { AccidentHistoryStep } from './AccidentHistoryStep';
 import { ReviewSubmitStep } from './ReviewSubmitStep';
 import { ValuationResult } from './ValuationResult';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
-import { useStepHandler } from '@/hooks/useStepHandler';
+import { useStepTransition } from '@/hooks/useStepTransition';
 
 interface StepContentProps {
   currentStep: number;
@@ -34,53 +34,36 @@ export function StepContent({
   valuationId
 }: StepContentProps) {
   const { lookupVehicle, isLoading } = useVehicleLookup();
-  const { handleStepChange } = useStepHandler(
-    currentStep,
+  const { getStepConfig } = useStepTransition(currentStep, formData, isLoading, lookupVehicle);
+
+  const commonProps = {
+    step: currentStep,
     formData,
     setFormData,
-    updateStepValidity,
-    lookupVehicle,
-    isLoading
-  );
+    updateValidity: updateStepValidity
+  };
 
-  const stepConfig = handleStepChange(currentStep);
-  
-  const renderStep = () => {
-    const commonProps = {
-      step: currentStep,
-      formData,
-      setFormData,
-      updateValidity: updateStepValidity
-    };
+  const renderComponent = () => {
+    const config = getStepConfig(currentStep);
+    if (!config || !config.shouldShow) return null;
 
-    switch (currentStep) {
-      case 1:
-        return (
-          <VehicleIdentificationStep
-            {...commonProps}
-            lookupVehicle={lookupVehicle}
-            isLoading={isLoading}
-          />
-        );
-      case 2:
-        return formData.mileage === null && <MileageStep {...commonProps} />;
-      case 3:
-        return formData.fuelType === null && <FuelTypeStep {...commonProps} />;
-      case 4:
-        return <FeatureSelectionStep {...commonProps} />;
-      case 5:
-        return <ConditionStep {...commonProps} />;
-      case 6:
-        return <AccidentHistoryStep {...commonProps} />;
-      case 7:
-        return (
-          <ReviewSubmitStep
-            {...commonProps}
-            isFormValid={isFormValid}
-            handleSubmit={handleSubmit}
-            handleReset={handleReset}
-          />
-        );
+    const stepProps = { ...commonProps, ...config.props };
+
+    switch (config.component) {
+      case 'VehicleIdentificationStep':
+        return <VehicleIdentificationStep {...stepProps} lookupVehicle={lookupVehicle} isLoading={isLoading} />;
+      case 'MileageStep':
+        return <MileageStep {...stepProps} />;
+      case 'FuelTypeStep':
+        return <FuelTypeStep {...stepProps} />;
+      case 'FeatureSelectionStep':
+        return <FeatureSelectionStep {...stepProps} />;
+      case 'ConditionStep':
+        return <ConditionStep {...stepProps} />;
+      case 'AccidentHistoryStep':
+        return <AccidentHistoryStep {...stepProps} />;
+      case 'ReviewSubmitStep':
+        return <ReviewSubmitStep {...stepProps} isFormValid={isFormValid} handleSubmit={handleSubmit} handleReset={handleReset} />;
       default:
         return null;
     }
@@ -88,7 +71,7 @@ export function StepContent({
 
   return (
     <>
-      {renderStep()}
+      {renderComponent()}
       {valuationId && <ValuationResult valuationId={valuationId} />}
     </>
   );
