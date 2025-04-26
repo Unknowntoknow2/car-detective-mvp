@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const US_STATES = [
@@ -77,6 +77,29 @@ export function PlateLookup({
   onStateChange, 
   onLookup 
 }: PlateLookupProps) {
+  const [error, setError] = useState<string | null>(null);
+  
+  // Simple plate validation
+  const validatePlate = (plate: string): boolean => {
+    // Basic validation - most states have 5-8 characters
+    return plate.length >= 2 && plate.length <= 8;
+  };
+  
+  const isValid = validatePlate(plateValue) && !!stateValue;
+  
+  const handlePlateChange = (value: string) => {
+    // Convert to uppercase and remove spaces
+    const formattedValue = value.toUpperCase().replace(/\s/g, '');
+    onPlateChange?.(formattedValue);
+    
+    // Validate as user types
+    if (formattedValue && !validatePlate(formattedValue)) {
+      setError("License plate format is invalid");
+    } else {
+      setError(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-3">
@@ -87,19 +110,35 @@ export function PlateLookup({
           <p className="text-sm text-slate-500">Simple & Convenient</p>
         </div>
         
-        <Input 
-          value={plateValue}
-          onChange={(e) => onPlateChange?.(e.target.value.toUpperCase())}
-          placeholder="Enter License Plate (e.g., ABC123)" 
-          className="text-lg font-mono tracking-wide uppercase h-12" 
-        />
+        <div className="relative">
+          <Input 
+            value={plateValue}
+            onChange={(e) => handlePlateChange(e.target.value)}
+            placeholder="Enter License Plate (e.g., ABC123)" 
+            className={`text-lg font-mono tracking-wide uppercase h-12 ${
+              error ? 'border-red-500 focus-visible:ring-red-500' : 
+              isValid && plateValue ? 'border-green-500 focus-visible:ring-green-500' : ''
+            }`}
+          />
+          {isValid && plateValue && stateValue && !isLoading && (
+            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+          )}
+        </div>
         
         <div className="pt-1">
           <Select
             value={stateValue}
-            onValueChange={(value) => onStateChange?.(value)}
+            onValueChange={(value) => {
+              onStateChange?.(value);
+              // Clear any error when state is selected
+              if (error && validatePlate(plateValue)) {
+                setError(null);
+              }
+            }}
           >
-            <SelectTrigger className="w-full h-12">
+            <SelectTrigger className={`w-full h-12 ${
+              !stateValue ? '' : 'border-green-500 focus-visible:ring-green-500'
+            }`}>
               <SelectValue placeholder="Select State" />
             </SelectTrigger>
             <SelectContent>
@@ -112,18 +151,25 @@ export function PlateLookup({
           </Select>
         </div>
         
-        <div className="flex items-start gap-2 text-xs text-slate-500">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <p>
-            Enter your license plate and state. This works best for vehicles registered in the United States.
-          </p>
-        </div>
+        {error ? (
+          <div className="flex items-start gap-2 text-xs text-red-500">
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <p>{error}</p>
+          </div>
+        ) : (
+          <div className="flex items-start gap-2 text-xs text-slate-500">
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <p>
+              Enter your license plate and state. This works best for vehicles registered in the United States.
+            </p>
+          </div>
+        )}
       </div>
       
       <div className="flex justify-end">
         <Button 
           onClick={onLookup}
-          disabled={isLoading || !plateValue || !stateValue}
+          disabled={isLoading || !isValid}
           className="px-6"
         >
           {isLoading ? (
