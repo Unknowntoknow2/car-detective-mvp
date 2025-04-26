@@ -2,6 +2,8 @@
 import { TabContentWrapper } from "./TabContentWrapper";
 import { VinLookup } from "../../lookup/VinLookup";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface VinLookupTabProps {
   vinValue: string;
@@ -12,6 +14,25 @@ interface VinLookupTabProps {
 }
 
 export function VinLookupTab({ vinValue, isLoading, vehicle, onVinChange, onLookup }: VinLookupTabProps) {
+  const navigate = useNavigate();
+
+  const handleContinueToValuation = () => {
+    if (!vehicle) return;
+    
+    // Save the vehicle details to local storage for the premium form
+    localStorage.setItem("premium_vehicle", JSON.stringify({
+      identifierType: 'vin',
+      identifier: vinValue,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      trim: vehicle.trim || "Standard"
+    }));
+    
+    toast.success("Vehicle information saved. Continuing to premium valuation.");
+    navigate("/premium-valuation");
+  };
+
   return (
     <TabContentWrapper
       title="VIN Lookup"
@@ -46,7 +67,7 @@ export function VinLookupTab({ vinValue, isLoading, vehicle, onVinChange, onLook
           </div>
           
           <div className="mt-6 flex justify-end">
-            <Button className="bg-primary">Continue to Valuation</Button>
+            <Button className="bg-primary" onClick={handleContinueToValuation}>Continue to Valuation</Button>
           </div>
         </div>
       )}

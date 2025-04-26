@@ -1,6 +1,5 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VinLookup } from "../lookup/VinLookup";
-import { PlateLookup } from "../lookup/PlateLookup";
 import { ManualLookup } from "../lookup/ManualLookup";
 import { Card } from "@/components/ui/card";
 import { CarFront, FileText, Search, Camera, Building, ChartBar, Calendar, Shield } from "lucide-react";

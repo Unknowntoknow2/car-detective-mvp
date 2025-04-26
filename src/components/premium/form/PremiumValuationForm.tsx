@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { VehicleIdentificationStep } from './steps/VehicleIdentificationStep';
 import MileageStep from './steps/MileageStep';
@@ -44,13 +45,38 @@ export function PremiumValuationForm() {
   
   useEffect(() => {
     if (initialLoad) {
+      // First, try to load from formData autosave
       const savedFormData = loadSavedData();
-      if (savedFormData) {
+      
+      // Then, check if we have vehicle data from the lookup tabs
+      const savedVehicleData = localStorage.getItem("premium_vehicle");
+      
+      if (savedVehicleData) {
+        try {
+          const vehicleData = JSON.parse(savedVehicleData);
+          // Merge with any existing form data or use the vehicle data as a base
+          setFormData(prev => ({
+            ...prev,
+            ...vehicleData
+          }));
+          
+          // If we loaded vehicle data from lookup, mark the first step as valid
+          updateStepValidity(1, true);
+          
+          // Remove the data from localStorage so it doesn't persist between sessions
+          localStorage.removeItem("premium_vehicle");
+          
+          toast.success("Vehicle information loaded from previous lookup");
+        } catch (error) {
+          console.error("Error parsing saved vehicle data:", error);
+        }
+      } else if (savedFormData) {
         setFormData(savedFormData);
       }
+      
       setInitialLoad(false);
     }
-  }, [initialLoad, loadSavedData, setFormData]);
+  }, [initialLoad, loadSavedData, setFormData, updateStepValidity]);
   
   useEffect(() => {
     setStepCompletionStatus(prevStatus => ({

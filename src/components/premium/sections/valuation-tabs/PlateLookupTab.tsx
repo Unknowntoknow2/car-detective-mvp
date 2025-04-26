@@ -2,6 +2,8 @@
 import { TabContentWrapper } from "./TabContentWrapper";
 import { PlateLookup } from "../../lookup/PlateLookup";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface PlateLookupTabProps {
   plateValue: string;
@@ -22,6 +24,26 @@ export function PlateLookupTab({
   onStateChange, 
   onLookup 
 }: PlateLookupTabProps) {
+  const navigate = useNavigate();
+
+  const handleContinueToValuation = () => {
+    if (!vehicle) return;
+    
+    // Save the vehicle details to local storage for the premium form
+    localStorage.setItem("premium_vehicle", JSON.stringify({
+      identifierType: 'plate',
+      identifier: plateValue,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      state: stateValue,
+      exteriorColor: vehicle.exteriorColor || null
+    }));
+    
+    toast.success("Vehicle information saved. Continuing to premium valuation.");
+    navigate("/premium-valuation");
+  };
+
   return (
     <TabContentWrapper
       title="Plate Lookup"
@@ -58,7 +80,7 @@ export function PlateLookupTab({
           </div>
           
           <div className="mt-6 flex justify-end">
-            <Button className="bg-primary">Continue to Valuation</Button>
+            <Button className="bg-primary" onClick={handleContinueToValuation}>Continue to Valuation</Button>
           </div>
         </div>
       )}
