@@ -115,10 +115,11 @@ serve(async (req) => {
         break;
       }
       
-      case 'manual': {
-        // For manual entry, just validate and return the input
+      case 'manual':
+      case 'photo': {
+        // For manual entry or photo analysis, just validate and return the input
         if (!manual?.make || !manual?.model || !manual?.year) {
-          decoded = { error: 'Missing required manual entry fields' };
+          decoded = { error: 'Missing required vehicle fields' };
           break;
         }
 
@@ -136,8 +137,8 @@ serve(async (req) => {
           vin: manual.vin
         };
         
-        // Log the manual entry to help improve our database
-        console.log("Manual vehicle entry:", JSON.stringify(decoded));
+        // Log the entry to help improve our database
+        console.log(`${type} vehicle entry:`, JSON.stringify(decoded));
         
         // Optionally save manual entries to a table for future reference
         try {
@@ -154,7 +155,7 @@ serve(async (req) => {
           });
         } catch (err) {
           // Just log the error, don't fail the request
-          console.error("Failed to save manual entry:", err);
+          console.error("Failed to save entry:", err);
         }
         
         break;
