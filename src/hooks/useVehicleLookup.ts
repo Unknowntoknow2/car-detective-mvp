@@ -8,7 +8,7 @@ export const useVehicleLookup = () => {
   const [vehicle, setVehicle] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupVehicle = async (type: 'vin' | 'plate' | 'manual', identifier: string, state?: string, manualData?: any) => {
+  const lookupVehicle = async (type: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string, manualData?: any) => {
     setIsLoading(true);
     setError(null);
     
@@ -19,8 +19,21 @@ export const useVehicleLookup = () => {
         payload = { type, vin: identifier };
       } else if (type === 'plate') {
         payload = { type, licensePlate: identifier, state };
-      } else if (type === 'manual') {
+      } else if (type === 'manual' || type === 'photo') {
         payload = { type, manual: manualData };
+      }
+      
+      // For photo analysis, we skip the API call and use the mock data directly
+      // In a production app, you would call a real computer vision API
+      if (type === 'photo' && identifier === 'photo-analysis') {
+        // Simulate API response delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Use the data passed in manualData
+        setVehicle(manualData);
+        
+        toast.success(`Identified vehicle: ${manualData.year} ${manualData.make} ${manualData.model}`);
+        return manualData;
       }
       
       const { data, error } = await supabase.functions.invoke('unified-decode', {
