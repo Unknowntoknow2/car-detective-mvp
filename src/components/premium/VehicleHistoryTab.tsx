@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, FileText, Users, Car, Check, X, History, Tool, AlertTriangle } from "lucide-react";
+import { Shield, FileText, Users, Car, Check, X, History, Wrench, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -96,7 +96,7 @@ export function VehicleHistoryTab({ vin, valuationId, historyData }: VehicleHist
           <Card className="p-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-full bg-green-100">
-                <Tool className="h-5 w-5 text-green-600" />
+                <Wrench className="h-5 w-5 text-green-600" />
               </div>
               <div>
                 <h4 className="font-medium">Service Records</h4>
@@ -168,7 +168,7 @@ export function VehicleHistoryTab({ vin, valuationId, historyData }: VehicleHist
           </div>
           
           <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 flex flex-col items-center text-center">
-            <Tool className="h-6 w-6 text-green-600 mb-2" />
+            <Wrench className="h-6 w-6 text-green-600 mb-2" />
             <p className="text-2xl font-bold">{reportData.serviceRecords}</p>
             <p className="text-sm text-slate-600">Service Records</p>
           </div>

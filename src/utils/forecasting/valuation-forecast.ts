@@ -15,6 +15,9 @@ export type ForecastResult = {
   confidenceScore: number;
   lowestValue: number;
   highestValue: number;
+  months: string[];  // Added missing property
+  values: number[];  // Added missing property
+  trend: 'increasing' | 'decreasing' | 'stable';  // Added missing property
 };
 
 function runLinearForecast(prices: number[], months: string[]) {
@@ -63,6 +66,9 @@ export async function generateValuationForecast(
     valueTrend: data.trend,
     confidenceScore: data.confidenceScore,
     lowestValue: Math.min(...data.values),
-    highestValue: Math.max(...data.values)
+    highestValue: Math.max(...data.values),
+    months: data.months,  // Added to match the return type
+    values: data.values,  // Added to match the return type
+    trend: data.trend     // Added to match the return type
   };
 }

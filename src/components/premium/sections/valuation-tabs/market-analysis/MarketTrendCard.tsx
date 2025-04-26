@@ -18,13 +18,13 @@ export function MarketTrendCard({
   const isIncreasing = trend === 'increasing';
   const trendColor = isIncreasing ? 'text-green-600' : 'text-red-600';
   const trendBgColor = isIncreasing ? 'bg-green-100' : 'bg-red-100';
-  const trendIcon = isIncreasing ? TrendingUp : TrendingDown;
+  const TrendIcon = isIncreasing ? TrendingUp : TrendingDown;
   
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <trendIcon className={`h-4 w-4 ${trendColor}`} /> 
+          <TrendIcon className={`h-4 w-4 ${trendColor}`} /> 
           Price Trend
         </CardTitle>
       </CardHeader>
