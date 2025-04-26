@@ -24,32 +24,40 @@ export function PremiumValuationTabs() {
   } = useValuationState();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
-      <TabHeader />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mb-12">
+        <TabHeader />
+      </div>
+      
       <Tabs 
         value={activeTab} 
         onValueChange={(value: ValuationServiceId) => setActiveTab(value)} 
-        className="w-full"
+        className="w-full space-y-8"
       >
-        <TabNavigation 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
-        <TabContent
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          vinValue={vinValue}
-          plateValue={plateValue}
-          plateState={plateState}
-          isLoading={isLoading}
-          vehicle={vehicle}
-          onVinChange={setVinValue}
-          onPlateChange={setPlateValue}
-          onStateChange={setPlateState}
-          onVinLookup={handleVinLookup}
-          onPlateLookup={handlePlateLookup}
-          onManualSubmit={handleManualSubmit}
-        />
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <TabNavigation 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+          />
+        </div>
+        
+        <div className="bg-surface rounded-xl p-6">
+          <TabContent
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            vinValue={vinValue}
+            plateValue={plateValue}
+            plateState={plateState}
+            isLoading={isLoading}
+            vehicle={vehicle}
+            onVinChange={setVinValue}
+            onPlateChange={setPlateValue}
+            onStateChange={setPlateState}
+            onVinLookup={handleVinLookup}
+            onPlateLookup={handlePlateLookup}
+            onManualSubmit={handleManualSubmit}
+          />
+        </div>
       </Tabs>
     </div>
   );

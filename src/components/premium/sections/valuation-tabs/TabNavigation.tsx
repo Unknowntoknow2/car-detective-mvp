@@ -9,16 +9,16 @@ interface TabNavigationProps {
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   return (
-    <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm pt-4 pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-      <TabsList className="flex w-full mb-6 overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200 p-1.5 gap-1">
+    <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-6 px-6">
+      <TabsList className="flex w-full overflow-x-auto bg-slate-50 rounded-xl shadow-sm border border-slate-200 p-2 gap-2">
         {valuationServices.map((service) => (
           <TabsTrigger
             key={service.id}
             value={service.id}
-            className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-colors min-w-[120px]"
+            className="flex-1 flex flex-col items-center justify-center gap-3 py-4 px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-colors min-w-[140px] hover:bg-slate-100 data-[state=active]:hover:bg-primary/90"
           >
-            <service.icon className="h-5 w-5" />
-            <span className="font-medium text-sm whitespace-nowrap">{service.title}</span>
+            <service.icon className="h-6 w-6" />
+            <span className="font-medium whitespace-nowrap">{service.title}</span>
           </TabsTrigger>
         ))}
       </TabsList>
