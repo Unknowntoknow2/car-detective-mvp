@@ -10,6 +10,7 @@ import { AccidentHistoryStep } from './AccidentHistoryStep';
 import { ReviewSubmitStep } from './ReviewSubmitStep';
 import { ValuationResult } from './ValuationResult';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
+import { useStepHandler } from '@/hooks/useStepHandler';
 
 interface StepContentProps {
   currentStep: number;
@@ -33,75 +34,61 @@ export function StepContent({
   valuationId
 }: StepContentProps) {
   const { lookupVehicle, isLoading } = useVehicleLookup();
+  const { handleStepChange } = useStepHandler(
+    currentStep,
+    formData,
+    setFormData,
+    updateStepValidity,
+    lookupVehicle,
+    isLoading
+  );
+
+  const stepConfig = handleStepChange(currentStep);
+  
+  const renderStep = () => {
+    const commonProps = {
+      step: currentStep,
+      formData,
+      setFormData,
+      updateValidity: updateStepValidity
+    };
+
+    switch (currentStep) {
+      case 1:
+        return (
+          <VehicleIdentificationStep
+            {...commonProps}
+            lookupVehicle={lookupVehicle}
+            isLoading={isLoading}
+          />
+        );
+      case 2:
+        return formData.mileage === null && <MileageStep {...commonProps} />;
+      case 3:
+        return formData.fuelType === null && <FuelTypeStep {...commonProps} />;
+      case 4:
+        return <FeatureSelectionStep {...commonProps} />;
+      case 5:
+        return <ConditionStep {...commonProps} />;
+      case 6:
+        return <AccidentHistoryStep {...commonProps} />;
+      case 7:
+        return (
+          <ReviewSubmitStep
+            {...commonProps}
+            isFormValid={isFormValid}
+            handleSubmit={handleSubmit}
+            handleReset={handleReset}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
-      {currentStep === 1 && (
-        <VehicleIdentificationStep 
-          step={1} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-          lookupVehicle={lookupVehicle}
-          isLoading={isLoading}
-        />
-      )}
-      
-      {currentStep === 2 && formData.mileage === null && (
-        <MileageStep 
-          step={2} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      {currentStep === 3 && formData.fuelType === null && (
-        <FuelTypeStep 
-          step={3} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      {currentStep === 4 && (
-        <FeatureSelectionStep 
-          step={4} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      {currentStep === 5 && (
-        <ConditionStep 
-          step={5} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      {currentStep === 6 && (
-        <AccidentHistoryStep 
-          step={6} 
-          formData={formData} 
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
-        />
-      )}
-      
-      {currentStep === 7 && (
-        <ReviewSubmitStep 
-          step={7} 
-          formData={formData}
-          isFormValid={isFormValid}
-          handleSubmit={handleSubmit}
-          handleReset={handleReset}
-        />
-      )}
-
+      {renderStep()}
       {valuationId && <ValuationResult valuationId={valuationId} />}
     </>
   );
