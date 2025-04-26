@@ -8,24 +8,24 @@ export function useForecastData(valuationId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchForecastData() {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const forecast = await generateValuationForecast(valuationId);
-        setForecastData(forecast);
-      } catch (err) {
-        console.error('Error fetching forecast data:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load forecast data';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const fetchForecastData = async () => {
+    setIsLoading(true);
+    setError(null);
     
+    try {
+      const forecast = await generateValuationForecast(valuationId);
+      setForecastData(forecast);
+    } catch (err) {
+      console.error('Error fetching forecast data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load forecast data';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     if (valuationId) {
       fetchForecastData();
     } else {
@@ -38,24 +38,6 @@ export function useForecastData(valuationId: string) {
     forecastData,
     isLoading,
     error,
-    refetch: () => {
-      if (valuationId) {
-        setIsLoading(true);
-        generateValuationForecast(valuationId)
-          .then((forecast) => {
-            setForecastData(forecast);
-            setError(null);
-          })
-          .catch((err) => {
-            console.error('Error refetching forecast data:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to load forecast data';
-            setError(errorMessage);
-            toast.error(errorMessage);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-    }
+    refetch: fetchForecastData
   };
 }

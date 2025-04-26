@@ -1,6 +1,9 @@
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label, Cell, Legend } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 interface PriceDistributionChartProps {
   distribution: number[];
@@ -24,6 +27,9 @@ export function PriceDistributionChart({
   vehicleInfo,
   priceRange
 }: PriceDistributionChartProps) {
+  const [showDetails, setShowDetails] = useState(false);
+  const [highlightedBar, setHighlightedBar] = useState<number | null>(null);
+  
   // Calculate price ranges for the chart
   const priceStep = Math.round((priceRange.highest - priceRange.lowest) / (distribution.length - 1));
   
@@ -41,6 +47,25 @@ export function PriceDistributionChart({
       isYourRange: priceRange.average >= minPrice && priceRange.average <= maxPrice
     };
   });
+
+  // Find most common price range
+  const mostCommonRange = [...chartData].sort((a, b) => b.count - a.count)[0];
+  
+  // Calculate where your price falls as a percentile
+  const totalListings = chartData.reduce((sum, item) => sum + item.count, 0);
+  let valuePercentile = 0;
+  
+  // Find which range contains your value
+  const yourValueIndex = chartData.findIndex(item => item.isYourRange);
+  if (yourValueIndex !== -1) {
+    // Count listings below your value
+    const listingsBelowValue = chartData
+      .slice(0, yourValueIndex)
+      .reduce((sum, item) => sum + item.count, 0);
+    
+    // Calculate percentile (listings below your value / total listings)
+    valuePercentile = Math.round((listingsBelowValue / totalListings) * 100);
+  }
   
   return (
     <Card>
@@ -57,6 +82,12 @@ export function PriceDistributionChart({
             <BarChart
               data={chartData}
               margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
+              onMouseMove={(data) => {
+                if (data && data.activeTooltipIndex !== undefined) {
+                  setHighlightedBar(data.activeTooltipIndex);
+                }
+              }}
+              onMouseLeave={() => setHighlightedBar(null)}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis 
@@ -112,7 +143,7 @@ export function PriceDistributionChart({
                 {chartData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={entry.isYourRange ? '#7c3aed' : '#c4b5fd'} 
+                    fill={entry.isYourRange ? '#7c3aed' : (highlightedBar === index ? '#a78bfa' : '#c4b5fd')} 
                   />
                 ))}
               </Bar>
@@ -134,6 +165,64 @@ export function PriceDistributionChart({
             <p className="font-semibold">${priceRange.highest.toLocaleString()}</p>
           </div>
         </div>
+        
+        <Button 
+          variant="ghost" 
+          className="w-full mt-4 flex items-center justify-center text-sm"
+          onClick={() => setShowDetails(!showDetails)}
+        >
+          {showDetails ? (
+            <>
+              <ChevronUp className="h-4 w-4 mr-1" />
+              Hide Market Insights
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4 mr-1" />
+              Show Market Insights
+            </>
+          )}
+        </Button>
+        
+        {showDetails && (
+          <div className="mt-4 space-y-4 p-4 bg-purple-50 rounded-lg text-sm">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-primary mt-0.5" />
+              <div>
+                <h4 className="font-medium">Market Position</h4>
+                <p className="text-slate-600">
+                  Your vehicle's estimated value is higher than approximately {valuePercentile}% of 
+                  similar listings in the market.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-primary mt-0.5" />
+              <div>
+                <h4 className="font-medium">Price Distribution</h4>
+                <p className="text-slate-600">
+                  The most common price range is {mostCommonRange.range}, with {mostCommonRange.count} vehicles 
+                  listed in this bracket.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-primary mt-0.5" />
+              <div>
+                <h4 className="font-medium">Pricing Strategy</h4>
+                <p className="text-slate-600">
+                  {priceRange.average > mostCommonRange.maxPrice
+                    ? "Your vehicle is priced above the most common range. Consider highlighting unique features to justify the premium."
+                    : priceRange.average < mostCommonRange.minPrice
+                    ? "Your vehicle is priced below the most common range, which may attract more buyers but could undervalue your vehicle."
+                    : "Your vehicle is priced within the most common market range, which is typically optimal for balancing time-to-sell and value."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

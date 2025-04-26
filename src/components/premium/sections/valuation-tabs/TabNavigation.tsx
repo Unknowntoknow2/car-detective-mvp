@@ -1,120 +1,124 @@
 
+import { useRef, useEffect, useState } from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { valuationServices, ValuationServiceId } from "./services";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Car, Search, FileText, Camera, Building, PieChart, TrendingUp, FileText2 } from "lucide-react";
+import { ValuationServiceId } from "./services";
+import { Button } from "@/components/ui/button";
 
 interface TabNavigationProps {
   activeTab: ValuationServiceId;
-  onTabChange: (value: ValuationServiceId) => void;
+  onTabChange: (tab: ValuationServiceId) => void;
 }
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
-
-  // Check if scroll arrows should be displayed
-  const checkScroll = () => {
-    if (tabsRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = tabsRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5); // 5px buffer
-    }
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftScroll, setShowLeftScroll] = useState(false);
+  const [showRightScroll, setShowRightScroll] = useState(false);
+  
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (!tabsContainerRef.current) return;
+    
+    const container = tabsContainerRef.current;
+    const scrollAmount = container.clientWidth * 0.5;
+    
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
   };
-
-  // Handle scroll events
+  
   useEffect(() => {
-    const tabsElement = tabsRef.current;
-    if (tabsElement) {
-      tabsElement.addEventListener('scroll', checkScroll);
-      checkScroll();
+    const checkScrollPosition = () => {
+      if (!tabsContainerRef.current) return;
       
-      // Check on resize as well
-      window.addEventListener('resize', checkScroll);
+      const container = tabsContainerRef.current;
+      setShowLeftScroll(container.scrollLeft > 0);
+      setShowRightScroll(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+    };
+    
+    const container = tabsContainerRef.current;
+    if (container) {
+      checkScrollPosition();
+      container.addEventListener('scroll', checkScrollPosition);
+      window.addEventListener('resize', checkScrollPosition);
       
       return () => {
-        tabsElement.removeEventListener('scroll', checkScroll);
-        window.removeEventListener('resize', checkScroll);
+        container.removeEventListener('scroll', checkScrollPosition);
+        window.removeEventListener('resize', checkScrollPosition);
       };
     }
   }, []);
-
-  // Scroll left/right
-  const scroll = (direction: 'left' | 'right') => {
-    if (tabsRef.current) {
-      const scrollAmount = 200; // px to scroll
-      const newPosition = direction === 'left' 
-        ? tabsRef.current.scrollLeft - scrollAmount 
-        : tabsRef.current.scrollLeft + scrollAmount;
-      
-      tabsRef.current.scrollTo({
-        left: newPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
+  
   // Scroll active tab into view
   useEffect(() => {
-    if (tabsRef.current) {
-      const activeElement = tabsRef.current.querySelector(`[data-state="active"]`) as HTMLElement;
-      if (activeElement) {
-        const tabsRect = tabsRef.current.getBoundingClientRect();
-        const activeRect = activeElement.getBoundingClientRect();
-        
-        if (activeRect.left < tabsRect.left || activeRect.right > tabsRect.right) {
-          activeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        }
+    if (!tabsContainerRef.current) return;
+    
+    const container = tabsContainerRef.current;
+    const activeTabElement = container.querySelector(`[data-state="active"]`) as HTMLElement;
+    
+    if (activeTabElement) {
+      const containerLeft = container.scrollLeft;
+      const containerRight = containerLeft + container.clientWidth;
+      const tabLeft = activeTabElement.offsetLeft;
+      const tabRight = tabLeft + activeTabElement.clientWidth;
+      
+      // If tab is not fully visible
+      if (tabLeft < containerLeft || tabRight > containerRight) {
+        activeTabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
     }
   }, [activeTab]);
 
+  const tabConfig = [
+    { id: 'vin', label: 'VIN Lookup', icon: <Car className="h-4 w-4" /> },
+    { id: 'plate', label: 'Plate Lookup', icon: <Search className="h-4 w-4" /> },
+    { id: 'manual', label: 'Manual Entry', icon: <FileText className="h-4 w-4" /> },
+    { id: 'photo', label: 'Photo Analysis', icon: <Camera className="h-4 w-4" /> },
+    { id: 'dealers', label: 'Dealer Offers', icon: <Building className="h-4 w-4" /> },
+    { id: 'market', label: 'Market Analysis', icon: <PieChart className="h-4 w-4" /> },
+    { id: 'forecast', label: '12-Month Forecast', icon: <TrendingUp className="h-4 w-4" /> },
+    { id: 'carfax', label: 'CARFAX® Report', icon: <FileText2 className="h-4 w-4" /> },
+  ];
+
   return (
-    <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-6 px-6 lg:py-8 lg:px-10 border-b border-slate-200 shadow-sm">
-      <div className="container mx-auto relative">
-        {/* Left scroll arrow */}
-        {showLeftArrow && (
-          <button 
-            onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 rounded-full p-1 shadow-md border border-slate-200 hover:bg-slate-50"
-            aria-label="Scroll tabs left"
-          >
-            <ChevronLeft className="h-5 w-5 text-slate-600" />
-          </button>
-        )}
-        
-        {/* Tabs container with ref for scrolling */}
-        <div className="overflow-hidden relative">
-          <TabsList 
-            ref={tabsRef}
-            className="flex w-full overflow-x-auto scrollbar-hide bg-slate-50/80 rounded-xl border border-slate-200 p-1.5 md:p-2.5 gap-1.5 md:gap-2.5 h-auto min-h-16"
-          >
-            {valuationServices.map((service) => (
-              <TabsTrigger
-                key={service.id}
-                value={service.id}
-                onClick={() => onTabChange(service.id)}
-                className="flex-shrink-0 flex flex-col md:flex-row items-center justify-center gap-2 py-3 px-3 lg:px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-200 min-w-[120px] hover:bg-slate-100 data-[state=active]:hover:bg-primary/90 data-[state=active]:shadow-sm h-auto"
-              >
-                <service.icon className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium whitespace-nowrap text-sm">{service.title}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-        
-        {/* Right scroll arrow */}
-        {showRightArrow && (
-          <button 
-            onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 rounded-full p-1 shadow-md border border-slate-200 hover:bg-slate-50"
-            aria-label="Scroll tabs right"
-          >
-            <ChevronRight className="h-5 w-5 text-slate-600" />
-          </button>
-        )}
+    <div className="relative">
+      {showLeftScroll && (
+        <Button 
+          variant="ghost" 
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-1 h-auto hidden sm:flex"
+          onClick={() => scrollTabs('left')}
+          aria-label="Scroll left"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+      )}
+      
+      <div className="overflow-x-auto scrollbar-hide" ref={tabsContainerRef}>
+        <TabsList className="rounded-xl border border-gray-200 p-1 inline-flex w-max min-w-full sm:min-w-0">
+          {tabConfig.map(tab => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              onClick={() => onTabChange(tab.id as ValuationServiceId)}
+              className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white py-2 px-3 flex items-center gap-2 whitespace-nowrap"
+            >
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
       </div>
+      
+      {showRightScroll && (
+        <Button 
+          variant="ghost" 
+          className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-1 h-auto hidden sm:flex"
+          onClick={() => scrollTabs('right')}
+          aria-label="Scroll right"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      )}
     </div>
   );
 }

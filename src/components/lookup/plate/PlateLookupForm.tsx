@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { US_STATES } from '@/utils/constants';
 import { toast } from 'sonner';
+import { ErrorState } from '@/components/premium/common/ErrorState';
 
 interface PlateLookupFormProps {
   plate: string;
@@ -25,10 +26,12 @@ export const PlateLookupForm = ({
   onSubmit,
   autoSubmit = false
 }: PlateLookupFormProps) => {
+  const [plateError, setPlateError] = useState<string | null>(null);
+  const [stateError, setStateError] = useState<string | null>(null);
   const [touched, setTouched] = useState({ plate: false, state: false });
 
   useEffect(() => {
-    if (autoSubmit && plate && state && !isLoading) {
+    if (autoSubmit && plate && state && !isLoading && !plateError && !stateError) {
       // Create a complete synthetic FormEvent that satisfies the React.FormEvent interface
       const nativeEvent = new Event('submit');
       const syntheticEvent = {
@@ -52,28 +55,34 @@ export const PlateLookupForm = ({
       // Use a proper type assertion with 'as unknown as React.FormEvent'
       onSubmit(syntheticEvent as unknown as React.FormEvent);
     }
-  }, [autoSubmit, plate, state, isLoading, onSubmit]);
+  }, [autoSubmit, plate, state, isLoading, onSubmit, plateError, stateError]);
 
-  const validatePlate = (value: string) => {
-    if (value.length < 2) {
-      return "Plate number must be at least 2 characters";
-    }
-    if (!/^[A-Z0-9]+$/.test(value)) {
-      return "Plate can only contain letters and numbers";
-    }
-    return "";
+  const validatePlate = (value: string): string | null => {
+    if (!value) return "Plate number is required";
+    if (value.length < 2) return "Plate number must be at least 2 characters";
+    if (!/^[A-Z0-9]+$/.test(value)) return "Plate can only contain letters and numbers";
+    return null;
+  };
+
+  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    onPlateChange(value);
+    setTouched(prev => ({ ...prev, plate: true }));
+    setPlateError(validatePlate(value));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const plateError = validatePlate(plate);
-    if (plateError) {
-      toast.error(plateError);
+    const plateValidationError = validatePlate(plate);
+    if (plateValidationError) {
+      setPlateError(plateValidationError);
+      toast.error(plateValidationError);
       return;
     }
     
     if (!state) {
+      setStateError("Please select a state");
       toast.error("Please select a state");
       return;
     }
@@ -90,19 +99,15 @@ export const PlateLookupForm = ({
         <Input
           id="plate"
           value={plate}
-          onChange={(e) => {
-            const value = e.target.value.toUpperCase();
-            onPlateChange(value);
-          }}
-          onBlur={() => setTouched(prev => ({ ...prev, plate: true }))}
+          onChange={handlePlateChange}
           placeholder="e.g. ABC123"
           maxLength={8}
           className="uppercase h-12 text-lg font-medium tracking-wider"
+          aria-invalid={touched.plate && plateError ? "true" : "false"}
           required
-          aria-invalid={touched.plate && validatePlate(plate) ? "true" : "false"}
         />
-        {touched.plate && validatePlate(plate) && (
-          <p className="text-sm text-destructive mt-1">{validatePlate(plate)}</p>
+        {touched.plate && plateError && (
+          <ErrorState message={plateError} variant="inline" className="mt-2" />
         )}
       </div>
 
@@ -115,6 +120,7 @@ export const PlateLookupForm = ({
           onValueChange={(value) => {
             onStateChange(value);
             setTouched(prev => ({ ...prev, state: true }));
+            setStateError(null);
           }}
           required
         >
@@ -133,6 +139,9 @@ export const PlateLookupForm = ({
             ))}
           </SelectContent>
         </Select>
+        {touched.state && stateError && (
+          <ErrorState message={stateError} variant="inline" className="mt-2" />
+        )}
       </div>
 
       <Button 
