@@ -17,10 +17,14 @@ export const useVehicleLookup = () => {
       
       if (type === 'vin') {
         payload = { type, vin: identifier };
+        toast.info("Looking up VIN...");
       } else if (type === 'plate') {
         payload = { type, licensePlate: identifier, state };
+        toast.info(`Looking up plate ${identifier} (${state})...`);
       } else if (type === 'manual' || type === 'photo') {
         payload = { type, manual: manualData };
+        const source = type === 'manual' ? 'manual entry' : 'photo analysis';
+        toast.info(`Processing ${source} data...`);
       }
       
       // For photo analysis, we skip the API call and use the mock data directly
@@ -36,16 +40,20 @@ export const useVehicleLookup = () => {
         return manualData;
       }
       
+      console.log("Sending payload to unified-decode:", payload);
+      
       const { data, error } = await supabase.functions.invoke('unified-decode', {
         body: payload
       });
       
+      console.log("Received response:", data);
+      
       if (error) {
-        throw new Error(error.message);
+        throw new Error(error.message || "Error invoking function");
       }
       
-      if (data.decoded?.error) {
-        throw new Error(data.decoded.error);
+      if (!data || data.decoded?.error) {
+        throw new Error(data?.decoded?.error || "Invalid response from server");
       }
       
       setVehicle(data.decoded);

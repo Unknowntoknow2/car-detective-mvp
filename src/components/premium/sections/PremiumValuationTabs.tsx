@@ -60,12 +60,12 @@ export function PremiumValuationTabs() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
       <TabHeader />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 mb-12 bg-white rounded-xl shadow-sm border border-slate-200 p-1 overflow-x-auto">
+        <TabsList className="flex w-full mb-12 overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200 p-1">
           {services.map((service) => (
             <TabsTrigger
               key={service.id}
               value={service.id}
-              className="flex flex-col items-center gap-1 py-3 px-4 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-colors"
+              className="flex flex-col items-center gap-2 py-4 px-6 rounded-lg min-w-[110px] data-[state=active]:bg-primary data-[state=active]:text-white transition-colors"
             >
               <service.icon className="h-5 w-5" />
               <span className="font-medium text-sm whitespace-nowrap">{service.title}</span>
