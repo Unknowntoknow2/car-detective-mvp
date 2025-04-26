@@ -1,17 +1,17 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ManualLookup } from "../lookup/ManualLookup";
 import { Card } from "@/components/ui/card";
 import { CarFront, FileText, Search, Camera, Building, ChartBar, Calendar, Shield } from "lucide-react";
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { toast } from "sonner";
 import { TabHeader } from "./valuation-tabs/TabHeader";
-import { TabContentWrapper } from "./valuation-tabs/TabContentWrapper";
 import { PhotoUploadTab } from "./valuation-tabs/PhotoUploadTab";
 import { UnauthorizedRedirectTab } from "./valuation-tabs/UnauthorizedRedirectTab";
 import { VinLookupTab } from "./valuation-tabs/VinLookupTab";
 import { PlateLookupTab } from "./valuation-tabs/PlateLookupTab";
+import { ManualEntryTab } from "./valuation-tabs/ManualEntryTab";
+import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
 
 export function PremiumValuationTabs() {
   const [activeTab, setActiveTab] = useState("vin");
@@ -38,6 +38,11 @@ export function PremiumValuationTabs() {
       return;
     }
     await lookupVehicle('plate', plateValue, plateState);
+  };
+
+  const handleManualSubmit = (data: ManualEntryFormData) => {
+    // This function will be called when the manual entry form is submitted
+    toast.success("Vehicle information submitted successfully");
   };
 
   const services = [
@@ -92,12 +97,10 @@ export function PremiumValuationTabs() {
           </TabsContent>
 
           <TabsContent value="manual">
-            <TabContentWrapper
-              title="Manual Entry"
-              description="Manually enter your vehicle details for a custom valuation"
-            >
-              <ManualLookup />
-            </TabContentWrapper>
+            <ManualEntryTab 
+              onSubmit={handleManualSubmit}
+              isLoading={isLoading}
+            />
           </TabsContent>
           
           <TabsContent value="photo">

@@ -1,56 +1,73 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-export function useVehicleLookup() {
-  const [isLoading, setIsLoading] = useState(false);
+export const useVehicleLookup = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [vehicle, setVehicle] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const lookupVehicle = async (identifierType: 'vin' | 'plate', identifier: string, state?: string) => {
+  const lookupVehicle = async (type: 'vin' | 'plate' | 'manual', identifier: string, state?: string, manualData?: any) => {
     setIsLoading(true);
-    setVehicle(null);
+    setError(null);
     
     try {
-      console.log(`Looking up ${identifierType}: ${identifier}`);
+      let payload: any = {};
+      
+      if (type === 'vin') {
+        payload = { type, vin: identifier };
+      } else if (type === 'plate') {
+        payload = { type, licensePlate: identifier, state };
+      } else if (type === 'manual') {
+        payload = { type, manual: manualData };
+      }
       
       const { data, error } = await supabase.functions.invoke('unified-decode', {
-        body: { 
-          type: identifierType,
-          [identifierType]: identifier,
-          state
-        }
+        body: payload
       });
-
+      
       if (error) {
-        console.error('Lookup error:', error);
-        throw error;
+        throw new Error(error.message);
       }
       
-      if (data.error) {
-        console.error('Decode error:', data.error);
-        throw new Error(data.error);
+      if (data.decoded?.error) {
+        throw new Error(data.decoded.error);
       }
-
-      console.log('Decoded vehicle:', data.decoded);
+      
       setVehicle(data.decoded);
       
-      toast.success(`Found: ${data.decoded.year} ${data.decoded.make} ${data.decoded.model}`);
-      return data.decoded;
+      if (type === 'vin') {
+        toast.success(`Found vehicle: ${data.decoded.year} ${data.decoded.make} ${data.decoded.model}`);
+      } else if (type === 'plate') {
+        toast.success(`Found vehicle with plate ${identifier}: ${data.decoded.year} ${data.decoded.make} ${data.decoded.model}`);
+      } else if (type === 'manual') {
+        toast.success(`Vehicle details validated: ${data.decoded.year} ${data.decoded.make} ${data.decoded.model}`);
+      }
       
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to lookup vehicle';
-      console.error('Lookup failed:', message);
-      toast.error(message);
+      return data.decoded;
+    } catch (err: any) {
+      const errorMessage = err.message || 'Could not lookup vehicle';
+      console.error(`Vehicle lookup error (${type}):`, err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setVehicle(null);
       return null;
     } finally {
       setIsLoading(false);
     }
   };
+  
+  const reset = () => {
+    setVehicle(null);
+    setError(null);
+  };
 
   return {
     lookupVehicle,
     isLoading,
-    vehicle
+    vehicle,
+    error,
+    reset
   };
-}
+};

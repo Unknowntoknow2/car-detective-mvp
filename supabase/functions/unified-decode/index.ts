@@ -16,6 +16,8 @@ interface DecodedVehicle {
   transmission?: string;
   drivetrain?: string;
   bodyType?: string;
+  exteriorColor?: string;
+  vin?: string;
 }
 
 interface DecodedVehicleError {
@@ -106,7 +108,9 @@ serve(async (req) => {
         decoded = {
           make: data.make,
           model: data.model,
-          year: data.year
+          year: data.year,
+          exteriorColor: data.color,
+          vin: data.vin
         };
         break;
       }
@@ -127,8 +131,32 @@ serve(async (req) => {
           engine: manual.engine,
           transmission: manual.transmission,
           drivetrain: manual.drivetrain,
-          bodyType: manual.bodyType
+          bodyType: manual.bodyType,
+          exteriorColor: manual.exteriorColor,
+          vin: manual.vin
         };
+        
+        // Log the manual entry to help improve our database
+        console.log("Manual vehicle entry:", JSON.stringify(decoded));
+        
+        // Optionally save manual entries to a table for future reference
+        try {
+          await supabaseClient.from('manual_vehicle_entries').insert({
+            make: manual.make,
+            model: manual.model,
+            year: manual.year,
+            mileage: manual.mileage,
+            fuel_type: manual.fuelType,
+            condition: manual.condition,
+            trim: manual.trim,
+            body_type: manual.bodyType,
+            user_ip: req.headers.get('x-forwarded-for') || 'unknown'
+          });
+        } catch (err) {
+          // Just log the error, don't fail the request
+          console.error("Failed to save manual entry:", err);
+        }
+        
         break;
       }
 
