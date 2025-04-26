@@ -24,15 +24,15 @@ export function PremiumValuationTabs() {
   } = useValuationState();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="mb-16">
         <TabHeader />
       </div>
       
       <Tabs 
         value={activeTab} 
         onValueChange={(value: ValuationServiceId) => setActiveTab(value)} 
-        className="w-full space-y-8"
+        className="w-full space-y-10"
       >
         <div className="bg-white rounded-xl shadow-sm border border-slate-200">
           <TabNavigation 
@@ -41,7 +41,7 @@ export function PremiumValuationTabs() {
           />
         </div>
         
-        <div className="bg-surface rounded-xl p-6">
+        <div className="bg-surface/50 rounded-2xl p-8 lg:p-10 shadow-sm border border-slate-200">
           <TabContent
             activeTab={activeTab}
             setActiveTab={setActiveTab}
