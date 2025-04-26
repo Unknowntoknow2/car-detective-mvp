@@ -27,7 +27,7 @@ export const usePremiumValuationForm = () => {
 
   const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);
   const { currentStep, totalSteps, goToNextStep, goToPreviousStep } = useStepNavigation(formData);
-  const { valuationId, handleSubmit, isSubmitting, submitError } = useValuationSubmit();
+  const { valuationId, handleSubmit: submitValuation, isSubmitting, submitError } = useValuationSubmit();
 
   // Validation rules for each step
   const validateStep = (step: number, data: FormData): boolean => {
@@ -129,7 +129,7 @@ export const usePremiumValuationForm = () => {
     handleReset,
     isSubmitting,
     submitError,
-    handleSubmit: () => handleSubmit(formData, user, isFormValid),
+    handleSubmit: () => submitValuation(formData, user, isFormValid),
     validateStep
   };
 };

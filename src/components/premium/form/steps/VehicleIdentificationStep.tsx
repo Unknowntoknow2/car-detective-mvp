@@ -13,7 +13,7 @@ interface VehicleIdentificationStepProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   updateValidity: (step: number, isValid: boolean) => void;
-  lookupVehicle: (identifierType: 'vin' | 'plate', identifier: string, state?: string) => Promise<any>;
+  lookupVehicle: (identifierType: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string, manualData?: any, imageData?: any) => Promise<any>;
   isLoading: boolean;
 }
 

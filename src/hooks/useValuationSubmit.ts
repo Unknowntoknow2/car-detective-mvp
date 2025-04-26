@@ -8,13 +8,19 @@ import { User } from '@supabase/supabase-js';
 
 export const useValuationSubmit = () => {
   const [valuationId, setValuationId] = useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (formData: FormData, user: User | null, isFormValid: boolean) => {
     if (!isFormValid) return;
     
+    setIsSubmitting(true);
+    setSubmitError(null);
+    
     try {
       if (!user) {
         toast.error("Please sign in to save your valuation");
+        setSubmitError("Authentication required");
         return;
       }
 
@@ -56,13 +62,18 @@ export const useValuationSubmit = () => {
       console.log("Valuation saved with ID:", data.id);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save valuation';
+      setSubmitError(errorMessage);
       toast.error(errorMessage);
       console.error("Valuation error:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return {
     valuationId,
+    isSubmitting,
+    submitError,
     handleSubmit
   };
 };

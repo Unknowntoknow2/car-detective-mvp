@@ -35,8 +35,9 @@ export function PremiumValuationForm() {
     goToNextStep,
     goToPreviousStep,
     handleReset,
-    handleSubmit,
-    featureOptions
+    isSubmitting,
+    submitError,
+    handleSubmit
   } = usePremiumValuationForm();
   
   const [initialLoad, setInitialLoad] = useState(true);

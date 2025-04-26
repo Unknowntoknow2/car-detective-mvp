@@ -12,7 +12,8 @@ export const useVehicleLookup = () => {
     type: 'vin' | 'plate' | 'manual' | 'photo', 
     identifier: string, 
     state?: string, 
-    manualData?: any
+    manualData?: any,
+    imageData?: any
   ) => {
     setIsLoading(true);
     setError(null);
@@ -27,7 +28,7 @@ export const useVehicleLookup = () => {
         payload = { type, licensePlate: identifier, state };
         toast.info(`Looking up plate ${identifier} (${state})...`);
       } else if (type === 'manual' || type === 'photo') {
-        payload = { type, manual: manualData };
+        payload = { type, manual: manualData || imageData };
         const source = type === 'manual' ? 'manual entry' : 'photo analysis';
         toast.info(`Processing ${source} data...`);
       }
@@ -38,11 +39,11 @@ export const useVehicleLookup = () => {
         // Simulate API response delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Use the data passed in manualData
-        setVehicle(manualData);
+        // Use the data passed in imageData
+        setVehicle(imageData);
         
-        toast.success(`Identified vehicle: ${manualData.year} ${manualData.make} ${manualData.model}`);
-        return manualData;
+        toast.success(`Identified vehicle: ${imageData.year} ${imageData.make} ${imageData.model}`);
+        return imageData;
       }
       
       console.log("Sending payload to unified-decode:", payload);
