@@ -1,12 +1,14 @@
 
 import { useState } from 'react';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from 'lucide-react';
+import { FeatureBenefitsList } from './cards/FeatureBenefitsList';
+import { FeatureIcon } from './cards/FeatureIcon';
+import { FeatureHeader } from './cards/FeatureHeader';
 
 interface PremiumFeatureCardProps {
   icon: LucideIcon;
@@ -20,7 +22,7 @@ interface PremiumFeatureCardProps {
 }
 
 export function PremiumFeatureCard({
-  icon: Icon,
+  icon,
   title,
   description,
   value,
@@ -58,16 +60,13 @@ export function PremiumFeatureCard({
         >
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className={cn("p-3 rounded-lg border", colorVariants[color])}>
-                <Icon className="h-6 w-6" />
-              </div>
+              <FeatureIcon Icon={icon} colorClass={colorVariants[color]} />
               <div className="space-y-2 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-lg text-slate-900">{title}</h3>
-                  <Badge variant="outline" className={colorVariants[color]}>
-                    {value}
-                  </Badge>
-                </div>
+                <FeatureHeader 
+                  title={title} 
+                  value={value} 
+                  colorClass={colorVariants[color]} 
+                />
                 <p className="text-sm text-slate-600">{description}</p>
               </div>
             </div>
@@ -87,23 +86,7 @@ export function PremiumFeatureCard({
         </Card>
       </HoverCardTrigger>
       
-      <HoverCardContent 
-        align="start" 
-        className="w-[320px] p-4"
-        sideOffset={5}
-      >
-        <div className="space-y-4">
-          <h4 className="font-semibold text-sm text-slate-900">Key Benefits</h4>
-          <ul className="space-y-2">
-            {benefits.map((benefit, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm">
-                <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-slate-600">{benefit}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </HoverCardContent>
+      <FeatureBenefitsList benefits={benefits} />
     </HoverCard>
   );
 }
