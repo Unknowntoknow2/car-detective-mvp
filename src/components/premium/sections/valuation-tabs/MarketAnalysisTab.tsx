@@ -1,16 +1,12 @@
 
-import { ChartBar, Banknote, TrendingUp, TrendingDown, Info } from "lucide-react";
-import { TabContentWrapper } from "./TabContentWrapper";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { TabContentWrapper } from "./TabContentWrapper";
+import { useAuth } from "@/contexts/AuthContext";
+import { ChartBar, Info } from "lucide-react";
+import { MarketPriceRange } from "./market-analysis/MarketPriceRange";
+import { MarketTrendCard } from "./market-analysis/MarketTrendCard";
+import { LocalMarketCard } from "./market-analysis/LocalMarketCard";
+import { PriceDistributionChart } from "./market-analysis/PriceDistributionChart";
 
 interface MarketAnalysisTabProps {
   vehicleData?: {
@@ -70,10 +66,10 @@ export function MarketAnalysisTab({ vehicleData }: MarketAnalysisTabProps) {
     priceDistribution: [3, 8, 14, 22, 18, 10, 5, 2],
     listingCount: 82,
     averageDaysOnMarket: 28,
-    priceTrend: "decreasing", // "increasing", "stable", "decreasing"
+    priceTrend: "decreasing" as const,
     trendPercentage: -2.3,
     similarVehiclesNearby: 14,
-    demandScore: 7.5 // 1-10 scale
+    demandScore: 7.5
   };
   
   return (
@@ -83,121 +79,35 @@ export function MarketAnalysisTab({ vehicleData }: MarketAnalysisTabProps) {
     >
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <Banknote className="mr-2 h-5 w-5 text-primary" />
-                Price Range
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Average</span>
-                  <span className="font-bold">${marketData.averagePrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Lowest</span>
-                  <span className="text-green-600">${marketData.lowestPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Highest</span>
-                  <span className="text-red-600">${marketData.highestPrice.toLocaleString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MarketPriceRange 
+            averagePrice={marketData.averagePrice}
+            lowestPrice={marketData.lowestPrice}
+            highestPrice={marketData.highestPrice}
+          />
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                {marketData.priceTrend === "increasing" ? (
-                  <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
-                ) : marketData.priceTrend === "decreasing" ? (
-                  <TrendingDown className="mr-2 h-5 w-5 text-red-600" />
-                ) : (
-                  <ChartBar className="mr-2 h-5 w-5 text-orange-500" />
-                )}
-                Market Trend
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">30-Day Trend</span>
-                  <span className={`font-bold ${marketData.priceTrend === "increasing" ? "text-green-600" : marketData.priceTrend === "decreasing" ? "text-red-600" : "text-orange-500"}`}>
-                    {marketData.priceTrend === "stable" ? "Stable" : (marketData.trendPercentage > 0 ? "+" : "") + marketData.trendPercentage + "%"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Listings</span>
-                  <span>{marketData.listingCount} vehicles</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Avg. Days Listed</span>
-                  <span>{marketData.averageDaysOnMarket} days</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MarketTrendCard 
+            trend={marketData.priceTrend}
+            trendPercentage={marketData.trendPercentage}
+            listingCount={marketData.listingCount}
+            averageDaysOnMarket={marketData.averageDaysOnMarket}
+          />
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center">
-                <ChartBar className="mr-2 h-5 w-5 text-primary" />
-                Local Market
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Nearby Listings</span>
-                  <span>{marketData.similarVehiclesNearby} vehicles</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Demand Score</span>
-                  <span className="font-bold">{marketData.demandScore}/10</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Market Status</span>
-                  <span className={marketData.demandScore > 7 ? "text-green-600" : marketData.demandScore > 4 ? "text-orange-500" : "text-red-600"}>
-                    {marketData.demandScore > 7 ? "High Demand" : marketData.demandScore > 4 ? "Moderate" : "Low Demand"}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <LocalMarketCard
+            similarVehiclesNearby={marketData.similarVehiclesNearby}
+            demandScore={marketData.demandScore}
+          />
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Price Distribution</CardTitle>
-            <CardDescription>
-              Distribution of {marketData.listingCount} similar {vehicleData.year} {vehicleData.make} {vehicleData.model} listings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-40 flex items-end justify-between gap-1">
-              {marketData.priceDistribution.map((count, index) => (
-                <div 
-                  key={index} 
-                  className="bg-primary/80 rounded-t w-full"
-                  style={{ 
-                    height: `${(count / Math.max(...marketData.priceDistribution)) * 100}%`,
-                    opacity: index === 3 || index === 4 ? 1 : 0.7 // Highlight the middle bars
-                  }}
-                />
-              ))}
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              <span>${Math.round(marketData.lowestPrice / 1000)}k</span>
-              <span>${Math.round(marketData.averagePrice / 1000) - 2}k</span>
-              <span>${Math.round(marketData.averagePrice / 1000)}k</span>
-              <span>${Math.round(marketData.averagePrice / 1000) + 2}k</span>
-              <span>${Math.round(marketData.highestPrice / 1000)}k</span>
-            </div>
-          </CardContent>
-        </Card>
+        <PriceDistributionChart
+          distribution={marketData.priceDistribution}
+          listingCount={marketData.listingCount}
+          vehicleInfo={vehicleData}
+          priceRange={{
+            lowest: marketData.lowestPrice,
+            average: marketData.averagePrice,
+            highest: marketData.highestPrice
+          }}
+        />
         
         <div className="flex justify-end">
           <Button className="bg-primary">
