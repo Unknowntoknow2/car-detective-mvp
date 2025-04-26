@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PremiumFeaturesTabs } from './PremiumFeaturesTabs';
 import { PremiumFeaturesGrid } from './PremiumFeaturesGrid';
 import { getCategoryFeatures } from './data/premium-features';
@@ -21,18 +21,20 @@ export function EnhancedPremiumFeaturesTabs() {
           </p>
         </div>
 
-        <PremiumFeaturesTabs
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-        />
-
-        <TabsContent value={activeCategory} className="mt-4">
-          <PremiumFeaturesGrid
-            features={getCategoryFeatures(activeCategory)}
-            selectedFeature={selectedFeature}
-            onSelectFeature={setSelectedFeature}
+        <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+          <PremiumFeaturesTabs
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
           />
-        </TabsContent>
+
+          <TabsContent value={activeCategory} className="mt-4">
+            <PremiumFeaturesGrid
+              features={getCategoryFeatures(activeCategory)}
+              selectedFeature={selectedFeature}
+              onSelectFeature={setSelectedFeature}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </section>
   );
