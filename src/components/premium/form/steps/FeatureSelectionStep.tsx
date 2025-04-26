@@ -1,8 +1,7 @@
 
 import { useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
-import { featureOptions } from '@/utils/feature-calculations';
-import { FeaturesGrid } from './features/FeaturesGrid';
+import { ComprehensiveFeatureSelector } from '@/components/premium/features/ComprehensiveFeatureSelector';
 import { FeaturesTotalValue } from './features/FeaturesTotalValue';
 
 interface FeatureSelectionStepProps {
@@ -19,6 +18,7 @@ export function FeatureSelectionStep({
   updateValidity
 }: FeatureSelectionStepProps) {
   useEffect(() => {
+    // Feature selection is always valid, even if no features are selected
     updateValidity(step, true);
   }, [step, updateValidity]);
 
@@ -31,12 +31,12 @@ export function FeatureSelectionStep({
     });
   };
 
-  const calculateFeatureValue = (featureId: string): number => {
-    const feature = featureOptions.find(f => f.id === featureId);
-    return feature?.value || 0;
+  const handleFeaturesChange = (features: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      features
+    }));
   };
-
-  const totalValue = formData.features.reduce((sum, id) => sum + calculateFeatureValue(id), 0);
 
   return (
     <div className="space-y-6">
@@ -44,17 +44,17 @@ export function FeatureSelectionStep({
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Premium Features</h2>
         <p className="text-gray-600 mb-6">
           Select all features present in your vehicle to ensure an accurate valuation.
+          Premium features can significantly increase your vehicle's value.
         </p>
       </div>
 
-      <FeaturesGrid
-        features={featureOptions}
+      <ComprehensiveFeatureSelector
         selectedFeatures={formData.features}
-        onToggleFeature={toggleFeature}
+        onFeaturesChange={handleFeaturesChange}
       />
 
       {formData.features.length > 0 && (
-        <FeaturesTotalValue totalValue={totalValue} />
+        <FeaturesTotalValue totalValue={formData.features.length * 500} />
       )}
     </div>
   );

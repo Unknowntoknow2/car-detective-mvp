@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText, Loader2, AlertCircle } from 'lucide-react';
+import { AutoCompleteVehicleSelector } from '@/components/lookup/form-parts/AutoCompleteVehicleSelector';
+import { ComprehensiveFeatureSelector } from '@/components/premium/features/ComprehensiveFeatureSelector';
 
 // Mock data for the form
 const CONDITION_OPTIONS = [
@@ -28,17 +30,6 @@ const FUEL_TYPES = [
   { value: 'cng', label: 'Compressed Natural Gas (CNG)' }
 ];
 
-const COMMON_FEATURES = [
-  { id: 'leather', label: 'Leather Seats' },
-  { id: 'sunroof', label: 'Sunroof/Moonroof' },
-  { id: 'navigation', label: 'Navigation System' },
-  { id: 'camera', label: 'Backup Camera' },
-  { id: 'bluetooth', label: 'Bluetooth' },
-  { id: 'heated_seats', label: 'Heated Seats' },
-  { id: 'third_row', label: 'Third Row Seating' },
-  { id: 'premium_audio', label: 'Premium Audio System' }
-];
-
 interface ManualLookupProps {
   isLoading?: boolean;
   onSubmit?: (data: any) => void;
@@ -54,6 +45,8 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
   const [fuelType, setFuelType] = useState('');
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [zipCode, setZipCode] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formTouched, setFormTouched] = useState(false);
 
   // Update condition when slider value changes
   useEffect(() => {
@@ -69,8 +62,56 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
     if (option) setConditionValue(option.conditionValue);
   }, [condition]);
 
+  // Validate form on input changes
+  useEffect(() => {
+    if (!formTouched) return;
+    
+    const newErrors: Record<string, string> = {};
+    
+    if (!make) newErrors.make = "Make is required";
+    if (!model) newErrors.model = "Model is required";
+    if (!year) newErrors.year = "Year is required";
+    
+    if (!mileage) {
+      newErrors.mileage = "Mileage is required";
+    } else if (parseInt(mileage) <= 0) {
+      newErrors.mileage = "Mileage must be greater than 0";
+    }
+    
+    if (zipCode && !/^\d{5}$/.test(zipCode)) {
+      newErrors.zipCode = "ZIP code must be 5 digits";
+    }
+    
+    setErrors(newErrors);
+  }, [make, model, year, mileage, zipCode, formTouched]);
+
+  const validateForm = (): boolean => {
+    setFormTouched(true);
+    
+    const newErrors: Record<string, string> = {};
+    
+    if (!make) newErrors.make = "Make is required";
+    if (!model) newErrors.model = "Model is required";
+    if (!year) newErrors.year = "Year is required";
+    
+    if (!mileage) {
+      newErrors.mileage = "Mileage is required";
+    } else if (parseInt(mileage) <= 0) {
+      newErrors.mileage = "Mileage must be greater than 0";
+    }
+    
+    if (zipCode && !/^\d{5}$/.test(zipCode)) {
+      newErrors.zipCode = "ZIP code must be 5 digits";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
     
     if (onSubmit) {
       const data = {
@@ -87,14 +128,6 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
     }
   };
 
-  const toggleFeature = (featureId: string) => {
-    setSelectedFeatures(prev => 
-      prev.includes(featureId)
-        ? prev.filter(id => id !== featureId)
-        : [...prev, featureId]
-    );
-  };
-
   const selectedCondition = CONDITION_OPTIONS.find(option => option.value === condition);
 
   return (
@@ -109,33 +142,38 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
       
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-6">
+          <AutoCompleteVehicleSelector
+            selectedMake={make}
+            setSelectedMake={setMake}
+            selectedModel={model}
+            setSelectedModel={setModel}
+            disabled={isLoading}
+            required
+          />
+          
+          {errors.make && (
+            <div className="flex items-center gap-2 text-destructive text-sm mt-1">
+              <AlertCircle className="h-4 w-4" />
+              <span>{errors.make}</span>
+            </div>
+          )}
+          
+          {errors.model && (
+            <div className="flex items-center gap-2 text-destructive text-sm mt-1">
+              <AlertCircle className="h-4 w-4" />
+              <span>{errors.model}</span>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="make">Make</Label>
-              <Input
-                id="make"
-                value={make}
-                onChange={(e) => setMake(e.target.value)}
-                placeholder="e.g., Toyota"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
-              <Input
-                id="model"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                placeholder="e.g., Camry"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Select value={year.toString()} onValueChange={(value) => setYear(parseInt(value))}>
-                <SelectTrigger id="year">
+              <Label htmlFor="year">Year <span className="text-destructive">*</span></Label>
+              <Select 
+                value={year ? year.toString() : ''} 
+                onValueChange={(value) => setYear(parseInt(value))}
+                disabled={isLoading}
+              >
+                <SelectTrigger id="year" className={errors.year ? "border-destructive" : ""}>
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -146,23 +184,41 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
                   ))}
                 </SelectContent>
               </Select>
+              {errors.year && (
+                <div className="flex items-center gap-2 text-destructive text-sm mt-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.year}</span>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="mileage">Mileage</Label>
+              <Label htmlFor="mileage">Mileage <span className="text-destructive">*</span></Label>
               <Input
                 id="mileage"
                 type="number"
                 value={mileage}
                 onChange={(e) => setMileage(e.target.value)}
                 placeholder="e.g., 45000"
-                required
+                className={errors.mileage ? "border-destructive" : ""}
+                min="1"
+                disabled={isLoading}
               />
+              {errors.mileage && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.mileage}</span>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="fuelType">Fuel Type</Label>
-              <Select value={fuelType} onValueChange={setFuelType}>
+              <Select 
+                value={fuelType} 
+                onValueChange={setFuelType}
+                disabled={isLoading}
+              >
                 <SelectTrigger id="fuelType">
                   <SelectValue placeholder="Select fuel type" />
                 </SelectTrigger>
@@ -184,14 +240,26 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
                 onChange={(e) => setZipCode(e.target.value.replace(/[^0-9]/g, '').substring(0, 5))}
                 placeholder="Enter ZIP code"
                 maxLength={5}
+                className={errors.zipCode ? "border-destructive" : ""}
+                disabled={isLoading}
               />
+              {errors.zipCode && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.zipCode}</span>
+                </div>
+              )}
             </div>
           </div>
           
           <div className="space-y-4">
             <div>
               <Label className="mb-2 block">Vehicle Condition</Label>
-              <Select value={condition} onValueChange={(value: ConditionLevel) => setCondition(value)}>
+              <Select 
+                value={condition} 
+                onValueChange={(value: ConditionLevel) => setCondition(value)}
+                disabled={isLoading}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
@@ -211,6 +279,7 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
                   step={1} 
                   value={[conditionValue]}
                   onValueChange={(value) => setConditionValue(value[0])}
+                  disabled={isLoading}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-2">
                   <span>Poor</span>
@@ -229,27 +298,19 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
           </div>
           
           <div className="space-y-4">
-            <Label className="mb-2 block">Features</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {COMMON_FEATURES.map(feature => (
-                <Button
-                  key={feature.id}
-                  type="button"
-                  variant={selectedFeatures.includes(feature.id) ? "default" : "outline"}
-                  className={`text-xs h-auto py-2 justify-start`}
-                  onClick={() => toggleFeature(feature.id)}
-                >
-                  {feature.label}
-                </Button>
-              ))}
-            </div>
+            <Label className="mb-2 block">Vehicle Features</Label>
+            <ComprehensiveFeatureSelector
+              selectedFeatures={selectedFeatures}
+              onFeaturesChange={setSelectedFeatures}
+              disabled={isLoading}
+            />
           </div>
         </div>
         
         <div className="flex justify-end">
           <Button 
             type="submit" 
-            disabled={isLoading || !make || !model || !year || !mileage}
+            disabled={isLoading}
             className="px-6"
           >
             {isLoading ? (

@@ -4,10 +4,12 @@ export type FeatureOption = {
   name: string;
   icon: string;
   value: number;
+  category?: string;
+  description?: string;
 };
 
 export type FormData = {
-  identifierType: 'vin' | 'plate';
+  identifierType: 'vin' | 'plate' | 'manual' | 'photo';
   identifier: string;
   make: string;
   model: string;
@@ -20,4 +22,30 @@ export type FormData = {
   hasAccident: boolean;
   accidentDescription: string;
   zipCode: string;
+  exteriorColor?: string;
+  interiorColor?: string;
+  bodyType?: string;
+  trim?: string;
+  vin?: string;
+};
+
+export interface ValidationRules {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  minValue?: number;
+  maxValue?: number;
+  validate?: (value: any) => boolean | string;
+}
+
+export interface FieldValidation {
+  [fieldName: string]: ValidationRules;
+}
+
+export type FormSection = {
+  id: number;
+  title: string;
+  fields: string[];
+  validationRules: FieldValidation;
 };

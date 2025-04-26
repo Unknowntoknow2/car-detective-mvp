@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState } from "react";
+import { AlertCircle } from "lucide-react";
 
 export function PhotoUploadTab() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export function PhotoUploadTab() {
 
   const handlePhotoAnalysisComplete = (vehicleData: any) => {
     setVehicle(vehicleData);
+    // Persist data in session storage for better state management between tabs
+    sessionStorage.setItem("analyzed_vehicle", JSON.stringify(vehicleData));
   };
 
   const handleContinueToValuation = () => {
@@ -25,12 +28,28 @@ export function PhotoUploadTab() {
       model: vehicle.model,
       year: vehicle.year,
       trim: vehicle.trim || "Standard",
-      exteriorColor: vehicle.exteriorColor
+      exteriorColor: vehicle.exteriorColor,
+      // Adding additional data for better persistence between tabs
+      mileage: vehicle.mileage || null,
+      features: vehicle.features || [],
+      condition: vehicle.condition || 50
     }));
     
     toast.success("Vehicle information saved. Continuing to premium valuation.");
     navigate("/premium-valuation");
   };
+
+  // Retrieve previously analyzed vehicle data for persistence between tabs
+  useState(() => {
+    const savedVehicle = sessionStorage.getItem("analyzed_vehicle");
+    if (savedVehicle) {
+      try {
+        setVehicle(JSON.parse(savedVehicle));
+      } catch (error) {
+        console.error("Error parsing saved vehicle data:", error);
+      }
+    }
+  });
 
   return (
     <TabContentWrapper
@@ -59,6 +78,18 @@ export function PhotoUploadTab() {
           
           <div className="mt-6 flex justify-end">
             <Button className="bg-primary" onClick={handleContinueToValuation}>Continue to Valuation</Button>
+          </div>
+        </div>
+      )}
+
+      {!vehicle && (
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-2">
+          <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-blue-700">
+              Take clear photos of your vehicle from multiple angles for the best results.
+              Our AI will analyze the images to identify your vehicle's make, model, and year.
+            </p>
           </div>
         </div>
       )}
