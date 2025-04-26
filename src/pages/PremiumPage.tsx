@@ -6,18 +6,13 @@ import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { PremiumHero } from '@/components/premium/sections/PremiumHero';
 import { PremiumValuationTabs } from '@/components/premium/sections/PremiumValuationTabs';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
-import { PremiumFeaturesTabs } from '@/components/premium/features/PremiumFeaturesTabs';
+import { EnhancedPremiumFeaturesTabs } from '@/components/premium/features/EnhancedPremiumFeaturesTabs';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
-  const featuresRef = useRef<HTMLDivElement>(null);
   
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  const scrollToFeatures = () => {
-    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
   return (
@@ -27,7 +22,7 @@ export default function PremiumPage() {
       <main>
         <PremiumHero scrollToForm={scrollToForm} />
         
-        <PremiumFeaturesTabs />
+        <EnhancedPremiumFeaturesTabs />
         
         <ComparisonSection scrollToForm={scrollToForm} />
         
