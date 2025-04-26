@@ -1,12 +1,12 @@
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { PremiumHero } from '@/components/premium/sections/PremiumHero';
 import { PremiumValuationTabs } from '@/components/premium/sections/PremiumValuationTabs';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
-import { FeaturesSection } from '@/components/premium/FeaturesSection';
+import { PremiumFeaturesTabs } from '@/components/premium/features/PremiumFeaturesTabs';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
@@ -27,7 +27,7 @@ export default function PremiumPage() {
       <main>
         <PremiumHero scrollToForm={scrollToForm} />
         
-        <FeaturesSection featuresRef={featuresRef} />
+        <PremiumFeaturesTabs />
         
         <ComparisonSection scrollToForm={scrollToForm} />
         
