@@ -47,23 +47,24 @@ export const useVehicleLookup = () => {
       
       console.log("Sending payload to unified-decode:", payload);
       
-      const { data, error: apiError, status } = await supabase.functions.invoke('unified-decode', {
+      const { data, error: apiError } = await supabase.functions.invoke('unified-decode', {
         body: payload
       });
       
-      console.log("Received response:", data, "Status:", status);
+      console.log("Received response:", data);
       
       if (apiError) {
         let errorMessage = apiError.message || "Error invoking function";
         
-        // Handle specific HTTP error codes
-        if (status === 404) {
+        // Since status is not available directly on the response, we'll use the error message
+        // to determine the appropriate user-friendly message
+        if (apiError.message?.includes('404') || apiError.message?.includes('not found')) {
           errorMessage = type === 'vin' 
             ? "VIN not found. Please check and try again." 
             : "Vehicle not found. Please check your information and try again.";
-        } else if (status === 429) {
+        } else if (apiError.message?.includes('429') || apiError.message?.includes('rate limit')) {
           errorMessage = "Rate limit exceeded. Please try again later.";
-        } else if (status >= 500) {
+        } else if (apiError.message?.includes('500') || apiError.message?.includes('server error')) {
           errorMessage = "Server error. Our team has been notified.";
         }
         
