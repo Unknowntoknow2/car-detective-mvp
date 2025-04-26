@@ -77,51 +77,51 @@ export function FeaturesSection({ featuresRef }: FeaturesSectionProps) {
 
   const getColorClass = (color: string) => {
     const colorMap: Record<string, string> = {
-      blue: "bg-primary/10 text-primary",
-      green: "bg-green-100 text-green-600",
-      orange: "bg-orange-100 text-orange-500",
-      purple: "bg-purple-100 text-purple-600",
-      indigo: "bg-indigo-100 text-indigo-600",
-      rose: "bg-rose-100 text-rose-600",
-      cyan: "bg-cyan-100 text-cyan-600",
-      amber: "bg-amber-100 text-amber-600"
+      blue: "bg-blue-50 text-primary border-blue-100",
+      green: "bg-green-50 text-green-600 border-green-100",
+      orange: "bg-orange-50 text-orange-500 border-orange-100",
+      purple: "bg-purple-50 text-purple-600 border-purple-100",
+      indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
+      rose: "bg-rose-50 text-rose-600 border-rose-100",
+      cyan: "bg-cyan-50 text-cyan-600 border-cyan-100",
+      amber: "bg-amber-50 text-amber-600 border-amber-100"
     };
     return colorMap[color] || "bg-primary/10 text-primary";
   };
   
   return (
-    <section ref={featuresRef} className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+    <section ref={featuresRef} className="py-24 px-4 bg-white">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16 space-y-4">
-          <h2 className="text-3xl md:text-4xl font-display font-bold">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-slate-900">
             Premium Valuation Features
           </h2>
-          <p className="text-text-secondary max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-3xl mx-auto">
             Our premium valuation service combines multiple data sources, AI analysis, and market intelligence 
             to deliver the most accurate and comprehensive vehicle valuation available.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="overflow-hidden hover:shadow-lg transition-shadow border-border/50 bg-white"
+              className="overflow-hidden hover:shadow-lg transition-shadow border-slate-200 bg-white"
             >
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-lg ${getColorClass(feature.color)}`}>
+                  <div className={`p-3 rounded-lg ${getColorClass(feature.color)} border`}>
                     {feature.icon}
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-medium">{feature.title}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
                     </div>
-                    <p className="text-sm text-text-secondary">{feature.description}</p>
+                    <p className="text-sm text-slate-600">{feature.description}</p>
                   </div>
                 </div>
                 <div className="pt-2">
-                  <span className="inline-block py-1 px-3 bg-muted/30 text-xs font-medium rounded-full">
+                  <span className="inline-block py-1 px-3 bg-slate-100 text-xs font-medium rounded-full text-slate-800">
                     {feature.metric}
                   </span>
                 </div>
