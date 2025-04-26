@@ -1,12 +1,11 @@
 
-import { Building, AlertCircle, Loader2, User, DollarSign, MessageSquare, Phone } from "lucide-react";
 import { TabContentWrapper } from "./TabContentWrapper";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { Building, ShieldCheck, Loader2, Car, DollarSign, Star } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface DealerOffersTabProps {
   vehicleData?: {
@@ -17,101 +16,62 @@ interface DealerOffersTabProps {
     vin?: string;
   };
   valuationId?: string;
-  estimatedValue?: number;
 }
 
-interface DealerOffer {
-  id: string;
-  dealerName: string;
-  contactName: string;
-  offerAmount: number;
-  message: string;
-  phone?: string;
-  email?: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  created_at: string;
-}
-
-export function DealerOffersTab({ 
-  vehicleData, 
-  valuationId = "mock-id", 
-  estimatedValue = 25000 
-}: DealerOffersTabProps) {
+export function DealerOffersTab({ vehicleData, valuationId = "mock-id" }: DealerOffersTabProps) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [offers, setOffers] = useState<DealerOffer[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [offersRequested, setOffersRequested] = useState(false);
   
-  useEffect(() => {
-    const fetchOffers = async () => {
-      if (!vehicleData) return;
-      
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // In a real app, we would fetch offers from the database
-        // For now, we'll simulate a delay and return mock data
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock dealer offers
-        const mockOffers: DealerOffer[] = [
-          {
-            id: "1",
-            dealerName: "Highway Motors",
-            contactName: "Steve Johnson",
-            offerAmount: Math.round(estimatedValue * 0.93),
-            message: "We're interested in your vehicle and would like to make an offer. This offer is valid for 7 days. Contact us to arrange an inspection.",
-            phone: "555-123-4567",
-            email: "steve@highwaymotors.com",
-            status: 'pending',
-            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: "2",
-            dealerName: "City Auto Group",
-            contactName: "Maria Rodriguez",
-            offerAmount: Math.round(estimatedValue * 0.95),
-            message: "Based on your vehicle details, we'd like to make the following offer. We can complete the transaction quickly if you're interested.",
-            phone: "555-987-6543",
-            email: "maria@cityautogroup.com",
-            status: 'pending',
-            created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-        
-        setOffers(mockOffers);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load dealer offers';
-        console.error('Dealer offers error:', errorMessage);
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchOffers();
-  }, [vehicleData, valuationId, estimatedValue]);
+  // Mock dealer data
+  const dealers = [
+    {
+      id: "d1",
+      name: "City Motors Group",
+      rating: 4.8,
+      reviewCount: 324,
+      location: "7.2 miles away",
+      offerAmount: 24100,
+      certified: true,
+      logo: "https://placehold.co/100x60?text=City+Motors"
+    },
+    {
+      id: "d2",
+      name: "AutoNation Downtown",
+      rating: 4.5,
+      reviewCount: 211,
+      location: "12.6 miles away",
+      offerAmount: 23800,
+      certified: true,
+      logo: "https://placehold.co/100x60?text=AutoNation"
+    },
+    {
+      id: "d3",
+      name: "Premier Auto Sales",
+      rating: 4.2,
+      reviewCount: 156,
+      location: "3.7 miles away",
+      offerAmount: 23500,
+      certified: false,
+      logo: "https://placehold.co/100x60?text=Premier+Auto"
+    }
+  ];
   
-  const handleInviteDealers = async () => {
-    if (!vehicleData || !message) return;
+  const handleRequestOffers = async () => {
+    if (!vehicleData) return;
     
-    setIsSubmitting(true);
+    setIsLoading(true);
     
     try {
-      // In a real app, we would send this to the server
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setMessage("");
-      
-      // Show success
-      alert("Your request has been sent to local dealers. You'll be notified when they respond with offers.");
-    } catch (err) {
-      console.error('Error inviting dealers:', err);
-      alert("Failed to send invitation to dealers. Please try again.");
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setOffersRequested(true);
+      toast.success("Dealer offer requests sent successfully! You'll receive offers soon.");
+    } catch (error) {
+      toast.error("Failed to request dealer offers. Please try again.");
+      console.error("Error requesting dealer offers:", error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
   
@@ -119,13 +79,13 @@ export function DealerOffersTab({
     return (
       <TabContentWrapper
         title="Dealer Offers"
-        description="Get offers from local dealers interested in your vehicle"
+        description="Get real purchase offers from verified dealers in your area"
       >
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
           <Building className="h-12 w-12 text-amber-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-amber-800 mb-2">Authentication Required</h3>
           <p className="text-amber-700 mb-4">
-            You need to be logged in to receive dealer offers.
+            You need to be logged in to request dealer offers.
           </p>
           <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white">
             <a href="/auth">Sign In / Register</a>
@@ -139,145 +99,156 @@ export function DealerOffersTab({
     return (
       <TabContentWrapper
         title="Dealer Offers"
-        description="Get offers from local dealers interested in your vehicle"
+        description="Get real purchase offers from verified dealers in your area"
       >
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <AlertCircle className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+          <Car className="h-12 w-12 text-amber-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-amber-800 mb-2">Vehicle Information Required</h3>
           <p className="text-amber-700 mb-4">
             Please first look up a vehicle using VIN, license plate, or manual entry
-            to receive dealer offers.
+            to request dealer offers.
           </p>
         </div>
       </TabContentWrapper>
     );
   }
-  
-  if (isLoading) {
-    return (
-      <TabContentWrapper
-        title="Dealer Offers"
-        description={`Offers for your ${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim || ""}`}
-      >
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-          <p className="text-slate-600">Loading dealer offers...</p>
-        </div>
-      </TabContentWrapper>
-    );
-  }
-  
+
   return (
     <TabContentWrapper
       title="Dealer Offers"
-      description={`Offers for your ${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim || ""}`}
+      description={`Get purchase offers for your ${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim || ""}`}
     >
-      <div className="space-y-6">
-        {error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-red-800 mb-2">Could Not Load Dealer Offers</h3>
-            <p className="text-red-700 mb-4">
-              {error}
+      {!offersRequested ? (
+        <div className="space-y-6">
+          <div className="p-6 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="text-lg font-semibold mb-4">Request Offers from Local Dealers</h3>
+            <p className="text-slate-600 mb-6">
+              We'll send your vehicle details to our network of certified dealers in your area.
+              You'll receive actual purchase offers with no obligation to sell.
             </p>
-            <Button variant="destructive" onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
-          </div>
-        ) : offers.length > 0 ? (
-          <>
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-slate-800">Current Offers ({offers.length})</h3>
-              <p className="text-slate-600">These dealers have made offers on your vehicle</p>
+            
+            <div className="grid gap-4 md:grid-cols-3 mb-6">
+              <div className="bg-white p-4 rounded border border-slate-200 flex flex-col items-center text-center">
+                <div className="bg-blue-50 p-3 rounded-full mb-3">
+                  <Building className="h-5 w-5 text-blue-600" />
+                </div>
+                <h4 className="font-medium mb-1">Verified Dealers</h4>
+                <p className="text-sm text-slate-500">Only trusted dealerships in our network</p>
+              </div>
+              
+              <div className="bg-white p-4 rounded border border-slate-200 flex flex-col items-center text-center">
+                <div className="bg-green-50 p-3 rounded-full mb-3">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <h4 className="font-medium mb-1">No Obligation</h4>
+                <p className="text-sm text-slate-500">Review offers with no pressure to sell</p>
+              </div>
+              
+              <div className="bg-white p-4 rounded border border-slate-200 flex flex-col items-center text-center">
+                <div className="bg-purple-50 p-3 rounded-full mb-3">
+                  <ShieldCheck className="h-5 w-5 text-purple-600" />
+                </div>
+                <h4 className="font-medium mb-1">Privacy Protected</h4>
+                <p className="text-sm text-slate-500">Your contact details remain private</p>
+              </div>
             </div>
             
-            <div className="space-y-4">
-              {offers.map((offer) => (
-                <Card key={offer.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between">
-                      <CardTitle>{offer.dealerName}</CardTitle>
-                      <div className="text-2xl font-bold text-primary">${offer.offerAmount.toLocaleString()}</div>
-                    </div>
-                    <CardDescription className="flex items-center">
-                      <User className="h-3 w-3 mr-1" />
-                      {offer.contactName}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-slate-600">{offer.message}</p>
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-slate-500" />
-                        <span>{offer.phone}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <MessageSquare className="h-4 w-4 mr-2 text-slate-500" />
-                        <span>{offer.email}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between border-t pt-4">
-                    <div className="text-sm text-slate-500">
-                      Offer received {new Date(offer.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="space-x-2">
-                      <Button variant="outline">Reject</Button>
-                      <Button>Accept Offer</Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
+            <Button 
+              onClick={handleRequestOffers} 
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending Request...
+                </>
+              ) : (
+                "Request Dealer Offers"
+              )}
+            </Button>
+          </div>
+          
+          <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium">How it works:</p>
+              <ol className="list-decimal list-inside mt-1 space-y-1">
+                <li>We send your vehicle details to certified dealers in your area</li>
+                <li>Dealers evaluate your vehicle and submit purchase offers</li>
+                <li>You receive multiple offers within 24-48 hours</li>
+                <li>You can accept any offer or decline all with no obligation</li>
+              </ol>
             </div>
-          </>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>No Current Offers</CardTitle>
-              <CardDescription>
-                Invite local dealers to make offers on your {vehicleData.year} {vehicleData.make} {vehicleData.model}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-slate-600">
-                  Add a message to dealers about your vehicle's condition or any other details:
-                </p>
-                <Textarea
-                  placeholder="My vehicle is in excellent condition with no known issues..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="min-h-32"
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={handleInviteDealers}
-                disabled={isSubmitting || !message}
-                className="w-full"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending Invitation...
-                  </>
-                ) : (
-                  "Invite Local Dealers for Offers"
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        )}
-        
-        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
-          <p>
-            Dealer offers are typically valid for 7 days and subject to inspection of your vehicle.
-            Accepting an offer does not obligate you to sell your vehicle.
-          </p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="p-6 bg-green-50 border border-green-100 rounded-lg">
+            <div className="flex items-center mb-4">
+              <ShieldCheck className="h-6 w-6 text-green-600 mr-3" />
+              <h3 className="text-lg font-semibold text-green-800">Offer Requests Sent!</h3>
+            </div>
+            <p className="text-green-700 mb-4">
+              We've sent your vehicle details to our dealer network. You should start receiving offers within 24-48 hours.
+              We'll notify you by email when new offers arrive.
+            </p>
+          </div>
+          
+          <h3 className="text-xl font-bold mt-8 mb-4">Participating Dealers</h3>
+          
+          <div className="space-y-4">
+            {dealers.map(dealer => (
+              <div key={dealer.id} className="p-5 border border-slate-200 rounded-lg bg-white hover:shadow-md transition-shadow">
+                <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                  <div className="sm:w-24 flex-shrink-0">
+                    <img src={dealer.logo} alt={dealer.name} className="rounded" />
+                  </div>
+                  
+                  <div className="flex-grow">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-lg">{dealer.name}</h4>
+                      {dealer.certified && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          Certified Partner
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1 text-sm text-slate-600 mb-2">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span className="font-medium">{dealer.rating}</span>
+                      <span className="text-slate-400">({dealer.reviewCount} reviews)</span>
+                      <span className="mx-2">•</span>
+                      <span>{dealer.location}</span>
+                    </div>
+                    
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="text-sm text-slate-500">Initial Offer</p>
+                        <p className="text-xl font-semibold text-green-600">${dealer.offerAmount.toLocaleString()}</p>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                        <Button size="sm">
+                          Contact Dealer
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-end mt-4">
+            <Button className="bg-primary">View All Offers</Button>
+          </div>
+        </div>
+      )}
     </TabContentWrapper>
   );
 }

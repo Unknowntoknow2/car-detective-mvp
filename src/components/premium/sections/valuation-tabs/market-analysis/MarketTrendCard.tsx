@@ -1,6 +1,6 @@
 
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ChartBar } from "lucide-react";
 
 interface MarketTrendCardProps {
   trend: 'increasing' | 'decreasing' | 'stable';
@@ -15,37 +15,38 @@ export function MarketTrendCard({
   listingCount, 
   averageDaysOnMarket 
 }: MarketTrendCardProps) {
-  const TrendIcon = trend === 'increasing' ? TrendingUp : 
-                    trend === 'decreasing' ? TrendingDown : 
-                    ChartBar;
+  const isIncreasing = trend === 'increasing';
+  const trendColor = isIncreasing ? 'text-green-600' : 'text-red-600';
+  const trendBgColor = isIncreasing ? 'bg-green-100' : 'bg-red-100';
+  const trendIcon = isIncreasing ? TrendingUp : TrendingDown;
   
-  const trendColor = trend === 'increasing' ? 'text-green-600' : 
-                     trend === 'decreasing' ? 'text-red-600' : 
-                     'text-orange-500';
-
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center">
-          <TrendIcon className={`mr-2 h-5 w-5 ${trendColor}`} />
-          Market Trend
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <trendIcon className={`h-4 w-4 ${trendColor}`} /> 
+          Price Trend
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">30-Day Trend</span>
-            <span className={`font-bold ${trendColor}`}>
-              {trend === 'stable' ? 'Stable' : (trendPercentage > 0 ? '+' : '') + trendPercentage + '%'}
-            </span>
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`text-2xl font-bold ${trendColor}`}>
+            {isIncreasing ? '+' : ''}{Math.abs(trendPercentage)}%
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Listings</span>
-            <span>{listingCount} vehicles</span>
+          <div className={`text-sm px-2 py-0.5 rounded ${trendBgColor} ${trendColor}`}>
+            {isIncreasing ? 'Rising' : 'Falling'}
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Avg. Days Listed</span>
-            <span>{averageDaysOnMarket} days</span>
+        </div>
+        <p className="text-sm text-slate-500 mb-4">30-day price trend</p>
+        
+        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+          <div>
+            <div className="text-sm font-medium">{listingCount}</div>
+            <div className="text-xs text-slate-500">Comparable listings</div>
+          </div>
+          <div>
+            <div className="text-sm font-medium">{averageDaysOnMarket} days</div>
+            <div className="text-xs text-slate-500">Average time on market</div>
           </div>
         </div>
       </CardContent>

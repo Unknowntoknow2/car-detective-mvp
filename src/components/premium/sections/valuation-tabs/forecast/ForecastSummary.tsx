@@ -1,9 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowDown, ArrowUp, Calendar, DollarSign, Gauge, TrendingDown, TrendingUp } from "lucide-react";
 
 interface ForecastSummaryProps {
-  trend: 'increasing' | 'decreasing' | 'stable';
+  trend: "increasing" | "decreasing" | "stable";
   percentageChange: number;
   confidenceScore: number;
   bestTimeToSell: string;
@@ -16,54 +16,101 @@ export function ForecastSummary({
   bestTimeToSell 
 }: ForecastSummaryProps) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Value Trend Summary</CardTitle>
-          <div className={`flex items-center px-3 py-1 rounded-full text-sm ${
-            trend === 'increasing' 
-              ? 'bg-green-50 text-green-600 border border-green-200' 
-              : trend === 'decreasing'
-              ? 'bg-red-50 text-red-600 border border-red-200'
-              : 'bg-amber-50 text-amber-600 border border-amber-200'
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card className="p-4">
+        <div className="flex items-start gap-3">
+          <div className={`p-2 rounded-full ${
+            trend === "increasing" 
+              ? "bg-green-100" 
+              : trend === "decreasing" 
+                ? "bg-red-100" 
+                : "bg-blue-100"
           }`}>
-            {trend === 'increasing' ? (
-              <TrendingUp className="mr-1 h-4 w-4" />
-            ) : trend === 'decreasing' ? (
-              <TrendingDown className="mr-1 h-4 w-4" />
+            {trend === "increasing" ? (
+              <TrendingUp className="h-5 w-5 text-green-600" />
+            ) : trend === "decreasing" ? (
+              <TrendingDown className="h-5 w-5 text-red-600" />
             ) : (
-              <Calendar className="mr-1 h-4 w-4" />
+              <ArrowUp className="h-5 w-5 text-blue-600" />
             )}
-            <span>
-              {trend === 'increasing' ? 'Appreciating' : 
-               trend === 'decreasing' ? 'Depreciating' : 'Stable'}
-            </span>
           </div>
-        </div>
-        <CardDescription>12-month value forecast analysis</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+          
           <div>
-            <h4 className="text-sm font-medium text-slate-600">Value Change</h4>
-            <p className={`text-lg font-semibold ${
-              percentageChange > 0 ? 'text-green-600' : 
-              percentageChange < 0 ? 'text-red-600' : ''
-            }`}>
-              {percentageChange > 0 ? '+' : ''}{percentageChange}%
-            </p>
+            <p className="text-sm text-slate-500">Value Trend</p>
+            <div className="flex items-center gap-1">
+              <p className="font-semibold">
+                {trend === "increasing" 
+                  ? "Increasing" 
+                  : trend === "decreasing" 
+                    ? "Decreasing" 
+                    : "Stable"}
+              </p>
+              <span className={`text-sm font-medium ${
+                percentageChange > 0 
+                  ? "text-green-600" 
+                  : percentageChange < 0 
+                    ? "text-red-600" 
+                    : "text-blue-600"
+              }`}>
+                {percentageChange > 0 ? "+" : ""}{percentageChange}%
+              </span>
+            </div>
           </div>
+        </div>
+      </Card>
+      
+      <Card className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-full bg-amber-100">
+            <DollarSign className="h-5 w-5 text-amber-600" />
+          </div>
+          
           <div>
-            <h4 className="text-sm font-medium text-slate-600">Confidence Score</h4>
-            <p className="text-lg font-semibold">{confidenceScore}%</p>
+            <p className="text-sm text-slate-500">Best Time to Sell</p>
+            <p className="font-semibold">{bestTimeToSell}</p>
           </div>
         </div>
-        
-        <div className="mt-6 p-4 rounded-lg bg-slate-50 border border-slate-200">
-          <h4 className="text-sm font-medium text-slate-700 mb-1">Best Time to Sell</h4>
-          <p className="text-slate-600">{bestTimeToSell}</p>
+      </Card>
+      
+      <Card className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-full bg-blue-100">
+            <Gauge className="h-5 w-5 text-blue-600" />
+          </div>
+          
+          <div>
+            <p className="text-sm text-slate-500">Confidence Score</p>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${
+                    confidenceScore >= 80 
+                      ? "bg-green-500" 
+                      : confidenceScore >= 60 
+                        ? "bg-amber-500" 
+                        : "bg-red-500"
+                  }`} 
+                  style={{ width: `${confidenceScore}%` }}
+                />
+              </div>
+              <span className="font-medium text-sm">{confidenceScore}%</span>
+            </div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+      
+      <Card className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-full bg-purple-100">
+            <Calendar className="h-5 w-5 text-purple-600" />
+          </div>
+          
+          <div>
+            <p className="text-sm text-slate-500">Forecast Period</p>
+            <p className="font-semibold">12 Months</p>
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 }

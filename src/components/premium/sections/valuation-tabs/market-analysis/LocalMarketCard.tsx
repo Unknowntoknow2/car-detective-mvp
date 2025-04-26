@@ -1,6 +1,6 @@
 
+import { MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartBar } from "lucide-react";
 
 interface LocalMarketCardProps {
   similarVehiclesNearby: number;
@@ -8,35 +8,49 @@ interface LocalMarketCardProps {
 }
 
 export function LocalMarketCard({ similarVehiclesNearby, demandScore }: LocalMarketCardProps) {
-  const getMarketStatus = (score: number) => {
-    if (score > 7) return { text: "High Demand", color: "text-green-600" };
-    if (score > 4) return { text: "Moderate", color: "text-orange-500" };
-    return { text: "Low Demand", color: "text-red-600" };
-  };
-
-  const marketStatus = getMarketStatus(demandScore);
-
+  // Determine demand level based on score (1-10 scale)
+  let demandLevel: string;
+  let demandColor: string;
+  
+  if (demandScore >= 8) {
+    demandLevel = "High";
+    demandColor = "text-green-600";
+  } else if (demandScore >= 5) {
+    demandLevel = "Medium";
+    demandColor = "text-amber-600";
+  } else {
+    demandLevel = "Low";
+    demandColor = "text-red-600";
+  }
+  
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center">
-          <ChartBar className="mr-2 h-5 w-5 text-primary" />
-          Local Market
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <MapPin className="h-4 w-4" /> Local Market
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Nearby Listings</span>
-            <span>{similarVehiclesNearby} vehicles</span>
+        <div className="text-2xl font-bold mb-2">
+          {similarVehiclesNearby}
+        </div>
+        <p className="text-sm text-slate-500 mb-4">Similar vehicles nearby</p>
+        
+        <div className="pt-2 border-t border-slate-100">
+          <div className="mb-1 flex justify-between items-center">
+            <span className="text-sm font-medium">Demand</span>
+            <span className={`text-sm font-medium ${demandColor}`}>{demandLevel}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Demand Score</span>
-            <span className="font-bold">{demandScore}/10</span>
+          
+          <div className="h-2 w-full bg-slate-200 rounded-full">
+            <div 
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${demandScore * 10}%` }}
+            />
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Market Status</span>
-            <span className={marketStatus.color}>{marketStatus.text}</span>
+          
+          <div className="mt-2 text-xs text-slate-500">
+            Based on search interest and inventory levels
           </div>
         </div>
       </CardContent>

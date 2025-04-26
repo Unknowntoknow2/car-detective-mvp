@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
@@ -7,12 +7,30 @@ import { PremiumHero } from '@/components/premium/sections/PremiumHero';
 import { PremiumValuationTabs } from '@/components/premium/sections/PremiumValuationTabs';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
 import { EnhancedPremiumFeaturesTabs } from '@/components/premium/features/EnhancedPremiumFeaturesTabs';
+import { ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  // Add scroll event listener to show/hide back to top button
+  if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 500) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    });
+  }
+  
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
   return (
@@ -27,18 +45,18 @@ export default function PremiumPage() {
         <ComparisonSection scrollToForm={scrollToForm} />
         
         <section ref={formRef} id="premium-valuation" className="py-12 bg-white border-t border-slate-100">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
-                Premium Valuation Tool
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Choose your preferred method to get your comprehensive vehicle valuation.
-              </p>
-            </div>
-            <PremiumValuationTabs />
-          </div>
+          <PremiumValuationTabs />
         </section>
+        
+        {showBackToTop && (
+          <Button
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 rounded-full w-12 h-12 p-0 bg-primary shadow-lg hover:bg-primary/90 z-50"
+            aria-label="Back to top"
+          >
+            <ChevronUp className="h-6 w-6" />
+          </Button>
+        )}
       </main>
       <Footer />
     </div>

@@ -1,47 +1,35 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-
-interface ForecastData {
-  months: string[];
-  values: number[];
-  trend: 'increasing' | 'decreasing' | 'stable';
-  confidenceScore: number;
-  percentageChange: number;
-  bestTimeToSell: string;
-}
+import { generateValuationForecast, ForecastResult } from '@/utils/forecasting/valuation-forecast';
 
 export function useForecastData(valuationId: string) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [forecastData, setForecastData] = useState<ForecastResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [forecastData, setForecastData] = useState<ForecastData | null>(null);
 
   useEffect(() => {
-    const fetchForecast = async () => {
+    const fetchForecastData = async () => {
+      if (!valuationId) return;
+      
       setIsLoading(true);
       setError(null);
       
       try {
-        const { data, error: fnError } = await supabase.functions.invoke('valuation-forecast', {
-          body: { valuationId }
-        });
+        // For demo purposes, simulate API call timing
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        if (fnError) throw new Error(fnError.message);
-        if (!data) throw new Error('No forecast data returned');
-        
-        setForecastData(data);
+        // Get forecast data
+        const result = await generateValuationForecast(valuationId);
+        setForecastData(result);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to generate forecast';
-        console.error('Forecast error:', errorMessage);
-        setError(errorMessage);
+        setError(err instanceof Error ? err.message : 'Failed to load forecast data');
+        console.error('Forecast data error:', err);
       } finally {
         setIsLoading(false);
       }
     };
-    
-    if (valuationId) {
-      fetchForecast();
-    }
+
+    fetchForecastData();
   }, [valuationId]);
 
   return { forecastData, isLoading, error };

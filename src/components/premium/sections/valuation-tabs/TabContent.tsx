@@ -5,6 +5,10 @@ import { PlateLookupTab } from "./PlateLookupTab";
 import { ManualEntryTab } from "./ManualEntryTab";
 import { PhotoUploadTab } from "./PhotoUploadTab";
 import { UnauthorizedRedirectTab } from "./UnauthorizedRedirectTab";
+import { DealerOffersTab } from "./DealerOffersTab";
+import { MarketAnalysisTab } from "./MarketAnalysisTab";
+import { TwelveMonthForecastTab } from "./TwelveMonthForecastTab";
+import { CarfaxReportTab } from "./CarfaxReportTab";
 import { ValuationServiceId } from "./services";
 
 interface TabContentProps {
@@ -39,8 +43,8 @@ export function TabContent({
   onManualSubmit,
 }: TabContentProps) {
   return (
-    <div className="mt-8 space-y-6">
-      <TabsContent value="vin">
+    <div className="space-y-6">
+      <TabsContent value="vin" className="mt-0">
         <VinLookupTab 
           vinValue={vinValue}
           isLoading={isLoading}
@@ -50,7 +54,7 @@ export function TabContent({
         />
       </TabsContent>
 
-      <TabsContent value="plate">
+      <TabsContent value="plate" className="mt-0">
         <PlateLookupTab
           plateValue={plateValue}
           stateValue={plateState}
@@ -62,31 +66,56 @@ export function TabContent({
         />
       </TabsContent>
 
-      <TabsContent value="manual">
+      <TabsContent value="manual" className="mt-0">
         <ManualEntryTab 
           onSubmit={onManualSubmit}
           isLoading={isLoading}
         />
       </TabsContent>
       
-      <TabsContent value="photo">
+      <TabsContent value="photo" className="mt-0">
         <PhotoUploadTab />
       </TabsContent>
       
-      <TabsContent value="dealers">
-        <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+      <TabsContent value="dealers" className="mt-0">
+        <DealerOffersTab 
+          vehicleData={vehicle ? {
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            trim: vehicle.trim,
+            vin: vinValue.length === 17 ? vinValue : undefined
+          } : undefined}
+        />
       </TabsContent>
       
-      <TabsContent value="market">
-        <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+      <TabsContent value="market" className="mt-0">
+        <MarketAnalysisTab 
+          vehicleData={vehicle ? {
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            trim: vehicle.trim
+          } : undefined}
+        />
       </TabsContent>
       
-      <TabsContent value="forecast">
-        <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+      <TabsContent value="forecast" className="mt-0">
+        <TwelveMonthForecastTab 
+          vehicleData={vehicle ? {
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            trim: vehicle.trim,
+            vin: vinValue.length === 17 ? vinValue : undefined
+          } : undefined}
+        />
       </TabsContent>
       
-      <TabsContent value="carfax">
-        <UnauthorizedRedirectTab setActiveTab={setActiveTab} />
+      <TabsContent value="carfax" className="mt-0">
+        <CarfaxReportTab 
+          vin={vinValue.length === 17 ? vinValue : undefined}
+        />
       </TabsContent>
     </div>
   );

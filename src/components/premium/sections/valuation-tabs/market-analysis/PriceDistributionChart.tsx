@@ -1,13 +1,15 @@
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface PriceDistributionChartProps {
   distribution: number[];
   listingCount: number;
   vehicleInfo: {
-    year: number;
     make: string;
     model: string;
+    year: number;
+    trim?: string;
   };
   priceRange: {
     lowest: number;
@@ -18,37 +20,84 @@ interface PriceDistributionChartProps {
 
 export function PriceDistributionChart({ 
   distribution, 
-  listingCount, 
+  listingCount,
   vehicleInfo,
-  priceRange 
+  priceRange
 }: PriceDistributionChartProps) {
+  const range = priceRange.highest - priceRange.lowest;
+  const step = range / (distribution.length - 1);
+  
+  const chartData = distribution.map((count, index) => {
+    const price = Math.round(priceRange.lowest + (step * index));
+    
+    return {
+      price: `$${(price / 1000).toFixed(0)}k`,
+      count,
+      rawPrice: price,
+      isAverage: Math.abs(price - priceRange.average) < step / 2
+    };
+  });
+  
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-slate-200 shadow-md rounded-md">
+          <p className="text-sm text-slate-500">Price Range</p>
+          <p className="font-medium">{payload[0].payload.price}</p>
+          <p className="text-primary font-semibold mt-1">
+            {payload[0].value} {payload[0].value === 1 ? 'listing' : 'listings'}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+  
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Price Distribution</CardTitle>
-        <CardDescription>
-          Distribution of {listingCount} similar {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} listings
-        </CardDescription>
+        <CardTitle className="text-lg font-semibold">
+          Price Distribution
+        </CardTitle>
+        <p className="text-sm text-slate-500">
+          {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.trim || ""} 
+          ({listingCount} listings)
+        </p>
       </CardHeader>
       <CardContent>
-        <div className="h-40 flex items-end justify-between gap-1">
-          {distribution.map((count, index) => (
-            <div 
-              key={index} 
-              className="bg-primary/80 rounded-t w-full"
-              style={{ 
-                height: `${(count / Math.max(...distribution)) * 100}%`,
-                opacity: index === 3 || index === 4 ? 1 : 0.7
-              }}
-            />
-          ))}
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
+              <XAxis 
+                dataKey="price" 
+                tick={{ fontSize: 12 }}
+                tickMargin={10}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickLine={false}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar 
+                dataKey="count" 
+                fill="#9b87f5"
+                radius={[4, 4, 0, 0]}
+                fillOpacity={0.8}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <span>${Math.round(priceRange.lowest / 1000)}k</span>
-          <span>${Math.round(priceRange.average / 1000) - 2}k</span>
-          <span>${Math.round(priceRange.average / 1000)}k</span>
-          <span>${Math.round(priceRange.average / 1000) + 2}k</span>
-          <span>${Math.round(priceRange.highest / 1000)}k</span>
+        
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-primary" />
+              <span className="text-sm font-medium">Your estimated value: ${priceRange.average.toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="text-sm text-slate-500">
+            Based on market listings
+          </div>
         </div>
       </CardContent>
     </Card>
