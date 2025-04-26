@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { generateValuationForecast, ForecastResult } from '@/utils/forecasting/valuation-forecast';
+import { toast } from 'sonner';
 
 export function useForecastData(valuationId: string) {
   const [forecastData, setForecastData] = useState<ForecastResult | null>(null);
@@ -8,29 +9,53 @@ export function useForecastData(valuationId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchForecastData = async () => {
-      if (!valuationId) return;
-      
+    async function fetchForecastData() {
       setIsLoading(true);
       setError(null);
       
       try {
-        // For demo purposes, simulate API call timing
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Get forecast data
-        const result = await generateValuationForecast(valuationId);
-        setForecastData(result);
+        const forecast = await generateValuationForecast(valuationId);
+        setForecastData(forecast);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load forecast data');
-        console.error('Forecast data error:', err);
+        console.error('Error fetching forecast data:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load forecast data';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchForecastData();
+    }
+    
+    if (valuationId) {
+      fetchForecastData();
+    } else {
+      setError('No valuation ID provided');
+      setIsLoading(false);
+    }
   }, [valuationId]);
 
-  return { forecastData, isLoading, error };
+  return {
+    forecastData,
+    isLoading,
+    error,
+    refetch: () => {
+      if (valuationId) {
+        setIsLoading(true);
+        generateValuationForecast(valuationId)
+          .then((forecast) => {
+            setForecastData(forecast);
+            setError(null);
+          })
+          .catch((err) => {
+            console.error('Error refetching forecast data:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load forecast data';
+            setError(errorMessage);
+            toast.error(errorMessage);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
+    }
+  };
 }

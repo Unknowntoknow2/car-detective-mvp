@@ -1,9 +1,8 @@
 
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
-import { useState } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label } from 'recharts';
+import { LoadingState } from '@/components/premium/common/LoadingState';
+import { Card, CardContent } from '@/components/ui/card';
+import { useMemo } from 'react';
 
 interface ForecastChartProps {
   data: Array<{ month: string; value: number }>;
@@ -11,113 +10,147 @@ interface ForecastChartProps {
   basePrice: number;
 }
 
-export function ForecastChart({ data, isLoading, basePrice = 25000 }: ForecastChartProps) {
-  const [chartType, setChartType] = useState<"line" | "bar">("line");
-
+export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps) {
+  // Add today's marker to chart data
+  const chartData = useMemo(() => {
+    // Determine if forecast is generally going up or down
+    const trend = data.length > 0 && data[data.length - 1].value > basePrice ? 'up' : 'down';
+    
+    // Calculate confidence intervals (mock implementation)
+    return data.map((point, index) => {
+      // Calculate uncertainty that increases with time
+      const uncertainty = 0.02 + (index / data.length) * 0.08;
+      
+      return {
+        ...point,
+        upper: Math.round(point.value * (1 + uncertainty)),
+        lower: Math.round(point.value * (1 - uncertainty)),
+        // Add confidence intervals and seasonal adjustments
+        seasonal: trend === 'up' 
+          ? point.value + Math.sin(index / 3) * 200
+          : point.value + Math.sin(index / 3) * 200
+      };
+    });
+  }, [data, basePrice]);
+  
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-8 w-32" />
-        </div>
-        <Skeleton className="h-[300px] w-full" />
+      <Card>
+        <CardContent className="p-6 h-[350px] flex items-center justify-center">
+          <LoadingState text="Generating forecast..." />
+        </CardContent>
       </Card>
     );
   }
-
-  // If no data is provided, use mock data
-  const chartData = data.length > 0 ? data : Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() + i + 1);
-    const month = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-    
-    // Generate slightly varying prices with a small downward trend
-    const randomFactor = 1 + (Math.random() * 0.1 - 0.05);
-    const trendFactor = 1 - (i * 0.005);
-    const value = Math.round(basePrice * randomFactor * trendFactor);
-    
-    return { month, value };
-  });
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-slate-200 shadow-md rounded-md">
-          <p className="font-medium">{label}</p>
-          <p className="text-primary font-semibold">
-            ${payload[0].value.toLocaleString()}
-          </p>
-        </div>
-      );
+  
+  // Format for large numbers ($10,000 becomes $10K)
+  const formatValue = (value: number) => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `$${(value / 1000).toFixed(0)}K`;
     }
-    return null;
+    return `$${value}`;
   };
-
+  
   return (
-    <Card className="p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h3 className="text-xl font-semibold">12-Month Value Projection</h3>
-        
-        <Tabs value={chartType} onValueChange={(value) => setChartType(value as "line" | "bar")}>
-          <TabsList>
-            <TabsTrigger value="line">Line</TabsTrigger>
-            <TabsTrigger value="bar">Bar</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-      
-      <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          {chartType === "line" ? (
+    <Card>
+      <CardContent className="p-6">
+        <h3 className="text-lg font-semibold mb-4">12-Month Value Forecast</h3>
+        <div className="h-[350px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis 
                 dataKey="month" 
                 tick={{ fontSize: 12 }}
                 tickMargin={10}
+                stroke="#94a3b8"
               />
               <YAxis 
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                tickFormatter={formatValue}
                 tick={{ fontSize: 12 }}
+                tickMargin={10}
+                stroke="#94a3b8"
+                width={60}
               />
-              <Tooltip content={<CustomTooltip />} />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#9b87f5" 
-                strokeWidth={3} 
-                activeDot={{ r: 8, strokeWidth: 0, fill: "#9b87f5" }} 
+              <Tooltip 
+                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Estimated Value']}
+                labelFormatter={(month) => `Forecast: ${month}`}
+                contentStyle={{ 
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  padding: '0.75rem',
+                  border: '1px solid #e2e8f0'
+                }}
+              />
+              
+              {/* Current value marker */}
+              <ReferenceLine 
+                x={chartData[0]?.month} 
+                stroke="#7c3aed" 
+                strokeWidth={2}
+                strokeDasharray="3 3"
+              >
+                <Label 
+                  value="Today" 
+                  position="insideTopLeft" 
+                  fill="#7c3aed"
+                  fontSize={12}
+                  offset={10}
+                />
+              </ReferenceLine>
+              
+              {/* Confidence interval area */}
+              <Line
+                type="monotone"
+                dataKey="upper"
+                stroke="transparent"
+                fill="transparent"
+              />
+              <Line
+                type="monotone"
+                dataKey="lower"
+                stroke="transparent"
+                fill="transparent"
+              />
+              
+              {/* Main forecast line */}
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#7c3aed"
+                strokeWidth={3}
+                dot={{ r: 4, strokeWidth: 2, fill: "white" }}
+                activeDot={{ r: 6, strokeWidth: 0, fill: "#7c3aed" }}
+              />
+              
+              {/* Seasonal adjusted line (lighter color) */}
+              <Line
+                type="monotone"
+                dataKey="seasonal"
+                stroke="#c4b5fd"
+                strokeWidth={1.5}
+                strokeDasharray="5 5"
+                dot={false}
               />
             </LineChart>
-          ) : (
-            <BarChart
-              data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="month" 
-                tick={{ fontSize: 12 }}
-                tickMargin={10}
-              />
-              <YAxis 
-                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                tick={{ fontSize: 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar 
-                dataKey="value" 
-                fill="#9b87f5" 
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          )}
-        </ResponsiveContainer>
-      </div>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-3 flex justify-between text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-4 bg-primary rounded-sm"></div>
+            <span>Base Forecast</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-4 bg-primary/30 rounded-sm"></div>
+            <span>Seasonal Adjustment</span>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }

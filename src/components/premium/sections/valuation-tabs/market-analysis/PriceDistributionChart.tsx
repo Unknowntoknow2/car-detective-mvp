@@ -1,6 +1,6 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label } from 'recharts';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface PriceDistributionChartProps {
   distribution: number[];
@@ -24,79 +24,107 @@ export function PriceDistributionChart({
   vehicleInfo,
   priceRange
 }: PriceDistributionChartProps) {
-  const range = priceRange.highest - priceRange.lowest;
-  const step = range / (distribution.length - 1);
+  // Calculate price ranges for the chart
+  const priceStep = Math.round((priceRange.highest - priceRange.lowest) / (distribution.length - 1));
   
+  // Create chart data
   const chartData = distribution.map((count, index) => {
-    const price = Math.round(priceRange.lowest + (step * index));
+    const minPrice = priceRange.lowest + (index * priceStep);
+    const maxPrice = minPrice + priceStep;
+    const label = `$${(minPrice / 1000).toFixed(0)}K - $${(maxPrice / 1000).toFixed(0)}K`;
     
     return {
-      price: `$${(price / 1000).toFixed(0)}k`,
+      range: label,
       count,
-      rawPrice: price,
-      isAverage: Math.abs(price - priceRange.average) < step / 2
+      minPrice,
+      maxPrice,
+      isYourRange: priceRange.average >= minPrice && priceRange.average <= maxPrice
     };
   });
   
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-slate-200 shadow-md rounded-md">
-          <p className="text-sm text-slate-500">Price Range</p>
-          <p className="font-medium">{payload[0].payload.price}</p>
-          <p className="text-primary font-semibold mt-1">
-            {payload[0].value} {payload[0].value === 1 ? 'listing' : 'listings'}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">
-          Price Distribution
-        </CardTitle>
-        <p className="text-sm text-slate-500">
-          {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.trim || ""} 
-          ({listingCount} listings)
-        </p>
-      </CardHeader>
-      <CardContent>
-        <div className="h-64">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Market Price Distribution</h3>
+          <div className="text-sm text-slate-500">
+            Based on {listingCount} similar {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.trim || ''} listings
+          </div>
+        </div>
+        
+        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis 
-                dataKey="price" 
+                dataKey="range" 
                 tick={{ fontSize: 12 }}
                 tickMargin={10}
+                stroke="#94a3b8"
               />
               <YAxis 
+                allowDecimals={false}
                 tick={{ fontSize: 12 }}
-                tickLine={false}
+                tickMargin={10}
+                stroke="#94a3b8"
+                label={{ 
+                  value: 'Number of Listings', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { fontSize: 12, fill: '#64748b' }
+                }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip 
+                formatter={(value: number) => [value, 'Listings']}
+                labelFormatter={(range) => `Price Range: ${range}`}
+                contentStyle={{ 
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  padding: '0.75rem',
+                  border: '1px solid #e2e8f0'
+                }}
+              />
+              
+              {/* Vertical line for the average price */}
+              <ReferenceLine 
+                x={chartData.find(d => d.isYourRange)?.range} 
+                stroke="#7c3aed" 
+                strokeWidth={2}
+                strokeDasharray="3 3"
+              >
+                <Label 
+                  value="Your Est. Value" 
+                  position="top" 
+                  fill="#7c3aed"
+                  fontSize={12}
+                />
+              </ReferenceLine>
+              
+              {/* Bar color conditional on whether it's your price range */}
               <Bar 
                 dataKey="count" 
-                fill="#9b87f5"
+                fill={(data) => data.isYourRange ? '#7c3aed' : '#c4b5fd'}
                 radius={[4, 4, 0, 0]}
-                fillOpacity={0.8}
               />
             </BarChart>
           </ResponsiveContainer>
         </div>
         
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+        <div className="mt-6 grid grid-cols-3 text-center border-t border-slate-100 pt-4">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-primary" />
-              <span className="text-sm font-medium">Your estimated value: ${priceRange.average.toLocaleString()}</span>
-            </div>
+            <p className="text-sm text-slate-500">Lowest Price</p>
+            <p className="font-semibold">${priceRange.lowest.toLocaleString()}</p>
           </div>
-          <div className="text-sm text-slate-500">
-            Based on market listings
+          <div>
+            <p className="text-sm text-slate-500">Average Price</p>
+            <p className="font-semibold">${priceRange.average.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-sm text-slate-500">Highest Price</p>
+            <p className="font-semibold">${priceRange.highest.toLocaleString()}</p>
           </div>
         </div>
       </CardContent>

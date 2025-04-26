@@ -1,224 +1,270 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { TabContentWrapper } from "./TabContentWrapper";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, Loader2, Check, FileWarning } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Camera, Upload, Check, AlertTriangle, Car } from "lucide-react";
 import { toast } from "sonner";
-import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { useNavigate } from "react-router-dom";
+import { LoadingState } from "../../common/LoadingState";
 
 export function PhotoUploadTab() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [detectedVehicle, setDetectedVehicle] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File too large. Please select an image under 10MB.");
-        return;
-      }
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select a valid image file.");
-        return;
-      }
+    // Reset states
+    setError(null);
+    setDetectedVehicle(null);
+    setIsUploading(true);
 
-      setSelectedFile(file);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (JPEG, PNG, etc.)');
+      setIsUploading(false);
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image is too large. Please upload an image under 10MB.');
+      setIsUploading(false);
+      return;
+    }
+
+    try {
+      // Read file as data URL
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
+      reader.onload = async (event) => {
+        const imageDataUrl = event.target?.result as string;
+        setUploadedImage(imageDataUrl);
+        setIsUploading(false);
+        
+        // Start analyzing the image
+        await analyzeImage(imageDataUrl);
       };
       reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      setError('Failed to upload image. Please try again.');
+      setIsUploading(false);
     }
   };
 
-  const handleAnalyzePhoto = async () => {
-    if (!selectedFile) return;
-
+  const analyzeImage = async (imageDataUrl: string) => {
     setIsAnalyzing(true);
     
     try {
-      // For demo purposes, we'll simulate a successful analysis
+      // For demo purposes, we'll simulate AI detection with a delay
       await new Promise(resolve => setTimeout(resolve, 2500));
       
-      // Simulate vehicle detection with mock data
-      const mockDetectedVehicle = {
-        make: "Toyota",
-        model: "Camry",
-        year: 2020,
-        trim: "SE",
-        exteriorColor: "Silver",
-        bodyType: "Sedan"
+      // For demo, randomly decide if vehicle is detected
+      const randomSuccess = Math.random() > 0.2; // 80% success rate
+      
+      if (!randomSuccess) {
+        setError('No vehicle detected in the image. Please upload a clear photo of the vehicle.');
+        setIsAnalyzing(false);
+        return;
+      }
+      
+      // Mock detected vehicle data
+      const detectedVehicleData = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        confidence: 0.87,
+        color: 'Silver',
+        bodyType: 'Sedan'
       };
       
-      // Use the vehicle lookup hook with the detected data
-      await lookupVehicle('photo', 'photo-analysis', undefined, mockDetectedVehicle);
-      
-      setIsSuccess(true);
-      toast.success("Vehicle successfully identified!");
-    } catch (error) {
-      toast.error("Failed to analyze image. Please try a different photo or method.");
-      console.error("Photo analysis error:", error);
+      setDetectedVehicle(detectedVehicleData);
+      toast.success("Vehicle successfully detected!");
+    } catch (err) {
+      console.error('Error analyzing image:', err);
+      setError('Failed to analyze image. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleContinueToValuation = () => {
-    if (!vehicle) return;
+    if (!detectedVehicle) return;
     
     // Save the vehicle details to local storage for the premium form
     localStorage.setItem("premium_vehicle", JSON.stringify({
       identifierType: 'photo',
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      exteriorColor: vehicle.exteriorColor || null
+      make: detectedVehicle.make,
+      model: detectedVehicle.model,
+      year: detectedVehicle.year,
+      exteriorColor: detectedVehicle.color,
+      bodyType: detectedVehicle.bodyType
     }));
     
     toast.success("Vehicle information saved. Continuing to premium valuation.");
     navigate("/premium-valuation");
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <TabContentWrapper
       title="Photo Analysis"
-      description="Upload a clear photo of your vehicle for AI-powered identification"
+      description="Upload a photo of your vehicle for AI-powered identification and valuation"
     >
       <div className="space-y-6">
-        {!selectedFile ? (
-          <div className="border-2 border-dashed border-slate-300 rounded-lg p-10 text-center bg-slate-50 space-y-4">
-            <div className="flex justify-center">
-              <Camera className="h-12 w-12 text-slate-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-slate-700">Upload Vehicle Photo</h3>
-              <p className="text-slate-500 mt-1">
-                Take a clear photo of your vehicle from the front or side for best results
-              </p>
-            </div>
-            <div className="flex justify-center mt-4">
-              <label className="cursor-pointer">
-                <Button className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Select Image
-                </Button>
+        {!uploadedImage ? (
+          <Card className="border-dashed border-2 border-slate-300 bg-slate-50">
+            <CardContent className="p-8">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <Camera className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Upload Vehicle Photo</h3>
+                  <p className="text-sm text-slate-500 max-w-md">
+                    Take a clear photo of your vehicle from the front or side. Our AI will identify your vehicle make, model, and year automatically.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button onClick={triggerFileInput} className="bg-primary">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Browse Files
+                  </Button>
+                  <Button variant="outline" onClick={triggerFileInput}>
+                    <Camera className="h-4 w-4 mr-2" />
+                    Take Photo
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Supported formats: JPEG, PNG, WebP. Max size: 10MB
+                </p>
                 <input
                   type="file"
-                  accept="image/*"
+                  ref={fileInputRef}
                   className="hidden"
+                  accept="image/*"
                   onChange={handleFileChange}
+                  capture="environment"
                 />
-              </label>
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-6">
-            <div className="relative overflow-hidden rounded-lg border border-slate-200 max-h-[400px] flex justify-center">
-              <img
-                src={preview || ''}
-                alt="Vehicle preview"
-                className="object-contain max-h-[400px] max-w-full"
+            <div className="relative rounded-lg overflow-hidden border border-slate-200">
+              <img 
+                src={uploadedImage} 
+                alt="Uploaded vehicle" 
+                className="w-full h-auto object-cover max-h-[400px]" 
               />
               
               {isAnalyzing && (
-                <div className="absolute inset-0 bg-black/50 flex flex-col gap-3 items-center justify-center text-white">
-                  <Loader2 className="h-10 w-10 animate-spin" />
-                  <p className="font-medium">Analyzing vehicle...</p>
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <LoadingState text="Analyzing vehicle..." size="lg" />
                 </div>
               )}
               
-              {isSuccess && (
-                <div className="absolute top-4 right-4 bg-green-600 text-white p-2 rounded-full">
-                  <Check className="h-6 w-6" />
+              {detectedVehicle && (
+                <div className="absolute top-3 right-3 bg-green-100 text-green-800 px-3 py-1.5 rounded-full flex items-center">
+                  <Check className="h-4 w-4 mr-1.5" />
+                  <span className="text-sm font-medium">Vehicle Detected</span>
+                </div>
+              )}
+              
+              {error && (
+                <div className="absolute top-3 right-3 bg-red-100 text-red-800 px-3 py-1.5 rounded-full flex items-center">
+                  <AlertTriangle className="h-4 w-4 mr-1.5" />
+                  <span className="text-sm font-medium">Detection Failed</span>
                 </div>
               )}
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSelectedFile(null);
-                  setPreview(null);
-                  setIsSuccess(false);
-                }}
-                disabled={isAnalyzing}
-              >
-                Change Photo
-              </Button>
-              
-              {!isSuccess ? (
-                <Button 
-                  onClick={handleAnalyzePhoto} 
-                  disabled={isAnalyzing}
-                  className="flex items-center gap-2"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Camera className="h-4 w-4" />
-                      Analyze Photo
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleContinueToValuation}
-                  className="flex items-center gap-2 bg-primary"
-                >
-                  Continue to Valuation
-                </Button>
-              )}
-            </div>
+            {isUploading && <LoadingState text="Uploading image..." />}
+            
+            {error && !isUploading && (
+              <div className="bg-red-50 border border-red-100 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-red-800 mb-1">Detection Error</h4>
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-3 justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setUploadedImage(null);
+                      setError(null);
+                    }}
+                  >
+                    Try Different Image
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {detectedVehicle && !isAnalyzing && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Vehicle Detected</h3>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <p className="text-sm text-slate-500">Make</p>
+                      <p className="font-medium">{detectedVehicle.make}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Model</p>
+                      <p className="font-medium">{detectedVehicle.model}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Year</p>
+                      <p className="font-medium">{detectedVehicle.year}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500">Color</p>
+                      <p className="font-medium">{detectedVehicle.color}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+                    <div className="flex items-center gap-2">
+                      <Car className="h-5 w-5 text-amber-600" />
+                      <p className="text-sm text-amber-800">
+                        Recognition confidence: <span className="font-medium">{Math.round(detectedVehicle.confidence * 100)}%</span>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setUploadedImage(null);
+                        setDetectedVehicle(null);
+                      }}
+                    >
+                      Try Different Image
+                    </Button>
+                    <Button className="bg-primary" onClick={handleContinueToValuation}>
+                      Continue with This Vehicle
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
-        
-        {vehicle && (
-          <div className="mt-6 p-6 bg-slate-50 rounded-lg border border-slate-200">
-            <h4 className="font-semibold text-xl mb-4">Vehicle Identified</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-slate-500">Year, Make, Model</p>
-                <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Color</p>
-                <p className="font-medium">{vehicle.exteriorColor || "Not detected"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Body Style</p>
-                <p className="font-medium">{vehicle.bodyType || "Sedan"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Confidence</p>
-                <p className="font-medium">High (95%)</p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div className="rounded-lg bg-amber-50 border border-amber-100 p-4 flex gap-3 mt-4">
-          <FileWarning className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800">
-            <p className="font-medium">Photo Analysis Tips:</p>
-            <ul className="list-disc list-inside mt-1 space-y-1">
-              <li>Use daylight or well-lit conditions</li>
-              <li>Capture the entire vehicle in frame</li>
-              <li>Try to get front 3/4 view for best results</li>
-              <li>Avoid obstructions like people or other vehicles</li>
-            </ul>
-          </div>
-        </div>
       </div>
     </TabContentWrapper>
   );
