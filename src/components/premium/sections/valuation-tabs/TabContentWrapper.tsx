@@ -1,5 +1,6 @@
 
 import { ReactNode } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TabContentWrapperProps {
   title: string;
@@ -9,15 +10,15 @@ interface TabContentWrapperProps {
 
 export function TabContentWrapper({ title, description, children }: TabContentWrapperProps) {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
-        <p className="text-slate-600">{description}</p>
-      </div>
+    <Card className="border-2 border-primary/10">
+      <CardHeader className="bg-primary/5">
+        <CardTitle className="text-xl font-semibold text-slate-900">{title}</CardTitle>
+        <p className="text-slate-600 mt-1">{description}</p>
+      </CardHeader>
       
-      <div>
+      <CardContent className="p-6">
         {children}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

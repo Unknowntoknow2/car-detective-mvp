@@ -1,6 +1,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CarFront, FileText, Search, Camera, Building, ChartBar, Calendar, Shield } from "lucide-react";
+import { CarFront, Search, FileText, Camera, Building, ChartBar, Calendar, Shield } from "lucide-react";
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { toast } from "sonner";
@@ -58,20 +58,22 @@ export function PremiumValuationTabs() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0">
       <TabHeader />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex w-full mb-12 overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200 p-1">
-          {services.map((service) => (
-            <TabsTrigger
-              key={service.id}
-              value={service.id}
-              className="flex flex-col items-center justify-center gap-2 py-4 px-2 sm:px-6 rounded-lg min-w-[90px] sm:min-w-[110px] data-[state=active]:bg-primary data-[state=active]:text-white transition-colors"
-            >
-              <service.icon className="h-5 w-5" />
-              <span className="font-medium text-xs sm:text-sm text-center whitespace-nowrap">{service.title}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm pt-4 pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+          <TabsList className="flex w-full mb-6 overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200 p-1.5 gap-1">
+            {services.map((service) => (
+              <TabsTrigger
+                key={service.id}
+                value={service.id}
+                className="flex-1 flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-colors min-w-[120px]"
+              >
+                <service.icon className="h-5 w-5" />
+                <span className="font-medium text-sm whitespace-nowrap">{service.title}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
         
-        <div className="mt-6 space-y-6">
+        <div className="mt-8 space-y-6">
           <TabsContent value="vin">
             <VinLookupTab 
               vinValue={vinValue}
