@@ -1,5 +1,5 @@
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label, Cell } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface PriceDistributionChartProps {
@@ -103,12 +103,19 @@ export function PriceDistributionChart({
                 />
               </ReferenceLine>
               
-              {/* Bar color conditional on whether it's your price range */}
+              {/* Use Bar with Cell children instead of dynamic fill function */}
               <Bar 
                 dataKey="count" 
-                fill={(data) => data.isYourRange ? '#7c3aed' : '#c4b5fd'}
+                fill="#c4b5fd"
                 radius={[4, 4, 0, 0]}
-              />
+              >
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.isYourRange ? '#7c3aed' : '#c4b5fd'} 
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
