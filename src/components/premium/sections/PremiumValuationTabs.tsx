@@ -11,6 +11,8 @@ import { TabHeader } from "./valuation-tabs/TabHeader";
 import { TabContentWrapper } from "./valuation-tabs/TabContentWrapper";
 import { PhotoUploadTab } from "./valuation-tabs/PhotoUploadTab";
 import { UnauthorizedRedirectTab } from "./valuation-tabs/UnauthorizedRedirectTab";
+import { VinLookupTab } from "./valuation-tabs/VinLookupTab";
+import { PlateLookupTab } from "./valuation-tabs/PlateLookupTab";
 
 export function PremiumValuationTabs() {
   const [activeTab, setActiveTab] = useState("vin");
@@ -69,87 +71,25 @@ export function PremiumValuationTabs() {
         
         <div className="mt-6 space-y-6">
           <TabsContent value="vin">
-            <TabContentWrapper
-              title="VIN Lookup"
-              description="Enter your Vehicle Identification Number for the most accurate valuation"
-            >
-              <VinLookup 
-                value={vinValue}
-                onChange={setVinValue}
-                onLookup={handleVinLookup}
-                isLoading={isLoading}
-              />
-              {vehicle && (
-                <div className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
-                  <h4 className="font-semibold text-xl mb-4">Vehicle Found</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-slate-500">Year, Make, Model</p>
-                      <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Trim</p>
-                      <p className="font-medium">{vehicle.trim || "Standard"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Engine</p>
-                      <p className="font-medium">{vehicle.engine || "Not available"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Transmission</p>
-                      <p className="font-medium">{vehicle.transmission || "Not available"}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-end">
-                    <Button className="bg-primary">Continue to Valuation</Button>
-                  </div>
-                </div>
-              )}
-            </TabContentWrapper>
+            <VinLookupTab 
+              vinValue={vinValue}
+              isLoading={isLoading}
+              vehicle={vehicle}
+              onVinChange={setVinValue}
+              onLookup={handleVinLookup}
+            />
           </TabsContent>
 
           <TabsContent value="plate">
-            <TabContentWrapper
-              title="Plate Lookup"
-              description="Enter your license plate and state for quick vehicle identification"
-            >
-              <PlateLookup
-                plateValue={plateValue}
-                stateValue={plateState}
-                onPlateChange={setPlateValue}
-                onStateChange={setPlateState}
-                onLookup={handlePlateLookup}
-                isLoading={isLoading}
-              />
-              {vehicle && (
-                <div className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
-                  <h4 className="font-semibold text-xl mb-4">Vehicle Found</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-slate-500">Year, Make, Model</p>
-                      <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Color</p>
-                      <p className="font-medium">{vehicle.exteriorColor || "Not available"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">VIN</p>
-                      <p className="font-medium">{vehicle.vin || "Not available"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Registered State</p>
-                      <p className="font-medium">{plateState}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-end">
-                    <Button className="bg-primary">Continue to Valuation</Button>
-                  </div>
-                </div>
-              )}
-            </TabContentWrapper>
+            <PlateLookupTab
+              plateValue={plateValue}
+              stateValue={plateState}
+              isLoading={isLoading}
+              vehicle={vehicle}
+              onPlateChange={setPlateValue}
+              onStateChange={setPlateState}
+              onLookup={handlePlateLookup}
+            />
           </TabsContent>
 
           <TabsContent value="manual">
