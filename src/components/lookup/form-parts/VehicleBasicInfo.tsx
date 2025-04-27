@@ -1,4 +1,3 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
@@ -18,10 +17,9 @@ interface VehicleBasicInfoProps {
 
 export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoProps) {
   const { getYearOptions } = useVehicleData();
-  const yearOptions = getYearOptions(1980);
+  const yearOptions = getYearOptions ? getYearOptions(1980) : []; // ✅ SAFE fallback if undefined
   const validation = useValidation(EnhancedManualEntrySchema);
   
-  // Debug logging to trace state changes
   useEffect(() => {
     console.log("VehicleBasicInfo form values:", form.getValues());
   }, [form.watch('make'), form.watch('model'), form.watch('year'), form.watch('mileage')]);
@@ -36,7 +34,6 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
     { value: 'CNG', label: 'Compressed Natural Gas (CNG)' },
   ];
 
-  // Validate field on change
   const handleFieldValidation = (field: string, value: any) => {
     const result = validation.validateField(field, value);
     if (!result.isValid) {
@@ -53,7 +50,8 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
     <div className="space-y-6">
       <div className="space-y-4">
         <MakeModelSelect form={form} />
-        
+
+        {/* Year Field */}
         <FormField
           control={form.control}
           name="year"
@@ -74,7 +72,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {yearOptions.map((year) => (
+                  {(yearOptions || []).map((year) => (
                     <SelectItem key={year} value={year.toString()}>
                       {year}
                     </SelectItem>
@@ -93,6 +91,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
         />
       </div>
 
+      {/* Mileage and ZIP Code */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           control={form.control}
