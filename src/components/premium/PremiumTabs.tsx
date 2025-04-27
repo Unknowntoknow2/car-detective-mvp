@@ -2,9 +2,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { VinDecoderForm } from "../lookup/VinDecoderForm";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
+import { LookupTabs } from "@/components/home/LookupTabs";
 
 export function PremiumTabs() {
   return (
@@ -31,7 +31,7 @@ export function PremiumTabs() {
             <CardDescription>Get a quick, AI-powered estimate based on market data.</CardDescription>
           </CardHeader>
           <CardContent>
-            <VinDecoderForm />
+            <LookupTabs />
           </CardContent>
         </Card>
       </TabsContent>

@@ -31,4 +31,4 @@ export const MakeModelSelect = ({ form }: MakeModelSelectProps) => {
       />
     </div>
   );
-};
+}

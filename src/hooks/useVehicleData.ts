@@ -8,7 +8,7 @@ export interface Make {
   make_name: string;
   logo_url?: string;
   nhtsa_make_id?: number;
-  country_of_origin?: string; // Add this property to the interface
+  country_of_origin?: string;
   description?: string;
   founding_year?: number;
 }
