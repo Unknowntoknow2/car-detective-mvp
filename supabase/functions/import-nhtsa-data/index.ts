@@ -20,60 +20,79 @@ serve(async (req) => {
 
     console.log("Fetching makes from NHTSA API...");
     const makesRes = await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/GetAllMakes?format=json');
-    const { Results: makes } = await makesRes.json();
+    
+    if (!makesRes.ok) {
+      throw new Error(`NHTSA API returned status ${makesRes.status}`);
+    }
+    
+    const makesData = await makesRes.json();
+    const makes = makesData.Results || [];
 
     let importedMakes = 0;
     let importedModels = 0;
 
     // Process makes in batches
     for (const make of makes) {
-      const makeName = make.Make_Name.trim();
+      try {
+        const makeName = make.Make_Name.trim();
 
-      // Insert or update make
-      // Note: We're using the id field instead of make_name since that's what the schema has
-      const { data: insertedMake, error: makeError } = await supabase
-        .from('makes')
-        .upsert({
-          id: makeName, // Using make name as ID 
-          nhtsa_make_id: make.Make_ID,
-        }, {
-          onConflict: 'id'
-        })
-        .select()
-        .single();
-
-      if (makeError) {
-        console.error(`Error inserting make ${makeName}:`, makeError);
-        continue;
-      }
-
-      importedMakes++;
-
-      // Fetch models for this make
-      console.log(`Fetching models for ${makeName}...`);
-      const modelsRes = await fetch(
-        `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeId/${make.Make_ID}?format=json`
-      );
-      const { Results: models } = await modelsRes.json();
-
-      // Insert models
-      for (const model of models) {
-        const { error: modelError } = await supabase
-          .from('models')
+        // Insert make with a generated UUID
+        const { data: insertedMake, error: makeError } = await supabase
+          .from('makes')
           .upsert({
-            make_id: insertedMake.id,
-            model_name: model.Model_Name.trim(),
-            nhtsa_model_id: model.Model_ID
-          }, {
-            onConflict: 'make_id,model_name'
-          });
+            nhtsa_make_id: make.Make_ID,
+          })
+          .select()
+          .single();
 
-        if (modelError) {
-          console.error(`Error inserting model ${model.Model_Name}:`, modelError);
+        if (makeError) {
+          console.error(`Error inserting make ${makeName}:`, makeError);
           continue;
         }
 
-        importedModels++;
+        importedMakes++;
+
+        // Fetch models for this make
+        console.log(`Fetching models for ${makeName}...`);
+        const modelsRes = await fetch(
+          `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeId/${make.Make_ID}?format=json`
+        );
+        
+        if (!modelsRes.ok) {
+          console.error(`Failed to fetch models for make ${makeName}: status ${modelsRes.status}`);
+          continue;
+        }
+        
+        const modelsData = await modelsRes.json();
+        const models = modelsData.Results || [];
+
+        // Insert models
+        for (const model of models) {
+          try {
+            const modelName = model.Model_Name.trim();
+            
+            const { error: modelError } = await supabase
+              .from('models')
+              .upsert({
+                make_id: insertedMake.id,
+                model_name: modelName,
+                nhtsa_model_id: model.Model_ID
+              }, {
+                onConflict: 'make_id,model_name'
+              });
+
+            if (modelError) {
+              console.error(`Error inserting model ${modelName}:`, modelError);
+              continue;
+            }
+
+            importedModels++;
+          } catch (modelErr) {
+            console.error(`Error processing model ${model.Model_Name}:`, modelErr);
+          }
+        }
+      } catch (makeErr) {
+        console.error(`Error processing make ${make.Make_Name}:`, makeErr);
       }
     }
 
