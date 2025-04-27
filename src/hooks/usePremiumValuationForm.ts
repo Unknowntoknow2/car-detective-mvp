@@ -7,6 +7,9 @@ import { useStepNavigation } from './useStepNavigation';
 import { useValuationSubmit } from './useValuationSubmit';
 import { toast } from 'sonner';
 
+// Number of minutes to auto-save form data
+const AUTO_SAVE_INTERVAL = 1; // minutes
+
 export const usePremiumValuationForm = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
@@ -28,6 +31,42 @@ export const usePremiumValuationForm = () => {
   const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);
   const { currentStep, totalSteps, goToNextStep, goToPreviousStep, goToStep } = useStepNavigation(formData);
   const { valuationId, handleSubmit: submitValuation, isSubmitting, submitError } = useValuationSubmit();
+
+  // Load saved form data from sessionStorage on component mount
+  useEffect(() => {
+    try {
+      const savedFormData = sessionStorage.getItem('premium_form_data');
+      if (savedFormData) {
+        const parsedData = JSON.parse(savedFormData) as FormData;
+        setFormData(parsedData);
+        toast.info("Restored your previously entered information", {
+          duration: 3000,
+          position: 'bottom-center'
+        });
+      }
+    } catch (error) {
+      console.error("Error loading saved form data:", error);
+    }
+  }, []);
+
+  // Auto-save form data to sessionStorage periodically
+  useEffect(() => {
+    const saveFormData = () => {
+      try {
+        sessionStorage.setItem('premium_form_data', JSON.stringify(formData));
+      } catch (error) {
+        console.error("Error saving form data:", error);
+      }
+    };
+
+    // Save immediately when formData changes
+    saveFormData();
+    
+    // Also set up periodic saving
+    const intervalId = setInterval(saveFormData, AUTO_SAVE_INTERVAL * 60 * 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [formData]);
 
   // Validation rules for each step
   const validateStep = (step: number, data: FormData): boolean => {
@@ -94,6 +133,7 @@ export const usePremiumValuationForm = () => {
     const confirmReset = window.confirm("Are you sure you want to reset all form data? This action cannot be undone.");
     
     if (confirmReset) {
+      // Clear form data
       setFormData({
         identifierType: 'vin',
         identifier: '',
@@ -113,6 +153,8 @@ export const usePremiumValuationForm = () => {
       // Clear any cached data
       localStorage.removeItem("premium_vehicle");
       sessionStorage.removeItem("analyzed_vehicle");
+      sessionStorage.removeItem("premium_form_data");
+      sessionStorage.removeItem("premium_current_step");
       
       // Reset to first step
       goToStep(1);

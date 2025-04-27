@@ -1,12 +1,14 @@
 
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { FormData } from '@/types/premium-valuation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Search } from 'lucide-react';
-import { StateSelect } from './StateSelect';
+import { EnhancedVinLookup } from '@/components/premium/lookup/EnhancedVinLookup';
+import { EnhancedPlateLookup } from '@/components/premium/lookup/EnhancedPlateLookup';
+import { toast } from 'sonner';
+import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface VehicleIdentificationStepProps {
   step: number;
@@ -28,18 +30,17 @@ export function VehicleIdentificationStep({
   const [state, setState] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
+  const handleInputChange = (value: string) => {
     setFormData(prev => ({ ...prev, identifier: value }));
     
     // Clean up any previous error
     if (error) setError('');
     
     // For VIN, we can validate length as user types
-    if (formData.identifierType === 'vin' && value.length > 0) {
+    if (formData.identifierType === 'vin') {
       updateValidity(step, value.length === 17);
-    } else if (formData.identifierType === 'plate' && value.length > 0) {
-      updateValidity(step, value.length > 0 && state.length > 0);
+    } else if (formData.identifierType === 'plate') {
+      updateValidity(step, value.length >= 2 && value.length <= 8 && state.length > 0);
     } else {
       updateValidity(step, false);
     }
@@ -47,9 +48,15 @@ export function VehicleIdentificationStep({
 
   const handleTypeChange = (value: string) => {
     if (value === 'vin' || value === 'plate') {
-      setFormData(prev => ({ ...prev, identifierType: value }));
+      setFormData(prev => ({ 
+        ...prev, 
+        identifierType: value as 'vin' | 'plate',
+        identifier: '' // Clear identifier when changing type
+      }));
       // Reset validity when changing identifier type
       updateValidity(step, false);
+      // Reset any errors
+      setError('');
     }
   };
 
@@ -57,7 +64,7 @@ export function VehicleIdentificationStep({
     setState(value);
     // Update validity for plate lookup
     if (formData.identifierType === 'plate') {
-      updateValidity(step, formData.identifier.length > 0 && value.length > 0);
+      updateValidity(step, formData.identifier.length >= 2 && formData.identifier.length <= 8 && value.length > 0);
     }
   };
 
@@ -73,7 +80,14 @@ export function VehicleIdentificationStep({
     }
     
     try {
-      await lookupVehicle(formData.identifierType, formData.identifier, state);
+      setError('');
+      const result = await lookupVehicle(formData.identifierType, formData.identifier, state);
+      
+      if (!result) {
+        setError(formData.identifierType === 'vin' 
+          ? 'Vehicle not found with this VIN. Please check and try again.' 
+          : 'Vehicle not found with this plate. Please check and try again.');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to lookup vehicle');
     }
@@ -105,57 +119,27 @@ export function VehicleIdentificationStep({
           </Select>
         </div>
         
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
-          <div className={`sm:col-span-${formData.identifierType === 'plate' ? '3' : '6'}`}>
-            <Label htmlFor="identifier">
-              {formData.identifierType === 'vin' ? 'VIN' : 'License Plate'}
-            </Label>
-            <Input
-              id="identifier"
-              type="text"
+        <div className="space-y-3">
+          {formData.identifierType === 'vin' ? (
+            <EnhancedVinLookup
               value={formData.identifier}
               onChange={handleInputChange}
-              placeholder={formData.identifierType === 'vin' ? 'Enter 17-character VIN' : 'Enter license plate'}
-              className="mt-1"
-              autoComplete="off"
+              onLookup={handleFindVehicle}
+              isLoading={isLoading}
+              error={error}
             />
-          </div>
-          
-          {formData.identifierType === 'plate' && (
-            <div className="sm:col-span-3">
-              <Label htmlFor="state">State</Label>
-              <StateSelect value={state} onChange={handleStateChange} />
-            </div>
-          )}
+          ) : formData.identifierType === 'plate' ? (
+            <EnhancedPlateLookup
+              plateValue={formData.identifier}
+              stateValue={state}
+              onPlateChange={handleInputChange}
+              onStateChange={handleStateChange}
+              onLookup={handleFindVehicle}
+              isLoading={isLoading}
+              error={error}
+            />
+          ) : null}
         </div>
-        
-        {error && (
-          <div className="text-sm font-medium text-red-600 mt-1">
-            {error}
-          </div>
-        )}
-        
-        <Button
-          type="button"
-          onClick={handleFindVehicle}
-          disabled={isLoading || 
-            (formData.identifierType === 'vin' && formData.identifier.length !== 17) ||
-            (formData.identifierType === 'plate' && (!formData.identifier || !state))
-          }
-          className="w-full sm:w-auto bg-navy-600 hover:bg-navy-700 text-white mt-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-              Looking Up...
-            </>
-          ) : (
-            <>
-              <Search className="mr-2 h-4 w-4" /> 
-              Find Vehicle
-            </>
-          )}
-        </Button>
       </div>
       
       {formData.make && formData.model && formData.year > 0 && (

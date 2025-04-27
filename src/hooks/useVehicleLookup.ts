@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeFunction, ApiErrorType, handleApiError } from '@/utils/api-utils';
 
 export const useVehicleLookup = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [vehicle, setVehicle] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   const lookupVehicle = async (
     type: 'vin' | 'plate' | 'manual' | 'photo', 
@@ -17,6 +19,7 @@ export const useVehicleLookup = () => {
   ) => {
     setIsLoading(true);
     setError(null);
+    setErrorDetails(null);
     
     try {
       let payload: any = {};
@@ -43,40 +46,35 @@ export const useVehicleLookup = () => {
         setVehicle(imageData);
         
         toast.success(`Identified vehicle: ${imageData.year} ${imageData.make} ${imageData.model}`);
+        
+        // Save to sessionStorage for persistence between tabs
+        sessionStorage.setItem('identified_vehicle', JSON.stringify(imageData));
+        
         return imageData;
       }
       
       console.log("Sending payload to unified-decode:", payload);
       
-      const { data, error: apiError } = await supabase.functions.invoke('unified-decode', {
-        body: payload
+      // Use our enhanced API function
+      const response = await invokeFunction('unified-decode', payload, {
+        showToast: false // We'll handle custom toasts
       });
       
-      console.log("Received response:", data);
-      
-      if (apiError) {
-        let errorMessage = apiError.message || "Error invoking function";
-        
-        // Since status is not available directly on the response, we'll use the error message
-        // to determine the appropriate user-friendly message
-        if (apiError.message?.includes('404') || apiError.message?.includes('not found')) {
-          errorMessage = type === 'vin' 
-            ? "VIN not found. Please check and try again." 
-            : "Vehicle not found. Please check your information and try again.";
-        } else if (apiError.message?.includes('429') || apiError.message?.includes('rate limit')) {
-          errorMessage = "Rate limit exceeded. Please try again later.";
-        } else if (apiError.message?.includes('500') || apiError.message?.includes('server error')) {
-          errorMessage = "Server error. Our team has been notified.";
-        }
-        
-        throw new Error(errorMessage);
+      if (response.error) {
+        throw new Error(response.error);
       }
+      
+      const data = response.data;
+      console.log("Received response:", data);
       
       if (!data || data.decoded?.error) {
         throw new Error(data?.decoded?.error || "Invalid response from server");
       }
       
       setVehicle(data.decoded);
+      
+      // Save to sessionStorage for persistence between tabs
+      sessionStorage.setItem('identified_vehicle', JSON.stringify(data.decoded));
       
       if (type === 'vin') {
         toast.success(`Found vehicle: ${data.decoded.year} ${data.decoded.make} ${data.decoded.model}`);
@@ -88,10 +86,31 @@ export const useVehicleLookup = () => {
       
       return data.decoded;
     } catch (err: any) {
-      const errorMessage = err.message || 'Could not lookup vehicle';
-      console.error(`Vehicle lookup error (${type}):`, err);
-      setError(errorMessage);
-      toast.error(errorMessage);
+      const enhancedError = handleApiError(err);
+      
+      console.error(`Vehicle lookup error (${type}):`, enhancedError);
+      setError(enhancedError.message);
+      setErrorDetails(enhancedError.details || null);
+      
+      // Show specific toasts based on error type
+      if (enhancedError.type === ApiErrorType.NOT_FOUND) {
+        if (type === 'vin') {
+          toast.error(`VIN ${identifier} not found. Please check and try again.`);
+        } else if (type === 'plate') {
+          toast.error(`Plate ${identifier} (${state}) not found. Please check and try again.`);
+        } else {
+          toast.error("Vehicle not found. Please check your information and try again.");
+        }
+      } else if (enhancedError.type === ApiErrorType.RATE_LIMIT) {
+        toast.error("We're experiencing high demand. Please try again in a few minutes.");
+      } else if (enhancedError.type === ApiErrorType.NETWORK) {
+        toast.error("Network error. Please check your connection and try again.");
+      } else if (enhancedError.type === ApiErrorType.SERVER) {
+        toast.error("Server error. Our team has been notified and we're working on it.");
+      } else {
+        toast.error(enhancedError.message);
+      }
+      
       setVehicle(null);
       return null;
     } finally {
@@ -102,13 +121,29 @@ export const useVehicleLookup = () => {
   const reset = () => {
     setVehicle(null);
     setError(null);
+    setErrorDetails(null);
+    sessionStorage.removeItem('identified_vehicle');
+  };
+
+  // Try to load vehicle from sessionStorage on initialization
+  const loadSavedVehicle = () => {
+    try {
+      const savedVehicle = sessionStorage.getItem('identified_vehicle');
+      if (savedVehicle) {
+        return JSON.parse(savedVehicle);
+      }
+    } catch (error) {
+      console.error("Error loading saved vehicle:", error);
+    }
+    return null;
   };
 
   return {
     lookupVehicle,
     isLoading,
-    vehicle,
+    vehicle: vehicle || loadSavedVehicle(),
     error,
+    errorDetails,
     reset
   };
 };
