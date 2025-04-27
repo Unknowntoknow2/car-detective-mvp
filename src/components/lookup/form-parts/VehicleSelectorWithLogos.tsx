@@ -135,7 +135,7 @@ export function VehicleSelectorWithLogos({
             <Command>
               <CommandInput placeholder="Search model..." className="h-9" />
               <CommandEmpty>No model found.</CommandEmpty>
-              {selectedMake && (
+              {selectedMake && Array.isArray(safeModels) && safeModels.length > 0 && (
                 <ModelSelector
                   models={safeModels}
                   selectedModel={selectedModel}
