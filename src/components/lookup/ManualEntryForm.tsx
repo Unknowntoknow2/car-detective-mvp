@@ -158,15 +158,16 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 /> */}
 
 
-        {isPremium && (
-          <PremiumFields
-            accident={form.watch('accident') || 'no'}
-            setAccident={handleAccidentChange}
-            accidentDetails={form.watch('accidentDetails') || { count: '', severity: '', area: '' }}
-            setAccidentDetails={(details) => form.setValue('accidentDetails', details)}
-            isDisabled={isFormLoading}
-          />
-        )}
+        {/* {isPremium && (
+  <PremiumFields
+    accident={form.watch('accident') || 'no'}
+    setAccident={handleAccidentChange}
+    accidentDetails={form.watch('accidentDetails') || { count: '', severity: '', area: '' }}
+    setAccidentDetails={(details) => form.setValue('accidentDetails', details)}
+    isDisabled={isFormLoading}
+  />
+)} */}
+
 
         <ValuationFormActions
           isLoading={isFormLoading}
