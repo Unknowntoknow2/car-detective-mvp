@@ -19,7 +19,7 @@ interface VehicleBasicInfoProps {
 
 export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoProps) {
   const { getYearOptions } = useVehicleData();
-  const yearOptions = getYearOptions ? getYearOptions(1980) : [];
+  const yearOptions = getYearOptions ? getYearOptions() : []; // No argument needed here
 
   const validation = useValidation(EnhancedManualEntrySchema);
 

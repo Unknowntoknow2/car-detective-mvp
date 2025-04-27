@@ -2,25 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-// Types for our hook
-export type Make = {
-  id: string;
-  make_name: string;
-  logo_url: string | null;
-  country_of_origin: string | null;
-};
-
-export type Model = {
-  id: string;
-  model_name: string;
-  make_id: string;
-  popular: boolean;
-};
-
-export type ModelsByMake = {
-  [key: string]: Model[];
-};
+import { VehicleDataHook, Make, Model, ModelsByMake } from './types/vehicle';
 
 // Local storage keys for caching
 const CACHE_KEY_MAKES = 'vehicle_makes_cache';
@@ -28,12 +10,12 @@ const CACHE_KEY_MODELS = 'vehicle_models_cache';
 const CACHE_EXPIRY = 'vehicle_cache_expiry';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-export const useVehicleData = () => {
+export const useVehicleData = (): VehicleDataHook => {
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [modelsByMake, setModelsByMake] = useState<ModelsByMake>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Build models by make mapping
   const buildModelsByMake = useCallback((modelsList: Model[]) => {
@@ -175,7 +157,7 @@ export const useVehicleData = () => {
         }
       } catch (err) {
         console.error('Error initializing vehicle data:', err);
-        setError(err instanceof Error ? err : new Error(String(err)));
+        setError(err instanceof Error ? err.message : String(err));
         toast.error('Failed to load vehicle data');
       } finally {
         setIsLoading(false);
@@ -186,25 +168,33 @@ export const useVehicleData = () => {
   }, [buildModelsByMake, refreshData]);
 
   // Get available years for vehicles
-  const getYearOptions = () => {
+  const getYearOptions = useCallback((startYear: number = 1990) => {
     const currentYear = new Date().getFullYear();
     const years = [];
     
-    // Add years from current year down to 1990
-    for (let year = currentYear; year >= 1990; year--) {
+    // Add years from current year down to startYear
+    for (let year = currentYear; year >= startYear; year--) {
       years.push(year);
     }
     
     return years;
+  }, []);
+
+  // Compute counts for the data info component
+  const counts = {
+    makes: makes.length,
+    models: models.length
   };
 
   return {
     makes,
     models,
+    modelsByMake,
     isLoading,
     error,
     refreshData,
     getModelsByMake,
-    getYearOptions
+    getYearOptions,
+    counts
   };
 };
