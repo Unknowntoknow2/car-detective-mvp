@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -11,6 +10,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -18,14 +18,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export interface ComboBoxItem {
-  value: string;
+interface ComboBoxItem {
   label: string;
-  icon?: string | null;
+  value: string;
+  icon?: string;
 }
 
 interface ComboBoxProps {
-  items: ComboBoxItem[];
+  items?: ComboBoxItem[]; // safe optional
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -35,17 +35,18 @@ interface ComboBoxProps {
 }
 
 export function ComboBox({
-  items = [],
+  items = [],   // safe default value!
   value,
   onChange,
-  placeholder = "Select an option",
-  emptyText = "No results found.",
+  placeholder = "Select...",
+  emptyText = "No options",
   disabled = false,
-  className
+  className,
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false);
 
-  const safeItems = Array.isArray(items) ? items : [];
+  const safeItems = Array.isArray(items) ? items : []; // Always safe array
+
   const selectedItem = safeItems.find((item) => item.value === value);
 
   return (
@@ -55,49 +56,50 @@ export function ComboBox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("justify-between", className)}
+          className={cn("w-full justify-between", className)}
           disabled={disabled}
         >
           {selectedItem ? selectedItem.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
+
       <PopoverContent className="w-[300px] p-0">
         <Command>
-          <CommandInput placeholder="Search..." />
-          <CommandEmpty>{emptyText}</CommandEmpty>
-          {safeItems.length > 0 && (
-            <CommandGroup>
-              {safeItems.map((item) => (
-                <CommandItem
-                  key={item.value}
-                  value={item.value}
-                  onSelect={() => {
-                    onChange(item.value);
-                    setOpen(false);
-                  }}
-                >
-                  {item.icon && (
-                    <img
-                      src={item.icon}
-                      alt=""
-                      className="w-4 h-4 mr-2 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  )}
-                  {item.label}
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      value === item.value ? "opacity-100" : "opacity-0"
+          <CommandInput placeholder={placeholder} />
+          <CommandList>
+            {safeItems.length === 0 ? (
+              <CommandEmpty>{emptyText}</CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {safeItems.map((item) => (
+                  <CommandItem
+                    key={item.value}
+                    value={item.value}
+                    onSelect={() => {
+                      onChange(item.value);
+                      setOpen(false);
+                    }}
+                  >
+                    {item.icon && (
+                      <img
+                        src={item.icon}
+                        alt=""
+                        className="h-4 w-4 mr-2 object-contain"
+                      />
                     )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
+                    {item.label}
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        value === item.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
