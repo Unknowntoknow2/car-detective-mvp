@@ -87,9 +87,14 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is an array or iterable before rendering
-  const hasChildren = React.Children.count(children) > 0;
+  // Enhanced safety check for children
+  // 1. Check if children is null/undefined
+  // 2. If it's an array, check if it's empty
+  // 3. If React.Children.count returns 0, it means no children
+  const hasChildren = children != null && 
+    (Array.isArray(children) ? children.length > 0 : React.Children.count(children) > 0);
   
+  // Return null early if no valid children to prevent issues with Array.from
   if (!hasChildren) {
     return null;
   }
@@ -102,7 +107,9 @@ const CommandGroup = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </CommandPrimitive.Group>
   )
 })
 
