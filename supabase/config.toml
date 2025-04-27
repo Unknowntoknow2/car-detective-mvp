@@ -40,3 +40,4 @@ verify_jwt = false
 
 [functions.import-vehicle-data]
 verify_jwt = false
+
