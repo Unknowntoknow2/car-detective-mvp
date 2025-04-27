@@ -19,16 +19,22 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
   // When make changes, update available models and reset model if needed
   useEffect(() => {
     if (selectedMake) {
-      const models = getModelsByMake(selectedMake);
-      setAvailableModels(models);
-      
-      // Reset model if make changes and currently selected model isn't available for the new make
-      if (selectedModel) {
-        const modelExists = models.some(model => model.model_name === selectedModel);
-        if (!modelExists) {
-          form.setValue('model', '');
-          console.log("Reset model due to make change");
+      try {
+        const models = getModelsByMake(selectedMake);
+        setAvailableModels(Array.isArray(models) ? models : []);
+        
+        // Reset model if make changes and currently selected model isn't available for the new make
+        if (selectedModel) {
+          const modelExists = models && Array.isArray(models) && 
+            models.some(model => model.model_name === selectedModel);
+          if (!modelExists) {
+            form.setValue('model', '');
+            console.log("Reset model due to make change");
+          }
         }
+      } catch (error) {
+        console.error("Error getting models for make:", error);
+        setAvailableModels([]);
       }
     } else {
       setAvailableModels([]);

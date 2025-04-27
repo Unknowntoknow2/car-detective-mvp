@@ -40,7 +40,7 @@ export function VehicleSelectorWithLogos({
       try {
         const availableModels = getModelsByMake(selectedMake);
         console.log(`Models for ${selectedMake}:`, availableModels ? availableModels.length : 0);
-        setModels(availableModels || []);
+        setModels(Array.isArray(availableModels) ? availableModels : []);
       } catch (error) {
         console.error("Error getting models for make:", error);
         setModels([]);
@@ -114,10 +114,10 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-          <Command>
-            <CommandInput placeholder="Search make..." className="h-9" />
-            <CommandEmpty>No make found.</CommandEmpty>
-            {safeMakes.length > 0 ? (
+          {safeMakes.length > 0 ? (
+            <Command>
+              <CommandInput placeholder="Search make..." className="h-9" />
+              <CommandEmpty>No make found.</CommandEmpty>
               <CommandGroup className="max-h-[250px] overflow-y-auto">
                 {safeMakes.map((make) => (
                   <CommandItem
@@ -145,10 +145,10 @@ export function VehicleSelectorWithLogos({
                   </CommandItem>
                 ))}
               </CommandGroup>
-            ) : (
-              <div className="p-2 text-sm text-muted-foreground">No makes available</div>
-            )}
-          </Command>
+            </Command>
+          ) : (
+            <div className="p-2 text-sm text-muted-foreground">No makes available</div>
+          )}
         </PopoverContent>
       </Popover>
 
@@ -173,10 +173,10 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-          <Command>
-            <CommandInput placeholder="Search model..." className="h-9" />
-            <CommandEmpty>No model found.</CommandEmpty>
-            {safeModels.length > 0 ? (
+          {safeModels.length > 0 ? (
+            <Command>
+              <CommandInput placeholder="Search model..." className="h-9" />
+              <CommandEmpty>No model found.</CommandEmpty>
               <CommandGroup className="max-h-[250px] overflow-y-auto">
                 {safeModels.map((model) => (
                   <CommandItem
@@ -195,10 +195,10 @@ export function VehicleSelectorWithLogos({
                   </CommandItem>
                 ))}
               </CommandGroup>
-            ) : (
-              <div className="p-2 text-sm text-muted-foreground">No models available</div>
-            )}
-          </Command>
+            </Command>
+          ) : (
+            <div className="p-2 text-sm text-muted-foreground">No models available</div>
+          )}
         </PopoverContent>
       </Popover>
     </div>
