@@ -18,7 +18,6 @@ export function VehicleSelectorWithLogos({
   onModelChange,
   disabled = false
 }: VehicleSelectorWithLogosProps) {
-  // Always default makes to empty array if loading
   const { makes = [], getModelsByMake, isLoading } = useVehicleData();
   const [filteredModels, setFilteredModels] = useState<any[]>([]);
 
@@ -59,7 +58,7 @@ export function VehicleSelectorWithLogos({
   return (
     <div className="space-y-4">
       <ComboBox
-        items={safeMakeOptions || []}   {/* SAFETY ADDED */}
+        items={safeMakeOptions || []}
         value={selectedMake}
         onChange={onMakeChange}
         placeholder="Select a make"
@@ -69,7 +68,7 @@ export function VehicleSelectorWithLogos({
       />
       
       <ComboBox
-        items={safeModelOptions || []}  {/* SAFETY ADDED */}
+        items={safeModelOptions || []}
         value={selectedModel}
         onChange={onModelChange}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}
