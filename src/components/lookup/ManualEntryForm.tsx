@@ -170,11 +170,12 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 )} */}
 
 
-        <ValuationFormActions
-          isLoading={isFormLoading}
-          submitButtonText={isFormLoading ? 'Processing...' : submitButtonText}
-          onSubmit={form.handleSubmit(onSubmitForm)}
-        />
+        {/* <ValuationFormActions
+  isLoading={isFormLoading}
+  submitButtonText={isFormLoading ? 'Processing...' : submitButtonText}
+  onSubmit={form.handleSubmit(onSubmitForm)}
+/> */}
+
 
         {form.formState.errors.make && (
           <p className="text-red-500 text-sm flex items-center">
