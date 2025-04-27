@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { MakeModelSelect } from '@/components/lookup/form-parts/fields/MakeModelSelect';
-import { YearMileageInputs } from '@/components/lookup/form-parts/fields/YearMileageInputs';
+import { MakeModelSelect } from '@/components/premium/lookup/form-parts/fields/MakeModelSelect';
+import { YearMileageInputs } from '@/components/premium/lookup/form-parts/fields/YearMileageInputs';
 
 interface BasicVehicleInfoProps {
   selectedMakeId: string;
