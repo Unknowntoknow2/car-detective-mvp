@@ -2,7 +2,8 @@
 import React from 'react';
 import {
   CommandItem,
-  CommandGroup
+  CommandGroup,
+  CommandEmpty
 } from '@/components/ui/command';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,13 +20,13 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
   // Ensure models is always an array, even if it's undefined
   const safeModels = Array.isArray(models) ? models : [];
   
-  // Only render CommandGroup if we have models
+  // Return empty state component if no models
   if (safeModels.length === 0) {
-    return <div className="py-6 text-center text-sm">No models available for this make</div>;
+    return <CommandEmpty className="py-6 text-center text-sm">No models available for this make</CommandEmpty>;
   }
 
   return (
-    <CommandGroup className="overflow-y-auto">
+    <CommandGroup className="overflow-y-auto max-h-[300px]">
       {safeModels.map((model) => (
         <CommandItem
           key={model.id || `model-${model.model_name}`}
@@ -33,6 +34,7 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
           onSelect={onSelect}
           className="py-2"
           data-testid={`model-option-${model.model_name}`}
+          disabled={disabled}
         >
           <Check
             className={cn(

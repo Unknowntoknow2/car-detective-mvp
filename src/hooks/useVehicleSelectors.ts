@@ -47,14 +47,15 @@ export function useVehicleSelectors() {
         
         if (error) throw error;
         
-        if (data) {
-          setMakes(data);
-          console.log(`Loaded ${data.length} makes`);
-        }
+        // Ensure we set an empty array if data is null or undefined
+        setMakes(data || []);
+        console.log(`Loaded ${data?.length || 0} makes`);
       } catch (err) {
         console.error('Error fetching makes:', err);
         setError('Failed to load vehicle makes');
         toast.error('Failed to load vehicle makes');
+        // Make sure we set empty array on error
+        setMakes([]);
       } finally {
         setIsLoading(false);
       }
@@ -83,14 +84,15 @@ export function useVehicleSelectors() {
         
         if (error) throw error;
         
-        if (data) {
-          setModels(data);
-          console.log(`Loaded ${data.length} models for make ${selectedMakeId}`);
-        }
+        // Ensure we set an empty array if data is null or undefined
+        setModels(data || []);
+        console.log(`Loaded ${data?.length || 0} models for make ${selectedMakeId}`);
       } catch (err) {
         console.error('Error fetching models:', err);
         setError('Failed to load vehicle models');
         toast.error('Failed to load vehicle models');
+        // Make sure we set empty array on error
+        setModels([]);
       } finally {
         setIsLoading(false);
       }
@@ -119,14 +121,15 @@ export function useVehicleSelectors() {
         
         if (error) throw error;
         
-        if (data) {
-          setTrims(data);
-          console.log(`Loaded ${data.length} trims for model ${selectedModelId}`);
-        }
+        // Ensure we set an empty array if data is null or undefined
+        setTrims(data || []);
+        console.log(`Loaded ${data?.length || 0} trims for model ${selectedModelId}`);
       } catch (err) {
         console.error('Error fetching trims:', err);
         setError('Failed to load vehicle trims');
         toast.error('Failed to load vehicle trims');
+        // Make sure we set empty array on error
+        setTrims([]);
       } finally {
         setIsLoading(false);
       }

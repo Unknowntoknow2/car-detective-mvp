@@ -45,21 +45,23 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  const makeOptions = makes.map(make => ({
-    value: make.make_name,
-    label: make.make_name,
-    icon: make.logo_url
-  }));
-
-  const modelOptions = filteredModels.map(model => ({
+  // Ensure makes is always an array
+  const safeModelOptions = filteredModels.map(model => ({
     value: model.model_name,
     label: model.model_name
   }));
 
+  // Ensure makes is always an array
+  const safeMakeOptions = Array.isArray(makes) ? makes.map(make => ({
+    value: make.make_name,
+    label: make.make_name,
+    icon: make.logo_url
+  })) : [];
+
   return (
     <div className="space-y-4">
       <ComboBox
-        items={makeOptions}
+        items={safeMakeOptions}
         value={selectedMake}
         onChange={onMakeChange}
         placeholder="Select a make"
@@ -69,7 +71,7 @@ export function VehicleSelectorWithLogos({
       />
       
       <ComboBox
-        items={modelOptions}
+        items={safeModelOptions}
         value={selectedModel}
         onChange={onModelChange}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}

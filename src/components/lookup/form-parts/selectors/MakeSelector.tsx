@@ -2,7 +2,8 @@
 import React from 'react';
 import {
   CommandItem,
-  CommandGroup
+  CommandGroup,
+  CommandEmpty
 } from '@/components/ui/command';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,12 +20,13 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
   // Ensure makes is always an array, even if it's undefined
   const safeMakes = Array.isArray(makes) ? makes : [];
   
+  // Return empty state component if no makes
   if (safeMakes.length === 0) {
-    return <div className="py-6 text-center text-sm">No makes available</div>;
+    return <CommandEmpty className="py-6 text-center text-sm">No makes available</CommandEmpty>;
   }
 
   return (
-    <CommandGroup className="overflow-y-auto">
+    <CommandGroup className="overflow-y-auto max-h-[300px]">
       {safeMakes.map((make) => (
         <CommandItem
           key={make.id || `make-${make.make_name}`}
@@ -32,6 +34,7 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
           onSelect={onSelect}
           className="flex items-center gap-2 py-2"
           data-testid={`make-option-${make.make_name}`}
+          disabled={disabled}
         >
           <Check
             className={cn(
