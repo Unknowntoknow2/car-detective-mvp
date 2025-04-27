@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Button } from '@/components/ui/button';
