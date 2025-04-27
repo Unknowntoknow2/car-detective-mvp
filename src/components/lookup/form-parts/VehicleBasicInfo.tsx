@@ -1,3 +1,4 @@
+
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
@@ -9,6 +10,7 @@ import { useEffect } from 'react';
 import { ValidationError } from '@/components/common/ValidationError';
 import { useValidation } from '@/hooks/useValidation';
 import { EnhancedManualEntrySchema } from '@/utils/validation/enhanced-validation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface VehicleBasicInfoProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -16,7 +18,7 @@ interface VehicleBasicInfoProps {
 }
 
 export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoProps) {
-  const { getYearOptions } = useVehicleData();
+  const { getYearOptions, isLoading } = useVehicleData();
   const yearOptions = getYearOptions ? getYearOptions(1980) : []; // ✅ Safe fallback
   const validation = useValidation(EnhancedManualEntrySchema);
 
@@ -58,32 +60,35 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
           render={({ field }) => (
             <FormItem>
               <FormLabel>Year <span className="text-destructive">*</span></FormLabel>
-              <Select
-                disabled={isDisabled}
-                onValueChange={(value) => {
-                  const yearValue = parseInt(value, 10);
-                  console.log("Setting year to:", yearValue);
-                  field.onChange(yearValue);
-                  handleFieldValidation('year', yearValue);
-                }}
-                value={field.value?.toString() || ''}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
+              {isLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <Select
+                  disabled={isDisabled}
+                  onValueChange={(value) => {
+                    const yearValue = parseInt(value, 10);
+                    console.log("Setting year to:", yearValue);
+                    field.onChange(yearValue);
+                    handleFieldValidation('year', yearValue);
+                  }}
+                  value={field.value?.toString() || ''}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
 
-                {/* ✅ Only render SelectContent if yearOptions is safe */}
-                {Array.isArray(yearOptions) && (
-                  <SelectContent className="max-h-[200px] overflow-y-auto">
-                    {yearOptions.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                )}
-
-              </Select>
+                  {/* Only render SelectContent if yearOptions exists and has items */}
+                  {Array.isArray(yearOptions) && yearOptions.length > 0 ? (
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {yearOptions.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  ) : null}
+                </Select>
+              )}
               <FormMessage />
               {validation.getFieldError('year') && (
                 <ValidationError

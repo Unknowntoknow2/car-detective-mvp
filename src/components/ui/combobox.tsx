@@ -47,13 +47,16 @@ export function ComboBox({
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   
-  const filteredItems = searchQuery 
-    ? items.filter(item => 
+  // Ensure items is always an array, never undefined
+  const safeItems = Array.isArray(items) ? items : [];
+  
+  const filteredItems = searchQuery && safeItems.length > 0
+    ? safeItems.filter(item => 
         item.label.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : items
+    : safeItems;
 
-  const selectedItem = items.find(item => item.value === value)
+  const selectedItem = safeItems.find(item => item.value === value)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -105,40 +108,42 @@ export function ComboBox({
             />
           </div>
           <CommandEmpty>{emptyText}</CommandEmpty>
-          <CommandGroup className="max-h-[200px] overflow-y-auto">
-            {filteredItems.map((item) => (
-              <CommandItem
-                key={item.value}
-                value={item.value}
-                onSelect={() => {
-                  onChange(item.value === value ? "" : item.value)
-                  setOpen(false)
-                  setSearchQuery("")
-                }}
-                className="cursor-pointer"
-              >
-                <div className="flex items-center gap-2 w-full">
-                  {item.icon && (
-                    <img 
-                      src={item.icon} 
-                      alt={`${item.label} icon`}
-                      className="h-5 w-5 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none"
-                      }}
-                    />
-                  )}
-                  <span className="truncate flex-1">{item.label}</span>
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      value === item.value ? "opacity-100" : "opacity-0"
+          {filteredItems.length > 0 && (
+            <CommandGroup className="max-h-[200px] overflow-y-auto">
+              {filteredItems.map((item) => (
+                <CommandItem
+                  key={item.value}
+                  value={item.value}
+                  onSelect={() => {
+                    onChange(item.value === value ? "" : item.value)
+                    setOpen(false)
+                    setSearchQuery("")
+                  }}
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    {item.icon && (
+                      <img 
+                        src={item.icon} 
+                        alt={`${item.label} icon`}
+                        className="h-5 w-5 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none"
+                        }}
+                      />
                     )}
-                  />
-                </div>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+                    <span className="truncate flex-1">{item.label}</span>
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        value === item.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

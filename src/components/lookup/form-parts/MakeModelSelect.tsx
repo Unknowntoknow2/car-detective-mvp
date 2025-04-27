@@ -4,6 +4,8 @@ import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
 import { VehicleSelectorWithLogos } from './VehicleSelectorWithLogos';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useVehicleData } from '@/hooks/useVehicleData';
 
 interface MakeModelSelectProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -11,6 +13,7 @@ interface MakeModelSelectProps {
 }
 
 export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectProps) {
+  const { isLoading } = useVehicleData();
   const selectedMake = form.watch('make') || '';
   const selectedModel = form.watch('model') || '';
 
@@ -24,28 +27,32 @@ export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectPro
             <FormItem>
               <FormLabel>Make <span className="text-destructive">*</span></FormLabel>
               <FormControl>
-                <VehicleSelectorWithLogos
-                  selectedMake={field.value || ''}
-                  onMakeChange={(make) => {
-                    try {
-                      console.log("MakeModelSelect: Setting make to:", make);
-                      field.onChange(make);
-                      form.setValue('model', '');
-                    } catch (error) {
-                      console.error("Error changing make:", error);
-                    }
-                  }}
-                  selectedModel={selectedModel}
-                  onModelChange={(model) => {
-                    try {
-                      console.log("MakeModelSelect: Setting model to:", model);
-                      form.setValue('model', model);
-                    } catch (error) {
-                      console.error("Error changing model:", error);
-                    }
-                  }}
-                  disabled={isDisabled}
-                />
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <VehicleSelectorWithLogos
+                    selectedMake={field.value || ''}
+                    onMakeChange={(make) => {
+                      try {
+                        console.log("MakeModelSelect: Setting make to:", make);
+                        field.onChange(make);
+                        form.setValue('model', '');
+                      } catch (error) {
+                        console.error("Error changing make:", error);
+                      }
+                    }}
+                    selectedModel={selectedModel}
+                    onModelChange={(model) => {
+                      try {
+                        console.log("MakeModelSelect: Setting model to:", model);
+                        form.setValue('model', model);
+                      } catch (error) {
+                        console.error("Error changing model:", error);
+                      }
+                    }}
+                    disabled={isDisabled}
+                  />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
