@@ -86,9 +86,9 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   // Ensure children is an array or iterable before rendering
-  const hasChildren = Array.isArray(props.children) ? props.children.length > 0 : Boolean(props.children);
+  const hasChildren = React.Children.count(children) > 0;
   
   if (!hasChildren) {
     return null;

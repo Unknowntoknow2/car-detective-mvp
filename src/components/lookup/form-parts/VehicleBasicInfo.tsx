@@ -64,7 +64,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
 
-                {/* Only render if yearOptions ready */}
+                {/* Only render if yearOptions is ready and has items */}
                 {Array.isArray(yearOptions) && yearOptions.length > 0 ? (
                   <SelectContent className="max-h-[200px] overflow-y-auto">
                     {yearOptions.map((year) => (
@@ -74,7 +74,11 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                     ))}
                   </SelectContent>
                 ) : (
-                  <Skeleton className="h-10 w-full" />
+                  <SelectContent>
+                    <div className="p-2">
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  </SelectContent>
                 )}
               </Select>
               <FormMessage />

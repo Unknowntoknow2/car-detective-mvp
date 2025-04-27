@@ -40,8 +40,11 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  // If no makes available, prevent crash
-  if (!Array.isArray(makes) || makes.length === 0) {
+  // Ensure makes is always an array
+  const safeMakes = Array.isArray(makes) ? makes : [];
+  
+  // If no makes available, prevent crashes with a friendly message
+  if (safeMakes.length === 0) {
     return (
       <div className="text-center text-sm text-muted-foreground">
         No makes available. Please try again later.
@@ -49,20 +52,21 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  const safeMakeOptions = makes.map((make) => ({
+  const safeMakeOptions = safeMakes.map((make) => ({
     value: make.make_name,
     label: make.make_name,
     icon: make.logo_url
   }));
 
-  const safeModelOptions = filteredModels.map((model) => ({
+  // Ensure models is always an array
+  const safeModelOptions = Array.isArray(filteredModels) ? filteredModels.map((model) => ({
     value: model.model_name,
     label: model.model_name
-  }));
+  })) : [];
 
   return (
     <div className="space-y-4">
-      {/* ✅ Only render Make ComboBox if safeMakeOptions available */}
+      {/* Only render Make ComboBox if safeMakeOptions available */}
       {safeMakeOptions.length > 0 ? (
         <ComboBox
           items={safeMakeOptions}
@@ -79,7 +83,7 @@ export function VehicleSelectorWithLogos({
         <Skeleton className="h-10 w-full" />
       )}
 
-      {/* ✅ Only render Model ComboBox if selectedMake and safeModelOptions available */}
+      {/* Only render Model ComboBox if selectedMake and safeModelOptions available */}
       {selectedMake && safeModelOptions.length > 0 ? (
         <ComboBox
           items={safeModelOptions}
