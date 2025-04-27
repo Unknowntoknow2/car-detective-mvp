@@ -1,6 +1,5 @@
+
 import { useState } from 'react';
-// import { Navbar } from '@/components/layout/Navbar';  <-- temporarily commented
-// import { Footer } from '@/components/layout/Footer';  <-- temporarily commented
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { Button } from '@/components/ui/button';
 import { useManualValuation, ManualVehicleInfo } from '@/hooks/useManualValuation';
@@ -10,7 +9,7 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { VehicleScoring } from '@/components/lookup/VehicleScoring';
+import { Navbar } from '@/components/layout/Navbar';
 
 const ManualLookupPage = () => {
   const { calculateValuation, vehicleInfo, isLoading, reset } = useManualValuation();
@@ -85,7 +84,7 @@ const ManualLookupPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* <Navbar /> */}
+      <Navbar />
       <main className="flex-1 container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Manual Vehicle Entry</h1>
         
@@ -151,7 +150,6 @@ const ManualLookupPage = () => {
           </div>
         )}
       </main>
-      {/* <Footer /> */}
     </div>
   );
 };

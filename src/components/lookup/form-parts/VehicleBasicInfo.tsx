@@ -1,3 +1,4 @@
+
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
@@ -9,7 +10,7 @@ import { useEffect } from 'react';
 import { ValidationError } from '@/components/common/ValidationError';
 import { useValidation } from '@/hooks/useValidation';
 import { EnhancedManualEntrySchema } from '@/utils/validation/enhanced-validation';
-import { Skeleton } from '@/components/ui/skeleton'; // Add Skeleton for loading
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface VehicleBasicInfoProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -41,7 +42,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <MakeModelSelect form={form} />
+        <MakeModelSelect form={form} isDisabled={isDisabled} />
 
         {/* Year Dropdown */}
         <FormField

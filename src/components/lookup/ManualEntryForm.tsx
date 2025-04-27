@@ -145,37 +145,16 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           isDisabled={isFormLoading}
         />
 
-        {/* <VehicleConditionSlider
-  value={conditionValue}
-  onChange={setConditionValue}
-  disabled={isFormLoading}
-/> */}
-
-
-       {/* <VehicleFeatureSelect
-  selectedFeatures={form.watch('selectedFeatures')}
-  onFeaturesChange={(features) => form.setValue('selectedFeatures', features)}
-  disabled={isFormLoading}
-/> */}
-
-
-        {/* {isPremium && (
-  <PremiumFields
-    accident={form.watch('accident') || 'no'}
-    setAccident={handleAccidentChange}
-    accidentDetails={form.watch('accidentDetails') || { count: '', severity: '', area: '' }}
-    setAccidentDetails={(details) => form.setValue('accidentDetails', details)}
-    isDisabled={isFormLoading}
-  />
-)} */}
-
-
-        {/* <ValuationFormActions
-  isLoading={isFormLoading}
-  submitButtonText={isFormLoading ? 'Processing...' : submitButtonText}
-  onSubmit={form.handleSubmit(onSubmitForm)}
-/> */}
-
+        <Button type="submit" disabled={isFormLoading} className="w-full">
+          {isFormLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            submitButtonText
+          )}
+        </Button>
 
         {form.formState.errors.make && (
           <p className="text-red-500 text-sm flex items-center">

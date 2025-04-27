@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
@@ -30,8 +31,7 @@ export function VehicleSelectorWithLogos({
     }
   }, [selectedMake, getModelsByMake]);
 
-  if (isLoading || !makes) {
-    // 🔥 if makes still loading or undefined
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
