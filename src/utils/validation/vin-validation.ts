@@ -33,7 +33,7 @@ export function validateVIN(vin: string): { isValid: boolean; error?: string } {
 }
 
 // Calculate and validate the VIN check digit
-function validateVinCheckDigit(vin: string): boolean {
+export function validateVinCheckDigit(vin: string): boolean {
   // Transliteration values for each position
   const transliterationValues: { [key: string]: number } = {
     A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8,

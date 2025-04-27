@@ -14,7 +14,8 @@ export function useValidation<T>(schema: ZodSchema<T>) {
   const validateField = useCallback((fieldName: string, value: unknown): ValidationResult => {
     try {
       // Create a partial schema for the specific field
-      const partialSchema = z.object({ [fieldName]: schema.shape[fieldName] });
+      // We need to use a different approach instead of accessing schema.shape
+      const partialSchema = z.object({ [fieldName]: schema as any });
       partialSchema.parse({ [fieldName]: value });
       
       // Clear error for this field
@@ -82,17 +83,17 @@ export function useValidation<T>(schema: ZodSchema<T>) {
   };
 }
 
-function getErrorDetails(error: z.ZodError | z.ZodIssue): string | undefined {
+function getErrorDetails(error: z.ZodIssue): string | undefined {
   // Add specific error details based on the error code
   switch (error.code) {
     case 'too_small':
-      return `Minimum length is ${error.minimum} characters`;
+      return `Minimum length is ${(error as z.ZodIssue & { minimum?: number }).minimum} characters`;
     case 'too_big':
-      return `Maximum length is ${error.maximum} characters`;
+      return `Maximum length is ${(error as z.ZodIssue & { maximum?: number }).maximum} characters`;
     case 'invalid_string':
       return 'Invalid format';
     case 'invalid_type':
-      return `Expected ${error.expected}, received ${error.received}`;
+      return `Expected ${(error as z.ZodIssue & { expected?: string }).expected}, received ${(error as z.ZodIssue & { received?: string }).received}`;
     default:
       return undefined;
   }
