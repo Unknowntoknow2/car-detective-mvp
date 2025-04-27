@@ -108,35 +108,40 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
+          {/* Ensuring Command components have valid children */}
           <Command>
             <CommandInput placeholder="Search make..." className="h-9" />
             <CommandEmpty>No make found.</CommandEmpty>
             <CommandGroup className="max-h-[250px] overflow-y-auto">
-              {safeMakes.map((make) => (
-                <CommandItem
-                  key={make.id}
-                  value={make.make_name}
-                  onSelect={() => handleMakeSelect(make.make_name)}
-                  className="flex items-center gap-2 py-2"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedMake === make.make_name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <div className="flex items-center gap-2">
-                    {make.logo_url && (
-                      <img
-                        src={make.logo_url}
-                        alt={`${make.make_name} logo`}
-                        className="w-6 h-6 object-contain"
-                      />
-                    )}
-                    <span>{make.make_name}</span>
-                  </div>
-                </CommandItem>
-              ))}
+              {safeMakes.length > 0 ? (
+                safeMakes.map((make) => (
+                  <CommandItem
+                    key={make.id}
+                    value={make.make_name}
+                    onSelect={() => handleMakeSelect(make.make_name)}
+                    className="flex items-center gap-2 py-2"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedMake === make.make_name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex items-center gap-2">
+                      {make.logo_url && (
+                        <img
+                          src={make.logo_url}
+                          alt={`${make.make_name} logo`}
+                          className="w-6 h-6 object-contain"
+                        />
+                      )}
+                      <span>{make.make_name}</span>
+                    </div>
+                  </CommandItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-muted-foreground">No makes available</div>
+              )}
             </CommandGroup>
           </Command>
         </PopoverContent>
@@ -163,26 +168,31 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
+          {/* Ensuring Command components have valid children */}
           <Command>
             <CommandInput placeholder="Search model..." className="h-9" />
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup className="max-h-[250px] overflow-y-auto">
-              {safeModels.map((model) => (
-                <CommandItem
-                  key={model.id || model.model_name}
-                  value={model.model_name}
-                  onSelect={() => handleModelSelect(model.model_name)}
-                  className="py-2"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedModel === model.model_name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {model.model_name}
-                </CommandItem>
-              ))}
+              {safeModels.length > 0 ? (
+                safeModels.map((model) => (
+                  <CommandItem
+                    key={model.id || model.model_name}
+                    value={model.model_name}
+                    onSelect={() => handleModelSelect(model.model_name)}
+                    className="py-2"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedModel === model.model_name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {model.model_name}
+                  </CommandItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-muted-foreground">No models available</div>
+              )}
             </CommandGroup>
           </Command>
         </PopoverContent>

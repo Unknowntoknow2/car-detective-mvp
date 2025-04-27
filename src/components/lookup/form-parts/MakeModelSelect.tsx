@@ -10,21 +10,28 @@ interface MakeModelSelectProps {
 }
 
 export function MakeModelSelect({ form }: MakeModelSelectProps) {
-  const selectedMake = form.watch('make');
-  const selectedModel = form.watch('model');
+  const selectedMake = form.watch('make') || '';
+  const selectedModel = form.watch('model') || '';
 
   // Reset model when make changes
   useEffect(() => {
-    if (selectedMake && selectedModel === '') {
-      form.setValue('model', '');
-      console.log("Reset model due to make change");
+    if (selectedMake && selectedModel) {
+      // Only if we have a model value and the make changes, reset the model
+      const models = form.getValues('models') || [];
+      const makeModels = Array.isArray(models) ? models : [];
+      const modelExists = makeModels.some(model => model === selectedModel);
+      
+      if (!modelExists) {
+        form.setValue('model', '');
+        console.log("Reset model due to make change");
+      }
     }
   }, [selectedMake, selectedModel, form]);
 
   useEffect(() => {
     console.log("MakeModelSelect current values:", { 
-      make: selectedMake || '', 
-      model: selectedModel || '' 
+      make: selectedMake, 
+      model: selectedModel 
     });
   }, [selectedMake, selectedModel]);
 

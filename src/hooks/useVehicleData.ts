@@ -76,6 +76,18 @@ export const useVehicleData = () => {
       if (fallbackMakes.length > 0) {
         console.log('Using fallback data for makes');
         setMakes(fallbackMakes);
+        
+        // Also generate some fallback models for each make
+        let allFallbackModels: Model[] = [];
+        fallbackMakes.forEach(make => {
+          const makeModels = getFallbackModels(make.id);
+          allFallbackModels = [...allFallbackModels, ...makeModels];
+        });
+        setModels(allFallbackModels);
+        
+        // Cache the fallback data
+        localStorage.setItem('vehicle_makes', JSON.stringify(fallbackMakes));
+        localStorage.setItem('vehicle_models', JSON.stringify(allFallbackModels));
       }
     } finally {
       setIsLoading(false);
@@ -155,6 +167,14 @@ export const useVehicleData = () => {
     // Then filter models by make ID
     const filteredModels = models.filter(model => model.make_id === make.id);
     console.log(`Found ${filteredModels.length} models for make ${makeName}`);
+    
+    // If we don't have any models, return fallback
+    if (filteredModels.length === 0) {
+      const fallbackModels = getFallbackModels(make.id);
+      console.log(`Using ${fallbackModels.length} fallback models for make ${makeName}`);
+      return fallbackModels;
+    }
+    
     return filteredModels;
   }, [makes, models]);
   
@@ -204,6 +224,13 @@ export const useVehicleData = () => {
       '3': ['F-150', 'Escape', 'Explorer', 'Mustang', 'Focus'], // Ford
       '4': ['Silverado', 'Malibu', 'Equinox', 'Tahoe', 'Camaro'], // Chevrolet
       '5': ['Altima', 'Sentra', 'Rogue', 'Pathfinder', 'Frontier'], // Nissan
+      '6': ['3 Series', '5 Series', 'X3', 'X5', 'M3'], // BMW
+      '7': ['C-Class', 'E-Class', 'S-Class', 'GLC', 'GLE'], // Mercedes-Benz
+      '8': ['A4', 'A6', 'Q5', 'Q7', 'e-tron'], // Audi
+      '9': ['ES', 'RX', 'NX', 'LS', 'IS'], // Lexus
+      '10': ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'Palisade'], // Hyundai
+      '11': ['Forte', 'Optima', 'Sportage', 'Sorento', 'Telluride'], // Kia
+      '12': ['Forester', 'Outback', 'Impreza', 'Crosstrek', 'Legacy'], // Subaru
     };
     
     const defaultModels = ['Base', 'Standard', 'Deluxe', 'Premium'];
