@@ -1,13 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Command,
   CommandInput,
   CommandList,
   CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandSeparator
+  CommandGroup
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -36,11 +34,23 @@ export function VehicleSelectorWithLogos({
 }: VehicleSelectorWithLogosProps) {
   const [makeOpen, setMakeOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
-  const { makes, getModelsByMake, isLoading, error } = useVehicleData();
+  const { makes, getModelsByMake, isLoading, error, refreshData } = useVehicleData();
+
+  // Try to refresh data on mount
+  useEffect(() => {
+    if (makes.length <= 5) {
+      console.log("Limited vehicle data detected, attempting to refresh...");
+      refreshData().catch(err => console.error("Error refreshing data:", err));
+    }
+  }, [makes.length, refreshData]);
 
   // Safe array of makes
   const safeMakes = Array.isArray(makes) ? makes : [];
   const safeModels = selectedMake ? getModelsByMake(selectedMake) : [];
+
+  console.log("Available makes:", safeMakes.length);
+  console.log("Selected make:", selectedMake);
+  console.log("Available models for selected make:", safeModels.length);
 
   if (isLoading) {
     return (
@@ -94,22 +104,20 @@ export function VehicleSelectorWithLogos({
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
+          <PopoverContent className="w-[300px] p-0">
             <Command>
               <CommandInput placeholder="Search make..." className="h-9" />
-              <CommandList>
+              <CommandList className="max-h-[300px] overflow-y-auto">
                 {safeMakes.length > 0 ? (
-                  <CommandGroup heading="Makes">
-                    <MakeSelector
-                      makes={safeMakes}
-                      selectedMake={selectedMake}
-                      onSelect={(make) => {
-                        onMakeChange(make);
-                        setMakeOpen(false);
-                      }}
-                      disabled={disabled}
-                    />
-                  </CommandGroup>
+                  <MakeSelector
+                    makes={safeMakes}
+                    selectedMake={selectedMake}
+                    onSelect={(make) => {
+                      onMakeChange(make);
+                      setMakeOpen(false);
+                    }}
+                    disabled={disabled}
+                  />
                 ) : (
                   <CommandEmpty>No makes found.</CommandEmpty>
                 )}
@@ -138,25 +146,23 @@ export function VehicleSelectorWithLogos({
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
+          <PopoverContent className="w-[300px] p-0">
             <Command>
               <CommandInput placeholder="Search model..." className="h-9" />
-              <CommandList>
+              <CommandList className="max-h-[300px] overflow-y-auto">
                 {selectedMake && safeModels.length > 0 ? (
-                  <CommandGroup heading="Models">
-                    <ModelSelector
-                      models={safeModels}
-                      selectedModel={selectedModel}
-                      onSelect={(model) => {
-                        onModelChange(model);
-                        setModelOpen(false);
-                      }}
-                      disabled={disabled}
-                    />
-                  </CommandGroup>
+                  <ModelSelector
+                    models={safeModels}
+                    selectedModel={selectedModel}
+                    onSelect={(model) => {
+                      onModelChange(model);
+                      setModelOpen(false);
+                    }}
+                    disabled={disabled}
+                  />
                 ) : (
                   <CommandEmpty>
-                    {selectedMake ? 'No models found.' : 'Select a make first.'}
+                    {selectedMake ? 'No models found for this make.' : 'Select a make first.'}
                   </CommandEmpty>
                 )}
               </CommandList>

@@ -1,11 +1,12 @@
 
 import React from 'react';
 import {
-  CommandItem
+  CommandItem,
+  CommandGroup
 } from '@/components/ui/command';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Make } from '@/hooks/useVehicleData';
+import { Make } from '@/hooks/types/vehicle';
 
 interface MakeSelectorProps {
   makes: Make[];
@@ -16,9 +17,13 @@ interface MakeSelectorProps {
 
 export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSelectorProps) {
   const safeMakes = Array.isArray(makes) ? makes : [];
+  
+  if (safeMakes.length === 0) {
+    return <div className="py-6 text-center text-sm">No makes available</div>;
+  }
 
   return (
-    <>
+    <CommandGroup className="overflow-y-auto">
       {safeMakes.map((make) => (
         <CommandItem
           key={make.id || `make-${make.make_name}`}
@@ -49,6 +54,6 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
           </div>
         </CommandItem>
       ))}
-    </>
+    </CommandGroup>
   );
 }

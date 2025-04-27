@@ -1,11 +1,12 @@
 
 import React from 'react';
 import {
-  CommandItem
+  CommandItem,
+  CommandGroup
 } from '@/components/ui/command';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Model } from '@/hooks/useVehicleData';
+import { Model } from '@/hooks/types/vehicle';
 
 interface ModelSelectorProps {
   models: Model[];
@@ -19,11 +20,11 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
   
   // Only render CommandGroup if we have models
   if (safeModels.length === 0) {
-    return null;
+    return <div className="py-6 text-center text-sm">No models available for this make</div>;
   }
 
   return (
-    <>
+    <CommandGroup className="overflow-y-auto">
       {safeModels.map((model) => (
         <CommandItem
           key={model.id || `model-${model.model_name}`}
@@ -41,6 +42,6 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
           {model.model_name}
         </CommandItem>
       ))}
-    </>
+    </CommandGroup>
   );
 }
