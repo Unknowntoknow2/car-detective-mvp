@@ -29,6 +29,7 @@ export const useVehicleData = () => {
 
   // Function to fetch makes and models data
   const fetchData = useCallback(async () => {
+    console.log("Fetching vehicle data...");
     setIsLoading(true);
     setError(null);
     
@@ -53,6 +54,11 @@ export const useVehicleData = () => {
           makesData = JSON.parse(cachedMakes);
           modelsData = JSON.parse(cachedModels);
           
+          console.log("Cache data loaded:", { 
+            makesCount: makesData?.length || 0, 
+            modelsCount: modelsData?.length || 0 
+          });
+          
           if (Array.isArray(makesData) && Array.isArray(modelsData) && makesData.length > 0) {
             setMakes(makesData);
             setModels(modelsData);
@@ -60,6 +66,11 @@ export const useVehicleData = () => {
             // Build the modelsByMake object for fast lookup
             const modelsByMakeObj: Record<string, Model[]> = {};
             modelsData.forEach(model => {
+              if (!model.make_id) {
+                console.warn("Model missing make_id:", model);
+                return;
+              }
+              
               if (!modelsByMakeObj[model.make_id]) {
                 modelsByMakeObj[model.make_id] = [];
               }
@@ -68,6 +79,7 @@ export const useVehicleData = () => {
             setModelsByMake(modelsByMakeObj);
             
             console.log(`Loaded ${makesData.length} makes and ${modelsData.length} models from cache`);
+            console.log("ModelsByMake keys:", Object.keys(modelsByMakeObj));
             
             // Set loading to false here since we successfully loaded cached data
             setIsLoading(false);
@@ -143,6 +155,8 @@ export const useVehicleData = () => {
         throw makesError;
       }
       
+      console.log("Raw makes data from Supabase:", makesData);
+      
       const validMakesData = Array.isArray(makesData) ? makesData : [];
       
       if (validMakesData.length > 0) {
@@ -167,6 +181,8 @@ export const useVehicleData = () => {
         throw modelsError;
       }
       
+      console.log("Raw models data from Supabase:", modelsData);
+      
       const validModelsData = Array.isArray(modelsData) ? modelsData : [];
       
       if (validModelsData.length > 0) {
@@ -177,12 +193,18 @@ export const useVehicleData = () => {
         // Build the modelsByMake object for fast lookup
         const modelsByMakeObj: Record<string, Model[]> = {};
         validModelsData.forEach(model => {
+          if (!model.make_id) {
+            console.warn("Model missing make_id:", model);
+            return;
+          }
+          
           if (!modelsByMakeObj[model.make_id]) {
             modelsByMakeObj[model.make_id] = [];
           }
           modelsByMakeObj[model.make_id].push(model);
         });
         setModelsByMake(modelsByMakeObj);
+        console.log("ModelsByMake keys:", Object.keys(modelsByMakeObj));
       } else {
         console.warn('No models found in database, using fallback models');
         
@@ -221,8 +243,13 @@ export const useVehicleData = () => {
   
   // Function to get models for a specific make
   const getModelsByMake = useCallback((makeName: string): Model[] => {
+    console.log("getModelsByMake called with makeName:", makeName);
     if (!makeName || !Array.isArray(makes)) {
-      console.warn("Missing data for getModelsByMake:", { makeName, makesAvailable: Array.isArray(makes) });
+      console.warn("Missing data for getModelsByMake:", { 
+        makeName, 
+        makesAvailable: Array.isArray(makes), 
+        makesLength: makes?.length || 0 
+      });
       return [];
     }
     
@@ -233,15 +260,18 @@ export const useVehicleData = () => {
       return [];
     }
     
+    console.log("Found make:", make);
+    
     // Get models from the modelsByMake object (faster lookup)
     if (modelsByMake && modelsByMake[make.id] && Array.isArray(modelsByMake[make.id])) {
+      console.log(`Found ${modelsByMake[make.id].length} models for make ${makeName} in modelsByMake`);
       return modelsByMake[make.id];
     }
     
     // Fallback to filtering if modelsByMake doesn't have the data
     if (Array.isArray(models)) {
       const filteredModels = models.filter(model => model.make_id === make.id);
-      console.log(`Found ${filteredModels.length} models for make ${makeName}`);
+      console.log(`Found ${filteredModels.length} models for make ${makeName} by filtering`);
       
       // If we don't have any models, return fallback
       if (filteredModels.length === 0) {
@@ -253,6 +283,7 @@ export const useVehicleData = () => {
       return filteredModels;
     }
     
+    console.warn("No models found, returning empty array");
     return [];
   }, [makes, models, modelsByMake]);
   
