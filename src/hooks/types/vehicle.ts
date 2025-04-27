@@ -24,5 +24,9 @@ export interface VehicleDataHook {
   getYearOptions: (startYear?: number) => number[];
   isLoading: boolean;
   error: string | null;
-  refreshData: () => Promise<void>;
+  refreshData: (forceRefresh?: boolean) => Promise<any>;
+  counts: {
+    makes: number;
+    models: number;
+  };
 }

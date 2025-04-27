@@ -17,6 +17,7 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+    // Get makes from database
     const { data: makes, error: makesError } = await supabase
       .from('makes')
       .select('*')
@@ -25,7 +26,7 @@ serve(async (req) => {
     if (makesError) throw makesError;
 
     // Check if we have enough makes data
-    if (!makes || makes.length < 10) {
+    if (!makes || makes.length < 30) {
       console.log("Insufficient makes data, inserting sample data");
       
       // Common car makes with logos
@@ -59,7 +60,11 @@ serve(async (req) => {
         { make_name: 'GMC', logo_url: 'https://www.carlogos.org/car-logos/gmc-logo.png', country_of_origin: 'United States' },
         { make_name: 'Chrysler', logo_url: 'https://www.carlogos.org/car-logos/chrysler-logo.png', country_of_origin: 'United States' },
         { make_name: 'RAM', logo_url: 'https://www.carlogos.org/car-logos/ram-logo.png', country_of_origin: 'United States' },
-        { make_name: 'MINI', logo_url: 'https://www.carlogos.org/car-logos/mini-logo.png', country_of_origin: 'United Kingdom' }
+        { make_name: 'MINI', logo_url: 'https://www.carlogos.org/car-logos/mini-logo.png', country_of_origin: 'United Kingdom' },
+        { make_name: 'Mitsubishi', logo_url: 'https://www.carlogos.org/car-logos/mitsubishi-logo.png', country_of_origin: 'Japan' },
+        { make_name: 'Lincoln', logo_url: 'https://www.carlogos.org/car-logos/lincoln-logo.png', country_of_origin: 'United States' },
+        { make_name: 'Rivian', logo_url: 'https://www.carlogos.org/car-logos/rivian-logo.png', country_of_origin: 'United States' },
+        { make_name: 'Lucid', logo_url: 'https://www.carlogos.org/car-logos/lucid-motors-logo.png', country_of_origin: 'United States' }
       ];
       
       // Insert the makes one by one, avoiding duplicates
@@ -84,11 +89,61 @@ serve(async (req) => {
         
       if (updatedMakesError) throw updatedMakesError;
       if (updatedMakes) {
-        makes.length = 0; // Clear the array
-        updatedMakes.forEach(make => makes.push(make)); // Add the new makes
+        console.log(`Updated makes count: ${updatedMakes.length}`);
+        
+        // Now let's populate models for each make
+        for (const make of updatedMakes) {
+          const { data: makeModels, error: makeModelsError } = await supabase
+            .from('models')
+            .select('*')
+            .eq('make_id', make.id);
+            
+          if (makeModelsError) {
+            console.error(`Error fetching models for make ${make.make_name}:`, makeModelsError);
+            continue;
+          }
+          
+          // If make has no models or very few, let's populate with some common models
+          if (!makeModels || makeModels.length < 5) {
+            console.log(`Populating models for ${make.make_name}`);
+            
+            // Map of common models by make
+            const commonModels: Record<string, string[]> = {
+              'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma', '4Runner', 'Prius', 'Sienna', 'Tundra', 'Land Cruiser'],
+              'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot', 'Odyssey', 'HR-V', 'Passport', 'Ridgeline', 'Insight'],
+              'Ford': ['F-150', 'Escape', 'Explorer', 'Mustang', 'Bronco', 'Edge', 'Expedition', 'Ranger', 'Focus', 'Fusion'],
+              'Chevrolet': ['Silverado', 'Malibu', 'Equinox', 'Tahoe', 'Camaro', 'Corvette', 'Suburban', 'Traverse', 'Blazer', 'Colorado'],
+              'BMW': ['3 Series', '5 Series', 'X3', 'X5', 'M3', '7 Series', 'X1', 'X7', 'i4', 'iX'],
+              'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'GLC', 'GLE', 'GLS', 'A-Class', 'G-Class', 'CLA', 'EQS'],
+              'Audi': ['A4', 'A6', 'Q5', 'Q7', 'e-tron', 'A3', 'Q3', 'A8', 'Q8', 'RS6'],
+              'Lexus': ['ES', 'RX', 'NX', 'LS', 'IS', 'GX', 'UX', 'LC', 'LX', 'RC']
+            };
+            
+            // Default models for any make not specifically covered
+            const defaultModels = ['Base', 'Sport', 'Limited', 'Touring', 'Premium', 'Luxury', 'Standard'];
+            
+            // Get the appropriate model list
+            const modelsToInsert = commonModels[make.make_name] || defaultModels;
+            
+            // Insert each model
+            for (const modelName of modelsToInsert) {
+              const { error: modelInsertError } = await supabase
+                .from('models')
+                .upsert(
+                  { make_id: make.id, model_name: modelName },
+                  { onConflict: 'make_id,model_name' }
+                );
+                
+              if (modelInsertError) {
+                console.error(`Error inserting model ${modelName} for make ${make.make_name}:`, modelInsertError);
+              }
+            }
+          }
+        }
       }
     }
 
+    // Get the updated models
     const { data: models, error: modelsError } = await supabase
       .from('models')
       .select('*')
@@ -97,7 +152,12 @@ serve(async (req) => {
     if (modelsError) throw modelsError;
 
     return new Response(
-      JSON.stringify({ makes, models }),
+      JSON.stringify({ 
+        makes: makes || [], 
+        models: models || [],
+        makeCount: makes?.length || 0,
+        modelCount: models?.length || 0
+      }),
       { 
         headers: { 
           ...corsHeaders,

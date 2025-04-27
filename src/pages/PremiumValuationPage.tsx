@@ -6,6 +6,7 @@ import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { VehicleDataInfo } from '@/components/premium/VehicleDataInfo';
 
 export default function PremiumValuationPage() {
   const { user } = useAuth();
@@ -24,6 +25,8 @@ export default function PremiumValuationPage() {
               Complete all steps to get a comprehensive and accurate valuation of your vehicle.
             </p>
           </div>
+          
+          <VehicleDataInfo />
           
           {user ? (
             <PremiumValuationForm />
