@@ -145,11 +145,12 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           isDisabled={isFormLoading}
         />
 
-        <VehicleConditionSlider
-          value={conditionValue}
-          onChange={setConditionValue}
-          disabled={isFormLoading}
-        />
+        {/* <VehicleConditionSlider
+  value={conditionValue}
+  onChange={setConditionValue}
+  disabled={isFormLoading}
+/> */}
+
 
        {/* <VehicleFeatureSelect
   selectedFeatures={form.watch('selectedFeatures')}
