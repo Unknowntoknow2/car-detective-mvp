@@ -15,10 +15,18 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
 
   // Reset model when make changes
   useEffect(() => {
-    if (selectedMake && !selectedModel) {
+    if (selectedMake && selectedModel === '') {
       form.setValue('model', '');
+      console.log("Reset model due to make change");
     }
   }, [selectedMake, selectedModel, form]);
+
+  useEffect(() => {
+    console.log("MakeModelSelect current values:", { 
+      make: selectedMake || '', 
+      model: selectedModel || '' 
+    });
+  }, [selectedMake, selectedModel]);
 
   return (
     <div className="space-y-4">
@@ -30,13 +38,13 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
             <FormLabel>Make <span className="text-destructive">*</span></FormLabel>
             <FormControl>
               <VehicleSelectorWithLogos
-                selectedMake={field.value}
+                selectedMake={field.value || ''}
                 onMakeChange={(make) => {
                   console.log("Setting make to:", make);
                   field.onChange(make);
                   form.setValue('model', ''); // Reset model when make changes
                 }}
-                selectedModel={form.getValues('model')}
+                selectedModel={form.getValues('model') || ''}
                 onModelChange={(model) => {
                   console.log("Setting model to:", model);
                   form.setValue('model', model);

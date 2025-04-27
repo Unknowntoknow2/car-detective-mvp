@@ -40,17 +40,26 @@ export const useVehicleData = () => {
       let modelsData: Model[] = [];
       
       if (cachedMakes && cachedModels) {
-        // Use cached data first for fast loading
-        makesData = JSON.parse(cachedMakes);
-        modelsData = JSON.parse(cachedModels);
-        
-        setMakes(makesData);
-        setModels(modelsData);
-        
-        console.log(`Loaded ${makesData.length} makes and ${modelsData.length} models from cache`);
-        
-        // Refresh data in background
-        refreshData();
+        try {
+          // Use cached data first for fast loading
+          makesData = JSON.parse(cachedMakes);
+          modelsData = JSON.parse(cachedModels);
+          
+          if (Array.isArray(makesData) && Array.isArray(modelsData)) {
+            setMakes(makesData);
+            setModels(modelsData);
+            
+            console.log(`Loaded ${makesData.length} makes and ${modelsData.length} models from cache`);
+          } else {
+            console.warn("Cache data is not in expected array format, fetching from API");
+            // If cached data is invalid, proceed to fetch from API
+            await refreshData();
+          }
+        } catch (parseError) {
+          console.error("Error parsing cached data:", parseError);
+          // If parsing fails, proceed to fetch from API
+          await refreshData();
+        }
       } else {
         // No cache, fetch directly
         const freshData = await refreshData();
@@ -131,9 +140,17 @@ export const useVehicleData = () => {
   
   // Function to get models for a specific make
   const getModelsByMake = useCallback((makeName: string): Model[] => {
+    if (!makeName || !makes || !models) {
+      console.warn("Missing data for getModelsByMake:", { makeName, makesAvailable: !!makes, modelsAvailable: !!models });
+      return [];
+    }
+    
     // First, find the make ID
     const make = makes.find(m => m.make_name === makeName);
-    if (!make) return [];
+    if (!make) {
+      console.warn(`Make not found: ${makeName}`);
+      return [];
+    }
     
     // Then filter models by make ID
     const filteredModels = models.filter(model => model.make_id === make.id);
@@ -171,7 +188,12 @@ export const useVehicleData = () => {
 
   // Get the most complete list of makes available (from DB or fallback)
   const getAvailableMakes = (): Make[] => {
-    return makes.length > 0 ? makes : getFallbackMakes();
+    if (!makes || makes.length === 0) {
+      const fallback = getFallbackMakes();
+      console.log("Using fallback makes data with length:", fallback.length);
+      return fallback;
+    }
+    return makes;
   };
   
   // Mock models for fallback makes if needed

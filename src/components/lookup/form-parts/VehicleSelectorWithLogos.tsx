@@ -31,14 +31,14 @@ export function VehicleSelectorWithLogos({
 
   // Log the makes data to debug
   useEffect(() => {
-    console.log("Available makes:", makes);
+    console.log("Available makes:", makes || []);
   }, [makes]);
 
   useEffect(() => {
     if (selectedMake) {
       const availableModels = getModelsByMake(selectedMake);
-      console.log(`Models for ${selectedMake}:`, availableModels);
-      setModels(availableModels);
+      console.log(`Models for ${selectedMake}:`, availableModels || []);
+      setModels(availableModels || []);
     } else {
       setModels([]);
     }
@@ -56,6 +56,10 @@ export function VehicleSelectorWithLogos({
     onModelChange(model);
     setModelOpen(false);
   };
+
+  // Ensure we have valid arrays before rendering
+  const safeMakes = makes || [];
+  const safeModels = models || [];
 
   if (isLoading) {
     return (
@@ -88,9 +92,9 @@ export function VehicleSelectorWithLogos({
           >
             {selectedMake ? (
               <div className="flex items-center gap-2">
-                {makes.find(m => m.make_name === selectedMake)?.logo_url && (
+                {safeMakes.find(m => m.make_name === selectedMake)?.logo_url && (
                   <img
-                    src={makes.find(m => m.make_name === selectedMake)?.logo_url}
+                    src={safeMakes.find(m => m.make_name === selectedMake)?.logo_url}
                     alt={`${selectedMake} logo`}
                     className="w-6 h-6 object-contain"
                   />
@@ -108,7 +112,7 @@ export function VehicleSelectorWithLogos({
             <CommandInput placeholder="Search make..." className="h-9" />
             <CommandEmpty>No make found.</CommandEmpty>
             <CommandGroup className="max-h-[250px] overflow-y-auto">
-              {makes.map((make) => (
+              {safeMakes.map((make) => (
                 <CommandItem
                   key={make.id}
                   value={make.make_name}
@@ -163,9 +167,9 @@ export function VehicleSelectorWithLogos({
             <CommandInput placeholder="Search model..." className="h-9" />
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup className="max-h-[250px] overflow-y-auto">
-              {models.map((model) => (
+              {safeModels.map((model) => (
                 <CommandItem
-                  key={model.id}
+                  key={model.id || model.model_name}
                   value={model.model_name}
                   onSelect={() => handleModelSelect(model.model_name)}
                   className="py-2"
