@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
 import {
   Command,
   CommandInput,
+  CommandList,
   CommandEmpty,
   CommandGroup,
-  CommandItem
+  CommandItem,
+  CommandSeparator
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -95,18 +96,23 @@ export function VehicleSelectorWithLogos({
           <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
             <Command>
               <CommandInput placeholder="Search make..." className="h-9" />
-              <CommandEmpty>No make found.</CommandEmpty>
-              {safeMakes.length > 0 && (
-                <MakeSelector
-                  makes={safeMakes}
-                  selectedMake={selectedMake}
-                  onSelect={(make) => {
-                    onMakeChange(make);
-                    setMakeOpen(false);
-                  }}
-                  disabled={disabled}
-                />
-              )}
+              <CommandList>
+                {safeMakes.length > 0 ? (
+                  <CommandGroup heading="Makes">
+                    <MakeSelector
+                      makes={safeMakes}
+                      selectedMake={selectedMake}
+                      onSelect={(make) => {
+                        onMakeChange(make);
+                        setMakeOpen(false);
+                      }}
+                      disabled={disabled}
+                    />
+                  </CommandGroup>
+                ) : (
+                  <CommandEmpty>No makes found.</CommandEmpty>
+                )}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
@@ -134,18 +140,25 @@ export function VehicleSelectorWithLogos({
           <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
             <Command>
               <CommandInput placeholder="Search model..." className="h-9" />
-              <CommandEmpty>No model found.</CommandEmpty>
-              {selectedMake && Array.isArray(safeModels) && safeModels.length > 0 && (
-                <ModelSelector
-                  models={safeModels}
-                  selectedModel={selectedModel}
-                  onSelect={(model) => {
-                    onModelChange(model);
-                    setModelOpen(false);
-                  }}
-                  disabled={disabled}
-                />
-              )}
+              <CommandList>
+                {selectedMake && safeModels.length > 0 ? (
+                  <CommandGroup heading="Models">
+                    <ModelSelector
+                      models={safeModels}
+                      selectedModel={selectedModel}
+                      onSelect={(model) => {
+                        onModelChange(model);
+                        setModelOpen(false);
+                      }}
+                      disabled={disabled}
+                    />
+                  </CommandGroup>
+                ) : (
+                  <CommandEmpty>
+                    {selectedMake ? 'No models found.' : 'Select a make first.'}
+                  </CommandEmpty>
+                )}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
