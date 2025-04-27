@@ -13,7 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -40,6 +39,7 @@ serve(async (req) => {
         const { data: insertedMake, error: makeError } = await supabase
           .from('makes')
           .upsert({
+            make_name: makeName,
             nhtsa_make_id: make.Make_ID,
           })
           .select()
