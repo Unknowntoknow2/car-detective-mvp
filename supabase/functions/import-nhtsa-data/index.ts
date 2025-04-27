@@ -30,13 +30,14 @@ serve(async (req) => {
       const makeName = make.Make_Name.trim();
 
       // Insert or update make
+      // Note: We're using the id field instead of make_name since that's what the schema has
       const { data: insertedMake, error: makeError } = await supabase
         .from('makes')
         .upsert({
-          make_name: makeName,
+          id: makeName, // Using make name as ID 
           nhtsa_make_id: make.Make_ID,
         }, {
-          onConflict: 'make_name'
+          onConflict: 'id'
         })
         .select()
         .single();
@@ -79,8 +80,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        makesCount: importedMakes,
-        modelsCount: importedModels,
+        makeCount: importedMakes,
+        modelCount: importedModels,
         message: `Successfully imported ${importedMakes} makes and ${importedModels} models`
       }),
       { 
