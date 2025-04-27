@@ -31,14 +31,20 @@ export function VehicleSelectorWithLogos({
 
   // Log the makes data to debug
   useEffect(() => {
-    console.log("Available makes:", makes || []);
+    console.log("Available makes:", makes ? makes.length : 0);
   }, [makes]);
 
+  // Update models when make changes
   useEffect(() => {
     if (selectedMake) {
-      const availableModels = getModelsByMake(selectedMake);
-      console.log(`Models for ${selectedMake}:`, availableModels || []);
-      setModels(availableModels || []);
+      try {
+        const availableModels = getModelsByMake(selectedMake);
+        console.log(`Models for ${selectedMake}:`, availableModels ? availableModels.length : 0);
+        setModels(availableModels || []);
+      } catch (error) {
+        console.error("Error getting models for make:", error);
+        setModels([]);
+      }
     } else {
       setModels([]);
     }
@@ -58,8 +64,8 @@ export function VehicleSelectorWithLogos({
   };
 
   // Ensure we have valid arrays before rendering
-  const safeMakes = makes || [];
-  const safeModels = models || [];
+  const safeMakes = Array.isArray(makes) ? makes : [];
+  const safeModels = Array.isArray(models) ? models : [];
 
   if (isLoading) {
     return (
@@ -108,7 +114,6 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-          {/* Ensuring Command components have valid children */}
           <Command>
             <CommandInput placeholder="Search make..." className="h-9" />
             <CommandEmpty>No make found.</CommandEmpty>
@@ -116,7 +121,7 @@ export function VehicleSelectorWithLogos({
               {safeMakes.length > 0 ? (
                 safeMakes.map((make) => (
                   <CommandItem
-                    key={make.id}
+                    key={make.id || `make-${make.make_name}`}
                     value={make.make_name}
                     onSelect={() => handleMakeSelect(make.make_name)}
                     className="flex items-center gap-2 py-2"
@@ -168,7 +173,6 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-          {/* Ensuring Command components have valid children */}
           <Command>
             <CommandInput placeholder="Search model..." className="h-9" />
             <CommandEmpty>No model found.</CommandEmpty>
@@ -176,7 +180,7 @@ export function VehicleSelectorWithLogos({
               {safeModels.length > 0 ? (
                 safeModels.map((model) => (
                   <CommandItem
-                    key={model.id || model.model_name}
+                    key={model.id || `model-${model.model_name}`}
                     value={model.model_name}
                     onSelect={() => handleModelSelect(model.model_name)}
                     className="py-2"

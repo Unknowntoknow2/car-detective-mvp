@@ -3,7 +3,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
 import { VehicleSelectorWithLogos } from './VehicleSelectorWithLogos';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useVehicleData } from '@/hooks/useVehicleData';
 
 interface MakeModelSelectProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -12,28 +13,35 @@ interface MakeModelSelectProps {
 export function MakeModelSelect({ form }: MakeModelSelectProps) {
   const selectedMake = form.watch('make') || '';
   const selectedModel = form.watch('model') || '';
+  const { getModelsByMake } = useVehicleData();
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
 
-  // Reset model when make changes
+  // When make changes, update available models and reset model if needed
   useEffect(() => {
-    if (selectedMake && selectedModel) {
-      // Only if we have a model value and the make changes, reset the model
-      const models = form.getValues('models') || [];
-      const makeModels = Array.isArray(models) ? models : [];
-      const modelExists = makeModels.some(model => model === selectedModel);
+    if (selectedMake) {
+      const models = getModelsByMake(selectedMake);
+      setAvailableModels(models);
       
-      if (!modelExists) {
-        form.setValue('model', '');
-        console.log("Reset model due to make change");
+      // Reset model if make changes and currently selected model isn't available for the new make
+      if (selectedModel) {
+        const modelExists = models.some(model => model.model_name === selectedModel);
+        if (!modelExists) {
+          form.setValue('model', '');
+          console.log("Reset model due to make change");
+        }
       }
+    } else {
+      setAvailableModels([]);
     }
-  }, [selectedMake, selectedModel, form]);
+  }, [selectedMake, getModelsByMake, form, selectedModel]);
 
   useEffect(() => {
     console.log("MakeModelSelect current values:", { 
       make: selectedMake, 
-      model: selectedModel 
+      model: selectedModel,
+      availableModels: availableModels
     });
-  }, [selectedMake, selectedModel]);
+  }, [selectedMake, selectedModel, availableModels]);
 
   return (
     <div className="space-y-4">
