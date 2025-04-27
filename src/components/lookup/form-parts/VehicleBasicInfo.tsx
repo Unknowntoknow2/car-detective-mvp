@@ -17,13 +17,13 @@ interface VehicleBasicInfoProps {
 
 export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoProps) {
   const { getYearOptions } = useVehicleData();
-  const yearOptions = getYearOptions ? getYearOptions(1980) : []; // ✅ SAFE fallback if undefined
+  const yearOptions = getYearOptions ? getYearOptions(1980) : []; // ✅ Safe fallback
   const validation = useValidation(EnhancedManualEntrySchema);
-  
+
   useEffect(() => {
     console.log("VehicleBasicInfo form values:", form.getValues());
   }, [form.watch('make'), form.watch('model'), form.watch('year'), form.watch('mileage')]);
-  
+
   const fuelTypes = [
     { value: 'Gasoline', label: 'Gasoline' },
     { value: 'Diesel', label: 'Diesel' },
@@ -51,7 +51,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
       <div className="space-y-4">
         <MakeModelSelect form={form} />
 
-        {/* Year Field */}
+        {/* Year Selection */}
         <FormField
           control={form.control}
           name="year"
@@ -71,13 +71,18 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {(yearOptions || []).map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+
+                {/* ✅ Only render SelectContent if yearOptions is safe */}
+                {Array.isArray(yearOptions) && (
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {yearOptions.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                )}
+
               </Select>
               <FormMessage />
               {validation.getFieldError('year') && (
@@ -91,8 +96,8 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
         />
       </div>
 
-      {/* Mileage and ZIP Code */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Mileage Input */}
         <FormField
           control={form.control}
           name="mileage"
@@ -126,6 +131,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
           )}
         />
 
+        {/* ZIP Code Input */}
         <FormField
           control={form.control}
           name="zipCode"
