@@ -1,138 +1,157 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Make {
   id: string;
   make_name: string;
-  logo_url?: string;
-  nhtsa_make_id?: number;
-  country_of_origin?: string;
-  description?: string;
-  founding_year?: number;
+  logo_url?: string | null;
+  nhtsa_make_id?: number | null;
+  country_of_origin?: string | null;
+  description?: string | null;
+  founding_year?: number | null;
 }
 
 export interface Model {
   id: string;
   make_id: string;
   model_name: string;
-  nhtsa_model_id?: number;
+  nhtsa_model_id?: number | null;
 }
 
 export const useVehicleData = () => {
   const [makes, setMakes] = useState<Make[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [models, setModels] = useState<Model[]>([]);
 
-  useEffect(() => {
-    const fetchMakes = async () => {
-      setIsLoading(true);
-      setError(null);
+  // Function to fetch makes and models data
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // First check if we have makes cached in localStorage
+      const cachedMakes = localStorage.getItem('vehicle_makes');
+      const cachedModels = localStorage.getItem('vehicle_models');
       
-      try {
-        // First check if we have makes cached in localStorage
-        const cachedMakes = localStorage.getItem('vehicle_makes');
+      let makesData: Make[] = [];
+      let modelsData: Model[] = [];
+      
+      if (cachedMakes && cachedModels) {
+        // Use cached data first for fast loading
+        makesData = JSON.parse(cachedMakes);
+        modelsData = JSON.parse(cachedModels);
         
-        if (cachedMakes) {
-          setMakes(JSON.parse(cachedMakes));
-          setIsLoading(false);
-          
-          // Refresh in background
-          refreshMakesData();
-        } else {
-          await refreshMakesData();
-        }
-      } catch (err: any) {
-        console.error('Error fetching vehicle makes:', err);
-        setError(err.message || 'Failed to load vehicle makes');
-        setIsLoading(false);
-      }
-    };
-    
-    // Fetch models in parallel
-    const fetchModels = async () => {
-      try {
-        const cachedModels = localStorage.getItem('vehicle_models');
+        setMakes(makesData);
+        setModels(modelsData);
         
-        if (cachedModels) {
-          setModels(JSON.parse(cachedModels));
-          
-          // Refresh in background
-          refreshModelsData();
-        } else {
-          await refreshModelsData();
+        console.log(`Loaded ${makesData.length} makes and ${modelsData.length} models from cache`);
+        
+        // Refresh data in background
+        refreshData();
+      } else {
+        // No cache, fetch directly
+        const freshData = await refreshData();
+        if (!freshData) {
+          throw new Error("Failed to load vehicle data");
         }
-      } catch (err) {
-        console.error('Error fetching vehicle models:', err);
       }
-    };
-    
-    fetchMakes();
-    fetchModels();
+    } catch (err: any) {
+      console.error('Error fetching vehicle data:', err);
+      setError(err.message || 'Failed to load vehicle data');
+      
+      // Try to use fallback data if available
+      const fallbackMakes = getFallbackMakes();
+      if (fallbackMakes.length > 0) {
+        console.log('Using fallback data for makes');
+        setMakes(fallbackMakes);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
   
-  const refreshMakesData = async () => {
+  const refreshData = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching vehicle data from Supabase...');
+      
+      // Fetch makes
+      const { data: makesData, error: makesError } = await supabase
         .from('makes')
         .select('*')
         .order('make_name');
         
-      if (error) throw error;
-      
-      if (data) {
-        setMakes(data);
-        localStorage.setItem('vehicle_makes', JSON.stringify(data));
-        console.log(`Loaded ${data.length} makes from the database`);
+      if (makesError) {
+        console.error('Error fetching makes:', makesError);
+        throw makesError;
       }
-    } catch (err: any) {
-      console.error('Error refreshing vehicle makes:', err);
-      setError(err.message || 'Failed to refresh vehicle makes');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const refreshModelsData = async () => {
-    try {
-      const { data, error } = await supabase
+      
+      if (makesData && makesData.length > 0) {
+        setMakes(makesData);
+        localStorage.setItem('vehicle_makes', JSON.stringify(makesData));
+        console.log(`Loaded ${makesData.length} makes from the database`);
+      } else {
+        console.warn('No makes found in database, using fallback data');
+        const fallbackData = getFallbackMakes();
+        setMakes(fallbackData);
+        localStorage.setItem('vehicle_makes', JSON.stringify(fallbackData));
+      }
+      
+      // Fetch models
+      const { data: modelsData, error: modelsError } = await supabase
         .from('models')
         .select('*')
         .order('model_name');
         
-      if (error) throw error;
-      
-      if (data) {
-        setModels(data);
-        localStorage.setItem('vehicle_models', JSON.stringify(data));
-        console.log(`Loaded ${data.length} models from the database`);
+      if (modelsError) {
+        console.error('Error fetching models:', modelsError);
+        throw modelsError;
       }
+      
+      if (modelsData) {
+        setModels(modelsData);
+        localStorage.setItem('vehicle_models', JSON.stringify(modelsData));
+        console.log(`Loaded ${modelsData.length} models from the database`);
+      }
+      
+      return { makes: makesData, models: modelsData };
     } catch (err) {
-      console.error('Error refreshing vehicle models:', err);
+      console.error('Error refreshing vehicle data:', err);
+      toast.error('Failed to load vehicle data. Using cached data if available.');
+      return null;
     }
-  };
+  }, []);
   
-  const getModelsByMake = (makeName: string): Model[] => {
-    // Find the make ID for the given make name
+  // Initial data load
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+  
+  // Function to get models for a specific make
+  const getModelsByMake = useCallback((makeName: string): Model[] => {
+    // First, find the make ID
     const make = makes.find(m => m.make_name === makeName);
     if (!make) return [];
     
-    // Filter models by make ID
-    return models.filter(model => model.make_id === make.id);
-  };
+    // Then filter models by make ID
+    const filteredModels = models.filter(model => model.make_id === make.id);
+    console.log(`Found ${filteredModels.length} models for make ${makeName}`);
+    return filteredModels;
+  }, [makes, models]);
   
-  const getYearOptions = (startYear: number = 1980): number[] => {
+  // Get year options for dropdowns
+  const getYearOptions = useCallback((startYear: number = 1980): number[] => {
     const currentYear = new Date().getFullYear();
     const endYear = currentYear + 1; // Include next year's models
     return Array.from(
       { length: endYear - startYear + 1 },
       (_, i) => endYear - i
     );
-  };
+  }, []);
   
-  // Fallback mock data if database is empty
+  // Fallback makes data if database is empty or unreachable
   const getFallbackMakes = (): Make[] => {
     return [
       { id: '1', make_name: 'Toyota', logo_url: 'https://www.carlogos.org/car-logos/toyota-logo.png' },
@@ -149,21 +168,40 @@ export const useVehicleData = () => {
       { id: '12', make_name: 'Subaru', logo_url: 'https://www.carlogos.org/car-logos/subaru-logo.png' },
     ];
   };
-  
-  // Return either database data or fallback data if the database is empty
+
+  // Get the most complete list of makes available (from DB or fallback)
   const getAvailableMakes = (): Make[] => {
     return makes.length > 0 ? makes : getFallbackMakes();
   };
   
+  // Mock models for fallback makes if needed
+  const getFallbackModels = (makeId: string): Model[] => {
+    const modelsByMake: Record<string, string[]> = {
+      '1': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma', '4Runner'], // Toyota
+      '2': ['Accord', 'Civic', 'CR-V', 'Pilot', 'Odyssey'], // Honda
+      '3': ['F-150', 'Escape', 'Explorer', 'Mustang', 'Focus'], // Ford
+      '4': ['Silverado', 'Malibu', 'Equinox', 'Tahoe', 'Camaro'], // Chevrolet
+      '5': ['Altima', 'Sentra', 'Rogue', 'Pathfinder', 'Frontier'], // Nissan
+    };
+    
+    const defaultModels = ['Base', 'Standard', 'Deluxe', 'Premium'];
+    const makeModels = modelsByMake[makeId] || defaultModels;
+    
+    return makeModels.map((model, index) => ({
+      id: `${makeId}-${index}`,
+      make_id: makeId,
+      model_name: model
+    }));
+  };
+  
   return {
     makes: getAvailableMakes(),
+    models,
     getModelsByMake,
     getYearOptions,
+    getFallbackModels,
     isLoading,
     error,
-    refreshData: () => {
-      refreshMakesData();
-      refreshModelsData();
-    }
+    refreshData
   };
 };

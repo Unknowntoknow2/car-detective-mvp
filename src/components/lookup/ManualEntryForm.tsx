@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ManualEntryFormData } from './types/manualEntry';
@@ -11,6 +12,10 @@ import { PremiumFields } from './form-parts/PremiumFields';
 import { ValuationFormActions } from './form-parts/ValuationFormActions';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { useManualValuation } from '@/hooks/useManualValuation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form } from '@/components/ui/form';
 
 interface ManualEntryFormProps {
   onSubmit?: (data: ManualEntryFormData) => Promise<void>;
@@ -19,6 +24,23 @@ interface ManualEntryFormProps {
   isPremium?: boolean;
 }
 
+const formSchema = z.object({
+  make: z.string().min(1, "Make is required"),
+  model: z.string().min(1, "Model is required"),
+  year: z.number().min(1900, "Year is required"),
+  mileage: z.number().min(1, "Mileage must be greater than 0"),
+  fuelType: z.string().optional(),
+  condition: z.string().default("good"),
+  zipCode: z.string().optional(),
+  accident: z.enum(["yes", "no"]).optional(),
+  accidentDetails: z.object({
+    count: z.string().optional(),
+    severity: z.string().optional(),
+    area: z.string().optional()
+  }).optional(),
+  selectedFeatures: z.array(z.string()).default([])
+});
+
 export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
   onSubmit, 
   isLoading: externalLoading,
@@ -26,72 +48,49 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   isPremium = false
 }) => {
   const navigate = useNavigate();
-  const { makes, getModelsByMake, isLoading: isDataLoading, error: dataLoadError } = useVehicleData();
+  const { isLoading: isDataLoading } = useVehicleData();
   const { calculateValuation, isLoading: isValuationLoading } = useManualValuation();
-
-  const [selectedMakeId, setSelectedMakeId] = useState<string>('');
-  const [selectedModel, setSelectedModel] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<number | ''>('');
-  const [mileage, setMileage] = useState<string>('');
-  const [zipCode, setZipCode] = useState<string>('');
-  const [fuelType, setFuelType] = useState<string>('');
-  const [condition, setCondition] = useState<string>('good');
   const [conditionValue, setConditionValue] = useState(75);
-  const [accident, setAccident] = useState<'no' | 'yes'>('no');
-  const [accidentDetails, setAccidentDetails] = useState({
-    count: '',
-    severity: '',
-    area: ''
+
+  const form = useForm<ManualEntryFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      make: '',
+      model: '',
+      year: new Date().getFullYear(),
+      mileage: undefined,
+      fuelType: '',
+      condition: 'good',
+      zipCode: '',
+      accident: 'no',
+      accidentDetails: {
+        count: '',
+        severity: '',
+        area: ''
+      },
+      selectedFeatures: []
+    }
   });
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
-  const handleSubmit = async () => {
-    if (!selectedMakeId || !selectedModel || !selectedYear) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    
-    const parsedMileage = parseInt(mileage, 10);
-    if (isNaN(parsedMileage) || parsedMileage <= 0) {
-      toast.error('Please enter a valid mileage');
-      return;
-    }
+  // Update condition value when condition changes
+  useEffect(() => {
+    const conditionValue = getConditionValue(form.watch('condition'));
+    setConditionValue(conditionValue);
+  }, [form.watch('condition')]);
 
-    const selectedMake = makes.find(m => m.id === selectedMakeId);
-    if (!selectedMake) {
-      toast.error('Invalid make selected');
-      return;
-    }
+  // Update condition when slider changes
+  useEffect(() => {
+    const conditionLabel = getConditionLabel(conditionValue);
+    form.setValue('condition', conditionLabel);
+  }, [conditionValue, form]);
 
-    const formData: ManualEntryFormData = {
-      make: selectedMake.make_name,
-      model: selectedModel,
-      year: selectedYear as number,
-      mileage: parsedMileage,
-      fuelType,
-      condition: getConditionLabel(conditionValue),
-      zipCode,
-      accident: isPremium ? accident : undefined,
-      accidentDetails: isPremium && accident === 'yes' ? accidentDetails : undefined,
-      selectedFeatures
-    };
-
-    if (onSubmit) {
-      await onSubmit(formData);
-      return;
-    }
-
-    const result = await calculateValuation({
-      make: selectedMake.make_name,
-      model: selectedModel,
-      year: selectedYear as number,
-      mileage: parsedMileage,
-      condition: getConditionLabel(conditionValue),
-      fuelType: fuelType || 'Gasoline'
-    });
-
-    if (result) {
-      navigate(`/valuation`);
+  const getConditionValue = (condition: string): number => {
+    switch (condition) {
+      case 'poor': return 25;
+      case 'fair': return 50;
+      case 'good': return 75;
+      case 'excellent': return 100;
+      default: return 75;
     }
   };
 
@@ -104,69 +103,90 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 
   const handleAccidentChange = (value: string) => {
     if (value === 'no' || value === 'yes') {
-      setAccident(value);
+      form.setValue('accident', value as 'yes' | 'no');
     }
   };
 
-  if (dataLoadError) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-lg text-red-600">Failed to load vehicle data</p>
-        <Button onClick={() => window.location.reload()}>Retry Loading</Button>
-      </div>
-    );
-  }
+  const onSubmitForm = async (data: ManualEntryFormData) => {
+    console.log("Form submitted with data:", data);
+    
+    try {
+      if (onSubmit) {
+        await onSubmit(data);
+        return;
+      }
 
-  const isFormLoading = externalLoading || isDataLoading || isValuationLoading;
+      const result = await calculateValuation({
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage || 0,
+        condition: data.condition,
+        fuelType: data.fuelType || 'Gasoline'
+      });
+
+      if (result) {
+        toast.success("Valuation completed successfully");
+        navigate(`/valuation`);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to complete valuation. Please try again.");
+    }
+  };
+
+  const isFormLoading = externalLoading || isDataLoading || isValuationLoading || form.formState.isSubmitting;
 
   return (
-    <div className="space-y-6">
-      <VehicleBasicInfo
-        selectedMakeId={selectedMakeId}
-        setSelectedMakeId={setSelectedMakeId}
-        selectedModel={selectedModel}
-        setSelectedModel={setSelectedModel}
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        mileage={mileage}
-        setMileage={setMileage}
-        zipCode={zipCode}
-        setZipCode={setZipCode}
-        fuelType={fuelType}
-        setFuelType={setFuelType}
-        condition={condition}
-        setCondition={setCondition}
-        isDisabled={isFormLoading}
-      />
-
-      <VehicleConditionSlider
-        value={conditionValue}
-        onChange={setConditionValue}
-        disabled={isFormLoading}
-      />
-
-      <VehicleFeatureSelect
-        selectedFeatures={selectedFeatures}
-        onFeaturesChange={setSelectedFeatures}
-        disabled={isFormLoading}
-      />
-
-      {isPremium && (
-        <PremiumFields
-          accident={accident}
-          setAccident={handleAccidentChange}
-          accidentDetails={accidentDetails}
-          setAccidentDetails={setAccidentDetails}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-6">
+        <VehicleBasicInfo
+          form={form}
           isDisabled={isFormLoading}
         />
-      )}
 
-      <ValuationFormActions
-        isLoading={isFormLoading}
-        submitButtonText={submitButtonText}
-        onSubmit={handleSubmit}
-      />
-    </div>
+        <VehicleConditionSlider
+          value={conditionValue}
+          onChange={setConditionValue}
+          disabled={isFormLoading}
+        />
+
+        <VehicleFeatureSelect
+          selectedFeatures={form.watch('selectedFeatures')}
+          onFeaturesChange={(features) => form.setValue('selectedFeatures', features)}
+          disabled={isFormLoading}
+        />
+
+        {isPremium && (
+          <PremiumFields
+            accident={form.watch('accident') || 'no'}
+            setAccident={handleAccidentChange}
+            accidentDetails={form.watch('accidentDetails') || { count: '', severity: '', area: '' }}
+            setAccidentDetails={(details) => form.setValue('accidentDetails', details)}
+            isDisabled={isFormLoading}
+          />
+        )}
+
+        <ValuationFormActions
+          isLoading={isFormLoading}
+          submitButtonText={isFormLoading ? 'Processing...' : submitButtonText}
+          onSubmit={form.handleSubmit(onSubmitForm)}
+        />
+
+        {form.formState.errors.make && (
+          <p className="text-red-500 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            {form.formState.errors.make.message}
+          </p>
+        )}
+        
+        {form.formState.errors.model && (
+          <p className="text-red-500 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            {form.formState.errors.model.message}
+          </p>
+        )}
+      </form>
+    </Form>
   );
 };
