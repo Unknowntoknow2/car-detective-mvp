@@ -16,6 +16,7 @@ interface ModelSelectorProps {
 }
 
 export function ModelSelector({ models, selectedModel, onSelect, disabled }: ModelSelectorProps) {
+  // Ensure models is always an array, even if it's undefined
   const safeModels = Array.isArray(models) ? models : [];
   
   // Only render CommandGroup if we have models

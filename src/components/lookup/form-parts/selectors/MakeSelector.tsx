@@ -16,6 +16,7 @@ interface MakeSelectorProps {
 }
 
 export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSelectorProps) {
+  // Ensure makes is always an array, even if it's undefined
   const safeMakes = Array.isArray(makes) ? makes : [];
   
   if (safeMakes.length === 0) {
