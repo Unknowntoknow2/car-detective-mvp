@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchVehicleData } from '@/api/vehicleApi';
 
 export function useVehicleSelectors() {
   const [makes, setMakes] = useState<Array<{ id: string; make_name: string }>>([]);
@@ -11,34 +11,13 @@ export function useVehicleSelectors() {
 
   // Fetch makes on mount
   useEffect(() => {
-    async function fetchMakes() {
+    async function loadMakes() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('makes')
-          .select('id, make_name')
-          .order('make_name');
-          
-        if (error) throw error;
+        const vehicleData = await fetchVehicleData();
         
-        if (data && Array.isArray(data) && data.length > 0) {
-          // Ensure data has the correct structure
-          const formattedMakes = data.map((item: any) => {
-            // Safely check if item is an error object
-            if ('error' in item) {
-              return {
-                id: '', 
-                make_name: ''
-              };
-            }
-            
-            // Normal data processing
-            return {
-              id: item.id || '',
-              make_name: item.make_name || item.id || '' // Fallback to id if make_name doesn't exist
-            };
-          });
-          setMakes(formattedMakes);
+        if (vehicleData && vehicleData.makes) {
+          setMakes(vehicleData.makes);
         } else {
           setMakes([]);
         }
@@ -50,12 +29,12 @@ export function useVehicleSelectors() {
       }
     }
     
-    fetchMakes();
+    loadMakes();
   }, []);
 
   // Fetch models when make is selected
   useEffect(() => {
-    async function fetchModels() {
+    async function loadModels() {
       if (!selectedMakeId) {
         setModels([]);
         return;
@@ -63,31 +42,14 @@ export function useVehicleSelectors() {
       
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('models')
-          .select('id, model_name')
-          .eq('make_id', selectedMakeId)
-          .order('model_name');
-          
-        if (error) throw error;
+        const vehicleData = await fetchVehicleData();
         
-        if (data && Array.isArray(data) && data.length > 0) {
-          // Ensure data has the correct structure
-          const formattedModels = data.map((item: any) => {
-            // Safe check if item is an error object
-            if ('error' in item) {
-              return {
-                id: '',
-                model_name: ''
-              };
-            }
-            
-            return {
-              id: item.id || '',
-              model_name: item.model_name || ''
-            };
-          });
-          setModels(formattedModels);
+        if (vehicleData && vehicleData.models) {
+          // Filter models by the selected make
+          const filteredModels = vehicleData.models.filter(
+            model => 'make_id' in model && model.make_id === selectedMakeId
+          );
+          setModels(filteredModels);
         } else {
           setModels([]);
         }
@@ -99,7 +61,7 @@ export function useVehicleSelectors() {
       }
     }
     
-    fetchModels();
+    loadModels();
   }, [selectedMakeId]);
 
   return {

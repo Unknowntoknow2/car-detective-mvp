@@ -2,11 +2,9 @@
 import React from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Database, FileInput, Download } from 'lucide-react';
+import { RefreshCw, Database } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { invokeFunction } from '@/utils/api-utils';
 
 export function VehicleDataInfo() {
   const { makes, counts, isLoading, refreshData } = useVehicleData();
@@ -23,59 +21,6 @@ export function VehicleDataInfo() {
     } catch (error) {
       toast.error("Error refreshing vehicle data");
       console.error(error);
-    }
-  };
-
-  const handleImportNHTSA = async () => {
-    try {
-      const result = await invokeFunction('import-nhtsa-data', {}, {
-        showToast: false // We'll handle toasts manually for more detailed feedback
-      });
-      
-      if (result.data?.success) {
-        toast.success(`NHTSA data imported: ${result.data.makeCount} new makes and ${result.data.updatedCount} existing makes updated`);
-        await refreshData(true);
-      } else {
-        toast.error(result.error || "Failed to import NHTSA data");
-      }
-    } catch (error) {
-      console.error('Error importing NHTSA data:', error);
-      toast.error("Failed to import NHTSA data");
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      toast.loading("Exporting vehicle data...");
-      
-      const { data, error } = await supabase.functions.invoke('export-vehicle-data', {
-        method: 'POST'
-      });
-      
-      if (error) throw error;
-      
-      const makesBlob = new Blob([data.makes], { type: 'text/csv' });
-      const makesUrl = window.URL.createObjectURL(makesBlob);
-      const makesLink = document.createElement('a');
-      makesLink.href = makesUrl;
-      makesLink.setAttribute('download', 'makes.csv');
-      document.body.appendChild(makesLink);
-      makesLink.click();
-      document.body.removeChild(makesLink);
-      
-      const modelsBlob = new Blob([data.models], { type: 'text/csv' });
-      const modelsUrl = window.URL.createObjectURL(modelsBlob);
-      const modelsLink = document.createElement('a');
-      modelsLink.href = modelsUrl;
-      modelsLink.setAttribute('download', 'models.csv');
-      document.body.appendChild(modelsLink);
-      modelsLink.click();
-      document.body.removeChild(modelsLink);
-      
-      toast.success(`Exported ${data.makesCount} makes and ${data.modelsCount} models`);
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      toast.error("Error exporting vehicle data");
     }
   };
   
@@ -95,33 +40,13 @@ export function VehicleDataInfo() {
                 Vehicle Database: {counts.makes} makes and {counts.models} models
               </p>
               <p className="text-xs text-slate-500">
-                Data loaded from database and cached locally
+                Data loaded from local cache
               </p>
             </>
           )}
         </div>
       </div>
       <div className="flex gap-2 flex-wrap md:flex-nowrap">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleExport}
-          disabled={isLoading || counts.makes === 0}
-          className="text-xs gap-1"
-        >
-          <Download className="h-3 w-3" />
-          Export CSV
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleImportNHTSA}
-          disabled={isLoading}
-          className="text-xs gap-1"
-        >
-          <FileInput className="h-3 w-3" />
-          Import NHTSA
-        </Button>
         <Button 
           variant="outline" 
           size="sm" 

@@ -1,124 +1,91 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Make, Model } from '@/hooks/types/vehicle';
 import { toast } from 'sonner';
 
+// Mock data for makes and models since we've removed the tables
+const mockMakes: Make[] = [
+  { id: 'toyota', make_name: 'Toyota', logo_url: null, country_of_origin: 'Japan', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'honda', make_name: 'Honda', logo_url: null, country_of_origin: 'Japan', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'ford', make_name: 'Ford', logo_url: null, country_of_origin: 'USA', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'chevrolet', make_name: 'Chevrolet', logo_url: null, country_of_origin: 'USA', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'bmw', make_name: 'BMW', logo_url: null, country_of_origin: 'Germany', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'mercedes', make_name: 'Mercedes-Benz', logo_url: null, country_of_origin: 'Germany', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'audi', make_name: 'Audi', logo_url: null, country_of_origin: 'Germany', nhtsa_make_id: null, description: null, founding_year: null },
+  { id: 'volvo', make_name: 'Volvo', logo_url: null, country_of_origin: 'Sweden', nhtsa_make_id: null, description: null, founding_year: null }
+];
+
+const mockModelsMap: Record<string, Model[]> = {
+  'toyota': [
+    { id: 'camry', model_name: 'Camry', make_id: 'toyota', nhtsa_model_id: null },
+    { id: 'corolla', model_name: 'Corolla', make_id: 'toyota', nhtsa_model_id: null },
+    { id: 'rav4', model_name: 'RAV4', make_id: 'toyota', nhtsa_model_id: null }
+  ],
+  'honda': [
+    { id: 'civic', model_name: 'Civic', make_id: 'honda', nhtsa_model_id: null },
+    { id: 'accord', model_name: 'Accord', make_id: 'honda', nhtsa_model_id: null },
+    { id: 'crv', model_name: 'CR-V', make_id: 'honda', nhtsa_model_id: null }
+  ],
+  'ford': [
+    { id: 'f150', model_name: 'F-150', make_id: 'ford', nhtsa_model_id: null },
+    { id: 'mustang', model_name: 'Mustang', make_id: 'ford', nhtsa_model_id: null },
+    { id: 'explorer', model_name: 'Explorer', make_id: 'ford', nhtsa_model_id: null }
+  ],
+  'chevrolet': [
+    { id: 'silverado', model_name: 'Silverado', make_id: 'chevrolet', nhtsa_model_id: null },
+    { id: 'malibu', model_name: 'Malibu', make_id: 'chevrolet', nhtsa_model_id: null },
+    { id: 'equinox', model_name: 'Equinox', make_id: 'chevrolet', nhtsa_model_id: null }
+  ],
+  'bmw': [
+    { id: '3series', model_name: '3 Series', make_id: 'bmw', nhtsa_model_id: null },
+    { id: '5series', model_name: '5 Series', make_id: 'bmw', nhtsa_model_id: null },
+    { id: 'x5', model_name: 'X5', make_id: 'bmw', nhtsa_model_id: null }
+  ],
+  'mercedes': [
+    { id: 'cclass', model_name: 'C-Class', make_id: 'mercedes', nhtsa_model_id: null },
+    { id: 'eclass', model_name: 'E-Class', make_id: 'mercedes', nhtsa_model_id: null },
+    { id: 'gclass', model_name: 'G-Class', make_id: 'mercedes', nhtsa_model_id: null }
+  ],
+  'audi': [
+    { id: 'a4', model_name: 'A4', make_id: 'audi', nhtsa_model_id: null },
+    { id: 'q5', model_name: 'Q5', make_id: 'audi', nhtsa_model_id: null },
+    { id: 'a6', model_name: 'A6', make_id: 'audi', nhtsa_model_id: null }
+  ],
+  'volvo': [
+    { id: 'xc90', model_name: 'XC90', make_id: 'volvo', nhtsa_model_id: null },
+    { id: 's60', model_name: 'S60', make_id: 'volvo', nhtsa_model_id: null },
+    { id: 'v60', model_name: 'V60', make_id: 'volvo', nhtsa_model_id: null }
+  ]
+};
+
 export async function fetchVehicleData() {
-  console.log("Fetching vehicle data from Supabase...");
+  console.log("Fetching vehicle data (mock data)...");
   
   try {
-    // First, check if we can directly query the database
-    const [makesResult, modelsResult] = await Promise.all([
-      supabase.from('makes').select('*').order('make_name'),
-      supabase.from('models').select('*').order('model_name')
-    ]);
-
-    // Log the results for debugging
-    console.log("Makes query result:", makesResult);
-    console.log("Models query result:", modelsResult);
-
-    // Check for errors
-    if (makesResult.error) {
-      console.error("Error fetching makes:", makesResult.error);
-      throw makesResult.error;
-    }
+    // Now we'll return mock data directly
+    console.log(`Returning ${mockMakes.length} makes and models from mock data`);
     
-    if (modelsResult.error) {
-      console.error("Error fetching models:", modelsResult.error);
-      throw modelsResult.error;
-    }
-
-    // Check if we have enough data from direct query
-    if (makesResult.data && makesResult.data.length > 0 && modelsResult.data && modelsResult.data.length > 0) {
-      console.log(`Successfully fetched ${makesResult.data.length} makes and ${modelsResult.data.length} models directly from database`);
-      
-      // Transform the data to match the Make interface structure
-      const makes: Make[] = makesResult.data.map(make => ({
-        id: make.id,
-        make_name: make.id, // Use id as make_name since make_name doesn't exist
-        logo_url: make.logo_url || null,
-        nhtsa_make_id: make.nhtsa_make_id || null,
-        country_of_origin: make.country_of_origin || null,
-        description: null, // Set default to null since description doesn't exist
-        founding_year: null // Set default to null since founding_year doesn't exist
-      }));
-      
-      return {
-        makes,
-        models: modelsResult.data
-      };
-    }
-    
-    // If direct query didn't yield enough results, try the edge function
-    console.log("Attempting to fetch via edge function to populate database...");
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('fetch-vehicle-data', {
-        method: 'GET'
-      });
-      
-      if (error) {
-        console.error("Edge function error:", error);
-        throw error;
-      }
-      
-      if (data && data.makes && data.makes.length > 0) {
-        console.log(`Edge function returned ${data.makes.length} makes and ${data.models?.length || 0} models`);
-        return {
-          makes: data.makes,
-          models: data.models || []
-        };
-      }
-      
-      throw new Error("Edge function returned empty dataset");
-      
-    } catch (funcError) {
-      console.error("Error invoking edge function:", funcError);
-      toast.error("Couldn't fetch vehicle data from server. Using local data instead.");
-      
-      // Return what we got from the direct query (may be empty)
-      // Transform the data to match the Make interface structure
-      const makes: Make[] = (makesResult.data || []).map(make => ({
-        id: make.id,
-        make_name: make.id, // Use id as make_name since make_name doesn't exist
-        logo_url: make.logo_url || null,
-        nhtsa_make_id: make.nhtsa_make_id || null,
-        country_of_origin: make.country_of_origin || null,
-        description: null,
-        founding_year: null
-      }));
-      
-      return {
-        makes,
-        models: modelsResult.data || []
-      };
-    }
+    return {
+      makes: mockMakes,
+      models: Object.values(mockModelsMap).flat()
+    };
   } catch (error) {
     console.error("Exception in fetchVehicleData:", error);
-    throw error;
+    toast.error("Couldn't fetch vehicle data");
+    return {
+      makes: mockMakes,
+      models: Object.values(mockModelsMap).flat()
+    };
   }
 }
 
 export async function getMakeById(id: string): Promise<Make | null> {
   try {
-    const { data, error } = await supabase
-      .from('makes')
-      .select('*')
-      .eq('id', id)
-      .single();
-      
-    if (error) throw error;
+    // Find make in mock data
+    const make = mockMakes.find(make => make.id === id);
     
-    if (data) {
-      // Transform data to match Make interface
-      return {
-        id: data.id,
-        make_name: data.id, // Using id as make_name
-        logo_url: data.logo_url || null,
-        nhtsa_make_id: data.nhtsa_make_id || null,
-        country_of_origin: data.country_of_origin || null,
-        description: null,
-        founding_year: null
-      };
+    if (make) {
+      return make;
     }
     return null;
   } catch (error) {
@@ -129,14 +96,14 @@ export async function getMakeById(id: string): Promise<Make | null> {
 
 export async function getModelById(id: string): Promise<Model | null> {
   try {
-    const { data, error } = await supabase
-      .from('models')
-      .select('*')
-      .eq('id', id)
-      .single();
-      
-    if (error) throw error;
-    return data;
+    // Find model in mock data
+    const allModels = Object.values(mockModelsMap).flat();
+    const model = allModels.find(model => model.id === id);
+    
+    if (model) {
+      return model;
+    }
+    return null;
   } catch (error) {
     console.error("Error fetching model by ID:", error);
     return null;
@@ -145,14 +112,8 @@ export async function getModelById(id: string): Promise<Model | null> {
 
 export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
   try {
-    const { data, error } = await supabase
-      .from('models')
-      .select('*')
-      .eq('make_id', makeId)
-      .order('model_name');
-      
-    if (error) throw error;
-    return data || [];
+    // Return models for this make from mock data
+    return mockModelsMap[makeId] || [];
   } catch (error) {
     console.error("Error fetching models by make ID:", error);
     return [];
