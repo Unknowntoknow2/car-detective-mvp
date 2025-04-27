@@ -5,12 +5,6 @@ project_id = "xltxqqzattxogxtqrggt"
 [functions.fetch-vehicle-data]
 verify_jwt = false
 
-[functions.import-nhtsa-data]
-verify_jwt = false
-
-[functions.export-vehicle-data]
-verify_jwt = false
-
 # Vehicle history and listings
 [functions.fetch-vehicle-history]
 verify_jwt = false
@@ -36,7 +30,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.create-checkout]
-verify_jwt = false
-
-[functions.import-vehicle-data]
 verify_jwt = false

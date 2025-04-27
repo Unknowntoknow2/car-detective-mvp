@@ -224,36 +224,6 @@ export type Database = {
         }
         Relationships: []
       }
-      makes: {
-        Row: {
-          country_of_origin: string | null
-          created_at: string
-          id: string
-          logo_url: string | null
-          make_name: string
-          nhtsa_make_id: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          country_of_origin?: string | null
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          make_name: string
-          nhtsa_make_id?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          country_of_origin?: string | null
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          make_name?: string
-          nhtsa_make_id?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       market_listings: {
         Row: {
           created_at: string | null
@@ -288,48 +258,6 @@ export type Database = {
             columns: ["valuation_id"]
             isOneToOne: false
             referencedRelation: "valuations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      models: {
-        Row: {
-          created_at: string
-          id: string
-          make_id: string
-          model_name: string
-          nhtsa_model_id: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          make_id: string
-          model_name: string
-          nhtsa_model_id?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          make_id?: string
-          model_name?: string
-          nhtsa_model_id?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_models_make"
-            columns: ["make_id"]
-            isOneToOne: false
-            referencedRelation: "makes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "models_make_id_fkey"
-            columns: ["make_id"]
-            isOneToOne: false
-            referencedRelation: "makes"
             referencedColumns: ["id"]
           },
         ]
