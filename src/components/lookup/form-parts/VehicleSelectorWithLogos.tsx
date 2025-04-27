@@ -36,6 +36,10 @@ export function VehicleSelectorWithLogos({
   const [modelOpen, setModelOpen] = useState(false);
   const { makes, getModelsByMake, isLoading, error } = useVehicleData();
 
+  // Safe array of makes
+  const safeMakes = Array.isArray(makes) ? makes : [];
+  const safeModels = selectedMake ? getModelsByMake(selectedMake) : [];
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-4">
@@ -69,9 +73,9 @@ export function VehicleSelectorWithLogos({
             >
               {selectedMake ? (
                 <div className="flex items-center gap-2">
-                  {makes.find(m => m.make_name === selectedMake)?.logo_url && (
+                  {safeMakes.find(m => m.make_name === selectedMake)?.logo_url && (
                     <img
-                      src={makes.find(m => m.make_name === selectedMake)?.logo_url || ''}
+                      src={safeMakes.find(m => m.make_name === selectedMake)?.logo_url || ''}
                       alt={`${selectedMake} logo`}
                       className="w-6 h-6 object-contain"
                       onError={(e) => {
@@ -92,15 +96,17 @@ export function VehicleSelectorWithLogos({
             <Command>
               <CommandInput placeholder="Search make..." className="h-9" />
               <CommandEmpty>No make found.</CommandEmpty>
-              <MakeSelector
-                makes={makes}
-                selectedMake={selectedMake}
-                onSelect={(make) => {
-                  onMakeChange(make);
-                  setMakeOpen(false);
-                }}
-                disabled={disabled}
-              />
+              {safeMakes.length > 0 && (
+                <MakeSelector
+                  makes={safeMakes}
+                  selectedMake={selectedMake}
+                  onSelect={(make) => {
+                    onMakeChange(make);
+                    setMakeOpen(false);
+                  }}
+                  disabled={disabled}
+                />
+              )}
             </Command>
           </PopoverContent>
         </Popover>
@@ -129,15 +135,17 @@ export function VehicleSelectorWithLogos({
             <Command>
               <CommandInput placeholder="Search model..." className="h-9" />
               <CommandEmpty>No model found.</CommandEmpty>
-              <ModelSelector
-                models={selectedMake ? getModelsByMake(selectedMake) : []}
-                selectedModel={selectedModel}
-                onSelect={(model) => {
-                  onModelChange(model);
-                  setModelOpen(false);
-                }}
-                disabled={disabled}
-              />
+              {selectedMake && (
+                <ModelSelector
+                  models={safeModels}
+                  selectedModel={selectedModel}
+                  onSelect={(model) => {
+                    onModelChange(model);
+                    setModelOpen(false);
+                  }}
+                  disabled={disabled}
+                />
+              )}
             </Command>
           </PopoverContent>
         </Popover>

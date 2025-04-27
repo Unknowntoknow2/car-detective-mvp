@@ -17,7 +17,6 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
   const { getModelsByMake } = useVehicleData();
   const [availableModels, setAvailableModels] = useState<any[]>([]);
 
-  // When make changes, update available models and reset model if needed
   useEffect(() => {
     try {
       console.log("MakeModelSelect: Make changed to", selectedMake);
@@ -28,7 +27,7 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
         console.log(`MakeModelSelect: Found ${safeModels.length} models for ${selectedMake}`);
         setAvailableModels(safeModels);
         
-        // Reset model if make changes and currently selected model isn't available for the new make
+        // Reset model if make changes and currently selected model isn't available
         if (selectedModel) {
           const modelExists = safeModels.some(model => model.model_name === selectedModel);
           if (!modelExists) {
@@ -39,20 +38,18 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
       } else {
         console.log("MakeModelSelect: No make selected, clearing models");
         setAvailableModels([]);
+        if (selectedModel) {
+          form.setValue('model', '');
+        }
       }
     } catch (error) {
       console.error("Error updating models in MakeModelSelect:", error);
       setAvailableModels([]);
+      if (selectedModel) {
+        form.setValue('model', '');
+      }
     }
   }, [selectedMake, getModelsByMake, form, selectedModel]);
-
-  useEffect(() => {
-    console.log("MakeModelSelect current values:", { 
-      make: selectedMake, 
-      model: selectedModel,
-      availableModelsCount: availableModels ? availableModels.length : 0 
-    });
-  }, [selectedMake, selectedModel, availableModels]);
 
   return (
     <ErrorBoundary>
@@ -70,7 +67,7 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
                     try {
                       console.log("MakeModelSelect: Setting make to:", make);
                       field.onChange(make);
-                      form.setValue('model', ''); // Reset model when make changes
+                      form.setValue('model', '');
                     } catch (error) {
                       console.error("Error changing make:", error);
                     }

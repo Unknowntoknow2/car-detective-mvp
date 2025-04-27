@@ -17,6 +17,11 @@ interface ModelSelectorProps {
 
 export function ModelSelector({ models, selectedModel, onSelect, disabled }: ModelSelectorProps) {
   const safeModels = Array.isArray(models) ? models : [];
+  
+  // Only render CommandGroup if we have models
+  if (safeModels.length === 0) {
+    return null;
+  }
 
   return (
     <CommandGroup className="max-h-[250px] overflow-y-auto">
