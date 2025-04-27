@@ -224,6 +224,30 @@ export type Database = {
         }
         Relationships: []
       }
+      makes: {
+        Row: {
+          country_of_origin: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          make_name: string
+        }
+        Insert: {
+          country_of_origin?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          make_name: string
+        }
+        Update: {
+          country_of_origin?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          make_name?: string
+        }
+        Relationships: []
+      }
       market_listings: {
         Row: {
           created_at: string | null
@@ -258,6 +282,73 @@ export type Database = {
             columns: ["valuation_id"]
             isOneToOne: false
             referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_trims: {
+        Row: {
+          created_at: string
+          engine_type: string | null
+          id: string
+          model_id: string | null
+          trim_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          engine_type?: string | null
+          id?: string
+          model_id?: string | null
+          trim_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          engine_type?: string | null
+          id?: string
+          model_id?: string | null
+          trim_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_trims_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      models: {
+        Row: {
+          created_at: string
+          id: string
+          make_id: string | null
+          model_name: string
+          popular: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          make_id?: string | null
+          model_name: string
+          popular?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          make_id?: string | null
+          model_name?: string
+          popular?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "models_make_id_fkey"
+            columns: ["make_id"]
+            isOneToOne: false
+            referencedRelation: "makes"
             referencedColumns: ["id"]
           },
         ]
