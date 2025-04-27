@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Button } from '@/components/ui/button';
@@ -27,15 +28,15 @@ export function VehicleDataInfo() {
 
   const handleImportNHTSA = async () => {
     try {
-      toast.loading("Importing data from NHTSA...");
-      
       const result = await invokeFunction('import-nhtsa-data', {}, {
-        showToast: true,
-        toastMessage: 'Successfully imported NHTSA makes data'
+        showToast: false // We'll handle toasts manually for more detailed feedback
       });
       
       if (result.data?.success) {
+        toast.success(`NHTSA data imported: ${result.data.makeCount} new makes and ${result.data.updatedCount} existing makes updated`);
         await refreshData(true);
+      } else {
+        toast.error(result.error || "Failed to import NHTSA data");
       }
     } catch (error) {
       console.error('Error importing NHTSA data:', error);

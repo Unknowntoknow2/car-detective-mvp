@@ -142,7 +142,7 @@ export async function apiRequest<T = any>(
 }
 
 /**
- * Wrapper for Supabase functions
+ * Wrapper for Supabase functions with improved error handling
  */
 export async function invokeFunction<T = any>(
   functionName: string,
@@ -150,11 +150,16 @@ export async function invokeFunction<T = any>(
   options: { showToast?: boolean, toastMessage?: string } = {}
 ): Promise<ApiResponse<T>> {
   const { showToast = true, toastMessage } = options;
+  const loadingToast = showToast ? toast.loading(`Processing ${functionName.replace(/-/g, ' ')}...`) : null;
   
   try {
     const { data, error } = await supabase.functions.invoke(functionName, {
       body
     });
+    
+    if (loadingToast) {
+      toast.dismiss(loadingToast);
+    }
     
     if (error) {
       throw error;
@@ -170,6 +175,10 @@ export async function invokeFunction<T = any>(
       status: 200
     };
   } catch (error) {
+    if (loadingToast) {
+      toast.dismiss(loadingToast);
+    }
+    
     const enhancedError = handleApiError(error);
     
     if (showToast) {

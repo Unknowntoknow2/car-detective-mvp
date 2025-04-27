@@ -24,41 +24,51 @@ serve(async (req) => {
       .select('*')
       .order('make_name');
 
-    if (makesError) throw makesError;
+    if (makesError) {
+      console.error('Error fetching makes:', makesError);
+      throw makesError;
+    }
 
     const { data: models, error: modelsError } = await supabase
       .from('models')
       .select('*')
       .order('model_name');
 
-    if (modelsError) throw modelsError;
+    if (modelsError) {
+      console.error('Error fetching models:', modelsError);
+      throw modelsError;
+    }
+
+    console.log(`Exporting ${makes.length} makes and ${models.length} models`);
 
     // Convert makes to CSV
     const makesRows = [
-      ['make_name', 'logo_url', 'nhtsa_make_id', 'country_of_origin'],
+      ['id', 'make_name', 'logo_url', 'nhtsa_make_id', 'country_of_origin', 'created_at', 'updated_at'],
       ...makes.map(m => [
+        m.id,
         m.make_name,
         m.logo_url || '',
         m.nhtsa_make_id?.toString() || '',
-        m.country_of_origin || ''
+        m.country_of_origin || '',
+        m.created_at || '',
+        m.updated_at || ''
       ])
     ];
     const makesCsv = makesRows.map(row => row.join(',')).join('\n');
 
     // Convert models to CSV
     const modelsRows = [
-      ['make_id', 'model_name', 'nhtsa_model_id'],
+      ['id', 'make_id', 'model_name', 'nhtsa_model_id', 'created_at', 'updated_at'],
       ...models.map(m => [
+        m.id,
         m.make_id,
         m.model_name,
-        m.nhtsa_model_id?.toString() || ''
+        m.nhtsa_model_id?.toString() || '',
+        m.created_at || '',
+        m.updated_at || ''
       ])
     ];
     const modelsCsv = modelsRows.map(row => row.join(',')).join('\n');
-
-    // Return the data URLs
-    const makesBlob = new Blob([makesCsv], { type: 'text/csv' });
-    const modelsBlob = new Blob([modelsCsv], { type: 'text/csv' });
 
     return new Response(
       JSON.stringify({

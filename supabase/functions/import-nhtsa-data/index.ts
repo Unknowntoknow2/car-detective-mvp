@@ -27,33 +27,69 @@ serve(async (req) => {
     
     const makesData = await makesRes.json();
     const makes = makesData.Results || [];
+    console.log(`NHTSA returned ${makes.length} makes`);
 
     let importedMakes = 0;
+    let updatedMakes = 0;
+    let errors = 0;
 
     // Process makes in batches
     for (const make of makes) {
       try {
         const makeName = make.Make_Name.trim();
 
-        // Insert make with a generated UUID
-        const { data: insertedMake, error: makeError } = await supabase
+        // Check if the make already exists
+        const { data: existingMake, error: checkError } = await supabase
           .from('makes')
-          .upsert({
-            make_name: makeName,
-            nhtsa_make_id: make.Make_ID,
-            logo_url: null  // You can add logo URL fetching logic later
-          })
-          .select()
-          .single();
+          .select('id, nhtsa_make_id')
+          .eq('make_name', makeName)
+          .maybeSingle();
 
-        if (makeError) {
-          console.error(`Error inserting make ${makeName}:`, makeError);
+        if (checkError) {
+          console.error(`Error checking make ${makeName}:`, checkError);
+          errors++;
           continue;
         }
 
-        importedMakes++;
+        if (existingMake) {
+          // Update existing make with NHTSA ID if needed
+          if (existingMake.nhtsa_make_id !== make.Make_ID) {
+            const { error: updateError } = await supabase
+              .from('makes')
+              .update({ nhtsa_make_id: make.Make_ID })
+              .eq('id', existingMake.id);
+
+            if (updateError) {
+              console.error(`Error updating make ${makeName}:`, updateError);
+              errors++;
+            } else {
+              updatedMakes++;
+              console.log(`Updated make: ${makeName} with NHTSA ID: ${make.Make_ID}`);
+            }
+          }
+        } else {
+          // Insert new make
+          const { data: insertedMake, error: makeError } = await supabase
+            .from('makes')
+            .upsert({
+              make_name: makeName,
+              nhtsa_make_id: make.Make_ID,
+              logo_url: null  // You can add logo URL fetching logic later
+            })
+            .select()
+            .single();
+
+          if (makeError) {
+            console.error(`Error inserting make ${makeName}:`, makeError);
+            errors++;
+          } else {
+            importedMakes++;
+            console.log(`Imported make: ${makeName} with NHTSA ID: ${make.Make_ID}`);
+          }
+        }
       } catch (makeErr) {
         console.error(`Error processing make ${make.Make_Name}:`, makeErr);
+        errors++;
       }
     }
 
@@ -61,7 +97,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         makeCount: importedMakes,
-        message: `Successfully imported ${importedMakes} makes`
+        updatedCount: updatedMakes,
+        errorCount: errors,
+        message: `Successfully imported ${importedMakes} new makes and updated ${updatedMakes} existing makes.`
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -72,7 +110,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in import function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: false, error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500

@@ -1,15 +1,24 @@
 
 project_id = "xltxqqzattxogxtqrggt"
 
+# Core vehicle data functions
 [functions.fetch-vehicle-data]
 verify_jwt = false
 
+[functions.import-nhtsa-data]
+verify_jwt = false
+
+[functions.export-vehicle-data]
+verify_jwt = false
+
+# Vehicle history and listings
 [functions.fetch-vehicle-history]
 verify_jwt = false
 
 [functions.fetch-market-listings]
 verify_jwt = false
 
+# Valuation functions
 [functions.valuation-forecast]
 verify_jwt = true
 
@@ -22,8 +31,12 @@ verify_jwt = false
 [functions.predict]
 verify_jwt = false
 
-[functions.import-nhtsa-data]
+# Legacy functions (maintained for backward compatibility)
+[functions.car-price-prediction]
 verify_jwt = false
 
-[functions.export-vehicle-data]
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.import-vehicle-data]
 verify_jwt = false
