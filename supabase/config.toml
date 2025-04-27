@@ -1,5 +1,8 @@
 project_id = "xltxqqzattxogxtqrggt"
 
+[functions.fetch-vehicle-data]
+verify_jwt = false
+
 [functions.fetch-vehicle-history]
 verify_jwt = false
 
