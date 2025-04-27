@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Make, Model } from '@/hooks/types/vehicle';
 import { toast } from 'sonner';
@@ -35,12 +34,12 @@ export async function fetchVehicleData() {
       // Transform the data to match the Make interface structure
       const makes: Make[] = makesResult.data.map(make => ({
         id: make.id,
-        make_name: make.make_name || '', // Use empty string as fallback
+        make_name: make.id, // Use id as make_name since make_name doesn't exist
         logo_url: make.logo_url || null,
         nhtsa_make_id: make.nhtsa_make_id || null,
         country_of_origin: make.country_of_origin || null,
-        description: make.description || null,
-        founding_year: make.founding_year || null
+        description: null, // Set default to null since description doesn't exist
+        founding_year: null // Set default to null since founding_year doesn't exist
       }));
       
       return {
@@ -80,7 +79,7 @@ export async function fetchVehicleData() {
       // Transform the data to match the Make interface structure
       const makes: Make[] = (makesResult.data || []).map(make => ({
         id: make.id,
-        make_name: make.make_name || '',  // Use empty string as fallback
+        make_name: make.id, // Use id as make_name since make_name doesn't exist
         logo_url: make.logo_url || null,
         nhtsa_make_id: make.nhtsa_make_id || null,
         country_of_origin: make.country_of_origin || null,
@@ -108,7 +107,20 @@ export async function getMakeById(id: string): Promise<Make | null> {
       .single();
       
     if (error) throw error;
-    return data;
+    
+    if (data) {
+      // Transform data to match Make interface
+      return {
+        id: data.id,
+        make_name: data.id, // Using id as make_name
+        logo_url: data.logo_url || null,
+        nhtsa_make_id: data.nhtsa_make_id || null,
+        country_of_origin: data.country_of_origin || null,
+        description: null,
+        founding_year: null
+      };
+    }
+    return null;
   } catch (error) {
     console.error("Error fetching make by ID:", error);
     return null;
