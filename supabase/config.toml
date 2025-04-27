@@ -1,3 +1,4 @@
+
 project_id = "xltxqqzattxogxtqrggt"
 
 [functions.fetch-vehicle-data]
@@ -19,4 +20,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.predict]
+verify_jwt = false
+
+[functions.import-vehicle-data]
 verify_jwt = false
