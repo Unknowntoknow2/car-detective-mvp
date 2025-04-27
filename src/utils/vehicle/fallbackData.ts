@@ -1,5 +1,6 @@
+import { Make, Model } from '@/hooks/types/vehicle';
 
-export const getFallbackMakes = () => [
+export const getFallbackMakes = (): Make[] => [
   { id: '1', make_name: 'Toyota', logo_url: 'https://www.carlogos.org/car-logos/toyota-logo.png' },
   { id: '2', make_name: 'Honda', logo_url: 'https://www.carlogos.org/car-logos/honda-logo.png' },
   { id: '3', make_name: 'Ford', logo_url: 'https://www.carlogos.org/car-logos/ford-logo.png' },
