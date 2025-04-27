@@ -151,11 +151,12 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           disabled={isFormLoading}
         />
 
-        <VehicleFeatureSelect
-          selectedFeatures={form.watch('selectedFeatures')}
-          onFeaturesChange={(features) => form.setValue('selectedFeatures', features)}
-          disabled={isFormLoading}
-        />
+       {/* <VehicleFeatureSelect
+  selectedFeatures={form.watch('selectedFeatures')}
+  onFeaturesChange={(features) => form.setValue('selectedFeatures', features)}
+  disabled={isFormLoading}
+/> */}
+
 
         {isPremium && (
           <PremiumFields
