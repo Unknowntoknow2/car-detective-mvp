@@ -2,8 +2,9 @@
 import React from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Database } from 'lucide-react';
+import { RefreshCw, Database, FileImport } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export function VehicleDataInfo() {
   const { makes, counts, isLoading, refreshData } = useVehicleData();
@@ -22,6 +23,29 @@ export function VehicleDataInfo() {
       console.error(error);
     }
   };
+
+  const handleImportNHTSA = async () => {
+    try {
+      toast.loading("Importing data from NHTSA...");
+      
+      const { data, error } = await supabase.functions.invoke('import-nhtsa-data', {
+        method: 'POST'
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success(data.message);
+        // Refresh the data to show new counts
+        refreshData(true);
+      } else {
+        toast.error("Failed to import NHTSA data");
+      }
+    } catch (error) {
+      console.error('Error importing NHTSA data:', error);
+      toast.error("Error importing data from NHTSA");
+    }
+  };
   
   return (
     <div className="bg-slate-50 rounded-lg p-4 flex items-center justify-between mb-4">
@@ -36,16 +60,28 @@ export function VehicleDataInfo() {
           </p>
         </div>
       </div>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={handleRefresh}
-        disabled={isLoading}
-        className="text-xs gap-1"
-      >
-        <RefreshCw className="h-3 w-3" /> 
-        Refresh Data
-      </Button>
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleImportNHTSA}
+          disabled={isLoading}
+          className="text-xs gap-1"
+        >
+          <FileImport className="h-3 w-3" /> 
+          Import NHTSA
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={isLoading}
+          className="text-xs gap-1"
+        >
+          <RefreshCw className="h-3 w-3" /> 
+          Refresh Data
+        </Button>
+      </div>
     </div>
   );
 }
