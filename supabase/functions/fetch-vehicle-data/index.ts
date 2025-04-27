@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.5.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,150 +12,67 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Get makes from database
-    const { data: makes, error: makesError } = await supabase
-      .from('makes')
-      .select('*')
-      .order('make_name');
-
-    if (makesError) throw makesError;
-
-    // Check if we have enough makes data
-    if (!makes || makes.length < 30) {
-      console.log("Insufficient makes data, inserting sample data");
+    // Mock data for makes
+    const mockMakes = [
+      { id: 'toyota', make_name: 'Toyota', logo_url: 'https://www.carlogos.org/car-logos/toyota-logo.png', country_of_origin: 'Japan' },
+      { id: 'honda', make_name: 'Honda', logo_url: 'https://www.carlogos.org/car-logos/honda-logo.png', country_of_origin: 'Japan' },
+      { id: 'ford', make_name: 'Ford', logo_url: 'https://www.carlogos.org/car-logos/ford-logo.png', country_of_origin: 'USA' },
+      { id: 'chevrolet', make_name: 'Chevrolet', logo_url: 'https://www.carlogos.org/car-logos/chevrolet-logo.png', country_of_origin: 'USA' },
+      { id: 'bmw', make_name: 'BMW', logo_url: 'https://www.carlogos.org/car-logos/bmw-logo.png', country_of_origin: 'Germany' },
+      { id: 'mercedes', make_name: 'Mercedes-Benz', logo_url: 'https://www.carlogos.org/car-logos/mercedes-benz-logo.png', country_of_origin: 'Germany' },
+      { id: 'audi', make_name: 'Audi', logo_url: 'https://www.carlogos.org/car-logos/audi-logo.png', country_of_origin: 'Germany' },
+      { id: 'volvo', make_name: 'Volvo', logo_url: 'https://www.carlogos.org/car-logos/volvo-logo.png', country_of_origin: 'Sweden' }
+    ];
+    
+    // Mock data for models
+    const mockModels = [
+      // Toyota models
+      { id: 'camry', model_name: 'Camry', make_id: 'toyota' },
+      { id: 'corolla', model_name: 'Corolla', make_id: 'toyota' },
+      { id: 'rav4', model_name: 'RAV4', make_id: 'toyota' },
       
-      // Common car makes with logos
-      const commonMakes = [
-        { make_name: 'Toyota', logo_url: 'https://www.carlogos.org/car-logos/toyota-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Honda', logo_url: 'https://www.carlogos.org/car-logos/honda-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Ford', logo_url: 'https://www.carlogos.org/car-logos/ford-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Chevrolet', logo_url: 'https://www.carlogos.org/car-logos/chevrolet-logo.png', country_of_origin: 'United States' },
-        { make_name: 'BMW', logo_url: 'https://www.carlogos.org/car-logos/bmw-logo.png', country_of_origin: 'Germany' },
-        { make_name: 'Mercedes-Benz', logo_url: 'https://www.carlogos.org/car-logos/mercedes-benz-logo.png', country_of_origin: 'Germany' },
-        { make_name: 'Audi', logo_url: 'https://www.carlogos.org/car-logos/audi-logo.png', country_of_origin: 'Germany' },
-        { make_name: 'Lexus', logo_url: 'https://www.carlogos.org/car-logos/lexus-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Hyundai', logo_url: 'https://www.carlogos.org/car-logos/hyundai-logo.png', country_of_origin: 'South Korea' },
-        { make_name: 'Kia', logo_url: 'https://www.carlogos.org/car-logos/kia-logo.png', country_of_origin: 'South Korea' },
-        { make_name: 'Nissan', logo_url: 'https://www.carlogos.org/car-logos/nissan-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Subaru', logo_url: 'https://www.carlogos.org/car-logos/subaru-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Volkswagen', logo_url: 'https://www.carlogos.org/car-logos/volkswagen-logo.png', country_of_origin: 'Germany' },
-        { make_name: 'Mazda', logo_url: 'https://www.carlogos.org/car-logos/mazda-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Acura', logo_url: 'https://www.carlogos.org/car-logos/acura-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Infiniti', logo_url: 'https://www.carlogos.org/car-logos/infiniti-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Jeep', logo_url: 'https://www.carlogos.org/car-logos/jeep-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Volvo', logo_url: 'https://www.carlogos.org/car-logos/volvo-logo.png', country_of_origin: 'Sweden' },
-        { make_name: 'Dodge', logo_url: 'https://www.carlogos.org/car-logos/dodge-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Porsche', logo_url: 'https://www.carlogos.org/car-logos/porsche-logo.png', country_of_origin: 'Germany' },
-        { make_name: 'Land Rover', logo_url: 'https://www.carlogos.org/car-logos/land-rover-logo.png', country_of_origin: 'United Kingdom' },
-        { make_name: 'Jaguar', logo_url: 'https://www.carlogos.org/car-logos/jaguar-logo.png', country_of_origin: 'United Kingdom' },
-        { make_name: 'Cadillac', logo_url: 'https://www.carlogos.org/car-logos/cadillac-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Buick', logo_url: 'https://www.carlogos.org/car-logos/buick-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Tesla', logo_url: 'https://www.carlogos.org/car-logos/tesla-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Genesis', logo_url: 'https://www.carlogos.org/car-logos/genesis-logo.png', country_of_origin: 'South Korea' },
-        { make_name: 'GMC', logo_url: 'https://www.carlogos.org/car-logos/gmc-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Chrysler', logo_url: 'https://www.carlogos.org/car-logos/chrysler-logo.png', country_of_origin: 'United States' },
-        { make_name: 'RAM', logo_url: 'https://www.carlogos.org/car-logos/ram-logo.png', country_of_origin: 'United States' },
-        { make_name: 'MINI', logo_url: 'https://www.carlogos.org/car-logos/mini-logo.png', country_of_origin: 'United Kingdom' },
-        { make_name: 'Mitsubishi', logo_url: 'https://www.carlogos.org/car-logos/mitsubishi-logo.png', country_of_origin: 'Japan' },
-        { make_name: 'Lincoln', logo_url: 'https://www.carlogos.org/car-logos/lincoln-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Rivian', logo_url: 'https://www.carlogos.org/car-logos/rivian-logo.png', country_of_origin: 'United States' },
-        { make_name: 'Lucid', logo_url: 'https://www.carlogos.org/car-logos/lucid-motors-logo.png', country_of_origin: 'United States' }
-      ];
+      // Honda models
+      { id: 'civic', model_name: 'Civic', make_id: 'honda' },
+      { id: 'accord', model_name: 'Accord', make_id: 'honda' },
+      { id: 'crv', model_name: 'CR-V', make_id: 'honda' },
       
-      // Insert the makes one by one, avoiding duplicates
-      for (const make of commonMakes) {
-        const { error } = await supabase
-          .from('makes')
-          .upsert(
-            { make_name: make.make_name, logo_url: make.logo_url, country_of_origin: make.country_of_origin },
-            { onConflict: 'make_name' }
-          );
-          
-        if (error) {
-          console.error(`Error inserting make ${make.make_name}:`, error);
-        }
-      }
+      // Ford models
+      { id: 'f150', model_name: 'F-150', make_id: 'ford' },
+      { id: 'mustang', model_name: 'Mustang', make_id: 'ford' },
+      { id: 'explorer', model_name: 'Explorer', make_id: 'ford' },
       
-      // Refetch makes after insert
-      const { data: updatedMakes, error: updatedMakesError } = await supabase
-        .from('makes')
-        .select('*')
-        .order('make_name');
-        
-      if (updatedMakesError) throw updatedMakesError;
-      if (updatedMakes) {
-        console.log(`Updated makes count: ${updatedMakes.length}`);
-        
-        // Now let's populate models for each make
-        for (const make of updatedMakes) {
-          const { data: makeModels, error: makeModelsError } = await supabase
-            .from('models')
-            .select('*')
-            .eq('make_id', make.id);
-            
-          if (makeModelsError) {
-            console.error(`Error fetching models for make ${make.make_name}:`, makeModelsError);
-            continue;
-          }
-          
-          // If make has no models or very few, let's populate with some common models
-          if (!makeModels || makeModels.length < 5) {
-            console.log(`Populating models for ${make.make_name}`);
-            
-            // Map of common models by make
-            const commonModels: Record<string, string[]> = {
-              'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma', '4Runner', 'Prius', 'Sienna', 'Tundra', 'Land Cruiser'],
-              'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot', 'Odyssey', 'HR-V', 'Passport', 'Ridgeline', 'Insight'],
-              'Ford': ['F-150', 'Escape', 'Explorer', 'Mustang', 'Bronco', 'Edge', 'Expedition', 'Ranger', 'Focus', 'Fusion'],
-              'Chevrolet': ['Silverado', 'Malibu', 'Equinox', 'Tahoe', 'Camaro', 'Corvette', 'Suburban', 'Traverse', 'Blazer', 'Colorado'],
-              'BMW': ['3 Series', '5 Series', 'X3', 'X5', 'M3', '7 Series', 'X1', 'X7', 'i4', 'iX'],
-              'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'GLC', 'GLE', 'GLS', 'A-Class', 'G-Class', 'CLA', 'EQS'],
-              'Audi': ['A4', 'A6', 'Q5', 'Q7', 'e-tron', 'A3', 'Q3', 'A8', 'Q8', 'RS6'],
-              'Lexus': ['ES', 'RX', 'NX', 'LS', 'IS', 'GX', 'UX', 'LC', 'LX', 'RC']
-            };
-            
-            // Default models for any make not specifically covered
-            const defaultModels = ['Base', 'Sport', 'Limited', 'Touring', 'Premium', 'Luxury', 'Standard'];
-            
-            // Get the appropriate model list
-            const modelsToInsert = commonModels[make.make_name] || defaultModels;
-            
-            // Insert each model
-            for (const modelName of modelsToInsert) {
-              const { error: modelInsertError } = await supabase
-                .from('models')
-                .upsert(
-                  { make_id: make.id, model_name: modelName },
-                  { onConflict: 'make_id,model_name' }
-                );
-                
-              if (modelInsertError) {
-                console.error(`Error inserting model ${modelName} for make ${make.make_name}:`, modelInsertError);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Get the updated models
-    const { data: models, error: modelsError } = await supabase
-      .from('models')
-      .select('*')
-      .order('model_name');
-
-    if (modelsError) throw modelsError;
+      // Chevrolet models
+      { id: 'silverado', model_name: 'Silverado', make_id: 'chevrolet' },
+      { id: 'malibu', model_name: 'Malibu', make_id: 'chevrolet' },
+      { id: 'equinox', model_name: 'Equinox', make_id: 'chevrolet' },
+      
+      // BMW models
+      { id: '3series', model_name: '3 Series', make_id: 'bmw' },
+      { id: '5series', model_name: '5 Series', make_id: 'bmw' },
+      { id: 'x5', model_name: 'X5', make_id: 'bmw' },
+      
+      // Mercedes models
+      { id: 'cclass', model_name: 'C-Class', make_id: 'mercedes' },
+      { id: 'eclass', model_name: 'E-Class', make_id: 'mercedes' },
+      { id: 'gclass', model_name: 'G-Class', make_id: 'mercedes' },
+      
+      // Audi models
+      { id: 'a4', model_name: 'A4', make_id: 'audi' },
+      { id: 'q5', model_name: 'Q5', make_id: 'audi' },
+      { id: 'a6', model_name: 'A6', make_id: 'audi' },
+      
+      // Volvo models
+      { id: 'xc90', model_name: 'XC90', make_id: 'volvo' },
+      { id: 's60', model_name: 'S60', make_id: 'volvo' },
+      { id: 'v60', model_name: 'V60', make_id: 'volvo' }
+    ];
 
     return new Response(
       JSON.stringify({ 
-        makes: makes || [], 
-        models: models || [],
-        makeCount: makes?.length || 0,
-        modelCount: models?.length || 0
+        makes: mockMakes, 
+        models: mockModels,
+        makeCount: mockMakes.length,
+        modelCount: mockModels.length
       }),
       { 
         headers: { 
