@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
+// import { Navbar } from '@/components/layout/Navbar';  <-- temporarily commented
+// import { Footer } from '@/components/layout/Footer';  <-- temporarily commented
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { Button } from '@/components/ui/button';
 import { useManualValuation, ManualVehicleInfo } from '@/hooks/useManualValuation';
@@ -85,7 +85,7 @@ const ManualLookupPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
       <main className="flex-1 container mx-auto py-8 px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Manual Vehicle Entry</h1>
         
@@ -122,33 +122,6 @@ const ManualLookupPage = () => {
                 </div>
               </div>
               
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4">Valuation Breakdown</h3>
-                <VehicleScoring 
-                  baseValue={vehicleInfo?.valuation || 0}
-                  valuationBreakdown={[
-                    {
-                      factor: "Mileage",
-                      impact: -3.5,
-                      description: "Vehicle has higher mileage than average"
-                    },
-                    {
-                      factor: "Condition",
-                      impact: 2.0,
-                      description: "Vehicle condition is above average"
-                    },
-                    {
-                      factor: "Market Demand",
-                      impact: 4.0,
-                      description: "This model currently has high demand in your region"
-                    }
-                  ]}
-                  confidenceScore={vehicleInfo?.confidenceScore || 0}
-                  estimatedValue={vehicleInfo?.valuation || 0}
-                  comparableVehicles={117}
-                />
-              </div>
-              
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {user && (
                   <Button 
@@ -178,7 +151,7 @@ const ManualLookupPage = () => {
           </div>
         )}
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
