@@ -7,6 +7,9 @@ import { ManualEntryFormData } from '../types/manualEntry';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { MakeModelSelect } from './MakeModelSelect';
 import { useEffect } from 'react';
+import { ValidationError } from '@/components/common/ValidationError';
+import { useValidation } from '@/hooks/useValidation';
+import { EnhancedManualEntrySchema } from '@/utils/validation/enhanced-validation';
 
 interface VehicleBasicInfoProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -16,6 +19,7 @@ interface VehicleBasicInfoProps {
 export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoProps) {
   const { getYearOptions } = useVehicleData();
   const yearOptions = getYearOptions(1980);
+  const validation = useValidation(EnhancedManualEntrySchema);
   
   // Debug logging to trace state changes
   useEffect(() => {
@@ -31,6 +35,19 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
     { value: 'Flex_Fuel', label: 'Flex Fuel' },
     { value: 'CNG', label: 'Compressed Natural Gas (CNG)' },
   ];
+
+  // Validate field on change
+  const handleFieldValidation = (field: string, value: any) => {
+    const result = validation.validateField(field, value);
+    if (!result.isValid) {
+      form.setError(field as any, {
+        type: 'manual',
+        message: result.error
+      });
+    } else {
+      form.clearErrors(field as any);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -49,6 +66,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                   const yearValue = parseInt(value, 10);
                   console.log("Setting year to:", yearValue);
                   field.onChange(yearValue);
+                  handleFieldValidation('year', yearValue);
                 }}
                 value={field.value?.toString() || ''}
               >
@@ -64,6 +82,12 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                 </SelectContent>
               </Select>
               <FormMessage />
+              {validation.getFieldError('year') && (
+                <ValidationError
+                  message={validation.getFieldError('year')?.error || ''}
+                  details={validation.getFieldError('year')?.details}
+                />
+              )}
             </FormItem>
           )}
         />
@@ -85,6 +109,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                     const value = e.target.value ? parseInt(e.target.value, 10) : undefined;
                     console.log("Setting mileage to:", value);
                     field.onChange(value);
+                    handleFieldValidation('mileage', value);
                   }}
                   min={0}
                   disabled={isDisabled}
@@ -92,36 +117,12 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                 />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="fuelType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fuel Type</FormLabel>
-              <Select
-                disabled={isDisabled}
-                onValueChange={(value) => {
-                  console.log("Setting fuel type to:", value);
-                  field.onChange(value);
-                }}
-                value={field.value || ''}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select fuel type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {fuelTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
+              {validation.getFieldError('mileage') && (
+                <ValidationError
+                  message={validation.getFieldError('mileage')?.error || ''}
+                  details={validation.getFieldError('mileage')?.details}
+                />
+              )}
             </FormItem>
           )}
         />
@@ -136,17 +137,25 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
                 <Input
                   {...field}
                   placeholder="Enter ZIP code"
-                  maxLength={5}
+                  maxLength={10}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
+                    const value = e.target.value.replace(/[^\d-]/g, '');
                     console.log("Setting ZIP code to:", value);
-                    field.onChange(value.substring(0, 5));
+                    field.onChange(value);
+                    handleFieldValidation('zipCode', value);
                   }}
                   disabled={isDisabled}
                   className="h-10"
                 />
               </FormControl>
               <FormMessage />
+              {validation.getFieldError('zipCode') && (
+                <ValidationError
+                  message={validation.getFieldError('zipCode')?.error || ''}
+                  details={validation.getFieldError('zipCode')?.details}
+                  type="warning"
+                />
+              )}
             </FormItem>
           )}
         />

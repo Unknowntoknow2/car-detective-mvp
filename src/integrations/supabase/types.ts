@@ -231,6 +231,8 @@ export type Database = {
           id: string
           logo_url: string | null
           make_name: string
+          nhtsa_make_id: number | null
+          updated_at: string | null
         }
         Insert: {
           country_of_origin?: string | null
@@ -238,6 +240,8 @@ export type Database = {
           id?: string
           logo_url?: string | null
           make_name: string
+          nhtsa_make_id?: number | null
+          updated_at?: string | null
         }
         Update: {
           country_of_origin?: string | null
@@ -245,6 +249,8 @@ export type Database = {
           id?: string
           logo_url?: string | null
           make_name?: string
+          nhtsa_make_id?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -327,21 +333,27 @@ export type Database = {
           id: string
           make_id: string | null
           model_name: string
+          nhtsa_model_id: number | null
           popular: boolean | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           make_id?: string | null
           model_name: string
+          nhtsa_model_id?: number | null
           popular?: boolean | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           make_id?: string | null
           model_name?: string
+          nhtsa_model_id?: number | null
           popular?: boolean | null
+          updated_at?: string | null
         }
         Relationships: [
           {
