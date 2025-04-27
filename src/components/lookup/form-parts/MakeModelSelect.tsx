@@ -8,7 +8,7 @@ interface MakeModelSelectProps {
   form: UseFormReturn<ManualEntryFormData>;
 }
 
-export const MakeModelSelect = ({ form }: MakeModelSelectProps) => {
+export function MakeModelSelect({ form }: MakeModelSelectProps) {
   return (
     <div className="space-y-4">
       <FormField

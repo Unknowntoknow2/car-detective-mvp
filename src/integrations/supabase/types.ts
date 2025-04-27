@@ -226,6 +226,7 @@ export type Database = {
       }
       makes: {
         Row: {
+          country_of_origin: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -234,6 +235,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          country_of_origin?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -242,6 +244,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          country_of_origin?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null

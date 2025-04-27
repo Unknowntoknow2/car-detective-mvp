@@ -85,6 +85,7 @@ export const useVehicleData = () => {
       if (data) {
         setMakes(data);
         localStorage.setItem('vehicle_makes', JSON.stringify(data));
+        console.log(`Loaded ${data.length} makes from the database`);
       }
     } catch (err: any) {
       console.error('Error refreshing vehicle makes:', err);
@@ -106,6 +107,7 @@ export const useVehicleData = () => {
       if (data) {
         setModels(data);
         localStorage.setItem('vehicle_models', JSON.stringify(data));
+        console.log(`Loaded ${data.length} models from the database`);
       }
     } catch (err) {
       console.error('Error refreshing vehicle models:', err);

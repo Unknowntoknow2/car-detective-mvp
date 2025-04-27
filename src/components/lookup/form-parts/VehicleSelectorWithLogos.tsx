@@ -79,7 +79,7 @@ export function VehicleSelectorWithLogos({
           <Command>
             <CommandInput placeholder="Search make..." />
             <CommandEmpty>No make found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="max-h-[300px] overflow-y-auto">
               {makes.map((make) => (
                 <CommandItem
                   key={make.id}
@@ -101,11 +101,6 @@ export function VehicleSelectorWithLogos({
                       />
                     )}
                     <span>{make.make_name}</span>
-                    {make.country_of_origin && (
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {make.country_of_origin}
-                      </span>
-                    )}
                   </div>
                 </CommandItem>
               ))}
@@ -131,7 +126,7 @@ export function VehicleSelectorWithLogos({
           <Command>
             <CommandInput placeholder="Search model..." />
             <CommandEmpty>No model found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="max-h-[300px] overflow-y-auto">
               {models.map((model) => (
                 <CommandItem
                   key={model.id}
