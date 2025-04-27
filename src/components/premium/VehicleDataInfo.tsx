@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Database, FileImport } from 'lucide-react';
+import { RefreshCw, Database, FileInput } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -68,7 +67,7 @@ export function VehicleDataInfo() {
           disabled={isLoading}
           className="text-xs gap-1"
         >
-          <FileImport className="h-3 w-3" /> 
+          <FileInput className="h-3 w-3" /> 
           Import NHTSA
         </Button>
         <Button 
