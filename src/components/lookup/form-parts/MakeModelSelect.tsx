@@ -21,12 +21,12 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
     if (selectedMake) {
       try {
         const models = getModelsByMake(selectedMake);
-        setAvailableModels(Array.isArray(models) ? models : []);
+        const safeModels = Array.isArray(models) ? models : [];
+        setAvailableModels(safeModels);
         
         // Reset model if make changes and currently selected model isn't available for the new make
         if (selectedModel) {
-          const modelExists = models && Array.isArray(models) && 
-            models.some(model => model.model_name === selectedModel);
+          const modelExists = safeModels.some(model => model.model_name === selectedModel);
           if (!modelExists) {
             form.setValue('model', '');
             console.log("Reset model due to make change");

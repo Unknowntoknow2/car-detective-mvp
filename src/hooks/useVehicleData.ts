@@ -23,6 +23,7 @@ export interface Model {
 export const useVehicleData = () => {
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
+  const [modelsByMake, setModelsByMake] = useState<Record<string, Model[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +56,16 @@ export const useVehicleData = () => {
           if (Array.isArray(makesData) && Array.isArray(modelsData) && makesData.length > 0) {
             setMakes(makesData);
             setModels(modelsData);
+            
+            // Build the modelsByMake object for fast lookup
+            const modelsByMakeObj: Record<string, Model[]> = {};
+            modelsData.forEach(model => {
+              if (!modelsByMakeObj[model.make_id]) {
+                modelsByMakeObj[model.make_id] = [];
+              }
+              modelsByMakeObj[model.make_id].push(model);
+            });
+            setModelsByMake(modelsByMakeObj);
             
             console.log(`Loaded ${makesData.length} makes and ${modelsData.length} models from cache`);
             
@@ -94,11 +105,18 @@ export const useVehicleData = () => {
         
         // Also generate some fallback models for each make
         let allFallbackModels: Model[] = [];
+        const modelsByMakeObj: Record<string, Model[]> = {};
+        
         fallbackMakes.forEach(make => {
           const makeModels = getFallbackModels(make.id);
           allFallbackModels = [...allFallbackModels, ...makeModels];
+          
+          // Add to modelsByMake object
+          modelsByMakeObj[make.id] = makeModels;
         });
+        
         setModels(allFallbackModels);
+        setModelsByMake(modelsByMakeObj);
         
         // Cache the fallback data
         localStorage.setItem('vehicle_makes', JSON.stringify(fallbackMakes));
@@ -155,19 +173,33 @@ export const useVehicleData = () => {
         setModels(validModelsData);
         localStorage.setItem('vehicle_models', JSON.stringify(validModelsData));
         console.log(`Loaded ${validModelsData.length} models from the database`);
+        
+        // Build the modelsByMake object for fast lookup
+        const modelsByMakeObj: Record<string, Model[]> = {};
+        validModelsData.forEach(model => {
+          if (!modelsByMakeObj[model.make_id]) {
+            modelsByMakeObj[model.make_id] = [];
+          }
+          modelsByMakeObj[model.make_id].push(model);
+        });
+        setModelsByMake(modelsByMakeObj);
       } else {
         console.warn('No models found in database, using fallback models');
         
         // Generate fallback models for each make
         let allFallbackModels: Model[] = [];
+        const modelsByMakeObj: Record<string, Model[]> = {};
         const mData = validMakesData.length > 0 ? validMakesData : getFallbackMakes();
         
         mData.forEach(make => {
           const makeModels = getFallbackModels(make.id);
           allFallbackModels = [...allFallbackModels, ...makeModels];
+          // Add to modelsByMake object
+          modelsByMakeObj[make.id] = makeModels;
         });
         
         setModels(allFallbackModels);
+        setModelsByMake(modelsByMakeObj);
         localStorage.setItem('vehicle_models', JSON.stringify(allFallbackModels));
       }
       
@@ -189,8 +221,8 @@ export const useVehicleData = () => {
   
   // Function to get models for a specific make
   const getModelsByMake = useCallback((makeName: string): Model[] => {
-    if (!makeName || !makes || !models) {
-      console.warn("Missing data for getModelsByMake:", { makeName, makesAvailable: !!makes, modelsAvailable: !!models });
+    if (!makeName || !Array.isArray(makes)) {
+      console.warn("Missing data for getModelsByMake:", { makeName, makesAvailable: Array.isArray(makes) });
       return [];
     }
     
@@ -201,19 +233,28 @@ export const useVehicleData = () => {
       return [];
     }
     
-    // Then filter models by make ID
-    const filteredModels = models.filter(model => model.make_id === make.id);
-    console.log(`Found ${filteredModels.length} models for make ${makeName}`);
-    
-    // If we don't have any models, return fallback
-    if (filteredModels.length === 0) {
-      const fallbackModels = getFallbackModels(make.id);
-      console.log(`Using ${fallbackModels.length} fallback models for make ${makeName}`);
-      return fallbackModels;
+    // Get models from the modelsByMake object (faster lookup)
+    if (modelsByMake && modelsByMake[make.id] && Array.isArray(modelsByMake[make.id])) {
+      return modelsByMake[make.id];
     }
     
-    return filteredModels;
-  }, [makes, models]);
+    // Fallback to filtering if modelsByMake doesn't have the data
+    if (Array.isArray(models)) {
+      const filteredModels = models.filter(model => model.make_id === make.id);
+      console.log(`Found ${filteredModels.length} models for make ${makeName}`);
+      
+      // If we don't have any models, return fallback
+      if (filteredModels.length === 0) {
+        const fallbackModels = getFallbackModels(make.id);
+        console.log(`Using ${fallbackModels.length} fallback models for make ${makeName}`);
+        return fallbackModels;
+      }
+      
+      return filteredModels;
+    }
+    
+    return [];
+  }, [makes, models, modelsByMake]);
   
   // Get year options for dropdowns
   const getYearOptions = useCallback((startYear: number = 1980): number[] => {
@@ -245,7 +286,7 @@ export const useVehicleData = () => {
 
   // Get the most complete list of makes available (from DB or fallback)
   const getAvailableMakes = (): Make[] => {
-    if (!makes || makes.length === 0) {
+    if (!Array.isArray(makes) || makes.length === 0) {
       const fallback = getFallbackMakes();
       console.log("Using fallback makes data with length:", fallback.length);
       return fallback;
@@ -283,6 +324,7 @@ export const useVehicleData = () => {
   return {
     makes: getAvailableMakes(),
     models,
+    modelsByMake,
     getModelsByMake,
     getYearOptions,
     getFallbackModels,

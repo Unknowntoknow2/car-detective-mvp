@@ -29,18 +29,22 @@ export function VehicleSelectorWithLogos({
   const { makes, getModelsByMake, isLoading, error } = useVehicleData();
   const [models, setModels] = useState<any[]>([]);
 
+  // Ensure we have valid arrays
+  const safeMakes = Array.isArray(makes) ? makes : [];
+
   // Log the makes data to debug
   useEffect(() => {
-    console.log("Available makes:", makes ? makes.length : 0);
-  }, [makes]);
+    console.log("Available makes:", safeMakes.length);
+  }, [safeMakes]);
 
   // Update models when make changes
   useEffect(() => {
     if (selectedMake) {
       try {
         const availableModels = getModelsByMake(selectedMake);
-        console.log(`Models for ${selectedMake}:`, availableModels ? availableModels.length : 0);
-        setModels(Array.isArray(availableModels) ? availableModels : []);
+        const safeModels = Array.isArray(availableModels) ? availableModels : [];
+        console.log(`Models for ${selectedMake}:`, safeModels.length);
+        setModels(safeModels);
       } catch (error) {
         console.error("Error getting models for make:", error);
         setModels([]);
@@ -63,8 +67,7 @@ export function VehicleSelectorWithLogos({
     setModelOpen(false);
   };
 
-  // Ensure we have valid arrays before rendering
-  const safeMakes = Array.isArray(makes) ? makes : [];
+  // Ensure we have a valid array for models
   const safeModels = Array.isArray(models) ? models : [];
 
   if (isLoading) {
@@ -100,7 +103,7 @@ export function VehicleSelectorWithLogos({
               <div className="flex items-center gap-2">
                 {safeMakes.find(m => m.make_name === selectedMake)?.logo_url && (
                   <img
-                    src={safeMakes.find(m => m.make_name === selectedMake)?.logo_url}
+                    src={safeMakes.find(m => m.make_name === selectedMake)?.logo_url || ''}
                     alt={`${selectedMake} logo`}
                     className="w-6 h-6 object-contain"
                   />
@@ -114,41 +117,37 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-          {safeMakes.length > 0 ? (
-            <Command>
-              <CommandInput placeholder="Search make..." className="h-9" />
-              <CommandEmpty>No make found.</CommandEmpty>
-              <CommandGroup className="max-h-[250px] overflow-y-auto">
-                {safeMakes.map((make) => (
-                  <CommandItem
-                    key={make.id || `make-${make.make_name}`}
-                    value={make.make_name}
-                    onSelect={() => handleMakeSelect(make.make_name)}
-                    className="flex items-center gap-2 py-2"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedMake === make.make_name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex items-center gap-2">
-                      {make.logo_url && (
-                        <img
-                          src={make.logo_url}
-                          alt={`${make.make_name} logo`}
-                          className="w-6 h-6 object-contain"
-                        />
-                      )}
-                      <span>{make.make_name}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          ) : (
-            <div className="p-2 text-sm text-muted-foreground">No makes available</div>
-          )}
+          <Command>
+            <CommandInput placeholder="Search make..." className="h-9" />
+            <CommandEmpty>No make found.</CommandEmpty>
+            <CommandGroup className="max-h-[250px] overflow-y-auto">
+              {safeMakes.map((make) => (
+                <CommandItem
+                  key={make.id || `make-${make.make_name}`}
+                  value={make.make_name}
+                  onSelect={() => handleMakeSelect(make.make_name)}
+                  className="flex items-center gap-2 py-2"
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedMake === make.make_name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex items-center gap-2">
+                    {make.logo_url && (
+                      <img
+                        src={make.logo_url}
+                        alt={`${make.make_name} logo`}
+                        className="w-6 h-6 object-contain"
+                      />
+                    )}
+                    <span>{make.make_name}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
         </PopoverContent>
       </Popover>
 
@@ -173,32 +172,28 @@ export function VehicleSelectorWithLogos({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-          {safeModels.length > 0 ? (
-            <Command>
-              <CommandInput placeholder="Search model..." className="h-9" />
-              <CommandEmpty>No model found.</CommandEmpty>
-              <CommandGroup className="max-h-[250px] overflow-y-auto">
-                {safeModels.map((model) => (
-                  <CommandItem
-                    key={model.id || `model-${model.model_name}`}
-                    value={model.model_name}
-                    onSelect={() => handleModelSelect(model.model_name)}
-                    className="py-2"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedModel === model.model_name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {model.model_name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          ) : (
-            <div className="p-2 text-sm text-muted-foreground">No models available</div>
-          )}
+          <Command>
+            <CommandInput placeholder="Search model..." className="h-9" />
+            <CommandEmpty>No model found.</CommandEmpty>
+            <CommandGroup className="max-h-[250px] overflow-y-auto">
+              {safeModels.map((model) => (
+                <CommandItem
+                  key={model.id || `model-${model.model_name}`}
+                  value={model.model_name}
+                  onSelect={() => handleModelSelect(model.model_name)}
+                  className="py-2"
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedModel === model.model_name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {model.model_name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
         </PopoverContent>
       </Popover>
     </div>

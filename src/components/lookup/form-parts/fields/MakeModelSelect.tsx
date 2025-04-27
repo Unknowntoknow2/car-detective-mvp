@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { carMakes, getModelsForMake } from '@/utils/carData';
@@ -20,14 +20,37 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   isDisabled = false
 }) => {
   const { makes, getModelsByMake, isLoading } = useVehicleData();
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
   
   // Fallback to local data if API data is not available
-  const displayedMakes = makes.length > 0 ? makes : carMakes.map(make => ({ 
-    id: make, 
-    make_name: make,
-    logo_url: null 
-  }));
+  const displayedMakes = Array.isArray(makes) && makes.length > 0 
+    ? makes 
+    : carMakes.map(make => ({ 
+      id: make, 
+      make_name: make,
+      logo_url: null 
+    }));
   
+  useEffect(() => {
+    if (selectedMakeId) {
+      try {
+        // Find the make by ID first
+        const selectedMake = displayedMakes.find(make => make.id === selectedMakeId);
+        if (selectedMake) {
+          const models = getModelsByMake(selectedMake.make_name);
+          setAvailableModels(Array.isArray(models) ? models : []);
+        } else {
+          setAvailableModels([]);
+        }
+      } catch (error) {
+        console.error("Error getting models for make:", error);
+        setAvailableModels([]);
+      }
+    } else {
+      setAvailableModels([]);
+    }
+  }, [selectedMakeId, displayedMakes, getModelsByMake]);
+
   const handleMakeChange = (value: string) => {
     setSelectedMakeId(value);
     setSelectedModel(''); // Reset selected model when make changes
@@ -76,25 +99,26 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
           <SelectValue placeholder={selectedMakeId ? "Select Model" : "Select make first"} />
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
-          {selectedMakeId && (makes.length > 0 
-            ? getModelsByMake(selectedMakeId).map(model => (
-                <SelectItem 
-                  key={model.id} 
-                  value={model.model_name}
-                  className="py-2.5 cursor-pointer hover:bg-primary/10"
-                >
-                  {model.model_name}
-                </SelectItem>
-              ))
-            : getModelsForMake(selectedMakeId).map(model => (
-                <SelectItem 
-                  key={model} 
-                  value={model}
-                  className="py-2.5 cursor-pointer hover:bg-primary/10"
-                >
-                  {model}
-                </SelectItem>
-              ))
+          {selectedMakeId && (
+            Array.isArray(availableModels) && availableModels.length > 0 
+              ? availableModels.map(model => (
+                  <SelectItem 
+                    key={model.id} 
+                    value={model.model_name}
+                    className="py-2.5 cursor-pointer hover:bg-primary/10"
+                  >
+                    {model.model_name}
+                  </SelectItem>
+                ))
+              : getModelsForMake(selectedMakeId).map(model => (
+                  <SelectItem 
+                    key={model} 
+                    value={model}
+                    className="py-2.5 cursor-pointer hover:bg-primary/10"
+                  >
+                    {model}
+                  </SelectItem>
+                ))
           )}
         </SelectContent>
       </Select>
