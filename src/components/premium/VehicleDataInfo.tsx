@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Database, FileInput, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function VehicleDataInfo() {
   const { makes, counts, isLoading, refreshData } = useVehicleData();
@@ -34,7 +36,7 @@ export function VehicleDataInfo() {
       if (error) throw error;
       
       if (data.success) {
-        toast.success(data.message);
+        toast.success(data.message || "Successfully imported NHTSA data");
         refreshData(true);
       } else {
         toast.error("Failed to import NHTSA data");
@@ -85,20 +87,29 @@ export function VehicleDataInfo() {
       <div className="flex items-center gap-2">
         <Database className="h-5 w-5 text-slate-500" />
         <div>
-          <p className="text-sm font-medium text-slate-700">
-            Vehicle Database: {counts.makes} makes and {counts.models} models
-          </p>
-          <p className="text-xs text-slate-500">
-            {isLoading ? 'Loading data...' : 'Data loaded from database and cached locally'}
-          </p>
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-slate-700">
+                Vehicle Database: {counts.makes} makes and {counts.models} models
+              </p>
+              <p className="text-xs text-slate-500">
+                Data loaded from database and cached locally
+              </p>
+            </>
+          )}
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap md:flex-nowrap">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={handleExport}
-          disabled={isLoading}
+          disabled={isLoading || counts.makes === 0}
           className="text-xs gap-1"
         >
           <Download className="h-3 w-3" />
@@ -121,7 +132,7 @@ export function VehicleDataInfo() {
           disabled={isLoading}
           className="text-xs gap-1"
         >
-          <RefreshCw className="h-3 w-3" />
+          <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh Data
         </Button>
       </div>

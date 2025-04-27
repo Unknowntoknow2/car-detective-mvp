@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUnifiedDecoder } from '@/hooks/useUnifiedDecoder';
 import { Card } from '@/components/ui/card';
+import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import { Loader2 } from 'lucide-react';
 
 interface FreeValuationFormProps {
   onValuationComplete: () => void;
@@ -15,6 +17,7 @@ export function FreeValuationForm({ onValuationComplete }: FreeValuationFormProp
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
   const { decode, isLoading } = useUnifiedDecoder();
+  const [activeTab, setActiveTab] = useState('vin');
 
   const handleSubmit = async (e: React.FormEvent, type: 'vin' | 'plate' | 'manual') => {
     e.preventDefault();
@@ -33,9 +36,15 @@ export function FreeValuationForm({ onValuationComplete }: FreeValuationFormProp
     }
   };
 
+  const handleManualSubmit = async (data: any) => {
+    // Store the manual entry data and proceed
+    localStorage.setItem('manual_valuation_data', JSON.stringify(data));
+    onValuationComplete();
+  };
+
   return (
     <Card className="p-6">
-      <Tabs defaultValue="vin" className="space-y-6">
+      <Tabs defaultValue="vin" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="vin">VIN</TabsTrigger>
           <TabsTrigger value="plate">License Plate</TabsTrigger>
@@ -58,7 +67,14 @@ export function FreeValuationForm({ onValuationComplete }: FreeValuationFormProp
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading || vin.length !== 17}>
-              {isLoading ? 'Getting Valuation...' : 'Get Free Valuation'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Getting Valuation...
+                </>
+              ) : (
+                'Get Free Valuation'
+              )}
             </Button>
           </form>
         </TabsContent>
@@ -97,15 +113,25 @@ export function FreeValuationForm({ onValuationComplete }: FreeValuationFormProp
               className="w-full" 
               disabled={isLoading || !plate || !state}
             >
-              {isLoading ? 'Getting Valuation...' : 'Get Free Valuation'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Getting Valuation...
+                </>
+              ) : (
+                'Get Free Valuation'
+              )}
             </Button>
           </form>
         </TabsContent>
 
         <TabsContent value="manual" className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Coming soon! For now, please use VIN or license plate lookup.
-          </p>
+          <ManualEntryForm 
+            onSubmit={handleManualSubmit}
+            isLoading={isLoading}
+            submitButtonText="Get Free Valuation"
+            isPremium={false}
+          />
         </TabsContent>
       </Tabs>
     </Card>

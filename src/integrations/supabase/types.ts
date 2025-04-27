@@ -230,7 +230,6 @@ export type Database = {
           created_at: string
           id: string
           logo_url: string | null
-          make_name: string
           nhtsa_make_id: number | null
           updated_at: string | null
         }
@@ -239,7 +238,6 @@ export type Database = {
           created_at?: string
           id?: string
           logo_url?: string | null
-          make_name: string
           nhtsa_make_id?: number | null
           updated_at?: string | null
         }
@@ -248,7 +246,6 @@ export type Database = {
           created_at?: string
           id?: string
           logo_url?: string | null
-          make_name?: string
           nhtsa_make_id?: number | null
           updated_at?: string | null
         }
