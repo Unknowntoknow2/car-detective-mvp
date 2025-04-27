@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
 import { validateVinEnhanced } from '@/utils/validation/enhanced-vin-validation';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
+import { VinSchema } from '@/utils/validation/schemas';
+import { handleApiError } from '@/utils/api/handleApiError';
 
 interface EnhancedVinLookupProps {
   value?: string;
@@ -18,21 +20,44 @@ interface EnhancedVinLookupProps {
 export function EnhancedVinLookup({ 
   value = "", 
   onChange, 
-  onLookup, 
+  onLookup,
   isLoading = false,
   error: externalError
 }: EnhancedVinLookupProps) {
-  const [validationResult, setValidationResult] = useState<ReturnType<typeof validateVinEnhanced>>({ isValid: false });
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
-    if (value) {
-      const result = validateVinEnhanced(value);
-      setValidationResult(result);
-    } else {
-      setValidationResult({ isValid: false });
+    if (value && touched) {
+      try {
+        VinSchema.parse(value);
+        setValidationError(null);
+      } catch (err) {
+        if (err instanceof Error) {
+          setValidationError(err.message);
+        }
+      }
     }
-  }, [value]);
+  }, [value, touched]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.toUpperCase();
+    setTouched(true);
+    onChange?.(newValue);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      VinSchema.parse(value);
+      onLookup?.();
+    } catch (err) {
+      if (err instanceof Error) {
+        setValidationError(err.message);
+      }
+    }
+  };
+
+  const isValid = value && !validationError && !isLoading;
 
   return (
     <div className="space-y-6">
@@ -47,26 +72,22 @@ export function EnhancedVinLookup({
         <div className="relative">
           <Input 
             value={value}
-            onChange={(e) => {
-              const newValue = e.target.value.toUpperCase();
-              setTouched(true);
-              onChange?.(newValue);
-            }}
+            onChange={handleInputChange}
             placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
             className={`text-lg font-mono tracking-wide h-12 pr-10 ${
-              (touched && validationResult.error) ? 'border-red-500 focus-visible:ring-red-500' : 
-              (validationResult.isValid && value) ? 'border-green-500 focus-visible:ring-green-500' : ''
+              (touched && validationError) ? 'border-red-500 focus-visible:ring-red-500' : 
+              (isValid) ? 'border-green-500 focus-visible:ring-green-500' : ''
             }`}
           />
-          {validationResult.isValid && value && !isLoading && (
+          {isValid && !isLoading && (
             <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
           )}
         </div>
         
-        {touched && validationResult.error ? (
+        {touched && validationError ? (
           <FormValidationError 
-            error={validationResult.error}
-            details={validationResult.details}
+            error={validationError}
+            variant="error"
           />
         ) : externalError ? (
           <FormValidationError 
@@ -85,13 +106,13 @@ export function EnhancedVinLookup({
       
       <div className="flex justify-end">
         <Button 
-          onClick={onLookup}
-          disabled={isLoading || !validationResult.isValid}
+          onClick={handleSubmit}
+          disabled={!isValid || isLoading}
           className="px-6"
         >
           {isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Looking up VIN...
             </>
           ) : (
