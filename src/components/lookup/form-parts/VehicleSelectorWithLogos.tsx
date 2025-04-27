@@ -18,24 +18,20 @@ export function VehicleSelectorWithLogos({
   onModelChange,
   disabled = false
 }: VehicleSelectorWithLogosProps) {
-  const { makes = [], getModelsByMake, isLoading } = useVehicleData();
+  const { makes, getModelsByMake, isLoading } = useVehicleData();
   const [filteredModels, setFilteredModels] = useState<any[]>([]);
-
+  
   useEffect(() => {
-    if (selectedMake) {
-      try {
-        const models = getModelsByMake(selectedMake);
-        setFilteredModels(Array.isArray(models) ? models : []);
-      } catch (error) {
-        console.error('Error fetching models:', error);
-        setFilteredModels([]);
-      }
+    if (selectedMake && getModelsByMake) {
+      const models = getModelsByMake(selectedMake);
+      setFilteredModels(Array.isArray(models) ? models : []);
     } else {
       setFilteredModels([]);
     }
   }, [selectedMake, getModelsByMake]);
 
-  if (isLoading) {
+  if (isLoading || !makes) {
+    // 🔥 if makes still loading or undefined
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
@@ -44,42 +40,61 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  const safeMakeOptions = Array.isArray(makes) ? makes.map(make => ({
+  // If no makes available, prevent crash
+  if (!Array.isArray(makes) || makes.length === 0) {
+    return (
+      <div className="text-center text-sm text-muted-foreground">
+        No makes available. Please try again later.
+      </div>
+    );
+  }
+
+  const safeMakeOptions = makes.map((make) => ({
     value: make.make_name,
     label: make.make_name,
     icon: make.logo_url
-  })) : [];
+  }));
 
-  const safeModelOptions = Array.isArray(filteredModels) ? filteredModels.map(model => ({
+  const safeModelOptions = filteredModels.map((model) => ({
     value: model.model_name,
     label: model.model_name
-  })) : [];
+  }));
 
   return (
     <div className="space-y-4">
-      {safeMakeOptions.length > 0 && (
+      {/* ✅ Only render Make ComboBox if safeMakeOptions available */}
+      {safeMakeOptions.length > 0 ? (
         <ComboBox
           items={safeMakeOptions}
           value={selectedMake}
-          onChange={onMakeChange}
+          onChange={(make) => {
+            onMakeChange(make);
+          }}
           placeholder="Select a make"
           emptyText="No makes found"
           disabled={disabled}
           className="w-full"
         />
+      ) : (
+        <Skeleton className="h-10 w-full" />
       )}
-      
-      {selectedMake && safeModelOptions.length > 0 && (
+
+      {/* ✅ Only render Model ComboBox if selectedMake and safeModelOptions available */}
+      {selectedMake && safeModelOptions.length > 0 ? (
         <ComboBox
           items={safeModelOptions}
           value={selectedModel}
-          onChange={onModelChange}
+          onChange={(model) => {
+            onModelChange(model);
+          }}
           placeholder="Select a model"
           emptyText="No models found"
           disabled={disabled}
           className="w-full"
         />
-      )}
+      ) : selectedMake ? (
+        <Skeleton className="h-10 w-full" />
+      ) : null}
     </div>
   );
 }
