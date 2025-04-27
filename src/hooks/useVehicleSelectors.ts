@@ -23,7 +23,7 @@ export function useVehicleSelectors() {
         
         if (data && Array.isArray(data) && data.length > 0) {
           // Ensure data has the correct structure
-          const formattedMakes = data.map(item => {
+          const formattedMakes = data.map((item: any) => {
             // Safely check if item is an error object
             if ('error' in item) {
               return {
@@ -73,7 +73,7 @@ export function useVehicleSelectors() {
         
         if (data && Array.isArray(data) && data.length > 0) {
           // Ensure data has the correct structure
-          const formattedModels = data.map(item => {
+          const formattedModels = data.map((item: any) => {
             // Safe check if item is an error object
             if ('error' in item) {
               return {
