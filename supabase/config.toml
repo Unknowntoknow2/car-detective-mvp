@@ -22,5 +22,8 @@ verify_jwt = false
 [functions.predict]
 verify_jwt = false
 
-[functions.import-vehicle-data]
+[functions.import-nhtsa-data]
+verify_jwt = false
+
+[functions.export-vehicle-data]
 verify_jwt = false
