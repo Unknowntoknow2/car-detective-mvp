@@ -5,6 +5,7 @@ import { RefreshCw, Database, FileInput, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { invokeFunction } from '@/utils/api-utils';
 
 export function VehicleDataInfo() {
   const { makes, counts, isLoading, refreshData } = useVehicleData();
@@ -28,21 +29,17 @@ export function VehicleDataInfo() {
     try {
       toast.loading("Importing data from NHTSA...");
       
-      const { data, error } = await supabase.functions.invoke('import-nhtsa-data', {
-        method: 'POST'
+      const result = await invokeFunction('import-nhtsa-data', {}, {
+        showToast: true,
+        toastMessage: 'Successfully imported NHTSA makes data'
       });
       
-      if (error) throw error;
-      
-      if (data.success) {
-        toast.success(data.message || "Successfully imported NHTSA data");
-        refreshData(true);
-      } else {
-        toast.error("Failed to import NHTSA data");
+      if (result.data?.success) {
+        await refreshData(true);
       }
     } catch (error) {
       console.error('Error importing NHTSA data:', error);
-      toast.error("Error importing data from NHTSA");
+      toast.error("Failed to import NHTSA data");
     }
   };
 
