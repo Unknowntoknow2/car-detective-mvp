@@ -38,7 +38,10 @@ export const useVehicleData = () => {
       const cacheTimestamp = localStorage.getItem('vehicle_data_timestamp');
       const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       const now = Date.now();
-      const isCacheValid = cacheTimestamp && (now - parseInt(cacheTimestamp)) < cacheExpiry;
+      
+      // Validate that the cache timestamp is a valid number
+      const parsedTimestamp = cacheTimestamp ? parseInt(cacheTimestamp) : 0;
+      const isCacheValid = !isNaN(parsedTimestamp) && (now - parsedTimestamp) < cacheExpiry;
       
       let makesData: Make[] = [];
       let modelsData: Model[] = [];
@@ -122,10 +125,12 @@ export const useVehicleData = () => {
         throw makesError;
       }
       
-      if (makesData && makesData.length > 0) {
-        setMakes(makesData);
-        localStorage.setItem('vehicle_makes', JSON.stringify(makesData));
-        console.log(`Loaded ${makesData.length} makes from the database`);
+      const validMakesData = Array.isArray(makesData) ? makesData : [];
+      
+      if (validMakesData.length > 0) {
+        setMakes(validMakesData);
+        localStorage.setItem('vehicle_makes', JSON.stringify(validMakesData));
+        console.log(`Loaded ${validMakesData.length} makes from the database`);
       } else {
         console.warn('No makes found in database, using fallback data');
         const fallbackData = getFallbackMakes();
@@ -144,16 +149,18 @@ export const useVehicleData = () => {
         throw modelsError;
       }
       
-      if (modelsData && modelsData.length > 0) {
-        setModels(modelsData);
-        localStorage.setItem('vehicle_models', JSON.stringify(modelsData));
-        console.log(`Loaded ${modelsData.length} models from the database`);
+      const validModelsData = Array.isArray(modelsData) ? modelsData : [];
+      
+      if (validModelsData.length > 0) {
+        setModels(validModelsData);
+        localStorage.setItem('vehicle_models', JSON.stringify(validModelsData));
+        console.log(`Loaded ${validModelsData.length} models from the database`);
       } else {
         console.warn('No models found in database, using fallback models');
         
         // Generate fallback models for each make
         let allFallbackModels: Model[] = [];
-        const mData = makesData && makesData.length > 0 ? makesData : getFallbackMakes();
+        const mData = validMakesData.length > 0 ? validMakesData : getFallbackMakes();
         
         mData.forEach(make => {
           const makeModels = getFallbackModels(make.id);
@@ -167,7 +174,7 @@ export const useVehicleData = () => {
       // Update cache timestamp
       localStorage.setItem('vehicle_data_timestamp', Date.now().toString());
       
-      return { makes: makesData, models: modelsData };
+      return { makes: validMakesData, models: validModelsData };
     } catch (err) {
       console.error('Error refreshing vehicle data:', err);
       toast.error('Failed to load vehicle data. Using cached data if available.');
