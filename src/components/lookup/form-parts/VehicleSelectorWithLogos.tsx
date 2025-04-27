@@ -19,14 +19,19 @@ export function VehicleSelectorWithLogos({
   disabled = false
 }: VehicleSelectorWithLogosProps) {
   const { makes, getModelsByMake, isLoading } = useVehicleData();
-  const [filteredModels, setFilteredModels] = useState<any[]>([]);
+  const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
 
   useEffect(() => {
-    if (selectedMake && getModelsByMake) {
-      const models = getModelsByMake(selectedMake);
-      setFilteredModels(Array.isArray(models) ? models : []);
+    if (selectedMake) {
+      const fetchedModels = getModelsByMake(selectedMake) || [];
+      const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
+      const mappedModels = safeModels.map(model => ({
+        value: model.model_name,
+        label: model.model_name
+      }));
+      setModelOptions(mappedModels);
     } else {
-      setFilteredModels([]);
+      setModelOptions([]);
     }
   }, [selectedMake, getModelsByMake]);
 
@@ -39,19 +44,11 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  const safeMakes = Array.isArray(makes) ? makes : [];
-  const safeModels = Array.isArray(filteredModels) ? filteredModels : [];
-
-  const safeMakeOptions = safeMakes.map((make) => ({
-    value: make.make_name || '',
-    label: make.make_name || '',
-    icon: make.logo_url || undefined,
-  }));
-
-  const safeModelOptions = safeModels.map((model) => ({
-    value: model.model_name || '',
-    label: model.model_name || '',
-  }));
+  const safeMakeOptions = Array.isArray(makes) ? makes.map(make => ({
+    value: make.make_name,
+    label: make.make_name,
+    icon: make.logo_url
+  })) : [];
 
   return (
     <div className="space-y-4">
@@ -60,28 +57,23 @@ export function VehicleSelectorWithLogos({
         value={selectedMake}
         onChange={(make) => {
           onMakeChange(make);
-          onModelChange(''); // Clear model when make changes
+          onModelChange(""); // Reset model when make changes
         }}
         placeholder="Select a make"
         emptyText="No makes found"
         disabled={disabled}
         className="w-full"
       />
-
-      {/* Only show model select if a make is selected */}
-      {selectedMake && (
-        <ComboBox
-          items={safeModelOptions}
-          value={selectedModel}
-          onChange={(model) => {
-            onModelChange(model);
-          }}
-          placeholder="Select a model"
-          emptyText="No models found"
-          disabled={!selectedMake || disabled}
-          className="w-full"
-        />
-      )}
+      
+      <ComboBox
+        items={modelOptions}
+        value={selectedModel}
+        onChange={(model) => onModelChange(model)}
+        placeholder={selectedMake ? "Select a model" : "Select a make first"}
+        emptyText="No models found"
+        disabled={!selectedMake || disabled}
+        className="w-full"
+      />
     </div>
   );
 }
