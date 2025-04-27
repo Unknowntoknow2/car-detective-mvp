@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -28,7 +29,6 @@ serve(async (req) => {
     const makes = makesData.Results || [];
 
     let importedMakes = 0;
-    let importedModels = 0;
 
     // Process makes in batches
     for (const make of makes) {
@@ -41,6 +41,7 @@ serve(async (req) => {
           .upsert({
             make_name: makeName,
             nhtsa_make_id: make.Make_ID,
+            logo_url: null  // You can add logo URL fetching logic later
           })
           .select()
           .single();
@@ -51,46 +52,6 @@ serve(async (req) => {
         }
 
         importedMakes++;
-
-        // Fetch models for this make
-        console.log(`Fetching models for ${makeName}...`);
-        const modelsRes = await fetch(
-          `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeId/${make.Make_ID}?format=json`
-        );
-        
-        if (!modelsRes.ok) {
-          console.error(`Failed to fetch models for make ${makeName}: status ${modelsRes.status}`);
-          continue;
-        }
-        
-        const modelsData = await modelsRes.json();
-        const models = modelsData.Results || [];
-
-        // Insert models
-        for (const model of models) {
-          try {
-            const modelName = model.Model_Name.trim();
-            
-            const { error: modelError } = await supabase
-              .from('models')
-              .upsert({
-                make_id: insertedMake.id,
-                model_name: modelName,
-                nhtsa_model_id: model.Model_ID
-              }, {
-                onConflict: 'make_id,model_name'
-              });
-
-            if (modelError) {
-              console.error(`Error inserting model ${modelName}:`, modelError);
-              continue;
-            }
-
-            importedModels++;
-          } catch (modelErr) {
-            console.error(`Error processing model ${model.Model_Name}:`, modelErr);
-          }
-        }
       } catch (makeErr) {
         console.error(`Error processing make ${make.Make_Name}:`, makeErr);
       }
@@ -100,8 +61,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         makeCount: importedMakes,
-        modelCount: importedModels,
-        message: `Successfully imported ${importedMakes} makes and ${importedModels} models`
+        message: `Successfully imported ${importedMakes} makes`
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
