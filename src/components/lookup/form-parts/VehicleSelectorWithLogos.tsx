@@ -1,3 +1,15 @@
+import React, { useState, useEffect } from 'react';
+import { useVehicleData } from '@/hooks/useVehicleData';
+import { ComboBox } from '@/components/ui/combobox';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface VehicleSelectorWithLogosProps {
+  selectedMake: string;
+  onMakeChange: (make: string) => void;
+  selectedModel: string;
+  onModelChange: (model: string) => void;
+  disabled?: boolean;
+}
 
 export function VehicleSelectorWithLogos({
   selectedMake,
@@ -6,9 +18,10 @@ export function VehicleSelectorWithLogos({
   onModelChange,
   disabled = false
 }: VehicleSelectorWithLogosProps) {
-  const { makes = [], getModelsByMake, isLoading } = useVehicleData(); // 👈 default empty array
+  // Always default makes to empty array if loading
+  const { makes = [], getModelsByMake, isLoading } = useVehicleData();
   const [filteredModels, setFilteredModels] = useState<any[]>([]);
-  
+
   useEffect(() => {
     if (selectedMake) {
       try {
@@ -46,7 +59,7 @@ export function VehicleSelectorWithLogos({
   return (
     <div className="space-y-4">
       <ComboBox
-        items={safeMakeOptions}
+        items={safeMakeOptions || []}   {/* SAFETY ADDED */}
         value={selectedMake}
         onChange={onMakeChange}
         placeholder="Select a make"
@@ -56,7 +69,7 @@ export function VehicleSelectorWithLogos({
       />
       
       <ComboBox
-        items={safeModelOptions}
+        items={safeModelOptions || []}  {/* SAFETY ADDED */}
         value={selectedModel}
         onChange={onModelChange}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}
