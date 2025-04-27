@@ -1,6 +1,9 @@
 
 import React from 'react';
-import { Command } from '@/components/ui/command';
+import {
+  CommandGroup,
+  CommandItem
+} from '@/components/ui/command';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Model } from '@/hooks/useVehicleData';
@@ -16,9 +19,9 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
   const safeModels = Array.isArray(models) ? models : [];
 
   return (
-    <Command.Group className="max-h-[250px] overflow-y-auto">
+    <CommandGroup className="max-h-[250px] overflow-y-auto">
       {safeModels.map((model) => (
-        <Command.Item
+        <CommandItem
           key={model.id || `model-${model.model_name}`}
           value={model.model_name}
           onSelect={onSelect}
@@ -32,8 +35,8 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
             )}
           />
           {model.model_name}
-        </Command.Item>
+        </CommandItem>
       ))}
-    </Command.Group>
+    </CommandGroup>
   );
 }

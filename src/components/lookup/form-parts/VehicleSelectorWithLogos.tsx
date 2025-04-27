@@ -1,6 +1,12 @@
 
 import React, { useState } from 'react';
-import { Command } from '@/components/ui/command';
+import {
+  Command,
+  CommandInput,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem
+} from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { ChevronsUpDown, Loader2 } from 'lucide-react';
@@ -84,8 +90,8 @@ export function VehicleSelectorWithLogos({
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
             <Command>
-              <Command.Input placeholder="Search make..." className="h-9" />
-              <Command.Empty>No make found.</Command.Empty>
+              <CommandInput placeholder="Search make..." className="h-9" />
+              <CommandEmpty>No make found.</CommandEmpty>
               <MakeSelector
                 makes={makes}
                 selectedMake={selectedMake}
@@ -121,8 +127,8 @@ export function VehicleSelectorWithLogos({
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
             <Command>
-              <Command.Input placeholder="Search model..." className="h-9" />
-              <Command.Empty>No model found.</Command.Empty>
+              <CommandInput placeholder="Search model..." className="h-9" />
+              <CommandEmpty>No model found.</CommandEmpty>
               <ModelSelector
                 models={selectedMake ? getModelsByMake(selectedMake) : []}
                 selectedModel={selectedModel}

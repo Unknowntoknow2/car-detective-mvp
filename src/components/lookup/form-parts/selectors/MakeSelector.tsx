@@ -1,6 +1,9 @@
 
 import React from 'react';
-import { Command } from '@/components/ui/command';
+import {
+  CommandGroup,
+  CommandItem
+} from '@/components/ui/command';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Make } from '@/hooks/useVehicleData';
@@ -16,9 +19,9 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
   const safeMakes = Array.isArray(makes) ? makes : [];
 
   return (
-    <Command.Group className="max-h-[250px] overflow-y-auto">
+    <CommandGroup className="max-h-[250px] overflow-y-auto">
       {safeMakes.map((make) => (
-        <Command.Item
+        <CommandItem
           key={make.id || `make-${make.make_name}`}
           value={make.make_name}
           onSelect={onSelect}
@@ -45,8 +48,8 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
             )}
             <span>{make.make_name}</span>
           </div>
-        </Command.Item>
+        </CommandItem>
       ))}
-    </Command.Group>
+    </CommandGroup>
   );
 }
