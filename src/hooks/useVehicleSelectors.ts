@@ -21,12 +21,15 @@ export function useVehicleSelectors() {
           
         if (error) throw error;
         
-        if (data && data.length > 0) {
+        if (data && Array.isArray(data) && data.length > 0) {
           // Ensure data has the correct structure
-          const formattedMakes = data.map(make => ({
-            id: make.id,
-            make_name: make.make_name || make.make || ''
-          }));
+          const formattedMakes = data.map(make => {
+            // Handle both possible formats of data
+            return {
+              id: make.id || '',
+              make_name: make.make_name || ''
+            };
+          });
           setMakes(formattedMakes);
         } else {
           setMakes([]);
@@ -60,12 +63,14 @@ export function useVehicleSelectors() {
           
         if (error) throw error;
         
-        if (data && data.length > 0) {
+        if (data && Array.isArray(data) && data.length > 0) {
           // Ensure data has the correct structure
-          const formattedModels = data.map(model => ({
-            id: model.id,
-            model_name: model.model_name || model.model || ''
-          }));
+          const formattedModels = data.map(model => {
+            return {
+              id: model.id || '',
+              model_name: model.model_name || ''
+            };
+          });
           setModels(formattedModels);
         } else {
           setModels([]);
