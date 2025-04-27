@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import React, { useState } from 'react';
+import { Command } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronsUpDown, Loader2 } from 'lucide-react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { MakeSelector } from './selectors/MakeSelector';
+import { ModelSelector } from './selectors/ModelSelector';
 
 interface VehicleSelectorWithLogosProps {
   selectedMake: string;
@@ -28,64 +29,6 @@ export function VehicleSelectorWithLogos({
   const [makeOpen, setMakeOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
   const { makes, getModelsByMake, isLoading, error } = useVehicleData();
-  const [models, setModels] = useState<any[]>([]);
-
-  // Ensure we have valid arrays
-  const safeMakes = Array.isArray(makes) ? makes : [];
-
-  // Log the makes data to debug
-  useEffect(() => {
-    console.log("VehicleSelectorWithLogos - Available makes:", { 
-      count: safeMakes.length,
-      sample: safeMakes.slice(0, 3),
-      selectedMake
-    });
-  }, [safeMakes, selectedMake]);
-
-  // Update models when make changes
-  useEffect(() => {
-    try {
-      if (selectedMake) {
-        console.log("Fetching models for make:", selectedMake);
-        const availableModels = getModelsByMake(selectedMake);
-        const safeModels = Array.isArray(availableModels) ? availableModels : [];
-        console.log(`Models for ${selectedMake}:`, { 
-          count: safeModels.length,
-          sample: safeModels.slice(0, 3)
-        });
-        setModels(safeModels);
-      } else {
-        setModels([]);
-      }
-    } catch (error) {
-      console.error("Error updating models:", error);
-      setModels([]);
-    }
-  }, [selectedMake, getModelsByMake]);
-
-  const handleMakeSelect = (make: string) => {
-    try {
-      console.log("Selected make:", make);
-      onMakeChange(make);
-      onModelChange(''); // Reset model when make changes
-      setMakeOpen(false);
-    } catch (error) {
-      console.error("Error selecting make:", error);
-    }
-  };
-
-  const handleModelSelect = (model: string) => {
-    try {
-      console.log("Selected model:", model);
-      onModelChange(model);
-      setModelOpen(false);
-    } catch (error) {
-      console.error("Error selecting model:", error);
-    }
-  };
-
-  // Ensure we have a valid array for models
-  const safeModels = Array.isArray(models) ? models : [];
 
   if (isLoading) {
     return (
@@ -107,7 +50,7 @@ export function VehicleSelectorWithLogos({
 
   return (
     <ErrorBoundary>
-      <div className={cn("grid gap-4", className)}>
+      <div className="grid gap-4">
         <Popover open={makeOpen} onOpenChange={setMakeOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -120,9 +63,9 @@ export function VehicleSelectorWithLogos({
             >
               {selectedMake ? (
                 <div className="flex items-center gap-2">
-                  {safeMakes.find(m => m.make_name === selectedMake)?.logo_url && (
+                  {makes.find(m => m.make_name === selectedMake)?.logo_url && (
                     <img
-                      src={safeMakes.find(m => m.make_name === selectedMake)?.logo_url || ''}
+                      src={makes.find(m => m.make_name === selectedMake)?.logo_url || ''}
                       alt={`${selectedMake} logo`}
                       className="w-6 h-6 object-contain"
                       onError={(e) => {
@@ -140,47 +83,19 @@ export function VehicleSelectorWithLogos({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-            {safeMakes.length > 0 ? (
-              <Command>
-                <CommandInput placeholder="Search make..." className="h-9" />
-                <CommandEmpty>No make found.</CommandEmpty>
-                <CommandGroup className="max-h-[250px] overflow-y-auto">
-                  {safeMakes.map((make) => (
-                    <CommandItem
-                      key={make.id || `make-${make.make_name}`}
-                      value={make.make_name}
-                      onSelect={() => handleMakeSelect(make.make_name)}
-                      className="flex items-center gap-2 py-2"
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedMake === make.make_name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div className="flex items-center gap-2">
-                        {make.logo_url && (
-                          <img
-                            src={make.logo_url}
-                            alt={`${make.make_name} logo`}
-                            className="w-6 h-6 object-contain"
-                            onError={(e) => {
-                              console.log("Image load error");
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        )}
-                        <span>{make.make_name}</span>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            ) : (
-              <div className="p-4 text-center text-muted-foreground">
-                No makes available
-              </div>
-            )}
+            <Command>
+              <Command.Input placeholder="Search make..." className="h-9" />
+              <Command.Empty>No make found.</Command.Empty>
+              <MakeSelector
+                makes={makes}
+                selectedMake={selectedMake}
+                onSelect={(make) => {
+                  onMakeChange(make);
+                  setMakeOpen(false);
+                }}
+                disabled={disabled}
+              />
+            </Command>
           </PopoverContent>
         </Popover>
 
@@ -205,34 +120,19 @@ export function VehicleSelectorWithLogos({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0 max-h-[300px] overflow-hidden">
-            {safeModels.length > 0 ? (
-              <Command>
-                <CommandInput placeholder="Search model..." className="h-9" />
-                <CommandEmpty>No model found.</CommandEmpty>
-                <CommandGroup className="max-h-[250px] overflow-y-auto">
-                  {safeModels.map((model) => (
-                    <CommandItem
-                      key={model.id || `model-${model.model_name}`}
-                      value={model.model_name}
-                      onSelect={() => handleModelSelect(model.model_name)}
-                      className="py-2"
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedModel === model.model_name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {model.model_name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </Command>
-            ) : (
-              <div className="p-4 text-center text-muted-foreground">
-                {selectedMake ? "No models available for this make" : "Select a make first"}
-              </div>
-            )}
+            <Command>
+              <Command.Input placeholder="Search model..." className="h-9" />
+              <Command.Empty>No model found.</Command.Empty>
+              <ModelSelector
+                models={selectedMake ? getModelsByMake(selectedMake) : []}
+                selectedModel={selectedModel}
+                onSelect={(model) => {
+                  onModelChange(model);
+                  setModelOpen(false);
+                }}
+                disabled={disabled}
+              />
+            </Command>
           </PopoverContent>
         </Popover>
       </div>
