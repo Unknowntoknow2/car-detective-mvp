@@ -31,8 +31,20 @@ export async function fetchVehicleData() {
     // Check if we have enough data from direct query
     if (makesResult.data && makesResult.data.length > 0 && modelsResult.data && modelsResult.data.length > 0) {
       console.log(`Successfully fetched ${makesResult.data.length} makes and ${modelsResult.data.length} models directly from database`);
+      
+      // Transform the data to ensure it has the expected structure
+      const makes = makesResult.data.map(make => ({
+        id: make.id,
+        make_name: make.make_name,
+        logo_url: make.logo_url,
+        nhtsa_make_id: make.nhtsa_make_id,
+        country_of_origin: make.country_of_origin,
+        description: make.description,
+        founding_year: make.founding_year
+      }));
+      
       return {
-        makes: makesResult.data,
+        makes,
         models: modelsResult.data
       };
     }

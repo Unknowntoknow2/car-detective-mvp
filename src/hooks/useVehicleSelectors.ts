@@ -20,7 +20,17 @@ export function useVehicleSelectors() {
           .order('make_name');
           
         if (error) throw error;
-        setMakes(data || []);
+        
+        if (data && data.length > 0) {
+          // Ensure data has the correct structure
+          const formattedMakes = data.map(make => ({
+            id: make.id,
+            make_name: make.make_name || make.make || ''
+          }));
+          setMakes(formattedMakes);
+        } else {
+          setMakes([]);
+        }
       } catch (err) {
         console.error('Error fetching makes:', err);
         setError('Failed to load vehicle makes');
@@ -49,7 +59,17 @@ export function useVehicleSelectors() {
           .order('model_name');
           
         if (error) throw error;
-        setModels(data || []);
+        
+        if (data && data.length > 0) {
+          // Ensure data has the correct structure
+          const formattedModels = data.map(model => ({
+            id: model.id,
+            model_name: model.model_name || model.model || ''
+          }));
+          setModels(formattedModels);
+        } else {
+          setModels([]);
+        }
       } catch (err) {
         console.error('Error fetching models:', err);
         setError('Failed to load vehicle models');
