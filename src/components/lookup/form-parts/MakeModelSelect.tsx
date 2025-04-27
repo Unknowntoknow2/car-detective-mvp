@@ -39,7 +39,7 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
     console.log("MakeModelSelect current values:", { 
       make: selectedMake, 
       model: selectedModel,
-      availableModels: availableModels
+      availableModelsCount: availableModels ? availableModels.length : 0 
     });
   }, [selectedMake, selectedModel, availableModels]);
 
@@ -59,7 +59,7 @@ export function MakeModelSelect({ form }: MakeModelSelectProps) {
                   field.onChange(make);
                   form.setValue('model', ''); // Reset model when make changes
                 }}
-                selectedModel={form.getValues('model') || ''}
+                selectedModel={selectedModel}
                 onModelChange={(model) => {
                   console.log("Setting model to:", model);
                   form.setValue('model', model);

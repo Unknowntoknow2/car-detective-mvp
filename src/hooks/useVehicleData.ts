@@ -35,37 +35,49 @@ export const useVehicleData = () => {
       // First check if we have makes cached in localStorage
       const cachedMakes = localStorage.getItem('vehicle_makes');
       const cachedModels = localStorage.getItem('vehicle_models');
+      const cacheTimestamp = localStorage.getItem('vehicle_data_timestamp');
+      const cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      const now = Date.now();
+      const isCacheValid = cacheTimestamp && (now - parseInt(cacheTimestamp)) < cacheExpiry;
       
       let makesData: Make[] = [];
       let modelsData: Model[] = [];
       
-      if (cachedMakes && cachedModels) {
+      if (cachedMakes && cachedModels && isCacheValid) {
         try {
           // Use cached data first for fast loading
           makesData = JSON.parse(cachedMakes);
           modelsData = JSON.parse(cachedModels);
           
-          if (Array.isArray(makesData) && Array.isArray(modelsData)) {
+          if (Array.isArray(makesData) && Array.isArray(modelsData) && makesData.length > 0) {
             setMakes(makesData);
             setModels(modelsData);
             
             console.log(`Loaded ${makesData.length} makes and ${modelsData.length} models from cache`);
+            
+            // Set loading to false here since we successfully loaded cached data
+            setIsLoading(false);
+            
+            // Refresh data in the background after returning cached data
+            refreshData().catch(err => {
+              console.error("Background refresh error:", err);
+            });
+            
+            return;
           } else {
             console.warn("Cache data is not in expected array format, fetching from API");
             // If cached data is invalid, proceed to fetch from API
-            await refreshData();
           }
         } catch (parseError) {
           console.error("Error parsing cached data:", parseError);
           // If parsing fails, proceed to fetch from API
-          await refreshData();
         }
-      } else {
-        // No cache, fetch directly
-        const freshData = await refreshData();
-        if (!freshData) {
-          throw new Error("Failed to load vehicle data");
-        }
+      }
+      
+      // No valid cache, fetch directly
+      const freshData = await refreshData();
+      if (!freshData) {
+        throw new Error("Failed to load vehicle data");
       }
     } catch (err: any) {
       console.error('Error fetching vehicle data:', err);
@@ -88,6 +100,7 @@ export const useVehicleData = () => {
         // Cache the fallback data
         localStorage.setItem('vehicle_makes', JSON.stringify(fallbackMakes));
         localStorage.setItem('vehicle_models', JSON.stringify(allFallbackModels));
+        localStorage.setItem('vehicle_data_timestamp', Date.now().toString());
       }
     } finally {
       setIsLoading(false);
@@ -131,11 +144,28 @@ export const useVehicleData = () => {
         throw modelsError;
       }
       
-      if (modelsData) {
+      if (modelsData && modelsData.length > 0) {
         setModels(modelsData);
         localStorage.setItem('vehicle_models', JSON.stringify(modelsData));
         console.log(`Loaded ${modelsData.length} models from the database`);
+      } else {
+        console.warn('No models found in database, using fallback models');
+        
+        // Generate fallback models for each make
+        let allFallbackModels: Model[] = [];
+        const mData = makesData && makesData.length > 0 ? makesData : getFallbackMakes();
+        
+        mData.forEach(make => {
+          const makeModels = getFallbackModels(make.id);
+          allFallbackModels = [...allFallbackModels, ...makeModels];
+        });
+        
+        setModels(allFallbackModels);
+        localStorage.setItem('vehicle_models', JSON.stringify(allFallbackModels));
       }
+      
+      // Update cache timestamp
+      localStorage.setItem('vehicle_data_timestamp', Date.now().toString());
       
       return { makes: makesData, models: modelsData };
     } catch (err) {

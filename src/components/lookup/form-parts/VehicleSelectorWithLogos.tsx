@@ -117,9 +117,9 @@ export function VehicleSelectorWithLogos({
           <Command>
             <CommandInput placeholder="Search make..." className="h-9" />
             <CommandEmpty>No make found.</CommandEmpty>
-            <CommandGroup className="max-h-[250px] overflow-y-auto">
-              {safeMakes.length > 0 ? (
-                safeMakes.map((make) => (
+            {safeMakes.length > 0 ? (
+              <CommandGroup className="max-h-[250px] overflow-y-auto">
+                {safeMakes.map((make) => (
                   <CommandItem
                     key={make.id || `make-${make.make_name}`}
                     value={make.make_name}
@@ -143,11 +143,11 @@ export function VehicleSelectorWithLogos({
                       <span>{make.make_name}</span>
                     </div>
                   </CommandItem>
-                ))
-              ) : (
-                <div className="p-2 text-sm text-muted-foreground">No makes available</div>
-              )}
-            </CommandGroup>
+                ))}
+              </CommandGroup>
+            ) : (
+              <div className="p-2 text-sm text-muted-foreground">No makes available</div>
+            )}
           </Command>
         </PopoverContent>
       </Popover>
@@ -176,9 +176,9 @@ export function VehicleSelectorWithLogos({
           <Command>
             <CommandInput placeholder="Search model..." className="h-9" />
             <CommandEmpty>No model found.</CommandEmpty>
-            <CommandGroup className="max-h-[250px] overflow-y-auto">
-              {safeModels.length > 0 ? (
-                safeModels.map((model) => (
+            {safeModels.length > 0 ? (
+              <CommandGroup className="max-h-[250px] overflow-y-auto">
+                {safeModels.map((model) => (
                   <CommandItem
                     key={model.id || `model-${model.model_name}`}
                     value={model.model_name}
@@ -193,11 +193,11 @@ export function VehicleSelectorWithLogos({
                     />
                     {model.model_name}
                   </CommandItem>
-                ))
-              ) : (
-                <div className="p-2 text-sm text-muted-foreground">No models available</div>
-              )}
-            </CommandGroup>
+                ))}
+              </CommandGroup>
+            ) : (
+              <div className="p-2 text-sm text-muted-foreground">No models available</div>
+            )}
           </Command>
         </PopoverContent>
       </Popover>
