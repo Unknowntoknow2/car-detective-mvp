@@ -1,7 +1,6 @@
 
 import React from 'react';
 import {
-  CommandGroup,
   CommandItem
 } from '@/components/ui/command';
 import { Check } from 'lucide-react';
@@ -19,7 +18,7 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
   const safeMakes = Array.isArray(makes) ? makes : [];
 
   return (
-    <CommandGroup className="max-h-[250px] overflow-y-auto">
+    <>
       {safeMakes.map((make) => (
         <CommandItem
           key={make.id || `make-${make.make_name}`}
@@ -50,6 +49,6 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
           </div>
         </CommandItem>
       ))}
-    </CommandGroup>
+    </>
   );
 }

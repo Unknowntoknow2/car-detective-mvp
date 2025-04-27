@@ -1,7 +1,6 @@
 
 import React from 'react';
 import {
-  CommandGroup,
   CommandItem
 } from '@/components/ui/command';
 import { Check } from 'lucide-react';
@@ -24,7 +23,7 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
   }
 
   return (
-    <CommandGroup className="max-h-[250px] overflow-y-auto">
+    <>
       {safeModels.map((model) => (
         <CommandItem
           key={model.id || `model-${model.model_name}`}
@@ -42,6 +41,6 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
           {model.model_name}
         </CommandItem>
       ))}
-    </CommandGroup>
+    </>
   );
 }
