@@ -52,8 +52,8 @@ export const VehicleSelectorWrapper = ({
   }
 
   if (error) {
-    // Convert Error object to string if needed
-    const errorMessage = typeof error === 'string' ? error : error.message || 'An unknown error occurred';
+    // Convert any error to string safely
+    const errorMessage = typeof error === 'string' ? error : String(error);
     return <ErrorMessage error={errorMessage} />;
   }
 

@@ -16,6 +16,10 @@ export interface Model {
   nhtsa_model_id?: number | null;
 }
 
+export interface ModelsByMake {
+  [key: string]: Model[];
+}
+
 export interface VehicleDataHook {
   makes: Make[];
   models: Model[];
