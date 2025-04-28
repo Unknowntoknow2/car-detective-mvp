@@ -2,27 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-export type Make = {
-  id: string;
-  make_name: string;
-  logo_url: string | null;
-  country_of_origin: string | null;
-};
-
-export type Model = {
-  id: string;
-  model_name: string;
-  make_id: string;
-  popular: boolean;
-};
-
-export type ModelTrim = {
-  id: string;
-  model_id: string;
-  trim_name: string;
-  engine_type: string | null;
-};
+import { Make, Model } from './types/vehicle';
 
 export function useVehicleSelectors() {
   const [makes, setMakes] = useState<Make[]>([]);
@@ -47,9 +27,17 @@ export function useVehicleSelectors() {
         
         if (error) throw error;
         
-        // Ensure we set an empty array if data is null or undefined
-        setMakes(data || []);
-        console.log(`Loaded ${data?.length || 0} makes`);
+        // Transform the data to match the Make type
+        const transformedMakes: Make[] = (data || []).map(item => ({
+          id: item.id,
+          make_name: item.make_name,
+          logo_url: null,
+          country_of_origin: null,
+          nhtsa_make_id: item.make_id // Map the database make_id to nhtsa_make_id
+        }));
+        
+        setMakes(transformedMakes);
+        console.log(`Loaded ${transformedMakes.length || 0} makes`);
       } catch (err) {
         console.error('Error fetching makes:', err);
         setError('Failed to load vehicle makes');
@@ -84,9 +72,17 @@ export function useVehicleSelectors() {
         
         if (error) throw error;
         
-        // Ensure we set an empty array if data is null or undefined
-        setModels(data || []);
-        console.log(`Loaded ${data?.length || 0} models for make ${selectedMakeId}`);
+        // Transform the data to match the Model type
+        const transformedModels: Model[] = (data || []).map(item => ({
+          id: item.id,
+          make_id: item.make_id,
+          model_name: item.model_name,
+          nhtsa_model_id: null,
+          popular: false // Add the missing property
+        }));
+        
+        setModels(transformedModels);
+        console.log(`Loaded ${transformedModels.length || 0} models for make ${selectedMakeId}`);
       } catch (err) {
         console.error('Error fetching models:', err);
         setError('Failed to load vehicle models');
@@ -100,6 +96,14 @@ export function useVehicleSelectors() {
     
     loadModels();
   }, [selectedMakeId]);
+
+  // Define the ModelTrim type
+  type ModelTrim = {
+    id: string;
+    model_id: string;
+    trim_name: string;
+    engine_type: string | null;
+  };
 
   // Fetch trims when model is selected
   useEffect(() => {
