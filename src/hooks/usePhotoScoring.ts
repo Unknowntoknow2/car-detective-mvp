@@ -50,15 +50,16 @@ export function usePhotoScoring(valuationId: string) {
         .from('vehicle-photos')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true,
-          onUploadProgress: (progress) => {
-            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
-          }
+          upsert: true
         });
         
       if (uploadError) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
+      
+      // Since we can't track progress directly in the newer Supabase versions,
+      // we'll simulate progress for better UX
+      setUploadProgress(100);
       
       // Get public URL for the uploaded image
       const { data: { publicUrl } } = supabase.storage
