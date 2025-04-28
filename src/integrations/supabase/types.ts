@@ -226,31 +226,22 @@ export type Database = {
       }
       makes: {
         Row: {
-          country_of_origin: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          logo_url: string | null
+          make_id: number | null
           make_name: string
-          nhtsa_make_id: number | null
-          updated_at: string | null
         }
         Insert: {
-          country_of_origin?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          logo_url?: string | null
+          make_id?: number | null
           make_name: string
-          nhtsa_make_id?: number | null
-          updated_at?: string | null
         }
         Update: {
-          country_of_origin?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          logo_url?: string | null
+          make_id?: number | null
           make_name?: string
-          nhtsa_make_id?: number | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -317,46 +308,26 @@ export type Database = {
           trim_name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "model_trims_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       models: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          make_id: string | null
+          make_id: number | null
           model_name: string
-          nhtsa_model_id: number | null
-          nice_name: string | null
-          popular: boolean | null
-          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          make_id?: string | null
+          make_id?: number | null
           model_name: string
-          nhtsa_model_id?: number | null
-          nice_name?: string | null
-          popular?: boolean | null
-          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          make_id?: string | null
+          make_id?: number | null
           model_name?: string
-          nhtsa_model_id?: number | null
-          nice_name?: string | null
-          popular?: boolean | null
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -364,7 +335,7 @@ export type Database = {
             columns: ["make_id"]
             isOneToOne: false
             referencedRelation: "makes"
-            referencedColumns: ["id"]
+            referencedColumns: ["make_id"]
           },
         ]
       }
@@ -412,6 +383,33 @@ export type Database = {
           },
         ]
       }
+      photo_scores: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          score: number
+          thumbnail_url: string | null
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          score: number
+          thumbnail_url?: string | null
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          score?: number
+          thumbnail_url?: string | null
+          valuation_id?: string
+        }
+        Relationships: []
+      }
       plate_lookups: {
         Row: {
           color: string | null
@@ -442,6 +440,24 @@ export type Database = {
           plate?: string
           state?: string
           year?: number | null
+        }
+        Relationships: []
+      }
+      pricing_curves: {
+        Row: {
+          condition: string
+          multiplier: number
+          zip_code: string
+        }
+        Insert: {
+          condition: string
+          multiplier: number
+          zip_code: string
+        }
+        Update: {
+          condition?: string
+          multiplier?: number
+          zip_code?: string
         }
         Relationships: []
       }
@@ -656,6 +672,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vehicle_history_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          vin: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type: string
+          id?: string
+          vin: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          vin?: string
+        }
+        Relationships: []
       }
     }
     Views: {
