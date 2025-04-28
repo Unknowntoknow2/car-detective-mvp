@@ -92,9 +92,9 @@ export function ComboBox({
                   <CommandItem
                     key={item.value}
                     value={item.value}
-                    onSelect={() => {
-                      console.log("ComboBox item selected:", item.value);
-                      onChange(item.value);
+                    onSelect={(currentValue) => {
+                      console.log("ComboBox item selected:", currentValue);
+                      onChange(currentValue);
                       setOpen(false);
                     }}
                     className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
