@@ -4,6 +4,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
 import { VehicleSelectorWithLogos } from './VehicleSelectorWithLogos';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { useEffect } from 'react';
 
 interface MakeModelSelectProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -13,6 +14,14 @@ interface MakeModelSelectProps {
 export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectProps) {
   const selectedMake = form.watch('make') || '';
   const selectedModel = form.watch('model') || '';
+
+  // Debug log when form values change
+  useEffect(() => {
+    console.log("MakeModelSelect: form values updated:", {
+      make: selectedMake,
+      model: selectedModel
+    });
+  }, [selectedMake, selectedModel]);
 
   return (
     <ErrorBoundary>
@@ -27,14 +36,14 @@ export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectPro
                 <VehicleSelectorWithLogos
                   selectedMake={field.value || ''}
                   onMakeChange={(make) => {
-                    console.log("Setting make in form to:", make);
+                    console.log("MakeModelSelect: Setting make in form to:", make);
                     field.onChange(make);
                     form.setValue('model', ''); // reset model when make changes
                     form.trigger('make'); // validate the field
                   }}
                   selectedModel={selectedModel}
                   onModelChange={(model) => {
-                    console.log("Setting model in form to:", model);
+                    console.log("MakeModelSelect: Setting model in form to:", model);
                     form.setValue('model', model);
                     form.trigger('model'); // validate the field
                   }}

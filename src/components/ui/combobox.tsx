@@ -54,6 +54,12 @@ export function ComboBox({
   
   console.log("ComboBox Props:", { items: safeItems.length, value, selectedItem, disabled });
 
+  const handleSelect = React.useCallback((currentValue: string) => {
+    console.log("ComboBox item selected:", currentValue);
+    onChange(currentValue);
+    setOpen(false);
+  }, [onChange]);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -74,7 +80,7 @@ export function ComboBox({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[300px] p-0 bg-white border border-gray-200 shadow-lg rounded-md max-h-[300px] overflow-auto"
+        className="w-[300px] p-0 bg-white border border-gray-200 shadow-lg rounded-md max-h-[300px] overflow-auto z-50"
         align="start"
       >
         <Command>
@@ -93,11 +99,7 @@ export function ComboBox({
                   <CommandItem
                     key={item.value}
                     value={item.value}
-                    onSelect={() => {
-                      console.log("Item selected:", item.value);
-                      onChange(item.value);
-                      setOpen(false);
-                    }}
+                    onSelect={handleSelect}
                     className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
                   >
                     {item.icon && (

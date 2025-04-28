@@ -24,7 +24,7 @@ export function VehicleSelectorWithLogos({
 
   // Effect to update model options when make changes
   useEffect(() => {
-    console.log("Make changed to:", selectedMake);
+    console.log("VehicleSelectorWithLogos: Make changed to:", selectedMake);
     if (selectedMake) {
       const fetchedModels = getModelsByMake(selectedMake) || [];
       const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
@@ -32,10 +32,10 @@ export function VehicleSelectorWithLogos({
         value: model.model_name,
         label: model.model_name
       }));
-      console.log(`Found ${mappedModels.length} models for make ${selectedMake}`);
+      console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
       setModelOptions(mappedModels);
     } else {
-      console.log("No make selected, clearing models");
+      console.log("VehicleSelectorWithLogos: No make selected, clearing models");
       setModelOptions([]);
     }
   }, [selectedMake, getModelsByMake]);
@@ -56,21 +56,18 @@ export function VehicleSelectorWithLogos({
     icon: make.logo_url
   })) : [];
 
-  console.log("Makes options:", makesOptions);
-  console.log("Selected make:", selectedMake);
-  console.log("Models options:", modelOptions);
-  console.log("Selected model:", selectedModel);
+  console.log("VehicleSelectorWithLogos: Makes options:", makesOptions);
+  console.log("VehicleSelectorWithLogos: Selected make:", selectedMake);
+  console.log("VehicleSelectorWithLogos: Models options:", modelOptions);
+  console.log("VehicleSelectorWithLogos: Selected model:", selectedModel);
 
   const handleMakeChange = (make: string) => {
-    console.log("Make selection handler called with:", make);
-    if (make !== selectedMake) {
-      onMakeChange(make);
-      onModelChange(""); // Reset model when make changes
-    }
+    console.log("VehicleSelectorWithLogos: Make selection handler called with:", make);
+    onMakeChange(make);
   };
 
   const handleModelChange = (model: string) => {
-    console.log("Model selection handler called with:", model);
+    console.log("VehicleSelectorWithLogos: Model selection handler called with:", model);
     onModelChange(model);
   };
 
