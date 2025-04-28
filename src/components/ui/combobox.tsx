@@ -45,10 +45,14 @@ export function ComboBox({
   className,
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false);
-
+  
+  // Ensure we have a valid array
   const safeItems = Array.isArray(items) ? items : [];
-
+  
+  // Find the currently selected item
   const selectedItem = safeItems.find((item) => item.value === value);
+  
+  console.log("ComboBox Props:", { items: safeItems.length, value, selectedItem, disabled });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -62,6 +66,7 @@ export function ComboBox({
             className
           )}
           disabled={disabled}
+          onClick={() => !disabled && setOpen(true)}
         >
           {selectedItem ? selectedItem.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -69,7 +74,7 @@ export function ComboBox({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[300px] p-0 bg-white border border-gray-200 shadow-lg rounded-md"
+        className="w-[300px] p-0 bg-white border border-gray-200 shadow-lg rounded-md max-h-[300px] overflow-auto"
         align="start"
       >
         <Command>
@@ -77,7 +82,7 @@ export function ComboBox({
             placeholder={placeholder}
             className="border-b px-3 py-2"
           />
-          <CommandList className="max-h-60 overflow-y-auto">
+          <CommandList className="max-h-[200px] overflow-y-auto">
             {safeItems.length === 0 ? (
               <CommandEmpty className="p-3 text-center text-sm text-muted-foreground">
                 {emptyText}
@@ -89,6 +94,7 @@ export function ComboBox({
                     key={item.value}
                     value={item.value}
                     onSelect={() => {
+                      console.log("Item selected:", item.value);
                       onChange(item.value);
                       setOpen(false);
                     }}

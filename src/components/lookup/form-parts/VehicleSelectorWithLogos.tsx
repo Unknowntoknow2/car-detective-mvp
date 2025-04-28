@@ -22,7 +22,9 @@ export function VehicleSelectorWithLogos({
   const { makes, getModelsByMake, isLoading } = useVehicleData();
   const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
 
+  // Effect to update model options when make changes
   useEffect(() => {
+    console.log("Make changed to:", selectedMake);
     if (selectedMake) {
       const fetchedModels = getModelsByMake(selectedMake) || [];
       const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
@@ -30,8 +32,10 @@ export function VehicleSelectorWithLogos({
         value: model.model_name,
         label: model.model_name
       }));
+      console.log(`Found ${mappedModels.length} models for make ${selectedMake}`);
       setModelOptions(mappedModels);
     } else {
+      console.log("No make selected, clearing models");
       setModelOptions([]);
     }
   }, [selectedMake, getModelsByMake]);
@@ -45,6 +49,7 @@ export function VehicleSelectorWithLogos({
     );
   }
 
+  // Ensure makes is properly mapped to ComboBox items
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
@@ -56,16 +61,25 @@ export function VehicleSelectorWithLogos({
   console.log("Models options:", modelOptions);
   console.log("Selected model:", selectedModel);
 
+  const handleMakeChange = (make: string) => {
+    console.log("Make selection handler called with:", make);
+    if (make !== selectedMake) {
+      onMakeChange(make);
+      onModelChange(""); // Reset model when make changes
+    }
+  };
+
+  const handleModelChange = (model: string) => {
+    console.log("Model selection handler called with:", model);
+    onModelChange(model);
+  };
+
   return (
     <div className="space-y-4">
       <ComboBox
         items={makesOptions}
         value={selectedMake}
-        onChange={(make) => {
-          console.log("Make selected:", make);
-          onMakeChange(make);
-          onModelChange(""); // Reset model when make changes
-        }}
+        onChange={handleMakeChange}
         placeholder="Select a make"
         emptyText="No makes found"
         disabled={disabled}
@@ -75,10 +89,7 @@ export function VehicleSelectorWithLogos({
       <ComboBox
         items={modelOptions}
         value={selectedModel}
-        onChange={(model) => {
-          console.log("Model selected:", model);
-          onModelChange(model);
-        }}
+        onChange={handleModelChange}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}
         emptyText="No models found"
         disabled={!selectedMake || disabled}

@@ -27,12 +27,16 @@ export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectPro
                 <VehicleSelectorWithLogos
                   selectedMake={field.value || ''}
                   onMakeChange={(make) => {
+                    console.log("Setting make in form to:", make);
                     field.onChange(make);
                     form.setValue('model', ''); // reset model when make changes
+                    form.trigger('make'); // validate the field
                   }}
                   selectedModel={selectedModel}
                   onModelChange={(model) => {
+                    console.log("Setting model in form to:", model);
                     form.setValue('model', model);
+                    form.trigger('model'); // validate the field
                   }}
                   disabled={isDisabled}
                 />
