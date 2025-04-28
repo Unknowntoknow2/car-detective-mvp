@@ -25,14 +25,20 @@ export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectPro
 
   const handleMakeChange = (make: string) => {
     console.log("MakeModelSelect: Setting make in form to:", make);
-    form.setValue('make', make, { shouldValidate: true });
-    // Reset model when make changes
-    form.setValue('model', '', { shouldValidate: true });
+    // Only update if value actually changed
+    if (make !== selectedMake) {
+      form.setValue('make', make, { shouldValidate: true });
+      // Reset model when make changes
+      form.setValue('model', '', { shouldValidate: true });
+    }
   };
 
   const handleModelChange = (model: string) => {
     console.log("MakeModelSelect: Setting model in form to:", model);
-    form.setValue('model', model, { shouldValidate: true });
+    // Only update if value actually changed
+    if (model !== selectedModel) {
+      form.setValue('model', model, { shouldValidate: true });
+    }
   };
 
   return (

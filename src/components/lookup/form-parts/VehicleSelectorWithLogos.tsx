@@ -56,20 +56,27 @@ export function VehicleSelectorWithLogos({
     icon: make.logo_url
   })) : [];
 
-  console.log("VehicleSelectorWithLogos: Makes options:", makesOptions);
+  console.log("VehicleSelectorWithLogos: Make options count:", makesOptions.length);
   console.log("VehicleSelectorWithLogos: Selected make:", selectedMake);
-  console.log("VehicleSelectorWithLogos: Models options:", modelOptions);
+  console.log("VehicleSelectorWithLogos: Models count:", modelOptions.length);
   console.log("VehicleSelectorWithLogos: Selected model:", selectedModel);
+
+  const handleMakeChange = (make: string) => {
+    console.log("VehicleSelectorWithLogos: Make selection changed to:", make);
+    onMakeChange(make);
+  };
+
+  const handleModelChange = (model: string) => {
+    console.log("VehicleSelectorWithLogos: Model selection changed to:", model);
+    onModelChange(model);
+  };
 
   return (
     <div className="space-y-4">
       <ComboBox
         items={makesOptions}
         value={selectedMake}
-        onChange={(make) => {
-          console.log("VehicleSelectorWithLogos: Make selection changed to:", make);
-          onMakeChange(make);
-        }}
+        onChange={handleMakeChange}
         placeholder="Select a make"
         emptyText="No makes found"
         disabled={disabled}
@@ -79,10 +86,7 @@ export function VehicleSelectorWithLogos({
       <ComboBox
         items={modelOptions}
         value={selectedModel}
-        onChange={(model) => {
-          console.log("VehicleSelectorWithLogos: Model selection changed to:", model);
-          onModelChange(model);
-        }}
+        onChange={handleModelChange}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}
         emptyText="No models found"
         disabled={!selectedMake || disabled}
