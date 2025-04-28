@@ -75,7 +75,7 @@ export function useVehicleSelectors() {
         // Transform the data to match the Model type
         const transformedModels: Model[] = (data || []).map(item => ({
           id: item.id,
-          make_id: item.make_id,
+          make_id: String(item.make_id), // Convert number to string to match Model type
           model_name: item.model_name,
           nhtsa_model_id: null,
           popular: false // Add the missing property
