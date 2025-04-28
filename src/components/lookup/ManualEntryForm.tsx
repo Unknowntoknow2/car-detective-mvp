@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -25,13 +24,19 @@ interface ManualEntryFormProps {
 }
 
 const formSchema = z.object({
-  make: z.string().min(1, "Make is required"),
-  model: z.string().min(1, "Model is required"),
-  year: z.number().min(1900, "Year is required"),
-  mileage: z.number().min(1, "Mileage must be greater than 0"),
+  make: z.string().min(1, { message: "Make selection is required" }),
+  model: z.string().min(1, { message: "Model selection is required" }),
+  year: z.number()
+    .min(1900, { message: "Enter a valid year" })
+    .max(new Date().getFullYear() + 1, { message: "Year cannot be in far future" }),
+  mileage: z.number()
+    .min(1, { message: "Mileage must be greater than 0" })
+    .max(1000000, { message: "Mileage seems unrealistic" }),
   fuelType: z.string().optional(),
   condition: z.string().default("good"),
-  zipCode: z.string().optional(),
+  zipCode: z.string()
+    .regex(/^\d{5}$/, { message: "Enter a valid 5-digit ZIP code" })
+    .optional(),
   accident: z.enum(["yes", "no"]).optional(),
   accidentDetails: z.object({
     count: z.string().optional(),
@@ -72,13 +77,11 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     }
   });
 
-  // Update condition value when condition changes
   useEffect(() => {
     const conditionValue = getConditionValue(form.watch('condition'));
     setConditionValue(conditionValue);
   }, [form.watch('condition')]);
 
-  // Update condition when slider changes
   useEffect(() => {
     const conditionLabel = getConditionLabel(conditionValue);
     form.setValue('condition', conditionLabel);
@@ -109,7 +112,6 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 
   const onSubmitForm = async (data: ManualEntryFormData) => {
     console.log("Form submitted with data:", data);
-    
     try {
       if (onSubmit) {
         await onSubmit(data);
@@ -140,33 +142,69 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-6">
-        <VehicleBasicInfo
-          form={form}
-          isDisabled={isFormLoading}
+        <VehicleBasicInfo form={form} isDisabled={isFormLoading} />
+        
+        <VehicleConditionSlider
+          value={conditionValue}
+          onChange={setConditionValue}
+          disabled={isFormLoading}
         />
 
-        <Button type="submit" disabled={isFormLoading} className="w-full">
-          {isFormLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            submitButtonText
-          )}
-        </Button>
+        <VehicleFeatureSelect
+          selectedFeatures={form.watch('selectedFeatures')}
+          onFeaturesChange={(features) => form.setValue('selectedFeatures', features)}
+          disabled={isFormLoading}
+        />
 
+        {isPremium && (
+          <PremiumFields
+            accident={form.watch('accident') || 'no'}
+            setAccident={handleAccidentChange}
+            accidentDetails={form.watch('accidentDetails') || { count: '', severity: '', area: '' }}
+            setAccidentDetails={(details) => form.setValue('accidentDetails', details)}
+            isDisabled={isFormLoading}
+          />
+        )}
+
+        <ValuationFormActions
+          isLoading={isFormLoading}
+          submitButtonText={isFormLoading ? 'Processing...' : submitButtonText}
+          onSubmit={form.handleSubmit(onSubmitForm)}
+        />
+
+        {/* Validation error handling */}
         {form.formState.errors.make && (
           <p className="text-red-500 text-sm flex items-center">
             <AlertCircle className="h-4 w-4 mr-1" />
             {form.formState.errors.make.message}
           </p>
         )}
-        
+
         {form.formState.errors.model && (
           <p className="text-red-500 text-sm flex items-center">
             <AlertCircle className="h-4 w-4 mr-1" />
             {form.formState.errors.model.message}
+          </p>
+        )}
+
+        {form.formState.errors.year && (
+          <p className="text-red-500 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            {form.formState.errors.year.message}
+          </p>
+        )}
+
+        {form.formState.errors.mileage && (
+          <p className="text-red-500 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            {form.formState.errors.mileage.message}
+          </p>
+        )}
+
+        {form.formState.errors.zipCode && (
+          <p className="text-red-500 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            {form.formState.errors.zipCode.message}
           </p>
         )}
       </form>
