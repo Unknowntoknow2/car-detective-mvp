@@ -28,6 +28,7 @@ serve(async (req) => {
       );
     }
 
+    // Fetch the valuation data
     const { data: val, error: valErr } = await supabase
       .from("valuations")
       .select(`
@@ -38,7 +39,8 @@ serve(async (req) => {
         zip_demand_factor,
         dealer_avg_price,
         auction_avg_price,
-        feature_value_total
+        feature_value_total,
+        zip_code: state
       `)
       .eq("id", valuationId)
       .single();
@@ -50,6 +52,46 @@ serve(async (req) => {
       );
     }
 
+    // Get most recent photo score for this valuation
+    const { data: photoScoreData, error: photoScoreErr } = await supabase
+      .from("photo_scores")
+      .select("score")
+      .eq("valuation_id", valuationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    const photoScore = photoScoreData?.score ?? 0.5; // Default to 0.5 if no photo score
+    
+    // Determine condition level based on condition_score
+    let condition = "good";
+    if (val.condition_score >= 85) condition = "excellent";
+    else if (val.condition_score >= 65) condition = "good";
+    else if (val.condition_score >= 40) condition = "fair";
+    else condition = "poor";
+
+    // Get pricing curve multiplier if we have a zip code
+    let multiplier = 1.0;
+    if (val.zip_code) {
+      try {
+        const { data: pricingData, error: pricingErr } = await supabase.functions.invoke("get-pricing-curve", {
+          body: { 
+            zip_code: val.zip_code,
+            condition: condition
+          }
+        });
+        
+        if (!pricingErr && pricingData && pricingData.multiplier) {
+          multiplier = pricingData.multiplier;
+          console.log(`Using pricing multiplier: ${multiplier} for zip: ${val.zip_code}, condition: ${condition}`);
+        }
+      } catch (err) {
+        console.warn("Failed to get pricing curve:", err);
+        // Continue with default multiplier
+      }
+    }
+
+    // Apply base prediction model
     const features: ValuationFeatures = {
       basePrice: val.base_price,
       conditionScore: val.condition_score,
@@ -61,14 +103,30 @@ serve(async (req) => {
       featureValueTotal: val.feature_value_total,
     };
 
-    const predictedPrice = predictValuation(features);
+    const basePredictedPrice = predictValuation(features);
+    
+    // Apply photo score and multiplier adjustments
+    // Formula: finalValue = basePrice * multiplier * (1 + (photoScore - 0.5) * 0.2)
+    const photoAdjustment = (photoScore - 0.5) * 0.2;
+    const finalPrice = Math.round(basePredictedPrice * multiplier * (1 + photoAdjustment));
 
+    // Return the final valuation with a breakdown
     return new Response(
-      JSON.stringify({ predictedPrice }),
+      JSON.stringify({
+        predictedPrice: finalPrice,
+        breakdown: {
+          basePrice: basePredictedPrice,
+          multiplier: multiplier,
+          photoScore: photoScore,
+          photoAdjustment: `${(photoAdjustment * 100).toFixed(1)}%`,
+          finalPrice: finalPrice
+        }
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
+    console.error("Prediction error:", error);
     return new Response(
       JSON.stringify({ error: error.message }), 
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

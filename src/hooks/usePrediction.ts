@@ -33,9 +33,9 @@ export function usePrediction(valuationId: string | undefined) {
         throw new Error('Invalid prediction response');
       }
       
-      console.log('Received prediction:', data.predictedPrice);
+      console.log('Received prediction:', data);
       setPrice(data.predictedPrice);
-      return data.predictedPrice;
+      return data; // Return full data including breakdown
       
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to get prediction';
