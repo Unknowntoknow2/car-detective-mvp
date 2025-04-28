@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -98,6 +99,9 @@ export function ComboBox({
                         src={item.icon}
                         alt=""
                         className="h-4 w-4 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                       />
                     )}
                     <span>{item.label}</span>

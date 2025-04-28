@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
@@ -44,18 +45,24 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  const safeMakeOptions = Array.isArray(makes) ? makes.map(make => ({
+  const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
     icon: make.logo_url
   })) : [];
 
+  console.log("Makes options:", makesOptions);
+  console.log("Selected make:", selectedMake);
+  console.log("Models options:", modelOptions);
+  console.log("Selected model:", selectedModel);
+
   return (
     <div className="space-y-4">
       <ComboBox
-        items={safeMakeOptions}
+        items={makesOptions}
         value={selectedMake}
         onChange={(make) => {
+          console.log("Make selected:", make);
           onMakeChange(make);
           onModelChange(""); // Reset model when make changes
         }}
@@ -68,7 +75,10 @@ export function VehicleSelectorWithLogos({
       <ComboBox
         items={modelOptions}
         value={selectedModel}
-        onChange={(model) => onModelChange(model)}
+        onChange={(model) => {
+          console.log("Model selected:", model);
+          onModelChange(model);
+        }}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}
         emptyText="No models found"
         disabled={!selectedMake || disabled}
