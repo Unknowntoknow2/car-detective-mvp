@@ -54,12 +54,6 @@ export function ComboBox({
   
   console.log("ComboBox Props:", { items: safeItems.length, value, selectedItem, disabled });
 
-  const handleSelect = React.useCallback((currentValue: string) => {
-    console.log("ComboBox item selected:", currentValue);
-    onChange(currentValue);
-    setOpen(false);
-  }, [onChange]);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -72,7 +66,6 @@ export function ComboBox({
             className
           )}
           disabled={disabled}
-          onClick={() => !disabled && setOpen(true)}
         >
           {selectedItem ? selectedItem.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -99,7 +92,11 @@ export function ComboBox({
                   <CommandItem
                     key={item.value}
                     value={item.value}
-                    onSelect={handleSelect}
+                    onSelect={() => {
+                      console.log("ComboBox item selected:", item.value);
+                      onChange(item.value);
+                      setOpen(false);
+                    }}
                     className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
                   >
                     {item.icon && (

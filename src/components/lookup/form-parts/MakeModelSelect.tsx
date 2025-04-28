@@ -23,6 +23,18 @@ export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectPro
     });
   }, [selectedMake, selectedModel]);
 
+  const handleMakeChange = (make: string) => {
+    console.log("MakeModelSelect: Setting make in form to:", make);
+    form.setValue('make', make, { shouldValidate: true });
+    // Reset model when make changes
+    form.setValue('model', '', { shouldValidate: true });
+  };
+
+  const handleModelChange = (model: string) => {
+    console.log("MakeModelSelect: Setting model in form to:", model);
+    form.setValue('model', model, { shouldValidate: true });
+  };
+
   return (
     <ErrorBoundary>
       <div className="space-y-4">
@@ -35,18 +47,9 @@ export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectPro
               <FormControl>
                 <VehicleSelectorWithLogos
                   selectedMake={field.value || ''}
-                  onMakeChange={(make) => {
-                    console.log("MakeModelSelect: Setting make in form to:", make);
-                    field.onChange(make);
-                    form.setValue('model', ''); // reset model when make changes
-                    form.trigger('make'); // validate the field
-                  }}
+                  onMakeChange={handleMakeChange}
                   selectedModel={selectedModel}
-                  onModelChange={(model) => {
-                    console.log("MakeModelSelect: Setting model in form to:", model);
-                    form.setValue('model', model);
-                    form.trigger('model'); // validate the field
-                  }}
+                  onModelChange={handleModelChange}
                   disabled={isDisabled}
                 />
               </FormControl>

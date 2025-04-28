@@ -61,22 +61,15 @@ export function VehicleSelectorWithLogos({
   console.log("VehicleSelectorWithLogos: Models options:", modelOptions);
   console.log("VehicleSelectorWithLogos: Selected model:", selectedModel);
 
-  const handleMakeChange = (make: string) => {
-    console.log("VehicleSelectorWithLogos: Make selection handler called with:", make);
-    onMakeChange(make);
-  };
-
-  const handleModelChange = (model: string) => {
-    console.log("VehicleSelectorWithLogos: Model selection handler called with:", model);
-    onModelChange(model);
-  };
-
   return (
     <div className="space-y-4">
       <ComboBox
         items={makesOptions}
         value={selectedMake}
-        onChange={handleMakeChange}
+        onChange={(make) => {
+          console.log("VehicleSelectorWithLogos: Make selection changed to:", make);
+          onMakeChange(make);
+        }}
         placeholder="Select a make"
         emptyText="No makes found"
         disabled={disabled}
@@ -86,7 +79,10 @@ export function VehicleSelectorWithLogos({
       <ComboBox
         items={modelOptions}
         value={selectedModel}
-        onChange={handleModelChange}
+        onChange={(model) => {
+          console.log("VehicleSelectorWithLogos: Model selection changed to:", model);
+          onModelChange(model);
+        }}
         placeholder={selectedMake ? "Select a model" : "Select a make first"}
         emptyText="No models found"
         disabled={!selectedMake || disabled}
