@@ -67,7 +67,7 @@ export function useVehicleSelectors() {
         const { data, error } = await supabase
           .from('models')
           .select('*')
-          .eq('make_id', selectedMakeId)
+          .eq('make_id', parseInt(selectedMakeId)) // Convert string to number for the database query
           .order('model_name');
         
         if (error) throw error;
