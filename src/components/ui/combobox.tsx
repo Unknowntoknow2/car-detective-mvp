@@ -25,7 +25,7 @@ interface ComboBoxItem {
 }
 
 interface ComboBoxProps {
-  items?: ComboBoxItem[]; // safe optional
+  items?: ComboBoxItem[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -35,7 +35,7 @@ interface ComboBoxProps {
 }
 
 export function ComboBox({
-  items = [],   // safe default value!
+  items = [],
   value,
   onChange,
   placeholder = "Select...",
@@ -45,7 +45,7 @@ export function ComboBox({
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false);
 
-  const safeItems = Array.isArray(items) ? items : []; // Always safe array
+  const safeItems = Array.isArray(items) ? items : [];
 
   const selectedItem = safeItems.find((item) => item.value === value);
 
@@ -56,7 +56,10 @@ export function ComboBox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-full justify-between", className)}
+          className={cn(
+            "w-full justify-between",
+            className
+          )}
           disabled={disabled}
         >
           {selectedItem ? selectedItem.label : placeholder}
@@ -64,12 +67,20 @@ export function ComboBox({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent
+        className="w-[300px] p-0 bg-white border border-gray-200 shadow-lg rounded-md"
+        align="start"
+      >
         <Command>
-          <CommandInput placeholder={placeholder} />
-          <CommandList>
+          <CommandInput
+            placeholder={placeholder}
+            className="border-b px-3 py-2"
+          />
+          <CommandList className="max-h-60 overflow-y-auto">
             {safeItems.length === 0 ? (
-              <CommandEmpty>{emptyText}</CommandEmpty>
+              <CommandEmpty className="p-3 text-center text-sm text-muted-foreground">
+                {emptyText}
+              </CommandEmpty>
             ) : (
               <CommandGroup>
                 {safeItems.map((item) => (
@@ -80,18 +91,19 @@ export function ComboBox({
                       onChange(item.value);
                       setOpen(false);
                     }}
+                    className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
                   >
                     {item.icon && (
                       <img
                         src={item.icon}
                         alt=""
-                        className="h-4 w-4 mr-2 object-contain"
+                        className="h-4 w-4 object-contain"
                       />
                     )}
-                    {item.label}
+                    <span>{item.label}</span>
                     <Check
                       className={cn(
-                        "ml-auto h-4 w-4",
+                        "ml-auto h-4 w-4 text-primary",
                         value === item.value ? "opacity-100" : "opacity-0"
                       )}
                     />
