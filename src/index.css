@@ -1,8 +1,9 @@
+
+@import './styles/index.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/index.css';
 
 :root {
   --background: 0 0% 100%;

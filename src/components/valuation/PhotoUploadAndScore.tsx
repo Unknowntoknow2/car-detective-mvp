@@ -15,7 +15,9 @@ const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 const fileSchema = z.object({
   name: z.string(),
   size: z.number().max(MAX_FILE_SIZE, 'File size must be less than 5MB'),
-  type: z.enum(ACCEPTED_FILE_TYPES, 'Only JPEG and PNG images are accepted'),
+  type: z.enum(['image/jpeg', 'image/png', 'image/jpg'], {
+    message: 'Only JPEG and PNG images are accepted'
+  }),
 });
 
 interface PhotoUploadAndScoreProps {
