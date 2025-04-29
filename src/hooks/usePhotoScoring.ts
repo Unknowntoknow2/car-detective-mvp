@@ -1,7 +1,7 @@
 
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export function usePhotoScoring(valuationId: string) {
@@ -13,94 +13,93 @@ export function usePhotoScoring(valuationId: string) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const resetUpload = useCallback(() => {
+  const resetUpload = () => {
     setPhotoUrl(null);
     setThumbnailUrl(null);
     setPhotoScore(null);
-    setIsUploading(false);
-    setIsScoring(false);
-    setUploadProgress(0);
     setError(null);
-  }, []);
+    setUploadProgress(0);
+  };
 
-  const uploadPhoto = useCallback(async (file: File): Promise<number | null> => {
+  const uploadPhoto = async (file: File): Promise<number | null> => {
+    setIsUploading(true);
+    setError(null);
+    
     try {
-      setIsUploading(true);
-      setError(null);
-      setUploadProgress(0);
-      
-      // Generate unique filename
+      // Create a unique file name
       const fileExt = file.name.split('.').pop();
-      const fileName = `${valuationId}/${uuidv4()}.${fileExt}`;
-      const filePath = `vehicle-photos/${fileName}`;
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${valuationId}/${fileName}`;
       
-      // Check if bucket exists and create it if not
-      const { data: buckets } = await supabase.storage.listBuckets();
-      if (!buckets?.find(bucket => bucket.name === 'vehicle-photos')) {
-        console.log('Creating vehicle-photos bucket');
-        await supabase.storage.createBucket('vehicle-photos', {
-          public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],
-          fileSizeLimit: 5 * 1024 * 1024 // 5MB
-        });
-      }
-      
-      // Upload file to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // Upload the file to Supabase storage
+      const { data, error: uploadError } = await supabase.storage
         .from('vehicle-photos')
-        .upload(fileName, file, {
+        .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: true
+          upsert: false,
+          onUploadProgress: (progress) => {
+            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
+          },
         });
-        
+      
       if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
+        throw uploadError;
       }
       
-      // Since we can't track progress directly in the newer Supabase versions,
-      // we'll simulate progress for better UX
-      setUploadProgress(100);
-      
-      // Get public URL for the uploaded image
-      const { data: { publicUrl } } = supabase.storage
+      // Get the URL of the uploaded file
+      const { data: urlData } = supabase.storage
         .from('vehicle-photos')
-        .getPublicUrl(fileName);
-        
-      setPhotoUrl(publicUrl);
+        .getPublicUrl(filePath);
+      
+      setPhotoUrl(urlData.publicUrl);
+      
+      // Create a thumbnail version for display
+      // In a real app, you would generate a thumbnail server-side
+      setThumbnailUrl(urlData.publicUrl);
+      
+      // Now, score the photo using AI
       setIsUploading(false);
-      
-      // Now score the image using the edge function
       setIsScoring(true);
-      const { data: scoreData, error: scoreError } = await supabase.functions.invoke('score-image', {
-        body: { 
-          valuation_id: valuationId,
-          image_url: publicUrl
-        }
-      });
       
-      if (scoreError) {
-        throw new Error(`Scoring failed: ${scoreError.message}`);
+      // Call scoring API (mocked for now)
+      const score = await mockScorePhoto(urlData.publicUrl);
+      setPhotoScore(score);
+      
+      // Store the scored photo in the database
+      const { error: dbError } = await supabase
+        .from('valuation_photos')
+        .insert({
+          valuation_id: valuationId,
+          photo_url: urlData.publicUrl,
+          score: score,
+          uploaded_at: new Date().toISOString(),
+        });
+      
+      if (dbError) {
+        console.error('Error storing photo scoring in DB:', dbError);
       }
       
-      // Set the score and thumbnail URL from the response
-      setPhotoScore(scoreData.score);
-      setThumbnailUrl(scoreData.thumbnail_url);
-      
-      toast.success('Photo analyzed successfully');
-      return scoreData.score;
-      
+      setIsScoring(false);
+      return score;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
-      toast.error(`Failed to process image: ${errorMessage}`);
-      console.error('Photo scoring error:', err);
-      return null;
-    } finally {
       setIsUploading(false);
       setIsScoring(false);
+      console.error('Photo upload error:', err);
+      return null;
     }
-  }, [valuationId]);
-
+  };
+  
+  // Mock function to simulate AI photo scoring
+  const mockScorePhoto = async (imageUrl: string): Promise<number> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Return a random score between 0.60 and 0.95
+    return Math.round((0.60 + Math.random() * 0.35) * 100) / 100;
+  };
+  
   return {
     uploadPhoto,
     photoUrl,

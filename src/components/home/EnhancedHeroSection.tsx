@@ -10,7 +10,8 @@ export function EnhancedHeroSection({ onFreeValuationClick }: { onFreeValuationC
 
   return (
     <section className="relative py-24 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
-      <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-10"></div>
+      {/* Update the image path to use a relative path that works in the build */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
