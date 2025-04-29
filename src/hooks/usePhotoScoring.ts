@@ -37,9 +37,6 @@ export function usePhotoScoring(valuationId: string) {
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
-          onUploadProgress: (progress) => {
-            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
-          },
         });
       
       if (uploadError) {
