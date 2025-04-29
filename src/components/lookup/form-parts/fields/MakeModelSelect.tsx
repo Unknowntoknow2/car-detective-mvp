@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useVehicleData } from '@/hooks/useVehicleData';
-import { carMakes, getModelsForMake } from '@/utils/carData';
 import { ErrorBoundary } from '../../ErrorBoundary';
 
 interface MakeModelSelectProps {
@@ -23,14 +22,10 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   const { makes, getModelsByMake, isLoading } = useVehicleData();
   const [availableModels, setAvailableModels] = useState<any[]>([]);
   
-  // Fallback to local data if API data is not available
+  // Use data from Supabase via useVehicleData hook
   const displayedMakes = Array.isArray(makes) && makes.length > 0 
     ? makes 
-    : carMakes.map(make => ({ 
-      id: make, 
-      make_name: make,
-      logo_url: null 
-    }));
+    : [];
   
   useEffect(() => {
     try {
@@ -117,26 +112,19 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
             <SelectValue placeholder={selectedMakeId ? "Select Model" : "Select make first"} />
           </SelectTrigger>
           <SelectContent className="max-h-[300px]">
-            {selectedMakeId && (
-              Array.isArray(availableModels) && availableModels.length > 0 
-                ? availableModels.map(model => (
-                    <SelectItem 
-                      key={model.id} 
-                      value={model.model_name}
-                      className="py-2.5 cursor-pointer hover:bg-primary/10"
-                    >
-                      {model.model_name}
-                    </SelectItem>
-                  ))
-                : getModelsForMake(selectedMakeId).map(model => (
-                    <SelectItem 
-                      key={model} 
-                      value={model}
-                      className="py-2.5 cursor-pointer hover:bg-primary/10"
-                    >
-                      {model}
-                    </SelectItem>
-                  ))
+            {selectedMakeId && Array.isArray(availableModels) && availableModels.length > 0 && 
+              availableModels.map(model => (
+                <SelectItem 
+                  key={model.id} 
+                  value={model.model_name}
+                  className="py-2.5 cursor-pointer hover:bg-primary/10"
+                >
+                  {model.model_name}
+                </SelectItem>
+              ))
+            }
+            {selectedMakeId && (!Array.isArray(availableModels) || availableModels.length === 0) && (
+              <div className="p-2 text-muted-foreground text-center">No models available</div>
             )}
           </SelectContent>
         </Select>
