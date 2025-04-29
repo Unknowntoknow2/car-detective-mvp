@@ -24,6 +24,9 @@ verify_jwt = true
 [functions.score-image]
 verify_jwt = true
 
+[functions.car-price-prediction]
+verify_jwt = true
+
 [functions.predict]
 verify_jwt = true
 
