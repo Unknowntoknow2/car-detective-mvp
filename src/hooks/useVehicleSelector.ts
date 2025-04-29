@@ -28,6 +28,7 @@ export const useVehicleSelector = ({
   const [models, setModels] = useState<any[]>([]);
   const [filteredModels, setFilteredModels] = useState<any[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   // Initialize filtered makes list
   useEffect(() => {
@@ -38,14 +39,27 @@ export const useVehicleSelector = ({
 
   // Get models for selected make
   useEffect(() => {
-    if (selectedMake) {
-      const availableModels = getModelsByMake(selectedMake);
-      setModels(availableModels);
-      setFilteredModels(availableModels);
-    } else {
-      setModels([]);
-      setFilteredModels([]);
+    async function fetchModels() {
+      if (selectedMake) {
+        try {
+          setLoadingModels(true);
+          const availableModels = await getModelsByMake(selectedMake);
+          setModels(availableModels);
+          setFilteredModels(availableModels);
+        } catch (error) {
+          console.error("Error fetching models:", error);
+          setModels([]);
+          setFilteredModels([]);
+        } finally {
+          setLoadingModels(false);
+        }
+      } else {
+        setModels([]);
+        setFilteredModels([]);
+      }
     }
+    
+    fetchModels();
   }, [selectedMake, getModelsByMake]);
 
   // Handle search terms
@@ -102,6 +116,7 @@ export const useVehicleSelector = ({
     setSearchTerm,
     modelSearchTerm,
     setModelSearchTerm,
-    validationError
+    validationError,
+    loadingModels
   };
 };

@@ -24,7 +24,7 @@ export interface VehicleDataHook {
   makes: Make[];
   models: Model[];
   modelsByMake: Record<string, Model[]>;
-  getModelsByMake: (makeName: string) => Model[];
+  getModelsByMake: (makeName: string) => Promise<Model[]>;
   getYearOptions: (startYear?: number) => number[];
   isLoading: boolean;
   error: string | null;

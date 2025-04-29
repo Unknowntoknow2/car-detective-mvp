@@ -21,23 +21,37 @@ export function VehicleSelectorWithLogos({
 }: VehicleSelectorWithLogosProps) {
   const { makes, getModelsByMake, isLoading } = useVehicleData();
   const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
 
   // Effect to update model options when make changes
   useEffect(() => {
     console.log("VehicleSelectorWithLogos: Make changed to:", selectedMake);
-    if (selectedMake) {
-      const fetchedModels = getModelsByMake(selectedMake) || [];
-      const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
-      const mappedModels = safeModels.map(model => ({
-        value: model.model_name,
-        label: model.model_name
-      }));
-      console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
-      setModelOptions(mappedModels);
-    } else {
-      console.log("VehicleSelectorWithLogos: No make selected, clearing models");
-      setModelOptions([]);
+    
+    async function fetchModels() {
+      if (selectedMake) {
+        try {
+          setLoadingModels(true);
+          const fetchedModels = await getModelsByMake(selectedMake);
+          const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
+          const mappedModels = safeModels.map(model => ({
+            value: model.model_name,
+            label: model.model_name
+          }));
+          console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
+          setModelOptions(mappedModels);
+        } catch (error) {
+          console.error("Error fetching models:", error);
+          setModelOptions([]);
+        } finally {
+          setLoadingModels(false);
+        }
+      } else {
+        console.log("VehicleSelectorWithLogos: No make selected, clearing models");
+        setModelOptions([]);
+      }
     }
+    
+    fetchModels();
   }, [selectedMake, getModelsByMake]);
 
   if (isLoading) {
@@ -87,9 +101,9 @@ export function VehicleSelectorWithLogos({
         items={modelOptions}
         value={selectedModel}
         onChange={handleModelChange}
-        placeholder={selectedMake ? "Select a model" : "Select a make first"}
+        placeholder={selectedMake ? (loadingModels ? "Loading models..." : "Select a model") : "Select a make first"}
         emptyText="No models found"
-        disabled={!selectedMake || disabled}
+        disabled={!selectedMake || disabled || loadingModels}
         className="w-full"
       />
     </div>
