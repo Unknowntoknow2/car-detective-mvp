@@ -29,4 +29,3 @@ verify_jwt = true
 
 [functions.predict]
 verify_jwt = true
-

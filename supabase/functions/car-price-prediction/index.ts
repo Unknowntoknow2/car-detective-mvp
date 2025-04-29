@@ -1,6 +1,4 @@
 
-// This edge function handles car price prediction and returns valuation data
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.5.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
@@ -172,7 +170,12 @@ serve(async (req) => {
       confidence_score: confidenceScore,
       base_price: basePrice,
       zip_demand_factor: multiplier,
-      user_id: userId
+      user_id: userId,
+      // Include all breakdown fields for persistence
+      feature_value_total: 0, // This would be calculated separately
+      accident_count: validatedData.accident === "yes" && validatedData.accidentDetails 
+        ? parseInt(validatedData.accidentDetails.count) 
+        : 0
     });
     
     if (insertError) {
@@ -194,8 +197,18 @@ serve(async (req) => {
       includesCarfax: !!validatedData.includeCarfax
     };
     
+    // Return detailed breakdown for debugging and transparency
     return new Response(
-      JSON.stringify(response),
+      JSON.stringify({
+        ...response,
+        // Include all calculation factors for transparency
+        basePrice,
+        manualPct,
+        photoScore: photoScoreData?.score,
+        multiplier,
+        photoFactor,
+        finalValue
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
