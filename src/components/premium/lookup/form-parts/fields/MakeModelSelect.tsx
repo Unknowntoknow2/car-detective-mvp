@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useVehicleData } from '@/hooks/useVehicleData';
 
@@ -18,14 +18,44 @@ export function MakeModelSelect({
   setSelectedModel,
   isDisabled
 }: MakeModelSelectProps) {
-  const { makes, getModelsByMake, isLoading } = useVehicleData();
-  const models = selectedMakeId ? getModelsByMake(selectedMakeId) : [];
+  const { makes, isLoading } = useVehicleData();
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
+  
+  // Use the getModelsByMakeId function directly
+  useEffect(() => {
+    const fetchModels = async () => {
+      if (selectedMakeId) {
+        try {
+          // Find the make object
+          const selectedMake = makes.find(make => make.id === selectedMakeId);
+          if (selectedMake) {
+            // Import directly to avoid circular dependency
+            const { getModelsByMakeId } = await import('@/api/vehicleApi');
+            const models = await getModelsByMakeId(selectedMakeId);
+            console.log(`Fetched ${models.length} models for make ${selectedMake.make_name} (ID: ${selectedMakeId})`);
+            setAvailableModels(models);
+          }
+        } catch (error) {
+          console.error('Error fetching models:', error);
+          setAvailableModels([]);
+        }
+      } else {
+        setAvailableModels([]);
+      }
+    };
+    
+    fetchModels();
+  }, [selectedMakeId, makes]);
 
   return (
     <>
       <Select 
         value={selectedMakeId} 
-        onValueChange={setSelectedMakeId}
+        onValueChange={(value) => {
+          console.log("Selected make ID:", value);
+          setSelectedMakeId(value);
+          setSelectedModel(''); // Reset model when make changes
+        }}
         disabled={isDisabled || isLoading}
       >
         <SelectTrigger className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary">
@@ -53,7 +83,7 @@ export function MakeModelSelect({
           <SelectValue placeholder={selectedMakeId ? "Select Model" : "Select make first"} />
         </SelectTrigger>
         <SelectContent className="max-h-[300px]">
-          {models.map(model => (
+          {availableModels.map(model => (
             <SelectItem 
               key={model.id} 
               value={model.model_name}
@@ -62,6 +92,11 @@ export function MakeModelSelect({
               {model.model_name}
             </SelectItem>
           ))}
+          {selectedMakeId && availableModels.length === 0 && (
+            <div className="p-2 text-center text-muted-foreground">
+              {isLoading ? "Loading models..." : "No models available"}
+            </div>
+          )}
         </SelectContent>
       </Select>
     </>

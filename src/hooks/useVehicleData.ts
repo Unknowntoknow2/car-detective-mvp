@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Make, Model, VehicleDataHook } from './types/vehicle';
-import { fetchVehicleData } from '@/api/vehicleApi';
+import { fetchVehicleData, getModelsByMakeId } from '@/api/vehicleApi';
 
 export const useVehicleData = (): VehicleDataHook => {
   const [makes, setMakes] = useState<Make[]>([]);
@@ -68,7 +68,7 @@ export const useVehicleData = (): VehicleDataHook => {
       setError(err.message || 'Failed to load vehicle data');
       toast.error('Failed to load vehicle data.');
       
-      // No fallback data anymore - just set empty arrays
+      // Set empty arrays when Supabase fetch fails
       setMakes([]);
       setModels([]);
     } finally {
@@ -76,14 +76,20 @@ export const useVehicleData = (): VehicleDataHook => {
     }
   }, [refreshData]);
 
-  const getModelsByMake = useCallback((makeName: string): Model[] => {
+  const getModelsByMake = useCallback(async (makeName: string): Promise<Model[]> => {
     if (!makeName || !Array.isArray(makes)) return [];
 
     const make = makes.find(m => m.make_name === makeName);
     if (!make) return [];
-
-    const modelsForMake = modelsByMake[make.id] || [];
-    return Array.isArray(modelsForMake) ? modelsForMake : [];
+    
+    try {
+      // Fetch models directly from database for this specific make
+      const models = await getModelsByMakeId(make.id);
+      return models;
+    } catch (error) {
+      console.error('Error fetching models for make:', error);
+      return modelsByMake[make.id] || [];
+    }
   }, [makes, modelsByMake]);
 
   const getYearOptions = useCallback((): number[] => {

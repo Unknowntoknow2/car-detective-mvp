@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { ErrorBoundary } from '../../ErrorBoundary';
+import { getModelsByMakeId } from '@/api/vehicleApi';
 
 interface MakeModelSelectProps {
   selectedMakeId: string;
@@ -19,40 +20,48 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   setSelectedModel,
   isDisabled = false
 }) => {
-  const { makes, getModelsByMake, isLoading } = useVehicleData();
+  const { makes, isLoading } = useVehicleData();
   const [availableModels, setAvailableModels] = useState<any[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
   
-  // Use data from Supabase via useVehicleData hook
+  // Display makes from Supabase via useVehicleData hook
   const displayedMakes = Array.isArray(makes) && makes.length > 0 
     ? makes 
     : [];
   
   useEffect(() => {
-    try {
-      console.log("MakeModelSelect fields: selectedMakeId changed to", selectedMakeId);
-      
-      if (selectedMakeId) {
-        // Find the make by ID first
-        const selectedMake = displayedMakes.find(make => make.id === selectedMakeId);
-        if (selectedMake) {
-          console.log("MakeModelSelect fields: Found make", selectedMake.make_name);
-          const models = getModelsByMake(selectedMake.make_name);
-          const safeModels = Array.isArray(models) ? models : [];
-          console.log(`MakeModelSelect fields: Found ${safeModels.length} models`);
-          setAvailableModels(safeModels);
+    const fetchModelsForMake = async () => {
+      try {
+        console.log("MakeModelSelect fields: selectedMakeId changed to", selectedMakeId);
+        
+        if (selectedMakeId) {
+          setLoadingModels(true);
+          // Find the make by ID first
+          const selectedMake = displayedMakes.find(make => make.id === selectedMakeId);
+          if (selectedMake) {
+            console.log("MakeModelSelect fields: Found make", selectedMake.make_name);
+            // Fetch models directly from API for this make
+            const models = await getModelsByMakeId(selectedMakeId);
+            console.log(`MakeModelSelect fields: Fetched ${models.length} models for make ID ${selectedMakeId}`);
+            setAvailableModels(models);
+          } else {
+            console.warn("MakeModelSelect fields: Make not found for ID", selectedMakeId);
+            setAvailableModels([]);
+          }
         } else {
-          console.warn("MakeModelSelect fields: Make not found for ID", selectedMakeId);
+          console.log("MakeModelSelect fields: No make ID selected");
           setAvailableModels([]);
         }
-      } else {
-        console.log("MakeModelSelect fields: No make ID selected");
+      } catch (error) {
+        console.error("Error getting models for make:", error);
         setAvailableModels([]);
+      } finally {
+        setLoadingModels(false);
       }
-    } catch (error) {
-      console.error("Error getting models for make:", error);
-      setAvailableModels([]);
-    }
-  }, [selectedMakeId, displayedMakes, getModelsByMake]);
+    };
+    
+    fetchModelsForMake();
+  }, [selectedMakeId, displayedMakes]);
 
   const handleMakeChange = (value: string) => {
     try {
@@ -77,7 +86,7 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
               {selectedMakeId && displayedMakes.find(make => make.id === selectedMakeId)?.make_name}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
+          <SelectContent className="max-h-[300px] bg-white">
             {displayedMakes.map(make => (
               <SelectItem 
                 key={make.id} 
@@ -105,14 +114,18 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
 
         <Select 
           onValueChange={setSelectedModel}
-          disabled={!selectedMakeId || isDisabled || isLoading}
+          disabled={!selectedMakeId || isDisabled || loadingModels}
           value={selectedModel}
         >
           <SelectTrigger className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary">
-            <SelectValue placeholder={selectedMakeId ? "Select Model" : "Select make first"} />
+            <SelectValue placeholder={
+              loadingModels ? "Loading models..." : 
+              selectedMakeId ? "Select Model" : 
+              "Select make first"
+            } />
           </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            {selectedMakeId && Array.isArray(availableModels) && availableModels.length > 0 && 
+          <SelectContent className="max-h-[300px] bg-white">
+            {selectedMakeId && !loadingModels && Array.isArray(availableModels) && availableModels.length > 0 && 
               availableModels.map(model => (
                 <SelectItem 
                   key={model.id} 
@@ -123,8 +136,11 @@ export const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
                 </SelectItem>
               ))
             }
-            {selectedMakeId && (!Array.isArray(availableModels) || availableModels.length === 0) && (
+            {selectedMakeId && !loadingModels && (!Array.isArray(availableModels) || availableModels.length === 0) && (
               <div className="p-2 text-muted-foreground text-center">No models available</div>
+            )}
+            {selectedMakeId && loadingModels && (
+              <div className="p-2 text-muted-foreground text-center">Loading models...</div>
             )}
           </SelectContent>
         </Select>
