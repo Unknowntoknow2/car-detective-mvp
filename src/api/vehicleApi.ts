@@ -109,10 +109,19 @@ export async function getModelById(id: string): Promise<Model | null> {
 
 export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
   try {
+    // Convert makeId to number before using it in the query
+    const makeIdNumber = parseInt(makeId, 10);
+    
+    // Check if conversion worked to avoid NaN
+    if (isNaN(makeIdNumber)) {
+      console.error("Invalid makeId format, could not convert to number:", makeId);
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from('models')
       .select('*')
-      .eq('make_id', makeId)
+      .eq('make_id', makeIdNumber)
       .order('model_name');
     
     if (error) {
