@@ -1,6 +1,4 @@
 
-// Simple valuation model based on key features
-
 export interface ValuationFeatures {
   basePrice: number;
   conditionScore: number;
@@ -12,57 +10,41 @@ export interface ValuationFeatures {
   featureValueTotal?: number;
 }
 
-// Simplified predictive model
+// Simple prediction model based on input features
 export function predictValuation(features: ValuationFeatures): number {
-  let basePrice = features.basePrice;
+  // Base price adjustment
+  let predictedPrice = features.basePrice;
   
-  // Apply condition adjustment
-  // Convert condition to a 0-1 scale
-  const conditionFactor = features.conditionScore / 100;
-  let conditionAdjustment = 0;
+  // Apply condition-based adjustment
+  const conditionFactor = features.conditionScore / 50; // Normalize to 0-2 range
+  predictedPrice *= conditionFactor;
   
-  if (conditionFactor > 0.8) {
-    conditionAdjustment = basePrice * 0.1; // Up to 10% premium for excellent condition
-  } else if (conditionFactor > 0.6) {
-    conditionAdjustment = basePrice * 0.05; // 5% premium for good condition
-  } else if (conditionFactor > 0.4) {
-    conditionAdjustment = 0; // No adjustment for average condition
-  } else if (conditionFactor > 0.2) {
-    conditionAdjustment = -basePrice * 0.1; // -10% for poor condition
-  } else {
-    conditionAdjustment = -basePrice * 0.2; // -20% for very poor condition
+  // Apply mileage adjustment (more miles = lower value)
+  // Typical depreciation of around 5-15% per 10k miles
+  const mileageAdjustment = 1 - (features.mileage / 100000) * 0.1;
+  predictedPrice *= Math.max(0.6, mileageAdjustment); // Don't let it go below 60% of value
+  
+  // Apply accident adjustment
+  const accidentFactor = Math.max(0.7, 1 - (features.accidentCount * 0.1));
+  predictedPrice *= accidentFactor;
+  
+  // Apply zip code demand factor
+  predictedPrice *= features.zipDemandFactor;
+  
+  // Apply feature value additions
+  if (features.featureValueTotal) {
+    predictedPrice += features.featureValueTotal;
   }
   
-  // Apply mileage adjustment
-  // Assuming average mileage is 12K per year, and car is approximately 5 years old (60K miles)
-  const expectedMileage = 60000;
-  const mileageDiff = features.mileage - expectedMileage;
-  const mileageAdjustment = mileageDiff > 0 
-    ? -Math.min(basePrice * 0.15, (mileageDiff / 20000) * basePrice * 0.05) // Penalty for high mileage
-    : Math.min(basePrice * 0.1, (-mileageDiff / 20000) * basePrice * 0.025); // Bonus for low mileage
+  // Adjustments from market data if available
+  if (features.dealerAvgPrice && features.auctionAvgPrice) {
+    // Blend with market data (60% weight to our prediction, 40% to market)
+    const marketBlendedPrice = (
+      features.dealerAvgPrice * 0.6 + 
+      features.auctionAvgPrice * 0.4
+    );
+    predictedPrice = predictedPrice * 0.6 + marketBlendedPrice * 0.4;
+  }
   
-  // Apply accident history adjustment
-  const accidentAdjustment = features.accidentCount > 0 
-    ? -Math.min(basePrice * 0.2, features.accidentCount * basePrice * 0.1) // Each accident reduces value 
-    : 0;
-  
-  // Apply market demand factor
-  const marketAdjustment = (features.zipDemandFactor - 1) * basePrice;
-  
-  // Apply feature value
-  const featureAdjustment = features.featureValueTotal || 0;
-  
-  // Calculate total adjustment
-  const totalAdjustment = 
-    conditionAdjustment + 
-    mileageAdjustment + 
-    accidentAdjustment + 
-    marketAdjustment + 
-    featureAdjustment;
-  
-  // Apply final price
-  const predictedPrice = Math.max(basePrice + totalAdjustment, basePrice * 0.5);
-  
-  // Round to nearest hundred
-  return Math.round(predictedPrice / 100) * 100;
+  return Math.round(predictedPrice);
 }
