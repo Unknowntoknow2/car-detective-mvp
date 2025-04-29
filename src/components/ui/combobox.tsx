@@ -51,8 +51,6 @@ export function ComboBox({
   
   // Find the currently selected item
   const selectedItem = safeItems.find((item) => item.value === value);
-  
-  console.log("ComboBox Props:", { items: safeItems.length, value, selectedItem, disabled });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -88,42 +86,37 @@ export function ComboBox({
               </CommandEmpty>
             ) : (
               <CommandGroup>
-                {safeItems.map((item) => {
-                  // Debug log for each item
-                  console.log("Rendering item:", item.label, "Value:", item.value, "Selected:", value === item.value);
-                  
-                  return (
-                    <CommandItem
-                      key={item.value}
-                      value={item.value}
-                      onSelect={(currentValue) => {
-                        console.log("Item selected:", currentValue, "Item:", item.label);
-                        // Ensure we're using the correct value
-                        onChange(item.value);
-                        setOpen(false);
-                      }}
-                      className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
-                    >
-                      {item.icon && (
-                        <img
-                          src={item.icon}
-                          alt=""
-                          className="h-4 w-4 object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <span>{item.label}</span>
-                      <Check
-                        className={cn(
-                          "ml-auto h-4 w-4 text-primary",
-                          value === item.value ? "opacity-100" : "opacity-0"
-                        )}
+                {safeItems.map((item) => (
+                  <CommandItem
+                    key={item.value}
+                    value={item.value}
+                    onSelect={(currentValue) => {
+                      // Important: Use item.value directly instead of currentValue
+                      // This ensures we're using the exact value from our items array
+                      onChange(item.value);
+                      setOpen(false);
+                    }}
+                    className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
+                  >
+                    {item.icon && (
+                      <img
+                        src={item.icon}
+                        alt=""
+                        className="h-4 w-4 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                       />
-                    </CommandItem>
-                  );
-                })}
+                    )}
+                    <span>{item.label}</span>
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4 text-primary",
+                        value === item.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                ))}
               </CommandGroup>
             )}
           </CommandList>

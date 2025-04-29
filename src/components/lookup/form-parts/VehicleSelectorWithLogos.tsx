@@ -70,14 +70,11 @@ export function VehicleSelectorWithLogos({
     icon: make.logo_url
   })) : [];
 
-  console.log("VehicleSelectorWithLogos: Make options count:", makesOptions.length);
-  console.log("VehicleSelectorWithLogos: Selected make:", selectedMake);
-  console.log("VehicleSelectorWithLogos: Models count:", modelOptions.length);
-  console.log("VehicleSelectorWithLogos: Selected model:", selectedModel);
-
   const handleMakeChange = (make: string) => {
     console.log("VehicleSelectorWithLogos: Make selection changed to:", make);
     onMakeChange(make);
+    // Reset model when make changes
+    onModelChange('');
   };
 
   const handleModelChange = (model: string) => {
