@@ -63,13 +63,17 @@ export function usePhotoScoring(valuationId: string) {
       setPhotoScore(score);
       
       // Store the scored photo in the database
+      // Using photo_scores table which already exists in the types
       const { error: dbError } = await supabase
-        .from('valuation_photos')
+        .from('photo_scores')
         .insert({
           valuation_id: valuationId,
-          photo_url: urlData.publicUrl,
           score: score,
-          uploaded_at: new Date().toISOString(),
+          thumbnail_url: urlData.publicUrl,
+          metadata: {
+            original_url: urlData.publicUrl,
+            analysis_timestamp: new Date().toISOString()
+          }
         });
       
       if (dbError) {
