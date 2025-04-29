@@ -1,31 +1,15 @@
 
-@import './styles/index.css';
+@import 'base/reset.css';
+@import 'base/variables.css';
+@import 'components/buttons.css';
+@import 'components/cards.css';
+@import 'components/effects.css';
+@import 'components/forms.css';
+@import 'components/steps.css';
+@import 'components/multistep-form.css';
+@import 'utilities/animations.css';
+@import 'utilities/transforms.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: ui-sans-serif, system-ui, sans-serif;
-}
-
-/* RTL Support */
-html[dir="rtl"] * {
-  text-align: right;
-}
-
-html[dir="rtl"] .flex-row {
-  flex-direction: row-reverse;
-}
-
-html[dir="rtl"] .space-x-4 > * + * {
-  margin-right: 1rem;
-  margin-left: 0;
-}
