@@ -90,13 +90,12 @@ export function ComboBox({
                   <CommandItem
                     key={item.value}
                     value={item.value}
-                    onSelect={(currentValue) => {
-                      // Important: Use item.value directly instead of currentValue
-                      // This ensures we're using the exact value from our items array
+                    onSelect={() => {
+                      // Use item.value directly from the map to ensure correct selection
                       onChange(item.value);
                       setOpen(false);
                     }}
-                    className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors"
+                    className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors text-black"
                   >
                     {item.icon && (
                       <img
@@ -108,7 +107,7 @@ export function ComboBox({
                         }}
                       />
                     )}
-                    <span>{item.label}</span>
+                    <span className="text-black font-normal">{item.label}</span>
                     <Check
                       className={cn(
                         "ml-auto h-4 w-4 text-primary",
