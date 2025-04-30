@@ -1,11 +1,8 @@
 
-export interface ConditionRating {
-  id: string;
-  name: string;
-  value: number;
-  category: string;
-}
-
 export interface ConditionValues {
-  [key: string]: number;
+  accidents?: number;
+  mileage?: number;
+  year?: number;
+  titleStatus?: number;
+  // Add other condition factors here
 }

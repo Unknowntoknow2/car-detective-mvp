@@ -6,6 +6,7 @@ export * from './locationAdjustments';
 export * from './trimAdjustments';
 export * from './accidentAdjustments';
 export * from './featureAdjustments';
+export * from './titleStatusAdjustments';
 export * from './descriptions';
 
 import { VehicleCondition } from './types';
@@ -15,6 +16,7 @@ import { getZipAdjustment } from './locationAdjustments';
 import { getTrimAdjustment } from './trimAdjustments';
 import { getAccidentHistoryAdjustment } from './accidentAdjustments';
 import { getPremiumFeaturesAdjustment } from './featureAdjustments';
+import { getTitleStatusAdjustment } from './titleStatusAdjustments';
 
 export function calculateTotalAdjustment(params: {
   mileage: number;
@@ -23,6 +25,7 @@ export function calculateTotalAdjustment(params: {
   basePrice: number;
   trim?: string;
   accidentCount?: number;
+  titleStatus?: number;
   premiumFeatures?: string[];
   make?: string;
   model?: string;
@@ -34,6 +37,7 @@ export function calculateTotalAdjustment(params: {
   let trimAdj = 0;
   let accidentAdj = 0;
   let featuresAdj = 0;
+  let titleStatusAdj = 0;
   
   if (params.trim && params.make && params.model) {
     trimAdj = getTrimAdjustment(params.make, params.model, params.trim, params.basePrice);
@@ -47,5 +51,9 @@ export function calculateTotalAdjustment(params: {
     featuresAdj = getPremiumFeaturesAdjustment(params.premiumFeatures, params.basePrice);
   }
 
-  return mileageAdj + conditionAdj + zipAdj + trimAdj + accidentAdj + featuresAdj;
+  if (typeof params.titleStatus === 'number') {
+    titleStatusAdj = getTitleStatusAdjustment(params.titleStatus, params.basePrice);
+  }
+
+  return mileageAdj + conditionAdj + zipAdj + trimAdj + accidentAdj + featuresAdj + titleStatusAdj;
 }

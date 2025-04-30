@@ -31,6 +31,7 @@ export interface ValuationInput {
   vin?: string;
   trim?: string;
   accidentCount?: number;
+  titleStatus?: number;
   premiumFeatures?: string[];
   hasCarfax?: boolean;
   carfaxData?: CarfaxData;
@@ -67,6 +68,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     zipCode: input.zip,
     trim: input.trim,
     accidentCount: input.accidentCount,
+    titleStatus: input.titleStatus,
     premiumFeatures: input.premiumFeatures,
     basePrice: basePrice,
     carfaxData: input.carfaxData,
@@ -90,6 +92,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
       zipCode: input.zip,
       trim: input.trim,
       accidentCount: input.accidentCount,
+      titleStatus: input.titleStatus,
       premiumFeatures: input.premiumFeatures,
       basePrice: basePrice,
       carfaxData: input.carfaxData,
@@ -109,7 +112,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     model: input.model,
     condition: input.condition,
     hasCarfax: input.hasCarfax || !!input.carfaxData,
-    hasPhotoScore: !!input.photoScore // Add photo score to confidence calculation
+    hasPhotoScore: !!input.photoScore, // Add photo score to confidence calculation
+    hasTitleStatus: input.titleStatus !== undefined
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)

@@ -3,6 +3,7 @@ import React from 'react';
 import { AccidentFactorCard } from './AccidentFactorCard';
 import { MileageFactorCard } from './MileageFactorCard';
 import { YearFactorCard } from './YearFactorCard';
+import { TitleStatusFactorCard } from './TitleStatusFactorCard';
 import { ConditionValues } from '../types';
 
 interface ValuationFactorsGridProps {
@@ -12,7 +13,7 @@ interface ValuationFactorsGridProps {
 
 export function ValuationFactorsGrid({ values, onChange }: ValuationFactorsGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <AccidentFactorCard 
         value={values.accidents || 0} 
         onChange={(value) => onChange('accidents', value)} 
@@ -24,6 +25,10 @@ export function ValuationFactorsGrid({ values, onChange }: ValuationFactorsGridP
       <YearFactorCard 
         value={values.year || 0} 
         onChange={(value) => onChange('year', value)} 
+      />
+      <TitleStatusFactorCard 
+        value={values.titleStatus || 0} 
+        onChange={(value) => onChange('titleStatus', value)} 
       />
     </div>
   );
