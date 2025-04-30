@@ -10,9 +10,10 @@ export class MileageCalculator implements AdjustmentCalculator {
     const adjustment = rule ? input.basePrice * rule.percent : 0;
     
     return {
-      label: 'Mileage Impact',
+      name: 'Mileage Impact',
       value: Math.round(adjustment),
-      description: this.getMileageDescription(input.mileage)
+      description: this.getMileageDescription(input.mileage),
+      percentAdjustment: rule ? rule.percent : 0
     };
   }
 

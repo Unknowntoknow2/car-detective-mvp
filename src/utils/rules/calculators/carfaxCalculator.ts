@@ -1,4 +1,3 @@
-
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 import { CarfaxData } from '../../carfax/mockCarfaxService';
 
@@ -77,10 +76,10 @@ export class CarfaxCalculator implements AdjustmentCalculator {
     if (totalAdjustment === 0) return null;
     
     return {
-      label: 'Vehicle History',
+      name: 'Vehicle History',
       value: totalAdjustment,
       description,
-      detailedAdjustments // Include detailed breakdown for UI display
+      percentAdjustment: totalAdjustment / input.basePrice
     };
   }
 }

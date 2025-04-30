@@ -18,9 +18,10 @@ export class LocationCalculator implements AdjustmentCalculator {
     const adjustment = input.basePrice * zipRules.adjustments[zoneType];
     
     return {
-      label: 'Location Impact',
+      name: 'Location Impact',
       value: Math.round(adjustment),
-      description: `Based on market demand in ${input.zipCode}`
+      description: `Based on market demand in ${input.zipCode}`,
+      percentAdjustment: zipRules.adjustments[zoneType]
     };
   }
 }

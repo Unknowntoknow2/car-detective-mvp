@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/utils/formatters';
-import { ValuationAuditTrail as AuditTrailType } from '@/utils/rulesEngine';
+import { ValuationAuditTrail as AuditTrailType } from "@/utils/rules/RulesEngine";
 import { calculateValuation } from '@/utils/valuationEngine';
 
 interface ValuationCompleteProps {

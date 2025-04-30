@@ -11,9 +11,10 @@ export class ConditionCalculator implements AdjustmentCalculator {
       : 0;
     
     return {
-      label: 'Condition Impact',
+      name: 'Condition Impact',
       value: Math.round(adjustment),
-      description: `Vehicle in ${input.condition} condition`
+      description: `Vehicle in ${input.condition} condition`,
+      percentAdjustment: conditionRules[conditionValue] || 0
     };
   }
 }

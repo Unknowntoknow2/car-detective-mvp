@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ValuationAuditTrail as AuditTrailType } from "@/utils/rulesEngine";
+import { ValuationAuditTrail as AuditTrailType } from "@/utils/rules/RulesEngine";
 import { formatCurrency } from "@/utils/formatters";
 
 interface ValuationAuditTrailProps {

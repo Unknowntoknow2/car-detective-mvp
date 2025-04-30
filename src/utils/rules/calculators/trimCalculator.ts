@@ -19,9 +19,10 @@ export class TrimCalculator implements AdjustmentCalculator {
     const adjustment = input.basePrice * trimData.percent;
     
     return {
-      label: 'Trim Level',
+      name: 'Trim Level',
       value: Math.round(adjustment),
-      description: `${input.make} ${input.model} ${input.trim} trim package`
+      description: `${input.make} ${input.model} ${input.trim} trim package`,
+      percentAdjustment: trimData.percent
     };
   }
 }

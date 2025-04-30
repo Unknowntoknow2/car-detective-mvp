@@ -22,3 +22,8 @@ export interface AdjustmentBreakdown {
   description: string;
   percentAdjustment: number;
 }
+
+// Add the AdjustmentCalculator interface
+export interface AdjustmentCalculator {
+  calculate(input: RulesEngineInput): AdjustmentBreakdown | null;
+}

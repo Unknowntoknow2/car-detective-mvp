@@ -36,7 +36,14 @@ export function usePhotoScoring(valuationId: string) {
         if (data) {
           setPhotoScore(data.score);
           setThumbnailUrl(data.thumbnail_url);
-          setPhotoUrl(data.metadata?.original_url || data.thumbnail_url);
+          
+          // Handle metadata safely
+          if (data.metadata && typeof data.metadata === 'object') {
+            setPhotoUrl(data.metadata.original_url || data.thumbnail_url);
+          } else {
+            setPhotoUrl(data.thumbnail_url);
+          }
+          
           setPhotoId(data.id);
         }
       } catch (err) {

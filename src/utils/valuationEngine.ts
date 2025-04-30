@@ -1,6 +1,7 @@
 
 import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
-import rulesEngine, { AdjustmentBreakdown, ValuationAuditTrail } from './rulesEngine';
+import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
+import { ValuationAuditTrail } from './rules/RulesEngine';
 import type { VehicleCondition } from './adjustments/types';
 import { CarfaxData } from './carfax/mockCarfaxService';
 
