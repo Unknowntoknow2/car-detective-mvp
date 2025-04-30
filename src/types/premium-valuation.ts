@@ -27,6 +27,10 @@ export type FormData = {
   bodyType?: string;
   trim?: string;
   vin?: string;
+  // Added fields for prediction results
+  valuation?: number;
+  confidenceScore?: number;
+  valuationId?: string;
 };
 
 export interface ValidationRules {

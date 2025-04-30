@@ -11,6 +11,8 @@ import { ReviewSubmitStep } from './ReviewSubmitStep';
 import { ValuationResult } from './ValuationResult';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { useStepTransition } from '@/hooks/useStepTransition';
+import { VehicleDetailsStep } from './VehicleDetailsStep';
+import { PredictionReviewStep } from './PredictionReviewStep';
 
 interface StepContentProps {
   currentStep: number;
@@ -62,6 +64,10 @@ export function StepContent({
         return <ConditionStep {...stepProps} />;
       case 'AccidentHistoryStep':
         return <AccidentHistoryStep {...stepProps} />;
+      case 'VehicleDetailsStep':
+        return <VehicleDetailsStep {...stepProps} />;
+      case 'PredictionReviewStep':
+        return <PredictionReviewStep {...stepProps} isFormValid={isFormValid} handleSubmit={handleSubmit} handleReset={handleReset} />;
       case 'ReviewSubmitStep':
         return <ReviewSubmitStep {...stepProps} isFormValid={isFormValid} handleSubmit={handleSubmit} handleReset={handleReset} />;
       default:

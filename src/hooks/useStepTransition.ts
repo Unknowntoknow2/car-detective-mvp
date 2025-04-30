@@ -1,99 +1,61 @@
 
+import { useState, useEffect, useCallback } from 'react';
 import { FormData } from '@/types/premium-valuation';
-import { StepConfig } from '@/types/steps';
+
+interface StepConfig {
+  component: string;
+  shouldShow: boolean;
+  props?: any;
+}
 
 export function useStepTransition(
   currentStep: number,
   formData: FormData,
   isLoading: boolean,
-  lookupVehicle: (identifierType: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string) => Promise<any>
+  lookupVehicle: (type: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string, manualData?: any) => Promise<any>
 ) {
-  const getStepConfig = (step: number): StepConfig | null => {
-    switch (step) {
-      case 1:
-        return {
-          component: 'VehicleIdentificationStep',
-          shouldShow: true,
-          props: {
-            lookupVehicle,
-            isLoading
-          }
-        };
-      case 2:
-        return {
-          component: 'MileageStep',
-          shouldShow: formData.mileage === null,
-          props: {}
-        };
-      case 3:
-        return {
-          component: 'FuelTypeStep',
-          shouldShow: formData.fuelType === null,
-          props: {}
-        };
-      case 4:
-        return {
-          component: 'FeatureSelectionStep',
-          shouldShow: true,
-          props: {}
-        };
-      case 5:
-        return {
-          component: 'ConditionStep',
-          shouldShow: true,
-          props: {}
-        };
-      case 6:
-        return {
-          component: 'AccidentHistoryStep',
-          shouldShow: true,
-          props: {}
-        };
-      case 7:
-        return {
-          component: 'ReviewSubmitStep',
-          shouldShow: true,
-          props: {}
-        };
-      default:
-        return null;
-    }
-  };
+  const [stepConfigs, setStepConfigs] = useState<Record<number, StepConfig>>({});
 
-  /**
-   * Determines if a step should be skipped based on form data
-   * @param step Step number to check
-   * @returns Boolean indicating if step should be skipped
-   */
-  const shouldSkipStep = (step: number): boolean => {
-    const config = getStepConfig(step);
-    return config ? !config.shouldShow : false;
-  };
-
-  /**
-   * Finds the next valid step that should be shown
-   * @param currentStep Current step number
-   * @param direction Direction to move (1 for forward, -1 for backward)
-   * @returns Next valid step number
-   */
-  const findNextValidStep = (currentStep: number, direction: 1 | -1 = 1): number => {
-    let nextStep = currentStep + direction;
-    
-    // Find the next step that should be shown
-    while (nextStep >= 1 && nextStep <= 7) {
-      if (!shouldSkipStep(nextStep)) {
-        return nextStep;
+  // Define step visibility logic
+  useEffect(() => {
+    setStepConfigs({
+      1: {
+        component: 'VehicleIdentificationStep',
+        shouldShow: true,
+        props: { lookupVehicle, isLoading }
+      },
+      2: {
+        component: 'MileageStep',
+        shouldShow: !!formData.make && !!formData.model && !!formData.year
+      },
+      3: {
+        component: 'FuelTypeStep',
+        shouldShow: formData.mileage !== null && formData.mileage > 0
+      },
+      4: {
+        component: 'FeatureSelectionStep',
+        shouldShow: !!formData.fuelType
+      },
+      5: {
+        component: 'ConditionStep',
+        shouldShow: true
+      },
+      6: {
+        component: 'VehicleDetailsStep', // Added VehicleDetailsStep
+        shouldShow: true
+      },
+      7: {
+        component: 'PredictionReviewStep', // Added PredictionReviewStep 
+        shouldShow: true
       }
-      nextStep += direction;
-    }
-    
-    // If no valid step found, return the current step
-    return currentStep;
-  };
+    });
+  }, [formData.make, formData.model, formData.year, formData.mileage, formData.fuelType, isLoading, lookupVehicle]);
 
-  return { 
-    getStepConfig,
-    shouldSkipStep,
-    findNextValidStep
+  const getStepConfig = useCallback((step: number): StepConfig | null => {
+    return stepConfigs[step] || null;
+  }, [stepConfigs]);
+
+  return {
+    getStepConfig
   };
 }
