@@ -55,7 +55,26 @@ export function useStepTransition(
     return stepConfigs[step] || null;
   }, [stepConfigs]);
 
+  // Add the findNextValidStep method
+  const findNextValidStep = useCallback((currentStep: number, direction: number): number => {
+    const maxStep = Object.keys(stepConfigs).length;
+    let step = currentStep + direction;
+    
+    // Loop through steps until we find a valid one or reach a boundary
+    while (step >= 1 && step <= maxStep) {
+      const config = stepConfigs[step];
+      if (config && config.shouldShow) {
+        return step;
+      }
+      step += direction;
+    }
+    
+    // If no valid step found, return the original step
+    return currentStep;
+  }, [stepConfigs]);
+
   return {
-    getStepConfig
+    getStepConfig,
+    findNextValidStep
   };
 }

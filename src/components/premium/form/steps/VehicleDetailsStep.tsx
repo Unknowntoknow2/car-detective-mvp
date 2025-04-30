@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
-import { car, fuel, check, alertTriangle } from 'lucide-react';
+import { CarFront, Fuel, Check, AlertTriangle } from 'lucide-react';
 
 interface VehicleDetailsStepProps {
   step: number;
@@ -276,7 +276,7 @@ export function VehicleDetailsStep({
                 : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <check className="w-4 h-4 mr-2" />
+            <Check className="w-4 h-4 mr-2" />
             No Accidents
           </button>
           
@@ -289,7 +289,7 @@ export function VehicleDetailsStep({
                 : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <alertTriangle className="w-4 h-4 mr-2" />
+            <AlertTriangle className="w-4 h-4 mr-2" />
             Has Accident History
           </button>
         </div>
