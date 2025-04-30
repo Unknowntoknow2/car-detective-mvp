@@ -22,6 +22,8 @@ export interface RulesEngineInput {
   colorMultiplier?: number;
   fuelType?: string;
   fuelTypeMultiplier?: number;
+  transmissionType?: string;
+  transmissionMultiplier?: number;
 }
 
 export interface AdjustmentBreakdown {

@@ -11,6 +11,7 @@ import { PhotoScoreCalculator } from './calculators/photoScoreCalculator';
 import { EquipmentCalculator } from './calculators/equipmentCalculator';
 import { ColorCalculator } from './calculators/colorCalculator';
 import { FuelTypeCalculator } from './calculators/fuelTypeCalculator';
+import { TransmissionCalculator } from './calculators/transmissionCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -24,7 +25,8 @@ export class RulesEngine {
     new PhotoScoreCalculator(),
     new EquipmentCalculator(),
     new ColorCalculator(),
-    new FuelTypeCalculator()
+    new FuelTypeCalculator(),
+    new TransmissionCalculator()
   ];
 
   public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
@@ -75,7 +77,9 @@ export class RulesEngine {
         exteriorColor: input.exteriorColor,
         colorMultiplier: input.colorMultiplier,
         fuelType: input.fuelType,
-        fuelTypeMultiplier: input.fuelTypeMultiplier
+        fuelTypeMultiplier: input.fuelTypeMultiplier,
+        transmissionType: input.transmissionType,
+        transmissionMultiplier: input.transmissionMultiplier
       }
     };
   }
@@ -108,6 +112,8 @@ export interface ValuationAuditTrail {
     colorMultiplier?: number;
     fuelType?: string;
     fuelTypeMultiplier?: number;
+    transmissionType?: string;
+    transmissionMultiplier?: number;
   };
 }
 

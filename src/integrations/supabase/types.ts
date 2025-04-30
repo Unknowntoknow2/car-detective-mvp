@@ -620,6 +620,24 @@ export type Database = {
         }
         Relationships: []
       }
+      transmission_adjustment: {
+        Row: {
+          description: string | null
+          multiplier: number
+          type: string
+        }
+        Insert: {
+          description?: string | null
+          multiplier: number
+          type: string
+        }
+        Update: {
+          description?: string | null
+          multiplier?: number
+          type?: string
+        }
+        Relationships: []
+      }
       valuation_factors: {
         Row: {
           created_at: string | null

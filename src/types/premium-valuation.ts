@@ -33,6 +33,8 @@ export type FormData = {
   valuation?: number;
   confidenceScore?: number;
   valuationId?: string;
+  // Transmission type
+  transmissionType?: string;
 };
 
 export interface ValidationRules {

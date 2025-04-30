@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { AccidentToggle } from './AccidentToggle';
+import { TransmissionSelect } from './TransmissionSelect';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface VehicleDetailsFormProps {
@@ -16,6 +17,7 @@ interface VehicleDetailsFormProps {
     condition?: number;
     hasAccident?: boolean | null;
     accidentDescription?: string;
+    transmissionType?: string;
   };
   onSubmit: (data: any) => void;
   isLoading?: boolean;
@@ -45,6 +47,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
     condition: initialData.condition || 3,
     hasAccident: initialData.hasAccident || false,
     accidentDescription: initialData.accidentDescription || '',
+    transmissionType: initialData.transmissionType || 'Automatic',
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -76,6 +79,10 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
       newErrors.zipCode = 'Please enter a valid 5-digit ZIP code';
     }
     
+    if (!formData.transmissionType) {
+      newErrors.transmissionType = 'Transmission type is required';
+    }
+    
     // Only validate accident description if hasAccident is true
     if (formData.hasAccident && !formData.accidentDescription.trim()) {
       newErrors.accidentDescription = 'Please provide accident details';
@@ -94,38 +101,6 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
         conditionLabel
       });
     }
-  };
-  
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value ? parseInt(e.target.value, 10) : null;
-    setFormData(prev => ({ ...prev, mileage: value }));
-  };
-  
-  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow only numbers and limit to 5 digits
-    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-    setFormData(prev => ({ ...prev, zipCode: value }));
-  };
-  
-  const handleFuelTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, fuelType: value }));
-  };
-  
-  const handleConditionChange = (value: number[]) => {
-    setFormData(prev => ({ ...prev, condition: value[0] }));
-  };
-  
-  const toggleAccidentHistory = (hasAccident: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      hasAccident,
-      // Clear accident description if toggling to "No"
-      ...(hasAccident === false ? { accidentDescription: '' } : {})
-    }));
-  };
-  
-  const handleAccidentDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, accidentDescription: e.target.value }));
   };
   
   return (
@@ -177,6 +152,13 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
           </Select>
           {errors.fuelType && <FormValidationError error={errors.fuelType} />}
         </div>
+        
+        <TransmissionSelect
+          value={formData.transmissionType}
+          onChange={(value) => setFormData(prev => ({ ...prev, transmissionType: value }))}
+          disabled={isLoading}
+        />
+        {errors.transmissionType && <FormValidationError error={errors.transmissionType} />}
         
         <div className="space-y-2">
           <Label htmlFor="zipCode">

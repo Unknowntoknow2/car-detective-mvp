@@ -39,7 +39,8 @@ serve(async (req) => {
         zip_code: state,
         exterior_color,
         color_multiplier,
-        fuel_type
+        fuel_type,
+        transmission_type
       `)
       .eq("id", valuationId)
       .single();
@@ -136,6 +137,26 @@ serve(async (req) => {
         // Continue with default multiplier
       }
     }
+    
+    // Get transmission multiplier if present
+    let transmissionMultiplier = 1.0;
+    if (val.transmission_type) {
+      try {
+        const { data: transmissionData, error: transmissionErr } = await supabase
+          .from("transmission_adjustment")
+          .select("multiplier")
+          .eq("type", val.transmission_type)
+          .single();
+          
+        if (!transmissionErr && transmissionData) {
+          transmissionMultiplier = transmissionData.multiplier;
+          console.log(`Fetched transmission multiplier: ${transmissionMultiplier} for transmission type: ${val.transmission_type}`);
+        }
+      } catch (err) {
+        console.warn("Failed to get transmission multiplier:", err);
+        // Continue with default multiplier
+      }
+    }
 
     // Apply base prediction model
     const features: ValuationFeatures = {
@@ -159,8 +180,11 @@ serve(async (req) => {
     // Apply color multiplier
     intermediatePrice = intermediatePrice * colorMultiplier;
     
-    // Apply fuel type multiplier as the final adjustment
-    const finalPrice = Math.round(intermediatePrice * fuelTypeMultiplier);
+    // Apply fuel type multiplier
+    intermediatePrice = intermediatePrice * fuelTypeMultiplier;
+    
+    // Apply transmission multiplier as the final adjustment
+    const finalPrice = Math.round(intermediatePrice * transmissionMultiplier);
 
     // Return the final valuation with a breakdown
     return new Response(
@@ -175,6 +199,8 @@ serve(async (req) => {
           colorAdjustment: `${((colorMultiplier - 1) * 100).toFixed(1)}%`,
           fuelTypeMultiplier: fuelTypeMultiplier,
           fuelTypeAdjustment: `${((fuelTypeMultiplier - 1) * 100).toFixed(1)}%`,
+          transmissionMultiplier: transmissionMultiplier,
+          transmissionAdjustment: `${((transmissionMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

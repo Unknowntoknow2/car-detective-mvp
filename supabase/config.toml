@@ -73,3 +73,6 @@ verify_jwt = false
 
 [functions.get-fuel-type-multiplier]
 verify_jwt = false
+
+[functions.get-transmission-multiplier]
+verify_jwt = false

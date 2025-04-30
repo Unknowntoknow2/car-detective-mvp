@@ -43,6 +43,8 @@ export interface ValuationInput {
   colorMultiplier?: number;
   fuelType?: string;
   fuelTypeMultiplier?: number;
+  transmissionType?: string;
+  transmissionMultiplier?: number;
 }
 
 export interface ValuationResult {
@@ -65,6 +67,10 @@ export interface ValuationResult {
     multiplier: number;
   };
   fuelTypeInfo?: {
+    type: string;
+    multiplier: number;
+  };
+  transmissionInfo?: {
     type: string;
     multiplier: number;
   };
@@ -99,7 +105,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     exteriorColor: input.exteriorColor,
     colorMultiplier: input.colorMultiplier,
     fuelType: input.fuelType,
-    fuelTypeMultiplier: input.fuelTypeMultiplier
+    fuelTypeMultiplier: input.fuelTypeMultiplier,
+    transmissionType: input.transmissionType,
+    transmissionMultiplier: input.transmissionMultiplier
   });
   
   // Calculate total adjustment
@@ -116,6 +124,11 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
   // Apply fuel type multiplier if present
   if (input.fuelTypeMultiplier && input.fuelTypeMultiplier !== 1) {
     estimatedValue = Math.round(estimatedValue * input.fuelTypeMultiplier);
+  }
+  
+  // Apply transmission multiplier if present
+  if (input.transmissionMultiplier && input.transmissionMultiplier !== 1) {
+    estimatedValue = Math.round(estimatedValue * input.transmissionMultiplier);
   }
 
   // Create an audit trail
@@ -138,7 +151,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       exteriorColor: input.exteriorColor,
       colorMultiplier: input.colorMultiplier,
       fuelType: input.fuelType,
-      fuelTypeMultiplier: input.fuelTypeMultiplier
+      fuelTypeMultiplier: input.fuelTypeMultiplier,
+      transmissionType: input.transmissionType,
+      transmissionMultiplier: input.transmissionMultiplier
     },
     adjustments,
     totalAdjustment
@@ -156,7 +171,8 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     hasCarfax: input.hasCarfax || !!input.carfaxData,
     hasPhotoScore: !!input.photoScore,
     hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean',
-    hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0
+    hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0,
+    hasTransmission: input.transmissionType !== undefined
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)
@@ -201,6 +217,14 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     result.fuelTypeInfo = {
       type: input.fuelType,
       multiplier: input.fuelTypeMultiplier
+    };
+  }
+  
+  // Add transmission info if present
+  if (input.transmissionType && input.transmissionMultiplier) {
+    result.transmissionInfo = {
+      type: input.transmissionType,
+      multiplier: input.transmissionMultiplier
     };
   }
 

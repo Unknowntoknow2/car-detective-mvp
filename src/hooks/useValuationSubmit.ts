@@ -56,6 +56,22 @@ export const useValuationSubmit = () => {
           console.error('Error getting fuel type multiplier:', error);
         }
       }
+      
+      // Get transmission multiplier if transmission type is selected
+      let transmissionMultiplier = 1;
+      if (formData.transmissionType) {
+        try {
+          const { data: transmissionData } = await supabase.functions.invoke('get-transmission-multiplier', {
+            body: { transmissionType: formData.transmissionType }
+          });
+          
+          if (transmissionData && transmissionData.multiplier) {
+            transmissionMultiplier = transmissionData.multiplier;
+          }
+        } catch (error) {
+          console.error('Error getting transmission multiplier:', error);
+        }
+      }
 
       // Insert valuation record
       const { data, error } = await supabase
@@ -73,7 +89,8 @@ export const useValuationSubmit = () => {
           estimated_value: 0, // Will be calculated by prediction endpoint
           exterior_color: formData.exteriorColor,
           color_multiplier: colorMultiplier,
-          fuel_type: formData.fuelType
+          fuel_type: formData.fuelType,
+          transmission_type: formData.transmissionType
         })
         .select('id')
         .single();
@@ -98,37 +115,33 @@ export const useValuationSubmit = () => {
         // Update the valuation with the predicted price
         const { error: updateError } = await supabase
           .from('valuations')
-          .update({ estimated_value: predictionData.predictedPrice })
+          .update({ 
+            estimated_value: predictionData.predictedPrice 
+          })
           .eq('id', newValuationId);
-
+          
         if (updateError) {
-          console.error('Error updating valuation with prediction:', updateError);
+          console.error('Failed to update valuation with predicted price:', updateError);
         }
       }
 
-      // Store result in session for results page
-      sessionStorage.setItem('last_valuation_id', newValuationId);
-      sessionStorage.setItem('last_valuation_data', JSON.stringify({
-        make: formData.make,
-        model: formData.model,
-        year: formData.year,
-        mileage: formData.mileage,
-        condition: formData.conditionLabel,
-        estimatedValue: predictionData?.predictedPrice || 0,
-        fuelType: formData.fuelType
-      }));
-
-      toast.success("Valuation completed successfully!");
-      return newValuationId;
-    } catch (error: any) {
-      console.error("Valuation submission error:", error);
-      setSubmitError(error.message || "An error occurred during submission");
-      toast.error(error.message || "Failed to submit valuation");
-      return null;
-    } finally {
+      // Return the valuation ID for redirect
       setIsSubmitting(false);
+      toast.success("Valuation submitted successfully!");
+      return newValuationId;
+    } catch (error) {
+      console.error('Valuation submission error:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Failed to submit valuation');
+      setIsSubmitting(false);
+      toast.error(`Valuation submission failed: ${setSubmitError}`);
+      return null;
     }
   };
 
-  return { valuationId, isSubmitting, submitError, handleSubmit };
+  return {
+    valuationId,
+    isSubmitting,
+    submitError,
+    handleSubmit
+  };
 };
