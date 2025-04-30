@@ -40,6 +40,9 @@ export interface FormData {
   bodyStyle?: string;
   bodyType?: string;
   
+  // Driving behavior
+  drivingProfile?: string;
+  
   // Calculation results
   valuation?: number;
   confidenceScore?: number;

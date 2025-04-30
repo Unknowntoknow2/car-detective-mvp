@@ -221,6 +221,24 @@ export type Database = {
         }
         Relationships: []
       }
+      driving_profile: {
+        Row: {
+          description: string | null
+          multiplier: number
+          profile: string
+        }
+        Insert: {
+          description?: string | null
+          multiplier: number
+          profile: string
+        }
+        Update: {
+          description?: string | null
+          multiplier?: number
+          profile?: string
+        }
+        Relationships: []
+      }
       equipment_options: {
         Row: {
           created_at: string | null

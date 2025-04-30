@@ -43,7 +43,9 @@ serve(async (req) => {
         has_open_recall,
         warranty_status,
         sale_date,
-        body_style
+        body_style,
+        driving_profile,
+        driving_profile_multiplier
       `)
       .eq("id", valuationId)
       .single();
@@ -227,6 +229,33 @@ serve(async (req) => {
       }
     }
 
+    // Get driving profile multiplier if present
+    let drivingProfileMultiplier = 1.0;
+    if (val.driving_profile) {
+      try {
+        // Use the existing driving_profile_multiplier from the valuation if it exists
+        if (val.driving_profile_multiplier) {
+          drivingProfileMultiplier = val.driving_profile_multiplier;
+          console.log(`Using stored driving profile multiplier: ${drivingProfileMultiplier} for profile: ${val.driving_profile}`);
+        } else {
+          // Otherwise fetch from the driving_profile table
+          const { data: drivingProfileData, error: drivingProfileErr } = await supabase
+            .from("driving_profile")
+            .select("multiplier")
+            .eq("profile", val.driving_profile)
+            .single();
+            
+          if (!drivingProfileErr && drivingProfileData) {
+            drivingProfileMultiplier = drivingProfileData.multiplier;
+            console.log(`Fetched driving profile multiplier: ${drivingProfileMultiplier} for profile: ${val.driving_profile}`);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to get driving profile multiplier:", err);
+        // Continue with default multiplier
+      }
+    }
+
     // Apply base prediction model
     const features: ValuationFeatures = {
       basePrice: val.base_price,
@@ -257,6 +286,9 @@ serve(async (req) => {
     
     // Apply recall multiplier
     intermediatePrice = intermediatePrice * recallMultiplier;
+    
+    // Apply driving profile multiplier
+    intermediatePrice = intermediatePrice * drivingProfileMultiplier;
     
     // Apply warranty multiplier as the final adjustment
     const finalPrice = Math.round(intermediatePrice * warrantyMultiplier);
@@ -323,6 +355,8 @@ serve(async (req) => {
           marketAdjustment: `${((multiplier - 1) * 100).toFixed(1)}%`,
           seasonalMultiplier: seasonalMultiplier,
           seasonalAdjustment: `${((seasonalMultiplier - 1) * 100).toFixed(1)}%`,
+          drivingProfileMultiplier: drivingProfileMultiplier,
+          drivingProfileAdjustment: `${((drivingProfileMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

@@ -16,6 +16,7 @@ import { RecallCalculator } from './calculators/recallCalculator';
 import { WarrantyCalculator } from './calculators/warrantyCalculator';
 import { SeasonalCalculator } from '../valuation-adjustments/SeasonalCalculator';
 import { MarketDemandCalculator } from '../valuation-adjustments/MarketDemandCalculator';
+import { DrivingBehaviorCalculator } from '../valuation-adjustments/DrivingBehaviorCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -34,7 +35,8 @@ export class RulesEngine {
     new RecallCalculator(),
     new WarrantyCalculator(),
     new SeasonalCalculator(),
-    new MarketDemandCalculator()
+    new MarketDemandCalculator(),
+    new DrivingBehaviorCalculator()
   ];
 
   public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
@@ -93,7 +95,9 @@ export class RulesEngine {
         warrantyStatus: input.warrantyStatus,
         warrantyMultiplier: input.warrantyMultiplier,
         bodyStyle: input.bodyStyle,
-        saleDate: input.saleDate
+        saleDate: input.saleDate,
+        drivingProfile: input.drivingProfile,
+        drivingProfileMultiplier: input.drivingProfileMultiplier
       }
     };
   }
@@ -134,6 +138,8 @@ export interface ValuationAuditTrail {
     warrantyMultiplier?: number;
     bodyStyle?: string;
     saleDate?: string | Date;
+    drivingProfile?: string;
+    drivingProfileMultiplier?: number;
   };
 }
 

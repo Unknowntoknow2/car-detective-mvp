@@ -1,4 +1,3 @@
-
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface RulesEngineInput {
@@ -30,6 +29,8 @@ export interface RulesEngineInput {
   warrantyMultiplier?: number;
   saleDate?: string | Date;
   bodyStyle?: string;
+  drivingProfile?: string;
+  drivingProfileMultiplier?: number;
 }
 
 export interface AdjustmentBreakdown {

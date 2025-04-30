@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { supabase } from '@/integrations/supabase/client';
@@ -91,6 +90,24 @@ export const useValuationSubmit = () => {
         }
       }
 
+      // Get driving profile multiplier if driving profile is selected
+      let drivingProfileMultiplier = 1.0;
+      if (formData.drivingProfile) {
+        try {
+          const { data: drivingData } = await supabase
+            .from('driving_profile')
+            .select('multiplier')
+            .eq('profile', formData.drivingProfile)
+            .single();
+            
+          if (drivingData && drivingData.multiplier) {
+            drivingProfileMultiplier = drivingData.multiplier;
+          }
+        } catch (error) {
+          console.error('Error getting driving profile multiplier:', error);
+        }
+      }
+
       // Format the sale date as a string if it exists
       const saleDate = formData.saleDate ? formData.saleDate.toISOString().split('T')[0] : null;
 
@@ -115,7 +132,9 @@ export const useValuationSubmit = () => {
           has_open_recall: formData.hasOpenRecall || false,
           warranty_status: formData.warrantyStatus || 'None',
           sale_date: saleDate,
-          body_style: formData.bodyStyle || 'sedan'
+          body_style: formData.bodyStyle || 'sedan',
+          driving_profile: formData.drivingProfile || 'Normal',
+          driving_profile_multiplier: drivingProfileMultiplier
         })
         .select('id')
         .single();
