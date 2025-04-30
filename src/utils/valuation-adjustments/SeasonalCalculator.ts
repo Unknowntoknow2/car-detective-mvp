@@ -49,7 +49,7 @@ export class SeasonalCalculator {
       
       // Format description with details
       let descriptionText = '';
-      if (data.description) {
+      if (data && 'description' in data && data.description) {
         descriptionText = `${data.description} (${vehicleType} vehicles ${percentAdjustment >= 0 ? '+' : ''}${percentAdjustment.toFixed(1)}%)`;
       } else {
         descriptionText = `Seasonal adjustment for ${vehicleType} vehicles in month ${month}: ${percentAdjustment.toFixed(1)}%`;
