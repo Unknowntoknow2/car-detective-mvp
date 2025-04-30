@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.5.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
@@ -62,10 +61,54 @@ serve(async (req) => {
     
     const validatedData = parsedData.data;
     
+    // Get additional valuation factors
+    const accidentStep = validatedData.accidentDetails?.count ? 
+      Math.min(4, parseInt(validatedData.accidentDetails.count)) : 0;
+    
+    // Determine mileage step based on mileage range
+    let mileageStep = 0;
+    if (validatedData.mileage > 80000) mileageStep = 4;
+    else if (validatedData.mileage > 60000) mileageStep = 3;
+    else if (validatedData.mileage > 40000) mileageStep = 2;
+    else if (validatedData.mileage > 20000) mileageStep = 1;
+    
+    // Determine age step based on vehicle year
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - validatedData.year;
+    let ageStep = 0;
+    if (age > 10) ageStep = 4;
+    else if (age > 7) ageStep = 3;
+    else if (age > 4) ageStep = 2;
+    else if (age > 2) ageStep = 1;
+    
     // Setup Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Fetch multipliers for the valuation factors
+    const fetchMultiplier = async (factorName: string, step: number) => {
+      const { data, error } = await supabase
+        .from('valuation_factors')
+        .select('multiplier')
+        .eq('factor_name', factorName)
+        .eq('step', step)
+        .single();
+        
+      if (error) {
+        console.error(`Error fetching multiplier for ${factorName} step ${step}:`, error);
+        return 1.0; // Default multiplier on error
+      }
+      
+      return data?.multiplier || 1.0;
+    };
+    
+    // Fetch multipliers in parallel
+    const [accidentMultiplier, mileageMultiplier, ageMultiplier] = await Promise.all([
+      fetchMultiplier('accidents', accidentStep),
+      fetchMultiplier('mileage', mileageStep),
+      fetchMultiplier('age', ageStep)
+    ]);
     
     // Generate a unique ID for this valuation
     const valuationId = crypto.randomUUID();
@@ -201,23 +244,16 @@ serve(async (req) => {
     }
     
     // Calculate final value by applying all factors
-    const finalValue = Math.round(basePrice * (1 + manualPct) * multiplier * photoFactor * conditionMultiplier);
-    
-    // Calculate confidence score based on data quality
-    let confidenceScore = 85; // Base confidence
-    if (validatedData.zipCode) confidenceScore += 3;
-    if (validatedData.includeCarfax) confidenceScore += 7;
-    if (validatedData.accident === "yes" && validatedData.accidentDetails) confidenceScore += 5;
-    
-    // If detailed condition factors are provided, increase confidence
-    if (validatedData.conditionFactors && Object.keys(validatedData.conditionFactors).length >= 10) {
-      confidenceScore += 5;
-    }
-    
-    // Generate price range based on confidence
-    const variancePercentage = (100 - confidenceScore) / 100;
-    const minPrice = Math.round(finalValue * (1 - variancePercentage * 0.1));
-    const maxPrice = Math.round(finalValue * (1 + variancePercentage * 0.1));
+    const finalValue = Math.round(
+      basePrice * 
+      conditionMultiplier * 
+      accidentMultiplier * 
+      mileageMultiplier * 
+      ageMultiplier * 
+      multiplier * 
+      photoFactor * 
+      (1 + manualPct)
+    );
     
     // Get current user ID from the auth context
     const { data: { user } } = await supabase.auth.getUser();
@@ -280,6 +316,25 @@ serve(async (req) => {
       includesCarfax: !!validatedData.includeCarfax
     };
     
+    // Add the new factors to the valuation breakdown
+    allAdjustments.push({
+      factor: "Accident History",
+      impact: ((accidentMultiplier - 1.0) * 100),
+      description: `${accidentStep} accident${accidentStep !== 1 ? 's' : ''}`
+    });
+    
+    allAdjustments.push({
+      factor: "Mileage",
+      impact: ((mileageMultiplier - 1.0) * 100),
+      description: getMileageDescription(validatedData.mileage)
+    });
+    
+    allAdjustments.push({
+      factor: "Vehicle Age",
+      impact: ((ageMultiplier - 1.0) * 100),
+      description: `${age} year${age !== 1 ? 's' : ''} old`
+    });
+    
     // Return detailed breakdown for debugging and transparency
     return new Response(
       JSON.stringify({
@@ -291,6 +346,9 @@ serve(async (req) => {
         multiplier,
         photoFactor,
         conditionMultiplier,
+        accidentMultiplier,
+        mileageMultiplier,
+        ageMultiplier,
         finalValue
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -381,4 +439,13 @@ function calculateAdjustmentsWithoutCondition(data: z.infer<typeof ValuationRequ
   }
   
   return adjustments;
+}
+
+// Helper function to get a descriptive string for mileage
+function getMileageDescription(mileage: number): string {
+  if (mileage < 20000) return "Less than 20,000 miles";
+  if (mileage < 40000) return "20,000 - 40,000 miles";
+  if (mileage < 60000) return "40,000 - 60,000 miles";
+  if (mileage < 80000) return "60,000 - 80,000 miles";
+  return "Over 80,000 miles";
 }
