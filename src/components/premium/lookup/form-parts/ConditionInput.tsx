@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, HelpCircle, Tool, ArrowUp } from 'lucide-react';
+import { AlertTriangle, CheckCircle, HelpCircle, ArrowUp, WrenchIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LucideIcon } from 'lucide-react';
 
@@ -300,7 +300,7 @@ export function ConditionInput({
               </p>
               <div className="p-3 bg-white bg-opacity-60 rounded border border-current border-opacity-20 mt-2">
                 <div className="flex items-start gap-2">
-                  <Tool className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
+                  <WrenchIcon className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <h5 className="text-xs font-medium text-slate-700 mb-0.5">Improvement Tip:</h5>
                     <p className="text-xs text-slate-600">{detailedFeedback.tipDetail}</p>
