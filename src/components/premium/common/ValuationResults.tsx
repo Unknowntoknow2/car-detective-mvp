@@ -8,8 +8,9 @@ interface ValuationResultsProps {
   confidenceScore: number;
   priceRange?: [number, number];
   adjustments?: {
-    label: string;
-    value: number;
+    factor: string;
+    impact: number;
+    description?: string;
   }[];
 }
 
@@ -55,8 +56,8 @@ export function ValuationResults({
             <div className="flex flex-wrap gap-2">
               {adjustments.map((adj, i) => (
                 <Badge key={i} variant="outline">
-                  {adj.label}: {adj.value > 0 ? "+" : ""}
-                  {adj.value}%
+                  {adj.factor}: {adj.impact > 0 ? "+" : ""}
+                  {adj.impact}%
                 </Badge>
               ))}
             </div>

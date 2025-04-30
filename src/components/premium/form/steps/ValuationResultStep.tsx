@@ -87,12 +87,6 @@ export function ValuationResultStep({
     );
   }
 
-  // Format the adjustments for display
-  const adjustments = result.adjustments?.map((adj: any) => ({
-    label: adj.factor,
-    value: adj.impact
-  })) || [];
-
   return (
     <div className="space-y-6">
       <div>
@@ -106,7 +100,7 @@ export function ValuationResultStep({
         estimatedValue={result.estimated_value}
         confidenceScore={result.confidence_score}
         priceRange={result.price_range}
-        adjustments={adjustments}
+        adjustments={result.adjustments}
       />
 
       <div className="flex flex-col sm:flex-row gap-3 mt-6">
