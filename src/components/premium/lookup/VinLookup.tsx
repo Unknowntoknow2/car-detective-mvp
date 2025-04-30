@@ -30,11 +30,11 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-2">
-        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/30">
+      <div className="flex items-center gap-2 mb-3">
+        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-medium px-2.5 py-1">
           Recommended
         </Badge>
-        <p className="text-sm text-slate-500">Fast & Accurate</p>
+        <p className="text-sm text-slate-600">Fast & Accurate</p>
       </div>
       
       <div className="space-y-3">
@@ -46,9 +46,10 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
               onChange?.(newValue);
             }}
             placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
-            className={`text-lg font-mono tracking-wide h-12 pr-10 ${
-              error ? 'border-red-500 focus-visible:ring-red-500' : 
-              isValid ? 'border-green-500 focus-visible:ring-green-500' : ''
+            className={`text-lg font-mono tracking-wide h-12 pr-10 transition-all ${
+              error ? 'border-red-300 focus-visible:ring-red-200 bg-red-50/30' : 
+              isValid ? 'border-green-300 focus-visible:ring-green-200 bg-green-50/30' : 
+              'border-input/60 hover:border-input'
             }`}
           />
           {isValid && !isLoading && (
@@ -57,7 +58,7 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
         </div>
         
         {error ? (
-          <div className="flex items-start gap-2 text-xs text-red-500">
+          <div className="flex items-start gap-2 text-xs text-red-500 animate-fade-in">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
@@ -75,7 +76,7 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
         <Button 
           onClick={onLookup}
           disabled={isLoading || !isValid}
-          className="px-6"
+          className="px-6 h-11 font-medium transition-all"
         >
           {isLoading ? (
             <>

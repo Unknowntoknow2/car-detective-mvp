@@ -77,9 +77,9 @@ export function ValuationResultStep({
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Could not load valuation results. Please try again.
-          <Button variant="outline" size="sm" className="mt-2" onClick={() => refetch()}>
+        <AlertDescription className="space-y-2">
+          <p>Could not load valuation results. Please try again.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             Retry
           </Button>
         </AlertDescription>
@@ -90,7 +90,7 @@ export function ValuationResultStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Valuation Results</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Valuation Results</h2>
         <p className="text-gray-600 mb-6">
           Based on your vehicle details, our AI pricing model has generated the following valuation.
         </p>
@@ -103,12 +103,12 @@ export function ValuationResultStep({
         adjustments={result.adjustments}
       />
 
-      <div className="flex flex-col sm:flex-row gap-3 mt-6">
-        <Button onClick={handleDownloadPdf} className="flex-1">
+      <div className="flex flex-col sm:flex-row gap-4 mt-8">
+        <Button onClick={handleDownloadPdf} className="flex-1 h-11 text-sm font-medium transition-all">
           <Download className="h-4 w-4 mr-2" />
           Download PDF Report
         </Button>
-        <Button variant="outline" onClick={handleEmailPdf} className="flex-1">
+        <Button variant="outline" onClick={handleEmailPdf} className="flex-1 h-11 text-sm font-medium transition-all">
           <Mail className="h-4 w-4 mr-2" />
           Email Me the Report
         </Button>

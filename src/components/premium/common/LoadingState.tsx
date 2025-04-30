@@ -1,5 +1,6 @@
 
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LoadingStateProps {
   text?: string;
@@ -22,15 +23,27 @@ export function LoadingState({
 
   const variantClasses = {
     default: "flex flex-col items-center justify-center p-8 text-center",
-    overlay: "absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10",
+    overlay: "absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-10",
     inline: "flex items-center gap-2"
   };
 
   return (
-    <div className={`${variantClasses[variant]} ${className}`}>
-      <Loader2 className={`${sizeClasses[size]} text-primary animate-spin ${variant !== "inline" ? "mb-3" : ""}`} />
+    <div className={cn(variantClasses[variant], className)}>
+      <Loader2 
+        className={cn(
+          sizeClasses[size], 
+          "text-primary animate-spin", 
+          variant !== "inline" ? "mb-3" : ""
+        )} 
+      />
       {text && (
-        <p className={`text-slate-600 ${variant === "inline" && size === "sm" ? "text-sm" : ""}`}>{text}</p>
+        <p className={cn(
+          "text-slate-700 font-medium",
+          variant === "inline" && size === "sm" ? "text-sm" : "",
+          size === "lg" && "text-base"
+        )}>
+          {text}
+        </p>
       )}
     </div>
   );
