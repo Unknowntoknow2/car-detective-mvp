@@ -22,6 +22,7 @@ export function EnhancedVinLookup({
   isLoading,
   error
 }: EnhancedVinLookupProps) {
+  // Updated the type definition to match what validateVinEnhanced returns
   const [validationResult, setValidationResult] = useState<{ 
     isValid: boolean; 
     error: string | null;
@@ -32,7 +33,12 @@ export function EnhancedVinLookup({
   useEffect(() => {
     if (value && touched) {
       const result = validateVinEnhanced(value);
-      setValidationResult(result);
+      // Ensure result.error is always a string or null to match our state type
+      setValidationResult({
+        isValid: result.isValid,
+        error: result.error || null,
+        details: result.details || null
+      });
     }
   }, [value, touched]);
 

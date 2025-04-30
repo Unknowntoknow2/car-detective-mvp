@@ -2,8 +2,8 @@
 // Enhanced VIN validation with detailed feedback
 export function validateVinEnhanced(vin: string): { 
   isValid: boolean; 
-  error?: string;
-  details?: string;
+  error: string | null;
+  details?: string | null;
 } {
   // Basic validation checks
   if (!vin) {
@@ -50,6 +50,7 @@ export function validateVinEnhanced(vin: string): {
     // Still allow, but with a warning
     return { 
       isValid: true, 
+      error: null,
       details: "Warning: Check digit validation couldn't be performed, but format is valid"
     };
   }
@@ -57,6 +58,7 @@ export function validateVinEnhanced(vin: string): {
   // Format looks good
   return { 
     isValid: true,
+    error: null,
     details: "VIN format is valid"
   };
 }
