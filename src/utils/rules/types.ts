@@ -1,5 +1,4 @@
 
-
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface RulesEngineInput {
@@ -28,8 +27,7 @@ export interface AdjustmentBreakdown {
   percentAdjustment: number;
 }
 
-// Interface for adjustment calculators - updated to support both sync and async calculators
+// Interface for adjustment calculators - updated to support async calculators
 export interface AdjustmentCalculator {
   calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> | AdjustmentBreakdown | null;
 }
-

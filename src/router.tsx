@@ -1,10 +1,10 @@
 
 import { createBrowserRouter } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { PremiumValuationPage } from "./pages/PremiumValuationPage";
-import { PremiumConditionEvaluationPage } from "./pages/PremiumConditionEvaluationPage";
-import { AuthPage } from "./pages/AuthPage";
-import { EquipmentSelectionPage } from "./pages/EquipmentSelectionPage";
+import PremiumValuationPage from "./pages/PremiumValuationPage";
+import PremiumConditionEvaluationPage from "./pages/PremiumConditionEvaluationPage";
+import AuthPage from "./pages/AuthPage";
+import EquipmentSelectionPage from "./pages/EquipmentSelectionPage";
 import { Loader2 } from "lucide-react";
 
 // Lazy load pages to improve initial load time

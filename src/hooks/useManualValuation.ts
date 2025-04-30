@@ -31,7 +31,7 @@ export function useManualValuation() {
     setError(null);
     
     try {
-      const result = calculateValuation({
+      const result = await calculateValuation({
         make: data.make,
         model: data.model,
         year: data.year,

@@ -89,11 +89,7 @@ export default function PremiumValuationSection({ equipmentData }: PremiumValuat
             <h3 className="text-lg font-semibold">Valuation Form</h3>
           </CardHeader>
           <CardContent>
-            <PremiumValuationForm 
-              onSubmit={handleSubmitValuation}
-              isLoading={isSubmitting}
-              error={submitError}
-            />
+            <PremiumValuationForm />
           </CardContent>
         </Card>
         

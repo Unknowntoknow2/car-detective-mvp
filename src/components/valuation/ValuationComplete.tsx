@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationAuditTrail as AuditTrailType } from "@/utils/rules/RulesEngine";
-import { calculateValuation } from '@/utils/valuationEngine';
+import { calculateValuation, ValuationResult } from '@/utils/valuationEngine';
 
 interface ValuationCompleteProps {
   valuationId: string;
@@ -36,25 +36,38 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   const [photoScore, setPhotoScore] = useState<number | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrailType | null>(null);
   const [estimatedValue, setEstimatedValue] = useState<number | undefined>(valuationData.estimatedValue);
+  const [calculationInProgress, setCalculationInProgress] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // Recalculate valuation when photo score changes
   useEffect(() => {
     if (photoScore && valuationData) {
-      // Recalculate valuation with photo score
-      const result = calculateValuation({
-        make: valuationData.make,
-        model: valuationData.model,
-        year: valuationData.year,
-        mileage: valuationData.mileage || 0,
-        condition: valuationData.condition || 'good',
-        vin: valuationData.vin,
-        photoScore: photoScore
-      });
+      const calculateNewValuation = async () => {
+        setCalculationInProgress(true);
+        try {
+          // Recalculate valuation with photo score
+          const result = await calculateValuation({
+            make: valuationData.make,
+            model: valuationData.model,
+            year: valuationData.year,
+            mileage: valuationData.mileage || 0,
+            condition: valuationData.condition || 'good',
+            vin: valuationData.vin,
+            photoScore: photoScore
+          });
+          
+          setEstimatedValue(result.estimatedValue);
+          setAuditTrail(result.auditTrail);
+        } catch (error) {
+          console.error("Error calculating valuation:", error);
+          toast.error("Failed to update valuation with photo score");
+        } finally {
+          setCalculationInProgress(false);
+        }
+      };
       
-      setEstimatedValue(result.estimatedValue);
-      setAuditTrail(result.auditTrail);
+      calculateNewValuation();
     }
   }, [photoScore, valuationData]);
 
@@ -134,7 +147,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
                 <p className="text-2xl font-semibold">
                   {estimatedValue 
                     ? formatCurrency(estimatedValue)
-                    : 'Calculating...'}
+                    : calculationInProgress ? 'Calculating...' : 'Not available'}
                 </p>
                 {photoSubmitted && photoScore && (
                   <p className="text-xs text-green-600">Includes photo analysis ({Math.round(photoScore * 100)}% condition score)</p>
