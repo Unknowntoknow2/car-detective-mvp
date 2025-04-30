@@ -36,9 +36,9 @@ export interface ValuationInput {
   hasCarfax?: boolean;
   carfaxData?: CarfaxData;
   photoScore?: number;
-  equipmentIds?: number[];       // Add equipment IDs
-  equipmentMultiplier?: number;  // Add equipment multiplier
-  equipmentValueAdd?: number;    // Add equipment value add
+  equipmentIds?: number[];
+  equipmentMultiplier?: number;
+  equipmentValueAdd?: number;
 }
 
 export interface ValuationResult {
@@ -51,7 +51,7 @@ export interface ValuationResult {
   carfaxData?: CarfaxData;
   auditTrail: ValuationAuditTrail;
   photoScore?: number;
-  equipmentInfo?: {              // Add equipment info to result
+  equipmentInfo?: {
     ids: number[];
     multiplier: number;
     valueAdd: number;
@@ -62,12 +62,12 @@ function getBasePrice(make: string, model: string): number {
   return SAMPLE_BASE_PRICES[make]?.[model] || DEFAULT_BASE_PRICE;
 }
 
-export function calculateValuation(input: ValuationInput): ValuationResult {
+export async function calculateValuation(input: ValuationInput): Promise<ValuationResult> {
   // Get base price from our sample data
   const basePrice = getBasePrice(input.make, input.model);
   
   // Calculate adjustments using the rules engine
-  const adjustments = rulesEngine.calculateAdjustments({
+  const adjustments = await rulesEngine.calculateAdjustments({
     make: input.make,
     model: input.model,
     year: input.year,
@@ -126,7 +126,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     hasCarfax: input.hasCarfax || !!input.carfaxData,
     hasPhotoScore: !!input.photoScore,
     hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean',
-    hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0 // Add equipment to confidence score
+    hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)

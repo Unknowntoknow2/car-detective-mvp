@@ -1,21 +1,41 @@
+
 import { createBrowserRouter } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import ValuationPage from "./pages/ValuationPage";
-import PremiumValuationPage from "./pages/PremiumValuationPage";
-import PremiumConditionEvaluationPage from "./pages/PremiumConditionEvaluationPage";
-import AuthPage from "./pages/AuthPage";
-import AccountPage from "./pages/AccountPage";
-import PhotoUploadPage from "./pages/PhotoUploadPage";
-import EquipmentSelectionPage from "./pages/EquipmentSelectionPage";
+import { lazy, Suspense } from "react";
+import { PremiumValuationPage } from "./pages/PremiumValuationPage";
+import { PremiumConditionEvaluationPage } from "./pages/PremiumConditionEvaluationPage";
+import { AuthPage } from "./pages/AuthPage";
+import { EquipmentSelectionPage } from "./pages/EquipmentSelectionPage";
+import { Loader2 } from "lucide-react";
+
+// Lazy load pages to improve initial load time
+const HomePage = lazy(() => import("./pages/Index"));
+const ValuationPage = lazy(() => import("./pages/FreeValuationPage"));
+const AccountPage = lazy(() => import("./pages/ProfilePage"));
+const PhotoUploadPage = lazy(() => import("./pages/PhotoUploadPage"));
+
+// Loader component for lazy-loaded routes
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-screen">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <HomePage />
+      </Suspense>
+    ),
   },
   {
     path: "/valuation",
-    element: <ValuationPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <ValuationPage />
+      </Suspense>
+    ),
   },
   {
     path: "/premium",
@@ -31,11 +51,19 @@ export const router = createBrowserRouter([
   },
   {
     path: "/account",
-    element: <AccountPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <AccountPage />
+      </Suspense>
+    ),
   },
   {
     path: "/photo",
-    element: <PhotoUploadPage />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <PhotoUploadPage />
+      </Suspense>
+    ),
   },
   {
     path: "/equipment",

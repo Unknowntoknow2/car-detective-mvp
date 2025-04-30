@@ -20,14 +20,14 @@ export class RulesEngine {
     new FeaturesCalculator(),
     new CarfaxCalculator(),
     new PhotoScoreCalculator(),
-    new EquipmentCalculator()  // Add the equipment calculator
+    new EquipmentCalculator()
   ];
 
-  public calculateAdjustments(input: RulesEngineInput): AdjustmentBreakdown[] {
+  public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
     const adjustments: AdjustmentBreakdown[] = [];
     
     for (const calculator of this.calculators) {
-      const adjustment = calculator.calculate(input);
+      const adjustment = await calculator.calculate(input);
       if (adjustment) {
         adjustments.push(adjustment);
       }
@@ -67,7 +67,7 @@ export class RulesEngine {
         photoScore: input.photoScore,
         accidentCount: input.accidentCount,
         features: input.premiumFeatures,
-        equipmentIds: input.equipmentIds  // Add equipment data to audit trail
+        equipmentIds: input.equipmentIds
       }
     };
   }
@@ -95,7 +95,7 @@ export interface ValuationAuditTrail {
     photoScore?: number;
     accidentCount?: number;
     features?: string[];
-    equipmentIds?: number[];  // Add equipment IDs to audit trail
+    equipmentIds?: number[];
   };
 }
 

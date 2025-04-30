@@ -1,4 +1,5 @@
 
+
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface RulesEngineInput {
@@ -15,9 +16,9 @@ export interface RulesEngineInput {
   basePrice: number;
   carfaxData?: CarfaxData;
   photoScore?: number;
-  equipmentIds?: number[]; // Added field for equipment IDs
-  equipmentMultiplier?: number; // Added field for equipment multiplier
-  equipmentValueAdd?: number; // Added field for equipment value add
+  equipmentIds?: number[]; 
+  equipmentMultiplier?: number;
+  equipmentValueAdd?: number;
 }
 
 export interface AdjustmentBreakdown {
@@ -27,7 +28,8 @@ export interface AdjustmentBreakdown {
   percentAdjustment: number;
 }
 
-// Interface for adjustment calculators
+// Interface for adjustment calculators - updated to support both sync and async calculators
 export interface AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown | null;
+  calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> | AdjustmentBreakdown | null;
 }
+
