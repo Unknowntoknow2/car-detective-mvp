@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ArrowUp, Lightbulb } from 'lucide-react';
-import { ConditionRating } from './ConditionEvaluationForm';
+import { ConditionRating } from './types';
 import { getImprovementTips } from './conditionTips';
 
 interface ConditionTipsProps {

@@ -15,6 +15,7 @@ export interface ConditionOption {
   value: number;
   label: string;
   tip: string;
+  multiplier: number;
 }
 
 export interface FactorSliderProps {
@@ -24,6 +25,7 @@ export interface FactorSliderProps {
   value: number;
   onChange: (val: number) => void;
   ariaLabel?: string;
+  stepSize?: number;
 }
 
 export function FactorSlider({ 
@@ -32,7 +34,8 @@ export function FactorSlider({
   options, 
   value, 
   onChange, 
-  ariaLabel = "Condition slider" 
+  ariaLabel = "Condition slider",
+  stepSize = 25 
 }: FactorSliderProps) {
   const [hoveredValue, setHoveredValue] = useState<number | null>(null);
   
@@ -128,7 +131,7 @@ export function FactorSlider({
           id={id}
           min={0}
           max={100}
-          step={step}
+          step={stepSize || step}
           value={[value]}
           onValueChange={([newValue]) => onChange(newValue)}
           aria-label={ariaLabel}
@@ -139,7 +142,7 @@ export function FactorSlider({
             // Calculate value based on mouse position
             const rect = e.currentTarget.getBoundingClientRect();
             const percent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-            const snappedValue = Math.round(percent / step) * step; // Snap to step increments
+            const snappedValue = Math.round(percent / (stepSize || step)) * (stepSize || step); // Snap to step increments
             setHoveredValue(snappedValue);
           }}
         />

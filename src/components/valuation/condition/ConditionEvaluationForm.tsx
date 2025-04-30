@@ -10,9 +10,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
-import { ConditionEvaluationGrid, ConditionValues } from './ConditionEvaluationGrid';
+import { ConditionEvaluationGrid } from './ConditionEvaluationGrid';
 import { useValuationFactors } from '@/hooks/useValuationFactors';
 import { cn } from '@/lib/utils';
+import { ConditionValues } from './types';
 
 interface ConditionEvaluationFormProps { 
   initialValues?: Record<string, number>;

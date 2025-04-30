@@ -5,10 +5,7 @@ import { FactorSlider, ConditionOption } from './FactorSlider';
 import { useValuationFactors, CategoryFactors } from '@/hooks/useValuationFactors';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
-
-export interface ConditionValues {
-  [key: string]: number;
-}
+import { ConditionValues } from './types';
 
 interface ConditionEvaluationGridProps {
   values: ConditionValues;

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ConditionSlider } from './ConditionSlider';
-import { ConditionRating } from './ConditionEvaluationForm';
+import { ConditionRating } from './types';
 
 interface ConditionCategoryProps {
   title: string;
