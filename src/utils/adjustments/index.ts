@@ -25,7 +25,7 @@ export function calculateTotalAdjustment(params: {
   basePrice: number;
   trim?: string;
   accidentCount?: number;
-  titleStatus?: number;
+  titleStatus?: string;
   premiumFeatures?: string[];
   make?: string;
   model?: string;
@@ -51,7 +51,7 @@ export function calculateTotalAdjustment(params: {
     featuresAdj = getPremiumFeaturesAdjustment(params.premiumFeatures, params.basePrice);
   }
 
-  if (typeof params.titleStatus === 'number') {
+  if (params.titleStatus) {
     titleStatusAdj = getTitleStatusAdjustment(params.titleStatus, params.basePrice);
   }
 

@@ -10,7 +10,7 @@ export interface RulesEngineInput {
   zipCode?: string;
   trim?: string;
   accidentCount?: number;
-  titleStatus?: number; // Add titleStatus property
+  titleStatus?: string; // Updated to string type
   premiumFeatures?: string[];
   basePrice: number;
   carfaxData?: CarfaxData;

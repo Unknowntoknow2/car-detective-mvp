@@ -1,4 +1,3 @@
-
 import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import { ValuationAuditTrail } from './rules/RulesEngine';
@@ -31,11 +30,11 @@ export interface ValuationInput {
   vin?: string;
   trim?: string;
   accidentCount?: number;
-  titleStatus?: number;
+  titleStatus?: string; // Updated to string type
   premiumFeatures?: string[];
   hasCarfax?: boolean;
   carfaxData?: CarfaxData;
-  photoScore?: number; // Add photo score
+  photoScore?: number;
 }
 
 export interface ValuationResult {
@@ -113,7 +112,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     condition: input.condition,
     hasCarfax: input.hasCarfax || !!input.carfaxData,
     hasPhotoScore: !!input.photoScore,
-    hasTitleStatus: input.titleStatus !== undefined
+    hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean'
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)

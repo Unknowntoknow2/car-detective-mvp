@@ -8,7 +8,7 @@ import { ConditionValues } from '../types';
 
 interface ValuationFactorsGridProps {
   values: ConditionValues;
-  onChange: (id: string, value: number) => void;
+  onChange: (id: string, value: any) => void;
 }
 
 export function ValuationFactorsGrid({ values, onChange }: ValuationFactorsGridProps) {
@@ -27,7 +27,7 @@ export function ValuationFactorsGrid({ values, onChange }: ValuationFactorsGridP
         onChange={(value) => onChange('year', value)} 
       />
       <TitleStatusFactorCard 
-        value={values.titleStatus || 0} 
+        value={values.titleStatus || 'Clean'} 
         onChange={(value) => onChange('titleStatus', value)} 
       />
     </div>

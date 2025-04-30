@@ -20,6 +20,7 @@ const ValuationRequestSchema = z.object({
   }).optional(),
   includeCarfax: z.boolean().optional(),
   conditionFactors: z.record(z.string(), z.number()).optional(),
+  titleStatus: z.string().optional(), // Add title status to the schema
 });
 
 // Response type for the API
@@ -86,22 +87,33 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Fetch multipliers for the valuation factors
-    const fetchMultiplier = async (factorName: string, step: number) => {
-      const { data, error } = await supabase
-        .from('valuation_factors')
-        .select('multiplier')
-        .eq('factor_name', factorName)
-        .eq('step', step)
-        .single();
-        
-      if (error) {
-        console.error(`Error fetching multiplier for ${factorName} step ${step}:`, error);
-        return 1.0; // Default multiplier on error
+    // Fetch title status multiplier if provided
+    let titleStatusMultiplier = 1.0; // Default to no adjustment
+    
+    if (validatedData.titleStatus) {
+      try {
+        const { data: titleStatusData, error: titleStatusError } = await supabase
+          .from('title_status')
+          .select('multiplier')
+          .eq('status', validatedData.titleStatus)
+          .single();
+          
+        if (titleStatusError) {
+          console.error(`Error fetching title status multiplier:`, titleStatusError);
+        } else if (titleStatusData) {
+          titleStatusMultiplier = titleStatusData.multiplier;
+          
+          // Add to adjustments array for display
+          allAdjustments.push({
+            factor: "Title Status",
+            impact: ((titleStatusMultiplier - 1.0) * 100),
+            description: `${validatedData.titleStatus} title`
+          });
+        }
+      } catch (titleStatusErr) {
+        console.error("Error processing title status:", titleStatusErr);
       }
-      
-      return data?.multiplier || 1.0;
-    };
+    }
     
     // Fetch multipliers in parallel
     const [accidentMultiplier, mileageMultiplier, ageMultiplier] = await Promise.all([
@@ -252,6 +264,7 @@ serve(async (req) => {
       ageMultiplier * 
       multiplier * 
       photoFactor * 
+      titleStatusMultiplier * // Include title status multiplier
       (1 + manualPct)
     );
     

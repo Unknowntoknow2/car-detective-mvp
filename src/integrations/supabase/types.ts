@@ -533,6 +533,27 @@ export type Database = {
         }
         Relationships: []
       }
+      title_status: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          multiplier: number
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          multiplier: number
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          multiplier?: number
+          status?: string
+        }
+        Relationships: []
+      }
       valuation_factors: {
         Row: {
           created_at: string | null

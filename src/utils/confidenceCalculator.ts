@@ -11,7 +11,7 @@ export interface ConfidenceInput {
   condition: string;
   hasCarfax?: boolean;
   hasPhotoScore?: boolean;
-  hasTitleStatus?: boolean; // Add hasTitleStatus property
+  hasTitleStatus?: boolean;
 }
 
 export function calculateConfidenceScore(input: ConfidenceInput): number {
