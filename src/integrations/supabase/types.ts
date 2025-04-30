@@ -560,6 +560,24 @@ export type Database = {
         }
         Relationships: []
       }
+      recall_factor: {
+        Row: {
+          description: string | null
+          has_open_recall: boolean
+          multiplier: number
+        }
+        Insert: {
+          description?: string | null
+          has_open_recall: boolean
+          multiplier: number
+        }
+        Update: {
+          description?: string | null
+          has_open_recall?: boolean
+          multiplier?: number
+        }
+        Relationships: []
+      }
       saved_valuations: {
         Row: {
           condition_score: number | null
@@ -681,6 +699,7 @@ export type Database = {
           dealer_avg_price: number | null
           estimated_value: number | null
           feature_value_total: number | null
+          has_open_recall: boolean | null
           id: string
           is_vin_lookup: boolean
           make: string | null
@@ -705,6 +724,7 @@ export type Database = {
           dealer_avg_price?: number | null
           estimated_value?: number | null
           feature_value_total?: number | null
+          has_open_recall?: boolean | null
           id?: string
           is_vin_lookup?: boolean
           make?: string | null
@@ -729,6 +749,7 @@ export type Database = {
           dealer_avg_price?: number | null
           estimated_value?: number | null
           feature_value_total?: number | null
+          has_open_recall?: boolean | null
           id?: string
           is_vin_lookup?: boolean
           make?: string | null

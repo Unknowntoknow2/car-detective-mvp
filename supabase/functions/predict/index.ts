@@ -40,7 +40,8 @@ serve(async (req) => {
         exterior_color,
         color_multiplier,
         fuel_type,
-        transmission_type
+        transmission_type,
+        has_open_recall
       `)
       .eq("id", valuationId)
       .single();
@@ -157,6 +158,31 @@ serve(async (req) => {
         // Continue with default multiplier
       }
     }
+    
+    // Get recall multiplier if vehicle has open recall
+    let recallMultiplier = 1.0;
+    if (val.has_open_recall) {
+      try {
+        const { data: recallData, error: recallErr } = await supabase
+          .from("recall_factor")
+          .select("multiplier")
+          .eq("has_open_recall", true)
+          .single();
+          
+        if (!recallErr && recallData) {
+          recallMultiplier = recallData.multiplier;
+          console.log(`Fetched recall multiplier: ${recallMultiplier} for vehicle with open recall`);
+        } else {
+          // Default to 10% reduction if not found in the database
+          recallMultiplier = 0.9;
+          console.log(`Using default recall multiplier: ${recallMultiplier}`);
+        }
+      } catch (err) {
+        console.warn("Failed to get recall multiplier:", err);
+        // Continue with default multiplier
+        recallMultiplier = 0.9;
+      }
+    }
 
     // Apply base prediction model
     const features: ValuationFeatures = {
@@ -183,8 +209,11 @@ serve(async (req) => {
     // Apply fuel type multiplier
     intermediatePrice = intermediatePrice * fuelTypeMultiplier;
     
-    // Apply transmission multiplier as the final adjustment
-    const finalPrice = Math.round(intermediatePrice * transmissionMultiplier);
+    // Apply transmission multiplier
+    intermediatePrice = intermediatePrice * transmissionMultiplier;
+    
+    // Apply recall multiplier as the final adjustment
+    const finalPrice = Math.round(intermediatePrice * recallMultiplier);
 
     // Return the final valuation with a breakdown
     return new Response(
@@ -201,6 +230,8 @@ serve(async (req) => {
           fuelTypeAdjustment: `${((fuelTypeMultiplier - 1) * 100).toFixed(1)}%`,
           transmissionMultiplier: transmissionMultiplier,
           transmissionAdjustment: `${((transmissionMultiplier - 1) * 100).toFixed(1)}%`,
+          recallMultiplier: recallMultiplier,
+          recallAdjustment: `${((recallMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

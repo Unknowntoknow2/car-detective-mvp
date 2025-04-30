@@ -1,3 +1,4 @@
+
 export interface InputFactors {
   vin?: string;
   zip?: string;
@@ -11,6 +12,7 @@ export interface InputFactors {
   hasTitleStatus: boolean;
   hasEquipment: boolean;
   hasTransmission?: boolean;
+  hasOpenRecall?: boolean;
 }
 
 export function calculateConfidenceScore(input: InputFactors): number {
@@ -45,6 +47,9 @@ export function calculateConfidenceScore(input: InputFactors): number {
   
   // Transmission type indicates desirability
   if (input.hasTransmission) score += 5;
+  
+  // Recall status affects safety and value
+  if (input.hasOpenRecall) score -= 5;
 
   // Normalize the score to a percentage
   return Math.max(0, Math.min(score, 100));

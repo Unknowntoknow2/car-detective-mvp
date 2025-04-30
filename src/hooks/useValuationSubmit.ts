@@ -90,7 +90,8 @@ export const useValuationSubmit = () => {
           exterior_color: formData.exteriorColor,
           color_multiplier: colorMultiplier,
           fuel_type: formData.fuelType,
-          transmission_type: formData.transmissionType
+          transmission_type: formData.transmissionType,
+          has_open_recall: formData.hasOpenRecall || false
         })
         .select('id')
         .single();

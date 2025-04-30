@@ -12,6 +12,7 @@ import { EquipmentCalculator } from './calculators/equipmentCalculator';
 import { ColorCalculator } from './calculators/colorCalculator';
 import { FuelTypeCalculator } from './calculators/fuelTypeCalculator';
 import { TransmissionCalculator } from './calculators/transmissionCalculator';
+import { RecallCalculator } from './calculators/recallCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -26,7 +27,8 @@ export class RulesEngine {
     new EquipmentCalculator(),
     new ColorCalculator(),
     new FuelTypeCalculator(),
-    new TransmissionCalculator()
+    new TransmissionCalculator(),
+    new RecallCalculator() // Add the new calculator
   ];
 
   public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
@@ -79,7 +81,9 @@ export class RulesEngine {
         fuelType: input.fuelType,
         fuelTypeMultiplier: input.fuelTypeMultiplier,
         transmissionType: input.transmissionType,
-        transmissionMultiplier: input.transmissionMultiplier
+        transmissionMultiplier: input.transmissionMultiplier,
+        hasOpenRecall: input.hasOpenRecall,
+        recallMultiplier: input.recallMultiplier
       }
     };
   }
@@ -114,6 +118,8 @@ export interface ValuationAuditTrail {
     fuelTypeMultiplier?: number;
     transmissionType?: string;
     transmissionMultiplier?: number;
+    hasOpenRecall?: boolean;
+    recallMultiplier?: number;
   };
 }
 

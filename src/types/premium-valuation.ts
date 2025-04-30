@@ -35,6 +35,8 @@ export type FormData = {
   valuationId?: string;
   // Transmission type
   transmissionType?: string;
+  // Open recall status
+  hasOpenRecall?: boolean;
 };
 
 export interface ValidationRules {

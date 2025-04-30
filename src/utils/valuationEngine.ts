@@ -4,6 +4,7 @@ import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import { ValuationAuditTrail } from './rules/RulesEngine';
 import type { VehicleCondition } from './adjustments/types';
 import { CarfaxData } from './carfax/mockCarfaxService';
+import { supabase } from '@/integrations/supabase/client';
 
 // Sample base prices for testing - in production this would come from a database
 const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {
@@ -45,6 +46,8 @@ export interface ValuationInput {
   fuelTypeMultiplier?: number;
   transmissionType?: string;
   transmissionMultiplier?: number;
+  hasOpenRecall?: boolean;
+  recallMultiplier?: number;
 }
 
 export interface ValuationResult {
@@ -72,6 +75,10 @@ export interface ValuationResult {
   };
   transmissionInfo?: {
     type: string;
+    multiplier: number;
+  };
+  recallInfo?: {
+    hasOpenRecall: boolean;
     multiplier: number;
   };
 }
@@ -107,7 +114,8 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     fuelType: input.fuelType,
     fuelTypeMultiplier: input.fuelTypeMultiplier,
     transmissionType: input.transmissionType,
-    transmissionMultiplier: input.transmissionMultiplier
+    transmissionMultiplier: input.transmissionMultiplier,
+    hasOpenRecall: input.hasOpenRecall
   });
   
   // Calculate total adjustment
@@ -129,6 +137,36 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
   // Apply transmission multiplier if present
   if (input.transmissionMultiplier && input.transmissionMultiplier !== 1) {
     estimatedValue = Math.round(estimatedValue * input.transmissionMultiplier);
+  }
+  
+  // Get recall multiplier if there's an open recall
+  let recallMultiplier = 1.0;
+  if (input.hasOpenRecall) {
+    try {
+      if (input.recallMultiplier) {
+        recallMultiplier = input.recallMultiplier;
+      } else {
+        // Fetch recall multiplier from the database
+        const { data: recallData } = await supabase
+          .from('recall_factor')
+          .select('multiplier')
+          .eq('has_open_recall', true)
+          .single();
+          
+        if (recallData && recallData.multiplier) {
+          recallMultiplier = recallData.multiplier;
+        } else {
+          // Default if not found in the database
+          recallMultiplier = 0.9; // 10% reduction
+        }
+      }
+      // Apply recall multiplier
+      estimatedValue = Math.round(estimatedValue * recallMultiplier);
+    } catch (error) {
+      console.error('Error fetching recall multiplier:', error);
+      // Apply default multiplier if fetch fails
+      estimatedValue = Math.round(estimatedValue * 0.9);
+    }
   }
 
   // Create an audit trail
@@ -153,7 +191,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       fuelType: input.fuelType,
       fuelTypeMultiplier: input.fuelTypeMultiplier,
       transmissionType: input.transmissionType,
-      transmissionMultiplier: input.transmissionMultiplier
+      transmissionMultiplier: input.transmissionMultiplier,
+      hasOpenRecall: input.hasOpenRecall,
+      recallMultiplier: recallMultiplier
     },
     adjustments,
     totalAdjustment
@@ -172,7 +212,8 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     hasPhotoScore: !!input.photoScore,
     hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean',
     hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0,
-    hasTransmission: input.transmissionType !== undefined
+    hasTransmission: input.transmissionType !== undefined,
+    hasOpenRecall: input.hasOpenRecall
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)
@@ -225,6 +266,14 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     result.transmissionInfo = {
       type: input.transmissionType,
       multiplier: input.transmissionMultiplier
+    };
+  }
+  
+  // Add recall info if present
+  if (input.hasOpenRecall !== undefined) {
+    result.recallInfo = {
+      hasOpenRecall: input.hasOpenRecall,
+      multiplier: recallMultiplier
     };
   }
 

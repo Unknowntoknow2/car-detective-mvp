@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { AccidentToggle } from './AccidentToggle';
 import { TransmissionSelect } from '../../vehicle-details/TransmissionSelect';
+import { RecallToggle } from '../../vehicle-details/RecallToggle';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface VehicleDetailsFormProps {
@@ -18,6 +19,7 @@ interface VehicleDetailsFormProps {
     hasAccident?: boolean | null;
     accidentDescription?: string;
     transmissionType?: string;
+    hasOpenRecall?: boolean;
   };
   onSubmit: (data: any) => void;
   isLoading?: boolean;
@@ -48,6 +50,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
     hasAccident: initialData.hasAccident || false,
     accidentDescription: initialData.accidentDescription || '',
     transmissionType: initialData.transmissionType || 'Automatic',
+    hasOpenRecall: initialData.hasOpenRecall || false,
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -205,7 +208,17 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
       </div>
       
       <div className="mt-6 space-y-4">
-        <h3 className="text-lg font-medium text-gray-900">Accident History</h3>
+        <h3 className="text-lg font-medium text-gray-900">Safety & History</h3>
+        
+        <RecallToggle 
+          hasOpenRecall={formData.hasOpenRecall} 
+          onToggle={(hasOpenRecall) => {
+            setFormData(prev => ({
+              ...prev,
+              hasOpenRecall
+            }));
+          }} 
+        />
         
         <AccidentToggle 
           hasAccident={formData.hasAccident} 
