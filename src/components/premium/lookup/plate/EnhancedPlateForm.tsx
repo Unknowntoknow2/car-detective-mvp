@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, Search } from 'lucide-react';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usStates } from '@/data/us-states';
+import { US_STATES } from '@/components/premium/lookup/shared/states-data';
 import { motion } from 'framer-motion';
 
 interface EnhancedPlateFormProps {
@@ -97,7 +97,7 @@ export function EnhancedPlateForm({
               <SelectValue placeholder="Select a state" />
             </SelectTrigger>
             <SelectContent className="max-h-80 overflow-y-auto border border-gray-200 shadow-lg rounded-md">
-              {usStates.map((state) => (
+              {US_STATES.map((state) => (
                 <SelectItem 
                   key={state.value} 
                   value={state.value}
