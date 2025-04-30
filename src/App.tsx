@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
 import { Toaster } from './components/ui/toaster'; // for shadcn toasts
@@ -27,6 +26,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const FreeValuationPage = lazy(() => import('./pages/FreeValuationPage'));
 const PremiumSuccessPage = lazy(() => import('./pages/PremiumSuccessPage'));
 const PremiumValuationPage = lazy(() => import('./pages/PremiumValuationPage'));
+const PremiumConditionEvaluationPage = lazy(() => import('./pages/PremiumConditionEvaluationPage'));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -107,6 +107,7 @@ function App() {
             <Route path="/valuation/premium-success" element={<PremiumSuccessPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/premium/condition" element={<PremiumConditionEvaluationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
