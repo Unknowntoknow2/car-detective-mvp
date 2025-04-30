@@ -41,15 +41,19 @@ export function useStepTransition(
         shouldShow: true
       },
       6: {
-        component: 'VehicleDetailsStep', // Added VehicleDetailsStep
+        component: 'VehicleDetailsStep', 
         shouldShow: true
       },
       7: {
-        component: 'PredictionReviewStep', // Added PredictionReviewStep 
+        component: 'PredictionReviewStep',
         shouldShow: true
+      },
+      8: {
+        component: 'ValuationResultStep',
+        shouldShow: !!formData.valuationId
       }
     });
-  }, [formData.make, formData.model, formData.year, formData.mileage, formData.fuelType, isLoading, lookupVehicle]);
+  }, [formData.make, formData.model, formData.year, formData.mileage, formData.fuelType, formData.valuationId, isLoading, lookupVehicle]);
 
   const getStepConfig = useCallback((step: number): StepConfig | null => {
     return stepConfigs[step] || null;
