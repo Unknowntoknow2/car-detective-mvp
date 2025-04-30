@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { validateVinEnhanced } from '@/utils/validation/enhanced-vin-validation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EnhancedVinLookupProps {
   value: string;
@@ -29,6 +30,7 @@ export function EnhancedVinLookup({
     details?: string | null;
   }>({ isValid: false, error: null });
   const [touched, setTouched] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (value && touched) {
@@ -51,8 +53,8 @@ export function EnhancedVinLookup({
   const isValid = value && validationResult.isValid && !isLoading;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center gap-2 mb-2 md:mb-3">
         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-medium px-2.5 py-1 transition-all animate-fade-in">
           Recommended
         </Badge>
@@ -64,8 +66,8 @@ export function EnhancedVinLookup({
           <Input 
             value={value}
             onChange={handleInputChange}
-            placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
-            className={`text-lg font-mono tracking-wide h-12 pr-10 transition-all duration-300 
+            placeholder={isMobile ? "Enter VIN" : "Enter VIN (e.g., 1HGCM82633A004352)"}
+            className={`text-base md:text-lg font-mono tracking-wide h-10 md:h-12 pr-10 transition-all duration-300 
               ${(touched && validationResult.error) ? 'border-red-300 focus-visible:ring-red-200/50 bg-red-50/30 shadow-[0_0_0_1px_rgba(244,63,94,0.2)]' : 
               (isValid) ? 'border-green-300 focus-visible:ring-green-200/50 bg-green-50/30 shadow-[0_0_0_1px_rgba(34,197,94,0.2)]' : 
               'group-hover:border-primary/50 focus-visible:shadow-[0_0_0_3px_rgba(59,130,246,0.15)]'}`}
@@ -92,7 +94,8 @@ export function EnhancedVinLookup({
           <div className="flex items-start gap-2 text-xs text-slate-500">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.
+              {isMobile ? "Find your 17-character VIN on your vehicle registration or dashboard." : 
+                "Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard."}
             </p>
           </div>
         )}
@@ -102,13 +105,13 @@ export function EnhancedVinLookup({
         <Button 
           onClick={onLookup}
           disabled={!isValid || isLoading}
-          className="px-6 h-11 font-medium transition-all duration-300 shadow-sm hover:shadow relative overflow-hidden group"
+          className="w-full md:w-auto px-4 md:px-6 h-10 md:h-11 font-medium transition-all duration-300 shadow-sm hover:shadow relative overflow-hidden group"
         >
           {isLoading ? (
             <>
               <div className="absolute inset-0 bg-primary/10 animate-pulse"></div>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              <span>Looking up VIN...</span>
+              <span>{isMobile ? "Looking up..." : "Looking up VIN..."}</span>
             </>
           ) : (
             <>

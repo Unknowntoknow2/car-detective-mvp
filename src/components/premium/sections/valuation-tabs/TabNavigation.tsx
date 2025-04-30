@@ -1,121 +1,135 @@
-import { useRef, useEffect, useState } from "react";
+
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Car, Search, FileText, Camera, Building, PieChart, TrendingUp } from "lucide-react";
+import { CarFront, FileText, Camera, Info, DollarSign, LineChart, CalendarClock, FileClock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ValuationServiceId } from "./services";
-import { Button } from "@/components/ui/button";
 
 interface TabNavigationProps {
-  activeTab: ValuationServiceId;
+  activeTab: string;
   onTabChange: (tab: ValuationServiceId) => void;
 }
 
 export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
-  const tabsContainerRef = useRef<HTMLDivElement>(null);
-  const [showLeftScroll, setShowLeftScroll] = useState(false);
-  const [showRightScroll, setShowRightScroll] = useState(false);
-  
-  const scrollTabs = (direction: 'left' | 'right') => {
-    if (!tabsContainerRef.current) return;
-    
-    const container = tabsContainerRef.current;
-    const scrollAmount = container.clientWidth * 0.5;
-    
-    container.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth'
-    });
-  };
+  const isMobile = useIsMobile();
+  const [overflowActive, setOverflowActive] = useState(false);
   
   useEffect(() => {
-    const checkScrollPosition = () => {
-      if (!tabsContainerRef.current) return;
-      
-      const container = tabsContainerRef.current;
-      setShowLeftScroll(container.scrollLeft > 0);
-      setShowRightScroll(container.scrollLeft < container.scrollWidth - container.clientWidth - 10);
+    const handleResize = () => {
+      const tabsContainer = document.querySelector('[data-tabs-list]');
+      if (tabsContainer) {
+        const isOverflowing = tabsContainer.scrollWidth > tabsContainer.clientWidth;
+        setOverflowActive(isOverflowing);
+      }
     };
     
-    const container = tabsContainerRef.current;
-    if (container) {
-      checkScrollPosition();
-      container.addEventListener('scroll', checkScrollPosition);
-      window.addEventListener('resize', checkScrollPosition);
-      
-      return () => {
-        container.removeEventListener('scroll', checkScrollPosition);
-        window.removeEventListener('resize', checkScrollPosition);
-      };
-    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  useEffect(() => {
-    if (!tabsContainerRef.current) return;
-    
-    const container = tabsContainerRef.current;
-    const activeTabElement = container.querySelector(`[data-state="active"]`) as HTMLElement;
-    
-    if (activeTabElement) {
-      const containerLeft = container.scrollLeft;
-      const containerRight = containerLeft + container.clientWidth;
-      const tabLeft = activeTabElement.offsetLeft;
-      const tabRight = tabLeft + activeTabElement.clientWidth;
-      
-      if (tabLeft < containerLeft || tabRight > containerRight) {
-        activeTabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
-    }
-  }, [activeTab]);
-
-  const tabConfig = [
-    { id: 'vin', label: 'VIN Lookup', icon: <Car className="h-4 w-4" /> },
-    { id: 'plate', label: 'Plate Lookup', icon: <Search className="h-4 w-4" /> },
-    { id: 'manual', label: 'Manual Entry', icon: <FileText className="h-4 w-4" /> },
-    { id: 'photo', label: 'Photo Analysis', icon: <Camera className="h-4 w-4" /> },
-    { id: 'dealers', label: 'Dealer Offers', icon: <Building className="h-4 w-4" /> },
-    { id: 'market', label: 'Market Analysis', icon: <PieChart className="h-4 w-4" /> },
-    { id: 'forecast', label: '12-Month Forecast', icon: <TrendingUp className="h-4 w-4" /> },
-    { id: 'carfax', label: 'CARFAX® Report', icon: <FileText className="h-4 w-4" /> },
-  ];
-
   return (
-    <div className="relative">
-      {showLeftScroll && (
-        <Button 
-          variant="ghost" 
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 p-1 h-auto hidden sm:flex"
-          onClick={() => scrollTabs('left')}
-          aria-label="Scroll left"
+    <>
+      <TabsList 
+        data-tabs-list
+        className={`w-full flex justify-start ${
+          overflowActive ? 'overflow-x-auto pb-3 hide-scrollbar' : 'justify-center'
+        }`}
+      >
+        <TabsTrigger 
+          value="vin" 
+          onClick={() => onTabChange('vin')}
+          className="min-w-max flex-shrink-0"
         >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-      )}
-      
-      <div className="overflow-x-auto scrollbar-hide" ref={tabsContainerRef}>
-        <TabsList className="rounded-xl border border-gray-200 p-1 inline-flex w-max min-w-full sm:min-w-0">
-          {tabConfig.map(tab => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              onClick={() => onTabChange(tab.id as ValuationServiceId)}
-              className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white py-2 px-3 flex items-center gap-2 whitespace-nowrap"
-            >
-              {tab.icon}
-              <span className="hidden sm:inline">{tab.label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
-      
-      {showRightScroll && (
-        <Button 
-          variant="ghost" 
-          className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 p-1 h-auto hidden sm:flex"
-          onClick={() => scrollTabs('right')}
-          aria-label="Scroll right"
+          <div className="flex items-center gap-2">
+            <CarFront className="h-4 w-4" />
+            <span>{isMobile ? 'VIN' : 'VIN Lookup'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="plate" 
+          onClick={() => onTabChange('plate')}
+          className="min-w-max flex-shrink-0"
         >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span>{isMobile ? 'Plate' : 'License Plate'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="manual" 
+          onClick={() => onTabChange('manual')}
+          className="min-w-max flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4" />
+            <span>{isMobile ? 'Manual' : 'Manual Entry'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="photo" 
+          onClick={() => onTabChange('photo')}
+          className="min-w-max flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <Camera className="h-4 w-4" />
+            <span>{isMobile ? 'Photo' : 'Photo Upload'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="dealers" 
+          onClick={() => onTabChange('dealers')}
+          className="min-w-max flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span>{isMobile ? 'Dealers' : 'Dealer Offers'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="market" 
+          onClick={() => onTabChange('market')}
+          className="min-w-max flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <LineChart className="h-4 w-4" />
+            <span>{isMobile ? 'Market' : 'Market Analysis'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="forecast" 
+          onClick={() => onTabChange('forecast')}
+          className="min-w-max flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <CalendarClock className="h-4 w-4" />
+            <span>{isMobile ? 'Forecast' : '12-Month Forecast'}</span>
+          </div>
+        </TabsTrigger>
+        
+        <TabsTrigger 
+          value="carfax" 
+          onClick={() => onTabChange('carfax')}
+          className="min-w-max flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <FileClock className="h-4 w-4" />
+            <span>{isMobile ? 'Carfax' : 'Carfax Report'}</span>
+          </div>
+        </TabsTrigger>
+      </TabsList>
+      
+      {overflowActive && (
+        <div className="w-full text-center text-xs text-muted-foreground mt-2">
+          <span>Swipe to see more options →</span>
+        </div>
       )}
-    </div>
+    </>
   );
 }

@@ -8,14 +8,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefObject } from 'react';
 import PremiumValuationSection from './PremiumValuationSection';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ValuationFormProps {
   formRef: RefObject<HTMLDivElement>;
 }
 
 export function ValuationForm({ formRef }: ValuationFormProps) {
+  const isMobile = useIsMobile();
+  
   return (
-    <section ref={formRef} id="premium-valuation" className="py-20 px-4 bg-gradient-to-b from-surface to-background">
+    <section 
+      ref={formRef} 
+      id="premium-valuation" 
+      className="py-12 md:py-20 px-4 bg-gradient-to-b from-surface to-background"
+    >
       <PremiumValuationSection />
     </section>
   );

@@ -105,6 +105,16 @@
   .validation-pending {
     @apply text-blue-600 text-sm flex items-center gap-1.5 mt-1.5 animate-fade-in;
   }
+  
+  /* Mobile-specific styles */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }
 
 @keyframes fade-in {

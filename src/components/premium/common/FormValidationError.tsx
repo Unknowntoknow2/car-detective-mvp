@@ -49,18 +49,18 @@ export function FormValidationError({
       animate="visible"
       variants={containerVariants}
       className={cn(
-        'text-sm rounded-md p-3 border transition-all',
+        'text-xs md:text-sm rounded-md p-2 md:p-3 border transition-all',
         variantClasses[variant],
         className
       )}
     >
-      <div className="flex gap-2.5">
+      <div className="flex gap-2">
         {showIcon && (
           <IconComponent className="h-4 w-4 flex-shrink-0 mt-0.5" />
         )}
-        <div className="space-y-1.5">
-          {error && <p className="font-medium leading-tight">{error}</p>}
-          {details && <p className="opacity-90 text-xs leading-relaxed">{details}</p>}
+        <div className="space-y-1">
+          {error && <p className="font-medium leading-tight break-words">{error}</p>}
+          {details && <p className="opacity-90 text-xs leading-relaxed break-words">{details}</p>}
         </div>
       </div>
     </motion.div>

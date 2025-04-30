@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const US_STATES = [
   { value: 'AL', label: 'Alabama' },
@@ -78,6 +79,7 @@ export function PlateLookup({
   onLookup 
 }: PlateLookupProps) {
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   
   // Simple plate validation
   const validatePlate = (plate: string): boolean => {
@@ -101,9 +103,9 @@ export function PlateLookup({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex flex-wrap items-center gap-2 mb-2">
           <Badge variant="outline" className="bg-primary/5 text-primary border-primary/30">
             Alternative
           </Badge>
@@ -114,8 +116,8 @@ export function PlateLookup({
           <Input 
             value={plateValue}
             onChange={(e) => handlePlateChange(e.target.value)}
-            placeholder="Enter License Plate (e.g., ABC123)" 
-            className={`text-lg font-mono tracking-wide uppercase h-12 ${
+            placeholder={isMobile ? "Enter License Plate" : "Enter License Plate (e.g., ABC123)"}
+            className={`text-base md:text-lg font-mono tracking-wide uppercase h-10 md:h-12 ${
               error ? 'border-red-500 focus-visible:ring-red-500' : 
               isValid && plateValue ? 'border-green-500 focus-visible:ring-green-500' : ''
             }`}
@@ -136,15 +138,15 @@ export function PlateLookup({
               }
             }}
           >
-            <SelectTrigger className={`w-full h-12 ${
+            <SelectTrigger className={`w-full h-10 md:h-12 ${
               !stateValue ? '' : 'border-green-500 focus-visible:ring-green-500'
             }`}>
               <SelectValue placeholder="Select State" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60">
               {US_STATES.map((state) => (
-                <SelectItem key={state.value} value={state.value} className="py-3">
-                  {state.label} ({state.value})
+                <SelectItem key={state.value} value={state.value} className="py-2 md:py-3">
+                  {isMobile ? `${state.value}` : `${state.label} (${state.value})`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -160,7 +162,9 @@ export function PlateLookup({
           <div className="flex items-start gap-2 text-xs text-slate-500">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <p>
-              Enter your license plate and state. This works best for vehicles registered in the United States.
+              {isMobile ? 
+                "Enter plate and state for US vehicles." : 
+                "Enter your license plate and state. This works best for vehicles registered in the United States."}
             </p>
           </div>
         )}
@@ -170,15 +174,18 @@ export function PlateLookup({
         <Button 
           onClick={onLookup}
           disabled={isLoading || !isValid}
-          className="px-6"
+          className="w-full md:w-auto px-4 md:px-6 h-10 md:h-11"
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Looking up plate...
+              {isMobile ? "Looking up..." : "Looking up plate..."}
             </>
           ) : (
-            "Look up Vehicle"
+            <>
+              <Search className="mr-2 h-4 w-4" />
+              Look up Vehicle
+            </>
           )}
         </Button>
       </div>

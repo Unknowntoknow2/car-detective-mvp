@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { CheckCircle, AlertCircle, Download, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Adjustment {
   factor: string;
@@ -41,6 +42,8 @@ export function ValuationResults({
   onDownloadPdf,
   onEmailReport
 }: ValuationResultsProps) {
+  const isMobile = useIsMobile();
+  
   const handleDownloadPdf = () => {
     if (onDownloadPdf) {
       onDownloadPdf();
@@ -65,9 +68,11 @@ export function ValuationResults({
         <CardHeader className="bg-primary-light/10 pb-3">
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-primary" />
-            <CardTitle>{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</CardTitle>
+            <CardTitle className="text-base md:text-lg line-clamp-1">
+              {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+            </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-xs md:text-sm line-clamp-1">
             {vehicleInfo.trim && `${vehicleInfo.trim} • `}
             {vehicleInfo.mileage && `${vehicleInfo.mileage.toLocaleString()} miles • `}
             {vehicleInfo.condition && vehicleInfo.condition}
@@ -76,7 +81,7 @@ export function ValuationResults({
         <CardContent className="pt-6">
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground mb-2">Estimated Value</p>
-            <p className="text-4xl font-bold text-primary">
+            <p className="text-3xl md:text-4xl font-bold text-primary">
               ${estimatedValue?.toLocaleString() || 'N/A'}
             </p>
             <div className="flex items-center justify-center mt-2">
@@ -99,7 +104,7 @@ export function ValuationResults({
                 <ul className="text-sm mt-1 space-y-1">
                   {adjustments.slice(0, 3).map((adj, i) => (
                     <li key={i} className="flex justify-between">
-                      <span>{adj.factor}</span>
+                      <span className="line-clamp-1">{adj.factor}</span>
                       <span className={adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
                         {adj.impact > 0 ? '+' : ''}{adj.impact}%
                       </span>
@@ -123,7 +128,7 @@ export function ValuationResults({
           {priceRange && (
             <div className="mt-4 p-4 bg-primary/5 rounded-lg">
               <p className="font-medium">Price Range</p>
-              <p className="text-lg">${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}</p>
+              <p className="text-base md:text-lg">${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}</p>
             </div>
           )}
         </CardContent>
@@ -132,11 +137,11 @@ export function ValuationResults({
       <div className="flex flex-col sm:flex-row gap-3">
         <Button onClick={handleDownloadPdf} className="flex-1">
           <Download className="h-4 w-4 mr-2" />
-          Download PDF Report
+          {isMobile ? "Download PDF" : "Download PDF Report"}
         </Button>
         <Button variant="outline" onClick={handleEmailReport} className="flex-1">
           <Mail className="h-4 w-4 mr-2" />
-          Email Me the Report
+          {isMobile ? "Email Report" : "Email Me the Report"}
         </Button>
       </div>
     </div>
