@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,7 @@ export function PredictionReviewStep({
           includeCarfax: false, // Can be expanded in the future
           exteriorColor: formData.exteriorColor,
           interiorColor: formData.interiorColor,
-          bodyType: formData.bodyType,
+          bodyStyle: formData.bodyStyle,
           trim: formData.trim
         }
       });
@@ -181,10 +180,10 @@ export function PredictionReviewStep({
               <span className="font-medium">{formData.interiorColor}</span>
             </div>
           )}
-          {formData.bodyType && (
+          {formData.bodyStyle && (
             <div>
-              <span className="text-gray-500 block">Body Type</span>
-              <span className="font-medium">{formData.bodyType}</span>
+              <span className="text-gray-500 block">Body Style</span>
+              <span className="font-medium">{formData.bodyStyle}</span>
             </div>
           )}
           <div>

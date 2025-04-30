@@ -9,11 +9,14 @@ interface VehicleSummaryProps {
 
 export function VehicleSummary({ formData }: VehicleSummaryProps) {
   const getSummaryFields = () => [
-    { label: 'Identification', value: `${formData.identifierType.toUpperCase()}: ${formData.identifier}` },
+    formData.identifierType && formData.identifier && { 
+      label: 'Identification', 
+      value: `${formData.identifierType.toUpperCase()}: ${formData.identifier}` 
+    },
     { label: 'Vehicle', value: `${formData.make} ${formData.model} ${formData.year}` },
     { label: 'Mileage', value: formData.mileage ? `${formData.mileage.toLocaleString()} miles` : 'Not specified' },
     { label: 'Fuel Type', value: formData.fuelType || 'Not specified' },
-    { label: 'Features', value: formData.features.length ? `${formData.features.length} selected` : 'None selected' },
+    { label: 'Features', value: formData.features && formData.features.length ? `${formData.features.length} selected` : 'None selected' },
     { label: 'Condition', value: `${formData.conditionLabel} (${formData.condition}%)` },
     { label: 'Accident History', value: formData.hasAccident ? 'Yes' : 'No' },
     formData.hasAccident && { label: 'Accident Details', value: formData.accidentDescription },

@@ -1,4 +1,3 @@
-
 import { AdjustmentBreakdown, RulesEngineInput } from './types';
 import { MileageCalculator } from './calculators/mileageCalculator';
 import { ConditionCalculator } from './calculators/conditionCalculator';
@@ -92,8 +91,8 @@ export class RulesEngine {
         recallMultiplier: input.recallMultiplier,
         warrantyStatus: input.warrantyStatus,
         warrantyMultiplier: input.warrantyMultiplier,
-        saleDate: input.saleDate,
-        bodyStyle: input.bodyStyle
+        bodyStyle: input.bodyStyle,
+        saleDate: input.saleDate
       }
     };
   }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FormData } from '@/types/premium-valuation';
@@ -14,8 +13,6 @@ const AUTO_SAVE_INTERVAL = 1; // minutes
 export const usePremiumValuationForm = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
-    identifierType: 'vin',
-    identifier: '',
     make: '',
     model: '',
     year: 0,
@@ -26,7 +23,9 @@ export const usePremiumValuationForm = () => {
     conditionLabel: 'Fair',
     hasAccident: false,
     accidentDescription: '',
-    zipCode: ''
+    zipCode: '',
+    identifierType: 'vin',
+    identifier: ''
   });
 
   const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);
@@ -136,8 +135,6 @@ export const usePremiumValuationForm = () => {
     if (confirmReset) {
       // Clear form data
       setFormData({
-        identifierType: 'vin',
-        identifier: '',
         make: '',
         model: '',
         year: 0,
@@ -148,7 +145,9 @@ export const usePremiumValuationForm = () => {
         conditionLabel: 'Fair',
         hasAccident: false,
         accidentDescription: '',
-        zipCode: ''
+        zipCode: '',
+        identifierType: 'vin',
+        identifier: ''
       });
       
       // Clear any cached data

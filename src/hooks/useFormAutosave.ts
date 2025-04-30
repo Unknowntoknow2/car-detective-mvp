@@ -7,7 +7,7 @@ export function useFormAutosave(formData: FormData, formKey: string = 'valuation
   // Save form data on changes
   useEffect(() => {
     // Only save if we have some meaningful data
-    if (formData.identifierType) {
+    if (formData.make || formData.model || formData.identifierType) {
       localStorage.setItem(formKey, JSON.stringify(formData));
       console.log('Saved form data to localStorage');
     }
@@ -20,7 +20,7 @@ export function useFormAutosave(formData: FormData, formKey: string = 'valuation
       if (savedData) {
         const parsedData = JSON.parse(savedData);
         // Check if the saved data is complete and valid before using it
-        if (parsedData && parsedData.identifierType) {
+        if (parsedData && (parsedData.make || parsedData.identifierType)) {
           console.log('Loaded saved form data from localStorage');
           toast.info('Your previous form progress has been restored.');
           return parsedData;

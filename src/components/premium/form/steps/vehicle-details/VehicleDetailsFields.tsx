@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -66,17 +65,10 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
     }));
   };
 
-  const handleBodyTypeChange = (value: string) => {
+  const handleBodyStyleChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      bodyType: value
-    }));
-  };
-
-  const handleTrimChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      trim: e.target.value
+      bodyStyle: value
     }));
   };
 
@@ -180,15 +172,15 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
         />
       </div>
 
-      {/* Body Type */}
+      {/* Body Type/Style */}
       <div className="space-y-2">
-        <Label htmlFor="bodyType">Body Type</Label>
+        <Label htmlFor="bodyStyle">Body Style</Label>
         <Select
-          value={formData.bodyType || ''}
-          onValueChange={handleBodyTypeChange}
+          value={formData.bodyStyle || ''}
+          onValueChange={handleBodyStyleChange}
         >
-          <SelectTrigger id="bodyType">
-            <SelectValue placeholder="Select body type" />
+          <SelectTrigger id="bodyStyle">
+            <SelectValue placeholder="Select body style" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Sedan">Sedan</SelectItem>
@@ -201,18 +193,6 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
             <SelectItem value="Hatchback">Hatchback</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-
-      {/* Trim */}
-      <div className="space-y-2">
-        <Label htmlFor="trim">Trim Level</Label>
-        <Input
-          id="trim"
-          placeholder="e.g. LX, EX-L, Limited"
-          value={formData.trim || ''}
-          onChange={handleTrimChange}
-        />
-        <p className="text-sm text-gray-500">The specific trim package of your vehicle</p>
       </div>
     </div>
   );
