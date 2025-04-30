@@ -42,7 +42,7 @@ const conditionDescriptions: Record<string, Record<ConditionLevel, string>> = {
     poor: 'Multiple dents, dings, or damage requiring body work and panel replacement.',
     fair: 'Several small dents or dings. May have had minor body repairs or filler.',
     good: 'Few minor dings or door dents. No major damage or repairs visible.',
-    veryGood: 'Very minor imperfections that don't affect appearance from most angles.',
+    veryGood: 'Very minor imperfections that do not affect appearance from most angles.',
     excellent: 'No dents, dings, or body damage. Panels align perfectly with proper gaps.',
   },
   'exterior-glass': {
@@ -55,7 +55,7 @@ const conditionDescriptions: Record<string, Record<ConditionLevel, string>> = {
   'exterior-lights': {
     poor: 'Multiple lights non-functional or cracked. Significant fogging or water intrusion.',
     fair: 'Some fogginess or minor cracks. All lights functional but may need restoration.',
-    good: 'Lights clear and functional. Minor hazing may be present but doesn't affect output.',
+    good: 'Lights clear and functional. Minor hazing may be present but does not affect output.',
     veryGood: 'Clear lenses with no cracks. Minimal to no fogging or discoloration.',
     excellent: 'Crystal clear lenses with no yellowing or fogging. Perfect light output.',
   },
