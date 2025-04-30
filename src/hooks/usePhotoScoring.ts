@@ -37,9 +37,11 @@ export function usePhotoScoring(valuationId: string) {
           setPhotoScore(data.score);
           setThumbnailUrl(data.thumbnail_url);
           
-          // Handle metadata safely
-          if (data.metadata && typeof data.metadata === 'object') {
-            setPhotoUrl(data.metadata.original_url || data.thumbnail_url);
+          // Handle metadata safely by checking its structure
+          if (data.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata)) {
+            // Type casting the metadata to a record with string keys and any values
+            const metadataObj = data.metadata as Record<string, any>;
+            setPhotoUrl(metadataObj.original_url || data.thumbnail_url);
           } else {
             setPhotoUrl(data.thumbnail_url);
           }
