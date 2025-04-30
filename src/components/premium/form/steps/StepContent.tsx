@@ -7,7 +7,7 @@ import { FeatureSelectionStep } from './FeatureSelectionStep';
 import { ConditionStep } from './ConditionStep';
 import { ReviewSubmitStep } from './ReviewSubmitStep';
 import { ValuationResultStep } from './ValuationResultStep';
-import { ValuationResult } from '../ValuationResult';
+import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 
 interface StepContentProps {
   currentStep: number;
@@ -30,6 +30,8 @@ export function StepContent({
   handleReset,
   valuationId
 }: StepContentProps) {
+  // Get the vehicle lookup functions and loading state
+  const { isLoading, lookupVehicle } = useVehicleLookup();
   
   switch (currentStep) {
     case 1:
@@ -39,6 +41,8 @@ export function StepContent({
           formData={formData}
           setFormData={setFormData}
           updateValidity={updateStepValidity}
+          lookupVehicle={lookupVehicle}
+          isLoading={isLoading}
         />
       );
     case 2:
@@ -73,10 +77,9 @@ export function StepContent({
         <ReviewSubmitStep
           step={currentStep}
           formData={formData}
-          setFormData={setFormData}
-          updateValidity={updateStepValidity}
           isFormValid={isFormValid}
-          onSubmit={handleSubmit}
+          handleSubmit={handleSubmit}
+          handleReset={handleReset}
         />
       );
     case 6:
