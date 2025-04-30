@@ -21,6 +21,7 @@ const ValuationRequestSchema = z.object({
   includeCarfax: z.boolean().optional(),
   conditionFactors: z.record(z.string(), z.number()).optional(),
   titleStatus: z.string().optional(), // Add title status to the schema
+  equipmentIds: z.array(z.number()).optional(),
 });
 
 // Response type for the API
@@ -207,6 +208,46 @@ serve(async (req) => {
     // Apply adjustments to get manual percentage change
     const manualPct = adjustments.reduce((sum, adj) => sum + adj.impact, 0) / 100;
     
+    // Add equipment adjustments if present
+    let equipmentMultiplier = 1.0;
+    let equipmentValueAdd = 0;
+    let equipmentAdjustment = 0;
+    
+    if (validatedData.equipmentIds && validatedData.equipmentIds.length > 0) {
+      try {
+        // Fetch equipment options from the database
+        const { data: equipmentData, error: equipmentError } = await supabase
+          .from('equipment_options')
+          .select('*')
+          .in('id', validatedData.equipmentIds);
+          
+        if (!equipmentError && equipmentData && equipmentData.length > 0) {
+          // Calculate combined multiplier and total value add
+          equipmentMultiplier = equipmentData.reduce(
+            (total, option) => total * option.multiplier, 
+            1
+          );
+          
+          equipmentValueAdd = equipmentData.reduce(
+            (total, option) => total + (option.value_add || 0), 
+            0
+          );
+          
+          // Calculate percentage impact for display
+          equipmentAdjustment = ((equipmentMultiplier - 1) * 100);
+          
+          // Add to adjustments array
+          allAdjustments.push({
+            factor: "Equipment & Packages",
+            impact: equipmentAdjustment,
+            description: `${equipmentData.length} equipment option(s) selected`
+          });
+        }
+      } catch (equipmentErr) {
+        console.error("Error processing equipment options:", equipmentErr);
+      }
+    }
+    
     // Fetch the most recent photo score, if any
     let photoFactor = 1.0; // Default if no photo was provided
     
@@ -264,9 +305,10 @@ serve(async (req) => {
       ageMultiplier * 
       multiplier * 
       photoFactor * 
-      titleStatusMultiplier * // Include title status multiplier
+      titleStatusMultiplier * 
+      equipmentMultiplier * // Add equipment multiplier
       (1 + manualPct)
-    );
+    ) + equipmentValueAdd; // Add equipment value add
     
     // Get current user ID from the auth context
     const { data: { user } } = await supabase.auth.getUser();
@@ -304,7 +346,7 @@ serve(async (req) => {
       zip_demand_factor: multiplier,
       user_id: userId,
       // Include all breakdown fields for persistence
-      feature_value_total: 0, // This would be calculated separately
+      feature_value_total: equipmentValueAdd, // Update feature_value_total
       accident_count: validatedData.accident === "yes" && validatedData.accidentDetails 
         ? parseInt(validatedData.accidentDetails.count) 
         : 0

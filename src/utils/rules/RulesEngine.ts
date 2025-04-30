@@ -8,6 +8,7 @@ import { AccidentCalculator } from './calculators/accidentCalculator';
 import { FeaturesCalculator } from './calculators/featuresCalculator';
 import { CarfaxCalculator } from './calculators/carfaxCalculator';
 import { PhotoScoreCalculator } from './calculators/photoScoreCalculator';
+import { EquipmentCalculator } from './calculators/equipmentCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -18,7 +19,8 @@ export class RulesEngine {
     new AccidentCalculator(),
     new FeaturesCalculator(),
     new CarfaxCalculator(),
-    new PhotoScoreCalculator()
+    new PhotoScoreCalculator(),
+    new EquipmentCalculator()  // Add the equipment calculator
   ];
 
   public calculateAdjustments(input: RulesEngineInput): AdjustmentBreakdown[] {
@@ -64,7 +66,8 @@ export class RulesEngine {
         zipCode: input.zipCode,
         photoScore: input.photoScore,
         accidentCount: input.accidentCount,
-        features: input.premiumFeatures
+        features: input.premiumFeatures,
+        equipmentIds: input.equipmentIds  // Add equipment data to audit trail
       }
     };
   }
@@ -92,6 +95,7 @@ export interface ValuationAuditTrail {
     photoScore?: number;
     accidentCount?: number;
     features?: string[];
+    equipmentIds?: number[];  // Add equipment IDs to audit trail
   };
 }
 

@@ -1,3 +1,4 @@
+
 import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import { ValuationAuditTrail } from './rules/RulesEngine';
@@ -30,11 +31,14 @@ export interface ValuationInput {
   vin?: string;
   trim?: string;
   accidentCount?: number;
-  titleStatus?: string; // Updated to string type
+  titleStatus?: string;
   premiumFeatures?: string[];
   hasCarfax?: boolean;
   carfaxData?: CarfaxData;
   photoScore?: number;
+  equipmentIds?: number[];       // Add equipment IDs
+  equipmentMultiplier?: number;  // Add equipment multiplier
+  equipmentValueAdd?: number;    // Add equipment value add
 }
 
 export interface ValuationResult {
@@ -45,8 +49,13 @@ export interface ValuationResult {
   confidenceLevel: string;
   priceRange: [number, number];
   carfaxData?: CarfaxData;
-  auditTrail: ValuationAuditTrail; // Add audit trail
-  photoScore?: number; // Add photo score
+  auditTrail: ValuationAuditTrail;
+  photoScore?: number;
+  equipmentInfo?: {              // Add equipment info to result
+    ids: number[];
+    multiplier: number;
+    valueAdd: number;
+  };
 }
 
 function getBasePrice(make: string, model: string): number {
@@ -71,7 +80,10 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     premiumFeatures: input.premiumFeatures,
     basePrice: basePrice,
     carfaxData: input.carfaxData,
-    photoScore: input.photoScore
+    photoScore: input.photoScore,
+    equipmentIds: input.equipmentIds,
+    equipmentMultiplier: input.equipmentMultiplier,
+    equipmentValueAdd: input.equipmentValueAdd
   });
   
   // Calculate total adjustment
@@ -95,7 +107,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
       premiumFeatures: input.premiumFeatures,
       basePrice: basePrice,
       carfaxData: input.carfaxData,
-      photoScore: input.photoScore
+      photoScore: input.photoScore,
+      equipmentIds: input.equipmentIds
     },
     adjustments,
     totalAdjustment
@@ -112,7 +125,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     condition: input.condition,
     hasCarfax: input.hasCarfax || !!input.carfaxData,
     hasPhotoScore: !!input.photoScore,
-    hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean'
+    hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean',
+    hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0 // Add equipment to confidence score
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)
@@ -122,7 +136,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     Math.round(estimatedValue + variation)
   ];
 
-  return {
+  // Prepare the result object
+  const result: ValuationResult = {
     basePrice,
     adjustments,
     estimatedValue,
@@ -133,4 +148,15 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     auditTrail,
     photoScore: input.photoScore
   };
+  
+  // Add equipment info if present
+  if (input.equipmentIds && input.equipmentIds.length > 0) {
+    result.equipmentInfo = {
+      ids: input.equipmentIds,
+      multiplier: input.equipmentMultiplier || 1,
+      valueAdd: input.equipmentValueAdd || 0
+    };
+  }
+
+  return result;
 }

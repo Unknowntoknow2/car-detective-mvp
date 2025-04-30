@@ -10,11 +10,14 @@ export interface RulesEngineInput {
   zipCode?: string;
   trim?: string;
   accidentCount?: number;
-  titleStatus?: string; // Updated to string type
+  titleStatus?: string;
   premiumFeatures?: string[];
   basePrice: number;
   carfaxData?: CarfaxData;
   photoScore?: number;
+  equipmentIds?: number[]; // Added field for equipment IDs
+  equipmentMultiplier?: number; // Added field for equipment multiplier
+  equipmentValueAdd?: number; // Added field for equipment value add
 }
 
 export interface AdjustmentBreakdown {

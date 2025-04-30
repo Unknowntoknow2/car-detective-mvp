@@ -200,6 +200,33 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_options: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          multiplier: number
+          name: string
+          value_add: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          multiplier: number
+          name: string
+          value_add?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          multiplier?: number
+          name?: string
+          value_add?: number | null
+        }
+        Relationships: []
+      }
       features: {
         Row: {
           category: string
