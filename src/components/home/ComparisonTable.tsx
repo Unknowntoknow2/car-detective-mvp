@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export function ComparisonTable() {
   const navigate = useNavigate();
@@ -35,70 +36,102 @@ export function ComparisonTable() {
           </p>
         </CardHeader>
         
-        <Card className="border-2 border-slate-200 shadow-lg rounded-2xl overflow-hidden">
-          <CardHeader className="bg-white p-0">
-            <div className="grid grid-cols-3 w-full">
-              <div className="p-6 text-left font-semibold text-xl border-b border-r border-slate-200">
-                Features
-              </div>
-              <div className="p-6 text-center font-semibold text-xl border-b border-r border-slate-200">
-                <div className="flex flex-col items-center">
-                  <span>Free</span>
-                  <span className="text-base font-medium text-slate-500">$0</span>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="border-2 border-slate-200 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-white p-0">
+              <div className="grid grid-cols-3 w-full">
+                <div className="p-6 text-left font-semibold text-xl border-b border-r border-slate-200">
+                  Features
+                </div>
+                <div className="p-6 text-center font-semibold text-xl border-b border-r border-slate-200">
+                  <div className="flex flex-col items-center">
+                    <span>Free</span>
+                    <span className="text-base font-medium text-slate-500">$0</span>
+                  </div>
+                </div>
+                <div className="p-6 text-center font-semibold text-xl bg-primary/5 border-b border-slate-200">
+                  <div className="flex flex-col items-center">
+                    <span>Premium</span>
+                    <span className="text-base font-medium text-primary">$29.99</span>
+                  </div>
                 </div>
               </div>
-              <div className="p-6 text-center font-semibold text-xl bg-primary/5 border-b border-slate-200">
-                <div className="flex flex-col items-center">
-                  <span>Premium</span>
-                  <span className="text-base font-medium text-primary">$29.99</span>
-                </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <tbody>
+                    {features.map((feature, index) => (
+                      <motion.tr
+                        key={index}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                        className={`border-b last:border-0 border-slate-200 
+                          ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}
+                          hover:bg-slate-50 transition-colors duration-200`}
+                      >
+                        <td className="p-5 px-6 font-medium text-slate-800 w-1/2">{feature.name}</td>
+                        <td className="p-5 text-center w-1/4">
+                          {typeof feature.free === 'boolean' ? (
+                            feature.free ? 
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <Check className="h-6 w-6 text-green-500 mx-auto" />
+                              </motion.div> : 
+                              <X className="h-6 w-6 text-slate-300 mx-auto" />
+                          ) : (
+                            <span className="text-sm font-medium text-slate-700">{feature.free}</span>
+                          )}
+                        </td>
+                        <td className="p-5 text-center w-1/4 bg-primary/5">
+                          {typeof feature.premium === 'boolean' ? (
+                            feature.premium ? 
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <Check className="h-6 w-6 text-green-500 mx-auto" />
+                              </motion.div> : 
+                              <X className="h-6 w-6 text-slate-300 mx-auto" />
+                          ) : (
+                            <span className="text-sm font-medium text-primary">{feature.premium}</span>
+                          )}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <tbody>
-                  {features.map((feature, index) => (
-                    <tr key={index} className={`border-b last:border-0 border-slate-200 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                      <td className="p-5 px-6 font-medium text-slate-800 w-1/2">{feature.name}</td>
-                      <td className="p-5 text-center w-1/4">
-                        {typeof feature.free === 'boolean' ? (
-                          feature.free ? 
-                            <Check className="h-6 w-6 text-green-500 mx-auto" /> : 
-                            <X className="h-6 w-6 text-slate-300 mx-auto" />
-                        ) : (
-                          <span className="text-sm font-medium text-slate-700">{feature.free}</span>
-                        )}
-                      </td>
-                      <td className="p-5 text-center w-1/4 bg-primary/5">
-                        {typeof feature.premium === 'boolean' ? (
-                          feature.premium ? 
-                            <Check className="h-6 w-6 text-green-500 mx-auto" /> : 
-                            <X className="h-6 w-6 text-slate-300 mx-auto" />
-                        ) : (
-                          <span className="text-sm font-medium text-primary">{feature.premium}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
         
         <div className="mt-12 flex flex-col items-center">
-          <Button 
-            onClick={() => navigate("/premium")} 
-            size="lg"
-            className="bg-primary hover:bg-primary-hover text-white px-10 py-6 h-auto text-lg font-medium gap-2 rounded-xl shadow-md transition-all duration-300"
+          <motion.div
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
           >
-            Get Premium Valuation Now
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-          <p className="mt-4 text-base text-slate-600">
-            One-time purchase • CARFAX® report included ($44 value)
+            <Button 
+              onClick={() => navigate("/premium")} 
+              size="lg"
+              className="bg-primary hover:bg-primary-hover text-white px-10 py-6 h-auto text-lg font-medium gap-2 rounded-xl shadow-md transition-all duration-300"
+            >
+              Get Premium Valuation Now
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </motion.div>
+          <p className="mt-4 text-base text-slate-600 flex items-center justify-center gap-1.5">
+            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-sm font-medium">One-time purchase</span>
+            <span>•</span> 
+            <span>CARFAX® report included <span className="text-green-600 font-medium">($44 value)</span></span>
           </p>
         </div>
       </div>

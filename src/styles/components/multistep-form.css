@@ -13,15 +13,15 @@
   }
   
   .step-circle-active {
-    @apply bg-primary text-white shadow ring-2 ring-primary/20 ring-offset-2;
+    @apply bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2;
   }
   
   .step-circle-inactive {
-    @apply bg-gray-100 text-gray-500 border border-gray-200;
+    @apply bg-gray-100 text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50;
   }
   
   .step-circle-completed {
-    @apply bg-green-600 text-white;
+    @apply bg-green-600 text-white shadow-sm;
   }
   
   .step-line {
@@ -45,11 +45,11 @@
   }
   
   .feature-card-selected {
-    @apply border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20;
+    @apply border-primary bg-primary/5 shadow-md ring-1 ring-primary/20 transform scale-[1.02];
   }
   
   .feature-card-unselected {
-    @apply border-gray-200 hover:border-primary/30 hover:bg-slate-50/80;
+    @apply border-gray-200 hover:border-primary/30 hover:bg-slate-50/80 hover:shadow-sm;
   }
   
   .condition-marker {
@@ -57,19 +57,19 @@
   }
   
   .condition-marker-poor {
-    @apply bg-red-400 left-0 shadow-sm;
+    @apply bg-red-400 left-0 shadow-md;
   }
   
   .condition-marker-fair {
-    @apply bg-amber-400 left-1/3 -translate-x-1/2 shadow-sm;
+    @apply bg-amber-400 left-1/3 -translate-x-1/2 shadow-md;
   }
   
   .condition-marker-good {
-    @apply bg-green-400 left-2/3 -translate-x-1/2 shadow-sm;
+    @apply bg-green-400 left-2/3 -translate-x-1/2 shadow-md;
   }
   
   .condition-marker-excellent {
-    @apply bg-blue-400 right-0 shadow-sm;
+    @apply bg-blue-400 right-0 shadow-md;
   }
   
   .form-navigation {
@@ -115,6 +115,49 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
+  
+  /* Premium price label */
+  .premium-price-label {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary;
+  }
+  
+  /* Value badge */
+  .value-badge {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+  
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-md;
+  }
+  
+  /* Input focus styles */
+  .input-focus-ring {
+    @apply focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200;
+  }
+  
+  /* Button shine effect */
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shine 3s infinite;
+  }
 }
 
 @keyframes fade-in {
@@ -150,10 +193,32 @@
   }
 }
 
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  20%, 100% {
+    left: 100%;
+  }
+}
+
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out forwards;
 }
 
 .animate-slide-in-left {
   animation: slide-in-left 0.3s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }

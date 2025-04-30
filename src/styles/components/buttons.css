@@ -83,4 +83,60 @@
   .button-focus-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 transition-all duration-200;
   }
+  
+  /* Premium Button */
+  .button-premium {
+    @apply relative overflow-hidden bg-gradient-to-r from-primary to-primary-hover text-white font-medium
+           px-6 py-3 rounded-lg shadow-md transition-all duration-300
+           hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .button-premium::after {
+    content: '';
+    @apply absolute inset-0 bg-white opacity-0 transition-opacity duration-300;
+  }
+  
+  .button-premium:hover::after {
+    @apply opacity-10;
+  }
+  
+  /* Value Badge Button */
+  .button-value-badge {
+    @apply inline-flex items-center justify-center px-4 py-1.5 bg-green-100 text-green-800
+           text-xs font-medium rounded-full transition-all duration-200
+           hover:bg-green-200;
+  }
+  
+  /* Shine Effect */
+  .premium-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .premium-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transform: skewX(-25deg);
+    animation: shine 4s infinite;
+  }
+  
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+    20%, 100% {
+      left: 150%;
+    }
+  }
 }

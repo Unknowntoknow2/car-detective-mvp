@@ -6,6 +6,7 @@ import { ValuationResults } from '@/components/valuation/ValuationResults';
 import { EnhancedPlateForm } from './plate/EnhancedPlateForm';
 import { VehicleFoundCard } from './plate/VehicleFoundCard';
 import { ValuationErrorState } from './shared/ValuationErrorState';
+import { motion } from 'framer-motion';
 
 interface EnhancedPlateLookupProps {
   plateValue?: string;
@@ -77,7 +78,12 @@ export function EnhancedPlateLookup({
     
     if (stage === 'details_required') {
       return (
-        <div className="space-y-6">
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           <VehicleFoundCard 
             vehicle={vehicle || {}}
             plateValue={plateValue}
@@ -91,28 +97,34 @@ export function EnhancedPlateLookup({
               isLoading={isLoading}
             />
           )}
-        </div>
+        </motion.div>
       );
     }
     
     if (stage === 'valuation_complete') {
       return (
-        <ValuationResults
-          estimatedValue={valuationResult?.estimated_value || 0}
-          confidenceScore={valuationResult?.confidence_score || 0}
-          basePrice={valuationResult?.base_price}
-          adjustments={valuationResult?.adjustments}
-          priceRange={valuationResult?.price_range}
-          demandFactor={valuationResult?.zip_demand_factor}
-          vehicleInfo={{
-            year: vehicle?.year || 0,
-            make: vehicle?.make || '',
-            model: vehicle?.model || '',
-            trim: vehicle?.trim || '',
-            mileage: requiredInputs?.mileage || undefined,
-            condition: requiredInputs?.conditionLabel
-          }}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <ValuationResults
+            estimatedValue={valuationResult?.estimated_value || 0}
+            confidenceScore={valuationResult?.confidence_score || 0}
+            basePrice={valuationResult?.base_price}
+            adjustments={valuationResult?.adjustments}
+            priceRange={valuationResult?.price_range}
+            demandFactor={valuationResult?.zip_demand_factor}
+            vehicleInfo={{
+              year: vehicle?.year || 0,
+              make: vehicle?.make || '',
+              model: vehicle?.model || '',
+              trim: vehicle?.trim || '',
+              mileage: requiredInputs?.mileage || undefined,
+              condition: requiredInputs?.conditionLabel
+            }}
+          />
+        </motion.div>
       );
     }
     

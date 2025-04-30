@@ -22,9 +22,9 @@ export function FormValidationError({
   if (!error && !details) return null;
   
   const variantClasses = {
-    'error': 'text-red-600 bg-red-50 border-red-100 shadow-[0_0_0_1px_rgba(244,63,94,0.15)]',
-    'warning': 'text-amber-600 bg-amber-50 border-amber-100 shadow-[0_0_0_1px_rgba(245,158,11,0.15)]',
-    'info': 'text-blue-600 bg-blue-50 border-blue-100 shadow-[0_0_0_1px_rgba(59,130,246,0.15)]'
+    'error': 'text-red-600 bg-red-50/90 border-red-200 shadow-[0_0_0_1px_rgba(244,63,94,0.15)]',
+    'warning': 'text-amber-600 bg-amber-50/90 border-amber-200 shadow-[0_0_0_1px_rgba(245,158,11,0.15)]',
+    'info': 'text-blue-600 bg-blue-50/90 border-blue-200 shadow-[0_0_0_1px_rgba(59,130,246,0.15)]'
   };
   
   const IconComponent = variant === 'error' ? AlertCircle : Info;
@@ -49,14 +49,14 @@ export function FormValidationError({
       animate="visible"
       variants={containerVariants}
       className={cn(
-        'text-xs md:text-sm rounded-md p-2 md:p-3 border transition-all',
+        'text-xs md:text-sm rounded-md p-2.5 md:p-3 border transition-all',
         variantClasses[variant],
         className
       )}
     >
-      <div className="flex gap-2">
+      <div className="flex gap-2.5">
         {showIcon && (
-          <IconComponent className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <IconComponent className="h-4 w-4 flex-shrink-0 mt-0.5 animate-pulse" />
         )}
         <div className="space-y-1">
           {error && <p className="font-medium leading-tight break-words">{error}</p>}

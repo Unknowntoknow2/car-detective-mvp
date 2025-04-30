@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, Loader2, Search } from 'lucide-react';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
-import { US_STATES } from '../shared/states-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usStates } from '@/data/us-states';
+import { motion } from 'framer-motion';
 
 interface EnhancedPlateFormProps {
   plateValue: string;
@@ -28,140 +28,126 @@ export function EnhancedPlateForm({
   error
 }: EnhancedPlateFormProps) {
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [validationDetail, setValidationDetail] = useState<string | null>(null);
-  const [touched, setTouched] = useState({ plate: false, state: false });
+  const [touched, setTouched] = useState(false);
 
-  // Enhanced plate validation
-  const validatePlate = (plate: string): boolean => {
-    if (!plate || plate.length < 2) {
-      setValidationError("License plate must be at least 2 characters");
-      setValidationDetail("Most states require at least 2 characters for license plates");
-      return false;
-    }
+  const isValid = plateValue.length >= 2 && plateValue.length <= 8 && !!stateValue;
+
+  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.toUpperCase();
     
-    if (plate.length > 8) {
-      setValidationError("License plate cannot exceed 8 characters");
-      setValidationDetail("Most states limit license plates to 8 characters");
-      return false;
-    }
+    if (newValue.length > 8) return;
     
-    if (!/^[A-Z0-9\-]*$/.test(plate)) {
-      setValidationError("License plate can only contain letters, numbers, and hyphens");
-      setValidationDetail("Special characters other than hyphens are not allowed");
-      return false;
+    // Only allow alphanumeric characters
+    if (/^[A-Z0-9]*$/.test(newValue) || newValue === '') {
+      onPlateChange(newValue);
+      setTouched(true);
+      
+      if (newValue.length < 2 && newValue.length > 0) {
+        setValidationError('License plate must be at least 2 characters');
+      } else {
+        setValidationError(null);
+      }
     }
-    
-    setValidationError(null);
-    setValidationDetail(null);
-    return true;
   };
-  
-  useEffect(() => {
-    if (touched.plate && plateValue) {
-      validatePlate(plateValue);
-    }
-  }, [plateValue, touched.plate]);
-  
-  const isFormValid = plateValue && 
-                      stateValue && 
-                      !validationError &&
-                      plateValue.length >= 2 && 
-                      plateValue.length <= 8;
 
-  const handlePlateChange = (value: string) => {
-    // Convert to uppercase and allow only valid characters
-    const formattedValue = value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
-    setTouched(prev => ({ ...prev, plate: true }));
-    onPlateChange(formattedValue);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && isValid && !isLoading) {
+      onSubmit();
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-2">
-        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/30">
-          Alternative
-        </Badge>
-        <p className="text-sm text-slate-500">Simple & Convenient</p>
-      </div>
-      
-      <div className="space-y-3">
-        <div className="relative">
-          <Input 
-            value={plateValue}
-            onChange={(e) => handlePlateChange(e.target.value)}
-            placeholder="Enter License Plate (e.g., ABC123)" 
-            className={`text-lg font-mono tracking-wide uppercase h-12 ${
-              (touched.plate && validationError) ? 'border-red-500 focus-visible:ring-red-500' : 
-              (isFormValid) ? 'border-green-500 focus-visible:ring-green-500' : ''
-            }`}
-          />
-          {isFormValid && !isLoading && (
-            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
-          )}
+    <motion.div 
+      className="space-y-4"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">License Plate</label>
+          <div className="relative">
+            <Input 
+              value={plateValue}
+              onChange={handlePlateChange}
+              placeholder="Enter license plate (e.g., ABC123)"
+              className={`font-mono tracking-wide uppercase h-12 px-4 text-base ${
+                validationError ? 'border-red-300 focus:ring-red-200 bg-red-50/20' :
+                isValid && stateValue ? 'border-green-300 focus:ring-green-200 bg-green-50/20' :
+                'border-gray-300 hover:border-primary/40'
+              } transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/10`}
+              onKeyPress={handleKeyPress}
+              maxLength={8}
+            />
+          </div>
         </div>
         
-        <div className="pt-1">
-          <Select
-            value={stateValue}
-            onValueChange={(value) => {
-              setTouched(prev => ({ ...prev, state: true }));
-              onStateChange(value);
-            }}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">State</label>
+          <Select 
+            value={stateValue} 
+            onValueChange={onStateChange}
           >
-            <SelectTrigger className={`w-full h-12 ${
-              (!stateValue || !touched.state) ? '' : 'border-green-500 focus-visible:ring-green-500'
-            }`}>
-              <SelectValue placeholder="Select State" />
+            <SelectTrigger 
+              className={`w-full h-12 px-4 text-base ${
+                !stateValue ? 'border-gray-300 hover:border-primary/40' : 
+                'border-green-300 focus:ring-green-200 bg-green-50/20'
+              } transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/10`}
+            >
+              <SelectValue placeholder="Select a state" />
             </SelectTrigger>
-            <SelectContent>
-              {US_STATES.map((state) => (
-                <SelectItem key={state.value} value={state.value} className="py-3">
-                  {state.label} ({state.value})
+            <SelectContent className="max-h-80 overflow-y-auto border border-gray-200 shadow-lg rounded-md">
+              {usStates.map((state) => (
+                <SelectItem 
+                  key={state.value} 
+                  value={state.value}
+                  className="hover:bg-primary/5 focus:bg-primary/5 cursor-pointer py-2"
+                >
+                  {state.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        
-        {touched.plate && validationError ? (
-          <FormValidationError 
-            error={validationError} 
-            details={validationDetail || undefined} 
-          />
-        ) : error ? (
-          <FormValidationError 
-            error={error} 
-            variant="error"
-          />
-        ) : (
-          <div className="flex items-start gap-2 text-xs text-slate-500">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>
-              Enter your license plate and state. This works best for vehicles registered in the United States.
-            </p>
-          </div>
-        )}
       </div>
       
+      {touched && validationError ? (
+        <FormValidationError error={validationError} />
+      ) : error ? (
+        <FormValidationError error={error} />
+      ) : (
+        <div className="flex items-start gap-2 text-sm text-slate-500 pl-1">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-1 text-slate-400" />
+          <p className="text-xs">
+            Enter your vehicle's license plate and the state where it's registered.
+          </p>
+        </div>
+      )}
+      
       <div className="flex justify-end">
-        <Button 
-          onClick={onSubmit}
-          disabled={isLoading || !isFormValid}
-          className="px-6"
+        <motion.div
+          whileHover={{ scale: isValid && !isLoading ? 1.02 : 1 }}
+          whileTap={{ scale: isValid && !isLoading ? 0.98 : 1 }}
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Looking up plate...
-            </>
-          ) : (
-            <>
-              <Search className="mr-2 h-4 w-4" />
-              Look up Vehicle
-            </>
-          )}
-        </Button>
+          <Button
+            onClick={onSubmit}
+            disabled={!isValid || isLoading}
+            className="px-6 py-2.5 h-11 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Looking up plate...</span>
+              </>
+            ) : (
+              <>
+                <Search className="h-4 w-4" />
+                <span>Look up Vehicle</span>
+              </>
+            )}
+          </Button>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -9,6 +9,7 @@ import { EnhancedVinLookup } from '@/components/premium/lookup/EnhancedVinLookup
 import { EnhancedPlateLookup } from '@/components/premium/lookup/EnhancedPlateLookup';
 import { toast } from 'sonner';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
+import { motion } from 'framer-motion';
 
 interface VehicleIdentificationStepProps {
   step: number;
@@ -93,33 +94,67 @@ export function VehicleIdentificationStep({
     }
   };
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
+    <motion.div 
+      className="space-y-6"
+      variants={container}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div variants={item}>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Vehicle Identification</h2>
         <p className="text-gray-600 mb-6">
           Enter your vehicle's VIN or license plate to quickly look up your vehicle information.
         </p>
-      </div>
+      </motion.div>
       
-      <div className="space-y-4">
+      <motion.div className="space-y-4" variants={item}>
         <div>
-          <Label htmlFor="identifierType">Lookup Method</Label>
+          <Label htmlFor="identifierType" className="text-sm font-medium text-gray-700">Lookup Method</Label>
           <Select 
             value={formData.identifierType} 
             onValueChange={handleTypeChange}
           >
-            <SelectTrigger className="w-full mt-1">
+            <SelectTrigger className="w-full mt-1.5 h-11 px-4 text-base bg-white border border-gray-300 hover:border-primary/50 focus:border-primary transition-all duration-200">
               <SelectValue placeholder="Select lookup method" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="vin">Vehicle Identification Number (VIN)</SelectItem>
-              <SelectItem value="plate">License Plate</SelectItem>
+            <SelectContent className="border border-gray-200 shadow-lg rounded-md">
+              <SelectItem value="vin" className="hover:bg-primary/5 focus:bg-primary/5 cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary p-1 rounded-full">
+                    <Search className="h-4 w-4" />
+                  </span>
+                  <span>Vehicle Identification Number (VIN)</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="plate" className="hover:bg-primary/5 focus:bg-primary/5 cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <span className="bg-blue-100 text-blue-600 p-1 rounded-full">
+                    <Search className="h-4 w-4" />
+                  </span>
+                  <span>License Plate</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
         
-        <div className="space-y-3">
+        <motion.div className="space-y-3" variants={item}>
           {formData.identifierType === 'vin' ? (
             <EnhancedVinLookup
               value={formData.identifier}
@@ -139,19 +174,31 @@ export function VehicleIdentificationStep({
               error={error}
             />
           ) : null}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
       
       {formData.make && formData.model && formData.year > 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4 mt-6">
-          <h3 className="text-sm font-medium text-green-800">Vehicle Found</h3>
+        <motion.div 
+          className="bg-green-50 border border-green-200 rounded-md p-4 mt-6"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h3 className="text-sm font-medium text-green-800 flex items-center gap-2">
+            <span className="flex items-center justify-center h-5 w-5 bg-green-600 text-white rounded-full">
+              <Check className="h-3 w-3" />
+            </span>
+            Vehicle Found
+          </h3>
           <p className="mt-1 text-sm text-green-700">
             {formData.year} {formData.make} {formData.model}
             {formData.mileage && ` • ${formData.mileage.toLocaleString()} miles`}
             {formData.fuelType && ` • ${formData.fuelType}`}
           </p>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
+
+import { Check } from 'lucide-react';
