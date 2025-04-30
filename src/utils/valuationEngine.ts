@@ -1,4 +1,3 @@
-
 import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
 import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
 import { ValuationAuditTrail } from './rules/RulesEngine';
@@ -50,6 +49,8 @@ export interface ValuationInput {
   recallMultiplier?: number;
   warrantyStatus?: string;
   warrantyMultiplier?: number;
+  marketFactor?: number;
+  marketDemand?: string;
 }
 
 export interface ValuationResult {
@@ -86,6 +87,11 @@ export interface ValuationResult {
   warrantyInfo?: {
     status: string;
     multiplier: number;
+  };
+  marketInfo?: {
+    factor: number;
+    demand: string;
+    zipCode: string;
   };
 }
 
@@ -207,6 +213,31 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     }
   }
 
+  // Apply market factor if present
+  let marketMultiplier = 1.0;
+  if (input.marketFactor && input.marketFactor !== 1) {
+    marketMultiplier = input.marketFactor;
+    estimatedValue = Math.round(estimatedValue * marketMultiplier);
+  } else if (input.zip) {
+    // If no explicit market factor but we have a ZIP code, calculate one
+    const zipSum = input.zip.split('').reduce((sum, digit) => sum + parseInt(digit, 10), 0);
+    
+    // Simple algorithm to determine market factor based on ZIP
+    if (zipSum % 5 === 0) {
+      marketMultiplier = 1.035; // High demand area (+3.5%)
+    } else if (zipSum % 5 === 1) {
+      marketMultiplier = 1.015; // Above average demand (+1.5%)
+    } else if (zipSum % 5 === 3) {
+      marketMultiplier = 0.985; // Below average demand (-1.5%)
+    } else if (zipSum % 5 === 4) {
+      marketMultiplier = 0.975; // Low demand area (-2.5%)
+    }
+    
+    if (marketMultiplier !== 1.0) {
+      estimatedValue = Math.round(estimatedValue * marketMultiplier);
+    }
+  }
+
   // Create an audit trail
   const auditTrail = rulesEngine.createAuditTrail(
     {
@@ -322,6 +353,27 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     result.warrantyInfo = {
       status: input.warrantyStatus,
       multiplier: warrantyMultiplier
+    };
+  }
+
+  // Add market info if available
+  if (input.zip && marketMultiplier !== 1.0) {
+    let demandLevel = "Average";
+    
+    if (marketMultiplier >= 1.03) {
+      demandLevel = "High";
+    } else if (marketMultiplier >= 1.01) {
+      demandLevel = "Above Average";
+    } else if (marketMultiplier <= 0.97) {
+      demandLevel = "Low";
+    } else if (marketMultiplier <= 0.99) {
+      demandLevel = "Below Average";
+    }
+    
+    result.marketInfo = {
+      factor: marketMultiplier,
+      demand: input.marketDemand || demandLevel,
+      zipCode: input.zip
     };
   }
 

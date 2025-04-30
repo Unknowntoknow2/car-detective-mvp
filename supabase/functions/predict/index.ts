@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import { predictValuation, ValuationFeatures } from "../lib/inferenceModel.ts";
@@ -76,19 +75,35 @@ serve(async (req) => {
     let multiplier = 1.0;
     if (val.zip_code) {
       try {
-        const { data: pricingData, error: pricingErr } = await supabase.functions.invoke("get-pricing-curve", {
+        // First, try to get market-based multiplier
+        const { data: marketData, error: marketErr } = await supabase.functions.invoke("fetch-market-listings", {
           body: { 
-            zip_code: val.zip_code,
-            condition: condition
+            zipCode: val.zip_code,
+            make: val.make,
+            model: val.model,
+            year: val.year
           }
         });
         
-        if (!pricingErr && pricingData && pricingData.multiplier) {
-          multiplier = pricingData.multiplier;
-          console.log(`Using pricing multiplier: ${multiplier} for zip: ${val.zip_code}, condition: ${condition}`);
+        if (!marketErr && marketData && marketData.marketFactor) {
+          multiplier = marketData.marketFactor;
+          console.log(`Using market factor: ${multiplier} from listings API for zip: ${val.zip_code}`);
+        } else {
+          // Fall back to pricing curve if market data isn't available
+          const { data: pricingData, error: pricingErr } = await supabase.functions.invoke("get-pricing-curve", {
+            body: { 
+              zip_code: val.zip_code,
+              condition: condition
+            }
+          });
+          
+          if (!pricingErr && pricingData && pricingData.multiplier) {
+            multiplier = pricingData.multiplier;
+            console.log(`Using pricing multiplier: ${multiplier} for zip: ${val.zip_code}, condition: ${condition}`);
+          }
         }
       } catch (err) {
-        console.warn("Failed to get pricing curve:", err);
+        console.warn("Failed to get market data:", err);
         // Continue with default multiplier
       }
     }
@@ -263,6 +278,8 @@ serve(async (req) => {
           recallAdjustment: `${((recallMultiplier - 1) * 100).toFixed(1)}%`,
           warrantyMultiplier: warrantyMultiplier,
           warrantyAdjustment: `${((warrantyMultiplier - 1) * 100).toFixed(1)}%`,
+          marketMultiplier: multiplier,
+          marketAdjustment: `${((multiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

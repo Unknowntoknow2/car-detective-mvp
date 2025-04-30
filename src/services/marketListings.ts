@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { MarketData, MarketListing, MarketListingInsert, MarketListingsResponse } from '@/types/marketListings';
 

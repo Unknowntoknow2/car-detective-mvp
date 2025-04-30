@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { TransmissionSelect } from '../../vehicle-details/TransmissionSelect';
 import { RecallToggle } from '../../vehicle-details/RecallToggle';
 import { WarrantySelect } from '../../vehicle-details/WarrantySelect';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
+import { ZipMarketAnalysis } from '@/components/valuation/ZipMarketAnalysis';
 
 interface VehicleDetailsFormProps {
   initialData: {
@@ -262,6 +262,14 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
             {errors.accidentDescription && <FormValidationError error={errors.accidentDescription} />}
           </div>
         )}
+      </div>
+      
+      <div className="pt-4">
+        <ZipMarketAnalysis 
+          zipCode={formData.zipCode} 
+          setZipCode={(zipCode) => setFormData(prev => ({ ...prev, zipCode }))}
+          disabled={isLoading}
+        />
       </div>
       
       <div className="pt-4">
