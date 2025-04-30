@@ -91,6 +91,9 @@ export const useValuationSubmit = () => {
         }
       }
 
+      // Format the sale date as a string if it exists
+      const saleDate = formData.saleDate ? formData.saleDate.toISOString().split('T')[0] : null;
+
       // Insert valuation record
       const { data, error } = await supabase
         .from('valuations')
@@ -111,7 +114,7 @@ export const useValuationSubmit = () => {
           transmission_type: formData.transmissionType,
           has_open_recall: formData.hasOpenRecall || false,
           warranty_status: formData.warrantyStatus || 'None',
-          sale_date: formData.saleDate || new Date(),
+          sale_date: saleDate,
           body_style: formData.bodyStyle || 'sedan'
         })
         .select('id')
