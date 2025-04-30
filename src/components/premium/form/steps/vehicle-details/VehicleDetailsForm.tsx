@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { AccidentToggle } from './AccidentToggle';
-import { TransmissionSelect } from './TransmissionSelect';
+import { TransmissionSelect } from '../../vehicle-details/TransmissionSelect';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface VehicleDetailsFormProps {

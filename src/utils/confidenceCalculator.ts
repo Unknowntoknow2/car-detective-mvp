@@ -1,88 +1,58 @@
 export interface InputFactors {
   vin?: string;
   zip?: string;
-  mileage?: number;
-  year?: number;
-  make?: string;
-  model?: string;
-  condition?: string;
-  hasCarfax?: boolean;
-  hasPhotoScore?: boolean;
-  hasTitleStatus?: boolean;
-  hasEquipment?: boolean; // Add equipment factor
+  mileage: number;
+  year: number;
+  make: string;
+  model: string;
+  condition: string;
+  hasCarfax: boolean;
+  hasPhotoScore: boolean;
+  hasTitleStatus: boolean;
+  hasEquipment: boolean;
+  hasTransmission?: boolean;
+}
+
+export function calculateConfidenceScore(input: InputFactors): number {
+  let score = 0;
+
+  // VIN and ZIP provide strong location and vehicle specific data
+  if (input.vin) score += 20;
+  if (input.zip) score += 10;
+
+  // Mileage and year are crucial for depreciation
+  score += Math.min(input.mileage / 10000, 10); // Scale mileage to a max of 10 points
+  score += Math.min((new Date().getFullYear() - input.year) * 2, 10); // Scale age to a max of 10 points
+
+  // Make and model provide a baseline
+  if (input.make) score += 5;
+  if (input.model) score += 5;
+
+  // Condition is a direct assessment of quality
+  if (input.condition) score += 10;
+
+  // Carfax provides history
+  if (input.hasCarfax) score += 15;
+
+  // Photo score indicates visual appeal
+  if (input.hasPhotoScore) score += 10;
+
+  // Title status flags potential issues
+  if (input.hasTitleStatus) score -= 10;
+
+  // Equipment indicates features and desirability
+  if (input.hasEquipment) score += 5;
+  
+  // Transmission type indicates desirability
+  if (input.hasTransmission) score += 5;
+
+  // Normalize the score to a percentage
+  return Math.max(0, Math.min(score, 100));
 }
 
 export function getConfidenceLevel(score: number): string {
-  if (score >= 90) {
-    return "Very High";
-  } else if (score >= 80) {
-    return "High";
-  } else if (score >= 70) {
-    return "Medium";
-  } else {
-    return "Low";
-  }
-}
-
-const weights: Record<string, number> = {
-  vin: 20,
-  zip: 10,
-  mileage: 15,
-  year: 15,
-  make: 10,
-  model: 10,
-  condition: 10,
-  hasCarfax: 10,
-  hasPhotoScore: 5,
-  hasTitleStatus: 5,
-  hasEquipment: 5 // Add weight for equipment
-};
-
-export function calculateConfidenceScore(factors: InputFactors): number {
-  let score = 0;
-  let possibleScore = 0;
-
-  // Add scores for required factors
-  if (factors.vin) {
-    score += weights.vin;
-    possibleScore += weights.vin;
-  }
-  if (factors.zip) {
-    score += weights.zip;
-    possibleScore += weights.zip;
-  }
-  if (factors.mileage) {
-    score += weights.mileage;
-    possibleScore += weights.mileage;
-  }
-  if (factors.year) {
-    score += weights.year;
-    possibleScore += weights.year;
-  }
-  if (factors.make) {
-    score += weights.make;
-    possibleScore += weights.make;
-  }
-  if (factors.model) {
-    score += weights.model;
-    possibleScore += weights.model;
-  }
-  if (factors.condition) {
-    score += weights.condition;
-    possibleScore += weights.condition;
-  }
-
-  // Add scores for optional factors
-  if (factors.hasCarfax) score += weights.hasCarfax;
-  if (factors.hasPhotoScore) score += weights.hasPhotoScore;
-  if (factors.hasTitleStatus) score += weights.hasTitleStatus;
-  if (factors.hasEquipment) score += weights.hasEquipment; // Add equipment score
-
-  // Calculate completion percentage
-  const completionPercentage = possibleScore > 0 ? (score / possibleScore) * 100 : 0;
-
-  // Adjust the score based on completion percentage
-  const finalScore = Math.min(100, Math.max(0, completionPercentage));
-
-  return finalScore;
+  if (score >= 90) return "Very High";
+  if (score >= 75) return "High";
+  if (score >= 50) return "Medium";
+  return "Low";
 }

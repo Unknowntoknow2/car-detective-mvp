@@ -3,7 +3,7 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Help } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 interface TransmissionOption {
   value: string;
@@ -52,7 +52,7 @@ export function TransmissionSelect({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Help className="h-4 w-4 text-muted-foreground cursor-help" />
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">The transmission type affects your vehicle's valuation</p>
@@ -85,7 +85,7 @@ export function TransmissionSelect({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 cursor-help">
-                      Learn more <Help className="h-3 w-3" />
+                      Learn more <HelpCircle className="h-3 w-3" />
                     </p>
                   </TooltipTrigger>
                   <TooltipContent side="right" className="max-w-[200px]">
