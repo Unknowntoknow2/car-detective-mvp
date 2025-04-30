@@ -33,7 +33,7 @@ const improvementTips: Record<string, Partial<Record<TipRange, string>>> = {
   // Exterior items
   'exterior-paint': {
     poor: 'A professional paint correction or even partial repaint could add 10-15% to exterior value.',
-    fair: 'Paint touch-up and professional buffing could add 5-8% to your vehicle's appearance value.',
+    fair: 'Paint touch-up and professional buffing could add 5-8% to your vehicle\'s appearance value.',
     good: 'Professional detailing with paint correction can add 2-4% to vehicle value.',
     veryGood: 'A final polish and paint sealant application can perfect your finish for maximum value.',
   },
