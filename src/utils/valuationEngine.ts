@@ -41,6 +41,8 @@ export interface ValuationInput {
   equipmentValueAdd?: number;
   exteriorColor?: string;
   colorMultiplier?: number;
+  fuelType?: string;
+  fuelTypeMultiplier?: number;
 }
 
 export interface ValuationResult {
@@ -60,6 +62,10 @@ export interface ValuationResult {
   };
   colorInfo?: {
     color: string;
+    multiplier: number;
+  };
+  fuelTypeInfo?: {
+    type: string;
     multiplier: number;
   };
 }
@@ -91,7 +97,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     equipmentMultiplier: input.equipmentMultiplier,
     equipmentValueAdd: input.equipmentValueAdd,
     exteriorColor: input.exteriorColor,
-    colorMultiplier: input.colorMultiplier
+    colorMultiplier: input.colorMultiplier,
+    fuelType: input.fuelType,
+    fuelTypeMultiplier: input.fuelTypeMultiplier
   });
   
   // Calculate total adjustment
@@ -99,8 +107,15 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
 
   // Apply color multiplier to the estimated value if provided
   let estimatedValue = Math.round(basePrice + totalAdjustment);
+  
+  // Apply color multiplier if present
   if (input.colorMultiplier && input.colorMultiplier !== 1) {
     estimatedValue = Math.round(estimatedValue * input.colorMultiplier);
+  }
+  
+  // Apply fuel type multiplier if present
+  if (input.fuelTypeMultiplier && input.fuelTypeMultiplier !== 1) {
+    estimatedValue = Math.round(estimatedValue * input.fuelTypeMultiplier);
   }
 
   // Create an audit trail
@@ -121,7 +136,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       photoScore: input.photoScore,
       equipmentIds: input.equipmentIds,
       exteriorColor: input.exteriorColor,
-      colorMultiplier: input.colorMultiplier
+      colorMultiplier: input.colorMultiplier,
+      fuelType: input.fuelType,
+      fuelTypeMultiplier: input.fuelTypeMultiplier
     },
     adjustments,
     totalAdjustment
@@ -176,6 +193,14 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     result.colorInfo = {
       color: input.exteriorColor,
       multiplier: input.colorMultiplier
+    };
+  }
+  
+  // Add fuel type info if present
+  if (input.fuelType && input.fuelTypeMultiplier) {
+    result.fuelTypeInfo = {
+      type: input.fuelType,
+      multiplier: input.fuelTypeMultiplier
     };
   }
 

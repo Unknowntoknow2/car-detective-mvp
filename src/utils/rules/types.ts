@@ -1,3 +1,4 @@
+
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface RulesEngineInput {
@@ -19,6 +20,8 @@ export interface RulesEngineInput {
   equipmentValueAdd?: number;
   exteriorColor?: string;
   colorMultiplier?: number;
+  fuelType?: string;
+  fuelTypeMultiplier?: number;
 }
 
 export interface AdjustmentBreakdown {

@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import { predictValuation, ValuationFeatures } from "../lib/inferenceModel.ts";
@@ -37,7 +38,8 @@ serve(async (req) => {
         feature_value_total,
         zip_code: state,
         exterior_color,
-        color_multiplier
+        color_multiplier,
+        fuel_type
       `)
       .eq("id", valuationId)
       .single();
@@ -114,6 +116,26 @@ serve(async (req) => {
         // Continue with default multiplier
       }
     }
+    
+    // Get fuel type multiplier if present
+    let fuelTypeMultiplier = 1.0;
+    if (val.fuel_type) {
+      try {
+        const { data: fuelTypeData, error: fuelTypeErr } = await supabase
+          .from("fuel_type_adjustment")
+          .select("multiplier")
+          .eq("type", val.fuel_type)
+          .single();
+          
+        if (!fuelTypeErr && fuelTypeData) {
+          fuelTypeMultiplier = fuelTypeData.multiplier;
+          console.log(`Fetched fuel type multiplier: ${fuelTypeMultiplier} for fuel type: ${val.fuel_type}`);
+        }
+      } catch (err) {
+        console.warn("Failed to get fuel type multiplier:", err);
+        // Continue with default multiplier
+      }
+    }
 
     // Apply base prediction model
     const features: ValuationFeatures = {
@@ -132,10 +154,13 @@ serve(async (req) => {
     // Apply photo score and multiplier adjustments
     // Formula: intermediateValue = basePrice * multiplier * (1 + (photoScore - 0.5) * 0.2)
     const photoAdjustment = (photoScore - 0.5) * 0.2;
-    const intermediatePrice = basePredictedPrice * multiplier * (1 + photoAdjustment);
+    let intermediatePrice = basePredictedPrice * multiplier * (1 + photoAdjustment);
     
-    // Apply color multiplier as the final adjustment
-    const finalPrice = Math.round(intermediatePrice * colorMultiplier);
+    // Apply color multiplier
+    intermediatePrice = intermediatePrice * colorMultiplier;
+    
+    // Apply fuel type multiplier as the final adjustment
+    const finalPrice = Math.round(intermediatePrice * fuelTypeMultiplier);
 
     // Return the final valuation with a breakdown
     return new Response(
@@ -148,6 +173,8 @@ serve(async (req) => {
           photoAdjustment: `${(photoAdjustment * 100).toFixed(1)}%`,
           colorMultiplier: colorMultiplier,
           colorAdjustment: `${((colorMultiplier - 1) * 100).toFixed(1)}%`,
+          fuelTypeMultiplier: fuelTypeMultiplier,
+          fuelTypeAdjustment: `${((fuelTypeMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

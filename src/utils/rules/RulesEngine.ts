@@ -10,6 +10,7 @@ import { CarfaxCalculator } from './calculators/carfaxCalculator';
 import { PhotoScoreCalculator } from './calculators/photoScoreCalculator';
 import { EquipmentCalculator } from './calculators/equipmentCalculator';
 import { ColorCalculator } from './calculators/colorCalculator';
+import { FuelTypeCalculator } from './calculators/fuelTypeCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -22,7 +23,8 @@ export class RulesEngine {
     new CarfaxCalculator(),
     new PhotoScoreCalculator(),
     new EquipmentCalculator(),
-    new ColorCalculator()
+    new ColorCalculator(),
+    new FuelTypeCalculator()
   ];
 
   public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
@@ -71,7 +73,9 @@ export class RulesEngine {
         features: input.premiumFeatures,
         equipmentIds: input.equipmentIds,
         exteriorColor: input.exteriorColor,
-        colorMultiplier: input.colorMultiplier
+        colorMultiplier: input.colorMultiplier,
+        fuelType: input.fuelType,
+        fuelTypeMultiplier: input.fuelTypeMultiplier
       }
     };
   }
@@ -102,6 +106,8 @@ export interface ValuationAuditTrail {
     equipmentIds?: number[];
     exteriorColor?: string;
     colorMultiplier?: number;
+    fuelType?: string;
+    fuelTypeMultiplier?: number;
   };
 }
 

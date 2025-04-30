@@ -272,6 +272,24 @@ export type Database = {
         }
         Relationships: []
       }
+      fuel_type_adjustment: {
+        Row: {
+          description: string | null
+          multiplier: number
+          type: string
+        }
+        Insert: {
+          description?: string | null
+          multiplier: number
+          type: string
+        }
+        Update: {
+          description?: string | null
+          multiplier?: number
+          type?: string
+        }
+        Relationships: []
+      }
       makes: {
         Row: {
           created_at: string | null

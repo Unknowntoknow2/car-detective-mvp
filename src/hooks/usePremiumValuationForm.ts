@@ -6,6 +6,7 @@ import { useFormValidation } from './useFormValidation';
 import { useStepNavigation } from './useStepNavigation';
 import { useValuationSubmit } from './useValuationSubmit';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Number of minutes to auto-save form data
 const AUTO_SAVE_INTERVAL = 1; // minutes
