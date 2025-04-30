@@ -20,6 +20,7 @@ const ValuationRequestSchema = z.object({
     area: z.string(),
   }).optional(),
   includeCarfax: z.boolean().optional(),
+  conditionFactors: z.record(z.string(), z.number()).optional(),
 });
 
 // Response type for the API
@@ -72,8 +73,81 @@ serve(async (req) => {
     // Calculate base price
     const basePrice = calculateBasePrice(validatedData.make, validatedData.model);
     
-    // Calculate adjustments
-    const adjustments = calculateAdjustments(validatedData);
+    // ENHANCEMENT: Use the detailed condition factors if provided
+    let conditionMultiplier = 1.0;
+    let conditionAdjustments: Array<{factor: string; impact: number; description: string}> = [];
+    
+    if (validatedData.conditionFactors && Object.keys(validatedData.conditionFactors).length > 0) {
+      // Fetch all the valuation factors from database
+      const { data: factorsData, error: factorsError } = await supabase
+        .from('valuation_factors')
+        .select('*');
+      
+      if (factorsError) {
+        console.error("Error fetching valuation factors:", factorsError);
+      } else if (factorsData && factorsData.length > 0) {
+        // Process each condition factor provided in the request
+        let totalMultiplier = 1.0;
+        
+        // Add adjustments from the condition factors
+        for (const [factorId, value] of Object.entries(validatedData.conditionFactors)) {
+          // Convert the 0-100 value to a 0-4 step
+          const step = Math.round((value / 100) * 4);
+          
+          // Find the matching factor in the database
+          const factorRecord = factorsData.find(f => 
+            f.factor_name === factorId.replace('_', '_') && f.step === step
+          );
+          
+          if (factorRecord) {
+            // Calculate the impact as a percentage of base price
+            const factorMultiplier = factorRecord.multiplier;
+            totalMultiplier *= factorMultiplier;
+            
+            // Format the factor name for display
+            const [category, factor] = factorId.split('_');
+            const displayName = factor
+              .replace(/([A-Z])/g, ' $1')
+              .replace(/^./, str => str.toUpperCase());
+            
+            // Calculate percentage impact
+            const percentageImpact = ((factorMultiplier - 1.0) * 100);
+            
+            conditionAdjustments.push({
+              factor: `${displayName} Condition`,
+              impact: percentageImpact,
+              description: factorRecord.label
+            });
+          }
+        }
+        
+        // Apply a weighted average to avoid extreme multipliers
+        conditionMultiplier = (totalMultiplier + 3) / 4; // Weight the formula to avoid extreme values
+      }
+    } else {
+      // Fall back to the simplified condition adjustment if detailed factors weren't provided
+      const conditionImpacts: Record<string, number> = {
+        "excellent": 5,
+        "good": 0,
+        "fair": -5,
+        "poor": -15
+      };
+      const conditionImpact = conditionImpacts[validatedData.condition] || 0;
+      conditionAdjustments.push({
+        factor: "Condition",
+        impact: conditionImpact,
+        description: `${validatedData.condition.charAt(0).toUpperCase() + validatedData.condition.slice(1)} condition`
+      });
+      
+      // Convert the percentage to a multiplier
+      conditionMultiplier = 1 + (conditionImpact / 100);
+    }
+    
+    // Calculate other adjustments
+    const adjustments = calculateAdjustmentsWithoutCondition(validatedData);
+    
+    // Add condition adjustments
+    const allAdjustments = [...adjustments, ...conditionAdjustments];
     
     // Apply adjustments to get manual percentage change
     const manualPct = adjustments.reduce((sum, adj) => sum + adj.impact, 0) / 100;
@@ -127,13 +201,18 @@ serve(async (req) => {
     }
     
     // Calculate final value by applying all factors
-    const finalValue = Math.round(basePrice * (1 + manualPct) * multiplier * photoFactor);
+    const finalValue = Math.round(basePrice * (1 + manualPct) * multiplier * photoFactor * conditionMultiplier);
     
     // Calculate confidence score based on data quality
     let confidenceScore = 85; // Base confidence
     if (validatedData.zipCode) confidenceScore += 3;
     if (validatedData.includeCarfax) confidenceScore += 7;
     if (validatedData.accident === "yes" && validatedData.accidentDetails) confidenceScore += 5;
+    
+    // If detailed condition factors are provided, increase confidence
+    if (validatedData.conditionFactors && Object.keys(validatedData.conditionFactors).length >= 10) {
+      confidenceScore += 5;
+    }
     
     // Generate price range based on confidence
     const variancePercentage = (100 - confidenceScore) / 100;
@@ -151,6 +230,17 @@ serve(async (req) => {
       );
     }
     
+    // Calculate overall condition score if detailed factors provided
+    let conditionScore = 60; // Default to "Good"
+    if (validatedData.conditionFactors && Object.keys(validatedData.conditionFactors).length > 0) {
+      const values = Object.values(validatedData.conditionFactors);
+      conditionScore = Math.round(values.reduce((sum, val) => sum + val, 0) / values.length);
+    } else if (validatedData.condition) {
+      conditionScore = validatedData.condition === "excellent" ? 90 : 
+                      validatedData.condition === "good" ? 75 : 
+                      validatedData.condition === "fair" ? 60 : 40;
+    }
+    
     // Store the valuation in the database
     const { error: insertError } = await supabase.from('valuations').insert({
       id: valuationId,
@@ -158,9 +248,7 @@ serve(async (req) => {
       model: validatedData.model,
       year: validatedData.year,
       mileage: validatedData.mileage,
-      condition_score: validatedData.condition === "excellent" ? 90 : 
-                       validatedData.condition === "good" ? 75 : 
-                       validatedData.condition === "fair" ? 60 : 40,
+      condition_score: conditionScore,
       estimated_value: finalValue,
       confidence_score: confidenceScore,
       base_price: basePrice,
@@ -188,7 +276,7 @@ serve(async (req) => {
       confidenceScore: confidenceScore,
       priceRange: [minPrice, maxPrice],
       comparables: Math.floor(Math.random() * 50) + 70, // Random number between 70-120
-      valuationFactors: adjustments,
+      valuationFactors: allAdjustments,
       includesCarfax: !!validatedData.includeCarfax
     };
     
@@ -202,6 +290,7 @@ serve(async (req) => {
         photoScore: photoScoreData?.score,
         multiplier,
         photoFactor,
+        conditionMultiplier,
         finalValue
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -242,8 +331,8 @@ function calculateBasePrice(make: string, model: string): number {
   return baseValue;
 }
 
-// Adjustment factors based on different parameters
-function calculateAdjustments(data: z.infer<typeof ValuationRequestSchema>): Array<{factor: string; impact: number; description: string}> {
+// Adjustment factors based on different parameters (excluding condition which is handled separately)
+function calculateAdjustmentsWithoutCondition(data: z.infer<typeof ValuationRequestSchema>): Array<{factor: string; impact: number; description: string}> {
   const adjustments = [];
   
   // Year adjustment
@@ -262,20 +351,6 @@ function calculateAdjustments(data: z.infer<typeof ValuationRequestSchema>): Arr
     factor: "Mileage",
     impact: mileageImpact,
     description: `${data.mileage.toLocaleString()} miles`
-  });
-  
-  // Condition adjustment
-  const conditionImpacts: Record<string, number> = {
-    "excellent": 5,
-    "good": 0,
-    "fair": -5,
-    "poor": -15
-  };
-  const conditionImpact = conditionImpacts[data.condition] || 0;
-  adjustments.push({
-    factor: "Condition",
-    impact: conditionImpact,
-    description: `${data.condition.charAt(0).toUpperCase() + data.condition.slice(1)} condition`
   });
   
   // Fuel type adjustment

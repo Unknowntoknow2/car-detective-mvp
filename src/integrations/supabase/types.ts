@@ -533,6 +533,36 @@ export type Database = {
         }
         Relationships: []
       }
+      valuation_factors: {
+        Row: {
+          created_at: string | null
+          factor_name: string
+          id: string
+          label: string
+          multiplier: number
+          step: number
+          tip: string
+        }
+        Insert: {
+          created_at?: string | null
+          factor_name: string
+          id?: string
+          label: string
+          multiplier: number
+          step: number
+          tip: string
+        }
+        Update: {
+          created_at?: string | null
+          factor_name?: string
+          id?: string
+          label?: string
+          multiplier?: number
+          step?: number
+          tip?: string
+        }
+        Relationships: []
+      }
       valuations: {
         Row: {
           accident_count: number | null

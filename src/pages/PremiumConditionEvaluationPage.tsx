@@ -17,12 +17,15 @@ export default function PremiumConditionEvaluationPage() {
     console.log("Condition assessment values:", values);
     console.log("Overall condition score:", overallScore);
     
-    // In a real implementation, you would save these values
-    // to your state management system or API
+    // Store values in local storage for use in the valuation process
+    localStorage.setItem('condition_factors', JSON.stringify(values));
+    localStorage.setItem('condition_score', String(overallScore));
+    
+    // Mock API call to demonstrate the flow
     setTimeout(() => {
       toast.success("Condition assessment saved successfully");
       setIsSubmitting(false);
-      // Navigate to the next step in your workflow
+      // Navigate to the next step in the workflow
       navigate('/premium');
     }, 1000);
   };
@@ -30,7 +33,7 @@ export default function PremiumConditionEvaluationPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
             <Link to="/premium">
@@ -47,7 +50,7 @@ export default function PremiumConditionEvaluationPage() {
           </p>
         </div>
         
-        <div className="bg-white shadow-sm rounded-lg border p-6">
+        <div className="bg-white shadow-sm rounded-lg border p-6 mb-8">
           <ConditionEvaluationForm 
             onSubmit={handleConditionSubmit}
             onCancel={() => navigate('/premium')}
