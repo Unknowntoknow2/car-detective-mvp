@@ -1,6 +1,6 @@
 
 import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
-import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
+import rulesEngine, { AdjustmentBreakdown, ValuationAuditTrail } from './rulesEngine';
 import type { VehicleCondition } from './adjustments/types';
 import { CarfaxData } from './carfax/mockCarfaxService';
 
@@ -32,7 +32,8 @@ export interface ValuationInput {
   accidentCount?: number;
   premiumFeatures?: string[];
   hasCarfax?: boolean;
-  carfaxData?: CarfaxData; // Add CARFAX data
+  carfaxData?: CarfaxData;
+  photoScore?: number; // Add photo score
 }
 
 export interface ValuationResult {
@@ -42,7 +43,9 @@ export interface ValuationResult {
   confidenceScore: number;
   confidenceLevel: string;
   priceRange: [number, number];
-  carfaxData?: CarfaxData; // Add CARFAX data
+  carfaxData?: CarfaxData;
+  auditTrail: ValuationAuditTrail; // Add audit trail
+  photoScore?: number; // Add photo score
 }
 
 function getBasePrice(make: string, model: string): number {
@@ -57,6 +60,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
   const adjustments = rulesEngine.calculateAdjustments({
     make: input.make,
     model: input.model,
+    year: input.year,
     mileage: input.mileage,
     condition: input.condition,
     zipCode: input.zip,
@@ -64,7 +68,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     accidentCount: input.accidentCount,
     premiumFeatures: input.premiumFeatures,
     basePrice: basePrice,
-    carfaxData: input.carfaxData // Pass CARFAX data to rules engine
+    carfaxData: input.carfaxData,
+    photoScore: input.photoScore
   });
   
   // Calculate total adjustment
@@ -72,6 +77,26 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
 
   // Calculate estimated value
   const estimatedValue = Math.round(basePrice + totalAdjustment);
+
+  // Create an audit trail
+  const auditTrail = rulesEngine.createAuditTrail(
+    {
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      mileage: input.mileage,
+      condition: input.condition,
+      zipCode: input.zip,
+      trim: input.trim,
+      accidentCount: input.accidentCount,
+      premiumFeatures: input.premiumFeatures,
+      basePrice: basePrice,
+      carfaxData: input.carfaxData,
+      photoScore: input.photoScore
+    },
+    adjustments,
+    totalAdjustment
+  );
 
   // Calculate confidence score and level
   const confidenceScore = calculateConfidenceScore({
@@ -82,7 +107,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     make: input.make,
     model: input.model,
     condition: input.condition,
-    hasCarfax: input.hasCarfax || !!input.carfaxData // Consider CARFAX for confidence score
+    hasCarfax: input.hasCarfax || !!input.carfaxData,
+    hasPhotoScore: !!input.photoScore // Add photo score to confidence calculation
   });
 
   // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)
@@ -99,6 +125,8 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     confidenceScore,
     confidenceLevel: getConfidenceLevel(confidenceScore),
     priceRange,
-    carfaxData: input.carfaxData // Include CARFAX data in result
+    carfaxData: input.carfaxData,
+    auditTrail,
+    photoScore: input.photoScore
   };
 }

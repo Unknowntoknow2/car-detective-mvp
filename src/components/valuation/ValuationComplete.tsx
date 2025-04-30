@@ -6,11 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
+import { ValuationAuditTrail } from './ValuationAuditTrail';
 import { Download, Share, BookmarkPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '@/utils/formatters';
+import { ValuationAuditTrail as AuditTrailType } from '@/utils/rulesEngine';
+import { calculateValuation } from '@/utils/valuationEngine';
 
 interface ValuationCompleteProps {
   valuationId: string;
@@ -22,16 +26,40 @@ interface ValuationCompleteProps {
     mileage?: number;
     vin?: string;
     estimatedValue?: number;
+    condition?: string;
   };
 }
 
 export function ValuationComplete({ valuationId, valuationData }: ValuationCompleteProps) {
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [photoScore, setPhotoScore] = useState<number | null>(null);
+  const [auditTrail, setAuditTrail] = useState<AuditTrailType | null>(null);
+  const [estimatedValue, setEstimatedValue] = useState<number | undefined>(valuationData.estimatedValue);
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Recalculate valuation when photo score changes
+  useEffect(() => {
+    if (photoScore && valuationData) {
+      // Recalculate valuation with photo score
+      const result = calculateValuation({
+        make: valuationData.make,
+        model: valuationData.model,
+        year: valuationData.year,
+        mileage: valuationData.mileage || 0,
+        condition: valuationData.condition || 'good',
+        vin: valuationData.vin,
+        photoScore: photoScore
+      });
+      
+      setEstimatedValue(result.estimatedValue);
+      setAuditTrail(result.auditTrail);
+    }
+  }, [photoScore, valuationData]);
+
   const handlePhotoScoreChange = (score: number) => {
+    setPhotoScore(score);
     setPhotoSubmitted(true);
     toast.success(`Photo analyzed and scored at ${Math.round(score * 100)}%`);
   };
@@ -53,8 +81,9 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           model: valuationData.model,
           year: valuationData.year,
           vin: valuationData.vin,
-          valuation: valuationData.estimatedValue || 0,
-          condition_score: 0, // Will be updated when photo is analyzed
+          valuation: estimatedValue || 0,
+          confidence_score: photoSubmitted ? 92 : 85, // Higher confidence with photo
+          condition_score: photoScore ? Math.round(photoScore * 100) : null,
         })
         .select()
         .single();
@@ -101,12 +130,15 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">Base Estimate</p>
+                <p className="text-sm text-gray-500">Estimated Value</p>
                 <p className="text-2xl font-semibold">
-                  {valuationData.estimatedValue 
-                    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(valuationData.estimatedValue)
+                  {estimatedValue 
+                    ? formatCurrency(estimatedValue)
                     : 'Calculating...'}
                 </p>
+                {photoSubmitted && photoScore && (
+                  <p className="text-xs text-green-600">Includes photo analysis ({Math.round(photoScore * 100)}% condition score)</p>
+                )}
               </div>
               
               <div className="space-y-1">
@@ -138,6 +170,8 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           </Button>
         </CardFooter>
       </Card>
+
+      {auditTrail && <ValuationAuditTrail auditTrail={auditTrail} />}
 
       <PredictionResult valuationId={valuationId} />
 

@@ -7,6 +7,7 @@ import { TrimCalculator } from './calculators/trimCalculator';
 import { AccidentCalculator } from './calculators/accidentCalculator';
 import { FeaturesCalculator } from './calculators/featuresCalculator';
 import { CarfaxCalculator } from './calculators/carfaxCalculator';
+import { PhotoScoreCalculator } from './calculators/photoScoreCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -16,7 +17,8 @@ export class RulesEngine {
     new TrimCalculator(),
     new AccidentCalculator(),
     new FeaturesCalculator(),
-    new CarfaxCalculator() // Add CARFAX calculator
+    new CarfaxCalculator(),
+    new PhotoScoreCalculator() // Add the photo score calculator
   ];
 
   public calculateAdjustments(input: RulesEngineInput): AdjustmentBreakdown[] {
@@ -35,6 +37,62 @@ export class RulesEngine {
   public calculateTotalAdjustment(adjustments: AdjustmentBreakdown[]): number {
     return adjustments.reduce((sum, item) => sum + item.value, 0);
   }
+
+  // Create an audit trail of the valuation calculation
+  public createAuditTrail(
+    input: RulesEngineInput, 
+    adjustments: AdjustmentBreakdown[], 
+    totalAdjustment: number
+  ): ValuationAuditTrail {
+    return {
+      timestamp: new Date().toISOString(),
+      basePrice: input.basePrice,
+      adjustments: adjustments.map(adj => ({
+        name: adj.name,
+        value: adj.value,
+        percentAdjustment: adj.percentAdjustment,
+        description: adj.description
+      })),
+      totalAdjustment: totalAdjustment,
+      estimatedValue: input.basePrice + totalAdjustment,
+      inputData: {
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        mileage: input.mileage,
+        condition: input.condition,
+        zipCode: input.zipCode,
+        photoScore: input.photoScore,
+        accidentCount: input.accidentCount,
+        features: input.premiumFeatures
+      }
+    };
+  }
+}
+
+// Type for the valuation audit trail
+export interface ValuationAuditTrail {
+  timestamp: string;
+  basePrice: number;
+  adjustments: {
+    name: string;
+    value: number;
+    percentAdjustment: number;
+    description: string;
+  }[];
+  totalAdjustment: number;
+  estimatedValue: number;
+  inputData: {
+    make: string;
+    model: string;
+    year?: number;
+    mileage: number;
+    condition: string;
+    zipCode?: string;
+    photoScore?: number;
+    accidentCount?: number;
+    features?: string[];
+  };
 }
 
 // Singleton instance

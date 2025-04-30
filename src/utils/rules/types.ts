@@ -1,21 +1,9 @@
 
-import { VehicleCondition } from '../adjustments/types';
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
-export interface AdjustmentBreakdown {
-  label: string;
-  value: number;
-  description?: string;
-  detailedAdjustments?: {
-    factor: string;
-    impact: number;
-    description: string;
-  }[];
-}
-
 export interface RulesEngineInput {
-  make?: string;
-  model?: string;
+  make: string;
+  model: string;
   year?: number;
   mileage: number;
   condition: string;
@@ -24,9 +12,13 @@ export interface RulesEngineInput {
   accidentCount?: number;
   premiumFeatures?: string[];
   basePrice: number;
-  carfaxData?: CarfaxData; // Add CARFAX data
+  carfaxData?: CarfaxData;
+  photoScore?: number; // Add photo score to the input
 }
 
-export interface AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown | null;
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
 }

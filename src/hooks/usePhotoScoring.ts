@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,6 +12,41 @@ export function usePhotoScoring(valuationId: string) {
   const [isScoring, setIsScoring] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [photoId, setPhotoId] = useState<string | null>(null);
+
+  // Load existing photo score if available
+  useEffect(() => {
+    async function loadExistingPhotoScore() {
+      if (!valuationId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('photo_scores')
+          .select('*')
+          .eq('valuation_id', valuationId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (error) {
+          console.log('No existing photo score found');
+          return;
+        }
+        
+        if (data) {
+          setPhotoScore(data.score);
+          setThumbnailUrl(data.thumbnail_url);
+          setPhotoUrl(data.metadata?.original_url || data.thumbnail_url);
+          setPhotoId(data.id);
+        }
+      } catch (err) {
+        // No photo score yet, that's okay
+        console.log('Error or no photo score yet:', err);
+      }
+    }
+    
+    loadExistingPhotoScore();
+  }, [valuationId]);
 
   const resetUpload = () => {
     setPhotoUrl(null);
@@ -19,6 +54,7 @@ export function usePhotoScoring(valuationId: string) {
     setPhotoScore(null);
     setError(null);
     setUploadProgress(0);
+    setPhotoId(null);
   };
 
   const uploadPhoto = async (file: File): Promise<number | null> => {
@@ -51,20 +87,33 @@ export function usePhotoScoring(valuationId: string) {
       setPhotoUrl(urlData.publicUrl);
       
       // Create a thumbnail version for display
-      // In a real app, you would generate a thumbnail server-side
       setThumbnailUrl(urlData.publicUrl);
       
       // Now, score the photo using AI
       setIsUploading(false);
       setIsScoring(true);
       
-      // Call scoring API (mocked for now)
-      const score = await mockScorePhoto(urlData.publicUrl);
+      // Call scoring API (using Edge Function if available, otherwise mock)
+      let score: number;
+      try {
+        // Try to use the edge function
+        const { data: scoreData, error: scoreError } = await supabase.functions
+          .invoke('score-image', {
+            body: { imageUrl: urlData.publicUrl, valuationId }
+          });
+        
+        if (scoreError) throw scoreError;
+        score = scoreData.score;
+      } catch (scoringErr) {
+        console.log('Edge function scoring failed, using mock:', scoringErr);
+        // Fall back to mock scoring
+        score = await mockScorePhoto(urlData.publicUrl);
+      }
+      
       setPhotoScore(score);
       
       // Store the scored photo in the database
-      // Using photo_scores table which already exists in the types
-      const { error: dbError } = await supabase
+      const { data: dbData, error: dbError } = await supabase
         .from('photo_scores')
         .insert({
           valuation_id: valuationId,
@@ -74,10 +123,14 @@ export function usePhotoScoring(valuationId: string) {
             original_url: urlData.publicUrl,
             analysis_timestamp: new Date().toISOString()
           }
-        });
+        })
+        .select()
+        .single();
       
       if (dbError) {
         console.error('Error storing photo scoring in DB:', dbError);
+      } else if (dbData) {
+        setPhotoId(dbData.id);
       }
       
       setIsScoring(false);
@@ -106,6 +159,7 @@ export function usePhotoScoring(valuationId: string) {
     photoUrl,
     thumbnailUrl,
     photoScore,
+    photoId,
     isUploading,
     isScoring,
     uploadProgress,

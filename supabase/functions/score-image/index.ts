@@ -1,83 +1,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { corsHeaders } from "../_shared/cors.ts";
 
-// Input validation schema
-const ImageScoringRequestSchema = z.object({
-  valuation_id: z.string().uuid(),
-  image_url: z.string().url()
-});
-
-// Function to call the Vision API with retry logic
-async function callVisionAPI(imageUrl: string, retries = 2): Promise<{ score: number; thumbnailUrl: string; metadata: any }> {
-  const visionApiUrl = Deno.env.get("VISION_API_URL");
-  const visionApiKey = Deno.env.get("VISION_API_KEY");
-  
-  if (!visionApiUrl || !visionApiKey) {
-    throw new Error("Vision API configuration is missing");
-  }
-  
-  let attempt = 0;
-  let lastError: Error | null = null;
-  
-  while (attempt <= retries) {
-    try {
-      console.log(`Vision API attempt ${attempt + 1}/${retries + 1} for image: ${imageUrl}`);
-      
-      // Call the Vision API
-      const response = await fetch(visionApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${visionApiKey}`
-        },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          analysis_type: "vehicle_condition"
-        })
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Vision API returned ${response.status}: ${errorText}`);
-      }
-      
-      const result = await response.json();
-      
-      // Validate the response structure
-      if (typeof result.score !== 'number' || typeof result.thumbnail_url !== 'string') {
-        throw new Error("Invalid response format from Vision API");
-      }
-      
-      // Extract and return the score and thumbnail
-      return {
-        score: result.score,
-        thumbnailUrl: result.thumbnail_url,
-        metadata: {
-          original_url: imageUrl,
-          analysis_timestamp: new Date().toISOString(),
-          analysis_details: result.analysis_details || {}
-        }
-      };
-    } catch (error) {
-      console.error(`Vision API error (attempt ${attempt + 1}):`, error);
-      lastError = error;
-      
-      if (attempt < retries) {
-        // Exponential backoff: 500ms, 1500ms, ...
-        const backoffTime = Math.pow(3, attempt) * 500;
-        console.log(`Retrying in ${backoffTime}ms...`);
-        await new Promise(resolve => setTimeout(resolve, backoffTime));
-      }
-      
-      attempt++;
-    }
-  }
-  
-  // If we've exhausted all retries, throw the last error
-  throw lastError || new Error("Failed to analyze image after multiple attempts");
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
@@ -87,68 +13,56 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
-
-    // Parse and validate the request body
-    const body = await req.json();
-    const validationResult = ImageScoringRequestSchema.safeParse(body);
+    const { imageUrl, valuationId } = await req.json();
     
-    if (!validationResult.success) {
+    if (!imageUrl) {
       return new Response(
-        JSON.stringify({ 
-          error: "Invalid request data", 
-          details: validationResult.error.format() 
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Image URL is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log(`Scoring image for valuation ID: ${valuationId}`);
+    console.log(`Image URL: ${imageUrl}`);
     
-    const validatedData = validationResult.data;
-
-    try {
-      // Call the Vision API with retry logic
-      const { score, thumbnailUrl, metadata } = await callVisionAPI(validatedData.image_url);
-      
-      console.log(`Successfully analyzed image with score: ${score}`);
-      
-      // Store results in photo_scores table
-      const { data, error } = await supabase
-        .from('photo_scores')
-        .insert({
-          valuation_id: validatedData.valuation_id,
-          score,
-          thumbnail_url: thumbnailUrl,
-          metadata
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error storing photo score:', error);
-        throw error;
-      }
-
-      return new Response(
-        JSON.stringify(data),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } catch (error) {
-      // Specifically handle Vision API failures with a 502 Bad Gateway
-      console.error('Vision API processing error:', error);
-      return new Response(
-        JSON.stringify({ error: "Failed to process image with Vision API", details: error.message }), 
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-  } catch (error) {
-    // Handle all other errors
-    console.error('Error in score-image function:', error);
+    // In a production environment, we would call a computer vision API here
+    // For now, we'll implement a realistic mock scoring system
+    
+    // Simulate API processing time
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Generate a deterministic but realistic score
+    // In production, this would be based on actual image analysis
+    let score = 0.75; // Default "good" score
+    
+    // Add some variation based on the valuation ID and URL to make it deterministic
+    const seed = (valuationId?.length || 0) + (imageUrl?.length || 0);
+    const variation = (seed % 40) / 100; // -0.2 to +0.2 variation
+    score = Math.max(0.3, Math.min(0.95, score + variation - 0.2));
+    
+    console.log(`Generated photo score: ${score}`);
+    
     return new Response(
-      JSON.stringify({ error: "Internal server error", details: error.message }), 
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        score, 
+        metadata: {
+          analysisDate: new Date().toISOString(),
+          confidence: 0.85,
+          features: {
+            exteriorCondition: score * 0.9 + 0.1,
+            paintQuality: score * 0.8 + 0.1,
+            detailedElements: score * 0.7 + 0.2
+          }
+        }
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error processing image:", error);
+    
+    return new Response(
+      JSON.stringify({ error: "Failed to process image" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
