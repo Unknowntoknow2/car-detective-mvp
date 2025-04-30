@@ -10,7 +10,8 @@ export interface ConfidenceInput {
   model: string;
   condition: string;
   hasCarfax?: boolean;
-  hasPhotoScore?: boolean; // Add photo score input
+  hasPhotoScore?: boolean;
+  hasTitleStatus?: boolean; // Add hasTitleStatus property
 }
 
 export function calculateConfidenceScore(input: ConfidenceInput): number {
@@ -50,6 +51,11 @@ export function calculateConfidenceScore(input: ConfidenceInput): number {
   // Photo score increases confidence significantly
   if (input.hasPhotoScore) {
     score += 15; // Add 15 points for having a photo score
+  }
+  
+  // Title status increases confidence
+  if (input.hasTitleStatus) {
+    score += 10; // Add 10 points for having title status information
   }
   
   // Cap the score at 100

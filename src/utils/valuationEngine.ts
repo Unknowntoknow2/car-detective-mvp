@@ -112,7 +112,7 @@ export function calculateValuation(input: ValuationInput): ValuationResult {
     model: input.model,
     condition: input.condition,
     hasCarfax: input.hasCarfax || !!input.carfaxData,
-    hasPhotoScore: !!input.photoScore, // Add photo score to confidence calculation
+    hasPhotoScore: !!input.photoScore,
     hasTitleStatus: input.titleStatus !== undefined
   });
 
