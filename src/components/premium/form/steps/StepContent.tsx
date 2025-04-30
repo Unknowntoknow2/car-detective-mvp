@@ -2,17 +2,12 @@
 import React from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { VehicleIdentificationStep } from './VehicleIdentificationStep';
-import MileageStep from './MileageStep';
-import { FuelTypeStep } from './FuelTypeStep';
+import { VehicleDetailsStep } from './VehicleDetailsStep';
 import { FeatureSelectionStep } from './FeatureSelectionStep';
 import { ConditionStep } from './ConditionStep';
-import { AccidentHistoryStep } from './AccidentHistoryStep';
 import { ReviewSubmitStep } from './ReviewSubmitStep';
-import { ValuationResult } from './ValuationResult';
-import { useVehicleLookup } from '@/hooks/useVehicleLookup';
-import { useStepTransition } from '@/hooks/useStepTransition';
-import { VehicleDetailsStep } from './VehicleDetailsStep';
-import { PredictionReviewStep } from './PredictionReviewStep';
+import { ValuationResultStep } from './ValuationResultStep';
+import { ValuationResult } from '../ValuationResult';
 
 interface StepContentProps {
   currentStep: number;
@@ -35,50 +30,66 @@ export function StepContent({
   handleReset,
   valuationId
 }: StepContentProps) {
-  const { lookupVehicle, isLoading } = useVehicleLookup();
-  const { getStepConfig } = useStepTransition(currentStep, formData, isLoading, lookupVehicle);
-
-  const commonProps = {
-    step: currentStep,
-    formData,
-    setFormData,
-    updateValidity: updateStepValidity
-  };
-
-  const renderComponent = () => {
-    const config = getStepConfig(currentStep);
-    if (!config || !config.shouldShow) return null;
-
-    const stepProps = { ...commonProps, ...config.props };
-
-    switch (config.component) {
-      case 'VehicleIdentificationStep':
-        return <VehicleIdentificationStep {...stepProps} lookupVehicle={lookupVehicle} isLoading={isLoading} />;
-      case 'MileageStep':
-        return <MileageStep {...stepProps} />;
-      case 'FuelTypeStep':
-        return <FuelTypeStep {...stepProps} />;
-      case 'FeatureSelectionStep':
-        return <FeatureSelectionStep {...stepProps} />;
-      case 'ConditionStep':
-        return <ConditionStep {...stepProps} />;
-      case 'AccidentHistoryStep':
-        return <AccidentHistoryStep {...stepProps} />;
-      case 'VehicleDetailsStep':
-        return <VehicleDetailsStep {...stepProps} />;
-      case 'PredictionReviewStep':
-        return <PredictionReviewStep {...stepProps} isFormValid={isFormValid} handleSubmit={handleSubmit} handleReset={handleReset} />;
-      case 'ReviewSubmitStep':
-        return <ReviewSubmitStep {...stepProps} isFormValid={isFormValid} handleSubmit={handleSubmit} handleReset={handleReset} />;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <>
-      {renderComponent()}
-      {valuationId && <ValuationResult valuationId={valuationId} />}
-    </>
-  );
+  
+  switch (currentStep) {
+    case 1:
+      return (
+        <VehicleIdentificationStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    case 2:
+      return (
+        <VehicleDetailsStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    case 3:
+      return (
+        <FeatureSelectionStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    case 4:
+      return (
+        <ConditionStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    case 5:
+      return (
+        <ReviewSubmitStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+          isFormValid={isFormValid}
+          onSubmit={handleSubmit}
+        />
+      );
+    case 6:
+      // Final valuation results step
+      return (
+        <ValuationResultStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    default:
+      return null;
+  }
 }

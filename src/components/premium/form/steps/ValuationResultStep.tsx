@@ -2,9 +2,9 @@
 import React, { useEffect } from 'react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { FormData } from '@/types/premium-valuation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ValuationResults } from '@/components/premium/common/ValuationResults';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, CheckCircle, Download, Mail } from 'lucide-react';
+import { Loader2, AlertCircle, Download, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 
@@ -87,6 +87,12 @@ export function ValuationResultStep({
     );
   }
 
+  // Format the adjustments for display
+  const adjustments = result.adjustments?.map((adj: any) => ({
+    label: adj.factor,
+    value: adj.impact
+  })) || [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -96,49 +102,12 @@ export function ValuationResultStep({
         </p>
       </div>
 
-      <Card className="overflow-hidden border-primary/20">
-        <CardHeader className="bg-primary-light/10 pb-3">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-primary" />
-            <CardTitle>{formData.year} {formData.make} {formData.model}</CardTitle>
-          </div>
-          <CardDescription>
-            {formData.trim && `${formData.trim} • `}
-            {formData.mileage && `${formData.mileage.toLocaleString()} miles • `}
-            {formData.conditionLabel}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-2">Estimated Value</p>
-            <p className="text-4xl font-bold text-primary">
-              ${result.estimated_value?.toLocaleString() || 'N/A'}
-            </p>
-            <div className="flex items-center justify-center mt-2">
-              <div className="px-3 py-1 text-xs font-medium bg-primary-light/20 text-primary rounded-full">
-                {result.confidence_score || 0}% Confidence
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-4 bg-primary/5 rounded-lg">
-              <p className="font-medium">Base Price</p>
-              <p className="text-lg">${result.base_price?.toLocaleString() || 'N/A'}</p>
-            </div>
-            <div className="p-4 bg-primary/5 rounded-lg">
-              <p className="font-medium">Features Value</p>
-              <p className="text-lg">+${result.feature_value_total?.toLocaleString() || '0'}</p>
-            </div>
-            <div className="p-4 bg-primary/5 rounded-lg">
-              <p className="font-medium">Market Adjustment</p>
-              <p className="text-lg">${(result.zip_demand_factor && result.zip_demand_factor !== 1 
-                ? ((result.zip_demand_factor - 1) * 100).toFixed(1) + '%' 
-                : '0%')}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <ValuationResults
+        estimatedValue={result.estimated_value}
+        confidenceScore={result.confidence_score}
+        priceRange={result.price_range}
+        adjustments={adjustments}
+      />
 
       <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <Button onClick={handleDownloadPdf} className="flex-1">

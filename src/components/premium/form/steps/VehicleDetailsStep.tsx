@@ -3,6 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { VehicleDetailsFields } from './vehicle-details/VehicleDetailsFields';
 import { AccidentHistorySection } from './vehicle-details/AccidentHistorySection';
+import { ValuationResults } from '@/components/premium/common/ValuationResults';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface VehicleDetailsStepProps {
   step: number;
@@ -18,6 +23,9 @@ export function VehicleDetailsStep({
   updateValidity
 }: VehicleDetailsStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [valuationSubmitted, setValuationSubmitted] = useState(false);
+  const [valuationResult, setValuationResult] = useState<any>(null);
 
   // Validate required fields
   const validateFields = () => {
@@ -65,6 +73,75 @@ export function VehicleDetailsStep({
     updateValidity
   ]);
 
+  const runValuation = async () => {
+    if (!validateFields()) {
+      toast.error("Please fix the errors before submitting");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Call the Supabase edge function
+      const { data, error } = await supabase.functions.invoke('car-price-prediction', {
+        body: {
+          make: formData.make,
+          model: formData.model,
+          year: formData.year,
+          mileage: formData.mileage,
+          condition: formData.conditionLabel?.toLowerCase() || 'good',
+          fuelType: formData.fuelType,
+          zipCode: formData.zipCode,
+          accident: formData.hasAccident ? 'yes' : 'no',
+          accidentDetails: formData.hasAccident ? {
+            count: '1',
+            severity: 'minor',
+            area: 'front'
+          } : undefined,
+          includeCarfax: true
+        }
+      });
+
+      if (error) {
+        throw new Error(`Valuation failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data received from valuation service');
+      }
+
+      // Store the valuationId in the formData
+      setFormData(prev => ({
+        ...prev,
+        valuationId: data.id,
+        valuation: data.estimatedValue,
+        confidenceScore: data.confidenceScore
+      }));
+
+      setValuationResult(data);
+      setValuationSubmitted(true);
+      toast.success("Valuation completed successfully!");
+      
+      // Set step validity to true to allow proceeding to next step
+      updateValidity(step, true);
+    } catch (error) {
+      console.error('Valuation error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate valuation');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Convert the edge function response format to match the ValuationResults component
+  const formatAdjustmentsForDisplay = () => {
+    if (!valuationResult || !valuationResult.valuationFactors) return [];
+    
+    return valuationResult.valuationFactors.map((factor: any) => ({
+      label: factor.factor,
+      value: factor.impact
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -85,6 +162,30 @@ export function VehicleDetailsStep({
         setFormData={setFormData} 
         errors={errors} 
       />
+
+      {!valuationSubmitted ? (
+        <Button 
+          onClick={runValuation} 
+          className="w-full mt-6" 
+          disabled={isLoading || Object.keys(errors).length > 0}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Calculating Valuation...
+            </>
+          ) : (
+            'Submit for Valuation'
+          )}
+        </Button>
+      ) : valuationResult && (
+        <ValuationResults
+          estimatedValue={valuationResult.estimatedValue}
+          confidenceScore={valuationResult.confidenceScore}
+          priceRange={valuationResult.priceRange}
+          adjustments={formatAdjustmentsForDisplay()}
+        />
+      )}
     </div>
   );
 }
