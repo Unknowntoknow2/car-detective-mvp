@@ -6,26 +6,30 @@
            hover:shadow-hover active:translate-y-0.5 active:shadow-none
            disabled:opacity-50 disabled:pointer-events-none
            before:absolute before:inset-0 before:rounded-lg before:bg-white 
-           before:opacity-0 before:transition-opacity hover:before:opacity-10;
+           before:opacity-0 before:transition-opacity hover:before:opacity-10
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
   }
 
   .button-secondary {
     @apply relative bg-white border border-border text-text-primary font-medium
            px-6 py-3 rounded-lg transition-all duration-300 hover:bg-surface-dark
            hover:border-border-dark/70 active:translate-y-0.5
-           disabled:opacity-50 disabled:pointer-events-none;
+           disabled:opacity-50 disabled:pointer-events-none
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
   }
   
   .button-ghost {
     @apply relative text-text-primary font-medium px-6 py-3 rounded-lg 
            transition-all duration-300 hover:bg-surface-dark
-           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
+           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
   }
   
   .button-outline {
     @apply relative bg-transparent border border-primary text-primary font-medium
            px-6 py-3 rounded-lg transition-all duration-300 hover:bg-primary-light/50
-           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none;
+           active:translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
   }
 
   .button-3d {
@@ -33,6 +37,50 @@
            transform transition-all duration-300 shadow-[0_4px_0_0_#004ECC]
            hover:shadow-[0_6px_0_0_#004ECC] hover:-translate-y-0.5
            active:translate-y-1 active:shadow-[0_0px_0_0_#004ECC]
-           disabled:opacity-50 disabled:pointer-events-none;
+           disabled:opacity-50 disabled:pointer-events-none
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
+  }
+  
+  /* Button Loading States */
+  .button-loading {
+    @apply relative overflow-hidden;
+  }
+  
+  .button-loading::before {
+    content: "";
+    @apply absolute inset-0 bg-current opacity-10;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  /* Button Success State */
+  .button-success {
+    @apply bg-green-600 border-green-700 text-white hover:bg-green-700;
+  }
+  
+  /* Button Error State */
+  .button-error {
+    @apply bg-red-600 border-red-700 text-white hover:bg-red-700;
+  }
+  
+  /* Button with icon */
+  .button-icon {
+    @apply flex items-center justify-center gap-2;
+  }
+  
+  .button-icon-only {
+    @apply p-2 flex items-center justify-center;
+  }
+  
+  /* Hover and focus effects */
+  .button-hover-glow {
+    @apply transition-shadow duration-300;
+  }
+  
+  .button-hover-glow:hover {
+    @apply shadow-[0_0_15px_rgba(59,130,246,0.5)];
+  }
+  
+  .button-focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 transition-all duration-200;
   }
 }

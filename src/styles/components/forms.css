@@ -4,19 +4,84 @@
     @apply bg-white border border-border rounded-lg px-4 py-3 w-full text-text-primary
            transition-all duration-200 placeholder:text-text-tertiary
            focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-           disabled:opacity-50 disabled:bg-surface;
+           disabled:opacity-50 disabled:bg-surface
+           hover:border-primary/30;
   }
 
   .select-field {
     @apply bg-white border border-border rounded-lg px-4 py-3 w-full 
            appearance-none text-text-primary transition-all duration-200
            focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-           disabled:opacity-50 disabled:bg-surface;
+           disabled:opacity-50 disabled:bg-surface
+           hover:border-primary/30;
   }
 
   .input-3d {
     @apply bg-white border border-border/80 rounded-lg px-4 py-3 w-full shadow-sm
            transition-all duration-200 hover:shadow-md focus:shadow-md
-           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary;
+           focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+           hover:border-primary/30;
+  }
+  
+  /* Form label styling */
+  .form-label {
+    @apply text-sm font-medium text-gray-700 mb-1.5 block;
+  }
+  
+  /* Form helper text */
+  .form-helper-text {
+    @apply text-xs text-gray-500 mt-1.5;
+  }
+  
+  /* Form error state */
+  .input-error {
+    @apply border-red-300 focus:ring-red-200 bg-red-50/30 focus:border-red-400;
+  }
+  
+  .input-error-message {
+    @apply text-xs text-red-600 mt-1.5 flex items-start gap-1.5;
+  }
+  
+  /* Form success state */
+  .input-success {
+    @apply border-green-300 focus:ring-green-200 bg-green-50/30 focus:border-green-400;
+  }
+  
+  /* Focus styles */
+  .focus-glow {
+    @apply transition-shadow duration-200 focus:outline-none;
+  }
+  
+  .focus-glow:focus-visible {
+    @apply ring-2 ring-primary/30 ring-offset-1;
+  }
+  
+  /* Checkbox and radio styling */
+  .checkbox-container {
+    @apply flex items-center gap-2;
+  }
+  
+  .checkbox-input {
+    @apply h-4 w-4 text-primary border-gray-300 rounded 
+           focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  }
+  
+  .radio-input {
+    @apply h-4 w-4 text-primary border-gray-300 rounded-full
+           focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  }
+  
+  /* Animation for inputs */
+  .input-animate-focus {
+    @apply transition-all duration-200 border-transparent relative;
+  }
+  
+  .input-animate-focus::after {
+    content: "";
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
+  }
+  
+  .input-animate-focus:focus-within::after {
+    @apply w-full;
   }
 }
