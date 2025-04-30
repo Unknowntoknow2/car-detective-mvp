@@ -2,10 +2,21 @@
 import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { ConditionLevel, ConditionOption } from '@/components/lookup/types/manualEntry';
+import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, HelpCircle, Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { LucideIcon } from 'lucide-react';
+
+// Extended interface for condition options
+interface ConditionOption {
+  value: ConditionLevel;
+  label: string;
+  conditionValue: number;
+  description: string;
+  valueImpact: string;
+  icon: LucideIcon;
+}
 
 const CONDITION_OPTIONS: ConditionOption[] = [
   { 

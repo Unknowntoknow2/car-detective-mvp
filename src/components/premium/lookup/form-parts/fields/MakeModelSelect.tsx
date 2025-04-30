@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Car, Check } from 'lucide-react';
 import { useVehicleData } from '@/hooks/useVehicleData';
-import { Combobox } from '@/components/ui/combobox';
+import { ComboBox } from '@/components/ui/combobox';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -24,27 +24,36 @@ export function MakeModelSelect({
   isDisabled = false,
   errors = {}
 }: MakeModelSelectProps) {
-  const { makes, getModelsForMake, isLoading } = useVehicleData();
+  const { makes, isLoading } = useVehicleData();
   const [models, setModels] = useState<Array<{ value: string; label: string }>>([]);
   const [selectedMakeName, setSelectedMakeName] = useState('');
 
   useEffect(() => {
-    if (selectedMakeId && getModelsForMake) {
-      const fetchedModels = getModelsForMake(selectedMakeId).map(model => ({
-        value: model,
-        label: model
-      }));
-      setModels(fetchedModels);
-      
-      // Find make name
-      const make = makes?.find(m => m.value === selectedMakeId);
+    if (selectedMakeId && makes) {
+      // Find the make in the list
+      const make = makes.find(m => m.id === selectedMakeId);
       if (make) {
-        setSelectedMakeName(make.label);
+        setSelectedMakeName(make.make_name);
+        
+        // Fetch models for this make
+        fetch(`/api/models?make_id=${selectedMakeId}`)
+          .then(res => res.json())
+          .then(data => {
+            const fetchedModels = data.map((model: { model_name: string; id: string }) => ({
+              value: model.model_name,
+              label: model.model_name
+            }));
+            setModels(fetchedModels);
+          })
+          .catch(err => {
+            console.error("Error fetching models:", err);
+            setModels([]);
+          });
       }
     } else {
       setModels([]);
     }
-  }, [selectedMakeId, getModelsForMake, makes]);
+  }, [selectedMakeId, makes]);
 
   const handleMakeSelect = (value: string) => {
     setSelectedMakeId(value);
@@ -52,8 +61,8 @@ export function MakeModelSelect({
   };
 
   const makeOptions = makes?.map(make => ({
-    value: make.value,
-    label: make.label
+    value: make.id,
+    label: make.make_name
   })) || [];
 
   return (
@@ -67,13 +76,13 @@ export function MakeModelSelect({
           <Skeleton className="h-10 w-full" />
         ) : (
           <>
-            <Combobox
+            <ComboBox
               id="make"
-              options={makeOptions}
+              items={makeOptions}
               value={selectedMakeId}
               onChange={handleMakeSelect}
               placeholder="Select make"
-              emptyMessage="No makes found"
+              emptyText="No makes found"
               disabled={isDisabled}
               className={errors.make ? 'border-red-300' : ''}
             />
@@ -91,9 +100,9 @@ export function MakeModelSelect({
           <Skeleton className="h-10 w-full" />
         ) : (
           <>
-            <Combobox
+            <ComboBox
               id="model"
-              options={models}
+              items={models}
               value={selectedModel}
               onChange={setSelectedModel}
               placeholder={
@@ -101,7 +110,7 @@ export function MakeModelSelect({
                   ? `Select ${selectedMakeName} model` 
                   : "Select make first"
               }
-              emptyMessage={
+              emptyText={
                 selectedMakeId 
                   ? `No models found for ${selectedMakeName}` 
                   : "Select a make first"
