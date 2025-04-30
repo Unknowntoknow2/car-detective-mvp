@@ -39,6 +39,8 @@ export interface ValuationInput {
   equipmentIds?: number[];
   equipmentMultiplier?: number;
   equipmentValueAdd?: number;
+  exteriorColor?: string;
+  colorMultiplier?: number;
 }
 
 export interface ValuationResult {
@@ -55,6 +57,10 @@ export interface ValuationResult {
     ids: number[];
     multiplier: number;
     valueAdd: number;
+  };
+  colorInfo?: {
+    color: string;
+    multiplier: number;
   };
 }
 
@@ -83,14 +89,19 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     photoScore: input.photoScore,
     equipmentIds: input.equipmentIds,
     equipmentMultiplier: input.equipmentMultiplier,
-    equipmentValueAdd: input.equipmentValueAdd
+    equipmentValueAdd: input.equipmentValueAdd,
+    exteriorColor: input.exteriorColor,
+    colorMultiplier: input.colorMultiplier
   });
   
   // Calculate total adjustment
   const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
 
-  // Calculate estimated value
-  const estimatedValue = Math.round(basePrice + totalAdjustment);
+  // Apply color multiplier to the estimated value if provided
+  let estimatedValue = Math.round(basePrice + totalAdjustment);
+  if (input.colorMultiplier && input.colorMultiplier !== 1) {
+    estimatedValue = Math.round(estimatedValue * input.colorMultiplier);
+  }
 
   // Create an audit trail
   const auditTrail = rulesEngine.createAuditTrail(
@@ -108,7 +119,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       basePrice: basePrice,
       carfaxData: input.carfaxData,
       photoScore: input.photoScore,
-      equipmentIds: input.equipmentIds
+      equipmentIds: input.equipmentIds,
+      exteriorColor: input.exteriorColor,
+      colorMultiplier: input.colorMultiplier
     },
     adjustments,
     totalAdjustment
@@ -155,6 +168,14 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       ids: input.equipmentIds,
       multiplier: input.equipmentMultiplier || 1,
       valueAdd: input.equipmentValueAdd || 0
+    };
+  }
+
+  // Add color info if present
+  if (input.exteriorColor && input.colorMultiplier) {
+    result.colorInfo = {
+      color: input.exteriorColor,
+      multiplier: input.colorMultiplier
     };
   }
 

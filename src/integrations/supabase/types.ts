@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      color_adjustment: {
+        Row: {
+          category: string
+          color: string
+          description: string | null
+          multiplier: number
+        }
+        Insert: {
+          category: string
+          color: string
+          description?: string | null
+          multiplier: number
+        }
+        Update: {
+          category?: string
+          color?: string
+          description?: string | null
+          multiplier?: number
+        }
+        Relationships: []
+      }
       condition_descriptions: {
         Row: {
           condition_level: string

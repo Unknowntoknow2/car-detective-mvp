@@ -27,6 +27,8 @@ export type FormData = {
   bodyType?: string;
   trim?: string;
   vin?: string;
+  // Color multiplier for valuation adjustment
+  colorMultiplier?: number;
   // Added fields for prediction results
   valuation?: number;
   confidenceScore?: number;

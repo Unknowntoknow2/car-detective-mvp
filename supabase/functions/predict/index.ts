@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import { predictValuation, ValuationFeatures } from "../lib/inferenceModel.ts";
@@ -36,7 +35,9 @@ serve(async (req) => {
         dealer_avg_price,
         auction_avg_price,
         feature_value_total,
-        zip_code: state
+        zip_code: state,
+        exterior_color,
+        color_multiplier
       `)
       .eq("id", valuationId)
       .single();
@@ -87,6 +88,33 @@ serve(async (req) => {
       }
     }
 
+    // Get color multiplier if present
+    let colorMultiplier = 1.0;
+    if (val.exterior_color) {
+      try {
+        // Use the existing color_multiplier from the valuation if it exists
+        if (val.color_multiplier) {
+          colorMultiplier = val.color_multiplier;
+          console.log(`Using stored color multiplier: ${colorMultiplier} for color: ${val.exterior_color}`);
+        } else {
+          // Otherwise fetch from the color_adjustment table
+          const { data: colorData, error: colorErr } = await supabase
+            .from("color_adjustment")
+            .select("multiplier")
+            .eq("color", val.exterior_color)
+            .single();
+            
+          if (!colorErr && colorData) {
+            colorMultiplier = colorData.multiplier;
+            console.log(`Fetched color multiplier: ${colorMultiplier} for color: ${val.exterior_color}`);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to get color multiplier:", err);
+        // Continue with default multiplier
+      }
+    }
+
     // Apply base prediction model
     const features: ValuationFeatures = {
       basePrice: val.base_price,
@@ -102,9 +130,12 @@ serve(async (req) => {
     const basePredictedPrice = predictValuation(features);
     
     // Apply photo score and multiplier adjustments
-    // Formula: finalValue = basePrice * multiplier * (1 + (photoScore - 0.5) * 0.2)
+    // Formula: intermediateValue = basePrice * multiplier * (1 + (photoScore - 0.5) * 0.2)
     const photoAdjustment = (photoScore - 0.5) * 0.2;
-    const finalPrice = Math.round(basePredictedPrice * multiplier * (1 + photoAdjustment));
+    const intermediatePrice = basePredictedPrice * multiplier * (1 + photoAdjustment);
+    
+    // Apply color multiplier as the final adjustment
+    const finalPrice = Math.round(intermediatePrice * colorMultiplier);
 
     // Return the final valuation with a breakdown
     return new Response(
@@ -112,9 +143,11 @@ serve(async (req) => {
         predictedPrice: finalPrice,
         breakdown: {
           basePrice: basePredictedPrice,
-          multiplier: multiplier,
+          zipMultiplier: multiplier,
           photoScore: photoScore,
           photoAdjustment: `${(photoAdjustment * 100).toFixed(1)}%`,
+          colorMultiplier: colorMultiplier,
+          colorAdjustment: `${((colorMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

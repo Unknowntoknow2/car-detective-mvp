@@ -1,10 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormData } from '@/types/premium-valuation';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
+import { ColorSwatch } from '@/components/ui/ColorSwatch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { InfoIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VehicleDetailsFieldsProps {
   formData: FormData;
@@ -13,6 +18,8 @@ interface VehicleDetailsFieldsProps {
 }
 
 export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleDetailsFieldsProps) {
+  const [colorMultiplier, setColorMultiplier] = useState<number>(1);
+  
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({
@@ -35,11 +42,21 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
     }));
   };
 
-  const handleExteriorColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleExteriorColorChange = (color: string, multiplier: number) => {
     setFormData(prev => ({
       ...prev,
-      exteriorColor: e.target.value
+      exteriorColor: color,
+      colorMultiplier: multiplier
     }));
+    setColorMultiplier(multiplier);
+    
+    const adjustmentText = multiplier > 1 
+      ? `+${((multiplier - 1) * 100).toFixed(0)}%` 
+      : multiplier < 1 
+        ? `-${((1 - multiplier) * 100).toFixed(0)}%` 
+        : 'no adjustment';
+        
+    toast.info(`Selected ${color} with ${adjustmentText} value impact`);
   };
 
   const handleInteriorColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,13 +143,30 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
 
       {/* Exterior Color */}
       <div className="space-y-2">
-        <Label htmlFor="exteriorColor">Exterior Color</Label>
-        <Input
-          id="exteriorColor"
-          placeholder="e.g. Pearl White"
-          value={formData.exteriorColor || ''}
+        <div className="flex items-center gap-2">
+          <Label htmlFor="exteriorColor">Exterior Color</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <InfoIcon className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[250px]">
+                <p>Color popularity affects value. Rare colors like Yellow can add up to 10% in value, while common colors like Black may reduce value by 5%.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <ColorSwatch 
+          value={formData.exteriorColor || ''} 
           onChange={handleExteriorColorChange}
         />
+        <p className="text-sm text-gray-500 flex items-center">
+          {colorMultiplier !== 1 && (
+            <span className={colorMultiplier > 1 ? "text-green-600" : "text-red-600"}>
+              Value impact: {colorMultiplier > 1 ? '+' : ''}{((colorMultiplier - 1) * 100).toFixed(0)}%
+            </span>
+          )}
+        </p>
       </div>
 
       {/* Interior Color */}

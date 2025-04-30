@@ -1,7 +1,7 @@
-
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface RulesEngineInput {
+  basePrice: number;
   make: string;
   model: string;
   year?: number;
@@ -12,12 +12,13 @@ export interface RulesEngineInput {
   accidentCount?: number;
   titleStatus?: string;
   premiumFeatures?: string[];
-  basePrice: number;
-  carfaxData?: CarfaxData;
+  carfaxData?: any;
   photoScore?: number;
-  equipmentIds?: number[]; 
+  equipmentIds?: number[];
   equipmentMultiplier?: number;
   equipmentValueAdd?: number;
+  exteriorColor?: string;
+  colorMultiplier?: number;
 }
 
 export interface AdjustmentBreakdown {

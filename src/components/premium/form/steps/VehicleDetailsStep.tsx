@@ -98,7 +98,9 @@ export function VehicleDetailsStep({
             severity: 'minor',
             area: 'front'
           } : undefined,
-          includeCarfax: true
+          includeCarfax: true,
+          exteriorColor: formData.exteriorColor,
+          colorMultiplier: formData.colorMultiplier
         }
       });
 
