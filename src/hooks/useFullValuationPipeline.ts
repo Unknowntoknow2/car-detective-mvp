@@ -1,147 +1,189 @@
 
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useVehicleLookup } from './useVehicleLookup';
 
 type IdentifierType = 'vin' | 'plate';
-type ValuationStage = 'initial' | 'lookup' | 'details_required' | 'valuation_pending' | 'valuation_complete' | 'error';
+type Stage = 'initial' | 'lookup_in_progress' | 'lookup_failed' | 'vehicle_found' | 'details_required' | 'valuation_in_progress' | 'valuation_complete' | 'valuation_failed';
 
-interface ValuationDetails {
+interface Vehicle {
+  make?: string;
+  model?: string;
+  year?: number;
+  trim?: string;
+  engine?: string;
+  transmission?: string;
+  fuelType?: string;
+}
+
+interface RequiredInputs {
   mileage: number | null;
   fuelType: string | null;
   zipCode: string;
-  condition: number;
-  conditionLabel: string;
-  hasAccident: boolean | null;
-  accidentDescription: string;
+  condition?: number;
+  conditionLabel?: string;
+  hasAccident?: boolean;
+  accidentDescription?: string;
 }
 
 interface ValuationResult {
+  id: string;
   estimated_value: number;
   confidence_score: number;
+  price_range?: [number, number];
+  base_price?: number;
+  zip_demand_factor?: number;
   adjustments?: Array<{
     factor: string;
     impact: number;
     description: string;
   }>;
-  price_range?: [number, number];
-  base_price?: number;
-  zip_demand_factor?: number;
-  feature_value_total?: number;
 }
 
 export function useFullValuationPipeline() {
-  const [stage, setStage] = useState<ValuationStage>('initial');
-  const [requiredInputs, setRequiredInputs] = useState<ValuationDetails | null>(null);
+  const [stage, setStage] = useState<Stage>('initial');
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [requiredInputs, setRequiredInputs] = useState<RequiredInputs | null>(null);
   const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
-  const [valuationId, setValuationId] = useState<string | null>(null);
-  
-  const { lookupVehicle, vehicle, isLoading, error, errorDetails } = useVehicleLookup();
+  const [error, setError] = useState<string | null>(null);
 
-  const runLookup = async (identifierType: IdentifierType, identifier: string, state?: string) => {
+  // Reset the pipeline
+  const reset = () => {
+    setStage('initial');
+    setVehicle(null);
+    setRequiredInputs(null);
+    setValuationResult(null);
+    setError(null);
+  };
+
+  // Step 1: Run lookup by VIN or plate
+  const runLookup = async (type: IdentifierType, identifier: string) => {
+    setStage('lookup_in_progress');
+    setError(null);
+    
     try {
-      setStage('lookup');
+      // Call the Supabase edge function to decode the VIN/plate
+      const functionName = type === 'vin' ? 'decode-vin' : 'decode-plate';
+      const requestBody = type === 'vin' ? { vin: identifier } : {
+        plate: identifier.split(':')[1],
+        state: identifier.split(':')[0]
+      };
       
-      let lookupResult;
-      if (identifierType === 'vin') {
-        lookupResult = await lookupVehicle('vin', identifier);
-      } else if (identifierType === 'plate') {
-        if (!state) {
-          throw new Error('State is required for plate lookup');
-        }
-        lookupResult = await lookupVehicle('plate', identifier, state);
-      }
-      
-      if (!lookupResult) {
-        throw new Error('Vehicle lookup failed');
-      }
-
-      // Set required inputs with default values
-      setRequiredInputs({
-        mileage: null,
-        fuelType: null,
-        zipCode: '',
-        condition: 3, // Default to "Good" condition (scale 1-5)
-        conditionLabel: 'Good',
-        hasAccident: null,
-        accidentDescription: '',
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: requestBody
       });
       
+      if (error) {
+        throw new Error(`Vehicle lookup failed: ${error.message}`);
+      }
+      
+      if (!data || data.error) {
+        throw new Error(data?.error || 'Invalid response from vehicle decoder');
+      }
+      
+      // Store the vehicle data
+      const vehicleData: Vehicle = {
+        make: data.make,
+        model: data.model,
+        year: data.year ? parseInt(data.year) : undefined,
+        trim: data.trim,
+        engine: data.engine,
+        fuelType: data.fuelType || data.fuel_type,
+        transmission: data.transmission || 'Automatic' // Default value
+      };
+      
+      setVehicle(vehicleData);
+      
+      // Move to next stage - we need additional details from the user
       setStage('details_required');
+      
+      // Pre-fill available data for the required inputs
+      setRequiredInputs({
+        mileage: null,
+        fuelType: vehicleData.fuelType || null,
+        zipCode: '',
+        condition: 3, // Default to "Good" condition
+        conditionLabel: 'Good',
+        hasAccident: false,
+        accidentDescription: ''
+      });
+      
+      toast.success(`Vehicle found: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`);
+      
       return true;
-    } catch (err: any) {
-      console.error('Lookup error:', err);
-      setStage('error');
+    } catch (err) {
+      console.error('Vehicle lookup error:', err);
+      setStage('lookup_failed');
+      setError(err instanceof Error ? err.message : 'Failed to lookup vehicle');
+      toast.error(err instanceof Error ? err.message : 'Failed to lookup vehicle');
       return false;
     }
   };
 
-  const submitValuation = async (details: ValuationDetails) => {
+  // Step 2: Submit valuation with all required inputs
+  const submitValuation = async (details: Partial<RequiredInputs>) => {
     if (!vehicle) {
-      toast.error('No vehicle data available');
+      setError('No vehicle data available');
       return false;
     }
-
+    
+    setStage('valuation_in_progress');
+    setError(null);
+    
     try {
-      setStage('valuation_pending');
-      
-      // Prepare the payload for the car-price-prediction function
+      // Merge vehicle data with additional details
       const payload = {
         make: vehicle.make,
         model: vehicle.model,
         year: vehicle.year,
         mileage: details.mileage,
-        condition: details.conditionLabel.toLowerCase(),
-        fuelType: details.fuelType,
+        condition: details.conditionLabel?.toLowerCase() || 'good',
+        fuelType: details.fuelType || vehicle.fuelType,
         zipCode: details.zipCode,
-        accident: details.hasAccident ? "yes" : "no",
+        accident: details.hasAccident ? 'yes' : 'no',
         accidentDetails: details.hasAccident ? {
-          count: "1",
-          severity: details.accidentDescription.toLowerCase().includes('major') ? "major" : "minor",
-          area: "body",
+          count: '1',
+          severity: 'minor',
+          area: 'front'
         } : undefined,
         includeCarfax: true
       };
       
-      console.log('Submitting valuation with payload:', payload);
-      
-      // Call the car-price-prediction edge function
-      const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/car-price-prediction`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY'}`
-        },
-        body: JSON.stringify(payload)
+      // Call the valuation edge function
+      const { data, error } = await supabase.functions.invoke('car-price-prediction', {
+        body: payload
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Valuation failed');
+      if (error) {
+        throw new Error(`Valuation failed: ${error.message}`);
       }
       
-      const result = await response.json();
+      if (!data || data.error) {
+        throw new Error(data?.error || 'Invalid response from valuation service');
+      }
       
-      // Set the result and valuationId
-      setValuationResult(result);
-      setValuationId(result.id);
+      // Store the valuation result
+      setValuationResult({
+        id: data.id,
+        estimated_value: data.estimatedValue,
+        confidence_score: data.confidenceScore,
+        price_range: data.priceRange,
+        base_price: data.basePrice,
+        zip_demand_factor: data.multiplier,
+        adjustments: data.valuationFactors
+      });
+      
       setStage('valuation_complete');
+      toast.success('Vehicle valuation complete!');
       
-      toast.success('Valuation completed successfully!');
       return true;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Valuation error:', err);
-      toast.error(err.message || 'Failed to calculate vehicle value');
-      setStage('error');
+      setStage('valuation_failed');
+      setError(err instanceof Error ? err.message : 'Failed to generate valuation');
+      toast.error(err instanceof Error ? err.message : 'Failed to generate valuation');
       return false;
     }
-  };
-
-  const reset = () => {
-    setStage('initial');
-    setRequiredInputs(null);
-    setValuationResult(null);
-    setValuationId(null);
   };
 
   return {
@@ -149,10 +191,8 @@ export function useFullValuationPipeline() {
     vehicle,
     requiredInputs,
     valuationResult,
-    valuationId,
-    isLoading,
     error,
-    errorDetails,
+    isLoading: stage === 'lookup_in_progress' || stage === 'valuation_in_progress',
     runLookup,
     submitValuation,
     reset

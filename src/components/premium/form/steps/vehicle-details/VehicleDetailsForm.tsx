@@ -147,7 +147,10 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
             type="number"
             placeholder="Enter vehicle mileage"
             value={formData.mileage || ''}
-            onChange={handleMileageChange}
+            onChange={(e) => {
+              const value = e.target.value ? parseInt(e.target.value, 10) : null;
+              setFormData(prev => ({ ...prev, mileage: value }));
+            }}
             className={errors.mileage ? "border-red-500" : ""}
           />
           {errors.mileage && <FormValidationError error={errors.mileage} />}
@@ -159,7 +162,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
           </Label>
           <Select
             value={formData.fuelType || undefined}
-            onValueChange={handleFuelTypeChange}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, fuelType: value }))}
           >
             <SelectTrigger id="fuelType" className={errors.fuelType ? "border-red-500" : ""}>
               <SelectValue placeholder="Select fuel type" />
@@ -183,7 +186,11 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
             id="zipCode"
             placeholder="Enter ZIP code (e.g., 90210)"
             value={formData.zipCode}
-            onChange={handleZipCodeChange}
+            onChange={(e) => {
+              // Allow only numbers and limit to 5 digits
+              const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+              setFormData(prev => ({ ...prev, zipCode: value }));
+            }}
             className={errors.zipCode ? "border-red-500" : ""}
             maxLength={5}
           />
@@ -202,7 +209,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
             min={1}
             max={5}
             step={1}
-            onValueChange={handleConditionChange}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, condition: value[0] }))}
             className="py-4"
           />
           <div className="flex justify-between text-xs text-gray-500">
@@ -220,7 +227,14 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
         
         <AccidentToggle 
           hasAccident={formData.hasAccident} 
-          onToggle={toggleAccidentHistory} 
+          onToggle={(hasAccident) => {
+            setFormData(prev => ({
+              ...prev,
+              hasAccident,
+              // Clear accident description if toggling to "No"
+              ...(hasAccident === false ? { accidentDescription: '' } : {})
+            }));
+          }} 
         />
         
         {formData.hasAccident && (
@@ -232,7 +246,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
               id="accidentDescription"
               placeholder="Please describe the accident(s), including severity, when it happened, and what parts of the vehicle were affected."
               value={formData.accidentDescription}
-              onChange={handleAccidentDescriptionChange}
+              onChange={(e) => setFormData(prev => ({ ...prev, accidentDescription: e.target.value }))}
               className={`w-full px-3 py-2 border rounded-md ${errors.accidentDescription ? "border-red-500" : "border-gray-300"}`}
               rows={4}
             />

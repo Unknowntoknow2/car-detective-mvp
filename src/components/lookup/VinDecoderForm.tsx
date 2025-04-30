@@ -18,6 +18,8 @@ import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { VehicleDetailsForm } from '@/components/premium/form/steps/vehicle-details/VehicleDetailsForm';
 import { ValuationResults } from '@/components/valuation/ValuationResults';
 import { convertAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
+import { VehicleFoundCard } from '@/components/premium/lookup/plate/VehicleFoundCard';
+import { ValuationErrorState } from '@/components/premium/lookup/shared/ValuationErrorState';
 
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
@@ -33,6 +35,7 @@ export const VinDecoderForm = () => {
     vehicle: pipelineVehicle,
     requiredInputs,
     valuationResult,
+    error: valuationError,
     isLoading: pipelineLoading,
     runLookup,
     submitValuation
@@ -100,7 +103,7 @@ export const VinDecoderForm = () => {
   // Determine what to render based on the pipeline stage and traditional lookup state
   const renderContent = () => {
     // If we're in the details collection stage, show the pipeline UI
-    if (stage === 'details_required' && requiredInputs) {
+    if (stage === 'details_required' && requiredInputs && pipelineVehicle) {
       return (
         <div className="mt-6">
           <Card>
@@ -111,10 +114,34 @@ export const VinDecoderForm = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <VehicleFoundCard 
+                vehicle={pipelineVehicle} 
+                plateValue={vin}
+                stateValue="US"
+              />
               <VehicleDetailsForm 
                 initialData={requiredInputs}
                 onSubmit={handleDetailsSubmit}
                 isLoading={pipelineLoading}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
+    // If valuation failed, show error
+    if (stage === 'valuation_failed' && valuationError) {
+      return (
+        <div className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Valuation Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ValuationErrorState 
+                error={valuationError} 
+                onRetry={() => submitValuation(requiredInputs!)}
               />
             </CardContent>
           </Card>
@@ -145,10 +172,12 @@ export const VinDecoderForm = () => {
                   year: pipelineVehicle.year || 0,
                   make: pipelineVehicle.make || '',
                   model: pipelineVehicle.model || '',
+                  trim: pipelineVehicle.trim,
                   mileage: requiredInputs?.mileage,
                   condition: requiredInputs?.conditionLabel
                 }}
                 onDownloadPdf={handleDownloadPdf}
+                onEmailReport={() => toast.success("Email report functionality will be implemented soon!")}
               />
             </CardContent>
           </Card>
