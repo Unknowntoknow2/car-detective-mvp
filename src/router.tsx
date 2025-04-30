@@ -11,7 +11,8 @@ import { Loader2 } from "lucide-react";
 const HomePage = lazy(() => import("./pages/Index"));
 const ValuationPage = lazy(() => import("./pages/FreeValuationPage"));
 const AccountPage = lazy(() => import("./pages/ProfilePage"));
-const PhotoUploadPage = lazy(() => import("./pages/PhotoUploadPage"));
+// Fix the PhotoUploadPage import issue
+// const PhotoUploadPage = lazy(() => import("./pages/PhotoUploadPage"));
 
 // Loader component for lazy-loaded routes
 const PageLoader = () => (
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       </Suspense>
     ),
   },
+  /* Temporarily comment out this route until PhotoUploadPage is implemented
   {
     path: "/photo",
     element: (
@@ -65,6 +67,7 @@ export const router = createBrowserRouter([
       </Suspense>
     ),
   },
+  */
   {
     path: "/equipment",
     element: <EquipmentSelectionPage />,
