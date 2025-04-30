@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ConditionValues } from '@/components/valuation/condition/types';
 
 export default function PremiumConditionEvaluationPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleConditionSubmit = (values: Record<string, number>, overallScore: number) => {
+  const handleConditionSubmit = (values: ConditionValues, overallScore: number) => {
     setIsSubmitting(true);
     console.log("Condition assessment values:", values);
     console.log("Overall condition score:", overallScore);

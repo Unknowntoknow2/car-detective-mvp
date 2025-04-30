@@ -16,8 +16,8 @@ import { cn } from '@/lib/utils';
 import { ConditionValues } from './types';
 
 interface ConditionEvaluationFormProps { 
-  initialValues?: Record<string, number>;
-  onSubmit: (values: Record<string, number>, overallScore: number) => void;
+  initialValues?: ConditionValues;
+  onSubmit: (values: ConditionValues, overallScore: number) => void;
   onCancel?: () => void;
 }
 
@@ -46,6 +46,9 @@ export function ConditionEvaluationForm({
       
       // Calculate weighted score based on values and factors
       Object.entries(values).forEach(([id, value]) => {
+        // Skip non-numeric values (like titleStatus)
+        if (typeof value !== 'number') return;
+        
         const [category] = id.split('_');
         const categoryWeight = categoryWeights[category] || 0.25;
         
@@ -76,7 +79,7 @@ export function ConditionEvaluationForm({
     }
   }, [values, factors, isLoading]);
   
-  const handleValueChange = (id: string, value: number) => {
+  const handleValueChange = (id: string, value: number | string) => {
     setValues(prev => ({
       ...prev,
       [id]: value
@@ -219,8 +222,13 @@ export function ConditionEvaluationForm({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(values)
-            .filter(([_, value]) => value < 75) // Only show tips for items below "Very Good"
-            .sort((a, b) => a[1] - b[1]) // Sort by lowest value first
+            .filter(([id, value]) => typeof value === 'number' && value < 75) // Only show tips for numeric items below "Very Good"
+            .sort(([_, a], [__, b]) => {
+              // Ensure we're comparing numbers
+              const numA = typeof a === 'number' ? a : 0;
+              const numB = typeof b === 'number' ? b : 0;
+              return numA - numB;
+            }) // Sort by lowest value first
             .slice(0, 4) // Show top 4 worst items
             .map(([id, value]) => {
               const [category, factor] = id.split('_');
@@ -231,20 +239,24 @@ export function ConditionEvaluationForm({
                 .replace(/^./, str => str.toUpperCase());
                 
               // Get approximate value impact
-              const valueImpact = value <= 25 ? "10-15%" : value <= 50 ? "5-8%" : "2-3%";
+              const numericValue = typeof value === 'number' ? value : 0;
+              const valueImpact = numericValue <= 25 ? "10-15%" : numericValue <= 50 ? "5-8%" : "2-3%";
               
               return (
                 <div key={id} className="bg-white p-3 rounded-md border border-slate-200 shadow-sm">
                   <div className="flex justify-between items-center mb-1">
                     <h4 className="text-sm font-medium text-slate-700">{displayName}</h4>
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full", getConditionColor(value))}>
-                      {getConditionLabel(value)}
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full", 
+                      getConditionColor(typeof value === 'number' ? value : 0)
+                    )}>
+                      {getConditionLabel(typeof value === 'number' ? value : 0)}
                     </span>
                   </div>
                   <p className="text-xs text-slate-600 mb-2">
-                    {value <= 25 && `Address major issues with ${displayName.toLowerCase()} to significantly improve value.`}
-                    {value > 25 && value <= 50 && `Improving ${displayName.toLowerCase()} condition could increase buyer appeal.`}
-                    {value > 50 && value <= 75 && `Minor improvements to ${displayName.toLowerCase()} would enhance overall impression.`}
+                    {numericValue <= 25 && `Address major issues with ${displayName.toLowerCase()} to significantly improve value.`}
+                    {numericValue > 25 && numericValue <= 50 && `Improving ${displayName.toLowerCase()} condition could increase buyer appeal.`}
+                    {numericValue > 50 && numericValue <= 75 && `Minor improvements to ${displayName.toLowerCase()} would enhance overall impression.`}
                   </p>
                   
                   <div className="flex items-center gap-1 text-xs text-primary font-medium">

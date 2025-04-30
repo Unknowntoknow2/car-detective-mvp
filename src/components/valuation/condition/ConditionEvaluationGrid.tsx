@@ -9,7 +9,7 @@ import { ConditionValues } from './types';
 
 interface ConditionEvaluationGridProps {
   values: ConditionValues;
-  onChange: (id: string, value: number) => void;
+  onChange: (id: string, value: number | string) => void;
 }
 
 interface CategoryCard {
@@ -111,13 +111,17 @@ export function ConditionEvaluationGrid({ values, onChange }: ConditionEvaluatio
                   .replace(/([A-Z])/g, ' $1') // Add space before capital letters
                   .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
                   
+                // For numeric sliders only - ensure the value is a number with default fallback
+                const currentValue = values[id];
+                const numericValue = typeof currentValue === 'number' ? currentValue : 50; // Default to 50 (Good) if not set or not a number
+                
                 return (
                   <FactorSlider
                     key={id}
                     id={id}
                     label={displayName}
                     options={options as ConditionOption[]}
-                    value={values[id] ?? 50} // Default to 50 (Good) if not set
+                    value={numericValue}
                     onChange={(value) => onChange(id, value)}
                     ariaLabel={`${displayName} condition slider`}
                   />
