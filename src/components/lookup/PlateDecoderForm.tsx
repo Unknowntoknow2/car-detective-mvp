@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { VehicleDetailsForm } from '@/components/premium/form/steps/vehicle-details/VehicleDetailsForm';
 import { ValuationResults } from '@/components/valuation/ValuationResults';
+import { convertAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
 
 export const PlateDecoderForm = () => {
   const [plate, setPlate] = useState('');
@@ -80,11 +81,13 @@ export const PlateDecoderForm = () => {
         condition: requiredInputs?.conditionLabel || "Good",
         zipCode: requiredInputs?.zipCode || "10001",
         confidenceScore: valuationResult?.confidence_score || 92,
-        adjustments: valuationResult?.adjustments || [
-          { label: "Location", value: 1.5 },
-          { label: "Vehicle Condition", value: 2.0 },
-          { label: "Market Demand", value: 4.0 }
-        ]
+        adjustments: valuationResult?.adjustments 
+          ? convertAdjustmentsToLegacyFormat(valuationResult.adjustments)
+          : [
+              { label: "Location", value: 1.5 },
+              { label: "Vehicle Condition", value: 2.0 },
+              { label: "Market Demand", value: 4.0 }
+            ]
       });
       
       downloadPdf(reportData);

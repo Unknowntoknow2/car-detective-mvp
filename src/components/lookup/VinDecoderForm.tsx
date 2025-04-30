@@ -17,6 +17,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { VehicleDetailsForm } from '@/components/premium/form/steps/vehicle-details/VehicleDetailsForm';
 import { ValuationResults } from '@/components/valuation/ValuationResults';
+import { convertAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
 
 export const VinDecoderForm = () => {
   const [vin, setVin] = useState('');
@@ -81,12 +82,14 @@ export const VinDecoderForm = () => {
       condition: requiredInputs?.conditionLabel || "Good",
       zipCode: requiredInputs?.zipCode || "10001",
       confidenceScore: valuationResult?.confidence_score || (carfaxData ? 92 : 85),
-      adjustments: valuationResult?.adjustments || [
-        { label: "Mileage", value: -3.5 },
-        { label: "Condition", value: 2.0 },
-        { label: "Market Demand", value: 4.0 },
-        ...(carfaxData && carfaxData.accidentsReported > 0 ? [{ label: "Accident History", value: -3.0 }] : [])
-      ],
+      adjustments: valuationResult?.adjustments 
+        ? convertAdjustmentsToLegacyFormat(valuationResult.adjustments)
+        : [
+            { label: "Mileage", value: -3.5 },
+            { label: "Condition", value: 2.0 },
+            { label: "Market Demand", value: 4.0 },
+            ...(carfaxData && carfaxData.accidentsReported > 0 ? [{ label: "Accident History", value: -3.0 }] : [])
+          ],
       carfaxData: carfaxData // Pass CARFAX data to PDF generator
     });
     
