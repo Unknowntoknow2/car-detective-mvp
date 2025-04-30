@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, HelpCircle, Tool, ArrowUp } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LucideIcon } from 'lucide-react';
 
@@ -16,8 +16,10 @@ interface ConditionOption {
   description: string;
   valueImpact: string;
   icon: LucideIcon;
+  improvementTip: string;
 }
 
+// More detailed condition options with gradual steps
 const CONDITION_OPTIONS: ConditionOption[] = [
   { 
     value: 'poor', 
@@ -25,7 +27,8 @@ const CONDITION_OPTIONS: ConditionOption[] = [
     conditionValue: 25, 
     description: 'Significant repairs needed, not fully operational',
     valueImpact: 'Reduces value by 20-30%',
-    icon: AlertTriangle
+    icon: AlertTriangle,
+    improvementTip: 'Focus on critical mechanical repairs first. Address safety issues before cosmetic improvements.'
   },
   { 
     value: 'fair', 
@@ -33,7 +36,8 @@ const CONDITION_OPTIONS: ConditionOption[] = [
     conditionValue: 50, 
     description: 'Functional but has noticeable wear and issues',
     valueImpact: 'Reduces value by 10-15%',
-    icon: AlertTriangle
+    icon: AlertTriangle,
+    improvementTip: 'Regular maintenance and minor repairs can significantly increase value. Consider professional detailing.'
   },
   { 
     value: 'good', 
@@ -41,7 +45,8 @@ const CONDITION_OPTIONS: ConditionOption[] = [
     conditionValue: 75, 
     description: 'Minor wear, fully functional with minimal issues',
     valueImpact: 'Baseline value',
-    icon: CheckCircle
+    icon: CheckCircle,
+    improvementTip: 'Maintain service records and address any minor cosmetic issues to retain maximum value.'
   },
   { 
     value: 'excellent', 
@@ -49,9 +54,99 @@ const CONDITION_OPTIONS: ConditionOption[] = [
     conditionValue: 100, 
     description: 'Like new condition with minimal wear',
     valueImpact: 'Increases value by 5-15%',
-    icon: CheckCircle
+    icon: CheckCircle,
+    improvementTip: 'Continue meticulous maintenance. Preserve documentation of service history for best resale value.'
   }
 ];
+
+// More specific feedback for each 5% increment within condition categories
+const getDetailedConditionFeedback = (value: number): { feedback: string, tipDetail: string } => {
+  if (value <= 25) {
+    if (value <= 5) return { 
+      feedback: 'Very poor condition. Significant mechanical failures.',
+      tipDetail: 'Consider addressing major mechanical issues before valuation.'
+    };
+    if (value <= 10) return { 
+      feedback: 'Poor condition with multiple critical issues.',
+      tipDetail: 'Focus on engine, transmission, and safety systems first.'
+    };
+    if (value <= 15) return { 
+      feedback: 'Poor condition but potentially repairable.',
+      tipDetail: 'Get professional estimates for major repairs before selling.'
+    };
+    if (value <= 20) return { 
+      feedback: 'Poor condition with some functional components.',
+      tipDetail: 'Document any recent repairs - this helps justify a higher value.'
+    };
+    return { 
+      feedback: 'Below average condition but drivable.',
+      tipDetail: 'Clean interior and exterior thoroughly before valuation.'
+    };
+  } else if (value <= 50) {
+    if (value <= 30) return { 
+      feedback: 'Fair condition with noticeable mechanical issues.',
+      tipDetail: 'Address fluid leaks and warning lights before valuation.'
+    };
+    if (value <= 35) return { 
+      feedback: 'Fair condition with some cosmetic damage.',
+      tipDetail: 'Consider affordable body work for dents and scratches.'
+    };
+    if (value <= 40) return { 
+      feedback: 'Fair condition with worn interior.',
+      tipDetail: 'Replace or repair torn upholstery and damaged trim.'
+    };
+    if (value <= 45) return { 
+      feedback: 'Fair condition with aging components.',
+      tipDetail: 'Replace worn belts, hoses, and filters to improve reliability.'
+    };
+    return { 
+      feedback: 'Fair condition with decent functionality.',
+      tipDetail: 'Professional detailing can add several hundred dollars in value.'
+    };
+  } else if (value <= 75) {
+    if (value <= 55) return { 
+      feedback: 'Good condition with minor mechanical wear.',
+      tipDetail: 'Address any small oil leaks or unusual sounds.'
+    };
+    if (value <= 60) return { 
+      feedback: 'Good condition with some cosmetic issues.',
+      tipDetail: 'Touch up paint chips and polish exterior for better first impression.'
+    };
+    if (value <= 65) return { 
+      feedback: 'Good condition with normal wear for age.',
+      tipDetail: 'Replace worn tires and brakes to demonstrate good maintenance.'
+    };
+    if (value <= 70) return { 
+      feedback: 'Good condition with well-maintained systems.',
+      tipDetail: 'Gather and organize maintenance records to prove care.'
+    };
+    return { 
+      feedback: 'Very good condition with minimal issues.',
+      tipDetail: 'Consider certified pre-owned programs if your vehicle qualifies.'
+    };
+  } else {
+    if (value <= 80) return { 
+      feedback: 'Excellent condition with minor wear.',
+      tipDetail: 'Detail engine bay to showcase exceptional care.'
+    };
+    if (value <= 85) return { 
+      feedback: 'Excellent condition with minimal signs of use.',
+      tipDetail: 'Have dealership inspection to validate condition.'
+    };
+    if (value <= 90) return { 
+      feedback: 'Excellent condition, nearly flawless.',
+      tipDetail: 'Obtain paint depth measurements to prove original finish.'
+    };
+    if (value <= 95) return { 
+      feedback: 'Near perfect condition, rarely seen in used vehicles.',
+      tipDetail: 'Take professional photos that highlight pristine condition.'
+    };
+    return { 
+      feedback: 'Showroom condition, indistinguishable from new.',
+      tipDetail: 'Consider specialty marketplaces for collector-quality vehicles.'
+    };
+  }
+};
 
 interface ConditionInputProps {
   condition: ConditionLevel;
@@ -69,6 +164,7 @@ export function ConditionInput({
   disabled 
 }: ConditionInputProps) {
   const selectedCondition = CONDITION_OPTIONS.find(option => option.value === condition);
+  const detailedFeedback = getDetailedConditionFeedback(conditionValue);
 
   const getConditionColor = (value: string): string => {
     switch (value) {
@@ -84,6 +180,23 @@ export function ConditionInput({
     if (disabled) return;
     onChange(option.value);
     onSliderChange(option.conditionValue);
+  };
+
+  // Custom slider marker component to show ticks
+  const SliderMarkers = () => {
+    return (
+      <div className="relative w-full h-0">
+        {[0, 25, 50, 75, 100].map((percent) => (
+          <div 
+            key={percent} 
+            className={`absolute w-0.5 h-2 bg-slate-300 -mt-1 ${
+              conditionValue >= percent ? 'bg-primary' : ''
+            }`} 
+            style={{ left: `${percent}%` }}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -141,19 +254,30 @@ export function ConditionInput({
       </div>
       
       <div className="mt-4">
-        <Slider 
-          value={[conditionValue]} 
-          max={100} 
-          step={1} 
-          onValueChange={value => onSliderChange(value[0])}
-          disabled={disabled}
-          className="mt-2"
-        />
-        <div className="flex justify-between text-xs text-slate-500 mt-1">
+        <div className="flex justify-between text-xs text-slate-500 mb-1">
           <span className="text-red-500">Poor</span>
           <span className="text-amber-500">Fair</span>
           <span className="text-green-500">Good</span>
           <span className="text-blue-500">Excellent</span>
+        </div>
+        
+        <Slider 
+          value={[conditionValue]} 
+          max={100} 
+          step={5} 
+          onValueChange={value => onSliderChange(value[0])}
+          disabled={disabled}
+          className="mt-2"
+        />
+        
+        <SliderMarkers />
+        
+        <div className="flex justify-between mt-1">
+          <span className="text-xs text-slate-400">0%</span>
+          <span className="text-xs text-slate-400">25%</span>
+          <span className="text-xs text-slate-400">50%</span>
+          <span className="text-xs text-slate-400">75%</span>
+          <span className="text-xs text-slate-400">100%</span>
         </div>
       </div>
       
@@ -162,21 +286,31 @@ export function ConditionInput({
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          key={selectedCondition.value}
+          key={`${selectedCondition.value}-${conditionValue}`}
           className={`p-4 rounded-lg border mt-4 ${getConditionColor(selectedCondition.value)}`}
         >
           <div className="flex items-start gap-3">
             <selectedCondition.icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${selectedCondition.value === 'poor' || selectedCondition.value === 'fair' ? 'text-amber-500' : 'text-green-500'}`} />
             <div>
               <h4 className="text-sm font-medium mb-1">
-                {selectedCondition.label} Condition
+                {selectedCondition.label} Condition - {conditionValue}%
               </h4>
-              <p className="text-xs">
-                {selectedCondition.description}
+              <p className="text-xs mb-2">
+                {detailedFeedback.feedback}
               </p>
-              <p className="text-xs mt-1 font-medium">
-                Valuation Impact: {selectedCondition.valueImpact}
-              </p>
+              <div className="p-3 bg-white bg-opacity-60 rounded border border-current border-opacity-20 mt-2">
+                <div className="flex items-start gap-2">
+                  <Tool className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h5 className="text-xs font-medium text-slate-700 mb-0.5">Improvement Tip:</h5>
+                    <p className="text-xs text-slate-600">{detailedFeedback.tipDetail}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-primary font-medium">
+                  <ArrowUp className="h-3 w-3" />
+                  <span>Value Impact: {selectedCondition.valueImpact}</span>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>

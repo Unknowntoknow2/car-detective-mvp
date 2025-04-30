@@ -36,6 +36,7 @@ interface ComboBoxProps {
   className?: string;
 }
 
+// Export both ComboBox and Combobox to maintain compatibility
 export function ComboBox({
   id,
   items = [],
@@ -127,3 +128,6 @@ export function ComboBox({
     </Popover>
   );
 }
+
+// Add this alias export to support both naming conventions
+export const Combobox = ComboBox;

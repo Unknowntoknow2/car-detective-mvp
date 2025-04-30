@@ -60,6 +60,7 @@ export function MakeModelSelect({
     setSelectedModel(''); // Reset model when make changes
   };
 
+  // Transform makes data into the format expected by ComboBox
   const makeOptions = makes?.map(make => ({
     value: make.id,
     label: make.make_name
