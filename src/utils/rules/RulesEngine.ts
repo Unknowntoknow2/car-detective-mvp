@@ -1,3 +1,4 @@
+
 import { AdjustmentBreakdown, RulesEngineInput } from './types';
 import { MileageCalculator } from './calculators/mileageCalculator';
 import { ConditionCalculator } from './calculators/conditionCalculator';
@@ -131,6 +132,8 @@ export interface ValuationAuditTrail {
     recallMultiplier?: number;
     warrantyStatus?: string;
     warrantyMultiplier?: number;
+    bodyStyle?: string;
+    saleDate?: string | Date;
   };
 }
 

@@ -48,9 +48,12 @@ export class SeasonalCalculator {
       const value = Math.round(input.basePrice * (seasonalFactor - 1));
       
       // Format description with details
-      const descriptionText = data.description ? 
-        `${data.description} (${vehicleType} vehicles ${percentAdjustment >= 0 ? '+' : ''}${percentAdjustment.toFixed(1)}%)` : 
-        `Seasonal adjustment for ${vehicleType} vehicles in month ${month}: ${percentAdjustment.toFixed(1)}%`;
+      let descriptionText = '';
+      if (data.description) {
+        descriptionText = `${data.description} (${vehicleType} vehicles ${percentAdjustment >= 0 ? '+' : ''}${percentAdjustment.toFixed(1)}%)`;
+      } else {
+        descriptionText = `Seasonal adjustment for ${vehicleType} vehicles in month ${month}: ${percentAdjustment.toFixed(1)}%`;
+      }
       
       return {
         name: 'Seasonal Market Trends',
