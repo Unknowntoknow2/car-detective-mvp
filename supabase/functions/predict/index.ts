@@ -41,7 +41,8 @@ serve(async (req) => {
         color_multiplier,
         fuel_type,
         transmission_type,
-        has_open_recall
+        has_open_recall,
+        warranty_status
       `)
       .eq("id", valuationId)
       .single();
@@ -183,6 +184,31 @@ serve(async (req) => {
         recallMultiplier = 0.9;
       }
     }
+    
+    // Get warranty multiplier if warranty status is present
+    let warrantyMultiplier = 1.0;
+    if (val.warranty_status && val.warranty_status !== 'None') {
+      try {
+        const { data: warrantyData, error: warrantyErr } = await supabase
+          .from("warranty_options")
+          .select("multiplier")
+          .eq("status", val.warranty_status)
+          .single();
+          
+        if (!warrantyErr && warrantyData) {
+          warrantyMultiplier = warrantyData.multiplier;
+          console.log(`Fetched warranty multiplier: ${warrantyMultiplier} for warranty status: ${val.warranty_status}`);
+        } else {
+          // Default based on warranty type
+          warrantyMultiplier = val.warranty_status === 'Factory' ? 1.02 : 1.04;
+          console.log(`Using default warranty multiplier: ${warrantyMultiplier} for type: ${val.warranty_status}`);
+        }
+      } catch (err) {
+        console.warn("Failed to get warranty multiplier:", err);
+        // Continue with default multiplier based on type
+        warrantyMultiplier = val.warranty_status === 'Factory' ? 1.02 : 1.04;
+      }
+    }
 
     // Apply base prediction model
     const features: ValuationFeatures = {
@@ -212,8 +238,11 @@ serve(async (req) => {
     // Apply transmission multiplier
     intermediatePrice = intermediatePrice * transmissionMultiplier;
     
-    // Apply recall multiplier as the final adjustment
-    const finalPrice = Math.round(intermediatePrice * recallMultiplier);
+    // Apply recall multiplier
+    intermediatePrice = intermediatePrice * recallMultiplier;
+    
+    // Apply warranty multiplier as the final adjustment
+    const finalPrice = Math.round(intermediatePrice * warrantyMultiplier);
 
     // Return the final valuation with a breakdown
     return new Response(
@@ -232,6 +261,8 @@ serve(async (req) => {
           transmissionAdjustment: `${((transmissionMultiplier - 1) * 100).toFixed(1)}%`,
           recallMultiplier: recallMultiplier,
           recallAdjustment: `${((recallMultiplier - 1) * 100).toFixed(1)}%`,
+          warrantyMultiplier: warrantyMultiplier,
+          warrantyAdjustment: `${((warrantyMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

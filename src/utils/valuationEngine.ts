@@ -48,6 +48,8 @@ export interface ValuationInput {
   transmissionMultiplier?: number;
   hasOpenRecall?: boolean;
   recallMultiplier?: number;
+  warrantyStatus?: string;
+  warrantyMultiplier?: number;
 }
 
 export interface ValuationResult {
@@ -79,6 +81,10 @@ export interface ValuationResult {
   };
   recallInfo?: {
     hasOpenRecall: boolean;
+    multiplier: number;
+  };
+  warrantyInfo?: {
+    status: string;
     multiplier: number;
   };
 }
@@ -115,7 +121,8 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     fuelTypeMultiplier: input.fuelTypeMultiplier,
     transmissionType: input.transmissionType,
     transmissionMultiplier: input.transmissionMultiplier,
-    hasOpenRecall: input.hasOpenRecall
+    hasOpenRecall: input.hasOpenRecall,
+    warrantyStatus: input.warrantyStatus
   });
   
   // Calculate total adjustment
@@ -168,6 +175,37 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       estimatedValue = Math.round(estimatedValue * 0.9);
     }
   }
+  
+  // Get warranty multiplier if warranty status is provided
+  let warrantyMultiplier = 1.0;
+  if (input.warrantyStatus && input.warrantyStatus !== 'None') {
+    try {
+      if (input.warrantyMultiplier) {
+        warrantyMultiplier = input.warrantyMultiplier;
+      } else {
+        // Fetch warranty multiplier from the database
+        const { data: warrantyData } = await supabase
+          .from('warranty_options')
+          .select('multiplier')
+          .eq('status', input.warrantyStatus)
+          .single();
+          
+        if (warrantyData && warrantyData.multiplier) {
+          warrantyMultiplier = warrantyData.multiplier;
+        } else {
+          // Default based on warranty type
+          warrantyMultiplier = input.warrantyStatus === 'Factory' ? 1.02 : 1.04;
+        }
+      }
+      // Apply warranty multiplier
+      estimatedValue = Math.round(estimatedValue * warrantyMultiplier);
+    } catch (error) {
+      console.error('Error fetching warranty multiplier:', error);
+      // Apply default multiplier if fetch fails
+      const defaultMultiplier = input.warrantyStatus === 'Factory' ? 1.02 : 1.04;
+      estimatedValue = Math.round(estimatedValue * defaultMultiplier);
+    }
+  }
 
   // Create an audit trail
   const auditTrail = rulesEngine.createAuditTrail(
@@ -193,7 +231,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       transmissionType: input.transmissionType,
       transmissionMultiplier: input.transmissionMultiplier,
       hasOpenRecall: input.hasOpenRecall,
-      recallMultiplier: recallMultiplier
+      recallMultiplier: recallMultiplier,
+      warrantyStatus: input.warrantyStatus,
+      warrantyMultiplier: warrantyMultiplier
     },
     adjustments,
     totalAdjustment
@@ -274,6 +314,14 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     result.recallInfo = {
       hasOpenRecall: input.hasOpenRecall,
       multiplier: recallMultiplier
+    };
+  }
+  
+  // Add warranty info if present
+  if (input.warrantyStatus !== undefined) {
+    result.warrantyInfo = {
+      status: input.warrantyStatus,
+      multiplier: warrantyMultiplier
     };
   }
 

@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { AccidentToggle } from './AccidentToggle';
 import { TransmissionSelect } from '../../vehicle-details/TransmissionSelect';
 import { RecallToggle } from '../../vehicle-details/RecallToggle';
+import { WarrantySelect } from '../../vehicle-details/WarrantySelect';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface VehicleDetailsFormProps {
@@ -20,6 +21,7 @@ interface VehicleDetailsFormProps {
     accidentDescription?: string;
     transmissionType?: string;
     hasOpenRecall?: boolean;
+    warrantyStatus?: string;
   };
   onSubmit: (data: any) => void;
   isLoading?: boolean;
@@ -51,6 +53,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
     accidentDescription: initialData.accidentDescription || '',
     transmissionType: initialData.transmissionType || 'Automatic',
     hasOpenRecall: initialData.hasOpenRecall || false,
+    warrantyStatus: initialData.warrantyStatus || 'None',
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -218,6 +221,17 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
               hasOpenRecall
             }));
           }} 
+        />
+        
+        <WarrantySelect
+          value={formData.warrantyStatus}
+          onChange={(warrantyStatus) => {
+            setFormData(prev => ({
+              ...prev,
+              warrantyStatus
+            }));
+          }}
+          disabled={isLoading}
         />
         
         <AccidentToggle 

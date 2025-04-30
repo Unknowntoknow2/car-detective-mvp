@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,6 +72,24 @@ export const useValuationSubmit = () => {
         }
       }
 
+      // Get warranty multiplier if warranty status is selected
+      let warrantyMultiplier = 1;
+      if (formData.warrantyStatus && formData.warrantyStatus !== 'None') {
+        try {
+          const { data: warrantyData } = await supabase
+            .from('warranty_options')
+            .select('multiplier')
+            .eq('status', formData.warrantyStatus)
+            .single();
+            
+          if (warrantyData && warrantyData.multiplier) {
+            warrantyMultiplier = warrantyData.multiplier;
+          }
+        } catch (error) {
+          console.error('Error getting warranty multiplier:', error);
+        }
+      }
+
       // Insert valuation record
       const { data, error } = await supabase
         .from('valuations')
@@ -91,7 +108,8 @@ export const useValuationSubmit = () => {
           color_multiplier: colorMultiplier,
           fuel_type: formData.fuelType,
           transmission_type: formData.transmissionType,
-          has_open_recall: formData.hasOpenRecall || false
+          has_open_recall: formData.hasOpenRecall || false,
+          warranty_status: formData.warrantyStatus || 'None'
         })
         .select('id')
         .single();

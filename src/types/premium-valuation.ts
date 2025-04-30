@@ -1,4 +1,3 @@
-
 export type FeatureOption = {
   id: string;
   name: string;
@@ -37,6 +36,8 @@ export type FormData = {
   transmissionType?: string;
   // Open recall status
   hasOpenRecall?: boolean;
+  // Warranty status
+  warrantyStatus?: string;
 };
 
 export interface ValidationRules {

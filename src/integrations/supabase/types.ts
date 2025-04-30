@@ -709,6 +709,7 @@ export type Database = {
           state: string | null
           user_id: string
           vin: string | null
+          warranty_status: string | null
           year: number | null
           zip_demand_factor: number | null
         }
@@ -734,6 +735,7 @@ export type Database = {
           state?: string | null
           user_id: string
           vin?: string | null
+          warranty_status?: string | null
           year?: number | null
           zip_demand_factor?: number | null
         }
@@ -759,6 +761,7 @@ export type Database = {
           state?: string | null
           user_id?: string
           vin?: string | null
+          warranty_status?: string | null
           year?: number | null
           zip_demand_factor?: number | null
         }
@@ -853,6 +856,24 @@ export type Database = {
           event_type?: string
           id?: string
           vin?: string
+        }
+        Relationships: []
+      }
+      warranty_options: {
+        Row: {
+          description: string | null
+          multiplier: number
+          status: string
+        }
+        Insert: {
+          description?: string | null
+          multiplier: number
+          status: string
+        }
+        Update: {
+          description?: string | null
+          multiplier?: number
+          status?: string
         }
         Relationships: []
       }
