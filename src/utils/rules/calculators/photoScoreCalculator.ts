@@ -1,8 +1,8 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../types';
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 import { getPhotoScoreAdjustmentDescription } from '../descriptions';
 
-export class PhotoScoreCalculator {
+export class PhotoScoreCalculator implements AdjustmentCalculator {
   public calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
     if (!input.photoScore) {
       return null;
@@ -14,20 +14,15 @@ export class PhotoScoreCalculator {
     // 0.5-0.7 = slight negative (fair condition verified)
     // <0.5 = larger negative (poor condition verified)
     let percentAdjustment = 0;
-    let description = '';
 
     if (input.photoScore >= 0.9) {
       percentAdjustment = 0.03; // +3% for excellent condition
-      description = 'Excellent condition verified by photo';
     } else if (input.photoScore >= 0.7) {
       percentAdjustment = 0; // No adjustment for good condition
-      description = 'Good condition verified by photo';
     } else if (input.photoScore >= 0.5) {
       percentAdjustment = -0.05; // -5% for fair condition
-      description = 'Fair condition verified by photo';
     } else {
       percentAdjustment = -0.1; // -10% for poor condition
-      description = 'Poor condition verified by photo';
     }
 
     // Apply adjustment to base price
@@ -35,7 +30,7 @@ export class PhotoScoreCalculator {
 
     return {
       name: 'Photo Score',
-      value: adjustment,
+      value: Math.round(adjustment),
       description: getPhotoScoreAdjustmentDescription(input.photoScore, percentAdjustment, adjustment),
       percentAdjustment
     };

@@ -18,7 +18,7 @@ export class RulesEngine {
     new AccidentCalculator(),
     new FeaturesCalculator(),
     new CarfaxCalculator(),
-    new PhotoScoreCalculator() // Add the photo score calculator
+    new PhotoScoreCalculator()
   ];
 
   public calculateAdjustments(input: RulesEngineInput): AdjustmentBreakdown[] {

@@ -13,7 +13,7 @@ export interface RulesEngineInput {
   premiumFeatures?: string[];
   basePrice: number;
   carfaxData?: CarfaxData;
-  photoScore?: number; // Add photo score to the input
+  photoScore?: number;
 }
 
 export interface AdjustmentBreakdown {
@@ -23,7 +23,7 @@ export interface AdjustmentBreakdown {
   percentAdjustment: number;
 }
 
-// Add the AdjustmentCalculator interface
+// Interface for adjustment calculators
 export interface AdjustmentCalculator {
   calculate(input: RulesEngineInput): AdjustmentBreakdown | null;
 }
