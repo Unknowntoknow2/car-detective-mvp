@@ -1,8 +1,8 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../rules/types';
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../rules/types';
 import { supabase } from '@/integrations/supabase/client';
 
-export class DrivingBehaviorCalculator {
+export class DrivingBehaviorCalculator implements AdjustmentCalculator {
   async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
     // Skip calculation if no driving profile provided
     if (!input.drivingProfile) {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FormData } from '@/types/premium-valuation';
@@ -25,10 +26,11 @@ export const usePremiumValuationForm = () => {
     accidentDescription: '',
     zipCode: '',
     identifierType: 'vin',
-    identifier: ''
+    identifier: '',
+    drivingProfile: 'Normal'  // Default driving profile
   });
 
-  const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);
+  const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);  // Updated to include driving profile step
   const { currentStep, totalSteps, goToNextStep, goToPreviousStep, goToStep } = useStepNavigation(formData);
   const { valuationId, handleSubmit: submitValuation, isSubmitting, submitError } = useValuationSubmit();
 
@@ -86,9 +88,8 @@ export const usePremiumValuationForm = () => {
       case 5: // Condition
         return data.condition >= 0 && data.condition <= 100 && !!data.conditionLabel;
       
-      case 6: // Accident History
-        // Only require description if hasAccident is true
-        return !data.hasAccident || (data.hasAccident && !!data.accidentDescription);
+      case 6: // Driving Profile
+        return !!data.drivingProfile; // Must have a driving profile
       
       case 7: // Review and Submit
         return isFormValid;
@@ -147,7 +148,8 @@ export const usePremiumValuationForm = () => {
         accidentDescription: '',
         zipCode: '',
         identifierType: 'vin',
-        identifier: ''
+        identifier: '',
+        drivingProfile: 'Normal'
       });
       
       // Clear any cached data
