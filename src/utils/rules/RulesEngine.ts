@@ -14,6 +14,8 @@ import { FuelTypeCalculator } from './calculators/fuelTypeCalculator';
 import { TransmissionCalculator } from './calculators/transmissionCalculator';
 import { RecallCalculator } from './calculators/recallCalculator';
 import { WarrantyCalculator } from './calculators/warrantyCalculator';
+import { SeasonalCalculator } from '../valuation-adjustments/SeasonalCalculator';
+import { MarketDemandCalculator } from '../valuation-adjustments/MarketDemandCalculator';
 
 export class RulesEngine {
   private calculators = [
@@ -30,7 +32,9 @@ export class RulesEngine {
     new FuelTypeCalculator(),
     new TransmissionCalculator(),
     new RecallCalculator(),
-    new WarrantyCalculator() // Add the new calculator
+    new WarrantyCalculator(),
+    new SeasonalCalculator(),
+    new MarketDemandCalculator()
   ];
 
   public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
@@ -87,7 +91,9 @@ export class RulesEngine {
         hasOpenRecall: input.hasOpenRecall,
         recallMultiplier: input.recallMultiplier,
         warrantyStatus: input.warrantyStatus,
-        warrantyMultiplier: input.warrantyMultiplier
+        warrantyMultiplier: input.warrantyMultiplier,
+        saleDate: input.saleDate,
+        bodyStyle: input.bodyStyle
       }
     };
   }

@@ -41,7 +41,9 @@ serve(async (req) => {
         fuel_type,
         transmission_type,
         has_open_recall,
-        warranty_status
+        warranty_status,
+        sale_date,
+        body_style
       `)
       .eq("id", valuationId)
       .single();
@@ -259,6 +261,45 @@ serve(async (req) => {
     // Apply warranty multiplier as the final adjustment
     const finalPrice = Math.round(intermediatePrice * warrantyMultiplier);
 
+    // Apply seasonal multiplier if sale date and body style are provided
+    let seasonalMultiplier = 1.0;
+    if (val.sale_date && val.body_style) {
+      try {
+        const saleDate = new Date(val.sale_date);
+        const month = saleDate.getMonth() + 1; // 1-12
+        
+        // Determine vehicle type based on body style
+        let vehicleType = 'generic';
+        const bodyStyle = val.body_style.toLowerCase();
+        
+        if (bodyStyle.includes('suv') || bodyStyle.includes('crossover')) {
+          vehicleType = 'suv';
+        } else if (bodyStyle.includes('convertible') || bodyStyle.includes('cabriolet')) {
+          vehicleType = 'convertible';
+        } else if (bodyStyle.includes('sport') || bodyStyle.includes('coupe')) {
+          vehicleType = 'sport';
+        } else if (bodyStyle.includes('truck') || bodyStyle.includes('pickup')) {
+          vehicleType = 'truck';
+        }
+        
+        // Fetch seasonal multiplier from database
+        const { data: seasonalData, error: seasonalErr } = await supabase
+          .from('seasonal_index')
+          .select(vehicleType)
+          .eq('month', month)
+          .single();
+          
+        if (!seasonalErr && seasonalData) {
+          seasonalMultiplier = seasonalData[vehicleType];
+          console.log(`Fetched seasonal multiplier: ${seasonalMultiplier} for month: ${month}, vehicle type: ${vehicleType}`);
+          intermediatePrice = intermediatePrice * seasonalMultiplier;
+        }
+      } catch (err) {
+        console.warn("Failed to get seasonal multiplier:", err);
+        // Continue with default multiplier
+      }
+    }
+
     // Return the final valuation with a breakdown
     return new Response(
       JSON.stringify({
@@ -280,6 +321,8 @@ serve(async (req) => {
           warrantyAdjustment: `${((warrantyMultiplier - 1) * 100).toFixed(1)}%`,
           marketMultiplier: multiplier,
           marketAdjustment: `${((multiplier - 1) * 100).toFixed(1)}%`,
+          seasonalMultiplier: seasonalMultiplier,
+          seasonalAdjustment: `${((seasonalMultiplier - 1) * 100).toFixed(1)}%`,
           finalPrice: finalPrice
         }
       }),

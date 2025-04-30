@@ -1,4 +1,3 @@
-
 import { CarfaxData } from '../carfax/mockCarfaxService';
 
 export interface RulesEngineInput {
@@ -28,6 +27,8 @@ export interface RulesEngineInput {
   recallMultiplier?: number;
   warrantyStatus?: string;
   warrantyMultiplier?: number;
+  saleDate?: string | Date;
+  bodyStyle?: string;
 }
 
 export interface AdjustmentBreakdown {

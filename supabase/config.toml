@@ -28,3 +28,6 @@ enabled = true
 [functions]
 [functions.fetch-market-listings]
 verify_jwt = false
+
+[functions.get-seasonal-factor]
+verify_jwt = false

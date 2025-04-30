@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { supabase } from '@/integrations/supabase/client';
@@ -109,7 +110,9 @@ export const useValuationSubmit = () => {
           fuel_type: formData.fuelType,
           transmission_type: formData.transmissionType,
           has_open_recall: formData.hasOpenRecall || false,
-          warranty_status: formData.warrantyStatus || 'None'
+          warranty_status: formData.warrantyStatus || 'None',
+          sale_date: formData.saleDate || new Date(),
+          body_style: formData.bodyStyle || 'sedan'
         })
         .select('id')
         .single();

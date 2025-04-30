@@ -1,62 +1,44 @@
-export type FeatureOption = {
-  id: string;
-  name: string;
-  icon: string;
-  value: number;
-  category?: string;
-  description?: string;
-};
 
-export type FormData = {
-  identifierType: 'vin' | 'plate' | 'manual' | 'photo';
-  identifier: string;
+export interface FormData {
+  // Vehicle identification
+  vin?: string;
+  licensePlate?: string;
+  state?: string;
+  
+  // Vehicle details
   make: string;
   model: string;
   year: number;
-  mileage: number | null;
-  fuelType: string | null;
-  features: string[];
-  condition: number;
-  conditionLabel: string;
-  hasAccident: boolean;
-  accidentDescription: string;
-  zipCode: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  bodyType?: string;
   trim?: string;
-  vin?: string;
-  // Color multiplier for valuation adjustment
+  mileage?: number;
+  fuelType?: string;
+  zipCode?: string;
+  condition?: number;
+  conditionLabel?: string;
+  
+  // Vehicle features
+  features?: string[];
+  exteriorColor?: string;
   colorMultiplier?: number;
-  // Added fields for prediction results
+  transmissionType?: string;
+  
+  // Vehicle condition
+  hasAccident?: boolean;
+  accidentDescription?: string;
+  photoScore?: number;
+  titleStatus?: string;
+  
+  // Add-ons
+  hasOpenRecall?: boolean;
+  warrantyStatus?: string;
+  
+  // Market factors
+  saleDate?: Date;
+  bodyStyle?: string;
+  
+  // Calculation results
   valuation?: number;
   confidenceScore?: number;
+  priceRange?: [number, number];
   valuationId?: string;
-  // Transmission type
-  transmissionType?: string;
-  // Open recall status
-  hasOpenRecall?: boolean;
-  // Warranty status
-  warrantyStatus?: string;
-};
-
-export interface ValidationRules {
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  pattern?: RegExp;
-  minValue?: number;
-  maxValue?: number;
-  validate?: (value: any) => boolean | string;
 }
-
-export interface FieldValidation {
-  [fieldName: string]: ValidationRules;
-}
-
-export type FormSection = {
-  id: number;
-  title: string;
-  fields: string[];
-  validationRules: FieldValidation;
-};

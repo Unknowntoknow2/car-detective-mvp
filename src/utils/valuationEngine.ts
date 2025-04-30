@@ -51,6 +51,8 @@ export interface ValuationInput {
   warrantyMultiplier?: number;
   marketFactor?: number;
   marketDemand?: string;
+  saleDate?: string | Date;
+  bodyStyle?: string;
 }
 
 export interface ValuationResult {
@@ -93,6 +95,11 @@ export interface ValuationResult {
     demand: string;
     zipCode: string;
   };
+  seasonalInfo?: {
+    saleDate: string | Date;
+    bodyStyle: string;
+    multiplier: number;
+  };
 }
 
 function getBasePrice(make: string, model: string): number {
@@ -128,7 +135,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     transmissionType: input.transmissionType,
     transmissionMultiplier: input.transmissionMultiplier,
     hasOpenRecall: input.hasOpenRecall,
-    warrantyStatus: input.warrantyStatus
+    warrantyStatus: input.warrantyStatus,
+    saleDate: input.saleDate,
+    bodyStyle: input.bodyStyle
   });
   
   // Calculate total adjustment
@@ -238,6 +247,43 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
     }
   }
 
+  // Apply seasonal multiplier if present
+  let seasonalMultiplier = 1.0;
+  if (input.saleDate && input.bodyStyle) {
+    try {
+      const saleDate = new Date(input.saleDate);
+      const month = saleDate.getMonth() + 1;
+      
+      // Determine vehicle type based on body style
+      let vehicleType = 'generic';
+      const bodyStyle = input.bodyStyle.toLowerCase();
+      
+      if (bodyStyle.includes('suv') || bodyStyle.includes('crossover')) {
+        vehicleType = 'suv';
+      } else if (bodyStyle.includes('convertible') || bodyStyle.includes('cabriolet')) {
+        vehicleType = 'convertible';
+      } else if (bodyStyle.includes('sport') || bodyStyle.includes('coupe')) {
+        vehicleType = 'sport';
+      } else if (bodyStyle.includes('truck') || bodyStyle.includes('pickup')) {
+        vehicleType = 'truck';
+      }
+      
+      // Get seasonal multiplier from database
+      const { data: seasonalData } = await supabase
+        .from('seasonal_index')
+        .select(vehicleType)
+        .eq('month', month)
+        .single();
+        
+      if (seasonalData) {
+        seasonalMultiplier = seasonalData[vehicleType];
+        estimatedValue = Math.round(estimatedValue * seasonalMultiplier);
+      }
+    } catch (error) {
+      console.error('Error applying seasonal multiplier:', error);
+    }
+  }
+
   // Create an audit trail
   const auditTrail = rulesEngine.createAuditTrail(
     {
@@ -264,7 +310,9 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       hasOpenRecall: input.hasOpenRecall,
       recallMultiplier: recallMultiplier,
       warrantyStatus: input.warrantyStatus,
-      warrantyMultiplier: warrantyMultiplier
+      warrantyMultiplier: warrantyMultiplier,
+      saleDate: input.saleDate,
+      bodyStyle: input.bodyStyle
     },
     adjustments,
     totalAdjustment
@@ -374,6 +422,15 @@ export async function calculateValuation(input: ValuationInput): Promise<Valuati
       factor: marketMultiplier,
       demand: input.marketDemand || demandLevel,
       zipCode: input.zip
+    };
+  }
+
+  // Add seasonal info if available
+  if (input.saleDate && input.bodyStyle && seasonalMultiplier !== 1.0) {
+    result.seasonalInfo = {
+      saleDate: input.saleDate,
+      bodyStyle: input.bodyStyle,
+      multiplier: seasonalMultiplier
     };
   }
 

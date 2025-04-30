@@ -617,6 +617,36 @@ export type Database = {
         }
         Relationships: []
       }
+      seasonal_index: {
+        Row: {
+          convertible: number
+          description: string | null
+          generic: number
+          month: number
+          sport: number
+          suv: number
+          truck: number
+        }
+        Insert: {
+          convertible: number
+          description?: string | null
+          generic: number
+          month: number
+          sport: number
+          suv: number
+          truck: number
+        }
+        Update: {
+          convertible?: number
+          description?: string | null
+          generic?: number
+          month?: number
+          sport?: number
+          suv?: number
+          truck?: number
+        }
+        Relationships: []
+      }
       title_status: {
         Row: {
           created_at: string | null
@@ -691,6 +721,7 @@ export type Database = {
           accident_count: number | null
           auction_avg_price: number | null
           base_price: number | null
+          body_style: string | null
           body_type: string | null
           color: string | null
           condition_score: number | null
@@ -706,6 +737,8 @@ export type Database = {
           mileage: number | null
           model: string | null
           plate: string | null
+          sale_date: string | null
+          seasonal_multiplier: number | null
           state: string | null
           user_id: string
           vin: string | null
@@ -717,6 +750,7 @@ export type Database = {
           accident_count?: number | null
           auction_avg_price?: number | null
           base_price?: number | null
+          body_style?: string | null
           body_type?: string | null
           color?: string | null
           condition_score?: number | null
@@ -732,6 +766,8 @@ export type Database = {
           mileage?: number | null
           model?: string | null
           plate?: string | null
+          sale_date?: string | null
+          seasonal_multiplier?: number | null
           state?: string | null
           user_id: string
           vin?: string | null
@@ -743,6 +779,7 @@ export type Database = {
           accident_count?: number | null
           auction_avg_price?: number | null
           base_price?: number | null
+          body_style?: string | null
           body_type?: string | null
           color?: string | null
           condition_score?: number | null
@@ -758,6 +795,8 @@ export type Database = {
           mileage?: number | null
           model?: string | null
           plate?: string | null
+          sale_date?: string | null
+          seasonal_multiplier?: number | null
           state?: string | null
           user_id?: string
           vin?: string | null
