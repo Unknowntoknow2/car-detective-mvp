@@ -1,7 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Car, Check } from 'lucide-react';
 import { useVehicleData } from '@/hooks/useVehicleData';
+import { Combobox } from '@/components/ui/combobox';
+import { FormValidationError } from '@/components/premium/common/FormValidationError';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MakeModelSelectProps {
   selectedMakeId: string;
@@ -9,6 +13,7 @@ interface MakeModelSelectProps {
   selectedModel: string;
   setSelectedModel: (model: string) => void;
   isDisabled?: boolean;
+  errors?: Record<string, string>;
 }
 
 export function MakeModelSelect({
@@ -16,89 +21,98 @@ export function MakeModelSelect({
   setSelectedMakeId,
   selectedModel,
   setSelectedModel,
-  isDisabled
+  isDisabled = false,
+  errors = {}
 }: MakeModelSelectProps) {
-  const { makes, isLoading } = useVehicleData();
-  const [availableModels, setAvailableModels] = useState<any[]>([]);
-  
-  // Use the getModelsByMakeId function directly
+  const { makes, getModelsForMake, isLoading } = useVehicleData();
+  const [models, setModels] = useState<Array<{ value: string; label: string }>>([]);
+  const [selectedMakeName, setSelectedMakeName] = useState('');
+
   useEffect(() => {
-    const fetchModels = async () => {
-      if (selectedMakeId) {
-        try {
-          // Find the make object
-          const selectedMake = makes.find(make => make.id === selectedMakeId);
-          if (selectedMake) {
-            // Import directly to avoid circular dependency
-            const { getModelsByMakeId } = await import('@/api/vehicleApi');
-            const models = await getModelsByMakeId(selectedMakeId);
-            console.log(`Fetched ${models.length} models for make ${selectedMake.make_name} (ID: ${selectedMakeId})`);
-            setAvailableModels(models);
-          }
-        } catch (error) {
-          console.error('Error fetching models:', error);
-          setAvailableModels([]);
-        }
-      } else {
-        setAvailableModels([]);
+    if (selectedMakeId && getModelsForMake) {
+      const fetchedModels = getModelsForMake(selectedMakeId).map(model => ({
+        value: model,
+        label: model
+      }));
+      setModels(fetchedModels);
+      
+      // Find make name
+      const make = makes?.find(m => m.value === selectedMakeId);
+      if (make) {
+        setSelectedMakeName(make.label);
       }
-    };
-    
-    fetchModels();
-  }, [selectedMakeId, makes]);
+    } else {
+      setModels([]);
+    }
+  }, [selectedMakeId, getModelsForMake, makes]);
+
+  const handleMakeSelect = (value: string) => {
+    setSelectedMakeId(value);
+    setSelectedModel(''); // Reset model when make changes
+  };
+
+  const makeOptions = makes?.map(make => ({
+    value: make.value,
+    label: make.label
+  })) || [];
 
   return (
     <>
-      <Select 
-        value={selectedMakeId} 
-        onValueChange={(value) => {
-          console.log("Selected make ID:", value);
-          setSelectedMakeId(value);
-          setSelectedModel(''); // Reset model when make changes
-        }}
-        disabled={isDisabled || isLoading}
-      >
-        <SelectTrigger className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary">
-          <SelectValue placeholder="Select Make" />
-        </SelectTrigger>
-        <SelectContent className="max-h-[300px]">
-          {makes.map(make => (
-            <SelectItem 
-              key={make.id} 
-              value={make.id}
-              className="py-2.5 cursor-pointer hover:bg-primary/10"
-            >
-              {make.make_name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-2">
+        <Label htmlFor="make" className="text-sm font-medium text-slate-700">
+          Make <span className="text-red-500">*</span>
+        </Label>
+        
+        {isLoading ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <>
+            <Combobox
+              id="make"
+              options={makeOptions}
+              value={selectedMakeId}
+              onChange={handleMakeSelect}
+              placeholder="Select make"
+              emptyMessage="No makes found"
+              disabled={isDisabled}
+              className={errors.make ? 'border-red-300' : ''}
+            />
+            {errors.make && <FormValidationError error={errors.make} />}
+          </>
+        )}
+      </div>
 
-      <Select 
-        value={selectedModel}
-        onValueChange={setSelectedModel}
-        disabled={!selectedMakeId || isDisabled || isLoading}
-      >
-        <SelectTrigger className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary">
-          <SelectValue placeholder={selectedMakeId ? "Select Model" : "Select make first"} />
-        </SelectTrigger>
-        <SelectContent className="max-h-[300px]">
-          {availableModels.map(model => (
-            <SelectItem 
-              key={model.id} 
-              value={model.model_name}
-              className="py-2.5 cursor-pointer hover:bg-primary/10"
-            >
-              {model.model_name}
-            </SelectItem>
-          ))}
-          {selectedMakeId && availableModels.length === 0 && (
-            <div className="p-2 text-center text-muted-foreground">
-              {isLoading ? "Loading models..." : "No models available"}
-            </div>
-          )}
-        </SelectContent>
-      </Select>
+      <div className="space-y-2">
+        <Label htmlFor="model" className="text-sm font-medium text-slate-700">
+          Model <span className="text-red-500">*</span>
+        </Label>
+        
+        {isLoading || (selectedMakeId && !models.length) ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <>
+            <Combobox
+              id="model"
+              options={models}
+              value={selectedModel}
+              onChange={setSelectedModel}
+              placeholder={
+                selectedMakeId 
+                  ? `Select ${selectedMakeName} model` 
+                  : "Select make first"
+              }
+              emptyMessage={
+                selectedMakeId 
+                  ? `No models found for ${selectedMakeName}` 
+                  : "Select a make first"
+              }
+              disabled={isDisabled || !selectedMakeId}
+              className={errors.model ? 'border-red-300' : ''}
+            />
+            {errors.model && <FormValidationError error={errors.model} />}
+          </>
+        )}
+      </div>
     </>
   );
 }

@@ -50,5 +50,6 @@ export const US_STATES = [
   { value: 'WV', label: 'West Virginia' },
   { value: 'WI', label: 'Wisconsin' },
   { value: 'WY', label: 'Wyoming' },
-  { value: 'DC', label: 'District of Columbia' }
+  { value: 'DC', label: 'District of Columbia' },
+  { value: 'PR', label: 'Puerto Rico' },
 ];
