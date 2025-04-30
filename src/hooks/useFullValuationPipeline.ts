@@ -57,7 +57,7 @@ export function useFullValuationPipeline() {
   };
 
   // Step 1: Run lookup by VIN or plate
-  const runLookup = async (type: IdentifierType, identifier: string) => {
+  const runLookup = async (type: IdentifierType, identifier: string, state?: string) => {
     setStage('lookup_in_progress');
     setError(null);
     
@@ -65,8 +65,8 @@ export function useFullValuationPipeline() {
       // Call the Supabase edge function to decode the VIN/plate
       const functionName = type === 'vin' ? 'decode-vin' : 'decode-plate';
       const requestBody = type === 'vin' ? { vin: identifier } : {
-        plate: identifier.split(':')[1],
-        state: identifier.split(':')[0]
+        plate: identifier,
+        state: state || ''
       };
       
       const { data, error } = await supabase.functions.invoke(functionName, {

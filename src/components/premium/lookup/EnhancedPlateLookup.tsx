@@ -61,71 +61,71 @@ export function EnhancedPlateLookup({
 
   // Render based on the stage of our pipeline
   const renderContent = () => {
-    switch (stage) {
-      case 'initial':
-      case 'lookup':
-        return (
-          <EnhancedPlateForm
+    if (stage === 'initial' || stage === 'lookup_in_progress' || stage === 'lookup_failed') {
+      return (
+        <EnhancedPlateForm
+          plateValue={plateValue}
+          stateValue={stateValue}
+          isLoading={isLoading}
+          onPlateChange={onPlateChange || (() => {})}
+          onStateChange={onStateChange || (() => {})}
+          onSubmit={handleSubmit}
+          error={error}
+        />
+      );
+    }
+    
+    if (stage === 'details_required') {
+      return (
+        <div className="space-y-6">
+          <VehicleFoundCard 
+            vehicle={vehicle || {}}
             plateValue={plateValue}
             stateValue={stateValue}
-            isLoading={isLoading}
-            onPlateChange={onPlateChange || (() => {})}
-            onStateChange={onStateChange || (() => {})}
-            onSubmit={handleSubmit}
-            error={error}
           />
-        );
-      
-      case 'details_required':
-        return (
-          <div className="space-y-6">
-            <VehicleFoundCard 
-              vehicle={vehicle || {}}
-              plateValue={plateValue}
-              stateValue={stateValue}
+          
+          {requiredInputs && (
+            <VehicleDetailsForm
+              initialData={requiredInputs}
+              onSubmit={handleDetailsSubmit}
+              isLoading={isLoading}
             />
-            
-            {requiredInputs && (
-              <VehicleDetailsForm
-                initialData={requiredInputs}
-                onSubmit={handleDetailsSubmit}
-                isLoading={isLoading}
-              />
-            )}
-          </div>
-        );
-      
-      case 'valuation_complete':
-        return (
-          <ValuationResults
-            estimatedValue={valuationResult?.estimated_value || 0}
-            confidenceScore={valuationResult?.confidence_score || 0}
-            basePrice={valuationResult?.base_price}
-            adjustments={valuationResult?.adjustments}
-            priceRange={valuationResult?.price_range}
-            demandFactor={valuationResult?.zip_demand_factor}
-            vehicleInfo={{
-              year: vehicle?.year || 0,
-              make: vehicle?.make || '',
-              model: vehicle?.model || '',
-              trim: vehicle?.trim || '',
-              mileage: requiredInputs?.mileage || undefined,
-              condition: requiredInputs?.conditionLabel
-            }}
-          />
-        );
-      
-      case 'error':
-        return (
-          <ValuationErrorState 
-            error={error}
-            onRetry={handleRetry}
-          />
-        );
-      
-      default:
-        return null;
+          )}
+        </div>
+      );
     }
+    
+    if (stage === 'valuation_complete') {
+      return (
+        <ValuationResults
+          estimatedValue={valuationResult?.estimated_value || 0}
+          confidenceScore={valuationResult?.confidence_score || 0}
+          basePrice={valuationResult?.base_price}
+          adjustments={valuationResult?.adjustments}
+          priceRange={valuationResult?.price_range}
+          demandFactor={valuationResult?.zip_demand_factor}
+          vehicleInfo={{
+            year: vehicle?.year || 0,
+            make: vehicle?.make || '',
+            model: vehicle?.model || '',
+            trim: vehicle?.trim || '',
+            mileage: requiredInputs?.mileage || undefined,
+            condition: requiredInputs?.conditionLabel
+          }}
+        />
+      );
+    }
+    
+    if (stage === 'valuation_failed') {
+      return (
+        <ValuationErrorState 
+          error={error}
+          onRetry={handleRetry}
+        />
+      );
+    }
+    
+    return null;
   };
 
   return renderContent();
