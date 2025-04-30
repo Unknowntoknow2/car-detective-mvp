@@ -1,5 +1,6 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { FactorSlider, ConditionOption } from './FactorSlider';
 
 describe('FactorSlider Component', () => {
@@ -11,7 +12,7 @@ describe('FactorSlider Component', () => {
     { value: 100, label: 'Excellent', tip: 'Like new condition', multiplier: 1.05 },
   ];
 
-  const mockOnChange = jest.fn();
+  const mockOnChange = vi.fn();
 
   it('renders with correct initial value and label', () => {
     render(
