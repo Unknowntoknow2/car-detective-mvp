@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { FormData } from '@/types/premium-valuation';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
-import { Check, AlertTriangle } from 'lucide-react';
+import { AccidentToggle } from './AccidentToggle';
 
 interface AccidentHistorySectionProps {
   formData: FormData;
@@ -33,33 +33,10 @@ export function AccidentHistorySection({ formData, setFormData, errors }: Accide
     <div className="mt-8 space-y-4">
       <h3 className="text-lg font-medium text-gray-900">Accident History</h3>
       
-      <div className="flex space-x-4">
-        <button
-          type="button"
-          onClick={() => toggleAccidentHistory(false)}
-          className={`flex items-center px-4 py-2 border rounded-md ${
-            formData.hasAccident === false 
-              ? 'bg-green-50 border-green-200 text-green-700' 
-              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <Check className="w-4 h-4 mr-2" />
-          No Accidents
-        </button>
-        
-        <button
-          type="button"
-          onClick={() => toggleAccidentHistory(true)}
-          className={`flex items-center px-4 py-2 border rounded-md ${
-            formData.hasAccident === true 
-              ? 'bg-amber-50 border-amber-200 text-amber-700' 
-              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <AlertTriangle className="w-4 h-4 mr-2" />
-          Has Accident History
-        </button>
-      </div>
+      <AccidentToggle 
+        hasAccident={formData.hasAccident} 
+        onToggle={toggleAccidentHistory} 
+      />
       
       {formData.hasAccident && (
         <div className="space-y-2 mt-4">
