@@ -1,143 +1,204 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { CalendarIcon, Upload } from 'lucide-react';
+import { FileDropzone } from './FileDropzone';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { FileDropzone } from './FileDropzone';
 import { ServiceDetailsForm } from './ServiceDetailsForm';
 import { UploadStatusButton } from './UploadStatusButton';
 
 interface ServiceHistoryUploaderProps {
-  vin: string;
-  onUploadComplete?: (fileUrl: string) => void;
+  initialVin?: string;
+  onUploadComplete?: () => void;
 }
 
-export function ServiceHistoryUploader({ vin, onUploadComplete }: ServiceHistoryUploaderProps) {
-  const [files, setFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+export function ServiceHistoryUploader({ initialVin, onUploadComplete }: ServiceHistoryUploaderProps) {
+  const [vin, setVin] = useState(initialVin || '');
+  const [file, setFile] = useState<File | null>(null);
   const [serviceDate, setServiceDate] = useState('');
-  const [mileage, setMileage] = useState('');
+  const [mileage, setMileage] = useState<number | null>(null);
   const [description, setDescription] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files);
-      setFiles(prev => [...prev, ...selectedFiles]);
-    }
+  const handleFileSelect = (selectedFile: File) => {
+    setFile(selectedFile);
   };
 
-  const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+  const resetForm = () => {
+    setFile(null);
+    setServiceDate('');
+    setMileage(null);
+    setDescription('');
+    setUploadProgress(0);
   };
 
   const validateForm = () => {
-    if (files.length === 0) {
-      toast.error("Please select at least one service receipt to upload");
+    if (!vin || vin.length !== 17) {
+      toast.error('Please enter a valid 17-character VIN');
       return false;
     }
-
+    
     if (!serviceDate) {
-      toast.error("Please enter the service date");
+      toast.error('Please select a service date');
       return false;
     }
-
+    
+    if (!description) {
+      toast.error('Please provide a description of the service');
+      return false;
+    }
+    
     return true;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (!validateForm()) return;
     
     setIsUploading(true);
+    setUploadProgress(10);
     
     try {
-      // Upload file to storage
-      const file = files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${vin}_${Date.now()}.${fileExt}`;
-      const filePath = `${vin}/${fileName}`;
+      // First check if vehicle exists, if not create it
+      const { data: vehicleData, error: vehicleError } = await supabase
+        .from('vehicles')
+        .select('vin')
+        .eq('vin', vin)
+        .maybeSingle();
       
-      const { data, error } = await supabase.storage
-        .from('service-receipts')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      if (vehicleError) throw vehicleError;
       
-      if (error) throw error;
+      if (!vehicleData) {
+        // Create vehicle record
+        const { error: createVehicleError } = await supabase
+          .from('vehicles')
+          .insert({ 
+            vin, 
+            has_full_service_history: false,
+            num_owners: 1,
+            title_brand: 'Clean'
+          });
+        
+        if (createVehicleError) throw createVehicleError;
+      }
       
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('service-receipts')
-        .getPublicUrl(filePath);
+      setUploadProgress(30);
       
-      // Save service record to database
-      const { error: insertError } = await supabase
+      let receiptUrl = '';
+      
+      // Upload receipt file if provided
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${vin}_${Date.now()}.${fileExt}`;
+        const filePath = `service_receipts/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('service_documents')
+          .upload(filePath, file);
+        
+        if (uploadError) throw uploadError;
+        
+        // Get public URL
+        const { data } = supabase.storage
+          .from('service_documents')
+          .getPublicUrl(filePath);
+        
+        receiptUrl = data.publicUrl;
+      }
+      
+      setUploadProgress(70);
+      
+      // Create service history record
+      const { error: serviceHistoryError } = await supabase
         .from('service_history')
         .insert({
           vin,
           service_date: serviceDate,
-          mileage: mileage ? parseInt(mileage) : null,
+          mileage,
           description,
-          receipt_url: urlData?.publicUrl
+          receipt_url: receiptUrl || null
         });
       
-      if (insertError) throw insertError;
+      if (serviceHistoryError) throw serviceHistoryError;
       
-      // Update the vehicle record to indicate it has service history
-      await supabase
+      // Update vehicle to indicate it has service history
+      const { error: updateVehicleError } = await supabase
         .from('vehicles')
         .update({ has_full_service_history: true })
         .eq('vin', vin);
       
-      toast.success("Service record has been saved");
-
-      if (onUploadComplete && urlData?.publicUrl) {
-        onUploadComplete(urlData.publicUrl);
-      }
+      if (updateVehicleError) throw updateVehicleError;
+      
+      setUploadProgress(100);
+      toast.success('Service record added successfully');
       
       // Reset form
-      setFiles([]);
-      setServiceDate('');
-      setMileage('');
-      setDescription('');
+      resetForm();
       
+      // Call the callback if provided
+      if (onUploadComplete) {
+        onUploadComplete();
+      }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred while uploading the file");
+      console.error('Error uploading service record:', error);
+      toast.error(`Failed to add service record: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <div className="space-y-4 p-4 bg-white rounded-md border">
-      <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-lg font-medium">Upload Service Records</h3>
-        <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-          Improves valuation accuracy
-        </div>
-      </div>
-      
-      <ServiceDetailsForm 
-        serviceDate={serviceDate}
-        mileage={mileage}
-        description={description}
-        onServiceDateChange={setServiceDate}
-        onMileageChange={setMileage}
-        onDescriptionChange={setDescription}
-      />
-      
-      <FileDropzone 
-        files={files}
-        onFileChange={handleFileChange}
-        onRemoveFile={removeFile}
-      />
-
-      <div className="mt-4">
-        <UploadStatusButton 
-          isUploading={isUploading}
-          disabled={files.length === 0}
-          onSubmit={handleSubmit}
-        />
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5" />
+          Add Service History Record
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
+            <Input
+              id="vin"
+              value={vin}
+              onChange={(e) => setVin(e.target.value.toUpperCase())}
+              placeholder="Enter 17-character VIN"
+              maxLength={17}
+              className="font-mono"
+              disabled={isUploading || !!initialVin}
+            />
+          </div>
+          
+          <ServiceDetailsForm 
+            serviceDate={serviceDate}
+            setServiceDate={setServiceDate}
+            mileage={mileage}
+            setMileage={setMileage}
+            description={description}
+            setDescription={setDescription}
+            isDisabled={isUploading}
+          />
+          
+          <div className="space-y-2">
+            <Label>Service Receipt (Optional)</Label>
+            <FileDropzone onFileSelect={handleFileSelect} selectedFile={file} disabled={isUploading} />
+          </div>
+          
+          <UploadStatusButton 
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
+            onCancel={() => setIsUploading(false)}
+          />
+        </form>
+      </CardContent>
+    </Card>
   );
 }

@@ -2,57 +2,65 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ServiceDetailsFormProps {
   serviceDate: string;
-  mileage: string;
+  setServiceDate: (date: string) => void;
+  mileage: number | null;
+  setMileage: (mileage: number | null) => void;
   description: string;
-  onServiceDateChange: (value: string) => void;
-  onMileageChange: (value: string) => void;
-  onDescriptionChange: (value: string) => void;
+  setDescription: (description: string) => void;
+  isDisabled: boolean;
 }
 
-export function ServiceDetailsForm({ 
-  serviceDate, 
-  mileage, 
+export function ServiceDetailsForm({
+  serviceDate,
+  setServiceDate,
+  mileage,
+  setMileage,
   description,
-  onServiceDateChange,
-  onMileageChange,
-  onDescriptionChange
+  setDescription,
+  isDisabled
 }: ServiceDetailsFormProps) {
   return (
-    <div className="grid gap-4 mb-4">
-      <div>
-        <Label htmlFor="service-date">Service Date</Label>
-        <Input 
-          id="service-date" 
-          type="date" 
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="serviceDate">Service Date</Label>
+        <Input
+          id="serviceDate"
+          type="date"
           value={serviceDate}
-          onChange={(e) => onServiceDateChange(e.target.value)}
-          required
+          onChange={(e) => setServiceDate(e.target.value)}
+          disabled={isDisabled}
+          max={new Date().toISOString().split('T')[0]}
         />
       </div>
       
-      <div>
-        <Label htmlFor="mileage">Mileage at Service</Label>
-        <Input 
-          id="mileage" 
-          type="number" 
-          placeholder="e.g. 45000"
-          value={mileage}
-          onChange={(e) => onMileageChange(e.target.value)}
+      <div className="space-y-2">
+        <Label htmlFor="mileage">Mileage</Label>
+        <Input
+          id="mileage"
+          type="number"
+          placeholder="Enter vehicle mileage"
+          value={mileage || ''}
+          onChange={(e) => setMileage(e.target.value ? parseInt(e.target.value) : null)}
+          disabled={isDisabled}
+          min={0}
         />
       </div>
       
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="description">Service Description</Label>
-        <Input 
-          id="description" 
-          placeholder="e.g. Oil change, brake service"
+        <Textarea
+          id="description"
+          placeholder="Describe the service performed"
           value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
+          onChange={(e) => setDescription(e.target.value)}
+          disabled={isDisabled}
+          rows={3}
         />
       </div>
-    </div>
+    </>
   );
 }
