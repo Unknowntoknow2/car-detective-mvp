@@ -114,16 +114,15 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
     console.log(`Fetching models for make ID: ${makeId}`);
     
     // Fix: Handle different makeId formats with clearer type checking
-    let queryMakeId: number | string;
+    let queryMakeId: string | number = makeId;
     
     // Check if it's a UUID (contains '-')
-    if (typeof makeId === 'string' && makeId.includes('-')) {
-      // Use it directly as a string for UUID
-      queryMakeId = makeId;
-    } else {
+    if (!makeId.includes('-')) {
       // Try to convert to number if it's a numeric string
       const parsedId = parseInt(makeId, 10);
-      queryMakeId = !isNaN(parsedId) ? parsedId : makeId;
+      if (!isNaN(parsedId)) {
+        queryMakeId = parsedId;
+      }
     }
     
     console.log(`Using make ID for query: ${queryMakeId} (type: ${typeof queryMakeId})`);
