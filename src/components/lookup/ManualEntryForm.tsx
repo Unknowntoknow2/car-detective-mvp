@@ -53,7 +53,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   isPremium = false
 }) => {
   const navigate = useNavigate();
-  const { isLoading: isDataLoading } = useVehicleData();
+  // Fixed the call to useVehicleData by passing an empty string as vin
+  const { isLoading: isDataLoading } = useVehicleData('');
   const { calculateValuation, isLoading: isValuationLoading } = useManualValuation();
   const [conditionValue, setConditionValue] = useState(75);
 

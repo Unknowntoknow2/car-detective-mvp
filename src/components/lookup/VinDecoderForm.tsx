@@ -33,6 +33,12 @@ export const VinDecoderForm = () => {
     handleDownloadPdf
   } = useVinDecoderForm();
 
+  // Modified function signature to return Promise<void> to fix type error
+  const handleDetailsSubmit = async (details: any): Promise<void> => {
+    await submitValuation(details);
+    // We don't return the result anymore, making it void
+  };
+
   const onDownloadPdf = () => {
     const reportData = handleDownloadPdf();
     if (reportData) {
@@ -71,7 +77,7 @@ export const VinDecoderForm = () => {
         valuationResult={valuationResult}
         valuationError={valuationError}
         pipelineLoading={pipelineLoading}
-        submitValuation={submitValuation}
+        submitValuation={handleDetailsSubmit}
         vin={vin}
         carfaxData={carfaxData}
         onDownloadPdf={onDownloadPdf}

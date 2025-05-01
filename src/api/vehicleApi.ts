@@ -38,6 +38,25 @@ export async function fetchVehicleDetails(vin: string): Promise<VehicleDetails |
   }
 }
 
+export async function getModelsByMakeId(makeId: string): Promise<any[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/models?make_id=${makeId}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return [];
+      }
+      throw new Error(`Failed to fetch models: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching models by make ID:", error);
+    return [];
+  }
+}
+
 export async function fetchAverageMarketValue(year: number, make: string, model: string, zip?: string): Promise<number> {
   try {
     const yearAsNumber = typeof year === 'string' ? parseInt(year, 10) : year;
