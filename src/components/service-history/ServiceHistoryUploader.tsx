@@ -76,41 +76,28 @@ export function ServiceHistoryUploader({ vin, onUploadComplete }: ServiceHistory
         .from('service-receipts')
         .getPublicUrl(filePath);
       
-      // Save service record to database using manual query since TypeScript doesn't know about our new tables yet
-      const { error: dbError } = await supabase.rpc('insert_service_history', {
-        p_vin: vin,
-        p_service_date: serviceDate,
-        p_mileage: mileage ? parseInt(mileage) : null,
-        p_description: description,
-        p_receipt_url: urlData?.publicUrl
-      });
-      
-      if (dbError) {
-        // Fallback to direct insert if RPC fails
-        const { error: insertError } = await supabase.from('service_history').insert({
+      // Save service record to database
+      const { error: insertError } = await supabase
+        .from('service_history')
+        .insert({
           vin,
           service_date: serviceDate,
           mileage: mileage ? parseInt(mileage) : null,
           description,
           receipt_url: urlData?.publicUrl
         });
-        
-        if (insertError) throw insertError;
-      }
+      
+      if (insertError) throw insertError;
       
       // Update the vehicle record to indicate it has service history
-      await supabase.rpc('update_vehicle_service_history', {
-        p_vin: vin,
-        p_has_history: true
-      }).catch(() => {
-        // Fallback to direct upsert if RPC fails
-        supabase.from('vehicles').upsert({ 
+      await supabase
+        .from('vehicles')
+        .upsert({ 
           vin, 
           has_full_service_history: true 
         }, { 
           onConflict: 'vin'
         });
-      });
       
       toast({
         title: "Upload successful",

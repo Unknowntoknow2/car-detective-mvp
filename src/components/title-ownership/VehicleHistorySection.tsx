@@ -41,66 +41,43 @@ export function VehicleHistorySection() {
 
     setIsLoading(true);
     try {
-      // Use raw SQL query since TypeScript doesn't know about our new tables yet
-      const { data, error } = await supabase.rpc('get_vehicle_by_vin', { p_vin: vin });
+      // Use direct query
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('vin', vin)
+        .single();
 
       if (error) {
-        // Fallback to direct query
-        const { data: directData, error: directError } = await supabase
-          .from('vehicles')
-          .select('*')
-          .eq('vin', vin)
-          .single();
-
-        if (directError && directError.code !== 'PGRST116') { // Not found error code
-          throw directError;
-        }
-
-        if (directData) {
-          const typedData = directData as unknown as VehicleHistoryData;
-          setVehicleData(typedData);
-          setTitleStatus(typedData.title_brand || 'Clean');
-          setNumberOfOwners(typedData.num_owners || 1);
-          setHasFullServiceHistory(typedData.has_full_service_history || false);
-          toast.success('Vehicle history loaded successfully');
+        if (error.code === 'PGRST116') { // Not found error code
+          // Vehicle not in database yet, set default values
+          setVehicleData(null);
+          setTitleStatus('Clean');
+          setNumberOfOwners(1);
+          setHasFullServiceHistory(false);
+          
+          // Create the vehicle record
+          await supabase.from('vehicles').insert({
+            vin,
+            title_brand: 'Clean',
+            num_owners: 1,
+            has_full_service_history: false
+          });
+          
+          toast.info('No previous history found for this VIN. Starting fresh.');
           return;
         }
-      } else if (data) {
-        // RPC worked
-        const typedData = data as unknown as VehicleHistoryData;
-        setVehicleData(typedData);
-        setTitleStatus(typedData.title_brand || 'Clean');
-        setNumberOfOwners(typedData.num_owners || 1);
-        setHasFullServiceHistory(typedData.has_full_service_history || false);
-        toast.success('Vehicle history loaded successfully');
-        return;
+        throw error;
       }
 
-      // Vehicle not in database yet, set default values
-      setVehicleData(null);
-      setTitleStatus('Clean');
-      setNumberOfOwners(1);
-      setHasFullServiceHistory(false);
+      // Process the returned data
+      const typedData = data as unknown as VehicleHistoryData;
+      setVehicleData(typedData);
+      setTitleStatus(typedData.title_brand || 'Clean');
+      setNumberOfOwners(typedData.num_owners || 1);
+      setHasFullServiceHistory(typedData.has_full_service_history || false);
+      toast.success('Vehicle history loaded successfully');
       
-      // Create the vehicle record using RPC
-      const insertResult = await supabase.rpc('insert_vehicle', {
-        p_vin: vin, 
-        p_title_brand: 'Clean',
-        p_num_owners: 1,
-        p_has_full_service_history: false
-      });
-      
-      if (insertResult.error) {
-        // Fallback to direct insert
-        await supabase.from('vehicles').insert({
-          vin,
-          title_brand: 'Clean',
-          num_owners: 1,
-          has_full_service_history: false
-        });
-      }
-      
-      toast.info('No previous history found for this VIN. Starting fresh.');
     } catch (error: any) {
       console.error('Error fetching vehicle history:', error);
       toast.error('Failed to fetch vehicle history: ' + error.message);
@@ -117,29 +94,19 @@ export function VehicleHistorySection() {
 
     setIsLoading(true);
     try {
-      // Use RPC for update
-      const result = await supabase.rpc('update_vehicle_history', {
-        p_vin: vin,
-        p_title_brand: titleStatus,
-        p_num_owners: numberOfOwners,
-        p_has_full_service_history: hasFullServiceHistory
-      });
-      
-      if (result.error) {
-        // Fallback to direct upsert
-        const { error } = await supabase
-          .from('vehicles')
-          .upsert({
-            vin,
-            title_brand: titleStatus,
-            num_owners: numberOfOwners,
-            has_full_service_history: hasFullServiceHistory
-          }, {
-            onConflict: 'vin'
-          });
-  
-        if (error) throw error;
-      }
+      // Direct upsert operation
+      const { error } = await supabase
+        .from('vehicles')
+        .upsert({
+          vin,
+          title_brand: titleStatus,
+          num_owners: numberOfOwners,
+          has_full_service_history: hasFullServiceHistory
+        }, {
+          onConflict: 'vin'
+        });
+
+      if (error) throw error;
       
       setVehicleData({
         vin,

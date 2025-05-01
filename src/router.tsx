@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
+import HomePage from './pages/Home';
 import VinLookupPage from './pages/VinLookupPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
-import NotFoundPage from './pages/NotFoundPage';
+import NotFoundPage from './pages/NotFound';
 import VehicleHistoryPage from './pages/VehicleHistoryPage'; // Import the new page
 
 const router = createBrowserRouter([
