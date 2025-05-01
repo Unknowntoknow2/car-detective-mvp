@@ -5,7 +5,7 @@ import HomePage from './pages/Home';
 import VinLookupPage from './pages/VinLookupPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import NotFoundPage from './pages/NotFound';
-import VehicleHistoryPage from './pages/VehicleHistoryPage'; // Import the new page
+import VehicleHistoryPage from './pages/VehicleHistoryPage';
 
 const router = createBrowserRouter([
   {
