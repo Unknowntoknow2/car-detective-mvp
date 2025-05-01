@@ -32,7 +32,7 @@ export function ServiceHistorySection({
       
       {showServiceUploader && (
         <ServiceHistoryUploader 
-          vin={vin} 
+          initialVin={vin} 
           onUploadComplete={() => {
             onUploadComplete();
             onToggleUploader();
