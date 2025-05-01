@@ -16,7 +16,6 @@ export class RecallCalculator implements Calculator {
     }
 
     // Calculate value reduction (default to 1 recall if no specific count provided)
-    // We need to use the optional chaining operator here since recallCount might not exist
     const recallCount = input.hasOpenRecall ? (input.recallCount ?? 1) : 0;
     const percentAdjustment = this.RECALL_ADJUSTMENT_PERCENTAGE * recallCount;
     const valueAdjustment = input.basePrice * percentAdjustment;

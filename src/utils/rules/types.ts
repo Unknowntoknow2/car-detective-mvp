@@ -25,7 +25,7 @@ export interface RulesEngineInput {
   transmissionType?: string;
   transmissionMultiplier?: number;
   hasOpenRecall?: boolean;
-  recallCount?: number; // Added this field
+  recallCount?: number; // Number of open recalls
   recallMultiplier?: number;
   warrantyStatus?: string;
   warrantyMultiplier?: number;
