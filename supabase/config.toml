@@ -6,3 +6,7 @@ verify_jwt = false
 
 [functions.fetch_nicb_vincheck]
 verify_jwt = true
+
+[functions.fetch_vpic_data]
+verify_jwt = true
+

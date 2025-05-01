@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route } from 'react-router-dom';
 import HomePage from './pages/Home';
@@ -6,6 +7,7 @@ import PremiumValuationPage from './pages/PremiumValuationPage';
 import NotFoundPage from './pages/NotFound';
 import VehicleHistoryPage from './pages/VehicleHistoryPage';
 import NicbVinCheckPage from './pages/NicbVinCheckPage';
+import VpicDecoderPage from './pages/VpicDecoderPage';
 
 const router = createBrowserRouter([
   {
@@ -27,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "/nicb-check",
     element: <NicbVinCheckPage />,
+  },
+  {
+    path: "/vpic-decode",
+    element: <VpicDecoderPage />,
   },
   {
     path: '*',

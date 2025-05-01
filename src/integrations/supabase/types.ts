@@ -1002,6 +1002,24 @@ export type Database = {
         }
         Relationships: []
       }
+      vpic_cache: {
+        Row: {
+          fetched_at: string | null
+          vin: string
+          vpic_data: Json
+        }
+        Insert: {
+          fetched_at?: string | null
+          vin: string
+          vpic_data: Json
+        }
+        Update: {
+          fetched_at?: string | null
+          vin?: string
+          vpic_data?: Json
+        }
+        Relationships: []
+      }
       warranty_options: {
         Row: {
           description: string | null
