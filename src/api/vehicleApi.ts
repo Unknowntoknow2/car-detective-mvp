@@ -113,28 +113,25 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
   try {
     console.log(`Fetching models for make ID: ${makeId}`);
     
-    // Handle different makeId formats
-    let numericMakeId: number | string = makeId;
+    // Fix: Handle different makeId formats with clearer type checking
+    let queryMakeId: number | string;
     
-    // If makeId is a UUID string that can't be converted to a number, use it as is
+    // Check if it's a UUID (contains '-')
     if (typeof makeId === 'string' && makeId.includes('-')) {
-      // This is likely a UUID, use it directly
-      numericMakeId = makeId;
-    } else if (typeof makeId === 'string') {
+      // Use it directly as a string for UUID
+      queryMakeId = makeId;
+    } else {
       // Try to convert to number if it's a numeric string
-      const parsed = parseInt(makeId, 10);
-      if (!isNaN(parsed)) {
-        numericMakeId = parsed;
-      }
-      // If conversion fails, use the original string
+      const parsedId = parseInt(makeId, 10);
+      queryMakeId = !isNaN(parsedId) ? parsedId : makeId;
     }
     
-    console.log(`Using make ID for query: ${numericMakeId} (type: ${typeof numericMakeId})`);
+    console.log(`Using make ID for query: ${queryMakeId} (type: ${typeof queryMakeId})`);
     
     const { data, error } = await supabase
       .from('models')
       .select('*')
-      .eq('make_id', numericMakeId)
+      .eq('make_id', queryMakeId)
       .order('model_name');
     
     if (error) {
