@@ -36,6 +36,7 @@ export function ServiceHistoryDisplay({ vin }: ServiceHistoryDisplayProps) {
         setIsLoading(true);
         setError(null);
 
+        // Using manual query since TypeScript doesn't know about our new tables yet
         const { data, error } = await supabase
           .from('service_history')
           .select('*')
@@ -44,7 +45,7 @@ export function ServiceHistoryDisplay({ vin }: ServiceHistoryDisplayProps) {
 
         if (error) throw error;
 
-        setRecords(data || []);
+        setRecords(data as ServiceRecord[] || []);
       } catch (err: any) {
         setError(err.message || 'Failed to load service history');
         console.error('Error fetching service history:', err);

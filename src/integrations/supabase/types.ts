@@ -665,6 +665,44 @@ export type Database = {
         }
         Relationships: []
       }
+      service_history: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          mileage: number | null
+          receipt_url: string | null
+          service_date: string
+          vin: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          mileage?: number | null
+          receipt_url?: string | null
+          service_date: string
+          vin?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          mileage?: number | null
+          receipt_url?: string | null
+          service_date?: string
+          vin?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_history_vin_fkey"
+            columns: ["vin"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["vin"]
+          },
+        ]
+      }
       title_status: {
         Row: {
           created_at: string | null
@@ -912,6 +950,36 @@ export type Database = {
           event_date?: string
           event_type?: string
           id?: string
+          vin?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          created_at: string | null
+          has_full_service_history: boolean | null
+          num_owners: number | null
+          service_records: Json | null
+          title_brand: string
+          updated_at: string | null
+          vin: string
+        }
+        Insert: {
+          created_at?: string | null
+          has_full_service_history?: boolean | null
+          num_owners?: number | null
+          service_records?: Json | null
+          title_brand?: string
+          updated_at?: string | null
+          vin: string
+        }
+        Update: {
+          created_at?: string | null
+          has_full_service_history?: boolean | null
+          num_owners?: number | null
+          service_records?: Json | null
+          title_brand?: string
+          updated_at?: string | null
           vin?: string
         }
         Relationships: []
