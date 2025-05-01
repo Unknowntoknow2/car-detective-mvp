@@ -111,19 +111,24 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
   try {
     console.log(`Fetching models for make ID: ${makeId}`);
     
-    // Convert string makeId to number since the database expects a number
-    const numericMakeId = parseInt(makeId, 10);
+    // Determine if makeId is a string or number and convert appropriately
+    let numericMakeId: number;
     
-    // Check if conversion was successful
-    if (isNaN(numericMakeId)) {
-      console.error("Invalid make ID format:", makeId);
-      return [];
+    if (typeof makeId === 'string') {
+      numericMakeId = parseInt(makeId, 10);
+      // Check if conversion was successful
+      if (isNaN(numericMakeId)) {
+        console.error("Invalid make ID format:", makeId);
+        return [];
+      }
+    } else {
+      numericMakeId = makeId as number;
     }
     
     const { data, error } = await supabase
       .from('models')
       .select('*')
-      .eq('make_id', numericMakeId) // Now passing a number
+      .eq('make_id', numericMakeId)
       .order('model_name');
     
     if (error) {
@@ -132,8 +137,8 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
     }
     
     const models = (data || []).map(model => ({
-      id: model.id,
-      make_id: String(model.make_id),
+      id: model.id.toString(), // Ensure consistent string format
+      make_id: String(model.make_id), // Ensure consistent string format
       model_name: model.model_name,
       nhtsa_model_id: null
     }));

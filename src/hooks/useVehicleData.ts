@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchVehicleData, getModelsByMakeId } from '@/api/vehicleApi';
@@ -57,9 +56,9 @@ export function useVehicleData(): VehicleDataHook {
         throw new Error(`Error fetching makes: ${makesError.message}`);
       }
       
-      // Transform makes data
+      // Transform makes data - ensure proper structure
       const transformedMakes: Make[] = (makesData || []).map(make => ({
-        id: make.id,
+        id: make.id.toString(), // Convert to string to ensure consistency
         make_name: make.make_name,
         logo_url: null,
         country_of_origin: null,
@@ -76,10 +75,10 @@ export function useVehicleData(): VehicleDataHook {
         throw new Error(`Error fetching models: ${modelsError.message}`);
       }
       
-      // Transform models data
+      // Transform models data - ensure proper structure
       const transformedModels: Model[] = (modelsData || []).map(model => ({
-        id: model.id,
-        make_id: String(model.make_id),
+        id: model.id.toString(), // Convert to string to ensure consistency
+        make_id: model.make_id.toString(), // Convert to string to ensure consistency
         model_name: model.model_name,
         nhtsa_model_id: null
       }));
@@ -135,31 +134,16 @@ export function useVehicleData(): VehicleDataHook {
       // Otherwise fetch from Supabase
       console.log(`Fetching models for make ID: ${make.id}`);
       
-      // Convert make.id to a number if it's stored as a string in the make object
-      const numericMakeId = parseInt(make.id, 10);
+      // Filter models from already loaded data
+      const matchingModels = models.filter(model => model.make_id === make.id);
       
-      // Check if conversion was successful
-      if (isNaN(numericMakeId)) {
-        console.error("Invalid make ID format:", make.id);
-        return [];
+      if (matchingModels.length > 0) {
+        console.log(`Found ${matchingModels.length} models for make: ${makeName} in loaded data`);
+        return matchingModels;
       }
       
-      const { data, error } = await supabase
-        .from('models')
-        .select('*')
-        .eq('make_id', numericMakeId) // Using numeric value now
-        .order('model_name');
-      
-      if (error) {
-        throw error;
-      }
-      
-      const fetchedModels = (data || []).map(model => ({
-        id: model.id,
-        make_id: String(model.make_id),
-        model_name: model.model_name,
-        nhtsa_model_id: null
-      }));
+      // If no models found in local data, fetch from API
+      const fetchedModels = await getModelsByMakeId(make.id);
       
       console.log(`Found ${fetchedModels.length} models for make: ${makeName}`);
       return fetchedModels;
@@ -168,7 +152,7 @@ export function useVehicleData(): VehicleDataHook {
       console.error(`Error fetching models for make ${makeName}:`, error);
       return [];
     }
-  }, [makes, modelsByMake]);
+  }, [makes, models, modelsByMake]);
 
   const getYearOptions = useCallback((startYear = 1981): number[] => {
     const currentYear = new Date().getFullYear();
