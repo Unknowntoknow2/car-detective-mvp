@@ -90,7 +90,7 @@ export const VinDecoderForm = () => {
           <NhtsaRecalls 
             make={result.make} 
             model={result.model} 
-            year={parseInt(result.year)} 
+            year={typeof result.year === 'string' ? parseInt(result.year, 10) : result.year} 
           />
         </div>
       )}
