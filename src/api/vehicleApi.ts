@@ -127,6 +127,7 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
     
     console.log(`Using make ID for query: ${queryMakeId} (type: ${typeof queryMakeId})`);
     
+    // Handle both string and number types in the query
     const { data, error } = await supabase
       .from('models')
       .select('*')
