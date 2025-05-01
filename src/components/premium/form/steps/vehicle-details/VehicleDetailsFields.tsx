@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { InfoIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { ZipCodeInput } from '@/components/common/ZipCodeInput';
 
 interface VehicleDetailsFieldsProps {
   formData: FormData;
