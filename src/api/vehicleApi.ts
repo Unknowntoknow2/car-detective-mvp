@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Make, Model } from '@/hooks/types/vehicle';
 import { toast } from 'sonner';
@@ -113,16 +114,7 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
     console.log(`Fetching models for make ID: ${makeId}`);
     
     // Fix: Handle different makeId formats with clearer type checking
-    let queryMakeId: string | number = makeId;
-    
-    // Check if it's a UUID (contains '-')
-    if (!makeId.includes('-')) {
-      // Try to convert to number if it's a numeric string
-      const parsedId = parseInt(makeId, 10);
-      if (!isNaN(parsedId)) {
-        queryMakeId = parsedId;
-      }
-    }
+    const queryMakeId = makeId.includes('-') ? makeId : parseInt(makeId, 10);
     
     console.log(`Using make ID for query: ${queryMakeId} (type: ${typeof queryMakeId})`);
     

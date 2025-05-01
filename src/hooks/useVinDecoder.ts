@@ -13,6 +13,9 @@ interface VinDecoderResult {
   fuelType?: string;
   engine?: string;
   mileage?: number;
+  transmission?: string;
+  drivetrain?: string;
+  bodyType?: string;
 }
 
 export function useVinDecoder() {
@@ -46,7 +49,10 @@ export function useVinDecoder() {
         year: data.year || 0,
         trim: data.trim,
         fuelType: data.fuelType || data.fuel_type,
-        engine: data.engine
+        engine: data.engine,
+        transmission: data.transmission || 'Unknown',
+        drivetrain: data.drivetrain,
+        bodyType: data.bodyType
       };
       
       setResult(decodedVehicle);
