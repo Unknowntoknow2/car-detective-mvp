@@ -20,7 +20,7 @@ export function VehicleSelectorWithLogos({
   onModelChange,
   disabled = false
 }: VehicleSelectorWithLogosProps) {
-  const { makes, isLoading } = useVehicleData();
+  const { makes, isLoading, error } = useVehicleData();
   const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
 
@@ -72,6 +72,15 @@ export function VehicleSelectorWithLogos({
       </div>
     );
   }
+  
+  if (error) {
+    return (
+      <div className="p-4 border border-red-200 rounded-md bg-red-50">
+        <p className="text-red-700">Failed to load vehicle data. Please try again later.</p>
+        <p className="text-sm text-red-500 mt-1">{error}</p>
+      </div>
+    );
+  }
 
   // Ensure makes is properly mapped to ComboBox items
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
@@ -79,6 +88,8 @@ export function VehicleSelectorWithLogos({
     label: make.make_name,
     icon: make.logo_url
   })) : [];
+  
+  console.log("VehicleSelectorWithLogos: Available makes count:", makesOptions.length);
 
   const handleMakeChange = (make: string) => {
     console.log("VehicleSelectorWithLogos: Make selection changed to:", make);

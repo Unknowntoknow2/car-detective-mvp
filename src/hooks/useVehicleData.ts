@@ -86,12 +86,20 @@ export function useVehicleData(): VehicleDataHook {
       
       console.log(`Fetched ${transformedMakes.length} makes and ${transformedModels.length} models from Supabase`);
       
+      if (transformedMakes.length === 0 || transformedModels.length === 0) {
+        console.warn('Warning: Retrieved empty makes or models data from Supabase');
+      }
+      
       // Update state with the fetched data
       setMakes(transformedMakes);
       setModels(transformedModels);
       
-      // Cache the data for future use
-      saveToCache(transformedMakes, transformedModels);
+      // Cache the data for future use if not empty
+      if (transformedMakes.length > 0 && transformedModels.length > 0) {
+        saveToCache(transformedMakes, transformedModels);
+      } else {
+        console.log('Not caching empty vehicle data');
+      }
       
     } catch (error: any) {
       console.error('Error loading vehicle data:', error);
@@ -126,6 +134,7 @@ export function useVehicleData(): VehicleDataHook {
       
       // Otherwise fetch from Supabase
       console.log(`Fetching models for make ID: ${make.id}`);
+      
       // Convert make.id to a number if it's stored as a string in the make object
       const numericMakeId = parseInt(make.id, 10);
       

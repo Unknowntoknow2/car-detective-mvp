@@ -49,6 +49,11 @@ export function ComboBox({
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false);
   
+  React.useEffect(() => {
+    // Debug log
+    console.log(`ComboBox: Received ${items?.length || 0} items, current value: ${value || 'none'}`);
+  }, [items, value]);
+  
   // Ensure we have a valid array
   const safeItems = Array.isArray(items) ? items : [];
   
@@ -68,6 +73,7 @@ export function ComboBox({
             className
           )}
           disabled={disabled}
+          onClick={() => console.log("ComboBox: Button clicked, items:", safeItems.length)}
         >
           {selectedItem ? selectedItem.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -107,6 +113,7 @@ export function ComboBox({
                         alt=""
                         className="h-4 w-4 object-contain"
                         onError={(e) => {
+                          console.log("Image load error");
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
