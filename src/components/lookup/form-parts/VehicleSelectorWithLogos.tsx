@@ -4,6 +4,8 @@ import { useVehicleData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getModelsByMakeId } from '@/api/vehicleApi';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 interface VehicleSelectorWithLogosProps {
   selectedMake: string;
@@ -20,9 +22,10 @@ export function VehicleSelectorWithLogos({
   onModelChange,
   disabled = false
 }: VehicleSelectorWithLogosProps) {
-  const { makes, isLoading, error } = useVehicleData();
+  const { makes, isLoading, error, refreshData } = useVehicleData();
   const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
 
   // Effect to update model options when make changes
   useEffect(() => {
@@ -32,6 +35,8 @@ export function VehicleSelectorWithLogos({
       if (selectedMake) {
         try {
           setLoadingModels(true);
+          setLoadingError(null);
+          
           // Find the make by name first
           const selectedMakeObj = makes.find(make => make.make_name === selectedMake);
           
@@ -51,6 +56,7 @@ export function VehicleSelectorWithLogos({
           }
         } catch (error) {
           console.error("Error fetching models:", error);
+          setLoadingError("Failed to load models. Please try again.");
           setModelOptions([]);
         } finally {
           setLoadingModels(false);
@@ -58,11 +64,16 @@ export function VehicleSelectorWithLogos({
       } else {
         console.log("VehicleSelectorWithLogos: No make selected, clearing models");
         setModelOptions([]);
+        setLoadingError(null);
       }
     }
     
     fetchModels();
   }, [selectedMake, makes]);
+
+  const handleRefresh = async () => {
+    await refreshData(true); // Force refresh from Supabase
+  };
 
   if (isLoading) {
     return (
@@ -78,6 +89,30 @@ export function VehicleSelectorWithLogos({
       <div className="p-4 border border-red-200 rounded-md bg-red-50">
         <p className="text-red-700">Failed to load vehicle data. Please try again later.</p>
         <p className="text-sm text-red-500 mt-1">{error}</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh Data
+        </Button>
+      </div>
+    );
+  }
+
+  if (makes.length === 0) {
+    return (
+      <div className="p-4 border border-amber-200 rounded-md bg-amber-50">
+        <p className="text-amber-700">No vehicle data available.</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh Data
+        </Button>
       </div>
     );
   }
@@ -115,15 +150,33 @@ export function VehicleSelectorWithLogos({
         className="w-full"
       />
       
+      {loadingError && (
+        <div className="text-xs text-red-500 mt-1 mb-2">{loadingError}</div>
+      )}
+      
       <ComboBox
         items={modelOptions}
         value={selectedModel}
         onChange={handleModelChange}
-        placeholder={selectedMake ? (loadingModels ? "Loading models..." : "Select a model") : "Select a make first"}
+        placeholder={selectedMake 
+          ? (loadingModels ? "Loading models..." : "Select a model") 
+          : "Select a make first"}
         emptyText="No models found"
         disabled={!selectedMake || disabled || loadingModels}
         className="w-full"
       />
+      
+      {makes.length > 0 && makesOptions.length === 0 && (
+        <div className="mt-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" /> Refresh Vehicle Data
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

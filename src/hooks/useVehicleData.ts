@@ -35,7 +35,7 @@ export function useVehicleData(): VehicleDataHook {
       // Check cache first if we're not forcing a refresh
       if (!forceRefresh) {
         const cachedData = loadFromCache();
-        if (cachedData) {
+        if (cachedData && cachedData.makes.length > 0 && cachedData.models.length > 0) {
           console.log('Using cached vehicle data');
           setMakes(cachedData.makes);
           setModels(cachedData.models);
@@ -46,7 +46,7 @@ export function useVehicleData(): VehicleDataHook {
       
       console.log('Fetching fresh vehicle data from Supabase');
       
-      // Fetch makes directly from Supabase
+      // Direct query approach
       const { data: makesData, error: makesError } = await supabase
         .from('makes')
         .select('*')
@@ -56,10 +56,16 @@ export function useVehicleData(): VehicleDataHook {
         throw new Error(`Error fetching makes: ${makesError.message}`);
       }
       
-      // Transform makes data - ensure proper structure
+      // Debugging output to see the raw data
+      console.log(`Raw makes data count: ${makesData?.length || 0}`);
+      if (makesData && makesData.length > 0) {
+        console.log(`Sample make: ${JSON.stringify(makesData[0])}`);
+      }
+      
+      // Transform makes data with explicit toString() calls
       const transformedMakes: Make[] = (makesData || []).map(make => ({
-        id: make.id.toString(), // Convert to string to ensure consistency
-        make_name: make.make_name,
+        id: make.id?.toString() || '',
+        make_name: make.make_name || '',
         logo_url: null,
         country_of_origin: null,
         nhtsa_make_id: make.make_id
@@ -75,11 +81,17 @@ export function useVehicleData(): VehicleDataHook {
         throw new Error(`Error fetching models: ${modelsError.message}`);
       }
       
-      // Transform models data - ensure proper structure
+      // Debugging output for models
+      console.log(`Raw models data count: ${modelsData?.length || 0}`);
+      if (modelsData && modelsData.length > 0) {
+        console.log(`Sample model: ${JSON.stringify(modelsData[0])}`);
+      }
+      
+      // Transform models data with explicit toString() calls
       const transformedModels: Model[] = (modelsData || []).map(model => ({
-        id: model.id.toString(), // Convert to string to ensure consistency
-        make_id: model.make_id.toString(), // Convert to string to ensure consistency
-        model_name: model.model_name,
+        id: model.id?.toString() || '',
+        make_id: model.make_id?.toString() || '',
+        model_name: model.model_name || '',
         nhtsa_model_id: null
       }));
       
@@ -126,23 +138,13 @@ export function useVehicleData(): VehicleDataHook {
       }
       
       // Check if we already have models for this make
-      if (modelsByMake[make.id]) {
+      if (modelsByMake[make.id] && modelsByMake[make.id].length > 0) {
         console.log(`Using cached models for make: ${makeName}`);
         return modelsByMake[make.id];
       }
       
-      // Otherwise fetch from Supabase
+      // Otherwise fetch from API
       console.log(`Fetching models for make ID: ${make.id}`);
-      
-      // Filter models from already loaded data
-      const matchingModels = models.filter(model => model.make_id === make.id);
-      
-      if (matchingModels.length > 0) {
-        console.log(`Found ${matchingModels.length} models for make: ${makeName} in loaded data`);
-        return matchingModels;
-      }
-      
-      // If no models found in local data, fetch from API
       const fetchedModels = await getModelsByMakeId(make.id);
       
       console.log(`Found ${fetchedModels.length} models for make: ${makeName}`);
@@ -152,7 +154,7 @@ export function useVehicleData(): VehicleDataHook {
       console.error(`Error fetching models for make ${makeName}:`, error);
       return [];
     }
-  }, [makes, models, modelsByMake]);
+  }, [makes, modelsByMake]);
 
   const getYearOptions = useCallback((startYear = 1981): number[] => {
     const currentYear = new Date().getFullYear();

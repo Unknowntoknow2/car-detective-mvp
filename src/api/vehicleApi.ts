@@ -27,9 +27,11 @@ export async function fetchVehicleData() {
       throw new Error(`Error fetching models: ${modelsError.message}`);
     }
     
+    console.log(`Raw data from Supabase - Makes: ${makes?.length || 0}, Models: ${models?.length || 0}`);
+    
     // Transform data to match expected format
     const transformedMakes: Make[] = (makes || []).map(make => ({
-      id: make.id,
+      id: make.id.toString(),
       make_name: make.make_name,
       logo_url: null,
       country_of_origin: null,
@@ -37,8 +39,8 @@ export async function fetchVehicleData() {
     }));
     
     const transformedModels: Model[] = (models || []).map(model => ({
-      id: model.id,
-      make_id: String(model.make_id),
+      id: model.id.toString(),
+      make_id: model.make_id.toString(),
       model_name: model.model_name,
       nhtsa_model_id: null
     }));
@@ -70,7 +72,7 @@ export async function getMakeById(id: string): Promise<Make | null> {
     }
     
     return {
-      id: data.id,
+      id: data.id.toString(),
       make_name: data.make_name,
       logo_url: null,
       country_of_origin: null,
@@ -96,8 +98,8 @@ export async function getModelById(id: string): Promise<Model | null> {
     }
     
     return {
-      id: data.id,
-      make_id: String(data.make_id),
+      id: data.id.toString(),
+      make_id: data.make_id.toString(),
       model_name: data.model_name,
       nhtsa_model_id: null
     };
@@ -111,19 +113,23 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
   try {
     console.log(`Fetching models for make ID: ${makeId}`);
     
-    // Determine if makeId is a string or number and convert appropriately
-    let numericMakeId: number;
+    // Handle different makeId formats
+    let numericMakeId: number | string = makeId;
     
-    if (typeof makeId === 'string') {
-      numericMakeId = parseInt(makeId, 10);
-      // Check if conversion was successful
-      if (isNaN(numericMakeId)) {
-        console.error("Invalid make ID format:", makeId);
-        return [];
+    // If makeId is a UUID string that can't be converted to a number, use it as is
+    if (typeof makeId === 'string' && makeId.includes('-')) {
+      // This is likely a UUID, use it directly
+      numericMakeId = makeId;
+    } else if (typeof makeId === 'string') {
+      // Try to convert to number if it's a numeric string
+      const parsed = parseInt(makeId, 10);
+      if (!isNaN(parsed)) {
+        numericMakeId = parsed;
       }
-    } else {
-      numericMakeId = makeId as number;
+      // If conversion fails, use the original string
     }
+    
+    console.log(`Using make ID for query: ${numericMakeId} (type: ${typeof numericMakeId})`);
     
     const { data, error } = await supabase
       .from('models')
@@ -137,8 +143,8 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
     }
     
     const models = (data || []).map(model => ({
-      id: model.id.toString(), // Ensure consistent string format
-      make_id: String(model.make_id), // Ensure consistent string format
+      id: model.id.toString(),
+      make_id: model.make_id.toString(),
       model_name: model.model_name,
       nhtsa_model_id: null
     }));
