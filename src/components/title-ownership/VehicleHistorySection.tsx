@@ -1,16 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { TitleStatusSelector } from './TitleStatusSelector';
-import { OwnershipHistory } from './OwnershipHistory';
-import { ServiceHistoryUploader } from '../service-history/ServiceHistoryUploader';
-import { ServiceHistoryDisplay } from '../service-history/ServiceHistoryDisplay';
-import { AlertCircle, Search, Loader2, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { VinInputSection } from './VinInputSection';
+import { VehicleHistoryForm } from './VehicleHistoryForm';
+import { ServiceHistorySection } from './ServiceHistorySection';
 
 interface VehicleHistoryData {
   vin: string;
@@ -124,6 +120,11 @@ export function VehicleHistorySection() {
     }
   };
 
+  const handleServiceUploadComplete = () => {
+    setHasFullServiceHistory(true);
+    setShowServiceUploader(false);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -134,97 +135,33 @@ export function VehicleHistorySection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <Label htmlFor="vin-input" className="text-sm font-medium">
-              Vehicle Identification Number (VIN)
-            </Label>
-            <div className="flex gap-2 mt-1.5">
-              <Input
-                id="vin-input"
-                placeholder="Enter 17-character VIN"
-                value={vin}
-                onChange={(e) => setVin(e.target.value.toUpperCase())}
-                className="font-mono"
-                maxLength={17}
-              />
-              <Button
-                type="button"
-                onClick={fetchVehicleHistory}
-                disabled={!vin || isLoading || !isValidVin(vin)}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4 mr-2" />
-                )}
-                Fetch History
-              </Button>
-            </div>
-            {vin && !isValidVin(vin) && (
-              <div className="flex items-start gap-2 mt-1.5 text-red-500 text-sm">
-                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                <span>VIN must be 17 characters (no I, O, or Q)</span>
-              </div>
-            )}
-          </div>
+          <VinInputSection 
+            vin={vin} 
+            isLoading={isLoading} 
+            onVinChange={setVin} 
+            onFetchHistory={fetchVehicleHistory} 
+          />
 
           {(vin && isValidVin(vin)) && (
-            <>
-              <div className="grid gap-6 md:grid-cols-2">
-                <TitleStatusSelector
-                  value={titleStatus}
-                  onChange={setTitleStatus}
-                  required={true}
-                />
-                
-                <OwnershipHistory
-                  numberOfOwners={numberOfOwners}
-                  onChange={setNumberOfOwners}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  onClick={saveVehicleHistory}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4 mr-2" />
-                  )}
-                  Save Vehicle History
-                </Button>
-              </div>
-            </>
+            <VehicleHistoryForm 
+              titleStatus={titleStatus}
+              numberOfOwners={numberOfOwners}
+              isLoading={isLoading}
+              onTitleStatusChange={setTitleStatus}
+              onNumberOfOwnersChange={setNumberOfOwners}
+              onSaveHistory={saveVehicleHistory}
+            />
           )}
         </CardContent>
       </Card>
 
       {vin && isValidVin(vin) && (
-        <div className="space-y-4">
-          <ServiceHistoryDisplay vin={vin} />
-          
-          <div className="flex justify-end">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowServiceUploader(!showServiceUploader)}
-            >
-              {showServiceUploader ? 'Hide Upload Form' : 'Add Service Record'}
-            </Button>
-          </div>
-          
-          {showServiceUploader && (
-            <ServiceHistoryUploader 
-              vin={vin} 
-              onUploadComplete={() => {
-                setHasFullServiceHistory(true);
-                setShowServiceUploader(false);
-              }}
-            />
-          )}
-        </div>
+        <ServiceHistorySection 
+          vin={vin}
+          showServiceUploader={showServiceUploader}
+          onToggleUploader={() => setShowServiceUploader(!showServiceUploader)}
+          onUploadComplete={handleServiceUploadComplete}
+        />
       )}
     </div>
   );
