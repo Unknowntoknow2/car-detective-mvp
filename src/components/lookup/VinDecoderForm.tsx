@@ -84,7 +84,7 @@ export const VinDecoderForm = () => {
         onDownloadPdf={onDownloadPdf}
       />
 
-      {/* Show recalls if we have vehicle data */}
+      {/* Show recalls if we have vehicle data - Fix: Use parseInt to convert string to number */}
       {result?.make && result?.model && result?.year && (
         <div className="mt-4">
           <NhtsaRecalls 
