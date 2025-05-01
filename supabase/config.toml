@@ -15,3 +15,18 @@ verify_jwt = false
 
 [functions.fetch_zippopotamus]
 verify_jwt = false
+
+[functions.fetch_epa_mpg]
+verify_jwt = false
+
+[functions.fetch_osm_geocode]
+verify_jwt = false
+
+[functions.fetch_census_demographics]
+verify_jwt = false
+
+[functions.fetch_auction_index]
+verify_jwt = false
+
+[functions.daily_calibration]
+verify_jwt = true

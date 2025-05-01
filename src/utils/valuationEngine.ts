@@ -1,438 +1,241 @@
-import { calculateConfidenceScore, getConfidenceLevel } from './confidenceCalculator';
-import rulesEngine, { AdjustmentBreakdown } from './rulesEngine';
-import { ValuationAuditTrail } from './rules/RulesEngine';
-import type { VehicleCondition } from './adjustments/types';
-import { CarfaxData } from './carfax/mockCarfaxService';
-import { supabase } from '@/integrations/supabase/client';
+import { getMileageAdjustment } from './adjustments/mileageAdjustments';
+import { getConditionAdjustment } from './adjustments/conditionAdjustments';
+import { getZipAdjustment } from './adjustments/locationAdjustments';
+import { getTrimAdjustment } from './adjustments/trimAdjustments';
+import { getAccidentHistoryAdjustment } from './adjustments/accidentAdjustments';
+import { getPremiumFeaturesAdjustment } from './adjustments/featureAdjustments';
+import { getTitleStatusAdjustment } from './adjustments/titleStatusAdjustments';
+import { AdjustmentBreakdown } from './rules/types';
 
-// Sample base prices for testing - in production this would come from a database
-const SAMPLE_BASE_PRICES: Record<string, Record<string, number>> = {
-  'Toyota': {
-    'Camry': 25000,
-    'Corolla': 20000,
-    'RAV4': 28000
-  },
-  'Honda': {
-    'Civic': 22000,
-    'Accord': 27000,
-    'CR-V': 29000
+// New import for EPA MPG adjustment
+export function getMpgAdjustment(mpg: number | null, basePrice: number): number {
+  if (mpg === null) return 0;
+  
+  if (mpg >= 30) {
+    return basePrice * 0.03; // +3% for high MPG
+  } 
+  else if (mpg < 20) {
+    return basePrice * -0.03; // -3% for low MPG
   }
-};
+  
+  return 0; // No adjustment for average MPG
+}
 
-const DEFAULT_BASE_PRICE = 20000;
+// New import for location density adjustment based on OSM data
+export function getLocationDensityAdjustment(osmData: any, basePrice: number): number {
+  if (!osmData || !Array.isArray(osmData) || osmData.length === 0) {
+    return 0;
+  }
+  
+  const location = osmData[0];
+  
+  // Check if it's a high-density area based on the location type and class
+  const isUrban = location.type === 'city' || 
+                 location.type === 'town' || 
+                 location.display_name.toLowerCase().includes('new york') ||
+                 location.display_name.toLowerCase().includes('los angeles') ||
+                 location.display_name.toLowerCase().includes('chicago') ||
+                 location.display_name.toLowerCase().includes('san francisco');
+  
+  if (isUrban) {
+    return basePrice * 0.04; // +4% for urban areas
+  }
+  
+  const isSuburban = location.type === 'suburb' || 
+                    location.type === 'residential' ||
+                    location.display_name.toLowerCase().includes('county');
+  
+  if (isSuburban) {
+    return basePrice * 0.02; // +2% for suburban areas
+  }
+  
+  return 0; // No adjustment for rural areas
+}
 
-export interface ValuationInput {
+// New import for income-based adjustment from Census data
+export function getIncomeAdjustment(censusData: any, basePrice: number): number {
+  if (!censusData || !censusData.medianIncome) {
+    return 0;
+  }
+  
+  const medianIncome = censusData.medianIncome;
+  
+  if (medianIncome > 120000) {
+    return basePrice * 0.03; // +3% for high-income areas
+  }
+  else if (medianIncome > 90000) {
+    return basePrice * 0.02; // +2% for above-average income areas
+  }
+  else if (medianIncome < 50000) {
+    return basePrice * -0.01; // -1% for below-average income areas
+  }
+  
+  return 0; // No adjustment for average income areas
+}
+
+export interface ValuationParams {
   make: string;
   model: string;
   year: number;
   mileage: number;
-  zip?: string;
   condition: string;
-  vin?: string;
+  zip?: string;
   trim?: string;
   accidentCount?: number;
   titleStatus?: string;
   premiumFeatures?: string[];
-  hasCarfax?: boolean;
-  carfaxData?: CarfaxData;
-  photoScore?: number;
-  equipmentIds?: number[];
-  equipmentMultiplier?: number;
-  equipmentValueAdd?: number;
-  exteriorColor?: string;
-  colorMultiplier?: number;
-  fuelType?: string;
-  fuelTypeMultiplier?: number;
-  transmissionType?: string;
-  transmissionMultiplier?: number;
-  hasOpenRecall?: boolean;
-  recallMultiplier?: number;
-  warrantyStatus?: string;
-  warrantyMultiplier?: number;
-  marketFactor?: number;
-  marketDemand?: string;
-  saleDate?: string | Date;
-  bodyStyle?: string;
+  mpg?: number | null;
+  osmData?: any;
+  censusData?: any;
 }
 
 export interface ValuationResult {
+  estimatedValue: number;
   basePrice: number;
   adjustments: AdjustmentBreakdown[];
-  estimatedValue: number;
-  confidenceScore: number;
-  confidenceLevel: string;
   priceRange: [number, number];
-  carfaxData?: CarfaxData;
-  auditTrail: ValuationAuditTrail;
-  photoScore?: number;
-  equipmentInfo?: {
-    ids: number[];
-    multiplier: number;
-    valueAdd: number;
-  };
-  colorInfo?: {
-    color: string;
-    multiplier: number;
-  };
-  fuelTypeInfo?: {
-    type: string;
-    multiplier: number;
-  };
-  transmissionInfo?: {
-    type: string;
-    multiplier: number;
-  };
-  recallInfo?: {
-    hasOpenRecall: boolean;
-    multiplier: number;
-  };
-  warrantyInfo?: {
-    status: string;
-    multiplier: number;
-  };
-  marketInfo?: {
-    factor: number;
-    demand: string;
-    zipCode: string;
-  };
-  seasonalInfo?: {
-    saleDate: string | Date;
-    bodyStyle: string;
-    multiplier: number;
-  };
+  confidenceScore: number;
 }
 
-function getBasePrice(make: string, model: string): number {
-  return SAMPLE_BASE_PRICES[make]?.[model] || DEFAULT_BASE_PRICE;
-}
-
-export async function calculateValuation(input: ValuationInput): Promise<ValuationResult> {
-  // Get base price from our sample data
-  const basePrice = getBasePrice(input.make, input.model);
+export async function calculateValuation(params: ValuationParams): Promise<ValuationResult> {
+  // This is a simplified implementation
+  // In a real app, you would fetch base price from a database or API
+  const basePrice = 20000; // Sample base price
   
-  // Calculate adjustments using the rules engine
-  const adjustments = await rulesEngine.calculateAdjustments({
-    make: input.make,
-    model: input.model,
-    year: input.year,
-    mileage: input.mileage,
-    condition: input.condition,
-    zipCode: input.zip,
-    trim: input.trim,
-    accidentCount: input.accidentCount,
-    titleStatus: input.titleStatus,
-    premiumFeatures: input.premiumFeatures,
-    basePrice: basePrice,
-    carfaxData: input.carfaxData,
-    photoScore: input.photoScore,
-    equipmentIds: input.equipmentIds,
-    equipmentMultiplier: input.equipmentMultiplier,
-    equipmentValueAdd: input.equipmentValueAdd,
-    exteriorColor: input.exteriorColor,
-    colorMultiplier: input.colorMultiplier,
-    fuelType: input.fuelType,
-    fuelTypeMultiplier: input.fuelTypeMultiplier,
-    transmissionType: input.transmissionType,
-    transmissionMultiplier: input.transmissionMultiplier,
-    hasOpenRecall: input.hasOpenRecall,
-    warrantyStatus: input.warrantyStatus,
-    saleDate: input.saleDate,
-    bodyStyle: input.bodyStyle
+  const adjustments: AdjustmentBreakdown[] = [];
+  
+  // Calculate core adjustments
+  const mileageAdj = getMileageAdjustment(params.mileage, basePrice);
+  adjustments.push({
+    name: 'Mileage',
+    value: Math.round(mileageAdj),
+    description: `Based on ${params.mileage.toLocaleString()} miles`,
+    percentAdjustment: (mileageAdj / basePrice) * 100
   });
   
-  // Calculate total adjustment
-  const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
-
-  // Apply color multiplier to the estimated value if provided
-  let estimatedValue = Math.round(basePrice + totalAdjustment);
-  
-  // Apply color multiplier if present
-  if (input.colorMultiplier && input.colorMultiplier !== 1) {
-    estimatedValue = Math.round(estimatedValue * input.colorMultiplier);
-  }
-  
-  // Apply fuel type multiplier if present
-  if (input.fuelTypeMultiplier && input.fuelTypeMultiplier !== 1) {
-    estimatedValue = Math.round(estimatedValue * input.fuelTypeMultiplier);
-  }
-  
-  // Apply transmission multiplier if present
-  if (input.transmissionMultiplier && input.transmissionMultiplier !== 1) {
-    estimatedValue = Math.round(estimatedValue * input.transmissionMultiplier);
-  }
-  
-  // Get recall multiplier if there's an open recall
-  let recallMultiplier = 1.0;
-  if (input.hasOpenRecall) {
-    try {
-      if (input.recallMultiplier) {
-        recallMultiplier = input.recallMultiplier;
-      } else {
-        // Fetch recall multiplier from the database
-        const { data: recallData } = await supabase
-          .from('recall_factor')
-          .select('multiplier')
-          .eq('has_open_recall', true)
-          .single();
-          
-        if (recallData && recallData.multiplier) {
-          recallMultiplier = recallData.multiplier;
-        } else {
-          // Default if not found in the database
-          recallMultiplier = 0.9; // 10% reduction
-        }
-      }
-      // Apply recall multiplier
-      estimatedValue = Math.round(estimatedValue * recallMultiplier);
-    } catch (error) {
-      console.error('Error fetching recall multiplier:', error);
-      // Apply default multiplier if fetch fails
-      estimatedValue = Math.round(estimatedValue * 0.9);
-    }
-  }
-  
-  // Get warranty multiplier if warranty status is provided
-  let warrantyMultiplier = 1.0;
-  if (input.warrantyStatus && input.warrantyStatus !== 'None') {
-    try {
-      if (input.warrantyMultiplier) {
-        warrantyMultiplier = input.warrantyMultiplier;
-      } else {
-        // Fetch warranty multiplier from the database
-        const { data: warrantyData } = await supabase
-          .from('warranty_options')
-          .select('multiplier')
-          .eq('status', input.warrantyStatus)
-          .single();
-          
-        if (warrantyData && warrantyData.multiplier) {
-          warrantyMultiplier = warrantyData.multiplier;
-        } else {
-          // Default based on warranty type
-          warrantyMultiplier = input.warrantyStatus === 'Factory' ? 1.02 : 1.04;
-        }
-      }
-      // Apply warranty multiplier
-      estimatedValue = Math.round(estimatedValue * warrantyMultiplier);
-    } catch (error) {
-      console.error('Error fetching warranty multiplier:', error);
-      // Apply default multiplier if fetch fails
-      const defaultMultiplier = input.warrantyStatus === 'Factory' ? 1.02 : 1.04;
-      estimatedValue = Math.round(estimatedValue * defaultMultiplier);
-    }
-  }
-
-  // Apply market factor if present
-  let marketMultiplier = 1.0;
-  if (input.marketFactor && input.marketFactor !== 1) {
-    marketMultiplier = input.marketFactor;
-    estimatedValue = Math.round(estimatedValue * marketMultiplier);
-  } else if (input.zip) {
-    // If no explicit market factor but we have a ZIP code, calculate one
-    const zipSum = input.zip.split('').reduce((sum, digit) => sum + parseInt(digit, 10), 0);
-    
-    // Simple algorithm to determine market factor based on ZIP
-    if (zipSum % 5 === 0) {
-      marketMultiplier = 1.035; // High demand area (+3.5%)
-    } else if (zipSum % 5 === 1) {
-      marketMultiplier = 1.015; // Above average demand (+1.5%)
-    } else if (zipSum % 5 === 3) {
-      marketMultiplier = 0.985; // Below average demand (-1.5%)
-    } else if (zipSum % 5 === 4) {
-      marketMultiplier = 0.975; // Low demand area (-2.5%)
-    }
-    
-    if (marketMultiplier !== 1.0) {
-      estimatedValue = Math.round(estimatedValue * marketMultiplier);
-    }
-  }
-
-  // Apply seasonal multiplier if present
-  let seasonalMultiplier = 1.0;
-  if (input.saleDate && input.bodyStyle) {
-    try {
-      const saleDate = new Date(input.saleDate);
-      const month = saleDate.getMonth() + 1;
-      
-      // Determine vehicle type based on body style
-      let vehicleType = 'generic';
-      const bodyStyle = input.bodyStyle.toLowerCase();
-      
-      if (bodyStyle.includes('suv') || bodyStyle.includes('crossover')) {
-        vehicleType = 'suv';
-      } else if (bodyStyle.includes('convertible') || bodyStyle.includes('cabriolet')) {
-        vehicleType = 'convertible';
-      } else if (bodyStyle.includes('sport') || bodyStyle.includes('coupe')) {
-        vehicleType = 'sport';
-      } else if (bodyStyle.includes('truck') || bodyStyle.includes('pickup')) {
-        vehicleType = 'truck';
-      }
-      
-      // Get seasonal multiplier from database
-      const { data: seasonalData } = await supabase
-        .from('seasonal_index')
-        .select(vehicleType)
-        .eq('month', month)
-        .single();
-        
-      if (seasonalData) {
-        seasonalMultiplier = seasonalData[vehicleType];
-        estimatedValue = Math.round(estimatedValue * seasonalMultiplier);
-      }
-    } catch (error) {
-      console.error('Error applying seasonal multiplier:', error);
-    }
-  }
-
-  // Create an audit trail
-  const auditTrail = rulesEngine.createAuditTrail(
-    {
-      make: input.make,
-      model: input.model,
-      year: input.year,
-      mileage: input.mileage,
-      condition: input.condition,
-      zipCode: input.zip,
-      trim: input.trim,
-      accidentCount: input.accidentCount,
-      titleStatus: input.titleStatus,
-      premiumFeatures: input.premiumFeatures,
-      basePrice: basePrice,
-      carfaxData: input.carfaxData,
-      photoScore: input.photoScore,
-      equipmentIds: input.equipmentIds,
-      exteriorColor: input.exteriorColor,
-      colorMultiplier: input.colorMultiplier,
-      fuelType: input.fuelType,
-      fuelTypeMultiplier: input.fuelTypeMultiplier,
-      transmissionType: input.transmissionType,
-      transmissionMultiplier: input.transmissionMultiplier,
-      hasOpenRecall: input.hasOpenRecall,
-      recallMultiplier: recallMultiplier,
-      warrantyStatus: input.warrantyStatus,
-      warrantyMultiplier: warrantyMultiplier,
-      saleDate: input.saleDate,
-      bodyStyle: input.bodyStyle
-    },
-    adjustments,
-    totalAdjustment
-  );
-
-  // Calculate confidence score and level
-  const confidenceScore = calculateConfidenceScore({
-    vin: input.vin,
-    zip: input.zip,
-    mileage: input.mileage,
-    year: input.year,
-    make: input.make,
-    model: input.model,
-    condition: input.condition,
-    hasCarfax: input.hasCarfax || !!input.carfaxData,
-    hasPhotoScore: !!input.photoScore,
-    hasTitleStatus: input.titleStatus !== undefined && input.titleStatus !== 'Clean',
-    hasEquipment: input.equipmentIds !== undefined && input.equipmentIds.length > 0,
-    hasTransmission: input.transmissionType !== undefined,
-    hasOpenRecall: input.hasOpenRecall
+  const conditionAdj = getConditionAdjustment(params.condition as any, basePrice);
+  adjustments.push({
+    name: 'Condition',
+    value: Math.round(conditionAdj),
+    description: `Vehicle in ${params.condition} condition`,
+    percentAdjustment: (conditionAdj / basePrice) * 100
   });
-
-  // Calculate price range (±$500 or ±2.5% of estimated value, whichever is greater)
-  const variation = Math.max(500, estimatedValue * 0.025);
+  
+  // Add zip code adjustment if available
+  if (params.zip) {
+    const zipAdj = getZipAdjustment(params.zip, basePrice);
+    adjustments.push({
+      name: 'Location',
+      value: Math.round(zipAdj),
+      description: `Based on market demand in ${params.zip}`,
+      percentAdjustment: (zipAdj / basePrice) * 100
+    });
+  }
+  
+  // Add trim adjustment if available
+  if (params.trim && params.make && params.model) {
+    const trimAdj = getTrimAdjustment(params.make, params.model, params.trim, basePrice);
+    adjustments.push({
+      name: 'Trim Level',
+      value: Math.round(trimAdj),
+      description: `Adjustment for ${params.trim} trim`,
+      percentAdjustment: (trimAdj / basePrice) * 100
+    });
+  }
+  
+  // Add accident history adjustment if available
+  if (typeof params.accidentCount === 'number') {
+    const accidentAdj = getAccidentHistoryAdjustment(params.accidentCount, basePrice);
+    adjustments.push({
+      name: 'Accident History',
+      value: Math.round(accidentAdj),
+      description: `Vehicle has ${params.accidentCount} reported accidents`,
+      percentAdjustment: (accidentAdj / basePrice) * 100
+    });
+  }
+  
+  // Add premium features adjustment if available
+  if (params.premiumFeatures && params.premiumFeatures.length > 0) {
+    const featuresAdj = getPremiumFeaturesAdjustment(params.premiumFeatures, basePrice);
+    adjustments.push({
+      name: 'Premium Features',
+      value: Math.round(featuresAdj),
+      description: `Adjustment for ${params.premiumFeatures.length} premium features`,
+      percentAdjustment: (featuresAdj / basePrice) * 100
+    });
+  }
+  
+  // Add title status adjustment if available
+  if (params.titleStatus) {
+    const titleStatusAdj = getTitleStatusAdjustment(params.titleStatus, basePrice);
+    adjustments.push({
+      name: 'Title Status',
+      value: Math.round(titleStatusAdj),
+      description: `Vehicle has ${params.titleStatus} title`,
+      percentAdjustment: (titleStatusAdj / basePrice) * 100
+    });
+  }
+  
+  // Add new EPA MPG adjustment if available
+  if (params.mpg !== undefined) {
+    const mpgAdj = getMpgAdjustment(params.mpg, basePrice);
+    if (mpgAdj !== 0) {
+      adjustments.push({
+        name: 'Fuel Economy',
+        value: Math.round(mpgAdj),
+        description: params.mpg ? `Vehicle has ${params.mpg} MPG` : 'MPG data unavailable',
+        percentAdjustment: (mpgAdj / basePrice) * 100
+      });
+    }
+  }
+  
+  // Add new location density adjustment if available
+  if (params.osmData) {
+    const densityAdj = getLocationDensityAdjustment(params.osmData, basePrice);
+    if (densityAdj !== 0) {
+      adjustments.push({
+        name: 'Urban Density',
+        value: Math.round(densityAdj),
+        description: 'Adjustment based on neighborhood density',
+        percentAdjustment: (densityAdj / basePrice) * 100
+      });
+    }
+  }
+  
+  // Add new income-based adjustment if available
+  if (params.censusData) {
+    const incomeAdj = getIncomeAdjustment(params.censusData, basePrice);
+    if (incomeAdj !== 0) {
+      adjustments.push({
+        name: 'Local Market',
+        value: Math.round(incomeAdj),
+        description: 'Adjustment based on local income levels',
+        percentAdjustment: (incomeAdj / basePrice) * 100
+      });
+    }
+  }
+  
+  // Calculate total adjustments
+  const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.value, 0);
+  
+  // Calculate final estimated value
+  const estimatedValue = Math.round(basePrice + totalAdjustment);
+  
+  // Calculate price range (±5%)
   const priceRange: [number, number] = [
-    Math.round(estimatedValue - variation),
-    Math.round(estimatedValue + variation)
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05)
   ];
-
-  // Prepare the result object
-  const result: ValuationResult = {
+  
+  // Calculate confidence score
+  // In a real app, this would use more sophisticated logic
+  const confidenceScore = Math.min(95, 85 + adjustments.length * 2);
+  
+  return {
+    estimatedValue,
     basePrice,
     adjustments,
-    estimatedValue,
-    confidenceScore,
-    confidenceLevel: getConfidenceLevel(confidenceScore),
     priceRange,
-    carfaxData: input.carfaxData,
-    auditTrail,
-    photoScore: input.photoScore
+    confidenceScore
   };
-  
-  // Add equipment info if present
-  if (input.equipmentIds && input.equipmentIds.length > 0) {
-    result.equipmentInfo = {
-      ids: input.equipmentIds,
-      multiplier: input.equipmentMultiplier || 1,
-      valueAdd: input.equipmentValueAdd || 0
-    };
-  }
-
-  // Add color info if present
-  if (input.exteriorColor && input.colorMultiplier) {
-    result.colorInfo = {
-      color: input.exteriorColor,
-      multiplier: input.colorMultiplier
-    };
-  }
-  
-  // Add fuel type info if present
-  if (input.fuelType && input.fuelTypeMultiplier) {
-    result.fuelTypeInfo = {
-      type: input.fuelType,
-      multiplier: input.fuelTypeMultiplier
-    };
-  }
-  
-  // Add transmission info if present
-  if (input.transmissionType && input.transmissionMultiplier) {
-    result.transmissionInfo = {
-      type: input.transmissionType,
-      multiplier: input.transmissionMultiplier
-    };
-  }
-  
-  // Add recall info if present
-  if (input.hasOpenRecall !== undefined) {
-    result.recallInfo = {
-      hasOpenRecall: input.hasOpenRecall,
-      multiplier: recallMultiplier
-    };
-  }
-  
-  // Add warranty info if present
-  if (input.warrantyStatus !== undefined) {
-    result.warrantyInfo = {
-      status: input.warrantyStatus,
-      multiplier: warrantyMultiplier
-    };
-  }
-
-  // Add market info if available
-  if (input.zip && marketMultiplier !== 1.0) {
-    let demandLevel = "Average";
-    
-    if (marketMultiplier >= 1.03) {
-      demandLevel = "High";
-    } else if (marketMultiplier >= 1.01) {
-      demandLevel = "Above Average";
-    } else if (marketMultiplier <= 0.97) {
-      demandLevel = "Low";
-    } else if (marketMultiplier <= 0.99) {
-      demandLevel = "Below Average";
-    }
-    
-    result.marketInfo = {
-      factor: marketMultiplier,
-      demand: input.marketDemand || demandLevel,
-      zipCode: input.zip
-    };
-  }
-
-  // Add seasonal info if available
-  if (input.saleDate && input.bodyStyle && seasonalMultiplier !== 1.0) {
-    result.seasonalInfo = {
-      saleDate: input.saleDate,
-      bodyStyle: input.bodyStyle,
-      multiplier: seasonalMultiplier
-    };
-  }
-
-  return result;
 }
