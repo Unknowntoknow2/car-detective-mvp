@@ -1,146 +1,122 @@
+// src/api/vehicleApi.ts
 
-import { supabase } from '@/integrations/supabase/client';
-import { Make, Model } from '@/hooks/types/vehicle';
-import { toast } from 'sonner';
+import { handleApiError } from '@/utils/error-handling';
+import { ApiErrorType } from '@/utils/api-utils';
 
-export async function fetchVehicleData() {
-  console.log("Fetching vehicle data from Supabase...");
-  
-  try {
-    // Fetch makes
-    const { data: makes, error: makesError } = await supabase
-      .from('makes')
-      .select('*')
-      .order('make_name');
-    
-    if (makesError) {
-      throw new Error(`Error fetching makes: ${makesError.message}`);
-    }
-    
-    // Fetch all models
-    const { data: models, error: modelsError } = await supabase
-      .from('models')
-      .select('*')
-      .order('model_name');
-    
-    if (modelsError) {
-      throw new Error(`Error fetching models: ${modelsError.message}`);
-    }
-    
-    console.log(`Raw data from Supabase - Makes: ${makes?.length || 0}, Models: ${models?.length || 0}`);
-    
-    // Transform data to match expected format
-    const transformedMakes: Make[] = (makes || []).map(make => ({
-      id: make.id.toString(),
-      make_name: make.make_name,
-      logo_url: null,
-      country_of_origin: null,
-      nhtsa_make_id: make.make_id
-    }));
-    
-    const transformedModels: Model[] = (models || []).map(model => ({
-      id: model.id.toString(),
-      make_id: model.make_id.toString(),
-      model_name: model.model_name,
-      nhtsa_model_id: null
-    }));
-    
-    console.log(`Fetched ${transformedMakes.length} makes and ${transformedModels.length} models from Supabase`);
-    
-    return {
-      makes: transformedMakes,
-      models: transformedModels
-    };
-  } catch (error) {
-    console.error("Exception in fetchVehicleData:", error);
-    toast.error("Couldn't fetch vehicle data");
-    throw error; // No fallback - let the error propagate
-  }
+const API_BASE_URL = process.env.NEXT_PUBLIC_VEHICLE_API_URL || 'http://localhost:3000/api';
+
+interface VehicleDetails {
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  bodyType?: string;
+  transmission?: string;
+  engine?: string;
+  fuelType?: string;
+  driveType?: string;
 }
 
-export async function getMakeById(id: string): Promise<Make | null> {
+export async function fetchVehicleDetails(vin: string): Promise<VehicleDetails | null> {
   try {
-    const { data, error } = await supabase
-      .from('makes')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error || !data) {
-      console.error("Error fetching make by ID:", error);
-      return null;
+    const response = await fetch(`${API_BASE_URL}/vehicle-details?vin=${vin}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch vehicle details: ${response.status} ${response.statusText}`);
     }
-    
-    return {
-      id: data.id.toString(),
-      make_name: data.make_name,
-      logo_url: null,
-      country_of_origin: null,
-      nhtsa_make_id: data.make_id
-    };
-  } catch (error) {
-    console.error("Error fetching make by ID:", error);
+
+    const data = await response.json();
+    return data as VehicleDetails;
+  } catch (error: any) {
+    handleApiError(error, 'fetchVehicleDetails');
     return null;
   }
 }
 
-export async function getModelById(id: string): Promise<Model | null> {
+export async function fetchAverageMarketValue(year: number, make: string, model: string, zip?: string): Promise<number> {
   try {
-    const { data, error } = await supabase
-      .from('models')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error || !data) {
-      console.error("Error fetching model by ID:", error);
-      return null;
+    const yearAsNumber = typeof year === 'string' ? parseInt(year, 10) : year;
+    const url = new URL(`${API_BASE_URL}/market-value`);
+    url.searchParams.append('year', String(yearAsNumber));
+    url.searchParams.append('make', make);
+    url.searchParams.append('model', model);
+    if (zip) {
+      url.searchParams.append('zip', zip);
     }
-    
-    return {
-      id: data.id.toString(),
-      make_id: data.make_id.toString(),
-      model_name: data.model_name,
-      nhtsa_model_id: null
-    };
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return 0;
+      }
+      throw new Error(`Failed to fetch average market value: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.averageValue as number;
   } catch (error) {
-    console.error("Error fetching model by ID:", error);
+    console.error("Error fetching average market value:", error);
+    return 0;
+  }
+}
+
+export async function fetchFuelEfficiency(year: number, make: string, model: string): Promise<number | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/fuel-efficiency?year=${year}&make=${make}&model=${model}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch fuel efficiency: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.mpg as number;
+  } catch (error: any) {
+    handleApiError(error, 'fetchFuelEfficiency');
     return null;
   }
 }
 
-export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
-  try {
-    console.log(`Fetching models for make ID: ${makeId}`);
-    
-    // Fix: Handle different makeId formats with clearer type checking
-    const queryMakeId = makeId.includes('-') ? makeId : parseInt(makeId, 10);
-    
-    console.log(`Using make ID for query: ${queryMakeId} (type: ${typeof queryMakeId})`);
-    
-    // Handle both string and number types in the query
-    const { data, error } = await supabase
-      .from('models')
-      .select('*')
-      .eq('make_id', queryMakeId)
-      .order('model_name');
-    
-    if (error) {
-      console.error("Error fetching models by make ID:", error);
-      return [];
+export async function fetchSafetyRatings(year: number, make: string, model: string): Promise<any | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/safety-ratings?year=${year}&make=${make}&model=${model}`);
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return null;
+            }
+            throw new Error(`Failed to fetch safety ratings: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error: any) {
+        handleApiError(error, 'fetchSafetyRatings');
+        return null;
     }
-    
-    const models = (data || []).map(model => ({
-      id: model.id.toString(),
-      make_id: model.make_id.toString(),
-      model_name: model.model_name,
-      nhtsa_model_id: null
-    }));
-    
-    console.log(`Found ${models.length} models for make ID: ${makeId}`);
-    return models;
-  } catch (error) {
-    console.error("Error fetching models by make ID:", error);
+}
+
+export async function fetchRecalls(year: number, make: string, model: string): Promise<any[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/recalls?year=${year}&make=${make}&model=${model}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return [];
+      }
+      throw new Error(`Failed to fetch recalls: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data as any[];
+  } catch (error: any) {
+    handleApiError(error, 'fetchRecalls');
     return [];
   }
 }

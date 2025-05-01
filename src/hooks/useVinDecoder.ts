@@ -6,14 +6,14 @@ import type { DecodedVehicleInfo } from '@/types/vehicle';
 
 interface VinDecoderResult {
   vin: string;
-  make?: string;
-  model?: string;
-  year?: number;
+  make: string; // Changed from optional to required
+  model: string; // Changed from optional to required
+  year: number; // Changed from optional to required
   trim?: string;
   fuelType?: string;
   engine?: string;
   mileage?: number;
-  transmission?: string;
+  transmission: string; // Changed from optional to required
   drivetrain?: string;
   bodyType?: string;
 }
