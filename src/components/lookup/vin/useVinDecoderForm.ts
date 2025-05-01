@@ -9,6 +9,7 @@ import { convertAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-
 
 export const useVinDecoderForm = () => {
   const [vin, setVin] = useState('');
+  const [zipCode, setZipCode] = useState('');
   const { result, isLoading, error, lookupVin } = useVinDecoder();
   const [carfaxData, setCarfaxData] = useState(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
@@ -57,6 +58,8 @@ export const useVinDecoderForm = () => {
   const handleDetailsSubmit = async (details: any): Promise<void> => {
     const result = await submitValuation({
       ...details,
+      // Add ZIP code if available
+      zipCode: zipCode || details.zipCode,
       // Add Carfax data if available
       carfaxData: carfaxData || undefined
     });
@@ -70,7 +73,7 @@ export const useVinDecoderForm = () => {
       mileage: requiredInputs?.mileage || 76000,
       estimatedValue: valuationResult?.estimated_value || 24500,
       condition: requiredInputs?.conditionLabel || "Good",
-      zipCode: requiredInputs?.zipCode || "10001",
+      zipCode: zipCode || requiredInputs?.zipCode || "10001",
       confidenceScore: valuationResult?.confidence_score || (carfaxData ? 92 : 85),
       adjustments: valuationResult?.adjustments 
         ? convertAdjustmentsToLegacyFormat(valuationResult.adjustments)
@@ -90,6 +93,8 @@ export const useVinDecoderForm = () => {
   return {
     vin,
     setVin,
+    zipCode,
+    setZipCode,
     result,
     isLoading,
     error,

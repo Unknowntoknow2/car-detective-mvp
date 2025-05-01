@@ -13,6 +13,7 @@ import { VinLookupForm } from './vin/VinLookupForm';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 import { VinDecoderResults } from './vin/VinDecoderResults';
 import { NhtsaRecalls } from '@/components/valuation/NhtsaRecalls';
+import { ZipValidation } from '@/components/common/ZipValidation';
 
 export const VinDecoderForm = () => {
   const {
@@ -29,6 +30,8 @@ export const VinDecoderForm = () => {
     valuationResult,
     valuationError,
     pipelineLoading,
+    zipCode,
+    setZipCode,
     handleSubmit,
     submitValuation,
     handleDownloadPdf
@@ -66,6 +69,36 @@ export const VinDecoderForm = () => {
           
           {carfaxError && !isLoadingCarfax && (
             <CarfaxErrorAlert error={carfaxError} />
+          )}
+
+          {/* Add ZIP Code input and validation when VIN lookup is successful */}
+          {result && (
+            <div className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="zipCode" className="text-sm font-medium">
+                  ZIP Code (for regional pricing)
+                </label>
+                <input 
+                  id="zipCode"
+                  type="text"
+                  value={zipCode || ''}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  placeholder="Enter ZIP code (e.g. 90210)"
+                  className="w-full p-2 border rounded-md"
+                  maxLength={5}
+                  pattern="\d*"
+                />
+              </div>
+              
+              {/* ZIP validation component */}
+              {zipCode && zipCode.length === 5 && (
+                <ZipValidation 
+                  zip={zipCode} 
+                  compact={true} 
+                  className="mt-2"
+                />
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
