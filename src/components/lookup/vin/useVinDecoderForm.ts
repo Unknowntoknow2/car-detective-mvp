@@ -53,13 +53,14 @@ export const useVinDecoderForm = () => {
     }
   };
 
-  // Changed return type to void to fix type error
+  // Modified function signature to return Promise<void> to fix type error
   const handleDetailsSubmit = async (details: any): Promise<void> => {
-    await submitValuation({
+    const result = await submitValuation({
       ...details,
       // Add Carfax data if available
       carfaxData: carfaxData || undefined
     });
+    // We don't return the result anymore, making it void
   };
 
   const handleDownloadPdf = () => {

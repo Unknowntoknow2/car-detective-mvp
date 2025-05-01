@@ -6,14 +6,14 @@ import type { DecodedVehicleInfo } from '@/types/vehicle';
 
 interface VinDecoderResult {
   vin: string;
-  make: string; // Changed from optional to required
-  model: string; // Changed from optional to required
-  year: number; // Changed from optional to required
+  make: string; 
+  model: string; 
+  year: number; 
   trim?: string;
   fuelType?: string;
   engine?: string;
   mileage?: number;
-  transmission: string; // Changed from optional to required
+  transmission: string;
   drivetrain?: string;
   bodyType?: string;
 }
@@ -25,6 +25,16 @@ export function useVinDecoder() {
   const { toast } = useToast();
 
   const lookupVin = async (vin: string): Promise<VinDecoderResult | null> => {
+    if (!vin || vin.length !== 17) {
+      setError('Invalid VIN. Must be a 17-character string.');
+      toast({
+        title: "Invalid VIN",
+        description: "Please enter a valid 17-character VIN.",
+        variant: "destructive"
+      });
+      return null;
+    }
+    
     setIsLoading(true);
     setError(null);
     

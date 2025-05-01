@@ -8,26 +8,28 @@ interface VinSubmitButtonProps {
   isLoading: boolean;
 }
 
-export function VinSubmitButton({ onClick, disabled, isLoading }: VinSubmitButtonProps) {
+export function VinSubmitButton({ 
+  onClick, 
+  disabled,
+  isLoading 
+}: VinSubmitButtonProps) {
   return (
-    <div className="flex justify-end">
-      <Button 
-        onClick={onClick}
-        disabled={disabled || isLoading}
-        className="px-6"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Looking up VIN...
-          </>
-        ) : (
-          <>
-            <Search className="mr-2 h-4 w-4" />
-            Look up Vehicle
-          </>
-        )}
-      </Button>
-    </div>
+    <Button 
+      onClick={onClick}
+      disabled={disabled || isLoading}
+      className="w-full"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Looking up VIN...
+        </>
+      ) : (
+        <>
+          <Search className="mr-2 h-4 w-4" />
+          Get Vehicle Details
+        </>
+      )}
+    </Button>
   );
 }

@@ -3,7 +3,8 @@ export interface VpicVehicleData {
   vin: string;
   make: string | null;
   model: string | null;
-  modelYear: number | null;
+  modelYear: number | null;  // This is what's used instead of year
+  year?: number;             // Adding this to fix compatibility issues
   vehicleType: string | null;
   bodyClass: string | null;
   driveType: string | null;

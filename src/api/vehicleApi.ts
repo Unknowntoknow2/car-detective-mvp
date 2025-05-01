@@ -1,7 +1,8 @@
+
 // src/api/vehicleApi.ts
 
-import { handleApiError } from '@/utils/error-handling';
 import { ApiErrorType } from '@/utils/api-utils';
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_VEHICLE_API_URL || 'http://localhost:3000/api';
 
@@ -31,7 +32,8 @@ export async function fetchVehicleDetails(vin: string): Promise<VehicleDetails |
     const data = await response.json();
     return data as VehicleDetails;
   } catch (error: any) {
-    handleApiError(error, 'fetchVehicleDetails');
+    console.error("Error fetching vehicle details:", error);
+    toast.error(error.message || "Failed to fetch vehicle details");
     return null;
   }
 }
@@ -78,7 +80,8 @@ export async function fetchFuelEfficiency(year: number, make: string, model: str
     const data = await response.json();
     return data.mpg as number;
   } catch (error: any) {
-    handleApiError(error, 'fetchFuelEfficiency');
+    console.error("Error fetching fuel efficiency:", error);
+    toast.error(error.message || "Failed to fetch fuel efficiency");
     return null;
   }
 }
@@ -97,7 +100,8 @@ export async function fetchSafetyRatings(year: number, make: string, model: stri
         const data = await response.json();
         return data;
     } catch (error: any) {
-        handleApiError(error, 'fetchSafetyRatings');
+        console.error("Error fetching safety ratings:", error);
+        toast.error(error.message || "Failed to fetch safety ratings");
         return null;
     }
 }
@@ -116,7 +120,8 @@ export async function fetchRecalls(year: number, make: string, model: string): P
     const data = await response.json();
     return data as any[];
   } catch (error: any) {
-    handleApiError(error, 'fetchRecalls');
+    console.error("Error fetching recalls:", error);
+    toast.error(error.message || "Failed to fetch recalls");
     return [];
   }
 }
