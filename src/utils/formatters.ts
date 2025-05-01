@@ -1,4 +1,3 @@
-
 export function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -29,4 +28,13 @@ export function formatRelativeTime(date: Date): string {
   
   const diffInYears = Math.floor(diffInMonths / 12);
   return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
+}
+
+export function formatCurrency(value: number, options: Intl.NumberFormatOptions = {}): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+    ...options
+  }).format(value);
 }
