@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getModelsByMakeId } from '@/api/vehicleApi';
 
 interface VehicleSelectorWithLogosProps {
   selectedMake: string;
@@ -19,7 +20,7 @@ export function VehicleSelectorWithLogos({
   onModelChange,
   disabled = false
 }: VehicleSelectorWithLogosProps) {
-  const { makes, getModelsByMake, isLoading } = useVehicleData();
+  const { makes, isLoading } = useVehicleData();
   const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
 
@@ -31,14 +32,23 @@ export function VehicleSelectorWithLogos({
       if (selectedMake) {
         try {
           setLoadingModels(true);
-          const fetchedModels = await getModelsByMake(selectedMake);
-          const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
-          const mappedModels = safeModels.map(model => ({
-            value: model.model_name,
-            label: model.model_name
-          }));
-          console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
-          setModelOptions(mappedModels);
+          // Find the make by name first
+          const selectedMakeObj = makes.find(make => make.make_name === selectedMake);
+          
+          if (selectedMakeObj) {
+            console.log("VehicleSelectorWithLogos: Found make ID", selectedMakeObj.id);
+            // Fetch models for this make ID
+            const models = await getModelsByMakeId(selectedMakeObj.id);
+            const mappedModels = models.map(model => ({
+              value: model.model_name,
+              label: model.model_name
+            }));
+            console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
+            setModelOptions(mappedModels);
+          } else {
+            console.warn("VehicleSelectorWithLogos: Make not found for name", selectedMake);
+            setModelOptions([]);
+          }
         } catch (error) {
           console.error("Error fetching models:", error);
           setModelOptions([]);
@@ -52,7 +62,7 @@ export function VehicleSelectorWithLogos({
     }
     
     fetchModels();
-  }, [selectedMake, getModelsByMake]);
+  }, [selectedMake, makes]);
 
   if (isLoading) {
     return (

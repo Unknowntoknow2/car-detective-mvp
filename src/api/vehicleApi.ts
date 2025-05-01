@@ -109,19 +109,12 @@ export async function getModelById(id: string): Promise<Model | null> {
 
 export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
   try {
-    // Convert makeId to number before using it in the query
-    const makeIdNumber = parseInt(makeId, 10);
-    
-    // Check if conversion worked to avoid NaN
-    if (isNaN(makeIdNumber)) {
-      console.error("Invalid makeId format, could not convert to number:", makeId);
-      return [];
-    }
+    console.log(`Fetching models for make ID: ${makeId}`);
     
     const { data, error } = await supabase
       .from('models')
       .select('*')
-      .eq('make_id', makeIdNumber)
+      .eq('make_id', makeId)
       .order('model_name');
     
     if (error) {
@@ -129,12 +122,15 @@ export async function getModelsByMakeId(makeId: string): Promise<Model[]> {
       return [];
     }
     
-    return (data || []).map(model => ({
+    const models = (data || []).map(model => ({
       id: model.id,
       make_id: String(model.make_id),
       model_name: model.model_name,
       nhtsa_model_id: null
     }));
+    
+    console.log(`Found ${models.length} models for make ID: ${makeId}`);
+    return models;
   } catch (error) {
     console.error("Error fetching models by make ID:", error);
     return [];

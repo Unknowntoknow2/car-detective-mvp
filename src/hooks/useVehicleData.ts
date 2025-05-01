@@ -1,107 +1,167 @@
-
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
-import { Make, Model, VehicleDataHook } from './types/vehicle';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { fetchVehicleData, getModelsByMakeId } from '@/api/vehicleApi';
+import { Make, Model, VehicleDataHook } from './types/vehicle';
+import { toast } from 'sonner';
+import { loadFromCache, saveToCache, clearCache } from '@/utils/vehicle/cacheUtils';
 
-export const useVehicleData = (): VehicleDataHook => {
+export function useVehicleData(): VehicleDataHook {
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
-  const [modelsByMake, setModelsByMake] = useState<Record<string, Model[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const buildModelsByMake = useCallback((modelsData: Model[]) => {
-    const modelsByMakeObj: Record<string, Model[]> = {};
-    modelsData.forEach(model => {
-      if (!model.make_id) return;
-      if (!modelsByMakeObj[model.make_id]) {
-        modelsByMakeObj[model.make_id] = [];
-      }
-      modelsByMakeObj[model.make_id].push(model);
-    });
-    setModelsByMake(modelsByMakeObj);
-
-    // Debugging counts
-    Object.keys(modelsByMakeObj).forEach(makeId => {
-      console.log(`Make ID ${makeId}: ${modelsByMakeObj[makeId].length} models`);
-    });
-  }, []);
-
-  const refreshData = useCallback(async () => {
-    try {
-      console.log("Refreshing vehicle data from API...");
-      setIsLoading(true);
-
-      const data = await fetchVehicleData();
-      console.log(`API returned ${data.makes.length} makes and ${data.models.length} models`);
-
-      if (data.makes.length === 0) {
-        throw new Error("API returned 0 makes");
-      }
-
-      setMakes(data.makes);
-      setModels(data.models);
-      buildModelsByMake(data.models);
-      return { success: true, makeCount: data.makes.length, modelCount: data.models.length };
-    } catch (err) {
-      console.error('Error refreshing vehicle data:', err);
-      toast.error('Failed to load vehicle data from database.');
-      return { success: false, error: err };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [buildModelsByMake]);
-
-  const fetchData = useCallback(async () => {
-    console.log("Fetching vehicle data...");
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await refreshData();
-      if (!result.success) {
-        throw new Error('Failed to fetch vehicle data from database');
-      }
-    } catch (err: any) {
-      console.error('Error fetching vehicle data:', err);
-      setError(err.message || 'Failed to load vehicle data');
-      toast.error('Failed to load vehicle data.');
-      
-      // Set empty arrays when Supabase fetch fails
-      setMakes([]);
-      setModels([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshData]);
-
-  const getModelsByMake = useCallback(async (makeName: string): Promise<Model[]> => {
-    if (!makeName || !Array.isArray(makes)) return [];
-
-    const make = makes.find(m => m.make_name === makeName);
-    if (!make) return [];
+  // Transform models by make for easier lookup
+  const modelsByMake = useMemo(() => {
+    const result: Record<string, Model[]> = {};
     
-    try {
-      // Fetch models directly from database for this specific make
-      const models = await getModelsByMakeId(make.id);
-      return models;
-    } catch (error) {
-      console.error('Error fetching models for make:', error);
-      return modelsByMake[make.id] || [];
+    if (models.length > 0) {
+      models.forEach(model => {
+        if (!result[model.make_id]) {
+          result[model.make_id] = [];
+        }
+        result[model.make_id].push(model);
+      });
     }
-  }, [makes, modelsByMake]);
+    
+    return result;
+  }, [models]);
 
-  const getYearOptions = useCallback((): number[] => {
-    const currentYear = new Date().getFullYear();
-    const startYear = 1980;
-    const endYear = currentYear + 1;
-    return Array.from({ length: endYear - startYear + 1 }, (_, i) => endYear - i);
+  const loadData = useCallback(async (forceRefresh = false) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Check cache first if we're not forcing a refresh
+      if (!forceRefresh) {
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          console.log('Using cached vehicle data');
+          setMakes(cachedData.makes);
+          setModels(cachedData.models);
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      console.log('Fetching fresh vehicle data from Supabase');
+      
+      // Fetch makes directly from Supabase
+      const { data: makesData, error: makesError } = await supabase
+        .from('makes')
+        .select('*')
+        .order('make_name');
+      
+      if (makesError) {
+        throw new Error(`Error fetching makes: ${makesError.message}`);
+      }
+      
+      // Transform makes data
+      const transformedMakes: Make[] = (makesData || []).map(make => ({
+        id: make.id,
+        make_name: make.make_name,
+        logo_url: null,
+        country_of_origin: null,
+        nhtsa_make_id: make.make_id
+      }));
+      
+      // Fetch all models
+      const { data: modelsData, error: modelsError } = await supabase
+        .from('models')
+        .select('*')
+        .order('model_name');
+      
+      if (modelsError) {
+        throw new Error(`Error fetching models: ${modelsError.message}`);
+      }
+      
+      // Transform models data
+      const transformedModels: Model[] = (modelsData || []).map(model => ({
+        id: model.id,
+        make_id: String(model.make_id),
+        model_name: model.model_name,
+        nhtsa_model_id: null
+      }));
+      
+      console.log(`Fetched ${transformedMakes.length} makes and ${transformedModels.length} models from Supabase`);
+      
+      // Update state with the fetched data
+      setMakes(transformedMakes);
+      setModels(transformedModels);
+      
+      // Cache the data for future use
+      saveToCache(transformedMakes, transformedModels);
+      
+    } catch (error: any) {
+      console.error('Error loading vehicle data:', error);
+      setError(error.message || 'Failed to load vehicle data');
+      toast.error('Failed to load vehicle data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    loadData();
+  }, [loadData]);
+
+  const getModelsByMake = useCallback(async (makeName: string): Promise<Model[]> => {
+    try {
+      console.log(`Getting models for make: ${makeName}`);
+      
+      // Find the make ID from the make name
+      const make = makes.find(m => m.make_name === makeName);
+      
+      if (!make) {
+        console.warn(`Make not found: ${makeName}`);
+        return [];
+      }
+      
+      // Check if we already have models for this make
+      if (modelsByMake[make.id]) {
+        console.log(`Using cached models for make: ${makeName}`);
+        return modelsByMake[make.id];
+      }
+      
+      // Otherwise fetch from Supabase
+      console.log(`Fetching models for make ID: ${make.id}`);
+      const { data, error } = await supabase
+        .from('models')
+        .select('*')
+        .eq('make_id', make.id)
+        .order('model_name');
+      
+      if (error) {
+        throw error;
+      }
+      
+      const fetchedModels = (data || []).map(model => ({
+        id: model.id,
+        make_id: String(model.make_id),
+        model_name: model.model_name,
+        nhtsa_model_id: null
+      }));
+      
+      console.log(`Found ${fetchedModels.length} models for make: ${makeName}`);
+      return fetchedModels;
+      
+    } catch (error) {
+      console.error(`Error fetching models for make ${makeName}:`, error);
+      return [];
+    }
+  }, [makes, modelsByMake]);
+
+  const getYearOptions = useCallback((startYear = 1981): number[] => {
+    const currentYear = new Date().getFullYear();
+    const years: number[] = [];
+    
+    // Include next year's models that are sometimes released early
+    for (let year = currentYear + 1; year >= startYear; year--) {
+      years.push(year);
+    }
+    
+    return years;
+  }, []);
 
   return {
     makes,
@@ -111,12 +171,12 @@ export const useVehicleData = (): VehicleDataHook => {
     getYearOptions,
     isLoading,
     error,
-    refreshData,
+    refreshData: loadData,
     counts: {
       makes: makes.length,
-      models: models.length,
-    },
+      models: models.length
+    }
   };
-};
+}
 
 export type { Make, Model };
