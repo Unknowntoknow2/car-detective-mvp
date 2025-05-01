@@ -39,7 +39,8 @@ export class LocationCalculator implements AdjustmentCalculator {
       
       if (!error && zipData && zipData.location_data) {
         // Type guard to ensure location_data has the correct shape
-        const locationData = zipData.location_data as ZipLocationData;
+        // Use a safer two-step cast with unknown first
+        const locationData = zipData.location_data as unknown as ZipLocationData;
         
         if (locationData.places && locationData.places.length > 0) {
           const place = locationData.places[0];
@@ -50,20 +51,20 @@ export class LocationCalculator implements AdjustmentCalculator {
           description = `Based on market demand in ${city}, ${state} (${input.zipCode})`;
           
           // Look up more specific location factor from pricing_curves if available
-          const { data: locationData, error: locationError } = await supabase
+          const { data: pricingData, error: locationError } = await supabase
             .from('pricing_curves')
             .select('multiplier')
             .eq('zip_code', input.zipCode)
             .single();
           
-          if (!locationError && locationData && locationData.multiplier) {
+          if (!locationError && pricingData && pricingData.multiplier) {
             // We have a specific multiplier for this ZIP code
-            const specificAdjustment = input.basePrice * (locationData.multiplier - 1); // Convert from multiplier to adjustment
+            const specificAdjustment = input.basePrice * (pricingData.multiplier - 1); // Convert from multiplier to adjustment
             return {
               name: 'Location Impact',
               value: Math.round(specificAdjustment),
               description,
-              percentAdjustment: (locationData.multiplier - 1) * 100 // Convert to percentage
+              percentAdjustment: (pricingData.multiplier - 1) * 100 // Convert to percentage
             };
           }
         }
