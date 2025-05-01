@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchVehicleData, getModelsByMakeId } from '@/api/vehicleApi';
@@ -125,10 +126,19 @@ export function useVehicleData(): VehicleDataHook {
       
       // Otherwise fetch from Supabase
       console.log(`Fetching models for make ID: ${make.id}`);
+      // Convert make.id to a number if it's stored as a string in the make object
+      const numericMakeId = parseInt(make.id, 10);
+      
+      // Check if conversion was successful
+      if (isNaN(numericMakeId)) {
+        console.error("Invalid make ID format:", make.id);
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from('models')
         .select('*')
-        .eq('make_id', make.id)
+        .eq('make_id', numericMakeId) // Using numeric value now
         .order('model_name');
       
       if (error) {
