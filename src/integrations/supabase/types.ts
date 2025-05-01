@@ -596,6 +596,30 @@ export type Database = {
         }
         Relationships: []
       }
+      recalls_cache: {
+        Row: {
+          fetched_at: string
+          make: string
+          model: string
+          recalls_data: Json
+          year: number
+        }
+        Insert: {
+          fetched_at?: string
+          make: string
+          model: string
+          recalls_data: Json
+          year: number
+        }
+        Update: {
+          fetched_at?: string
+          make?: string
+          model?: string
+          recalls_data?: Json
+          year?: number
+        }
+        Relationships: []
+      }
       saved_valuations: {
         Row: {
           condition_score: number | null
@@ -1035,6 +1059,24 @@ export type Database = {
           description?: string | null
           multiplier?: number
           status?: string
+        }
+        Relationships: []
+      }
+      zip_cache: {
+        Row: {
+          fetched_at: string
+          location_data: Json
+          zip: string
+        }
+        Insert: {
+          fetched_at?: string
+          location_data: Json
+          zip: string
+        }
+        Update: {
+          fetched_at?: string
+          location_data?: Json
+          zip?: string
         }
         Relationships: []
       }

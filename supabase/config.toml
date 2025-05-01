@@ -10,3 +10,8 @@ verify_jwt = true
 [functions.fetch_vpic_data]
 verify_jwt = true
 
+[functions.fetch_nhtsa_recalls]
+verify_jwt = false
+
+[functions.fetch_zippopotamus]
+verify_jwt = false

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DesignCard } from "@/components/ui/design-system";
 import { MapPin, TrendingUp, AlertCircle } from "lucide-react";
+import { ZipValidation } from "@/components/common/ZipValidation";
 
 interface ZipMarketAnalysisProps {
   zipCode: string;
@@ -97,7 +98,11 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
               className="font-mono"
               disabled={disabled}
             />
-            {zipCode && !isValidZip && (
+            
+            {/* Use our new ZipValidation component */}
+            {zipCode && zipCode.length === 5 && <ZipValidation zip={zipCode} compact />}
+            
+            {zipCode && !isValidZip && zipCode.length > 0 && zipCode.length < 5 && (
               <p className="text-xs text-error flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
                 Please enter a valid 5-digit ZIP code
@@ -148,4 +153,4 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
       </div>
     </div>
   );
-};
+}

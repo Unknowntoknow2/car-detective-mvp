@@ -12,6 +12,7 @@ import { useVinDecoderForm } from './vin/useVinDecoderForm';
 import { VinLookupForm } from './vin/VinLookupForm';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 import { VinDecoderResults } from './vin/VinDecoderResults';
+import { NhtsaRecalls } from '@/components/valuation/NhtsaRecalls';
 
 export const VinDecoderForm = () => {
   const {
@@ -33,10 +34,10 @@ export const VinDecoderForm = () => {
     handleDownloadPdf
   } = useVinDecoderForm();
 
-  // Modified function signature to return Promise<void> to fix type error
+  // Fix the return type of handleDetailsSubmit to match expected Promise<void>
   const handleDetailsSubmit = async (details: any): Promise<void> => {
     await submitValuation(details);
-    // We don't return the result anymore, making it void
+    // Result handling is done via state updates, no return needed
   };
 
   const onDownloadPdf = () => {
@@ -82,6 +83,17 @@ export const VinDecoderForm = () => {
         carfaxData={carfaxData}
         onDownloadPdf={onDownloadPdf}
       />
+
+      {/* Show recalls if we have vehicle data */}
+      {result?.make && result?.model && result?.year && (
+        <div className="mt-4">
+          <NhtsaRecalls 
+            make={result.make} 
+            model={result.model} 
+            year={parseInt(result.year, 10)} 
+          />
+        </div>
+      )}
     </div>
   );
 };
