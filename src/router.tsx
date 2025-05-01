@@ -1,75 +1,32 @@
+import React from 'react';
+import { createBrowserRouter, RouterProvider, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import VinLookupPage from './pages/VinLookupPage';
+import PremiumValuationPage from './pages/PremiumValuationPage';
+import NotFoundPage from './pages/NotFoundPage';
+import VehicleHistoryPage from './pages/VehicleHistoryPage'; // Import the new page
 
-import { createBrowserRouter } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import PremiumValuationPage from "./pages/PremiumValuationPage";
-import PremiumConditionEvaluationPage from "./pages/PremiumConditionEvaluationPage";
-import AuthPage from "./pages/AuthPage";
-import EquipmentSelectionPage from "./pages/EquipmentSelectionPage";
-import { Loader2 } from "lucide-react";
-
-// Lazy load pages to improve initial load time
-const HomePage = lazy(() => import("./pages/Index"));
-const ValuationPage = lazy(() => import("./pages/FreeValuationPage"));
-const AccountPage = lazy(() => import("./pages/ProfilePage"));
-// Fix the PhotoUploadPage import issue
-// const PhotoUploadPage = lazy(() => import("./pages/PhotoUploadPage"));
-
-// Loader component for lazy-loaded routes
-const PageLoader = () => (
-  <div className="flex items-center justify-center h-screen">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-  </div>
-);
-
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
-    path: "/",
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <HomePage />
-      </Suspense>
-    ),
+    path: '/',
+    element: <HomePage />,
   },
   {
-    path: "/valuation",
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <ValuationPage />
-      </Suspense>
-    ),
+    path: '/vin-lookup',
+    element: <VinLookupPage />,
   },
   {
-    path: "/premium",
+    path: '/premium-valuation',
     element: <PremiumValuationPage />,
   },
   {
-    path: "/premium/condition",
-    element: <PremiumConditionEvaluationPage />,
+    path: '/vehicle-history',
+    element: <VehicleHistoryPage />,
   },
   {
-    path: "/auth",
-    element: <AuthPage />,
-  },
-  {
-    path: "/account",
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <AccountPage />
-      </Suspense>
-    ),
-  },
-  /* Temporarily comment out this route until PhotoUploadPage is implemented
-  {
-    path: "/photo",
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <PhotoUploadPage />
-      </Suspense>
-    ),
-  },
-  */
-  {
-    path: "/equipment",
-    element: <EquipmentSelectionPage />,
+    path: '*',
+    element: <NotFoundPage />,
   },
 ]);
+
+export default router;

@@ -47,6 +47,12 @@ export function Navbar() {
             >
               Premium
             </Link>
+            <Link
+              to="/vehicle-history"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              Vehicle History
+            </Link>
             {user && (
               <Link
                 to="/dashboard"
@@ -97,6 +103,9 @@ export function Navbar() {
                 </Link>
                  <Link to="/premium" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
                   Premium
+                </Link>
+                <Link to="/vehicle-history" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
+                  Vehicle History
                 </Link>
                 {user && (
                   <Link to="/dashboard" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
