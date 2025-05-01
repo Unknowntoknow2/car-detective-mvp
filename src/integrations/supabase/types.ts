@@ -934,6 +934,33 @@ export type Database = {
         }
         Relationships: []
       }
+      zip_validations: {
+        Row: {
+          city: string | null
+          latitude: string | null
+          longitude: string | null
+          state: string | null
+          valid_at: string | null
+          zip: string
+        }
+        Insert: {
+          city?: string | null
+          latitude?: string | null
+          longitude?: string | null
+          state?: string | null
+          valid_at?: string | null
+          zip: string
+        }
+        Update: {
+          city?: string | null
+          latitude?: string | null
+          longitude?: string | null
+          state?: string | null
+          valid_at?: string | null
+          zip?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -942,6 +969,10 @@ export type Database = {
       bytea_to_text: {
         Args: { data: string }
         Returns: string
+      }
+      clean_old_zip_validations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }

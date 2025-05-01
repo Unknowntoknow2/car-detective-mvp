@@ -18,6 +18,7 @@ interface VehicleDetailsFieldsProps {
 
 export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleDetailsFieldsProps) {
   const [colorMultiplier, setColorMultiplier] = useState<number>(1);
+  const [isZipValid, setIsZipValid] = useState<boolean | undefined>(undefined);
   
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -34,11 +35,13 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
     }));
   };
 
-  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleZipCodeChange = (value: string, isValid?: boolean) => {
     setFormData(prev => ({
       ...prev,
-      zipCode: e.target.value
+      zipCode: value
     }));
+    
+    setIsZipValid(isValid);
   };
 
   const handleExteriorColorChange = (color: string, multiplier: number) => {
@@ -121,13 +124,12 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
         <Label htmlFor="zipCode">
           ZIP Code <span className="text-red-500">*</span>
         </Label>
-        <Input
-          id="zipCode"
-          placeholder="e.g. 90210"
-          value={formData.zipCode}
+        <ZipCodeInput
+          value={formData.zipCode || ''}
           onChange={handleZipCodeChange}
-          maxLength={10}
-          className={errors.zipCode ? "border-red-500" : ""}
+          showValidation={true}
+          disabled={false}
+          required={true}
         />
         {errors.zipCode && <FormValidationError error={errors.zipCode} />}
         <p className="text-sm text-gray-500">Used to determine regional market value</p>

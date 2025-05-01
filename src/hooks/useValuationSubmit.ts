@@ -21,6 +21,23 @@ export const useValuationSubmit = () => {
       return null;
     }
 
+    // Validate ZIP code before proceeding
+    if (formData.zipCode && formData.zipCode.length === 5) {
+      try {
+        const { data: zipValidation, error } = await supabase.functions.invoke('validate-zip', {
+          body: { zip: formData.zipCode }
+        });
+        
+        if (error || (zipValidation && !zipValidation.isValid)) {
+          toast.error("Please enter a valid ZIP code");
+          return null;
+        }
+      } catch (zipError) {
+        console.error('Error validating ZIP code:', zipError);
+        // Continue with submission even if ZIP validation fails
+      }
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
 import { ZipCodeInput } from './ZipCodeInput';
 import { toast } from 'sonner';
+import { ZipCodeField } from '@/components/premium/lookup/form-parts/fields/ZipCodeField';
 
 interface VehicleDetailsInputsProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -83,22 +83,11 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form
         )}
       />
       
-      <FormField
-        control={form.control}
+      <ZipCodeField
+        form={form}
         name="zipCode"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>ZIP Code</FormLabel>
-            <FormControl>
-              <ZipCodeInput 
-                zipCode={field.value || ''} 
-                setZipCode={(value) => field.onChange(value)}
-                isDisabled={form.formState.isSubmitting}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        label="ZIP Code"
+        placeholder="Enter ZIP code"
       />
     </div>
   );
