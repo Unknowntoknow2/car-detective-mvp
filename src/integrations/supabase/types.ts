@@ -984,6 +984,24 @@ export type Database = {
         }
         Relationships: []
       }
+      vin_cache: {
+        Row: {
+          fetched_at: string | null
+          nicb_data: Json
+          vin: string
+        }
+        Insert: {
+          fetched_at?: string | null
+          nicb_data: Json
+          vin: string
+        }
+        Update: {
+          fetched_at?: string | null
+          nicb_data?: Json
+          vin?: string
+        }
+        Relationships: []
+      }
       warranty_options: {
         Row: {
           description: string | null

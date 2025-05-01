@@ -3,3 +3,6 @@ project_id = "xltxqqzattxogxtqrggt"
 
 [functions.vehicle_history_functions]
 verify_jwt = false
+
+[functions.fetch_nicb_vincheck]
+verify_jwt = true

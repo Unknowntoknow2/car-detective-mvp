@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Make, Model } from '@/hooks/types/vehicle';
 import { toast } from 'sonner';
