@@ -22,10 +22,10 @@ serve(async (req) => {
     // Get request parameters
     const { make, model, year } = await req.json();
     
-    // Validate input parameters
+    // Validate required parameters
     if (!make || !model || !year) {
       return new Response(
-        JSON.stringify({ error: "Missing required parameters" }),
+        JSON.stringify({ error: "Missing required parameters: make, model, and year" }),
         { 
           status: 400, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -33,28 +33,23 @@ serve(async (req) => {
       );
     }
 
-    // Normalize parameters
-    const normalizedMake = make.trim().toLowerCase();
-    const normalizedModel = model.trim().toLowerCase();
-    const yearNumber = typeof year === 'string' ? parseInt(year, 10) : year;
-
-    // Check if we have a recent cache entry
+    // Check if we have a recent cache entry (less than 30 days old)
     const { data: cachedData, error: cacheError } = await supabase
       .from("recalls_cache")
       .select("recalls_data, fetched_at")
-      .eq("make", normalizedMake)
-      .eq("model", normalizedModel)
-      .eq("year", yearNumber)
+      .eq("make", make)
+      .eq("model", model)
+      .eq("year", year)
       .single();
 
-    // If we have a relatively fresh cache (< 24h), return it immediately
+    // If we have a relatively fresh cache (< 30 days), return it immediately
     if (cachedData && !cacheError) {
       const fetchedAt = new Date(cachedData.fetched_at);
       const now = new Date();
-      const cacheAgeHours = (now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60);
+      const cacheAgeDays = (now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
       
-      if (cacheAgeHours < 24) {
-        console.log("Returning cached recall data");
+      if (cacheAgeDays < 30) {
+        console.log("Returning cached NHTSA recall data");
         return new Response(
           JSON.stringify(cachedData.recalls_data),
           { 
@@ -65,17 +60,17 @@ serve(async (req) => {
     }
 
     // Fetch fresh data from NHTSA API
-    const apiUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(normalizedMake)}&model=${encodeURIComponent(normalizedModel)}&modelYear=${yearNumber}`;
+    const apiUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`;
     
-    console.log(`Fetching recalls from: ${apiUrl}`);
+    console.log(`Fetching NHTSA recall data from: ${apiUrl}`);
     const response = await fetch(apiUrl);
     
     if (!response.ok) {
       console.error(`NHTSA API error: ${response.status} ${response.statusText}`);
       return new Response(
-        JSON.stringify({ error: "No recall data found" }),
+        JSON.stringify({ error: "Failed to fetch recall data" }),
         { 
-          status: 404, 
+          status: response.status, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
         }
       );
@@ -84,22 +79,20 @@ serve(async (req) => {
     const recallsData = await response.json();
 
     // If we got valid data, update the cache
-    if (recallsData && recallsData.Results) {
+    if (recallsData) {
       // Upsert into recalls_cache
       const { error: upsertError } = await supabase
         .from("recalls_cache")
         .upsert({
-          make: normalizedMake,
-          model: normalizedModel,
-          year: yearNumber,
+          make,
+          model,
+          year,
           recalls_data: recallsData,
           fetched_at: new Date().toISOString(),
-        }, {
-          onConflict: "make,model,year"
         });
 
       if (upsertError) {
-        console.error("Error upserting recall data:", upsertError);
+        console.error("Error upserting NHTSA recall data:", upsertError);
       }
     }
 
