@@ -8,6 +8,7 @@ import NotFoundPage from './pages/NotFound';
 import VehicleHistoryPage from './pages/VehicleHistoryPage';
 import NicbVinCheckPage from './pages/NicbVinCheckPage';
 import VpicDecoderPage from './pages/VpicDecoderPage';
+import PremiumPage from './pages/PremiumPage';
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
   {
     path: '/premium-valuation',
     element: <PremiumValuationPage />,
+  },
+  {
+    path: '/premium',
+    element: <PremiumPage />,
   },
   {
     path: '/vehicle-history',
