@@ -1,8 +1,8 @@
-
 // src/api/vehicleApi.ts
 
 import { ApiErrorType } from '@/utils/api-utils';
 import { toast } from 'sonner';
+import { Make, Model } from '@/hooks/types/vehicle';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_VEHICLE_API_URL || 'http://localhost:3000/api';
 
@@ -16,6 +16,31 @@ interface VehicleDetails {
   engine?: string;
   fuelType?: string;
   driveType?: string;
+}
+
+export interface VehicleData {
+  makes: Make[];
+  models: Model[];
+}
+
+export async function fetchVehicleData(): Promise<VehicleData> {
+  try {
+    const makesResponse = await fetch(`${API_BASE_URL}/makes`);
+    const modelsResponse = await fetch(`${API_BASE_URL}/models`);
+
+    if (!makesResponse.ok || !modelsResponse.ok) {
+      throw new Error('Failed to fetch vehicle data');
+    }
+
+    const makes: Make[] = await makesResponse.json();
+    const models: Model[] = await modelsResponse.json();
+
+    return { makes, models };
+  } catch (error: any) {
+    console.error("Error fetching vehicle data:", error);
+    toast.error(error.message || "Failed to fetch vehicle data");
+    return { makes: [], models: [] };
+  }
 }
 
 export async function fetchVehicleDetails(vin: string): Promise<VehicleDetails | null> {
