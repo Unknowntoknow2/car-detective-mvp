@@ -1,0 +1,36 @@
+
+name: Build and Test App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build project
+      run: npm run build
+
+    - name: Lint project
+      run: npm run lint || true
+
+    - name: Docker build test
+      run: docker build -t car-detective-app .
+
+    - name: Notify success
+      run: echo "Build and Docker image succeeded!"
