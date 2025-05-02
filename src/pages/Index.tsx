@@ -27,7 +27,7 @@ export default function Index() {
         <EnhancedHeroSection onFreeValuationClick={scrollToValuation} />
         <KeyFeatures />
         <ValuePropositionSection />
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-8 sm:py-12">
           <MarketingBanner 
             headline="Experience Premium Valuation with CARFAX® Reports"
             subtext="Get dealer-competitive offers, full vehicle history, and pricing forecasts not available in the free version."

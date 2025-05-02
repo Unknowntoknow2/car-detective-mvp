@@ -76,16 +76,16 @@ export const VinLookupForm = ({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="vin" className="text-sm font-medium">
+        <label htmlFor="vin" className="text-sm font-medium block">
           Vehicle Identification Number (VIN)
         </label>
         <Input
           id="vin"
           value={vin}
           onChange={handleVinChange}
-          placeholder="Enter your 17-character VIN number"
+          placeholder="Enter 17-character VIN"
           maxLength={17}
-          className="uppercase font-mono text-lg tracking-wider"
+          className="uppercase font-mono text-base sm:text-lg tracking-wider h-12 sm:h-14"
           aria-invalid={error ? "true" : "false"}
           required
         />
@@ -108,11 +108,11 @@ export const VinLookupForm = ({
       
       <Button 
         type="submit" 
-        className="w-full" 
+        className="w-full h-12 sm:h-14 text-base font-medium" 
         disabled={isLoading || !validateVin(vin)}
       >
-        <SearchCheck className="mr-2" />
-        {isLoading ? 'Looking Up Vehicle Details...' : 'Get Vehicle Details'}
+        <SearchCheck className="mr-2 h-5 w-5" />
+        {isLoading ? 'Looking Up...' : 'Get Vehicle Details'}
       </Button>
     </form>
   );

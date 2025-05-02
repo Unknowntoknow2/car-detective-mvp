@@ -61,42 +61,45 @@ export function PremiumValuationForm() {
   };
 
   return (
-    <FormStepLayout
-      currentStep={currentStep}
-      totalSteps={totalSteps}
-      isStepValid={stepValidities[currentStep]}
-      onNext={goToNextStep}
-      onPrevious={goToPreviousStep}
-      stepValidities={stepValidities}
-      stepCompletionStatus={stepCompletionStatus}
-      encouragementMessage={getStepEncouragementMessage()}
-    >
-      <FormInitializer
-        initialLoad={initialLoad}
-        setInitialLoad={setInitialLoad}
-        loadSavedData={loadSavedData}
-        setFormData={setFormData}
-        updateStepValidity={updateStepValidity}
-      />
-      
-      <motion.div
-        key={`step-${currentStep}`}
-        variants={fadeVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
+    <div className="px-2 sm:px-4">
+      <FormStepLayout
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        isStepValid={stepValidities[currentStep]}
+        onNext={goToNextStep}
+        onPrevious={goToPreviousStep}
+        stepValidities={stepValidities}
+        stepCompletionStatus={stepCompletionStatus}
+        encouragementMessage={getStepEncouragementMessage()}
       >
-        <StepContent
-          currentStep={currentStep}
-          formData={formData}
+        <FormInitializer
+          initialLoad={initialLoad}
+          setInitialLoad={setInitialLoad}
+          loadSavedData={loadSavedData}
           setFormData={setFormData}
           updateStepValidity={updateStepValidity}
-          isFormValid={isFormValid}
-          handleSubmit={handleSubmit}
-          handleReset={handleFullReset}
-          valuationId={valuationId}
         />
-      </motion.div>
-    </FormStepLayout>
+        
+        <motion.div
+          key={`step-${currentStep}`}
+          variants={fadeVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="w-full"
+        >
+          <StepContent
+            currentStep={currentStep}
+            formData={formData}
+            setFormData={setFormData}
+            updateStepValidity={updateStepValidity}
+            isFormValid={isFormValid}
+            handleSubmit={handleSubmit}
+            handleReset={handleFullReset}
+            valuationId={valuationId}
+          />
+        </motion.div>
+      </FormStepLayout>
+    </div>
   );
 }

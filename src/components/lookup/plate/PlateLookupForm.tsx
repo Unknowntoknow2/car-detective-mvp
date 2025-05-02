@@ -93,7 +93,7 @@ export const PlateLookupForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="plate" className="text-sm font-medium">
+        <label htmlFor="plate" className="text-sm font-medium block">
           License Plate
         </label>
         <Input
@@ -102,7 +102,7 @@ export const PlateLookupForm = ({
           onChange={handlePlateChange}
           placeholder="e.g. ABC123"
           maxLength={8}
-          className="uppercase h-12 text-lg font-medium tracking-wider"
+          className="uppercase h-12 sm:h-14 text-base sm:text-lg font-medium tracking-wider"
           aria-invalid={touched.plate && plateError ? "true" : "false"}
           required
         />
@@ -112,7 +112,7 @@ export const PlateLookupForm = ({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="state" className="text-sm font-medium">
+        <label htmlFor="state" className="text-sm font-medium block">
           State
         </label>
         <Select 
@@ -124,10 +124,10 @@ export const PlateLookupForm = ({
           }}
           required
         >
-          <SelectTrigger id="state" className="h-12">
+          <SelectTrigger id="state" className="h-12 sm:h-14 text-base">
             <SelectValue placeholder="Select a state" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[40vh]">
             {US_STATES.map((state) => (
               <SelectItem 
                 key={state.value} 
@@ -146,7 +146,7 @@ export const PlateLookupForm = ({
 
       <Button 
         type="submit" 
-        className="w-full h-12 text-lg font-medium"
+        className="w-full h-12 sm:h-14 text-base sm:text-lg font-medium"
         disabled={isLoading || !plate || !state}
       >
         {isLoading ? 'Looking up...' : 'Lookup Plate'}

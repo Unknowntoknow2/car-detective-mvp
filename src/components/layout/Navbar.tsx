@@ -1,130 +1,181 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Car, Menu, X } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Menu, X, ChevronDown } from 'lucide-react';
 
 export function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
-            <Car className="h-6 w-6" />
-            <span className="font-bold">Car Price Perfector</span>
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 font-semibold text-lg"
+          >
+            <span className="hidden sm:inline-block">CarDetective</span>
+            <span className="sm:hidden">CD</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link
-              to="/lookup/vin"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              VIN Lookup
-            </Link>
-            <Link
-              to="/lookup/plate"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Plate Lookup
-            </Link>
-            <Link
-              to="/premium"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Premium
-            </Link>
-            <Link
-              to="/vehicle-history"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Vehicle History
-            </Link>
-            {user && (
-              <Link
-                to="/dashboard"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
-              >
-                Dashboard
-              </Link>
-            )}
-          </nav>
         </div>
-        
-        <div className="ml-auto flex items-center space-x-4">
-          {!user ? (
-            <>
-              <Link to="/auth">
-                <Button variant="outline" size="sm">
-                  Sign In
-                </Button>
-              </Link>
-            </>
-          ) : (
-            <Button variant="outline" size="sm" onClick={signOut}>
-              Sign Out
-            </Button>
-          )}
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="sm" className="px-0">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="sm:max-w-sm">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-                <SheetDescription>
-                  Explore Car Price Perfector
-                </SheetDescription>
-              </SheetHeader>
-              <div className="grid gap-4 py-4">
-                <Link to="/" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
-                  Home
-                </Link>
-                <Link to="/lookup/vin" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link to="/free-valuation" className="text-sm font-medium hover:text-primary transition-colors">
+            Free Valuation
+          </Link>
+          <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
+            Premium
+          </Link>
+          <div className="relative group">
+            <button className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
+              Tools <ChevronDown className="h-4 w-4" />
+            </button>
+            <div className="absolute top-full right-0 mt-1 w-48 bg-background rounded-md shadow-lg border border-border hidden group-hover:block">
+              <div className="py-1">
+                <Link to="/vin-lookup" className="block px-4 py-2 text-sm hover:bg-primary/10">
                   VIN Lookup
                 </Link>
-                <Link to="/lookup/plate" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
+                <Link to="/plate-lookup" className="block px-4 py-2 text-sm hover:bg-primary/10">
                   Plate Lookup
                 </Link>
-                 <Link to="/premium" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
-                  Premium
-                </Link>
-                <Link to="/vehicle-history" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
-                  Vehicle History
-                </Link>
-                {user && (
-                  <Link to="/dashboard" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
+              </div>
+            </div>
+          </div>
+          {user ? (
+            <div className="relative group">
+              <button className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
+                My Account <ChevronDown className="h-4 w-4" />
+              </button>
+              <div className="absolute top-full right-0 mt-1 w-48 bg-background rounded-md shadow-lg border border-border hidden group-hover:block">
+                <div className="py-1">
+                  <Link to="/dashboard" className="block px-4 py-2 text-sm hover:bg-primary/10">
                     Dashboard
                   </Link>
-                )}
-                {!user ? (
-                  <Link to="/auth" className="px-4 py-2 hover:bg-secondary/50 rounded-md">
-                    Sign In
+                  <Link to="/saved" className="block px-4 py-2 text-sm hover:bg-primary/10">
+                    Saved Valuations
                   </Link>
-                ) : (
-                  <Button variant="outline" size="sm" onClick={signOut}>
+                  <button 
+                    onClick={signOut}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-primary/10 text-red-500"
+                  >
                     Sign Out
-                  </Button>
-                )}
+                  </button>
+                </div>
               </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button variant="outline" size="sm">Sign In</Button>
+            </Link>
+          )}
+          <Link to="/premium">
+            <Button size="sm">Get Premium</Button>
+          </Link>
+        </nav>
+
+        {/* Mobile Menu Button */}
+        <button 
+          className="md:hidden p-2 text-primary" 
+          onClick={toggleMobileMenu}
+          aria-label="Toggle mobile menu"
+        >
+          {mobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-background border-b border-border shadow-lg">
+            <nav className="container py-4 flex flex-col space-y-4">
+              <Link 
+                to="/free-valuation" 
+                className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Free Valuation
+              </Link>
+              <Link 
+                to="/premium" 
+                className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Premium
+              </Link>
+              <div className="border-t border-border/60 my-2"></div>
+              <Link 
+                to="/vin-lookup" 
+                className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                VIN Lookup
+              </Link>
+              <Link 
+                to="/plate-lookup" 
+                className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Plate Lookup
+              </Link>
+              
+              {user ? (
+                <>
+                  <div className="border-t border-border/60 my-2"></div>
+                  <Link 
+                    to="/dashboard" 
+                    className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    to="/saved" 
+                    className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Saved Valuations
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-4 py-3 rounded-md hover:bg-red-100 text-red-500 text-sm font-medium text-left w-full"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  to="/auth" 
+                  className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In / Register
+                </Link>
+              )}
+              
+              <div className="pt-2">
+                <Link 
+                  to="/premium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button className="w-full">Get Premium</Button>
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

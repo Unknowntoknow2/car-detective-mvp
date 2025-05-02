@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -80,7 +81,7 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
     <div className="grid gap-6 md:grid-cols-2">
       {/* Mileage */}
       <div className="space-y-2">
-        <Label htmlFor="mileage">
+        <Label htmlFor="mileage" className="text-sm font-medium block">
           Mileage <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -89,7 +90,7 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
           placeholder="e.g. 45000"
           value={formData.mileage || ''}
           onChange={handleMileageChange}
-          className={errors.mileage ? "border-red-500" : ""}
+          className={`h-12 ${errors.mileage ? "border-red-500" : ""}`}
         />
         {errors.mileage && <FormValidationError error={errors.mileage} />}
         <p className="text-sm text-gray-500">Current mileage on your vehicle's odometer</p>
@@ -97,17 +98,17 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
 
       {/* Fuel Type */}
       <div className="space-y-2">
-        <Label htmlFor="fuelType">
+        <Label htmlFor="fuelType" className="text-sm font-medium block">
           Fuel Type <span className="text-red-500">*</span>
         </Label>
         <Select
           value={formData.fuelType || ''}
           onValueChange={handleFuelTypeChange}
         >
-          <SelectTrigger id="fuelType" className={errors.fuelType ? "border-red-500" : ""}>
+          <SelectTrigger id="fuelType" className={`h-12 ${errors.fuelType ? "border-red-500" : ""}`}>
             <SelectValue placeholder="Select fuel type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[40vh]">
             <SelectItem value="Gasoline">Gasoline</SelectItem>
             <SelectItem value="Diesel">Diesel</SelectItem>
             <SelectItem value="Electric">Electric</SelectItem>
@@ -122,7 +123,7 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
 
       {/* ZIP Code */}
       <div className="space-y-2">
-        <Label htmlFor="zipCode">
+        <Label htmlFor="zipCode" className="text-sm font-medium block">
           ZIP Code <span className="text-red-500">*</span>
         </Label>
         <ZipCodeInput
@@ -139,14 +140,14 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
       {/* Exterior Color */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label htmlFor="exteriorColor">Exterior Color</Label>
+          <Label htmlFor="exteriorColor" className="text-sm font-medium">Exterior Color</Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <InfoIcon className="h-4 w-4 text-muted-foreground cursor-help" />
               </TooltipTrigger>
-              <TooltipContent className="max-w-[250px]">
-                <p>Color popularity affects value. Rare colors like Yellow can add up to 10% in value, while common colors like Black may reduce value by 5%.</p>
+              <TooltipContent className="max-w-[250px] p-3">
+                <p className="text-sm">Color popularity affects value. Rare colors like Yellow can add up to 10% in value, while common colors like Black may reduce value by 5%.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -166,26 +167,27 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
 
       {/* Interior Color */}
       <div className="space-y-2">
-        <Label htmlFor="interiorColor">Interior Color</Label>
+        <Label htmlFor="interiorColor" className="text-sm font-medium block">Interior Color</Label>
         <Input
           id="interiorColor"
           placeholder="e.g. Black Leather"
           value={formData.interiorColor || ''}
           onChange={handleInteriorColorChange}
+          className="h-12"
         />
       </div>
 
       {/* Body Type/Style */}
       <div className="space-y-2">
-        <Label htmlFor="bodyStyle">Body Style</Label>
+        <Label htmlFor="bodyStyle" className="text-sm font-medium block">Body Style</Label>
         <Select
           value={formData.bodyStyle || ''}
           onValueChange={handleBodyStyleChange}
         >
-          <SelectTrigger id="bodyStyle">
+          <SelectTrigger id="bodyStyle" className="h-12">
             <SelectValue placeholder="Select body style" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[40vh]">
             <SelectItem value="Sedan">Sedan</SelectItem>
             <SelectItem value="SUV">SUV</SelectItem>
             <SelectItem value="Truck">Truck</SelectItem>
