@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEpaMpg } from '../useEpaMpg';
 import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
 
 // Mock the Supabase client
 jest.mock('@/integrations/supabase/client', () => ({
