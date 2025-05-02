@@ -1,4 +1,8 @@
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @layer components {
   .card {
     @apply bg-surface-card rounded-xl shadow-md p-6 border border-border/50 transition-all

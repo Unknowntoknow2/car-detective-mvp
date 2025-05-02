@@ -1,4 +1,8 @@
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @layer utilities {
   .rotate-y-3d {
     transform: perspective(1000px) rotateY(var(--rotate-y, 0deg));

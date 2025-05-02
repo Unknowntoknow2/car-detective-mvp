@@ -1,4 +1,8 @@
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @layer components {
   .shimmer {
     @apply relative overflow-hidden before:absolute before:inset-0 
