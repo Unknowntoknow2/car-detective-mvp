@@ -1,4 +1,3 @@
-
 import { RouterProvider } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster'; // for shadcn toasts
 import { Toaster as SonnerToaster } from 'sonner'; // for sonner toasts
@@ -67,7 +66,7 @@ function App() {
     <EnhancedErrorBoundary context="App">
       <RouterProvider router={router} />
       
-      {/* Toast components */}
+      {/* Toast components - ensure these are properly imported */}
       <Toaster />
       <SonnerToaster />
     </EnhancedErrorBoundary>
