@@ -56,8 +56,8 @@ export function convertVehicleInfoToReportData(
   }
 
   if ('bodyType' in vehicle && vehicle.bodyType) {
-    baseReportData.bodyType = vehicle.bodyType;
-    baseReportData.bodyStyle = vehicle.bodyType; // Set both for consistency
+    baseReportData.bodyStyle = vehicle.bodyType; // Set bodyStyle
+    baseReportData.bodyType = vehicle.bodyType; // Keep bodyType for backward compatibility
   }
 
   return baseReportData;

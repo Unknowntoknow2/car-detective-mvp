@@ -31,7 +31,7 @@ export interface ReportData {
   photo?: string;
   explanation?: string;
   
-  // Backward compatibility properties
+  // Add the missing properties causing errors
   plate?: string;
   state?: string;
   carfaxData?: CarfaxData;

@@ -1,4 +1,4 @@
-import { ReportData } from './types';
+import { ReportData, ValuationReportOptions } from './types';
 import { generateBasicReport } from './generators/basicReportGenerator';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
 
@@ -99,6 +99,7 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueO
       condition: vehicleInfo.condition || '',
       zipCode: vehicleInfo.zipCode || '',
       bodyStyle: vehicleInfo.bodyType || '',
+      bodyType: vehicleInfo.bodyType || '',
       confidenceScore: null,
     };
   } else {
@@ -122,6 +123,8 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueO
       carfaxData: options.carfaxData,
       isPremium: options.isPremium,
       bodyStyle: vehicleInfo.bodyType || '',
+      bodyType: vehicleInfo.bodyType || '',
+      explanation: options.explanation || ''
     };
   }
 }

@@ -79,14 +79,12 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         zipCode: location,
         confidenceScore: 80, // Default value
         adjustments: [],
-        fuelType: 'Not Specified'
+        fuelType: 'Not Specified',
+        explanation: explanation // Add the explanation to the valuation data
       };
 
       // Convert to report data format
       const reportData = convertVehicleInfoToReportData(vehicleInfo, valuationData);
-      
-      // Add the explanation to the report data
-      reportData.explanation = explanation;
       
       // Generate and download the PDF
       await downloadPdf(reportData);
