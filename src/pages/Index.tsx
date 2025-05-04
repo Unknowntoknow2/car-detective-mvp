@@ -38,8 +38,11 @@ export default function Index() {
         <PremiumServicesGrid />
         <TestimonialsSection />
         <ComparisonTable />
-        <div ref={valuationRef}>
-          <PremiumTabs />
+        <div ref={valuationRef} className="py-16 bg-slate-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Get Your Vehicle Valuation</h2>
+            <PremiumTabs />
+          </div>
         </div>
       </main>
       <Footer />
