@@ -108,10 +108,10 @@ export const SavedValuationsList = () => {
                     <Car className="h-4 w-4 text-gray-500" />
                     <div>
                       <p className="font-medium">
-                        {item.valuation.year} {item.valuation.make} {item.valuation.model}
+                        {item.valuationDetails.year} {item.valuationDetails.make} {item.valuationDetails.model}
                       </p>
-                      {item.valuation.trim && (
-                        <p className="text-xs text-gray-500">{item.valuation.trim}</p>
+                      {item.valuationDetails.trim && (
+                        <p className="text-xs text-gray-500">{item.valuationDetails.trim}</p>
                       )}
                     </div>
                   </div>
@@ -120,10 +120,10 @@ export const SavedValuationsList = () => {
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4 text-green-500" />
                     <span className="font-medium">
-                      {formatCurrency(item.valuation.estimatedValue)}
+                      {formatCurrency(item.valuationDetails.estimatedValue)}
                     </span>
                     <Badge variant="outline" className="ml-2">
-                      {item.valuation.confidenceScore}% Confidence
+                      {item.valuationDetails.confidenceScore}% Confidence
                     </Badge>
                   </div>
                 </TableCell>

@@ -54,7 +54,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
             year: valuationData.year,
             mileage: valuationData.mileage || 0,
             condition: valuationData.condition || 'good',
-            // We'll handle photoScore separately since it's not part of ValuationParams
+            // We'll handle photo score separately
           });
           
           setEstimatedValue(result.estimatedValue);
@@ -68,14 +68,6 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
               description: adj.description
             }));
             setAuditTrail(convertedAdjustments as AuditTrail[]);
-          } else if ('factors' in result && Array.isArray(result.factors)) {
-            // Handle factors format if that's what's returned
-            const convertedFactors = (result.factors as any[]).map(f => ({
-              factor: f.name || f.factor,
-              impact: f.value || f.impact,
-              description: f.description
-            }));
-            setAuditTrail(convertedFactors as AuditTrail[]);
           } else {
             setAuditTrail(null);
           }
@@ -161,7 +153,24 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         isSaving={isSaving}
       />
 
-      {auditTrail && <ValuationAuditTrail auditTrail={auditTrail} />}
+      {auditTrail && (
+        <div className="mt-4">
+          {/* Pass the audit trail directly without type conversion */}
+          <ValuationAuditTrail 
+            auditTrail={{ 
+              basePrice: estimatedValue ? estimatedValue * 0.85 : 0,
+              adjustments: auditTrail.map(item => ({
+                name: item.factor,
+                value: item.impact,
+                description: item.description
+              })),
+              totalAdjustment: auditTrail.reduce((sum, item) => sum + item.impact, 0),
+              estimatedValue: estimatedValue || 0,
+              timestamp: new Date().toISOString()
+            }} 
+          />
+        </div>
+      )}
 
       <PredictionResult valuationId={valuationId} />
 

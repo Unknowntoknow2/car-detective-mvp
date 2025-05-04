@@ -31,11 +31,11 @@ export function useSavedValuations() {
 
         if (error) throw error;
 
-        // Transform data to match SavedValuation interface with nested valuation property
+        // Transform data to match SavedValuation interface with valuationDetails property
         const transformedData: SavedValuation[] = (data || []).map(item => ({
           ...item,
           saved_at: item.created_at, // Map created_at to saved_at to satisfy the interface
-          valuation: {
+          valuationDetails: {
             year: item.year,
             make: item.make,
             model: item.model,
@@ -95,11 +95,11 @@ export function useSavedValuations() {
 
       if (error) throw error;
 
-      // Transform data to match SavedValuation interface with nested valuation property
+      // Transform data to match SavedValuation interface with valuationDetails property
       const transformedData: SavedValuation[] = (data || []).map(item => ({
         ...item,
         saved_at: item.created_at, // Map created_at to saved_at to satisfy the interface
-        valuation: {
+        valuationDetails: {
           year: item.year,
           make: item.make,
           model: item.model,
