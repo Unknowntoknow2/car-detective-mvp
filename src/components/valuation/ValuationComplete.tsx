@@ -155,14 +155,15 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
 
       {auditTrail && (
         <div className="mt-4">
-          {/* Pass the audit trail directly without type conversion */}
+          {/* Pass the audit trail with the required percentAdjustment property */}
           <ValuationAuditTrail 
             auditTrail={{ 
               basePrice: estimatedValue ? estimatedValue * 0.85 : 0,
               adjustments: auditTrail.map(item => ({
                 name: item.factor,
                 value: item.impact,
-                description: item.description
+                description: item.description,
+                percentAdjustment: estimatedValue ? (item.impact / (estimatedValue * 0.85)) * 100 : 0
               })),
               totalAdjustment: auditTrail.reduce((sum, item) => sum + item.impact, 0),
               estimatedValue: estimatedValue || 0,
