@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
@@ -90,6 +89,7 @@ export const useVinDecoderForm = () => {
     return reportData;
   };
 
+  
   return {
     vin,
     setVin,

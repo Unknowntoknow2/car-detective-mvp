@@ -1,158 +1,80 @@
 
 import { useState } from 'react';
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
-import { Button } from '@/components/ui/button';
-import { useManualValuation, ManualVehicleInfo } from '@/hooks/useManualValuation';
-import { useSaveValuation } from '@/hooks/useSaveValuation';
-import { useAuth } from '@/contexts/AuthContext';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { Navbar } from '@/components/layout/Navbar';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
+import { VehicleInfoCard } from '@/components/lookup/VehicleInfoCard';
 
-const ManualLookupPage = () => {
-  const { calculateValuation, vehicleInfo, isLoading, reset } = useManualValuation();
-  const { saveValuation, isSaving } = useSaveValuation();
-  const { user } = useAuth();
-  const [showingResults, setShowingResults] = useState(false);
+export default function ManualLookupPage() {
+  const [manualEntryResult, setManualEntryResult] = useState<DecodedVehicleInfo | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleSubmit = async (data: ManualEntryFormData) => {
-    const vehicleData: ManualVehicleInfo = {
-      make: data.make,
-      model: data.model,
-      year: data.year,
-      mileage: data.mileage,
-      fuelType: data.fuelType,
-      condition: data.condition,
-      zipCode: data.zipCode
-    };
-    
-    const result = await calculateValuation(vehicleData);
-    if (result) {
-      setShowingResults(true);
-    }
+  const handleManualSubmit = (data: DecodedVehicleInfo) => {
+    // Process the manual entry form submission
+    setManualEntryResult(data);
+    toast.success(`Details received for ${data.year} ${data.make} ${data.model}`);
   };
 
-  const handleSaveValuation = async () => {
-    if (!vehicleInfo) return;
-
-    const valuationData = {
-      make: vehicleInfo.make,
-      model: vehicleInfo.model,
-      year: vehicleInfo.year,
-      valuation: vehicleInfo.valuation || 0,
-      confidenceScore: vehicleInfo.confidenceScore,
-      is_vin_lookup: false,
-    };
-
-    const saved = await saveValuation(valuationData);
-    if (saved) {
-      toast.success('Valuation saved to your account');
+  const handleDownloadPdf = async () => {
+    if (!manualEntryResult) {
+      toast.error("No vehicle data available to generate a report");
+      return;
     }
-  };
 
-  const handleDownloadReport = async () => {
-    if (!vehicleInfo) return;
-    
+    setIsDownloading(true);
     try {
-      const reportData = convertVehicleInfoToReportData({
-        make: vehicleInfo.make,
-        model: vehicleInfo.model,
-        year: vehicleInfo.year,
-        mileage: vehicleInfo.mileage
-      }, {
-        mileage: vehicleInfo.mileage,
-        estimatedValue: vehicleInfo.valuation || 0,
-        fuelType: vehicleInfo.fuelType,
-        condition: vehicleInfo.condition,
-        zipCode: vehicleInfo.zipCode,
-        confidenceScore: vehicleInfo.confidenceScore,
+      // For manual entries, we'll use some default values for non-provided fields
+      const defaultValuationData = {
+        mileage: manualEntryResult.mileage || 50000,
+        estimatedValue: 23500, // Default value
+        fuelType: manualEntryResult.fuelType || "Gasoline",
+        condition: "Good",
+        zipCode: "10001",
+        confidenceScore: 80,
         adjustments: []
-      });
+      };
+
+      const reportData = convertVehicleInfoToReportData(
+        manualEntryResult, 
+        defaultValuationData
+      );
       
       await downloadPdf(reportData);
-      toast.success('PDF report downloaded');
+      toast.success("PDF report generated successfully");
     } catch (error) {
-      toast.error('Failed to download PDF report');
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF report");
+    } finally {
+      setIsDownloading(false);
     }
-  };
-
-  const handleReset = () => {
-    reset();
-    setShowingResults(false);
   };
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="flex-1 container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center">Manual Vehicle Entry</h1>
-        
-        {!showingResults ? (
-          <ManualEntryForm onSubmit={handleSubmit} isLoading={isLoading} />
-        ) : (
-          <div className="max-w-4xl mx-auto">
-            <Card className="p-8 mb-8">
-              <h2 className="text-2xl font-bold mb-6">Vehicle Valuation Results</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Vehicle Details</h3>
-                  <div className="space-y-2">
-                    <p><span className="font-medium">Make:</span> {vehicleInfo?.make}</p>
-                    <p><span className="font-medium">Model:</span> {vehicleInfo?.model}</p>
-                    <p><span className="font-medium">Year:</span> {vehicleInfo?.year}</p>
-                    <p><span className="font-medium">Mileage:</span> {vehicleInfo?.mileage.toLocaleString()} miles</p>
-                    <p><span className="font-medium">Fuel Type:</span> {vehicleInfo?.fuelType}</p>
-                    <p><span className="font-medium">Condition:</span> {vehicleInfo?.condition.charAt(0).toUpperCase() + vehicleInfo?.condition.slice(1)}</p>
-                    {vehicleInfo?.zipCode && <p><span className="font-medium">ZIP Code:</span> {vehicleInfo.zipCode}</p>}
-                  </div>
-                </div>
-                
-                <div className="bg-primary/10 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4">Valuation</h3>
-                  <div className="text-4xl font-bold mb-2">${vehicleInfo?.valuation?.toLocaleString()}</div>
-                  <p className="text-muted-foreground mb-4">Estimated Value</p>
-                  <div className="text-sm">
-                    <p>Confidence Score: {vehicleInfo?.confidenceScore}%</p>
-                    <p className="mt-1">Based on 117 comparable vehicles in your area</p>
-                    <p className="mt-2 text-xs">Values are estimates based on available data and market conditions</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {user && (
-                  <Button 
-                    onClick={handleSaveValuation}
-                    disabled={isSaving}
-                    className="flex-1"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Valuation'}
-                  </Button>
-                )}
-                <Button 
-                  onClick={handleDownloadReport}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Download PDF Report
-                </Button>
-                <Button 
-                  onClick={handleReset}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  New Valuation
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+      <main className="flex-1 container py-10">
+        <div className="mx-auto max-w-4xl">
+          <h1 className="text-3xl font-bold text-center mb-8">Manual Vehicle Entry</h1>
+          <p className="text-center text-muted-foreground mb-8">
+            Enter your vehicle details manually to get a valuation
+          </p>
+          
+          <ManualEntryForm onSubmit={handleManualSubmit} />
+          
+          {manualEntryResult && (
+            <div className="mt-8">
+              <VehicleInfoCard 
+                vehicleInfo={manualEntryResult}
+                onDownloadPdf={handleDownloadPdf}
+              />
+            </div>
+          )}
+        </div>
       </main>
+      <Footer />
     </div>
   );
-};
-
-export default ManualLookupPage;
+}

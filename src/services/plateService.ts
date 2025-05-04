@@ -42,6 +42,9 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
   const colors = ['Black', 'White', 'Silver', 'Red', 'Blue', 'Gray'];
   const colorIndex = Math.floor(Math.random() * colors.length);
   
+  // Generate a basic mileage value for each vehicle
+  const mileage = Math.floor(Math.random() * 100000) + 10000;
+  
   if (firstChar >= 'A' && firstChar <= 'F') {
     return {
       data: {
@@ -51,7 +54,8 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
-        color: colors[colorIndex]
+        color: colors[colorIndex],
+        mileage: mileage
       }
     };
   } else if (firstChar >= 'G' && firstChar <= 'L') {
@@ -63,7 +67,8 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
         make: 'Honda',
         model: 'Accord',
         year: 2021,
-        color: colors[colorIndex]
+        color: colors[colorIndex],
+        mileage: mileage
       }
     };
   } else if (firstChar >= 'M' && firstChar <= 'R') {
@@ -75,7 +80,8 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
         make: 'Ford',
         model: 'Mustang',
         year: 2019,
-        color: colors[colorIndex]
+        color: colors[colorIndex],
+        mileage: mileage
       }
     };
   } else {
@@ -87,7 +93,8 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
         make: 'Chevrolet',
         model: 'Malibu',
         year: 2018,
-        color: colors[colorIndex]
+        color: colors[colorIndex],
+        mileage: mileage
       }
     };
   }

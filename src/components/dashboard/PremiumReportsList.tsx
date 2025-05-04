@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ interface PremiumReport {
     model?: string;
     year?: number;
     vin?: string;
+    estimatedValue?: number;
   };
 }
 
@@ -48,7 +50,8 @@ export default function PremiumReportsList() {
             make: order.valuations.make,
             model: order.valuations.model,
             year: order.valuations.year,
-            vin: order.valuations.vin
+            vin: order.valuations.vin,
+            estimatedValue: order.valuations.estimated_value || 0
           } : undefined
         })) || [];
         
@@ -73,8 +76,15 @@ export default function PremiumReportsList() {
     const reportData = convertVehicleInfoToReportData({
       ...report.vehicle_info,
       mileage: 0, // Add default mileage value
+    }, {
+      estimatedValue: report.vehicle_info.estimatedValue || 0,
+      mileage: 0,
+      confidenceScore: 90,
+      condition: "Excellent",
+      zipCode: "10001",
+      adjustments: [],
       isPremium: true
-    }, report.vehicle_info.estimatedValue || 0);
+    });
     
     downloadPdf(reportData);
     toast.success('Downloading your premium report');

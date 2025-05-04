@@ -1,3 +1,4 @@
+
 import { ReportData } from './types';
 import { generateBasicReport } from './generators/basicReportGenerator';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
@@ -53,7 +54,7 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
         valuation: {
           basePrice: data.estimatedValue,
           estimatedValue: data.estimatedValue,
-          priceRange: [data.estimatedValue * 0.9, data.estimatedValue * 1.1],
+          priceRange: [data.estimatedValue * 0.9, data.estimatedValue * 1.1] as [number, number],
           confidenceScore: data.confidenceScore || 85,
           adjustments: data.adjustments || []
         },
@@ -75,26 +76,49 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
 /**
  * Helper function to convert vehicle info to report data format
  */
-export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValue: number): ReportData {
-  return {
-    make: vehicleInfo.make || '',
-    model: vehicleInfo.model || '',
-    year: vehicleInfo.year || '',
-    mileage: vehicleInfo.mileage || '0', // Ensure mileage is always provided
-    vin: vehicleInfo.vin || '',
-    plate: vehicleInfo.plate || '',
-    state: vehicleInfo.state || '',
-    color: vehicleInfo.color || '',
-    estimatedValue: estimatedValue || 0,
-    fuelType: vehicleInfo.fuelType || '',
-    condition: vehicleInfo.condition || '',
-    location: vehicleInfo.location || '',
-    transmission: vehicleInfo.transmission || '',
-    zipCode: vehicleInfo.zipCode || '',
-    bodyType: vehicleInfo.bodyType || '',
-  };
+export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueOrOptions: number | any): ReportData {
+  // Check if second parameter is a number or an options object
+  if (typeof estimatedValueOrOptions === 'number') {
+    return {
+      make: vehicleInfo.make || '',
+      model: vehicleInfo.model || '',
+      year: vehicleInfo.year || '',
+      mileage: vehicleInfo.mileage || '0', // Ensure mileage is always provided
+      vin: vehicleInfo.vin || '',
+      plate: vehicleInfo.plate || '',
+      state: vehicleInfo.state || '',
+      color: vehicleInfo.color || '',
+      estimatedValue: estimatedValueOrOptions || 0,
+      fuelType: vehicleInfo.fuelType || '',
+      condition: vehicleInfo.condition || '',
+      zipCode: vehicleInfo.zipCode || '',
+      bodyType: vehicleInfo.bodyType || '',
+    };
+  } else {
+    // It's an options object
+    const options = estimatedValueOrOptions;
+    return {
+      make: vehicleInfo.make || '',
+      model: vehicleInfo.model || '',
+      year: vehicleInfo.year || '',
+      mileage: vehicleInfo.mileage || options.mileage || '0',
+      vin: vehicleInfo.vin || '',
+      plate: vehicleInfo.plate || '',
+      state: vehicleInfo.state || '',
+      color: vehicleInfo.color || '',
+      estimatedValue: options.estimatedValue || 0,
+      fuelType: options.fuelType || '',
+      condition: options.condition || '',
+      zipCode: options.zipCode || '',
+      confidenceScore: options.confidenceScore,
+      adjustments: options.adjustments || [],
+      carfaxData: options.carfaxData,
+      isPremium: options.isPremium,
+      bodyType: vehicleInfo.bodyType || '',
+    };
+  }
 }
 
-// Export from generators directly to avoid naming conflicts
-export { generateBasicReport, generatePremiumReport } from './generators/basicReportGenerator';
+// Export the generator functions
+export { generateBasicReport } from './generators/basicReportGenerator';
 export { generatePremiumReport } from './generators/premiumReportGenerator';

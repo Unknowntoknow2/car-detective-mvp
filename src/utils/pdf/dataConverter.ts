@@ -34,24 +34,27 @@ export function convertVehicleInfoToReportData(
     isPremium: mergedData.isPremium
   };
 
-  if ('vin' in vehicle) {
-    baseReportData.vin = vehicle.vin || '';
+  if ('vin' in vehicle && vehicle.vin) {
+    baseReportData.vin = vehicle.vin;
   }
 
-  if ('plate' in vehicle && 'state' in vehicle) {
-    baseReportData.plate = vehicle.plate || '';
-    baseReportData.state = vehicle.state || '';
+  if ('plate' in vehicle && vehicle.plate) {
+    baseReportData.plate = vehicle.plate;
   }
 
-  if ('color' in vehicle) {
-    baseReportData.color = vehicle.color || undefined;
+  if ('state' in vehicle && vehicle.state) {
+    baseReportData.state = vehicle.state;
   }
 
-  if ('transmission' in vehicle) {
-    baseReportData.transmission = vehicle.transmission || undefined;
+  if ('color' in vehicle && vehicle.color) {
+    baseReportData.color = vehicle.color;
   }
 
-  if ('bodyType' in vehicle) {
+  if ('transmission' in vehicle && vehicle.transmission) {
+    baseReportData.transmission = vehicle.transmission;
+  }
+
+  if ('bodyType' in vehicle && vehicle.bodyType) {
     baseReportData.bodyType = vehicle.bodyType;
   }
 

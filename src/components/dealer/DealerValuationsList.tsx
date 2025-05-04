@@ -42,15 +42,16 @@ export const DealerValuationsList = () => {
           make: valuation.make,
           model: valuation.model,
           year: valuation.year,
-          mileage: valuation.mileage || 0
-        },
+          mileage: valuation.mileage || 0,
+          vin: valuation.vin
+        }, 
         {
-          estimatedValue: valuation.estimated_value,
-          confidenceScore: valuation.confidence_score,
-          mileage: valuation.mileage,
-          condition: valuation.condition,
-          fuelType: valuation.fuel_type,
-          zipCode: valuation.zip_code,
+          estimatedValue: valuation.estimated_value || 0,
+          confidenceScore: valuation.confidence_score || 85,
+          mileage: valuation.mileage || 0,
+          condition: valuation.condition || "Good",
+          fuelType: valuation.fuel_type || "Not Specified",
+          zipCode: valuation.zip_code || "10001",
           carfaxData,
           isPremium: includePremium,
           adjustments: [] // Add the required adjustments property

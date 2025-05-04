@@ -11,4 +11,5 @@ export interface Valuation {
   estimated_value?: number | null;
   is_premium?: boolean;
   valuation?: number | null;
+  mileage?: number | null;
 }

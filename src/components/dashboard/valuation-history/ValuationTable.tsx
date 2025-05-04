@@ -12,15 +12,21 @@ interface ValuationTableProps {
 export function ValuationTable({ valuations }: ValuationTableProps) {
   const handleDownloadReport = (valuation: Valuation) => {
     const reportData = convertVehicleInfoToReportData({
-      make: valuation.make,
-      model: valuation.model,
-      year: valuation.year,
-      vin: valuation.vin,
-      plate: valuation.plate,
-      state: valuation.state,
+      make: valuation.make || '',
+      model: valuation.model || '',
+      year: valuation.year || 0,
+      vin: valuation.vin || '',
+      plate: valuation.plate || '',
+      state: valuation.state || '',
+    }, {
       mileage: valuation.mileage || 0,
+      estimatedValue: valuation.valuation || valuation.estimated_value || 0,
+      confidenceScore: 85,
+      condition: "Good",
+      zipCode: "10001",
+      adjustments: [],
       isPremium: valuation.is_premium
-    }, valuation.valuation || valuation.estimated_value || 0);
+    });
     
     downloadPdf(reportData);
   };

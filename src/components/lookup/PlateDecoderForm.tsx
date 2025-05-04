@@ -55,6 +55,13 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
     handleSubmit(syntheticEvent);
   };
 
+  // Create a wrapper function for the download action
+  const handleDownloadClick = () => {
+    if (onDownloadPdf) {
+      onDownloadPdf();
+    }
+  };
+
   const isFormValid = plateNumber.trim() && state;
 
   return (
@@ -134,7 +141,7 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
             submitButtonText="Lookup License Plate"
             onSubmit={onFormSubmit}
             showDownload={!!result}
-            onDownloadPdf={onDownloadPdf}
+            onDownloadPdf={handleDownloadClick}
             isDownloading={isDownloading}
           />
         </form>
