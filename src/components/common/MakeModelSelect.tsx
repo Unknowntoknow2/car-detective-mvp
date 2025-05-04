@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 
 export interface MakeModelSelectProps {
   makes: { id: string; name: string }[];
@@ -11,7 +11,6 @@ export interface MakeModelSelectProps {
   isDisabled?: boolean;
 }
 
-// Primary implementation
 const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   makes,
   models,
@@ -22,14 +21,11 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   isDisabled = false,
 }) => {
   const filteredModels = models.filter(m => m.makeId === selectedMakeId);
-  
-  // Reset model selection when make changes
-  useEffect(() => {
-    setSelectedModelId('');
-  }, [selectedMakeId, setSelectedModelId]);
 
   const handleMakeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedMakeId(e.target.value);
+    // Reset model selection when make changes
+    setSelectedModelId('');
   };
 
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -38,19 +34,19 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
 
   return (
     <div className="flex space-x-4">
-      <div className="w-1/2">
-        <label htmlFor="make-select" className="block text-sm font-medium text-gray-700">
+      <div className="flex-1">
+        <label htmlFor="make" className="block text-sm font-medium text-gray-700">
           Make
         </label>
         <select
-          id="make-select"
+          id="make"
           value={selectedMakeId}
           onChange={handleMakeChange}
           disabled={isDisabled}
           className="mt-1 block w-full border rounded p-2"
         >
-          <option value="">Select Make</option>
-          {makes.map((make) => (
+          <option value="">Select a make</option>
+          {makes.map(make => (
             <option key={make.id} value={make.id}>
               {make.name}
             </option>
@@ -58,12 +54,12 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
         </select>
       </div>
       
-      <div className="w-1/2">
-        <label htmlFor="model-select" className="block text-sm font-medium text-gray-700">
+      <div className="flex-1">
+        <label htmlFor="model" className="block text-sm font-medium text-gray-700">
           Model
         </label>
         <select
-          id="model-select"
+          id="model"
           value={selectedModelId}
           onChange={handleModelChange}
           disabled={isDisabled || !selectedMakeId}
@@ -72,7 +68,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
           <option value="">
             {!selectedMakeId ? "Select Make First" : "Select Model"}
           </option>
-          {filteredModels.map((model) => (
+          {filteredModels.map(model => (
             <option key={model.id} value={model.id}>
               {model.name}
             </option>
@@ -84,6 +80,5 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
 };
 
 // Named export for backward compatibility
-export const CommonMakeModelSelect = MakeModelSelect;
 export { MakeModelSelect };
 export default MakeModelSelect;
