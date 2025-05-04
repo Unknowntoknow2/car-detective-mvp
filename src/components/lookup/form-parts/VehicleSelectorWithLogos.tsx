@@ -27,6 +27,16 @@ export function VehicleSelectorWithLogos({
   const [loadingModels, setLoadingModels] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
+  // Debug effect to log component props
+  useEffect(() => {
+    console.log("VehicleSelectorWithLogos: Props", { 
+      selectedMake, 
+      selectedModel, 
+      disabled,
+      makesCount: makes?.length || 0
+    });
+  }, [selectedMake, selectedModel, disabled, makes]);
+
   // Effect to update model options when make changes
   useEffect(() => {
     console.log("VehicleSelectorWithLogos: Make changed to:", selectedMake);
@@ -72,7 +82,8 @@ export function VehicleSelectorWithLogos({
   }, [selectedMake, makes]);
 
   const handleRefresh = async () => {
-    await refreshData(true); // Force refresh from Supabase
+    console.log("VehicleSelectorWithLogos: Manual refresh requested");
+    await refreshData(true); // Force refresh from API
   };
 
   if (isLoading) {
@@ -101,7 +112,7 @@ export function VehicleSelectorWithLogos({
     );
   }
 
-  if (makes.length === 0) {
+  if (!makes || makes.length === 0) {
     return (
       <div className="p-4 border border-amber-200 rounded-md bg-amber-50">
         <p className="text-amber-700">No vehicle data available.</p>
@@ -166,7 +177,7 @@ export function VehicleSelectorWithLogos({
         className="w-full"
       />
       
-      {makes.length > 0 && makesOptions.length === 0 && (
+      {(makes.length === 0 || makesOptions.length === 0) && (
         <div className="mt-2">
           <Button 
             variant="outline" 

@@ -398,28 +398,31 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          make_id: number | null
+          make_id: string | null
           model_name: string
+          nhtsa_model_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          make_id?: number | null
+          make_id?: string | null
           model_name: string
+          nhtsa_model_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          make_id?: number | null
+          make_id?: string | null
           model_name?: string
+          nhtsa_model_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "models_make_id_fkey"
+            foreignKeyName: "fk_make"
             columns: ["make_id"]
             isOneToOne: false
             referencedRelation: "makes"
-            referencedColumns: ["make_id"]
+            referencedColumns: ["id"]
           },
         ]
       }

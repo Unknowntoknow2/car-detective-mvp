@@ -1,3 +1,4 @@
+
 // src/api/vehicleApi.ts
 
 import { ApiErrorType } from '@/utils/api-utils';
@@ -25,16 +26,20 @@ export interface VehicleData {
 
 export async function fetchVehicleData(): Promise<VehicleData> {
   try {
+    console.log("Fetching vehicle data from API...");
     const makesResponse = await fetch(`${API_BASE_URL}/makes`);
     const modelsResponse = await fetch(`${API_BASE_URL}/models`);
 
     if (!makesResponse.ok || !modelsResponse.ok) {
-      throw new Error('Failed to fetch vehicle data');
+      const errorStatus = !makesResponse.ok ? makesResponse.status : modelsResponse.status;
+      console.error(`API error ${errorStatus} when fetching vehicle data`);
+      throw new Error(`Failed to fetch vehicle data: Status ${errorStatus}`);
     }
 
     const makes: Make[] = await makesResponse.json();
     const models: Model[] = await modelsResponse.json();
 
+    console.log(`Successfully fetched ${makes.length} makes and ${models.length} models`);
     return { makes, models };
   } catch (error: any) {
     console.error("Error fetching vehicle data:", error);
@@ -65,16 +70,20 @@ export async function fetchVehicleDetails(vin: string): Promise<VehicleDetails |
 
 export async function getModelsByMakeId(makeId: string): Promise<any[]> {
   try {
+    console.log(`Fetching models for make ID: ${makeId}`);
     const response = await fetch(`${API_BASE_URL}/models?make_id=${makeId}`);
 
     if (!response.ok) {
       if (response.status === 404) {
+        console.log(`No models found for make ID: ${makeId}`);
         return [];
       }
+      console.error(`API error ${response.status} when fetching models for make ID: ${makeId}`);
       throw new Error(`Failed to fetch models: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log(`Successfully fetched ${data.length} models for make ID: ${makeId}`);
     return data;
   } catch (error) {
     console.error("Error fetching models by make ID:", error);

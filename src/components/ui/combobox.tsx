@@ -51,8 +51,8 @@ export function ComboBox({
   
   React.useEffect(() => {
     // Debug log
-    console.log(`ComboBox: Received ${items?.length || 0} items, current value: ${value || 'none'}`);
-  }, [items, value]);
+    console.log(`ComboBox (${id || 'unnamed'}): ${items?.length || 0} items, current value: ${value || 'none'}`);
+  }, [items, value, id]);
   
   // Ensure we have a valid array
   const safeItems = Array.isArray(items) ? items : [];
@@ -73,7 +73,12 @@ export function ComboBox({
             className
           )}
           disabled={disabled}
-          onClick={() => console.log("ComboBox: Button clicked, items:", safeItems.length)}
+          onClick={() => {
+            console.log(`ComboBox (${id || 'unnamed'}): Button clicked, items:`, safeItems.length);
+            if (safeItems.length === 0) {
+              console.warn(`ComboBox (${id || 'unnamed'}): No items available to display`);
+            }
+          }}
         >
           {selectedItem ? selectedItem.label : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -102,6 +107,7 @@ export function ComboBox({
                     value={item.value}
                     onSelect={() => {
                       // Use item.value directly from the map to ensure correct selection
+                      console.log(`ComboBox (${id || 'unnamed'}): Selected ${item.label} (${item.value})`);
                       onChange(item.value);
                       setOpen(false);
                     }}
