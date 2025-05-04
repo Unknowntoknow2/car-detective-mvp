@@ -1,118 +1,84 @@
 
 import React, { useState } from 'react';
-import { toast } from 'sonner';
-import { Car, Search, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { usePlateLookup } from '@/hooks/usePlateLookup';
-import { ZipCodeInput } from './form-parts/ZipCodeInput';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { US_STATES } from '@/components/premium/lookup/shared/states-data';
-import { ValuationFormActions } from './form-parts/ValuationFormActions';
+import { ValuationFormActions } from '@/components/lookup/form-parts/ValuationFormActions';
+import { usePlateLookup } from '@/hooks/usePlateLookup';
+import { PlateLookupInfo } from '@/types/lookup';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-type RequiredInputs = {
-  mileage: number;
-  fuelType: string;
-  zipCode: string;
-  condition?: number;
-  hasAccident?: string; // Changed from boolean to string
-  accidentDescription?: string;
-  transmissionType?: string;
-  hasOpenRecall?: boolean;
-  warrantyStatus?: string;
-};
+interface PlateDecoderFormProps {
+  onLookupComplete?: (result: PlateLookupInfo | null) => void;
+  onDownloadPdf?: () => void;
+  isDownloading?: boolean;
+}
 
-export function PlateDecoderForm({ onSubmit }: { onSubmit?: (data: any) => void }) {
+const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({ 
+  onLookupComplete,
+  onDownloadPdf,
+  isDownloading = false
+}) => {
   const [plateNumber, setPlateNumber] = useState('');
-  const [stateCode, setStateCode] = useState('');
-  const [isFetching, setIsFetching] = useState(false);
-  const [vehicleData, setVehicleData] = useState<any>(null);
-  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const { lookupVehicle } = usePlateLookup();
+  const [state, setState] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const [additionalInfo, setAdditionalInfo] = useState<RequiredInputs>({
-    mileage: 0,
-    fuelType: '',
-    zipCode: '',
-    hasAccident: 'no', // Changed from false to 'no'
-    accidentDescription: '',
-  });
+  const {
+    lookupVehicle,
+    isLoading,
+    error,
+    result
+  } = usePlateLookup();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!plateNumber || !stateCode) {
-      toast.error("Please enter both plate number and state.");
+    
+    if (!plateNumber.trim() || !state) {
       return;
     }
-
-    setIsFetching(true);
-    setFetchError(null);
-
-    try {
-      const data = await lookupVehicle(plateNumber, stateCode);
-      if (!data) {
-        throw new Error("Failed to fetch vehicle data");
-      }
-      setVehicleData(data);
-      setShowAdditionalInfo(true);
-      toast.success("Vehicle data found!");
-    } catch (error: any) {
-      console.error("Plate lookup error:", error);
-      setFetchError(error.message || "Failed to fetch vehicle data.");
-      toast.error(error.message || "Failed to fetch vehicle data.");
-    } finally {
-      setIsFetching(false);
+    
+    setSubmitted(true);
+    const lookupResult = await lookupVehicle(plateNumber, state);
+    
+    if (onLookupComplete) {
+      onLookupComplete(lookupResult);
     }
   };
 
-  const handleAdditionalInfoSubmit = () => {
-    if (onSubmit && vehicleData) {
-      const combinedData = {
-        ...vehicleData,
-        ...additionalInfo,
-        identifierType: 'plate',
-        licensePlate: plateNumber,
-        state: stateCode
-      };
-      onSubmit(combinedData);
-    }
-  };
+  const isFormValid = plateNumber.trim() && state;
 
-  // When showing the secondary form for additional details
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="border-2 border-primary/20">
       <CardHeader>
-        <h2>
-          <Car className="mr-2 h-5 w-5 inline-block align-middle" />
-          License Plate Lookup
-        </h2>
+        <CardTitle>License Plate Decoder</CardTitle>
+        <CardDescription>Enter a license plate number and state to get vehicle information</CardDescription>
       </CardHeader>
       <CardContent>
-        {!showAdditionalInfo ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="plateNumber">License Plate</Label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="plate-number">License Plate</Label>
               <Input
-                type="text"
-                id="plateNumber"
-                placeholder="Enter plate number"
+                id="plate-number"
                 value={plateNumber}
                 onChange={(e) => setPlateNumber(e.target.value)}
-                disabled={isFetching}
+                placeholder="Enter license plate"
+                disabled={isLoading}
               />
             </div>
-            <div>
-              <Label htmlFor="stateCode">State</Label>
+            
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
               <Select
-                value={stateCode}
-                onValueChange={(value) => setStateCode(value)}
-                disabled={isFetching}
+                value={state}
+                onValueChange={setState}
+                disabled={isLoading}
               >
-                <SelectTrigger id="stateCode">
+                <SelectTrigger id="state">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
@@ -124,83 +90,51 @@ export function PlateDecoderForm({ onSubmit }: { onSubmit?: (data: any) => void 
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" disabled={isFetching} className="w-full">
-              {isFetching ? (
-                <>
-                  <Search className="mr-2 h-4 w-4 animate-spin" />
-                  Looking up...
-                </>
-              ) : (
-                <>
-                  <Search className="mr-2 h-4 w-4" />
-                  Find Vehicle
-                </>
-              )}
-            </Button>
-            {fetchError && (
-              <div className="text-red-500 mt-2 flex items-center">
-                <AlertCircle className="mr-2 h-4 w-4" />
-                {fetchError}
-              </div>
-            )}
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">
-              Additional Vehicle Details
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="mileage">Mileage</Label>
-                <Input
-                  type="number"
-                  id="mileage"
-                  placeholder="Enter mileage"
-                  value={additionalInfo.mileage}
-                  onChange={(e) =>
-                    setAdditionalInfo({
-                      ...additionalInfo,
-                      mileage: parseInt(e.target.value),
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="fuelType">Fuel Type</Label>
-                <Select
-                  value={additionalInfo.fuelType}
-                  onValueChange={(value) =>
-                    setAdditionalInfo({ ...additionalInfo, fuelType: value })
-                  }
-                >
-                  <SelectTrigger id="fuelType">
-                    <SelectValue placeholder="Select fuel type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Gasoline">Gasoline</SelectItem>
-                    <SelectItem value="Diesel">Diesel</SelectItem>
-                    <SelectItem value="Electric">Electric</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
-                  </SelectContent>
-                </Select>
+          </div>
+          
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {result && (
+            <div className="bg-primary/5 p-4 rounded-lg space-y-4">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-lg">Vehicle Found</h3>
+                  <p className="text-gray-700">
+                    {result.year} {result.make} {result.model}
+                    {result.trim && ` ${result.trim}`}
+                  </p>
+                  {result.color && (
+                    <p className="text-sm text-gray-600">Color: {result.color}</p>
+                  )}
+                  {result.vin && (
+                    <p className="text-sm text-gray-600">VIN: {result.vin}</p>
+                  )}
+                  {result.registeredState && (
+                    <p className="text-sm text-gray-600">Registered in: {result.registeredState}</p>
+                  )}
+                </div>
               </div>
             </div>
-            <ZipCodeInput
-              zipCode={additionalInfo.zipCode}
-              setZipCode={(zip) =>
-                setAdditionalInfo({ ...additionalInfo, zipCode: zip })
-              }
-            />
-            <ValuationFormActions
-              isLoading={false}
-              submitButtonText="Continue"
-              onSubmit={handleAdditionalInfoSubmit}
-            />
-          </div>
-        )}
+          )}
+          
+          <ValuationFormActions
+            isLoading={isLoading}
+            submitButtonText="Lookup License Plate"
+            onSubmit={handleSubmit}
+            showDownload={!!result}
+            onDownloadPdf={onDownloadPdf}
+            isDownloading={isDownloading}
+          />
+        </form>
       </CardContent>
     </Card>
   );
-}
+};
 
 export default PlateDecoderForm;

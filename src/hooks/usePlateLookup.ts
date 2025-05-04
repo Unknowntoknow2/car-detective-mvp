@@ -28,6 +28,11 @@ export function usePlateLookup() {
       
       const plateResult: PlateLookupInfo = response.data;
       
+      // Add estimated value if not present
+      if (!plateResult.estimatedValue) {
+        plateResult.estimatedValue = 24500; // Default value
+      }
+      
       setResult(plateResult);
       toast({
         title: "Vehicle Found",

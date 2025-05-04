@@ -1,10 +1,10 @@
-
 export interface PlateLookupInfo {
-  plate: string;
-  state: string;
-  make: string | null;
-  model: string | null;
-  year: number | null;
-  color: string | null;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  color?: string;
+  trim?: string;
+  registeredState?: string;
+  estimatedValue?: number;
 }
-
