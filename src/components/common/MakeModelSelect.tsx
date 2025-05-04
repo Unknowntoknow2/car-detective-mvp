@@ -28,8 +28,8 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   });
   
   // Filter models based on selected make
-  const filteredModels = models.filter(m => m.makeId === selectedMakeId);
-  console.log('Filtered models:', filteredModels);
+  const filteredModels = models.filter(model => model.makeId === selectedMakeId);
+  console.log('Filtered models:', filteredModels, 'makeId:', selectedMakeId);
 
   // Reset model selection when make changes
   useEffect(() => {
