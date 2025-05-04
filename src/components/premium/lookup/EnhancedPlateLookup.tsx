@@ -1,144 +1,281 @@
-
-import { useState } from 'react';
-import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
-import { VehicleDetailsForm } from '../form/steps/vehicle-details/VehicleDetailsForm';
-import { ValuationResults } from '@/components/valuation/ValuationResults';
-import { EnhancedPlateForm } from './plate/EnhancedPlateForm';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePlateLookup } from '@/hooks/usePlateLookup';
+import { Car, Search, AlertCircle, CheckCircle } from 'lucide-react';
+import { states } from './shared/states-data';
+import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { motion, AnimatePresence } from 'framer-motion';
 import { VehicleFoundCard } from './plate/VehicleFoundCard';
 import { ValuationErrorState } from './shared/ValuationErrorState';
-import { motion } from 'framer-motion';
+import { ValuationStages } from './shared/ValuationStages';
 
-interface EnhancedPlateLookupProps {
-  plateValue?: string;
-  stateValue?: string;
-  isLoading?: boolean;
-  onPlateChange?: (value: string) => void;
-  onStateChange?: (value: string) => void;
-  onLookup?: () => void;
-  error?: string;
-}
+type RequiredInputs = {
+  mileage: number;
+  fuelType: string;
+  zipCode: string;
+  condition?: number;
+  hasAccident?: string; // Changed from boolean to string
+  accidentDescription?: string;
+  transmissionType?: string;
+  hasOpenRecall?: boolean;
+  warrantyStatus?: string;
+};
 
-export function EnhancedPlateLookup({ 
-  plateValue = "", 
-  stateValue = "", 
-  isLoading: externalLoading = false, 
-  onPlateChange, 
-  onStateChange, 
-  onLookup,
-  error: externalError
-}: EnhancedPlateLookupProps) {
-  const {
-    stage,
-    vehicle,
-    requiredInputs,
-    valuationResult,
-    isLoading: pipelineLoading,
-    error: pipelineError,
-    runLookup,
-    submitValuation
-  } = useFullValuationPipeline();
+export function EnhancedPlateLookup({ onComplete }: { onComplete: (data: any) => void }) {
+  const [plateNumber, setPlateNumber] = useState('');
+  const [stateCode, setStateCode] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const isLoading = externalLoading || pipelineLoading;
-  const error = externalError || pipelineError;
-  
-  const handleSubmit = async () => {
-    if (!plateValue || !stateValue) return;
-    
-    if (onLookup) {
-      onLookup(); // Call external onLookup if provided
+  const [additionalInfo, setAdditionalInfo] = useState<RequiredInputs>({
+    mileage: 0,
+    fuelType: '',
+    zipCode: '',
+    hasAccident: 'no', // Changed from false to 'no'
+    accidentDescription: '',
+  });
+
+  const { fetchVehicleData } = usePlateLookup();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Validate additional info
+      if (!additionalInfo.mileage || !additionalInfo.fuelType || !additionalInfo.zipCode) {
+        setSubmitError("Please fill in all additional information fields.");
+        return;
+      }
+
+      // Combine vehicle data and additional info
+      const combinedData = {
+        ...vehicleData,
+        ...additionalInfo,
+        licensePlate: plateNumber,
+        state: stateCode
+      };
+
+      // Pass the combined data to the onComplete callback
+      onComplete(combinedData);
+      setShowSuccess(true);
+      toast.success("Valuation form completed successfully!");
+    } catch (error: any) {
+      console.error("Failed to submit valuation:", error);
+      setSubmitError(error.message || "Failed to submit valuation. Please try again.");
+      toast.error(submitError);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    // Start our valuation pipeline
-    await runLookup('plate', plateValue, stateValue);
   };
 
-  const handleDetailsSubmit = async (details: any) => {
-    await submitValuation(details);
-  };
+  const handleFetchVehicle = async () => {
+    setIsFetching(true);
+    setFetchError(null);
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
-  // Render based on the stage of our pipeline
-  const renderContent = () => {
-    if (stage === 'initial' || stage === 'lookup_in_progress' || stage === 'lookup_failed') {
-      return (
-        <EnhancedPlateForm
-          plateValue={plateValue}
-          stateValue={stateValue}
-          isLoading={isLoading}
-          onPlateChange={onPlateChange || (() => {})}
-          onStateChange={onStateChange || (() => {})}
-          onSubmit={handleSubmit}
-          error={error}
-        />
-      );
+    try {
+      const data = await fetchVehicleData(plateNumber, stateCode);
+      setVehicleData(data);
+      setShowAdditionalInfo(true);
+      toast.success("Vehicle found! Please provide additional details.");
+    } catch (error: any) {
+      console.error("Failed to fetch vehicle:", error);
+      setFetchError(error.message || "Failed to fetch vehicle. Please check the plate number and state.");
+      toast.error(fetchError);
+      setVehicleData(null);
+      setShowAdditionalInfo(false);
+    } finally {
+      setIsFetching(false);
     }
-    
-    if (stage === 'details_required') {
-      return (
-        <motion.div 
-          className="space-y-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <VehicleFoundCard 
-            vehicle={vehicle || {}}
-            plateValue={plateValue}
-            stateValue={stateValue}
+  };
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+        <CardTitle className="text-2xl font-bold">Enhanced Plate Lookup</CardTitle>
+        <Search className="ml-2 h-5 w-5 text-gray-500" />
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="grid grid-cols-4 gap-2">
+          <Label htmlFor="plate" className="text-right flex items-center">
+            Plate:
+          </Label>
+          <Input
+            id="plate"
+            className="col-span-3"
+            placeholder="Enter plate number"
+            value={plateNumber}
+            onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
+            disabled={isFetching}
           />
-          
-          {requiredInputs && (
-            <VehicleDetailsForm
-              initialData={requiredInputs}
-              onSubmit={handleDetailsSubmit}
-              isLoading={isLoading}
-            />
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          <Label htmlFor="state" className="text-right flex items-center">
+            State:
+          </Label>
+          <Select onValueChange={setStateCode} defaultValue={stateCode}>
+            <SelectTrigger id="state" className="col-span-3">
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {states.map((state) => (
+                <SelectItem key={state.code} value={state.code}>
+                  {state.name} ({state.code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button className="w-full" onClick={handleFetchVehicle} disabled={isFetching || !plateNumber || !stateCode}>
+          {isFetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Fetching Vehicle...
+            </>
+          ) : (
+            "Fetch Vehicle"
           )}
-        </motion.div>
-      );
-    }
-    
-    if (stage === 'valuation_complete') {
-      return (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <ValuationResults
-            estimatedValue={valuationResult?.estimated_value || 0}
-            confidenceScore={valuationResult?.confidence_score || 0}
-            basePrice={valuationResult?.base_price}
-            adjustments={valuationResult?.adjustments}
-            priceRange={valuationResult?.price_range}
-            demandFactor={valuationResult?.zip_demand_factor}
-            vehicleInfo={{
-              year: vehicle?.year || 0,
-              make: vehicle?.make || '',
-              model: vehicle?.model || '',
-              trim: vehicle?.trim || '',
-              mileage: requiredInputs?.mileage || undefined,
-              condition: requiredInputs?.conditionLabel
-            }}
-          />
-        </motion.div>
-      );
-    }
-    
-    if (stage === 'valuation_failed') {
-      return (
-        <ValuationErrorState 
-          error={error}
-          onRetry={handleRetry}
-        />
-      );
-    }
-    
-    return null;
-  };
+        </Button>
+      </CardFooter>
 
-  return renderContent();
+      <AnimatePresence>
+        {fetchError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-4 p-3 rounded-md bg-red-50 text-red-700 border border-red-200"
+          >
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-4 w-4" />
+              <p>{fetchError}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {vehicleData && showAdditionalInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="mt-6"
+          >
+            <VehicleFoundCard vehicle={vehicleData} />
+            <CardContent className="grid gap-4 mt-4">
+              <div className="grid grid-cols-4 gap-2">
+                <Label htmlFor="mileage" className="text-right flex items-center">
+                  Mileage:
+                </Label>
+                <Input
+                  id="mileage"
+                  type="number"
+                  className="col-span-3"
+                  placeholder="Enter mileage"
+                  value={additionalInfo.mileage}
+                  onChange={(e) => setAdditionalInfo({ ...additionalInfo, mileage: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                <Label htmlFor="fuelType" className="text-right flex items-center">
+                  Fuel Type:
+                </Label>
+                <Select
+                  onValueChange={(value) => setAdditionalInfo({ ...additionalInfo, fuelType: value })}
+                  defaultValue={additionalInfo.fuelType}
+                >
+                  <SelectTrigger id="fuelType" className="col-span-3">
+                    <SelectValue placeholder="Select fuel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gasoline">Gasoline</SelectItem>
+                    <SelectItem value="Diesel">Diesel</SelectItem>
+                    <SelectItem value="Electric">Electric</SelectItem>
+                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                <Label htmlFor="zipCode" className="text-right flex items-center">
+                  ZIP Code:
+                </Label>
+                <Input
+                  id="zipCode"
+                  type="number"
+                  className="col-span-3"
+                  placeholder="Enter ZIP code"
+                  value={additionalInfo.zipCode}
+                  onChange={(e) => setAdditionalInfo({ ...additionalInfo, zipCode: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                <Label htmlFor="hasAccident" className="text-right flex items-center">
+                  Accident History:
+                </Label>
+                <Select
+                  onValueChange={(value) => setAdditionalInfo({ ...additionalInfo, hasAccident: value })}
+                  defaultValue={additionalInfo.hasAccident}
+                >
+                  <SelectTrigger id="hasAccident" className="col-span-3">
+                    <SelectValue placeholder="Select accident history" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full" onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Valuation"
+                )}
+              </Button>
+            </CardFooter>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="mt-4 p-3 rounded-md bg-green-50 text-green-700 border border-green-200"
+          >
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4" />
+              <p>Valuation submitted successfully!</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
 }
+
+import { Loader2 } from 'lucide-react';

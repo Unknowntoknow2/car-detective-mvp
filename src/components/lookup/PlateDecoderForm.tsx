@@ -1,215 +1,199 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { usePlateLookup } from '@/hooks/usePlateLookup';
-import { convertVehicleInfoToReportData, downloadPdf } from '@/utils/pdf';
-import { useSaveValuation } from '@/hooks/useSaveValuation';
-import { useAuth } from '@/contexts/AuthContext';
-import { PlateLookupForm } from './plate/PlateLookupForm';
-import { PlateInfoCard } from './plate/PlateInfoCard';
-import { LoadingState } from './plate/LoadingState';
 import { toast } from 'sonner';
-import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
-import { VehicleDetailsForm } from '@/components/premium/form/steps/vehicle-details/VehicleDetailsForm';
-import { ValuationResults } from '@/components/valuation/ValuationResults';
-import { convertAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
+import { Car, Search, CheckCircle, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { usePlateLookup } from '@/hooks/usePlateLookup';
+import { ZipCodeInput } from './form-parts/ZipCodeInput';
+import { Card } from '@/components/ui/card';
+import states from '@/components/premium/lookup/shared/states-data';
+import ValuationFormActions from './form-parts/ValuationFormActions';
 
-export const PlateDecoderForm = () => {
-  const [plate, setPlate] = useState('');
-  const [state, setState] = useState('');
-  const { result, isLoading, lookupVehicle, error } = usePlateLookup();
-  const { saveValuation, isSaving } = useSaveValuation();
-  const { user } = useAuth();
-  
-  // Add the valuation pipeline for enhanced functionality
-  const {
-    stage,
-    vehicle: pipelineVehicle,
-    requiredInputs,
-    valuationResult,
-    isLoading: pipelineLoading,
-    runLookup,
-    submitValuation
-  } = useFullValuationPipeline();
+type RequiredInputs = {
+  mileage: number;
+  fuelType: string;
+  zipCode: string;
+  condition?: number;
+  hasAccident?: string; // Changed from boolean to string
+  accidentDescription?: string;
+  transmissionType?: string;
+  hasOpenRecall?: boolean;
+  warrantyStatus?: string;
+};
+
+export default function PlateDecoderForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+  const [plateNumber, setPlateNumber] = useState('');
+  const [stateCode, setStateCode] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const { fetchVehicleData } = usePlateLookup();
+
+  const [additionalInfo, setAdditionalInfo] = useState<RequiredInputs>({
+    mileage: 0,
+    fuelType: '',
+    zipCode: '',
+    hasAccident: 'no', // Changed from false to 'no'
+    accidentDescription: '',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!plate || !state) return;
+
+    if (!plateNumber || !stateCode) {
+      toast.error("Please enter both plate number and state.");
+      return;
+    }
+
+    setIsFetching(true);
+    setFetchError(null);
 
     try {
-      // Original plate lookup for backward compatibility
-      await lookupVehicle(plate, state);
-      
-      // Also run our new valuation pipeline
-      await runLookup('plate', plate, state);
-    } catch (err) {
-      toast.error("Failed to lookup vehicle. Please try again.");
+      const data = await fetchVehicleData(plateNumber, stateCode);
+      setVehicleData(data);
+      setShowAdditionalInfo(true);
+      toast.success("Vehicle data found!");
+    } catch (error: any) {
+      console.error("Plate lookup error:", error);
+      setFetchError(error.message || "Failed to fetch vehicle data.");
+      toast.error(error.message || "Failed to fetch vehicle data.");
+    } finally {
+      setIsFetching(false);
     }
   };
 
-  const handleDetailsSubmit = async (details: any) => {
-    await submitValuation(details);
-  };
-
-  const handleSaveValuation = async () => {
-    if (!result) return;
-
-    try {
-      await saveValuation({
-        plate: result.plate,
-        state: result.state,
-        make: result.make || "Unknown",
-        model: result.model || "Unknown",
-        year: result.year || 0,
-        valuation: valuationResult?.estimated_value || 24500,
-        confidenceScore: valuationResult?.confidence_score || 92,
-        conditionScore: requiredInputs?.condition || 85
-      });
-      toast.success("Valuation saved successfully!");
-    } catch (err) {
-      toast.error("Failed to save valuation. Please try again.");
+  const handleAdditionalInfoSubmit = () => {
+    if (onSubmit && vehicleData) {
+      const combinedData = {
+        ...vehicleData,
+        ...additionalInfo,
+        identifierType: 'plate',
+        licensePlate: plateNumber,
+        state: stateCode
+      };
+      onSubmit(combinedData);
     }
   };
 
-  const handleDownloadPdf = () => {
-    if (!result) return;
-    
-    try {
-      // Use valuation data if available, otherwise use default values
-      const reportData = convertVehicleInfoToReportData(result, {
-        mileage: requiredInputs?.mileage || 76000,
-        estimatedValue: valuationResult?.estimated_value || 24500,
-        condition: requiredInputs?.conditionLabel || "Good",
-        zipCode: requiredInputs?.zipCode || "10001",
-        confidenceScore: valuationResult?.confidence_score || 92,
-        adjustments: valuationResult?.adjustments 
-          ? convertAdjustmentsToLegacyFormat(valuationResult.adjustments)
-          : [
-              { label: "Location", value: 1.5 },
-              { label: "Vehicle Condition", value: 2.0 },
-              { label: "Market Demand", value: 4.0 }
-            ]
-      });
-      
-      downloadPdf(reportData);
-      toast.success("PDF report generated successfully!");
-    } catch (err) {
-      toast.error("Failed to generate PDF. Please try again.");
-    }
-  };
-
-  // Determine what to render based on the pipeline stage and traditional lookup state
-  const renderContent = () => {
-    // If we're in the details collection or valuation stage, show the pipeline UI
-    if (stage === 'details_required' && requiredInputs) {
-      return (
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Additional Vehicle Details</CardTitle>
-              <CardDescription>
-                Please provide a few more details to get an accurate valuation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <VehicleDetailsForm 
-                initialData={requiredInputs}
-                onSubmit={handleDetailsSubmit}
-                isLoading={pipelineLoading}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-    
-    // If valuation is complete, show the valuation results
-    if (stage === 'valuation_complete' && valuationResult && pipelineVehicle) {
-      return (
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Valuation</CardTitle>
-              <CardDescription>
-                Based on your vehicle details, here is the estimated value
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ValuationResults
-                estimatedValue={valuationResult.estimated_value || 0}
-                confidenceScore={valuationResult.confidence_score || 0}
-                basePrice={valuationResult.base_price}
-                adjustments={valuationResult.adjustments}
-                priceRange={valuationResult.price_range}
-                demandFactor={valuationResult.zip_demand_factor}
-                vehicleInfo={{
-                  year: pipelineVehicle.year || 0,
-                  make: pipelineVehicle.make || '',
-                  model: pipelineVehicle.model || '',
-                  mileage: requiredInputs?.mileage,
-                  condition: requiredInputs?.conditionLabel
-                }}
-                onDownloadPdf={handleDownloadPdf}
-                onEmailReport={handleSaveValuation}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-    
-    // Otherwise, show the traditional lookup results
-    if (result && !isLoading) {
-      return (
-        <PlateInfoCard 
-          vehicleInfo={{
-            plate: result.plate,
-            state: result.state,
-            make: result.make || "Unknown",
-            model: result.model || "Unknown",
-            year: result.year || 0,
-            color: result.color || null
-          }} 
-          onDownloadPdf={handleDownloadPdf}
-          onSaveValuation={handleSaveValuation}
-          isSaving={isSaving}
-          isUserLoggedIn={!!user}
-        />
-      );
-    }
-    
-    return null;
-  };
-
+  // When showing the secondary form for additional details
   return (
-    <div className="w-full max-w-xl mx-auto">
-      <Card className="border-2 border-primary/20">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">License Plate Lookup</CardTitle>
-          <CardDescription>
-            Enter a license plate and state to get detailed vehicle information
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PlateLookupForm
-            plate={plate}
-            state={state}
-            isLoading={isLoading || pipelineLoading}
-            onPlateChange={setPlate}
-            onStateChange={setState}
-            onSubmit={handleSubmit}
-          />
-        </CardContent>
-      </Card>
-
-      {(isLoading || pipelineLoading) && <LoadingState />}
-
-      {renderContent()}
-
-      {error && !isLoading && stage !== 'valuation_complete' && stage !== 'details_required' && (
-        <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg">
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
-    </div>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <h2>
+          <Car className="mr-2 h-5 w-5 inline-block align-middle" />
+          License Plate Lookup
+        </h2>
+      </CardHeader>
+      <CardContent>
+        {!showAdditionalInfo ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="plateNumber">License Plate</Label>
+              <Input
+                type="text"
+                id="plateNumber"
+                placeholder="Enter plate number"
+                value={plateNumber}
+                onChange={(e) => setPlateNumber(e.target.value)}
+                disabled={isFetching}
+              />
+            </div>
+            <div>
+              <Label htmlFor="stateCode">State</Label>
+              <Select
+                value={stateCode}
+                onValueChange={(value) => setStateCode(value)}
+                disabled={isFetching}
+              >
+                <SelectTrigger id="stateCode">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {states.map((state) => (
+                    <SelectItem key={state.value} value={state.value}>
+                      {state.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" disabled={isFetching} className="w-full">
+              {isFetching ? (
+                <>
+                  <Search className="mr-2 h-4 w-4 animate-spin" />
+                  Looking up...
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Find Vehicle
+                </>
+              )}
+            </Button>
+            {fetchError && (
+              <div className="text-red-500 mt-2 flex items-center">
+                <AlertCircle className="mr-2 h-4 w-4" />
+                {fetchError}
+              </div>
+            )}
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">
+              Additional Vehicle Details
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="mileage">Mileage</Label>
+                <Input
+                  type="number"
+                  id="mileage"
+                  placeholder="Enter mileage"
+                  value={additionalInfo.mileage}
+                  onChange={(e) =>
+                    setAdditionalInfo({
+                      ...additionalInfo,
+                      mileage: parseInt(e.target.value),
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="fuelType">Fuel Type</Label>
+                <Select
+                  value={additionalInfo.fuelType}
+                  onValueChange={(value) =>
+                    setAdditionalInfo({ ...additionalInfo, fuelType: value })
+                  }
+                >
+                  <SelectTrigger id="fuelType">
+                    <SelectValue placeholder="Select fuel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gasoline">Gasoline</SelectItem>
+                    <SelectItem value="Diesel">Diesel</SelectItem>
+                    <SelectItem value="Electric">Electric</SelectItem>
+                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <ZipCodeInput
+              zipCode={additionalInfo.zipCode}
+              setZipCode={(zip) =>
+                setAdditionalInfo({ ...additionalInfo, zipCode: zip })
+              }
+            />
+            <ValuationFormActions
+              onContinue={handleAdditionalInfoSubmit}
+              onBack={() => setShowAdditionalInfo(false)}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
-};
+}
