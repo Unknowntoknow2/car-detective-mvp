@@ -1,4 +1,6 @@
 
+import { supabase } from '@/integrations/supabase/client';
+
 interface ValuationParams {
   make: string;
   model: string;
@@ -15,44 +17,28 @@ interface ValuationParams {
  * @returns A string explanation of the valuation
  */
 export async function generateValuationExplanation(params: ValuationParams): Promise<string> {
-  // In a real application, this might call an AI service or API
-  // For now, we'll generate a basic explanation based on the provided parameters
-  
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - params.year;
-  
-  // Generate explanation for mileage impact
-  let mileageComment = '';
-  if (params.mileage < 50000) {
-    mileageComment = 'which is considered low mileage and positively impacts the value';
-  } else if (params.mileage < 100000) {
-    mileageComment = 'which is average mileage for a vehicle of this age';
-  } else {
-    mileageComment = 'which is above average and somewhat reduces the value';
+  try {
+    const { data, error } = await supabase.functions.invoke('generate-explanation', {
+      body: params
+    });
+
+    if (error) {
+      console.error('Error calling explanation function:', error);
+      throw new Error(`Failed to generate explanation: ${error.message}`);
+    }
+
+    if (!data || !data.explanation) {
+      throw new Error('No explanation was generated');
+    }
+
+    return data.explanation;
+  } catch (err) {
+    console.error('Error generating explanation:', err);
+    // Provide a fallback explanation if the API call fails
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - params.year;
+    
+    // Generate a basic explanation based on the provided parameters
+    return `Your ${params.year} ${params.make} ${params.model} is ${age} years old with ${params.mileage.toLocaleString()} miles, which is a key factor in its valuation. The ${params.condition.toLowerCase()} condition and market demand in ${params.location} also contribute to the estimated value of $${params.valuation.toLocaleString()}.`;
   }
-  
-  // Generate explanation for condition impact
-  let conditionComment = '';
-  switch (params.condition.toLowerCase()) {
-    case 'excellent':
-      conditionComment = 'The excellent condition significantly boosts the value compared to similar vehicles.';
-      break;
-    case 'good':
-      conditionComment = 'The good condition meets market expectations for a vehicle of this age.';
-      break;
-    case 'fair':
-      conditionComment = 'The fair condition slightly reduces the value compared to well-maintained alternatives.';
-      break;
-    case 'poor':
-      conditionComment = 'The poor condition substantially impacts the value, as significant repairs may be needed.';
-      break;
-    default:
-      conditionComment = `The ${params.condition} condition affects the valuation accordingly.`;
-  }
-  
-  // Generate explanation for location impact
-  const locationComment = `Market demand in ${params.location} also factors into this valuation.`;
-  
-  // Create a holistic explanation
-  return `This ${params.year} ${params.make} ${params.model} is ${age} years old with ${params.mileage.toLocaleString()} miles, ${mileageComment}. ${conditionComment} ${locationComment} Based on recent comparable sales and market trends, the estimated value is $${params.valuation.toLocaleString()}.`;
 }
