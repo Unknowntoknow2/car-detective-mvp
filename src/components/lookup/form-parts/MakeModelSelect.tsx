@@ -86,3 +86,6 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
     </div>
   );
 }
+
+// Export the component with the original name for backwards compatibility
+export { MakeModelFormField as MakeModelSelect };

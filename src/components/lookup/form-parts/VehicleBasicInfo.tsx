@@ -5,7 +5,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ManualEntryFormData } from '../types/manualEntry';
 import { useVehicleData } from '@/hooks/useVehicleData';
-import { MakeModelSelect } from './MakeModelSelect';
+import { MakeModelFormField } from './MakeModelSelect';
 import { useEffect } from 'react';
 import { ValidationError } from '@/components/common/ValidationError';
 import { useValidation } from '@/hooks/useValidation';
@@ -42,7 +42,7 @@ export function VehicleBasicInfo({ form, isDisabled = false }: VehicleBasicInfoP
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <MakeModelSelect form={form} isDisabled={isDisabled} />
+        <MakeModelFormField form={form} isDisabled={isDisabled} />
 
         {/* Year Dropdown */}
         <FormField
