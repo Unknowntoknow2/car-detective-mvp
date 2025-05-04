@@ -20,6 +20,7 @@ export function convertVehicleInfoToReportData(
   const mergedData = { ...defaultData, ...valuationData };
 
   const baseReportData: ReportData = {
+    vin: 'Unknown',
     make: vehicle.make || 'Unknown',
     model: vehicle.model || 'Unknown',
     year: vehicle.year || 'Unknown',
@@ -56,6 +57,7 @@ export function convertVehicleInfoToReportData(
 
   if ('bodyType' in vehicle && vehicle.bodyType) {
     baseReportData.bodyType = vehicle.bodyType;
+    baseReportData.bodyStyle = vehicle.bodyType; // Set both for consistency
   }
 
   return baseReportData;

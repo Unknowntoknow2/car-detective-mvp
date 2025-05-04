@@ -40,7 +40,7 @@ export async function generateBasicReport(reportData: ReportData): Promise<Uint8
   drawTextPair(page, 'Vehicle', `${reportData.year} ${reportData.make} ${reportData.model}`, { font, boldFont, yPosition, margin, width });
   yPosition -= 30;
   
-  if (reportData.vin) {
+  if (reportData.vin && reportData.vin !== 'Unknown' && reportData.vin !== '') {
     drawTextPair(page, 'VIN', reportData.vin, { font, boldFont, yPosition, margin, width });
     yPosition -= 30;
   } else if (reportData.plate && reportData.state) {
@@ -61,8 +61,55 @@ export async function generateBasicReport(reportData: ReportData): Promise<Uint8
     yPosition -= 30;
   }
 
+  // Add explanation if available
+  if (reportData.explanation) {
+    yPosition -= 20;
+    page.drawText('Valuation Explanation:', {
+      x: margin,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+      color: primaryColor,
+    });
+    yPosition -= 20;
+    
+    // Simple word wrapping for explanation
+    const maxWidth = width - (margin * 2);
+    const words = reportData.explanation.split(' ');
+    let line = '';
+    
+    for (const word of words) {
+      const testLine = line + word + ' ';
+      const testWidth = font.widthOfTextAtSize(testLine, 10);
+      
+      if (testWidth > maxWidth) {
+        page.drawText(line, {
+          x: margin,
+          y: yPosition,
+          size: 10,
+          font: font,
+        });
+        yPosition -= 15;
+        line = word + ' ';
+      } else {
+        line = testLine;
+      }
+    }
+    
+    // Draw remaining text
+    if (line.trim() !== '') {
+      page.drawText(line, {
+        x: margin,
+        y: yPosition,
+        size: 10,
+        font: font,
+      });
+      yPosition -= 20;
+    }
+  }
+
   // Add disclaimer
-  yPosition -= 50;
+  yPosition -= 30;
   page.drawText('Disclaimer: This valuation is for informational purposes only.', {
     x: margin,
     y: yPosition,

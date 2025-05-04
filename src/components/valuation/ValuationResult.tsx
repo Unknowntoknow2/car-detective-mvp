@@ -46,7 +46,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
       setExplanation(result);
     } catch (e: any) {
       console.error(e);
-      setError('Failed to load explanation.');
+      setError('Failed to load explanation: ' + (e.message || ''));
     } finally {
       setLoading(false);
     }

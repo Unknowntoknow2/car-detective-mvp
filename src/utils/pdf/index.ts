@@ -1,4 +1,3 @@
-
 import { ReportData } from './types';
 import { generateBasicReport } from './generators/basicReportGenerator';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
@@ -45,7 +44,7 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
       const premiumInput = {
         vehicleInfo: {
           vin: data.vin,
-          year: typeof data.year === 'string' ? parseInt(data.year as string, 10) : data.year as number,
+          year: typeof data.year === 'string' ? parseInt(data.year, 10) : data.year as number,
           make: data.make,
           model: data.model,
           mileage: typeof data.mileage === 'string' ? parseInt(data.mileage as string, 10) : data.mileage as number,
@@ -54,9 +53,16 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
         valuation: {
           basePrice: data.estimatedValue,
           estimatedValue: data.estimatedValue,
-          priceRange: [data.estimatedValue * 0.9, data.estimatedValue * 1.1] as [number, number],
+          priceRange: data.priceRange || [data.estimatedValue * 0.9, data.estimatedValue * 1.1] as [number, number],
           confidenceScore: data.confidenceScore || 85,
-          adjustments: data.adjustments || []
+          adjustments: Array.isArray(data.adjustments) 
+            ? data.adjustments.map(adj => {
+                if ('factor' in adj) {
+                  return { label: adj.factor, value: adj.impact };
+                }
+                return adj;
+              })
+            : []
         },
         carfaxData: data.carfaxData,
         forecast: undefined // Add if available in your data
@@ -80,11 +86,11 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueO
   // Check if second parameter is a number or an options object
   if (typeof estimatedValueOrOptions === 'number') {
     return {
+      vin: vehicleInfo.vin || '',
       make: vehicleInfo.make || '',
       model: vehicleInfo.model || '',
       year: vehicleInfo.year || '',
       mileage: vehicleInfo.mileage || '0', // Ensure mileage is always provided
-      vin: vehicleInfo.vin || '',
       plate: vehicleInfo.plate || '',
       state: vehicleInfo.state || '',
       color: vehicleInfo.color || '',
@@ -92,17 +98,18 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueO
       fuelType: vehicleInfo.fuelType || '',
       condition: vehicleInfo.condition || '',
       zipCode: vehicleInfo.zipCode || '',
-      bodyType: vehicleInfo.bodyType || '',
+      bodyStyle: vehicleInfo.bodyType || '',
+      confidenceScore: null,
     };
   } else {
     // It's an options object
     const options = estimatedValueOrOptions;
     return {
+      vin: vehicleInfo.vin || '',
       make: vehicleInfo.make || '',
       model: vehicleInfo.model || '',
       year: vehicleInfo.year || '',
       mileage: vehicleInfo.mileage || options.mileage || '0',
-      vin: vehicleInfo.vin || '',
       plate: vehicleInfo.plate || '',
       state: vehicleInfo.state || '',
       color: vehicleInfo.color || '',
@@ -114,7 +121,7 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueO
       adjustments: options.adjustments || [],
       carfaxData: options.carfaxData,
       isPremium: options.isPremium,
-      bodyType: vehicleInfo.bodyType || '',
+      bodyStyle: vehicleInfo.bodyType || '',
     };
   }
 }
