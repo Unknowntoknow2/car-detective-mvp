@@ -19,7 +19,7 @@ export async function generateValuationPdf(params: {
   const pdfDoc = await PDFDocument.create();
   
   // Add a page to the document
-  const page = pdfDoc.addPage([612, 792]); // Letter size
+  let page = pdfDoc.addPage([612, 792]); // Letter size
   const { width, height } = page.getSize();
   
   // Embed fonts
@@ -162,8 +162,7 @@ export async function generateValuationPdf(params: {
     // Check if we need a new page
     if (yPos < 100) {
       // Add a new page
-      const newPage = pdfDoc.addPage([612, 792]);
-      page = newPage;
+      page = pdfDoc.addPage([612, 792]);
       yPos = height - margin;
       
       // Add header to new page
@@ -184,8 +183,7 @@ export async function generateValuationPdf(params: {
     // Check if we have enough space for the table header + at least one row
     if (yPos < margin + 60) {
       // Add a new page
-      const newPage = pdfDoc.addPage([612, 792]);
-      page = newPage;
+      page = pdfDoc.addPage([612, 792]);
       yPos = height - margin;
       
       // Add header to new page
@@ -256,8 +254,7 @@ export async function generateValuationPdf(params: {
       // Check if we need a new page
       if (yPos < margin + 20) {
         // Add a new page
-        const newPage = pdfDoc.addPage([612, 792]);
-        page = newPage;
+        page = pdfDoc.addPage([612, 792]);
         yPos = height - margin;
         
         // Add header to new page
