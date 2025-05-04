@@ -34,10 +34,9 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
 
   return (
     <div className="flex space-x-4">
+      {/* Make Dropdown */}
       <div className="flex-1">
-        <label htmlFor="make" className="block text-sm font-medium text-gray-700">
-          Make
-        </label>
+        <label htmlFor="make" className="block text-sm font-medium text-gray-700">Make</label>
         <select
           id="make"
           value={selectedMakeId}
@@ -53,11 +52,9 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
           ))}
         </select>
       </div>
-      
+      {/* Model Dropdown */}
       <div className="flex-1">
-        <label htmlFor="model" className="block text-sm font-medium text-gray-700">
-          Model
-        </label>
+        <label htmlFor="model" className="block text-sm font-medium text-gray-700">Model</label>
         <select
           id="model"
           value={selectedModelId}
