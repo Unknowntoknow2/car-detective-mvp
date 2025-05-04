@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export interface MakeModelSelectProps {
   makes: { id: string; name: string }[];
@@ -20,16 +20,40 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   setSelectedModelId,
   isDisabled = false,
 }) => {
+  console.log('MakeModelSelect render:', { 
+    selectedMakeId, 
+    selectedModelId,
+    makesCount: makes.length,
+    modelsCount: models.length 
+  });
+  
+  // Filter models based on selected make
   const filteredModels = models.filter(m => m.makeId === selectedMakeId);
+  console.log('Filtered models:', filteredModels);
+
+  // Reset model selection when make changes
+  useEffect(() => {
+    if (selectedMakeId && selectedModelId) {
+      const modelExists = filteredModels.some(model => model.id === selectedModelId);
+      if (!modelExists) {
+        console.log('Resetting model selection because selected model is not in filtered list');
+        setSelectedModelId('');
+      }
+    }
+  }, [selectedMakeId, filteredModels, selectedModelId, setSelectedModelId]);
 
   const handleMakeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMakeId(e.target.value);
-    // Reset model selection when make changes
+    const newMakeId = e.target.value;
+    console.log('Make changed to:', newMakeId);
+    setSelectedMakeId(newMakeId);
+    // Always reset model selection when make changes
     setSelectedModelId('');
   };
 
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedModelId(e.target.value);
+    const newModelId = e.target.value;
+    console.log('Model changed to:', newModelId);
+    setSelectedModelId(newModelId);
   };
 
   return (

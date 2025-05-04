@@ -14,6 +14,9 @@ interface LookupTabsProps {
 export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
+  // Add debugging logs for component mounting
+  console.log("LookupTabs rendering with activeTab:", activeTab);
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg tabs-navigation">

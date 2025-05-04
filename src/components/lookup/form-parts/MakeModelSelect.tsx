@@ -6,6 +6,7 @@ import { useMakeModels } from '@/hooks/useMakeModels';
 import CommonMakeModelSelect from '@/components/common/MakeModelSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface MakeModelSelectWrapperProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -13,8 +14,15 @@ interface MakeModelSelectWrapperProps {
 }
 
 export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelectWrapperProps) {
-  // Fetch makes and models data using our new hook
+  // Fetch makes and models data using our hook
   const { data, isLoading, isError, error } = useMakeModels();
+  
+  useEffect(() => {
+    console.log('MakeModelFormField: form values updated', {
+      make: form.watch('make'),
+      model: form.watch('model')
+    });
+  }, [form.watch('make'), form.watch('model')]);
   
   // Handle loading state
   if (isLoading) {
@@ -39,7 +47,7 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
         <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-medium">Failed to load vehicle data</p>
-          <p className="text-sm mt-1">{error.message}</p>
+          <p className="text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
         </div>
       </div>
     );
@@ -47,16 +55,25 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
   
   const { makes, models } = data!;
   
+  console.log('MakeModelFormField: rendering with data', { 
+    makesCount: makes.length, 
+    modelsCount: models.length,
+    selectedMake: form.watch('make'),
+    selectedModel: form.watch('model')
+  });
+  
   const selectedMakeId = form.watch('make') || '';
   const selectedModelId = form.watch('model') || '';
   
   const handleMakeChange = (makeId: string) => {
+    console.log('MakeModelFormField: make changed to', makeId);
     form.setValue('make', makeId, { shouldValidate: true });
     // Reset model when make changes
     form.setValue('model', '', { shouldValidate: true });
   };
   
   const handleModelChange = (modelId: string) => {
+    console.log('MakeModelFormField: model changed to', modelId);
     form.setValue('model', modelId, { shouldValidate: true });
   };
 
@@ -87,7 +104,7 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
   );
 }
 
-// Export for backward compatibility - this is the key line to fix the import issue
+// Export for backward compatibility
 export const MakeModelSelect = MakeModelFormField;
 
 // Default export
