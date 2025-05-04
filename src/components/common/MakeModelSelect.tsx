@@ -1,20 +1,9 @@
 
 import React, { useEffect } from 'react';
 
-interface Make {
-  id: string;
-  name: string;
-}
-
-interface Model {
-  id: string;
-  name: string;
-  makeId: string;
-}
-
-interface MakeModelSelectProps {
-  makes: Make[];
-  models: Model[];
+export interface MakeModelSelectProps {
+  makes: { id: string; name: string }[];
+  models: { id: string; name: string; makeId: string }[];
   selectedMakeId: string;
   setSelectedMakeId: (id: string) => void;
   selectedModelId: string;
@@ -22,6 +11,7 @@ interface MakeModelSelectProps {
   isDisabled?: boolean;
 }
 
+// Primary implementation
 const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   makes,
   models,
@@ -29,10 +19,9 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   setSelectedMakeId,
   selectedModelId,
   setSelectedModelId,
-  isDisabled = false
+  isDisabled = false,
 }) => {
-  // Filter models based on selected make
-  const filteredModels = models.filter(model => model.makeId === selectedMakeId);
+  const filteredModels = models.filter(m => m.makeId === selectedMakeId);
   
   // Reset model selection when make changes
   useEffect(() => {
@@ -94,4 +83,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   );
 };
 
+// Named export for backward compatibility
+export const CommonMakeModelSelect = MakeModelSelect;
+export { MakeModelSelect };
 export default MakeModelSelect;

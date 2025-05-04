@@ -3,7 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { UseFormReturn } from 'react-hook-form';
 import { ManualEntryFormData } from '../types/manualEntry';
 import { useMakeModels } from '@/hooks/useMakeModels';
-import CommonMakeModelSelect from '@/components/common/MakeModelSelect';
+import MakeModelSelect from '@/components/common/MakeModelSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 
@@ -69,7 +69,7 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
           <FormItem>
             <FormLabel>Make <span className="text-destructive">*</span></FormLabel>
             <FormControl>
-              <CommonMakeModelSelect
+              <MakeModelSelect
                 makes={makes}
                 models={models}
                 selectedMakeId={selectedMakeId}
