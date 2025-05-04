@@ -23,7 +23,7 @@ export default function VinLookupPage() {
           </p>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg tabs-navigation">
               <TabsTrigger 
                 value="vin" 
                 className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"

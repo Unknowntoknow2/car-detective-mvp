@@ -11,6 +11,7 @@ import { PremiumServicesGrid } from "@/components/home/PremiumServicesGrid";
 import { PremiumTabs } from "@/components/premium/PremiumTabs";
 import { MarketingBanner } from "@/components/marketing/MarketingBanner";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
+import { LookupTabs } from "@/components/home/LookupTabs";
 
 export default function Index() {
   const valuationRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,10 @@ export default function Index() {
         <div ref={valuationRef} className="py-16 bg-slate-50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Get Your Vehicle Valuation</h2>
-            <PremiumTabs />
+            <LookupTabs defaultTab="vin" />
+            <div className="mt-10">
+              <PremiumTabs />
+            </div>
           </div>
         </div>
       </main>

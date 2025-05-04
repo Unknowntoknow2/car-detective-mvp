@@ -1,24 +1,22 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { VinDecoderForm } from "../lookup/VinDecoderForm";
-import { Link } from "react-router-dom";
-import { AccidentHistoryInput } from '../valuation/AccidentHistoryInput';
-import { ConditionSliderWithTooltip } from '../valuation/ConditionSliderWithTooltip';
-import { ManualEntryForm } from '../lookup/ManualEntryForm';
-import PlateDecoderForm from '../lookup/PlateDecoderForm';
-import { useState } from "react";
-import { CarFront, Search, FileText, Check } from "lucide-react";
 
-export function LookupTabs() {
-  const [conditionValue, setConditionValue] = useState(75);
-  const [hasAccidents, setHasAccidents] = useState('no');
-  const [accidentCount, setAccidentCount] = useState('');
-  const [accidentSeverity, setAccidentSeverity] = useState('');
+import { useState } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
+import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
+import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
+import { CarFront, Search, FileText } from "lucide-react";
+
+interface LookupTabsProps {
+  defaultTab?: string;
+}
+
+export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
   return (
-    <Tabs defaultValue="vin" className="max-w-4xl mx-auto">
-      <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg tabs-navigation">
         <TabsTrigger 
           value="vin" 
           className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
@@ -80,82 +78,11 @@ export function LookupTabs() {
             <CardTitle>Manual Entry</CardTitle>
             <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8">
+          <CardContent>
             <ManualEntryForm />
-            
-            <div className="border-t border-border pt-8">
-              <ConditionSliderWithTooltip 
-                score={conditionValue}
-                onScoreChange={setConditionValue}
-              />
-            </div>
-            
-            <div className="border-t border-border pt-8">
-              <AccidentHistoryInput
-                hasAccidents={hasAccidents}
-                setHasAccidents={setHasAccidents}
-                accidentCount={accidentCount}
-                setAccidentCount={setAccidentCount}
-                accidentSeverity={accidentSeverity}
-                setAccidentSeverity={setAccidentSeverity}
-              />
-            </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline">Reset Form</Button>
-            <Button>Get Valuation</Button>
-          </CardFooter>
         </Card>
       </TabsContent>
-      
-      <div className="mt-8 flex justify-center">
-        <Card className="border-2 border-primary w-full">
-          <CardHeader className="bg-primary/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Premium Valuation</CardTitle>
-                <CardDescription className="mt-1">CARFAX® Report Included</CardDescription>
-              </div>
-              <div className="text-lg font-bold">$29.99</div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h4 className="font-medium text-primary">Premium Features</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                    <span>Full CARFAX® Vehicle History</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                    <span>Accident Damage Assessment</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                    <span>Service Record Verification</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
-                    <span>12-Month Value Forecast</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-medium text-primary">Why Upgrade?</h4>
-                <p className="text-sm text-text-secondary">
-                  Our premium valuation includes a complete CARFAX® report ($44 value) and advanced 
-                  market analysis, showing you how specific features and history affect your vehicle's value.
-                </p>
-                <Button className="w-full" size="lg" asChild>
-                  <Link to="/premium">Get Premium Valuation</Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </Tabs>
   );
 }
