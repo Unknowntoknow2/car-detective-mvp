@@ -33,7 +33,7 @@ export function useVehicleSelectors() {
           make_name: item.make_name,
           logo_url: null,
           country_of_origin: null,
-          nhtsa_make_id: item.make_id // Map the database make_id to nhtsa_make_id
+          nhtsa_make_id: item.make_id ? String(item.make_id) : null // Ensure it's a string
         }));
         
         setMakes(transformedMakes);
@@ -64,10 +64,13 @@ export function useVehicleSelectors() {
         setIsLoading(true);
         setError(null);
         
+        // Convert string to number for the database query if needed
+        const makeIdParam = isNaN(Number(selectedMakeId)) ? selectedMakeId : Number(selectedMakeId);
+        
         const { data, error } = await supabase
           .from('models')
           .select('*')
-          .eq('make_id', parseInt(selectedMakeId)) // Convert string to number for the database query
+          .eq('make_id', makeIdParam)
           .order('model_name');
         
         if (error) throw error;
@@ -75,7 +78,7 @@ export function useVehicleSelectors() {
         // Transform the data to match the Model type
         const transformedModels: Model[] = (data || []).map(item => ({
           id: item.id,
-          make_id: String(item.make_id), // Convert number to string to match Model type
+          make_id: String(item.make_id), // Ensure it's a string
           model_name: item.model_name,
           nhtsa_model_id: null,
           popular: false // Add the missing property

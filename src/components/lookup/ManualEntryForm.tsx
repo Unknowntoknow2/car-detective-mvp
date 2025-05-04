@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -53,8 +54,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   isPremium = false
 }) => {
   const navigate = useNavigate();
-  // Fixed the call to useVehicleData by passing an empty string as vin
-  const { isLoading: isDataLoading } = useVehicleData('');
+  // Fixed - don't pass argument to useVehicleData
+  const { isLoading: isDataLoading } = useVehicleData();
   const { calculateValuation, isLoading: isValuationLoading } = useManualValuation();
   const [conditionValue, setConditionValue] = useState(75);
 

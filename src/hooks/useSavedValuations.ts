@@ -1,96 +1,58 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-export interface SavedValuation {
-  id: string;
-  user_id: string;
-  valuation: any;
-  saved_at: string;
-}
+import { SavedValuation } from './types/savedValuation';
 
 export function useSavedValuations() {
   const [valuations, setValuations] = useState<SavedValuation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
+  // Load saved valuations when user changes
   useEffect(() => {
-    if (!user) {
-      setValuations([]);
-      setIsLoading(false);
-      return;
-    }
+    const loadSavedValuations = async () => {
+      if (!user) {
+        setValuations([]);
+        return;
+      }
 
-    const fetchSavedValuations = async () => {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        setIsLoading(true);
-        setError(null);
-        
         const { data, error } = await supabase
           .from('saved_valuations')
           .select('*')
           .eq('user_id', user.id)
-          .order('saved_at', { ascending: false });
-          
+          .order('created_at', { ascending: false });
+
         if (error) throw error;
-        
-        setValuations(data || []);
+
+        // Transform data to match SavedValuation interface
+        const transformedData: SavedValuation[] = (data || []).map(item => ({
+          ...item,
+          saved_at: item.created_at // Map created_at to saved_at to satisfy the interface
+        }));
+
+        setValuations(transformedData);
       } catch (err) {
-        console.error('Error fetching saved valuations:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch saved valuations');
+        console.error('Error loading saved valuations:', err);
+        setError('Failed to load your saved valuations');
+        toast.error('Failed to load your saved valuations');
       } finally {
         setIsLoading(false);
       }
     };
-    
-    fetchSavedValuations();
+
+    loadSavedValuations();
   }, [user]);
 
-  const saveValuation = async (valuationData: any) => {
-    if (!user) {
-      toast.error('You must be logged in to save valuations');
-      return false;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('saved_valuations')
-        .insert({
-          user_id: user.id,
-          valuation: valuationData
-        });
-
-      if (error) throw error;
-      
-      toast.success('Valuation saved successfully!');
-      
-      // Refresh the list
-      const { data, error: fetchError } = await supabase
-        .from('saved_valuations')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('saved_at', { ascending: false });
-        
-      if (fetchError) throw fetchError;
-      
-      setValuations(data || []);
-      
-      return true;
-    } catch (err) {
-      console.error('Error saving valuation:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to save valuation');
-      return false;
-    }
-  };
-
+  // Function to delete a saved valuation
   const deleteValuation = async (id: string) => {
-    if (!user) {
-      toast.error('You must be logged in to delete valuations');
-      return false;
-    }
+    if (!user) return;
 
     try {
       const { error } = await supabase
@@ -100,19 +62,47 @@ export function useSavedValuations() {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      
-      toast.success('Valuation deleted successfully!');
-      
-      // Update local state
-      setValuations(prevValuations => 
-        prevValuations.filter(valuation => valuation.id !== id)
-      );
-      
-      return true;
+
+      // Update state to remove the deleted valuation
+      setValuations(valuations.filter(v => v.id !== id));
+      toast.success('Valuation removed successfully');
     } catch (err) {
       console.error('Error deleting valuation:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to delete valuation');
+      toast.error('Failed to remove valuation');
+    }
+  };
+
+  // Function to refresh data
+  const refreshValuations = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase
+        .from('saved_valuations')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to match SavedValuation interface
+      const transformedData: SavedValuation[] = (data || []).map(item => ({
+        ...item,
+        saved_at: item.created_at // Map created_at to saved_at to satisfy the interface
+      }));
+
+      setValuations(transformedData);
+      return true;
+    } catch (err) {
+      console.error('Error refreshing valuations:', err);
+      setError('Failed to refresh valuations');
+      toast.error('Failed to refresh valuations');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -120,7 +110,7 @@ export function useSavedValuations() {
     valuations,
     isLoading,
     error,
-    saveValuation,
-    deleteValuation
+    deleteValuation,
+    refreshValuations
   };
 }

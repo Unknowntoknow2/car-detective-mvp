@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useEpaMpg } from '@/hooks/useEpaMpg';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Droplets } from 'lucide-react';
@@ -13,21 +13,15 @@ interface EpaMpgTipProps {
 export const EpaMpgTip: React.FC<EpaMpgTipProps> = ({ year, make, model }) => {
   const { data, isLoading, error } = useEpaMpg(year, make, model);
   
-  const combinedMpg = useMemo(() => {
+  const getCombinedMpg = () => {
     if (!data?.data) return null;
     
-    // Look for combined MPG in the data
-    const mpgItem = data.data.find(item => 
-      item.text.toLowerCase().includes('combined') || 
-      item.text.toLowerCase().includes('mpg')
-    );
-    
-    if (!mpgItem) return null;
-    
-    // Extract just the number
-    const mpgMatch = mpgItem.text.match(/(\d+)/);
+    // Extract MPG value from text (assuming format: "X MPG combined...")
+    const mpgMatch = data.data.text.match(/(\d+)\s+MPG\s+combined/i);
     return mpgMatch ? parseInt(mpgMatch[1], 10) : null;
-  }, [data]);
+  };
+  
+  const combinedMpg = getCombinedMpg();
   
   const getPriceImpact = (mpg: number | null): { percentage: number; description: string } => {
     if (mpg === null) return { percentage: 0, description: 'No impact' };
@@ -48,9 +42,7 @@ export const EpaMpgTip: React.FC<EpaMpgTipProps> = ({ year, make, model }) => {
     return { percentage: 0, description: 'Average fuel efficiency' };
   };
   
-  const impact = useMemo(() => {
-    return getPriceImpact(combinedMpg);
-  }, [combinedMpg]);
+  const impact = getPriceImpact(combinedMpg);
 
   if (isLoading) {
     return (

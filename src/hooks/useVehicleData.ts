@@ -53,6 +53,19 @@ export function useVehicleData() {
     }
   }, [makes]);
 
+  // Add getYearOptions function for year dropdown
+  const getYearOptions = useCallback(() => {
+    const currentYear = new Date().getFullYear();
+    const startYear = 1990;
+    const yearOptions = [];
+    
+    for (let year = currentYear + 1; year >= startYear; year--) {
+      yearOptions.push(year);
+    }
+    
+    return yearOptions;
+  }, []);
+
   // Function to refresh vehicle data
   const refreshData = useCallback(async (forceRefresh = false) => {
     try {
@@ -69,7 +82,13 @@ export function useVehicleData() {
           console.log(`useVehicleData: Using ${cachedMakes.length} cached makes`);
           setMakes(cachedMakes);
           setIsLoading(false);
-          return { makes: cachedMakes, models: [] };
+          return { 
+            makes: cachedMakes, 
+            models: [],
+            success: true,
+            makeCount: cachedMakes.length,
+            modelCount: 0
+          };
         }
       }
       
@@ -90,16 +109,34 @@ export function useVehicleData() {
       setMakes(fetchedMakes);
       setModels(fetchedModels);
       
-      return { makes: fetchedMakes, models: fetchedModels };
+      return { 
+        makes: fetchedMakes, 
+        models: fetchedModels,
+        success: true,
+        makeCount: fetchedMakes.length,
+        modelCount: fetchedModels.length
+      };
     } catch (err) {
       console.error("useVehicleData: Failed to refresh vehicle data:", err);
       const errorMsg = err instanceof Error ? err.message : "Failed to load vehicle data";
       setError(errorMsg);
-      return { makes: [], models: [] };
+      return { 
+        makes: [], 
+        models: [],
+        success: false,
+        makeCount: 0,
+        modelCount: 0
+      };
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  // Add counts property for VehicleDataInfo component
+  const counts = {
+    makes: makes.length,
+    models: models.length
+  };
 
   useEffect(() => {
     console.log("useVehicleData: Initial loading of vehicle data");
@@ -110,8 +147,10 @@ export function useVehicleData() {
     makes, 
     models, 
     getModelsByMake,
+    getYearOptions,
     refreshData,
     isLoading, 
-    error 
+    error,
+    counts // Added for VehicleDataInfo
   };
 }

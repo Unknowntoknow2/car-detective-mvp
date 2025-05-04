@@ -3,6 +3,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { EpaMpgTip } from '../EpaMpgTip';
 import { useEpaMpg } from '@/hooks/useEpaMpg';
+import { UseQueryResult } from '@tanstack/react-query';
+import { EpaMpgResult } from '@/hooks/useEpaMpg';
 
 // Mock the hook
 jest.mock('@/hooks/useEpaMpg');
@@ -23,7 +25,12 @@ describe('EpaMpgTip', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isLoadingError: false,
-    });
+      isPending: true,
+      isSuccess: false,
+      status: 'loading',
+      fetchStatus: 'fetching',
+      isRefetchError: false
+    } as unknown as UseQueryResult<EpaMpgResult, Error>);
 
     render(<EpaMpgTip year={2021} make="Toyota" model="Camry" />);
 
@@ -33,9 +40,11 @@ describe('EpaMpgTip', () => {
   it('renders high MPG data correctly', () => {
     mockUseEpaMpg.mockReturnValue({
       data: {
-        data: [
-          { menuItem: '1', value: '123', text: 'Combined MPG: 35' }
-        ],
+        data: {
+          menuItem: 'Combined MPG',
+          value: '35',
+          text: '35 MPG combined (32 city / 40 hwy)'
+        },
         source: 'api'
       },
       isLoading: false,
@@ -44,7 +53,12 @@ describe('EpaMpgTip', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isLoadingError: false,
-    });
+      isPending: false,
+      isSuccess: true,
+      status: 'success',
+      fetchStatus: 'idle',
+      isRefetchError: false
+    } as unknown as UseQueryResult<EpaMpgResult, Error>);
 
     render(<EpaMpgTip year={2021} make="Toyota" model="Camry" />);
 
@@ -56,9 +70,11 @@ describe('EpaMpgTip', () => {
   it('renders low MPG data correctly', () => {
     mockUseEpaMpg.mockReturnValue({
       data: {
-        data: [
-          { menuItem: '1', value: '123', text: 'Combined MPG: 18' }
-        ],
+        data: {
+          menuItem: 'Combined MPG',
+          value: '18',
+          text: '18 MPG combined (16 city / 20 hwy)'
+        },
         source: 'api'
       },
       isLoading: false,
@@ -67,7 +83,12 @@ describe('EpaMpgTip', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isLoadingError: false,
-    });
+      isPending: false,
+      isSuccess: true,
+      status: 'success',
+      fetchStatus: 'idle',
+      isRefetchError: false
+    } as unknown as UseQueryResult<EpaMpgResult, Error>);
 
     render(<EpaMpgTip year={2021} make="Toyota" model="Camry" />);
 
@@ -79,9 +100,11 @@ describe('EpaMpgTip', () => {
   it('renders average MPG data correctly', () => {
     mockUseEpaMpg.mockReturnValue({
       data: {
-        data: [
-          { menuItem: '1', value: '123', text: 'Combined MPG: 25' }
-        ],
+        data: {
+          menuItem: 'Combined MPG',
+          value: '25',
+          text: '25 MPG combined (22 city / 29 hwy)'
+        },
         source: 'api'
       },
       isLoading: false,
@@ -90,7 +113,12 @@ describe('EpaMpgTip', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isLoadingError: false,
-    });
+      isPending: false,
+      isSuccess: true,
+      status: 'success',
+      fetchStatus: 'idle',
+      isRefetchError: false
+    } as unknown as UseQueryResult<EpaMpgResult, Error>);
 
     render(<EpaMpgTip year={2021} make="Toyota" model="Camry" />);
 
@@ -108,7 +136,12 @@ describe('EpaMpgTip', () => {
       refetch: jest.fn(),
       isRefetching: false,
       isLoadingError: true,
-    });
+      isPending: false,
+      isSuccess: false,
+      status: 'error',
+      fetchStatus: 'idle',
+      isRefetchError: false
+    } as unknown as UseQueryResult<EpaMpgResult, Error>);
 
     const { container } = render(<EpaMpgTip year={2021} make="Toyota" model="Camry" />);
     expect(container.firstChild).toBeNull();

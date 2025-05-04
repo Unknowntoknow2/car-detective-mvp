@@ -7,9 +7,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ValuationAuditTrail as AuditTrailType } from "@/utils/rules/RulesEngine";
-import { calculateValuation } from '@/utils/valuationEngine';
 import { ValuationHeader, NextStepsCard } from './valuation-complete';
+import { calculateValuation } from '@/utils/valuationEngine';
+
+// Add this interface to handle audit trail type
+export interface AuditTrail {
+  factor: string;
+  impact: number;
+  description: string;
+}
 
 interface ValuationCompleteProps {
   valuationId: string;
@@ -29,7 +35,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [photoScore, setPhotoScore] = useState<number | null>(null);
-  const [auditTrail, setAuditTrail] = useState<AuditTrailType | null>(null);
+  const [auditTrail, setAuditTrail] = useState<AuditTrail[] | null>(null);
   const [estimatedValue, setEstimatedValue] = useState<number | undefined>(valuationData.estimatedValue);
   const [calculationInProgress, setCalculationInProgress] = useState(false);
   const { user } = useAuth();
@@ -48,12 +54,19 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
             year: valuationData.year,
             mileage: valuationData.mileage || 0,
             condition: valuationData.condition || 'good',
-            vin: valuationData.vin,
-            photoScore: photoScore
+            photoScore: photoScore,
+            // Don't include vin if it's not part of the ValuationParams type
           });
           
           setEstimatedValue(result.estimatedValue);
-          setAuditTrail(result.auditTrail);
+          // Handle the auditTrail differently based on the result structure
+          if ('adjustments' in result) {
+            setAuditTrail(result.adjustments as AuditTrail[]);
+          } else if ('factors' in result) {
+            setAuditTrail(result.factors as AuditTrail[]);
+          } else {
+            setAuditTrail(null);
+          }
         } catch (error) {
           console.error("Error calculating valuation:", error);
           toast.error("Failed to update valuation with photo score");
@@ -88,7 +101,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           make: valuationData.make,
           model: valuationData.model,
           year: valuationData.year,
-          vin: valuationData.vin,
+          vin: valuationData.vin, // This is optional in the DB
           valuation: estimatedValue || 0,
           confidence_score: photoSubmitted ? 92 : 85, // Higher confidence with photo
           condition_score: photoScore ? Math.round(photoScore * 100) : null,

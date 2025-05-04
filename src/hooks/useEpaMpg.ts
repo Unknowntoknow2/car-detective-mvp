@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface EpaMpgResult {
+export interface EpaMpgResult {
   data: {
     menuItem: string;
     value: string;
