@@ -7,15 +7,28 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { VehicleInfoCard } from '@/components/lookup/VehicleInfoCard';
+import type { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 export default function ManualLookupPage() {
   const [manualEntryResult, setManualEntryResult] = useState<DecodedVehicleInfo | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleManualSubmit = (data: DecodedVehicleInfo) => {
+  const handleManualSubmit = async (data: ManualEntryFormData) => {
+    // Convert ManualEntryFormData to DecodedVehicleInfo format
+    const vehicleInfo: DecodedVehicleInfo = {
+      vin: 'MANUAL-ENTRY', // Placeholder for manual entries
+      make: data.make,
+      model: data.model,
+      year: data.year,
+      mileage: data.mileage,
+      fuelType: data.fuelType || 'Gasoline',
+      condition: data.condition,
+      transmission: 'Unknown', // Required field in DecodedVehicleInfo
+    };
+    
     // Process the manual entry form submission
-    setManualEntryResult(data);
-    toast.success(`Details received for ${data.year} ${data.make} ${data.model}`);
+    setManualEntryResult(vehicleInfo);
+    toast.success(`Details received for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`);
   };
 
   const handleDownloadPdf = async () => {
@@ -31,8 +44,8 @@ export default function ManualLookupPage() {
         mileage: manualEntryResult.mileage || 50000,
         estimatedValue: 23500, // Default value
         fuelType: manualEntryResult.fuelType || "Gasoline",
-        condition: "Good",
-        zipCode: "10001",
+        condition: manualEntryResult.condition || "Good",
+        zipCode: manualEntryResult.zipCode || "10001",
         confidenceScore: 80,
         adjustments: []
       };

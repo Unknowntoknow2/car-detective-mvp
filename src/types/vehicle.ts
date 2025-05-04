@@ -9,4 +9,9 @@ export interface DecodedVehicleInfo {
   transmission: string;
   drivetrain?: string;
   bodyType?: string;
+  mileage?: number;
+  fuelType?: string;
+  color?: string;
+  condition?: string;
+  zipCode?: string;
 }
