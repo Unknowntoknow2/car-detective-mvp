@@ -31,7 +31,7 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
   const [condition, setCondition] = useState<ConditionLevel>('good');
   const [conditionValue, setConditionValue] = useState<number>(75);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [hasAccident, setHasAccident] = useState(false);
+  const [hasAccident, setHasAccident] = useState('no');
   const [accidentDescription, setAccidentDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formTouched, setFormTouched] = useState(false);
@@ -57,7 +57,7 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
       newErrors.mileage = "Mileage must be greater than 0";
     }
     
-    if (hasAccident && !accidentDescription.trim()) {
+    if (hasAccident === 'yes' && !accidentDescription.trim()) {
       newErrors.accidentDescription = "Please provide accident details";
     }
     
@@ -83,7 +83,7 @@ export function ManualLookup({ isLoading = false, onSubmit }: ManualLookupProps)
         condition,
         selectedFeatures,
         hasAccident,
-        accidentDescription: hasAccident ? accidentDescription : ''
+        accidentDescription: hasAccident === 'yes' ? accidentDescription : ''
       };
       onSubmit(data);
     }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ interface VehicleDetailsFormProps {
     fuelType: string | null;
     zipCode: string;
     condition?: number;
-    hasAccident?: boolean | null;
+    hasAccident?: string | null;
     accidentDescription?: string;
     transmissionType?: string;
     hasOpenRecall?: boolean;
@@ -49,7 +50,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
     fuelType: initialData.fuelType || null,
     zipCode: initialData.zipCode || '',
     condition: initialData.condition || 3,
-    hasAccident: initialData.hasAccident || false,
+    hasAccident: initialData.hasAccident || 'no',
     accidentDescription: initialData.accidentDescription || '',
     transmissionType: initialData.transmissionType || 'Automatic',
     hasOpenRecall: initialData.hasOpenRecall || false,
@@ -89,8 +90,8 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
       newErrors.transmissionType = 'Transmission type is required';
     }
     
-    // Only validate accident description if hasAccident is true
-    if (formData.hasAccident && !formData.accidentDescription.trim()) {
+    // Only validate accident description if hasAccident is 'yes'
+    if (formData.hasAccident === 'yes' && !formData.accidentDescription.trim()) {
       newErrors.accidentDescription = 'Please provide accident details';
     }
     
@@ -235,7 +236,7 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
         />
         
         <AccidentToggle 
-          hasAccident={formData.hasAccident === 'yes' ? 'yes' : 'no'} 
+          hasAccident={formData.hasAccident} 
           onToggle={(hasAccident) => {
             setFormData(prev => ({
               ...prev,

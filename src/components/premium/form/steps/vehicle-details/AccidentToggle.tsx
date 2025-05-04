@@ -3,7 +3,7 @@ import React from 'react';
 import { Check, AlertTriangle } from 'lucide-react';
 
 interface AccidentToggleProps {
-  hasAccident: string | null;
+  hasAccident: string;
   onToggle: (hasAccident: string) => void;
 }
 
