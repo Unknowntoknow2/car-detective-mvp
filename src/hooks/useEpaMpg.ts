@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface EpaMpgResponse {
+interface EpaMpgResult {
   data: {
     menuItem: string;
     value: string;
@@ -15,23 +15,28 @@ interface EpaMpgResponse {
 export function useEpaMpg(year: number, make: string, model: string) {
   return useQuery({
     queryKey: ['epaMpg', year, make, model],
-    queryFn: async () => {
-      // Validate required parameters
+    queryFn: async (): Promise<EpaMpgResult | null> => {
+      // Skip API call if required parameters are missing
       if (!year || !make || !model) {
         return null;
       }
 
-      const { data, error } = await supabase.functions.invoke('fetch_epa_mpg', {
-        body: { year, make, model },
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('fetch_epa_mpg', {
+          body: { year, make, model },
+        });
 
-      if (error) {
-        toast.error(`Error fetching EPA MPG data: ${error.message}`);
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        return data;
+      } catch (error: any) {
+        toast.error(`Failed to fetch EPA MPG data: ${error.message}`);
         throw error;
       }
-
-      return data as EpaMpgResponse;
     },
-    enabled: !!year && !!make && !!model
+    enabled: Boolean(year && make && model),
+    staleTime: 1000 * 60 * 30, // 30 minutes
   });
 }
