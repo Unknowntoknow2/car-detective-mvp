@@ -235,18 +235,18 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
         />
         
         <AccidentToggle 
-          hasAccident={formData.hasAccident} 
+          hasAccident={formData.hasAccident === 'yes' ? 'yes' : 'no'} 
           onToggle={(hasAccident) => {
             setFormData(prev => ({
               ...prev,
               hasAccident,
               // Clear accident description if toggling to "No"
-              ...(hasAccident === false ? { accidentDescription: '' } : {})
+              ...(hasAccident === 'no' ? { accidentDescription: '' } : {})
             }));
           }} 
         />
         
-        {formData.hasAccident && (
+        {formData.hasAccident === 'yes' && (
           <div className="space-y-2 mt-4">
             <Label htmlFor="accidentDescription">
               Accident Details <span className="text-red-500">*</span>

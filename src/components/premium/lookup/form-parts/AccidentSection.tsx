@@ -8,8 +8,8 @@ import { AccidentToggle } from '@/components/premium/form/steps/vehicle-details/
 import { Shield } from 'lucide-react';
 
 interface AccidentSectionProps {
-  hasAccident: boolean;
-  setHasAccident: (value: boolean) => void;
+  hasAccident: string;
+  setHasAccident: (value: string) => void;
   accidentDescription: string;
   setAccidentDescription: (description: string) => void;
   isDisabled?: boolean;
@@ -36,7 +36,7 @@ export function AccidentSection({
         onToggle={setHasAccident} 
       />
       
-      {hasAccident && (
+      {hasAccident === 'yes' && (
         <motion.div 
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}

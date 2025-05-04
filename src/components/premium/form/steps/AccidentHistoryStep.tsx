@@ -20,16 +20,15 @@ export function AccidentHistoryStep({
   updateValidity
 }: AccidentHistoryStepProps) {
   useEffect(() => {
-    const isValid = !formData.hasAccident || (formData.hasAccident && formData.accidentDescription.trim() !== '');
+    const isValid = !formData.hasAccident || (formData.hasAccident === 'yes' && formData.accidentDescription?.trim() !== '');
     updateValidity(step, isValid);
   }, [formData.hasAccident, formData.accidentDescription, step, updateValidity]);
 
   const handleAccidentChange = (value: string) => {
-    const hasAccident = value === "true";
     setFormData(prev => ({
       ...prev,
-      hasAccident,
-      accidentDescription: hasAccident ? prev.accidentDescription : ''
+      hasAccident: value,
+      accidentDescription: value === 'yes' ? prev.accidentDescription : ''
     }));
   };
 
@@ -55,22 +54,22 @@ export function AccidentHistoryStep({
             Has this vehicle ever been in an accident?
           </Label>
           <RadioGroup
-            value={String(formData.hasAccident)}
+            value={formData.hasAccident || ''}
             onValueChange={handleAccidentChange}
             className="flex space-x-4 mt-2"
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="acc-no" />
+              <RadioGroupItem value="no" id="acc-no" />
               <Label htmlFor="acc-no">No</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="acc-yes" />
+              <RadioGroupItem value="yes" id="acc-yes" />
               <Label htmlFor="acc-yes">Yes</Label>
             </div>
           </RadioGroup>
         </div>
 
-        {formData.hasAccident && (
+        {formData.hasAccident === 'yes' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-start space-x-2">
               <AlertTriangle className="h-4 w-4 text-warning mt-1" />
@@ -82,7 +81,7 @@ export function AccidentHistoryStep({
             <Textarea
               id="acc-details"
               placeholder="When did it occur? What was the severity? What repairs were made?"
-              value={formData.accidentDescription}
+              value={formData.accidentDescription || ''}
               onChange={handleDetailsChange}
               className="min-h-[100px]"
             />

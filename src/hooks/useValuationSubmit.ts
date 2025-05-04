@@ -138,7 +138,7 @@ export const useValuationSubmit = () => {
           model: formData.model,
           year: formData.year,
           mileage: formData.mileage || 0,
-          condition_score: formData.condition,
+          condition_score: formData.condition ? Number(formData.condition) : 0, // Convert string to number
           zip_demand_factor: 1.0, // Default value, will be calculated by the backend
           vin: formData.vin || null,
           state: formData.zipCode || null,

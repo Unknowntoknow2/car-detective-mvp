@@ -32,7 +32,9 @@ export function ConditionStep({
   updateValidity
 }: ConditionStepProps) {
   useEffect(() => {
-    updateValidity(step, formData.condition >= 0);
+    // Convert to number to compare, then check if it's valid
+    const conditionValue = formData.condition ? Number(formData.condition) : 0;
+    updateValidity(step, conditionValue >= 0);
   }, []);
 
   const handleConditionChange = (value: number[]) => {
@@ -42,14 +44,16 @@ export function ConditionStep({
     
     setFormData(prev => ({
       ...prev,
-      condition,
+      condition: condition.toString(), // Store as string
       conditionLabel: label
     }));
     updateValidity(step, true);
   };
 
   const getCurrentConditionIndex = () => {
-    return Math.round((formData.condition / 100) * (conditionLabels.length - 1));
+    // Convert to number for calculation, then get the index
+    const conditionValue = formData.condition ? Number(formData.condition) : 0;
+    return Math.round((conditionValue / 100) * (conditionLabels.length - 1));
   };
 
   const currentLabel = conditionLabels[getCurrentConditionIndex()];
@@ -69,7 +73,7 @@ export function ConditionStep({
           
           <div className="px-2">
             <Slider
-              value={[formData.condition]}
+              value={formData.condition ? [Number(formData.condition)] : [0]}
               min={0}
               max={100}
               step={1}
@@ -106,7 +110,7 @@ export function ConditionStep({
               Current: <span className="text-primary">{currentLabel}</span>
             </h3>
             <span className="text-sm font-medium bg-gray-100 px-2 py-1 rounded">
-              {formData.condition}%
+              {formData.condition ? Number(formData.condition) : 0}%
             </span>
           </div>
           
@@ -117,7 +121,7 @@ export function ConditionStep({
           <div className="bg-white p-3 rounded border border-gray-100">
             <h4 className="text-sm font-medium text-gray-900 mb-1">Improvement Tip:</h4>
             <p className="text-sm text-gray-600">
-              {formData.condition < 50 
+              {formData.condition && Number(formData.condition) < 50 
                 ? "Consider addressing critical mechanical issues first. Basic maintenance can increase value before selling."
                 : "Continue regular maintenance and keep detailed service records to maintain optimal value."}
             </p>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FormData } from '@/types/premium-valuation';
@@ -20,9 +19,9 @@ export const usePremiumValuationForm = () => {
     mileage: null,
     fuelType: null,
     features: [],
-    condition: 50,
+    condition: '50',  // Store as string
     conditionLabel: 'Fair',
-    hasAccident: false,
+    hasAccident: 'no',  // Store as string
     accidentDescription: '',
     zipCode: '',
     identifierType: 'vin',
@@ -86,7 +85,9 @@ export const usePremiumValuationForm = () => {
         return true; // Features are optional
       
       case 5: // Condition
-        return data.condition >= 0 && data.condition <= 100 && !!data.conditionLabel;
+        // Convert string to number for comparison
+        const conditionValue = data.condition ? Number(data.condition) : 0;
+        return conditionValue >= 0 && conditionValue <= 100 && !!data.conditionLabel;
       
       case 6: // Driving Profile
         return !!data.drivingProfile; // Must have a driving profile
@@ -142,9 +143,9 @@ export const usePremiumValuationForm = () => {
         mileage: null,
         fuelType: null,
         features: [],
-        condition: 50,
+        condition: '50',  // Store as string
         conditionLabel: 'Fair',
-        hasAccident: false,
+        hasAccident: 'no',  // Store as string
         accidentDescription: '',
         zipCode: '',
         identifierType: 'vin',
