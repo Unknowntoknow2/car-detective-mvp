@@ -7,12 +7,12 @@ import MakeModelSelect from '@/components/common/MakeModelSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 
-interface MakeModelSelectProps {
+interface MakeModelSelectWrapperProps {
   form: UseFormReturn<ManualEntryFormData>;
   isDisabled?: boolean;
 }
 
-export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectProps) {
+export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectWrapperProps) {
   // Fetch makes and models data using our new hook
   const { data, isLoading, isError, error } = useMakeModels();
   
