@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DecodedVehicleInfo } from '@/types/vehicle';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
 
 interface VehicleDetailsGridProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -57,3 +57,4 @@ export const VehicleDetailsGrid = ({ vehicleInfo }: VehicleDetailsGridProps) => 
     </div>
   );
 };
+

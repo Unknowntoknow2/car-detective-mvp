@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DecodedVehicleInfo } from '@/types/vehicle';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { toast } from 'sonner';
 
 type DecodeType = 'vin' | 'plate' | 'manual';

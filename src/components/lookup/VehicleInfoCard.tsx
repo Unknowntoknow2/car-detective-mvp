@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { DecodedVehicleInfo } from '@/types/vehicle';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
 import { Download, BookmarkPlus, AlertTriangle, ShieldCheck } from 'lucide-react';
 import {

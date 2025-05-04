@@ -1,5 +1,5 @@
 
-import { DecodedVehicleInfo } from '@/types/vehicle';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { VinDecoderResponse } from '@/types/api';
 
 export async function decodeVin(vin: string): Promise<DecodedVehicleInfo> {
