@@ -15,7 +15,7 @@ export interface FormData {
   mileage?: number;
   fuelType?: string;
   zipCode?: string;
-  condition?: number;
+  condition?: string;
   conditionLabel?: string;
   
   // Vehicle features
@@ -26,7 +26,7 @@ export interface FormData {
   transmissionType?: string;
   
   // Vehicle condition
-  hasAccident?: boolean;
+  hasAccident?: string;
   accidentDescription?: string;
   photoScore?: number;
   titleStatus?: string;

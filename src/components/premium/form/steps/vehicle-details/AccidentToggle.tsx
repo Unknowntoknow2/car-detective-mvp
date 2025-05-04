@@ -3,8 +3,8 @@ import React from 'react';
 import { Check, AlertTriangle } from 'lucide-react';
 
 interface AccidentToggleProps {
-  hasAccident: boolean | null;
-  onToggle: (hasAccident: boolean) => void;
+  hasAccident: string | null;
+  onToggle: (hasAccident: string) => void;
 }
 
 export function AccidentToggle({ hasAccident, onToggle }: AccidentToggleProps) {
@@ -12,9 +12,9 @@ export function AccidentToggle({ hasAccident, onToggle }: AccidentToggleProps) {
     <div className="flex space-x-4">
       <button
         type="button"
-        onClick={() => onToggle(false)}
+        onClick={() => onToggle('no')}
         className={`flex items-center px-4 py-2 border rounded-md ${
-          hasAccident === false 
+          hasAccident === 'no' 
             ? 'bg-green-50 border-green-200 text-green-700' 
             : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
         }`}
@@ -25,9 +25,9 @@ export function AccidentToggle({ hasAccident, onToggle }: AccidentToggleProps) {
       
       <button
         type="button"
-        onClick={() => onToggle(true)}
+        onClick={() => onToggle('yes')}
         className={`flex items-center px-4 py-2 border rounded-md ${
-          hasAccident === true 
+          hasAccident === 'yes' 
             ? 'bg-amber-50 border-amber-200 text-amber-700' 
             : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
         }`}

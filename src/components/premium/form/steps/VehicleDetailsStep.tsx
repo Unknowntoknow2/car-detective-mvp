@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { VehicleDetailsFields } from './vehicle-details/VehicleDetailsFields';
 import { AccidentHistorySection } from './vehicle-details/AccidentHistorySection';
@@ -50,8 +50,8 @@ export function VehicleDetailsStep({
       newErrors.zipCode = 'Please enter a valid 5-digit ZIP code';
     }
 
-    // Only validate accident description if hasAccident is true
-    if (formData.hasAccident && !formData.accidentDescription.trim()) {
+    // Only validate accident description if hasAccident is 'yes'
+    if (formData.hasAccident === 'yes' && !formData.accidentDescription?.trim()) {
       newErrors.accidentDescription = 'Please provide accident details';
     }
 
@@ -92,8 +92,8 @@ export function VehicleDetailsStep({
           condition: formData.conditionLabel?.toLowerCase() || 'good',
           fuelType: formData.fuelType,
           zipCode: formData.zipCode,
-          accident: formData.hasAccident ? 'yes' : 'no',
-          accidentDetails: formData.hasAccident ? {
+          accident: formData.hasAccident === 'yes' ? 'yes' : 'no',
+          accidentDetails: formData.hasAccident === 'yes' ? {
             count: '1',
             severity: 'minor',
             area: 'front'

@@ -13,12 +13,12 @@ interface AccidentHistorySectionProps {
 }
 
 export function AccidentHistorySection({ formData, setFormData, errors }: AccidentHistorySectionProps) {
-  const toggleAccidentHistory = (hasAccident: boolean) => {
+  const toggleAccidentHistory = (hasAccident: string) => {
     setFormData(prev => ({
       ...prev,
       hasAccident,
-      // Clear accident description if toggling to "No"
-      ...(hasAccident === false ? { accidentDescription: '' } : {})
+      // Clear accident description if toggling to "no"
+      ...(hasAccident === 'no' ? { accidentDescription: '' } : {})
     }));
   };
 
@@ -38,7 +38,7 @@ export function AccidentHistorySection({ formData, setFormData, errors }: Accide
         onToggle={toggleAccidentHistory} 
       />
       
-      {formData.hasAccident && (
+      {formData.hasAccident === 'yes' && (
         <div className="space-y-2 mt-4">
           <Label htmlFor="accidentDescription">
             Accident Details <span className="text-red-500">*</span>
