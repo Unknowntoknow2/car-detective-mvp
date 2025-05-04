@@ -171,7 +171,6 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
                 year: valuationData.year,
                 make: valuationData.make,
                 model: valuationData.model,
-                trim: valuationData.trim || '',
                 mileage: valuationData.mileage || 0,
                 condition: valuationData.condition || 'good'
               }
