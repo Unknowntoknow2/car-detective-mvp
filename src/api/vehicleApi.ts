@@ -5,7 +5,9 @@ import { ApiErrorType } from '@/utils/api-utils';
 import { toast } from 'sonner';
 import { Make, Model } from '@/hooks/types/vehicle';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_VEHICLE_API_URL || 'http://localhost:3000/api';
+// Instead of using process.env, define the API base URL directly
+// or use import.meta.env which is supported by Vite
+const API_BASE_URL = import.meta.env.VITE_VEHICLE_API_URL || 'http://localhost:3000/api';
 
 interface VehicleDetails {
   year: number;
