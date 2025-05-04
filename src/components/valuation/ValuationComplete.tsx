@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -155,7 +154,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
 
       {auditTrail && (
         <div className="mt-4">
-          {/* Pass the audit trail with the required percentAdjustment property */}
+          {/* Pass the audit trail with the required properties */}
           <ValuationAuditTrail 
             auditTrail={{ 
               basePrice: estimatedValue ? estimatedValue * 0.85 : 0,
@@ -167,7 +166,15 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
               })),
               totalAdjustment: auditTrail.reduce((sum, item) => sum + item.impact, 0),
               estimatedValue: estimatedValue || 0,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              inputData: {
+                year: valuationData.year,
+                make: valuationData.make,
+                model: valuationData.model,
+                trim: valuationData.trim || '',
+                mileage: valuationData.mileage || 0,
+                condition: valuationData.condition || 'good'
+              }
             }} 
           />
         </div>
