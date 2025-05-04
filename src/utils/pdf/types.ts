@@ -57,6 +57,7 @@ export interface ValuationReportOptions {
   forecast?: ForecastData;
   fuelType?: string;
   isPremium?: boolean;
+  explanation?: string;
 }
 
 export interface ForecastData {
