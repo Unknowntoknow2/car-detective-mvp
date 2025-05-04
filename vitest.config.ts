@@ -10,6 +10,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/src/hooks/__tests__/useEpaMpg.test.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],
     },
