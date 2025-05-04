@@ -136,7 +136,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         {loading ? (
           <p className="italic text-gray-500">Generating explanation...</p>
         ) : error ? (
-          <p className="text-red-600">Failed to load explanation: {error}</p>
+          <p className="text-red-600">{error}</p>
         ) : (
           <p className="mb-6">{explanation}</p>
         )}
