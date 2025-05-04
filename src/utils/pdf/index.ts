@@ -40,7 +40,28 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
   try {
     // Use the premium generator if this is a premium report
     if (data.isPremium) {
-      return await generatePremiumReport(data);
+      // Convert ReportData to PremiumReportInput format
+      const premiumInput = {
+        vehicleInfo: {
+          vin: data.vin,
+          year: typeof data.year === 'string' ? parseInt(data.year as string, 10) : data.year as number,
+          make: data.make,
+          model: data.model,
+          mileage: typeof data.mileage === 'string' ? parseInt(data.mileage as string, 10) : data.mileage as number,
+          zipCode: data.zipCode
+        },
+        valuation: {
+          basePrice: data.estimatedValue,
+          estimatedValue: data.estimatedValue,
+          priceRange: [data.estimatedValue * 0.9, data.estimatedValue * 1.1],
+          confidenceScore: data.confidenceScore || 85,
+          adjustments: data.adjustments || []
+        },
+        carfaxData: data.carfaxData,
+        forecast: undefined // Add if available in your data
+      };
+      
+      return await generatePremiumReport(premiumInput);
     }
     
     // Otherwise use the basic generator
@@ -59,7 +80,7 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValue:
     make: vehicleInfo.make || '',
     model: vehicleInfo.model || '',
     year: vehicleInfo.year || '',
-    mileage: vehicleInfo.mileage || '',
+    mileage: vehicleInfo.mileage || '0', // Ensure mileage is always provided
     vin: vehicleInfo.vin || '',
     plate: vehicleInfo.plate || '',
     state: vehicleInfo.state || '',
@@ -74,5 +95,6 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValue:
   };
 }
 
-// Re-export from pdfGeneratorService for backward compatibility
-export { generateBasicReport as generateValuationPdf, generatePremiumReport } from './pdfGeneratorService';
+// Export from generators directly to avoid naming conflicts
+export { generateBasicReport, generatePremiumReport } from './generators/basicReportGenerator';
+export { generatePremiumReport } from './generators/premiumReportGenerator';

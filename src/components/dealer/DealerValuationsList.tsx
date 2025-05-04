@@ -41,7 +41,8 @@ export const DealerValuationsList = () => {
         {
           make: valuation.make,
           model: valuation.model,
-          year: valuation.year
+          year: valuation.year,
+          mileage: valuation.mileage || 0
         },
         {
           estimatedValue: valuation.estimated_value,

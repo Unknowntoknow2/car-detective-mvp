@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Download, FileBarChart, Clock } from 'lucide-react';
-import { downloadPdf } from '@/utils/pdf';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 
 interface PremiumReport {
   id: string;
@@ -71,13 +70,13 @@ export default function PremiumReportsList() {
       return;
     }
     
-    const vehicleInfo = {
+    const reportData = convertVehicleInfoToReportData({
       ...report.vehicle_info,
-      isPremium: true,
-      estimatedValue: 0, // This would be pulled from valuation data
-    };
+      mileage: 0, // Add default mileage value
+      isPremium: true
+    }, report.vehicle_info.estimatedValue || 0);
     
-    downloadPdf(vehicleInfo);
+    downloadPdf(reportData);
     toast.success('Downloading your premium report');
   };
 

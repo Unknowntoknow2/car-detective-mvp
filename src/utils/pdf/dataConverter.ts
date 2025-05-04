@@ -35,12 +35,12 @@ export function convertVehicleInfoToReportData(
   };
 
   if ('vin' in vehicle) {
-    baseReportData.vin = vehicle.vin;
+    baseReportData.vin = vehicle.vin || '';
   }
 
   if ('plate' in vehicle && 'state' in vehicle) {
-    baseReportData.plate = vehicle.plate;
-    baseReportData.state = vehicle.state;
+    baseReportData.plate = vehicle.plate || '';
+    baseReportData.state = vehicle.state || '';
   }
 
   if ('color' in vehicle) {

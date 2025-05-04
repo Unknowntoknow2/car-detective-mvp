@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +46,13 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
     if (onLookupComplete) {
       onLookupComplete(lookupResult);
     }
+  };
+
+  // Create a wrapper function for the form submission
+  const onFormSubmit = () => {
+    // Create a synthetic event
+    const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+    handleSubmit(syntheticEvent);
   };
 
   const isFormValid = plateNumber.trim() && state;
@@ -126,7 +132,7 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
           <ValuationFormActions
             isLoading={isLoading}
             submitButtonText="Lookup License Plate"
-            onSubmit={handleSubmit}
+            onSubmit={onFormSubmit}
             showDownload={!!result}
             onDownloadPdf={onDownloadPdf}
             isDownloading={isDownloading}

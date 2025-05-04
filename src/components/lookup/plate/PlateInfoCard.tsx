@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PlateLookupInfo } from '@/types/lookup';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,10 @@ export const PlateInfoCard = ({
     <Card className="mt-6 border-2 border-primary/20">
       <CardHeader>
         <CardTitle className="text-2xl">Vehicle Information</CardTitle>
-        <CardDescription>Details for plate: {vehicleInfo.plate}, state: {vehicleInfo.state}</CardDescription>
+        <CardDescription>
+          Details for {vehicleInfo.plate ? `plate: ${vehicleInfo.plate}` : 'vehicle'}
+          {vehicleInfo.state ? `, state: ${vehicleInfo.state}` : ''}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

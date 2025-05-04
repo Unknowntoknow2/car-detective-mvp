@@ -45,8 +45,9 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
   if (firstChar >= 'A' && firstChar <= 'F') {
     return {
       data: {
-        plate,
-        state,
+        vin: "JT2BK1BA" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        plate: plate,
+        state: state,
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
@@ -56,8 +57,9 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
   } else if (firstChar >= 'G' && firstChar <= 'L') {
     return {
       data: {
-        plate,
-        state,
+        vin: "1HGCM82" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        plate: plate,
+        state: state,
         make: 'Honda',
         model: 'Accord',
         year: 2021,
@@ -67,8 +69,9 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
   } else if (firstChar >= 'M' && firstChar <= 'R') {
     return {
       data: {
-        plate,
-        state,
+        vin: "1FA6P8CF" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        plate: plate,
+        state: state,
         make: 'Ford',
         model: 'Mustang',
         year: 2019,
@@ -78,8 +81,9 @@ export async function mockPlateLookup(plate: string, state: string): Promise<Pla
   } else {
     return {
       data: {
-        plate,
-        state,
+        vin: "1G1ZD5ST" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        plate: plate,
+        state: state,
         make: 'Chevrolet',
         model: 'Malibu',
         year: 2018,

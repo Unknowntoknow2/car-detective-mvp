@@ -59,8 +59,9 @@ const ManualLookupPage = () => {
       const reportData = convertVehicleInfoToReportData({
         make: vehicleInfo.make,
         model: vehicleInfo.model,
-        year: vehicleInfo.year
-      } as any, {
+        year: vehicleInfo.year,
+        mileage: vehicleInfo.mileage
+      }, {
         mileage: vehicleInfo.mileage,
         estimatedValue: vehicleInfo.valuation || 0,
         fuelType: vehicleInfo.fuelType,

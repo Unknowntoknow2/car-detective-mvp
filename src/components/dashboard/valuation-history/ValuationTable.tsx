@@ -2,7 +2,7 @@
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { downloadPdf } from "@/utils/pdf";
+import { downloadPdf, convertVehicleInfoToReportData } from "@/utils/pdf";
 import type { Valuation } from "@/types/valuation-history";
 
 interface ValuationTableProps {
@@ -11,18 +11,18 @@ interface ValuationTableProps {
 
 export function ValuationTable({ valuations }: ValuationTableProps) {
   const handleDownloadReport = (valuation: Valuation) => {
-    const vehicleInfo = {
+    const reportData = convertVehicleInfoToReportData({
       make: valuation.make,
       model: valuation.model,
       year: valuation.year,
       vin: valuation.vin,
       plate: valuation.plate,
       state: valuation.state,
-      isPremium: valuation.is_premium,
-      estimatedValue: valuation.valuation || valuation.estimated_value || 0
-    };
+      mileage: valuation.mileage || 0,
+      isPremium: valuation.is_premium
+    }, valuation.valuation || valuation.estimated_value || 0);
     
-    downloadPdf(vehicleInfo);
+    downloadPdf(reportData);
   };
 
   return (
