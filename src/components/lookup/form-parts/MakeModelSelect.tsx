@@ -12,7 +12,7 @@ interface MakeModelSelectWrapperProps {
   isDisabled?: boolean;
 }
 
-export function MakeModelSelect({ form, isDisabled = false }: MakeModelSelectWrapperProps) {
+export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelectWrapperProps) {
   // Fetch makes and models data using our new hook
   const { data, isLoading, isError, error } = useMakeModels();
   
