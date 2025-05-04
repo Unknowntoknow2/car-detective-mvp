@@ -54,16 +54,28 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
             year: valuationData.year,
             mileage: valuationData.mileage || 0,
             condition: valuationData.condition || 'good',
-            photoScore: photoScore,
-            // Don't include vin if it's not part of the ValuationParams type
+            // We'll handle photoScore separately since it's not part of ValuationParams
           });
           
           setEstimatedValue(result.estimatedValue);
-          // Handle the auditTrail differently based on the result structure
-          if ('adjustments' in result) {
-            setAuditTrail(result.adjustments as AuditTrail[]);
-          } else if ('factors' in result) {
-            setAuditTrail(result.factors as AuditTrail[]);
+          
+          // Convert the result adjustments to AuditTrail format if needed
+          if ('adjustments' in result && Array.isArray(result.adjustments)) {
+            // Type assertion to help TypeScript
+            const convertedAdjustments = (result.adjustments as any[]).map(adj => ({
+              factor: adj.name || adj.factor,
+              impact: adj.value || adj.impact,
+              description: adj.description
+            }));
+            setAuditTrail(convertedAdjustments as AuditTrail[]);
+          } else if ('factors' in result && Array.isArray(result.factors)) {
+            // Handle factors format if that's what's returned
+            const convertedFactors = (result.factors as any[]).map(f => ({
+              factor: f.name || f.factor,
+              impact: f.value || f.impact,
+              description: f.description
+            }));
+            setAuditTrail(convertedFactors as AuditTrail[]);
           } else {
             setAuditTrail(null);
           }

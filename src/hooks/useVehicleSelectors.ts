@@ -33,7 +33,8 @@ export function useVehicleSelectors() {
           make_name: item.make_name,
           logo_url: null,
           country_of_origin: null,
-          nhtsa_make_id: item.make_id ? String(item.make_id) : null // Ensure it's a string
+          // Ensure nhtsa_make_id is null or a number, not a string
+          nhtsa_make_id: item.make_id ? Number(item.make_id) : null
         }));
         
         setMakes(transformedMakes);
@@ -64,8 +65,8 @@ export function useVehicleSelectors() {
         setIsLoading(true);
         setError(null);
         
-        // Convert string to number for the database query if needed
-        const makeIdParam = isNaN(Number(selectedMakeId)) ? selectedMakeId : Number(selectedMakeId);
+        // Ensure we're using the proper ID format for the query
+        const makeIdParam = selectedMakeId;
         
         const { data, error } = await supabase
           .from('models')
@@ -149,6 +150,16 @@ export function useVehicleSelectors() {
     setSelectedModelId(modelId);
     setTrims([]); // Clear trims when model changes
   };
+  
+  // Add a utility function for getting year options
+  const getYearOptions = (startYear: number = 1990) => {
+    const currentYear = new Date().getFullYear() + 1; // Include next year's models
+    const years: number[] = [];
+    for (let year = currentYear; year >= startYear; year--) {
+      years.push(year);
+    }
+    return years;
+  };
 
   return {
     makes,
@@ -159,6 +170,12 @@ export function useVehicleSelectors() {
     setSelectedMakeId,
     setSelectedModelId: handleModelSelect,
     isLoading,
-    error
+    error,
+    getYearOptions,
+    // Add a counts property for VehicleDataInfo component
+    counts: {
+      makes: makes.length,
+      models: models.length
+    }
   };
 }
