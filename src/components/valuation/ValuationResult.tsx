@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
 import { Button } from '@/components/ui/button';
 import { Loader2, Download, RefreshCw } from 'lucide-react';
@@ -30,7 +30,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   const [error, setError] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
-  const fetchExplanation = async () => {
+  const fetchExplanation = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -50,11 +50,11 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [make, model, year, mileage, condition, location, valuation]);
 
   useEffect(() => {
     fetchExplanation();
-  }, [make, model, year, mileage, condition, location, valuation]);
+  }, [fetchExplanation]);
 
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
@@ -138,7 +138,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         ) : error ? (
           <p className="text-red-600">{error}</p>
         ) : (
-          <p className="mb-6">{explanation}</p>
+          <p className="mb-6 whitespace-pre-wrap">{explanation}</p>
         )}
       </div>
       
