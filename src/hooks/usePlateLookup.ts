@@ -1,49 +1,32 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-
-interface PlateLookupResult {
-  plate: string;
-  state: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  color?: string;
-  vin?: string;
-}
+import { PlateLookupInfo } from '@/types/lookup';
+import { mockPlateLookup } from '@/services/plateService';
 
 export function usePlateLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<PlateLookupResult | null>(null);
+  const [result, setResult] = useState<PlateLookupInfo | null>(null);
   const { toast } = useToast();
 
-  const lookupVehicle = async (plate: string, state: string): Promise<PlateLookupResult | null> => {
+  const lookupVehicle = async (plate: string, state: string): Promise<PlateLookupInfo | null> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`/api/lookup-plate?plate=${plate}&state=${state}`);
+      // Use the mockPlateLookup function from plateService
+      const response = await mockPlateLookup(plate, state);
       
-      if (!response.ok) {
-        throw new Error(`Plate lookup failed: ${response.statusText}`);
+      if (response.error) {
+        throw new Error(response.error);
       }
       
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
+      if (!response.data) {
+        throw new Error('No data returned from plate lookup');
       }
       
-      const plateResult: PlateLookupResult = {
-        plate,
-        state,
-        make: data.make || 'Unknown',
-        model: data.model || 'Unknown',
-        year: data.year || 0,
-        color: data.color,
-        vin: data.vin
-      };
+      const plateResult: PlateLookupInfo = response.data;
       
       setResult(plateResult);
       toast({

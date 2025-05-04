@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,6 @@ import { FormData } from '@/types/premium-valuation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Search } from 'lucide-react';
 import { EnhancedVinLookup } from '@/components/premium/lookup/EnhancedVinLookup';
-import { EnhancedPlateLookup } from '@/components/premium/lookup/EnhancedPlateLookup';
 import { toast } from 'sonner';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { motion } from 'framer-motion';
@@ -110,6 +108,7 @@ export function VehicleIdentificationStep({
   };
 
   return (
+    
     <motion.div 
       className="space-y-6"
       variants={container}
@@ -164,15 +163,7 @@ export function VehicleIdentificationStep({
               error={error}
             />
           ) : formData.identifierType === 'plate' ? (
-            <EnhancedPlateLookup
-              plateValue={formData.identifier}
-              stateValue={state}
-              onPlateChange={handleInputChange}
-              onStateChange={handleStateChange}
-              onLookup={handleFindVehicle}
-              isLoading={isLoading}
-              error={error}
-            />
+            null
           ) : null}
         </motion.div>
       </motion.div>

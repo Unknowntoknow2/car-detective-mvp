@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlateLookup } from '@/hooks/usePlateLookup';
-import { Car, Search, AlertCircle, CheckCircle } from 'lucide-react';
-import { states } from './shared/states-data';
+import { Car, Search, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { US_STATES } from '@/components/premium/lookup/shared/states-data';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,7 +45,7 @@ export function EnhancedPlateLookup({ onComplete }: { onComplete: (data: any) =>
     accidentDescription: '',
   });
 
-  const { fetchVehicleData } = usePlateLookup();
+  const { lookupVehicle } = usePlateLookup();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +85,10 @@ export function EnhancedPlateLookup({ onComplete }: { onComplete: (data: any) =>
     setFetchError(null);
 
     try {
-      const data = await fetchVehicleData(plateNumber, stateCode);
+      const data = await lookupVehicle(plateNumber, stateCode);
+      if (!data) {
+        throw new Error("Failed to fetch vehicle data");
+      }
       setVehicleData(data);
       setShowAdditionalInfo(true);
       toast.success("Vehicle found! Please provide additional details.");
@@ -128,9 +132,9 @@ export function EnhancedPlateLookup({ onComplete }: { onComplete: (data: any) =>
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
             <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state.code} value={state.code}>
-                  {state.name} ({state.code})
+              {US_STATES.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label} ({state.value})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -278,4 +282,3 @@ export function EnhancedPlateLookup({ onComplete }: { onComplete: (data: any) =>
   );
 }
 
-import { Loader2 } from 'lucide-react';

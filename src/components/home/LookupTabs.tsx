@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { AccidentHistoryInput } from '../valuation/AccidentHistoryInput';
 import { ConditionSliderWithTooltip } from '../valuation/ConditionSliderWithTooltip';
 import { ManualEntryForm } from '../lookup/ManualEntryForm';
-import { PlateDecoderForm } from '../lookup/PlateDecoderForm';
+import PlateDecoderForm from '../lookup/PlateDecoderForm';
 import { useState } from "react";
 import { CarFront, Search, FileText, Check } from "lucide-react";
 

@@ -53,3 +53,6 @@ export const US_STATES = [
   { value: 'DC', label: 'District of Columbia' },
   { value: 'PR', label: 'Puerto Rico' },
 ];
+
+// Alias export for backwards compatibility with some components
+export const states = US_STATES;

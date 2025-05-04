@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Car, Search, CheckCircle, AlertCircle } from 'lucide-react';
@@ -7,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { usePlateLookup } from '@/hooks/usePlateLookup';
 import { ZipCodeInput } from './form-parts/ZipCodeInput';
-import { Card } from '@/components/ui/card';
-import states from '@/components/premium/lookup/shared/states-data';
-import ValuationFormActions from './form-parts/ValuationFormActions';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { US_STATES } from '@/components/premium/lookup/shared/states-data';
+import { ValuationFormActions } from './form-parts/ValuationFormActions';
 
 type RequiredInputs = {
   mileage: number;
@@ -23,14 +24,14 @@ type RequiredInputs = {
   warrantyStatus?: string;
 };
 
-export default function PlateDecoderForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+export function PlateDecoderForm({ onSubmit }: { onSubmit?: (data: any) => void }) {
   const [plateNumber, setPlateNumber] = useState('');
   const [stateCode, setStateCode] = useState('');
   const [isFetching, setIsFetching] = useState(false);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const { fetchVehicleData } = usePlateLookup();
+  const { lookupVehicle } = usePlateLookup();
 
   const [additionalInfo, setAdditionalInfo] = useState<RequiredInputs>({
     mileage: 0,
@@ -52,7 +53,10 @@ export default function PlateDecoderForm({ onSubmit }: { onSubmit: (data: any) =
     setFetchError(null);
 
     try {
-      const data = await fetchVehicleData(plateNumber, stateCode);
+      const data = await lookupVehicle(plateNumber, stateCode);
+      if (!data) {
+        throw new Error("Failed to fetch vehicle data");
+      }
       setVehicleData(data);
       setShowAdditionalInfo(true);
       toast.success("Vehicle data found!");
@@ -112,7 +116,7 @@ export default function PlateDecoderForm({ onSubmit }: { onSubmit: (data: any) =
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {states.map((state) => (
+                  {US_STATES.map((state) => (
                     <SelectItem key={state.value} value={state.value}>
                       {state.label}
                     </SelectItem>
@@ -188,8 +192,9 @@ export default function PlateDecoderForm({ onSubmit }: { onSubmit: (data: any) =
               }
             />
             <ValuationFormActions
-              onContinue={handleAdditionalInfoSubmit}
-              onBack={() => setShowAdditionalInfo(false)}
+              isLoading={false}
+              submitButtonText="Continue"
+              onSubmit={handleAdditionalInfoSubmit}
             />
           </div>
         )}
@@ -197,3 +202,5 @@ export default function PlateDecoderForm({ onSubmit }: { onSubmit: (data: any) =
     </Card>
   );
 }
+
+export default PlateDecoderForm;

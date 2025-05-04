@@ -1,5 +1,5 @@
 
-import { PlateDecoderForm } from "@/components/lookup/PlateDecoderForm";
+import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
