@@ -59,16 +59,16 @@ async function fetchMakesModels(): Promise<{ makes: Make[], models: Model[] }> {
   console.log('Raw models data:', modelsData);
   
   // Transform data to match expected interface
-  const makes: Make[] = makesData.map((make: RawMake) => ({
+  const makes: Make[] = makesData ? makesData.map((make: RawMake) => ({
     id: make.id,
     name: make.make_name
-  }));
+  })) : [];
   
-  const models: Model[] = modelsData.map((model: RawModel) => ({
+  const models: Model[] = modelsData ? modelsData.map((model: RawModel) => ({
     id: model.id,
     name: model.model_name,
     makeId: model.make_id
-  }));
+  })) : [];
   
   console.log('Transformed makes:', makes);
   console.log('Transformed models:', models);

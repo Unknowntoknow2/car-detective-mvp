@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,9 @@ export function Navbar() {
                 <Link to="/plate-lookup" className="block px-4 py-2 text-sm hover:bg-primary/10">
                   Plate Lookup
                 </Link>
+                <Link to="/manual-lookup" className="block px-4 py-2 text-sm hover:bg-primary/10">
+                  Manual Entry
+                </Link>
               </div>
             </div>
           </div>
@@ -66,7 +70,7 @@ export function Navbar() {
                     <Users className="h-4 w-4" />
                     Referrals
                   </Link>
-                  <Link to="/saved" className="block px-4 py-2 text-sm hover:bg-primary/10">
+                  <Link to="/my-valuations" className="block px-4 py-2 text-sm hover:bg-primary/10">
                     Saved Valuations
                   </Link>
                   <button 
@@ -134,10 +138,17 @@ export function Navbar() {
               >
                 Plate Lookup
               </Link>
+              <Link 
+                to="/manual-lookup" 
+                className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Manual Entry
+              </Link>
               
               <Link 
                 to="/stats" 
-                className="px-4 py-3 rounded-md hover:bg-accent text-sm font-medium"
+                className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <ChartBar className="h-4 w-4" />
@@ -163,7 +174,7 @@ export function Navbar() {
                     Referrals
                   </Link>
                   <Link 
-                    to="/saved" 
+                    to="/my-valuations" 
                     className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >

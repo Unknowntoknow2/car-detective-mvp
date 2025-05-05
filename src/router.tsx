@@ -20,6 +20,7 @@ import UserDashboardPage from '@/pages/UserDashboardPage';
 import MyValuationsPage from '@/pages/MyValuationsPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import AdminPage from '@/pages/AdminPage';
+import FreeValuationPage from '@/pages/FreeValuationPage';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
   {
     path: '/premium',
     element: <PremiumPage />,
+  },
+  {
+    path: '/free-valuation',
+    element: <FreeValuationPage />,
   },
   {
     path: '/vin-lookup',
@@ -59,7 +64,15 @@ const router = createBrowserRouter([
     element: <PremiumValuationPage />,
   },
   {
+    path: '/valuation/premium',
+    element: <PremiumValuationPage />,
+  },
+  {
     path: '/premium-success',
+    element: <PremiumSuccessPage />,
+  },
+  {
+    path: '/valuation/premium-success',
     element: <PremiumSuccessPage />,
   },
   {
