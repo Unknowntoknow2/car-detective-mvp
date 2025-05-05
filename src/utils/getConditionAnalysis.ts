@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AIConditionResult {
@@ -9,26 +10,48 @@ export interface AIConditionResult {
 
 export async function getConditionAnalysis(valuationId: string): Promise<AIConditionResult | null> {
   try {
+    // First, check if the photo_condition_scores table exists
+    const { error: tableCheckError } = await supabase
+      .from('photo_condition_scores')
+      .select('count')
+      .limit(1)
+      .throwOnError();
+
+    // If we got an error, the table probably doesn't exist, return null
+    if (tableCheckError) {
+      console.warn('photo_condition_scores table may not exist:', tableCheckError);
+      return null;
+    }
+
+    // If no error, proceed with the query
     const { data, error } = await supabase
       .from('photo_condition_scores')
       .select('*')
       .eq('valuation_id', valuationId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       console.error('Error fetching condition analysis:', error);
       return null;
     }
 
-    // Parse the data from the database record
+    // Parse the data from the database record with proper type checks
     return {
-      condition: data.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
-      confidenceScore: data.confidence_score,
+      condition: getConditionRating(data.condition_score || 0),
+      confidenceScore: typeof data.confidence_score === 'number' ? data.confidence_score : 0,
       issuesDetected: Array.isArray(data.issues) ? data.issues : [],
-      aiSummary: data.summary || ''
+      aiSummary: typeof data.summary === 'string' ? data.summary : ''
     };
   } catch (error) {
     console.error('Unexpected error in getConditionAnalysis:', error);
     return null;
   }
+}
+
+// Helper function to convert a condition score to a rating
+function getConditionRating(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' {
+  if (score >= 85) return 'Excellent';
+  if (score >= 70) return 'Good';
+  if (score >= 50) return 'Fair';
+  return 'Poor';
 }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
 import { Button } from '@/components/ui/button';

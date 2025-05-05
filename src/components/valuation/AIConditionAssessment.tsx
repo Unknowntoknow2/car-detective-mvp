@@ -1,52 +1,68 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ConditionBadge } from '@/components/ui/condition-badge';
-import { Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
+import React from 'react';
+import { AIConditionResult } from '@/utils/getConditionAnalysis';
+import { Loader2, Shield, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface AIConditionAssessmentProps {
-  conditionData: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
+  conditionData: AIConditionResult | null;
   isLoading: boolean;
 }
 
 export function AIConditionAssessment({ conditionData, isLoading }: AIConditionAssessmentProps) {
-  if (!conditionData && !isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg my-4">
+        <Loader2 className="h-5 w-5 animate-spin text-gray-400 mr-2" />
+        <p className="text-sm text-gray-500">Analyzing condition with AI...</p>
+      </div>
+    );
+  }
+
+  if (!conditionData) {
+    return null; // Don't show anything if there's no data
+  }
+
+  const getConditionColor = (condition: string) => {
+    switch (condition) {
+      case 'Excellent': return 'bg-green-50 text-green-600 border-green-200';
+      case 'Good': return 'bg-blue-50 text-blue-600 border-blue-200';
+      case 'Fair': return 'bg-yellow-50 text-yellow-600 border-yellow-200';
+      case 'Poor': return 'bg-red-50 text-red-600 border-red-200';
+      default: return 'bg-gray-50 text-gray-600 border-gray-200';
+    }
+  };
 
   return (
-    <Card className="mt-4 border border-primary/10">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">AI Condition Assessment</CardTitle>
-        </div>
-        {!isLoading && conditionData && (
-          <ConditionBadge 
-            condition={conditionData.condition} 
-            confidenceScore={conditionData.confidenceScore}
-          />
-        )}
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="py-4 flex items-center justify-center">
-            <Loader2 className="h-6 w-6 text-primary animate-spin" />
-            <span className="ml-2 text-sm">Analyzing vehicle condition...</span>
+    <Card className="my-4 border border-blue-100 bg-blue-50/30">
+      <CardContent className="pt-6">
+        <div className="flex items-start gap-2">
+          <div className="bg-blue-100 p-2 rounded-full">
+            {conditionData.confidenceScore > 70 ? (
+              <Shield className="h-5 w-5 text-blue-600" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+            )}
           </div>
-        ) : conditionData ? (
-          <div className="space-y-4">
-            <p className="text-sm">{conditionData.aiSummary || `Vehicle appears to be in ${conditionData.condition?.toLowerCase() || 'unknown'} condition.`}</p>
+          <div>
+            <h3 className="text-sm font-medium text-blue-800">AI Condition Assessment</h3>
+            <div className="flex items-center mt-2 gap-2">
+              <Badge 
+                variant="outline" 
+                className={`${getConditionColor(conditionData.condition)} font-medium`}
+              >
+                {conditionData.condition}
+              </Badge>
+              <span className="text-xs text-gray-500">
+                {conditionData.confidenceScore}% confidence
+              </span>
+            </div>
             
-            {conditionData.issuesDetected && conditionData.issuesDetected.length > 0 && (
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <h4 className="text-sm font-medium">Detected Issues</h4>
-                </div>
-                <ul className="pl-6 space-y-1 text-sm text-slate-600 list-disc">
+            {conditionData.issuesDetected.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs font-medium text-gray-700 mb-1">Issues detected:</p>
+                <ul className="text-xs text-gray-600 list-disc pl-5 space-y-1">
                   {conditionData.issuesDetected.map((issue, index) => (
                     <li key={index}>{issue}</li>
                   ))}
@@ -54,29 +70,13 @@ export function AIConditionAssessment({ conditionData, isLoading }: AIConditionA
               </div>
             )}
             
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm text-slate-600">AI Trust Score:</span>
-                <span className={`text-sm font-medium ${
-                  conditionData.confidenceScore >= 90 ? 'text-green-600' :
-                  conditionData.confidenceScore >= 80 ? 'text-blue-600' :
-                  conditionData.confidenceScore >= 70 ? 'text-amber-600' :
-                  'text-red-600'
-                }`}>
-                  {conditionData.confidenceScore}%
-                </span>
-              </div>
-              
-              <div className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">
-                Photo-Based Analysis
-              </div>
-            </div>
+            {conditionData.aiSummary && (
+              <p className="text-xs text-gray-600 mt-2">
+                {conditionData.aiSummary}
+              </p>
+            )}
           </div>
-        ) : (
-          <p className="text-sm text-slate-600 py-2">
-            No AI condition assessment available. Upload photos of your vehicle to get an AI-powered condition assessment.
-          </p>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

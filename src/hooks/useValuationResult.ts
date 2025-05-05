@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,24 +40,47 @@ export function useValuationResult(valuationId: string) {
       
       if (valuationData) {
         // Transform the data to the expected format with camelCase properties
-        // Convert adjustments from {name, value, percentage} to {factor, impact, description}
-        const formattedAdjustments = (valuationData.adjustments || []).map(adj => ({
-          factor: adj.name || adj.factor || '',
-          impact: adj.percentage || adj.impact || 0,
-          description: adj.description || `Impact of ${adj.name || adj.factor} on vehicle value`
-        }));
+        // Create adjustments array from valuation data
+        const formattedAdjustments = [];
+        
+        // Add condition adjustment if available
+        if (valuationData.condition_score) {
+          formattedAdjustments.push({
+            factor: 'Condition',
+            impact: calculateConditionImpact(valuationData.condition_score),
+            description: `Vehicle condition score: ${valuationData.condition_score}`
+          });
+        }
+        
+        // Add mileage adjustment if available
+        if (valuationData.mileage) {
+          formattedAdjustments.push({
+            factor: 'Mileage',
+            impact: calculateMileageImpact(valuationData.mileage),
+            description: `Vehicle mileage: ${valuationData.mileage.toLocaleString()} miles`
+          });
+        }
+        
+        // Add market adjustment if available
+        if (valuationData.zip_demand_factor) {
+          formattedAdjustments.push({
+            factor: 'Market',
+            impact: Math.round((valuationData.zip_demand_factor - 1) * 100),
+            description: 'Based on local market demand'
+          });
+        }
         
         setData({
           id: valuationData.id,
-          make: valuationData.make,
-          model: valuationData.model,
-          year: valuationData.year,
+          make: valuationData.make || '',
+          model: valuationData.model || '',
+          year: valuationData.year || 0,
           mileage: valuationData.mileage || 0,
-          condition: valuationData.condition || 'Good',
-          zipCode: valuationData.zip_code || '00000',
+          condition: getConditionLabel(valuationData.condition_score),
+          zipCode: valuationData.state || '',
           estimatedValue: valuationData.estimated_value || 0,
           confidenceScore: valuationData.confidence_score,
-          priceRange: valuationData.price_range || [0, 0],
+          priceRange: calculatePriceRange(valuationData.estimated_value),
           adjustments: formattedAdjustments
         });
       }
@@ -81,4 +105,43 @@ export function useValuationResult(valuationId: string) {
     isError: !!error,
     refetch: fetchValuationResult
   };
+}
+
+// Helper function to calculate price range based on estimated value
+function calculatePriceRange(value: number | null | undefined): [number, number] {
+  if (!value) return [0, 0];
+  return [
+    Math.round(value * 0.95), // Lower bound: 95% of estimated value
+    Math.round(value * 1.05)  // Upper bound: 105% of estimated value
+  ];
+}
+
+// Helper function to convert condition score to label
+function getConditionLabel(score: number | null | undefined): string {
+  if (!score) return 'Unknown';
+  if (score >= 85) return 'Excellent';
+  if (score >= 70) return 'Good';
+  if (score >= 50) return 'Fair';
+  return 'Poor';
+}
+
+// Helper function to calculate condition impact
+function calculateConditionImpact(score: number | null | undefined): number {
+  if (!score) return 0;
+  if (score >= 85) return 10;     // Excellent: +10%
+  if (score >= 70) return 5;      // Good: +5%
+  if (score >= 50) return 0;      // Fair: 0%
+  return -10;                     // Poor: -10%
+}
+
+// Helper function to calculate mileage impact
+function calculateMileageImpact(mileage: number | null | undefined): number {
+  if (!mileage) return 0;
+  if (mileage < 10000) return 15;          // Very low: +15%
+  if (mileage < 30000) return 10;          // Low: +10%
+  if (mileage < 60000) return 5;           // Below average: +5%
+  if (mileage < 100000) return 0;          // Average: 0%
+  if (mileage < 150000) return -5;         // Above average: -5%
+  if (mileage < 200000) return -10;        // High: -10%
+  return -20;                             // Very high: -20%
 }
