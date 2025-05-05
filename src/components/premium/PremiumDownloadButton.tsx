@@ -1,74 +1,98 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Lock } from 'lucide-react';
-import { usePremiumStatus } from '@/hooks/usePremiumStatus';
-import { downloadPdf, ReportData, convertVehicleInfoToReportData } from '@/utils/pdf';
+import { Lock, Download, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAICondition } from '@/hooks/useAICondition';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PremiumDownloadButtonProps {
   valuationId: string;
-  vehicleInfo: any;
-  valuationData: any;
-  children?: React.ReactNode;
+  onDownload: () => Promise<void>;
+  className?: string;
 }
 
 export function PremiumDownloadButton({ 
   valuationId, 
-  vehicleInfo, 
-  valuationData,
-  children 
+  onDownload, 
+  className 
 }: PremiumDownloadButtonProps) {
-  const { isPremiumUnlocked, isLoading, unlockPremium } = usePremiumStatus(valuationId);
-  const { conditionData } = useAICondition(valuationId);
-  
-  const handleDownload = async () => {
-    if (!isPremiumUnlocked) {
-      toast.info("You need to unlock premium access for this report.");
-      await unlockPremium(valuationId);
+  const { user } = useAuth();
+  const { isPremium, isLoading } = usePremiumStatus(valuationId);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePremiumUnlock = async () => {
+    if (!user) {
+      toast.error('You must be logged in to unlock premium features');
       return;
     }
+
+    setIsProcessing(true);
     
     try {
-      // Prepare report data
-      const reportData = convertVehicleInfoToReportData(vehicleInfo, valuationData);
+      // Call the Edge Function to create a checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { valuationId }
+      });
       
-      // Set as premium report
-      reportData.isPremium = true;
+      if (error) throw new Error(error.message);
       
-      // Add AI condition data if available
-      if (conditionData) {
-        reportData.aiCondition = conditionData;
+      // If already unlocked, just notify the user
+      if (data.already_unlocked) {
+        toast.success('Premium features are already unlocked!');
+        window.location.reload(); // Refresh to update UI state
+        return;
       }
       
-      // Download the PDF
-      await downloadPdf(reportData);
-      toast.success("Premium report downloaded successfully!");
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
     } catch (error) {
-      console.error('Error downloading premium report:', error);
-      toast.error('Failed to download premium report');
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout process. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
-  
+
+  if (isLoading) {
+    return (
+      <Button disabled className={className}>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Checking access...
+      </Button>
+    );
+  }
+
+  if (isPremium) {
+    return (
+      <Button onClick={onDownload} className={className} variant="default">
+        <Download className="mr-2 h-4 w-4" />
+        Download Premium Report
+      </Button>
+    );
+  }
+
   return (
-    <Button
-      onClick={handleDownload}
-      disabled={isLoading}
-      variant={isPremiumUnlocked ? "default" : "outline"}
-      className={isPremiumUnlocked ? "bg-green-600 hover:bg-green-700" : ""}
+    <Button 
+      onClick={handlePremiumUnlock} 
+      className={className} 
+      variant="premium"
+      disabled={isProcessing}
     >
-      {isLoading ? (
-        "Loading..."
-      ) : isPremiumUnlocked ? (
+      {isProcessing ? (
         <>
-          <Download className="mr-2 h-4 w-4" />
-          {children || "Download Premium Report"}
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Processing...
         </>
       ) : (
         <>
           <Lock className="mr-2 h-4 w-4" />
-          {children || "Unlock Premium Report"}
+          Unlock Premium Report
         </>
       )}
     </Button>

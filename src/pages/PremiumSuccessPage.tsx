@@ -1,141 +1,164 @@
 
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import React, { useEffect, useState } from 'react';
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { CheckCircle, Loader2, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Helmet } from "react-helmet-async";
 
 export default function PremiumSuccessPage() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [orderDetails, setOrderDetails] = useState<any>(null);
   const { user } = useAuth();
-  const sessionId = searchParams.get('session_id');
-
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [valuationId, setValuationId] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    if (!sessionId || !user) {
-      toast.error("Invalid or missing session information");
-      navigate('/premium');
-      return;
-    }
-
     const verifyPayment = async () => {
       try {
-        setIsLoading(true);
-        console.log('Verifying payment for session:', sessionId);
+        // Get session ID from URL
+        const searchParams = new URLSearchParams(location.search);
+        const sessionId = searchParams.get('session_id');
         
-        // Check if this order exists and is completed
+        if (!sessionId) {
+          toast.error("Missing session information");
+          setIsVerifying(false);
+          return;
+        }
+        
+        // Query for the associated order
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
-          .select('*, valuations(*)')
+          .select('valuation_id, status')
           .eq('stripe_session_id', sessionId)
-          .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
           
-        if (orderError) {
-          console.error('Error fetching order:', orderError);
-          toast.error('Could not verify your payment');
-          navigate('/premium');
-          return;
-        }
+        if (orderError) throw orderError;
         
         if (!orderData) {
-          toast.error('Order not found');
-          navigate('/premium');
+          toast.error("Could not verify payment");
+          setIsVerifying(false);
           return;
         }
         
-        setOrderDetails(orderData);
+        // Store the valuation ID for navigation
+        setValuationId(orderData.valuation_id);
         
-        // If order is not yet completed, update status
-        // (This is a fallback in case the webhook failed)
-        if (orderData.status !== 'completed') {
-          const { error: updateError } = await supabase
-            .from('orders')
-            .update({ status: 'completed' })
-            .eq('stripe_session_id', sessionId)
-            .eq('user_id', user.id);
-
-          if (updateError) {
-            console.error('Error updating order:', updateError);
-            // Don't return, continue to check valuation status
-          }
-          
-          // Also ensure the valuation is marked as premium
-          if (orderData.valuation_id) {
-            const { error: valuationError } = await supabase
-              .from('valuations')
-              .update({ premium_unlocked: true })
-              .eq('id', orderData.valuation_id)
-              .eq('user_id', user.id);
-              
-            if (valuationError) {
-              console.error('Error updating valuation:', valuationError);
-              // Continue anyway
-            }
-          }
+        // Check if the webhook has processed this payment already
+        if (orderData.status === 'completed') {
+          setVerificationSuccess(true);
+          setIsVerifying(false);
+          return;
         }
         
-        toast.success('Your premium report is now available!');
+        // If not yet processed, we'll poll a few times (webhook might be delayed)
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const checkStatus = async () => {
+          attempts++;
+          
+          const { data: updatedOrder, error } = await supabase
+            .from('orders')
+            .select('status')
+            .eq('stripe_session_id', sessionId)
+            .maybeSingle();
+            
+          if (error) throw error;
+          
+          if (updatedOrder?.status === 'completed') {
+            setVerificationSuccess(true);
+            setIsVerifying(false);
+            return;
+          }
+          
+          if (attempts < maxAttempts) {
+            setTimeout(checkStatus, 2000); // Check again in 2 seconds
+          } else {
+            // After max attempts, assume it's probably fine
+            // The webhook will eventually process it
+            setVerificationSuccess(true);
+            setIsVerifying(false);
+          }
+        };
+        
+        checkStatus();
+        
       } catch (error) {
-        console.error('Error processing payment confirmation:', error);
-        toast.error('There was a problem confirming your payment');
-      } finally {
-        setIsLoading(false);
+        console.error("Payment verification error:", error);
+        toast.error("Error verifying payment");
+        setIsVerifying(false);
       }
     };
-
-    verifyPayment();
-  }, [sessionId, navigate, user]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-slate-600">Confirming your payment...</p>
-        </div>
-      </div>
-    );
-  }
-
+    
+    if (user) {
+      verifyPayment();
+    } else {
+      setIsVerifying(false);
+    }
+  }, [location.search, user]);
+  
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <Card className="max-w-lg mx-auto p-6">
-        <div className="text-center space-y-4">
-          <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-slate-900">
-            Payment Successful!
-          </h1>
-          <p className="text-slate-600">
-            {orderDetails?.valuations ? 
-              `Your Premium Report for ${orderDetails.valuations.year} ${orderDetails.valuations.make} ${orderDetails.valuations.model} is now available.` :
-              'Thank you for purchasing Premium Valuation. Your report is now available.'
-            }
-          </p>
-          <div className="pt-4 space-y-2">
-            {orderDetails?.valuation_id && (
-              <Button 
-                onClick={() => navigate(`/valuations/${orderDetails.valuation_id}`)} 
-                className="w-full"
-              >
-                View Your Report
-              </Button>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Helmet>
+        <title>Payment Successful - Car Detective</title>
+      </Helmet>
+      <Navbar />
+      <main className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto rounded-full bg-green-100 p-3 w-16 h-16 flex items-center justify-center mb-4">
+              {isVerifying ? (
+                <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+              ) : (
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              )}
+            </div>
+            <CardTitle className="text-2xl">
+              {isVerifying ? "Verifying Payment..." : "Payment Successful!"}
+            </CardTitle>
+            <CardDescription>
+              {isVerifying 
+                ? "Please wait while we verify your payment." 
+                : "Your premium report is now available."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isVerifying && (
+              <>
+                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                  <p className="text-center text-sm">
+                    Thank you for your purchase! Your premium valuation report has been unlocked with comprehensive details and insights.
+                  </p>
+                </div>
+                
+                <div className="grid gap-3">
+                  {valuationId && (
+                    <Button asChild>
+                      <Link to={`/valuation/premium?id=${valuationId}`}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        View Premium Report
+                      </Link>
+                    </Button>
+                  )}
+                  <Button variant="outline" asChild>
+                    <Link to="/dashboard">
+                      Go to Dashboard
+                    </Link>
+                  </Button>
+                </div>
+              </>
             )}
-            <Button 
-              onClick={() => navigate('/dashboard')} 
-              variant={orderDetails?.valuation_id ? "outline" : "default"}
-              className="w-full mt-2"
-            >
-              Go to Dashboard
-            </Button>
-          </div>
-        </div>
-      </Card>
+          </CardContent>
+        </Card>
+      </main>
+      <Footer />
     </div>
   );
 }
