@@ -13,6 +13,7 @@ export async function generateValuationPdf(params: {
   explanation: string;
   explanationText?: string;
   comparables?: { source: string; price: number; date: string }[];
+  valuationId?: string; // Added valuationId parameter
 }): Promise<Uint8Array> {
   return generatePdf(params);
 }

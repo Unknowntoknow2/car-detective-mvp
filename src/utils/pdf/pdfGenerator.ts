@@ -2,7 +2,7 @@
 import { PDFDocument, PDFPage } from 'pdf-lib';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { initializePdf } from './components/pdfCommon';
-import { drawHeaderSection, drawFooterSection } from './sections/headerFooterSection';
+import { drawHeaderSection, drawFooterSection, drawSignatureAndQR } from './sections/headerFooterSection';
 import { drawVehicleDetailsSection } from './sections/vehicleDetailsSection';
 import { drawValuationSection } from './sections/valuationSection';
 import { drawCommentarySection } from './sections/commentarySection';
@@ -14,6 +14,7 @@ interface GeneratePdfParams {
   explanation: string;
   explanationText?: string;
   comparables?: { source: string; price: number; date: string }[];
+  valuationId?: string; // Added valuationId parameter
 }
 
 /**
@@ -22,7 +23,7 @@ interface GeneratePdfParams {
  * @returns Promise resolving to PDF document as Uint8Array
  */
 export async function generateValuationPdf(params: GeneratePdfParams): Promise<Uint8Array> {
-  const { vehicle, valuation, explanation, explanationText, comparables = [] } = params;
+  const { vehicle, valuation, explanation, explanationText, comparables = [], valuationId } = params;
   
   // Initialize PDF document, fonts, and constants
   const { pdfDoc, page, fonts, constants } = await initializePdf();
@@ -54,8 +55,14 @@ export async function generateValuationPdf(params: GeneratePdfParams): Promise<U
     yPos = result.yPos;
   }
   
-  // Draw footer on the last page
-  drawFooterSection(currentPage, fonts, constants);
+  // Draw footer on all pages
+  const pageCount = pdfDoc.getPageCount();
+  for (let i = 0; i < pageCount; i++) {
+    drawFooterSection(pdfDoc.getPage(i), fonts, constants);
+  }
+  
+  // Draw signature and QR code on the last page
+  await drawSignatureAndQR(currentPage, fonts, constants, valuationId);
   
   // Serialize the PDFDocument to bytes
   return await pdfDoc.save();
