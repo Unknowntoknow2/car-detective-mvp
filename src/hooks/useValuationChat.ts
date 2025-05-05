@@ -25,6 +25,7 @@ export function useValuationChat(valuationId?: string) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
 
   // Fetch chat history for a session
   const fetchChatHistory = useCallback(async (sid: string) => {
@@ -138,8 +139,24 @@ export function useValuationChat(valuationId?: string) {
     }
   }, [user, valuationId, createSession, fetchChatHistory]);
 
+  // Regenerate the last assistant response
+  const regenerateLastResponse = useCallback(async () => {
+    if (!lastUserMessage || !sessionId) {
+      toast.error('Nothing to regenerate');
+      return;
+    }
+    
+    // Remove the last message if it's from the assistant
+    if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
+      setMessages(prevMessages => prevMessages.slice(0, -1));
+    }
+    
+    // Call sendMessage with the last user message to regenerate the response
+    await sendMessage(lastUserMessage, true);
+  }, [lastUserMessage, sessionId, messages]);
+
   // Send a message and get a response
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, isRegeneration: boolean = false) => {
     if (!user) {
       toast.error('You must be logged in to use the chat feature');
       return;
@@ -154,6 +171,11 @@ export function useValuationChat(valuationId?: string) {
     setError(null);
     
     try {
+      // Save the last user message for potential regeneration
+      if (!isRegeneration) {
+        setLastUserMessage(content);
+      }
+
       // Optimistically add user message
       const userMessage: ChatMessage = {
         session_id: sessionId!,
@@ -162,13 +184,14 @@ export function useValuationChat(valuationId?: string) {
         created_at: new Date().toISOString()
       };
       
-      setMessages(prev => [...prev, userMessage]);
+      if (!isRegeneration) {
+        setMessages(prev => [...prev, userMessage]);
+      }
       
       // Prepare user context to send with the message
       const userContext = {
         name: localStorage.getItem('userName') || undefined,
         email: user.email || undefined,
-        // Add any other relevant user context here
       };
       
       // Call the Supabase Edge Function
@@ -178,7 +201,8 @@ export function useValuationChat(valuationId?: string) {
           user_input: content,
           new_session: !sessionId,
           valuation_id: valuationId,
-          user_context: userContext
+          user_context: userContext,
+          is_regeneration: isRegeneration
         }
       });
       
@@ -241,6 +265,7 @@ export function useValuationChat(valuationId?: string) {
     isLoading,
     error,
     sendMessage,
+    regenerateLastResponse,
     createSession,
     fetchChatHistory
   };

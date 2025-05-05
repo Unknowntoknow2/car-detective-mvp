@@ -5,11 +5,12 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, MessageCircle, BrainCircuit } from 'lucide-react';
+import { Loader2, MessageCircle, BrainCircuit, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface ChatInterfaceProps {
   valuationId?: string;
@@ -28,7 +29,7 @@ export function ChatInterface({
 }: ChatInterfaceProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { messages, isLoading, error, sendMessage } = useValuationChat(valuationId);
+  const { messages, isLoading, error, sendMessage, regenerateLastResponse } = useValuationChat(valuationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
     "Why is my car valued this way?",
@@ -65,10 +66,6 @@ export function ChatInterface({
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'assistant') {
         // Use the last assistant message to potentially update suggested questions
-        // This is a simplified version - in a real implementation, you could use
-        // the content to dynamically generate contextual questions
-        
-        // For now, we'll just vary the suggestions based on message length as an example
         if (lastMessage.content.includes("value")) {
           setSuggestedQuestions([
             "What features add the most value?",
@@ -83,6 +80,13 @@ export function ChatInterface({
             "What documents do I need when selling?",
             "Can you help me understand dealer fees?"
           ]);
+        } else if (lastMessage.content.includes("condition")) {
+          setSuggestedQuestions([
+            "What improvements would help my value?",
+            "How much would fixing scratches help?",
+            "Does detailing increase value?",
+            "How do you assess car condition?"
+          ]);
         }
       }
     }
@@ -94,6 +98,23 @@ export function ChatInterface({
 
   const handleAuthRedirect = () => {
     navigate('/auth');
+  };
+
+  const handleFeedback = (isPositive: boolean) => {
+    if (messages.length > 0) {
+      // In a real implementation, this would save the feedback to the database
+      toast.success(isPositive 
+        ? "Thanks for your positive feedback!" 
+        : "Thanks for your feedback. We'll improve our responses.");
+      
+      // Here you would also log analytics about which types of responses get positive/negative feedback
+    }
+  };
+
+  const handleRegenerateResponse = () => {
+    if (regenerateLastResponse) {
+      regenerateLastResponse();
+    }
   };
 
   if (!user) {
@@ -146,12 +167,33 @@ export function ChatInterface({
           ) : (
             <div className="flex flex-col space-y-2">
               {messages.map((msg: ChatMessageType, index: number) => (
-                <ChatMessage
-                  key={msg.id || index}
-                  role={msg.role}
-                  content={msg.content}
-                  timestamp={msg.created_at}
-                />
+                <div key={msg.id || index} className="group">
+                  <ChatMessage
+                    role={msg.role}
+                    content={msg.content}
+                    timestamp={msg.created_at}
+                  />
+                  {msg.role === 'assistant' && (
+                    <div className="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-6 w-6"
+                        onClick={() => handleFeedback(true)}
+                      >
+                        <ThumbsUp className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-6 w-6"
+                        onClick={() => handleFeedback(false)}
+                      >
+                        <ThumbsDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               ))}
               {isLoading && (
                 <div className="flex items-center px-4 py-2">
@@ -192,6 +234,8 @@ export function ChatInterface({
           placeholder={valuationId 
             ? "Ask Car Detective..." 
             : "Complete a valuation first..."}
+          onRegenerateResponse={handleRegenerateResponse}
+          showRegenerate={messages.length > 0 && messages[messages.length - 1].role === 'assistant'}
         />
       </CardFooter>
     </Card>

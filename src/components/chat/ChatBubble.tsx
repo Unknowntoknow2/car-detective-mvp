@@ -29,9 +29,10 @@ export function ChatBubble({
       const timer = setTimeout(() => {
         toast.custom((t) => {
           // Safely access properties with proper null checks
-          const visibleClass = t && typeof t === 'object' && 'visible' in t 
-            ? (t.visible ? 'animate-enter' : 'animate-leave') 
-            : 'animate-enter';
+          let visibleClass = 'animate-enter';
+          if (t !== null && typeof t === 'object' && 'visible' in t) {
+            visibleClass = t.visible ? 'animate-enter' : 'animate-leave';
+          }
             
           return (
             <div className={`${visibleClass} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
@@ -54,7 +55,7 @@ export function ChatBubble({
                         className="mr-2"
                         onClick={() => {
                           setIsOpen(true);
-                          if (t && typeof t === 'object') {
+                          if (t !== null && typeof t === 'object') {
                             toast.dismiss(t);
                           }
                         }}
@@ -65,7 +66,7 @@ export function ChatBubble({
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          if (t && typeof t === 'object') {
+                          if (t !== null && typeof t === 'object') {
                             toast.dismiss(t);
                           }
                         }}
