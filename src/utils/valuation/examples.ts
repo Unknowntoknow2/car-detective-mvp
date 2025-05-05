@@ -10,9 +10,9 @@ import { calculateFinalValuation, ValuationInput, ValuationOutput } from './calc
 
 /**
  * Example usage of the precise valuation calculator
- * @returns A detailed valuation example
+ * @returns A Promise resolving to a detailed valuation example
  */
-export function valuationExample(): ValuationOutput {
+export async function valuationExample(): Promise<ValuationOutput> {
   const sampleInput: ValuationInput = {
     baseMarketValue: 25000,
     vehicleYear: 2019,
@@ -24,15 +24,15 @@ export function valuationExample(): ValuationOutput {
     features: ['Leather Seats', 'Navigation System', 'Backup Camera']
   };
 
-  return calculateFinalValuation(sampleInput);
+  return await calculateFinalValuation(sampleInput);
 }
 
 /**
  * Displays the valuation example in a formatted way
  * @returns Formatted string with valuation details
  */
-export function printValuationExample(): string {
-  const result = valuationExample();
+export async function printValuationExample(): Promise<string> {
+  const result = await valuationExample();
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -64,6 +64,6 @@ export function printValuationExample(): string {
 /**
  * Log valuation example to console
  */
-export function logValuationExample(): void {
-  console.log(printValuationExample());
+export async function logValuationExample(): Promise<void> {
+  console.log(await printValuationExample());
 }

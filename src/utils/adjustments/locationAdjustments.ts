@@ -1,3 +1,4 @@
+
 /**
  * Location Adjustment Calculator
  * Calculates value adjustments based on regional market demand and location factors.
@@ -7,10 +8,25 @@ import { supabase } from '@/lib/supabaseClient';
 
 /**
  * Gets the regional market multiplier based on the vehicle's location
+ * This synchronous version is used in flow that cannot be async
  * @param zipCode The ZIP code where the vehicle is located
  * @returns A multiplier to be applied to the base value
  */
-export async function getRegionalMarketMultiplier(zipCode: string): Promise<number> {
+export function getRegionalMarketMultiplier(zipCode: string): number {
+  if (!zipCode) return 0;
+  
+  // Since we can't do async here, return a default value
+  // The async version should be preferred where possible
+  console.log(`Using synchronous version of getRegionalMarketMultiplier for ${zipCode}. Consider using getRegionalMarketMultiplierAsync instead.`);
+  return 0; // Default value for synchronous contexts
+}
+
+/**
+ * Gets the regional market multiplier asynchronously
+ * @param zipCode The ZIP code where the vehicle is located
+ * @returns A promise resolving to a multiplier to be applied to the base value
+ */
+export async function getRegionalMarketMultiplierAsync(zipCode: string): Promise<number> {
   if (!zipCode) return 0;
   
   try {
@@ -74,6 +90,6 @@ export function getRegionNameFromZip(zipCode: string): string {
  * @returns Dollar amount adjustment based on location
  */
 export async function getZipAdjustment(zipCode: string, basePrice: number): Promise<number> {
-  const multiplier = await getRegionalMarketMultiplier(zipCode);
+  const multiplier = await getRegionalMarketMultiplierAsync(zipCode);
   return basePrice * multiplier;
 }

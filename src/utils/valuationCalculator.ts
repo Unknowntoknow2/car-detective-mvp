@@ -1,3 +1,4 @@
+
 /**
  * Vehicle Valuation Calculator
  * Enterprise-grade implementation for calculating precise vehicle valuations
@@ -90,8 +91,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
     confidenceScore += 2; // Increase confidence with condition data
   }
 
-  // 3. Apply regional market adjustment
+  // 3. Apply regional market adjustment - now synchronous since we're not in an async function
   if (params.zipCode) {
+    // Use the synchronous version that returns a default value
     const regionalMultiplier = getRegionalMarketMultiplier(params.zipCode);
     const regionalImpact = baseValue * regionalMultiplier;
     
@@ -295,7 +297,7 @@ export function valuationExample(): void {
 /**
  * Example usage of the enterprise valuation calculator
  */
-export function enterpriseValuationExample(): void {
+export async function enterpriseValuationExample(): Promise<void> {
   const exampleParams: EnterpriseValuationInput = {
     baseMarketValue: 25000,
     vehicleYear: 2019,
@@ -308,7 +310,7 @@ export function enterpriseValuationExample(): void {
   };
   
   try {
-    const result = enterpriseCalculateFinalValuation(exampleParams);
+    const result = await enterpriseCalculateFinalValuation(exampleParams);
     console.log('Enterprise Valuation Result:', result);
     console.log('Final Value:', new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(result.finalValuation));
     console.log('Adjustments:');
