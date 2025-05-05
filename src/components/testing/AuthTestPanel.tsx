@@ -7,6 +7,14 @@ import { RefreshCw, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Define an interface for user roles
+interface UserRole {
+  id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+}
+
 export function AuthTestPanel() {
   const { results, isRunning, runTests } = useAuthTests();
   const { user } = useAuth();
@@ -27,7 +35,7 @@ export function AuthTestPanel() {
         .select('*')
         .eq('user_id', user.id)
         .eq('role', 'admin')
-        .maybeSingle();
+        .maybeSingle() as { data: UserRole | null, error: Error | null };
         
       if (error) throw error;
       setIsAdmin(!!data);

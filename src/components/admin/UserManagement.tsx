@@ -14,6 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Search, ShieldCheck, UserCheck, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Define interfaces for the data we're working with
+interface UserRole {
+  id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
+}
+
 interface User {
   id: string;
   email: string;
@@ -47,12 +55,12 @@ export function UserManagement() {
       const { data: adminRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
-        .eq('role', 'admin');
+        .eq('role', 'admin') as { data: UserRole[] | null, error: Error | null };
 
       if (rolesError) throw rolesError;
       
       // Create a set of admin user IDs for easy lookup
-      const adminUserIds = new Set(adminRoles.map(role => role.user_id));
+      const adminUserIds = new Set((adminRoles || []).map(role => role.user_id));
       
       // Combine the data
       const combinedUsers = authUsers.users.map(user => ({
@@ -82,7 +90,7 @@ export function UserManagement() {
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', 'admin');
+          .eq('role', 'admin') as { error: Error | null };
           
         if (error) throw error;
         
@@ -94,7 +102,7 @@ export function UserManagement() {
           .insert({
             user_id: userId,
             role: 'admin'
-          });
+          }) as { error: Error | null };
           
         if (error) throw error;
         
@@ -135,11 +143,14 @@ export function UserManagement() {
       }
       
       // Update all valuations to have premium unlocked
-      const { error: updateError } = await supabase
-        .from('valuations')
-        .update({ premium_unlocked: true })
-        .eq('user_id', userId)
-        .is('premium_unlocked', null);
+      // Need to use raw update since the type definition doesn't know about premium_unlocked yet
+      const { error: updateError } = await supabase.rpc(
+        'update_premium_unlocked',
+        { 
+          user_id_param: userId,
+          premium_unlocked_value: true
+        }
+      );
         
       if (updateError) throw updateError;
       

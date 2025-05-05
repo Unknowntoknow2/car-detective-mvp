@@ -787,6 +787,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       valuation_factors: {
         Row: {
           created_at: string | null
@@ -838,6 +859,7 @@ export type Database = {
           mileage: number | null
           model: string | null
           plate: string | null
+          premium_unlocked: boolean | null
           sale_date: string | null
           seasonal_multiplier: number | null
           state: string | null
@@ -867,6 +889,7 @@ export type Database = {
           mileage?: number | null
           model?: string | null
           plate?: string | null
+          premium_unlocked?: boolean | null
           sale_date?: string | null
           seasonal_multiplier?: number | null
           state?: string | null
@@ -896,6 +919,7 @@ export type Database = {
           mileage?: number | null
           model?: string | null
           plate?: string | null
+          premium_unlocked?: boolean | null
           sale_date?: string | null
           seasonal_multiplier?: number | null
           state?: string | null
