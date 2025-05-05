@@ -1,4 +1,6 @@
 
+import { AdjustmentBreakdown } from '../rules/types';
+
 export interface ValuationParams {
   make: string;
   model: string;
