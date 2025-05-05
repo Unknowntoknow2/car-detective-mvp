@@ -2,13 +2,15 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { generateValuationPdf } from './pdfGeneratorService';
+import { ReportData as ReportDataType } from './types';
 
+// Update the ReportData interface to align with the one in types.ts
 export interface ReportData {
   vin: string;
   make: string;
   model: string;
-  year: number;
-  mileage: string;
+  year: number | string; // Match types.ts by supporting both number and string
+  mileage: string | number;
   condition: string;
   zipCode: string;
   estimatedValue: number;
@@ -88,10 +90,10 @@ export const downloadPdf = async (reportData: ReportData): Promise<void> => {
       pdfBytes = await generateValuationPdf({
         ...reportData, 
         isPremium: true
-      });
+      } as ReportDataType); // Use type assertion to match the expected type
     } else {
       // Generate basic report
-      pdfBytes = await generateValuationPdf(reportData);
+      pdfBytes = await generateValuationPdf(reportData as ReportDataType); // Use type assertion to match the expected type
     }
     
     // Create a blob from the PDF bytes

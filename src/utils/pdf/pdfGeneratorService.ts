@@ -1,5 +1,5 @@
 
-import { ReportData } from './index';
+import { ReportData } from './types';
 
 /**
  * Generates a PDF for the valuation report
