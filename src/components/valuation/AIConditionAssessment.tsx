@@ -1,82 +1,74 @@
 
 import React from 'react';
-import { AIConditionResult } from '@/utils/getConditionAnalysis';
-import { Loader2, Shield, AlertTriangle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { ConditionBadge } from '@/components/ui/condition-badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, Camera, CheckCircle, Loader2 } from 'lucide-react';
+import { AICondition } from '@/types/photo';
 
 interface AIConditionAssessmentProps {
-  conditionData: AIConditionResult | null;
+  conditionData: AICondition | null;
   isLoading: boolean;
 }
 
 export function AIConditionAssessment({ conditionData, isLoading }: AIConditionAssessmentProps) {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg my-4">
-        <Loader2 className="h-5 w-5 animate-spin text-gray-400 mr-2" />
-        <p className="text-sm text-gray-500">Analyzing condition with AI...</p>
-      </div>
+      <Card className="bg-muted/30 border border-muted">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Analyzing vehicle condition...
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Our AI is analyzing your vehicle photos to assess its condition.
+        </CardContent>
+      </Card>
     );
   }
 
   if (!conditionData) {
-    return null; // Don't show anything if there's no data
+    return null;
   }
 
-  const getConditionColor = (condition: string) => {
-    switch (condition) {
-      case 'Excellent': return 'bg-green-50 text-green-600 border-green-200';
-      case 'Good': return 'bg-blue-50 text-blue-600 border-blue-200';
-      case 'Fair': return 'bg-yellow-50 text-yellow-600 border-yellow-200';
-      case 'Poor': return 'bg-red-50 text-red-600 border-red-200';
-      default: return 'bg-gray-50 text-gray-600 border-gray-200';
-    }
-  };
-
   return (
-    <Card className="my-4 border border-blue-100 bg-blue-50/30">
-      <CardContent className="pt-6">
-        <div className="flex items-start gap-2">
-          <div className="bg-blue-100 p-2 rounded-full">
-            {conditionData.confidenceScore > 70 ? (
-              <Shield className="h-5 w-5 text-blue-600" />
-            ) : (
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-            )}
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-blue-800">AI Condition Assessment</h3>
-            <div className="flex items-center mt-2 gap-2">
-              <Badge 
-                variant="outline" 
-                className={`${getConditionColor(conditionData.condition)} font-medium`}
-              >
-                {conditionData.condition}
-              </Badge>
-              <span className="text-xs text-gray-500">
-                {conditionData.confidenceScore}% confidence
-              </span>
-            </div>
+    <Card className="bg-muted/10 border">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Camera className="h-4 w-4 text-primary" />
+          AI Condition Assessment
+          <ConditionBadge 
+            condition={conditionData.condition} 
+            confidenceScore={conditionData.confidenceScore}
+          />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {conditionData.confidenceScore >= 70 ? (
+          <>
+            <p className="text-sm font-medium mb-2">
+              {conditionData.aiSummary || `Your vehicle appears to be in ${conditionData.condition} condition based on the photos provided.`}
+            </p>
             
-            {conditionData.issuesDetected.length > 0 && (
-              <div className="mt-3">
-                <p className="text-xs font-medium text-gray-700 mb-1">Issues detected:</p>
-                <ul className="text-xs text-gray-600 list-disc pl-5 space-y-1">
+            {conditionData.issuesDetected && conditionData.issuesDetected.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground mb-1">Issues detected:</p>
+                <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
                   {conditionData.issuesDetected.map((issue, index) => (
                     <li key={index}>{issue}</li>
                   ))}
                 </ul>
               </div>
             )}
-            
-            {conditionData.aiSummary && (
-              <p className="text-xs text-gray-600 mt-2">
-                {conditionData.aiSummary}
-              </p>
-            )}
+          </>
+        ) : (
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground">
+              Our AI couldn't verify your vehicle's condition with high confidence. For better results, try uploading clearer photos from multiple angles.
+            </p>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

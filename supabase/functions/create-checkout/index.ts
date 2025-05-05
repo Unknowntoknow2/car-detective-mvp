@@ -1,90 +1,154 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import Stripe from 'https://esm.sh/stripe@14.21.0'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import Stripe from "https://esm.sh/stripe@13.6.0?target=deno";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Extract request body
-    const { valuationId } = await req.json();
-    
-    if (!valuationId) {
-      throw new Error('Valuation ID is required');
-    }
-    
-    console.log(`Creating checkout session for valuation: ${valuationId}`);
-    
-    // Get user information from request
+    // Get the JWT token from the request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Missing Authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    
-    // Create Supabase client
+
+    // Set up Supabase client with auth context from the request
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    
-    // Get the user
+
+    // Get the current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      throw new Error('User not authenticated: ' + (userError?.message || 'Unknown error'));
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Invalid user token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    
-    console.log(`Authenticated user: ${user.id}`);
-    
-    // Get the valuation details
+
+    // Parse request body
+    const { valuationId } = await req.json();
+    if (!valuationId) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required parameter: valuationId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify user has access to the requested valuation
     const { data: valuation, error: valuationError } = await supabase
       .from('valuations')
-      .select('*')
+      .select('id, premium_unlocked')
       .eq('id', valuationId)
       .eq('user_id', user.id)
-      .single();
-      
-    if (valuationError || !valuation) {
-      throw new Error('Valuation not found or access denied: ' + (valuationError?.message || 'Unknown error'));
+      .maybeSingle();
+
+    if (valuationError) {
+      console.error('Error fetching valuation:', valuationError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify valuation access' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    
+
+    if (!valuation) {
+      return new Response(
+        JSON.stringify({ error: 'Valuation not found or not owned by user' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if premium is already unlocked
     if (valuation.premium_unlocked) {
       return new Response(
-        JSON.stringify({ 
-          already_unlocked: true, 
-          message: "Premium is already unlocked for this valuation" 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
+        JSON.stringify({ already_unlocked: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if there's already a completed order for this valuation
+    const { data: existingOrder, error: orderError } = await supabase
+      .from('orders')
+      .select('id, status')
+      .eq('valuation_id', valuationId)
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .maybeSingle();
+
+    if (orderError) {
+      console.error('Error checking existing orders:', orderError);
+    }
+
+    if (existingOrder) {
+      // Update the valuation to mark premium as unlocked
+      const { error: updateError } = await supabase
+        .from('valuations')
+        .update({ premium_unlocked: true })
+        .eq('id', valuationId);
+      
+      if (updateError) {
+        console.error('Error updating valuation premium status:', updateError);
+      }
+      
+      return new Response(
+        JSON.stringify({ already_unlocked: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Set up Stripe
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeSecretKey) {
+      return new Response(
+        JSON.stringify({ error: 'Stripe is not configured on the server' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    console.log(`Validated valuation: ${valuationId}`);
-    
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
-    
-    // Product metadata
-    const productName = `Premium Vehicle Report: ${valuation.year} ${valuation.make} ${valuation.model}`;
-    const productPrice = 2999; // $29.99 in cents
-    
-    console.log(`Creating checkout session for product: ${productName}`);
-    
-    // Create a checkout session
+
+    // Create a new pending order in the database
+    const { data: order, error: createOrderError } = await supabase
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        valuation_id: valuationId,
+        amount: 2999, // $29.99 in cents
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (createOrderError) {
+      console.error('Error creating order:', createOrderError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create order record' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Define success and cancel URLs
+    const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'http://localhost:3000';
+    const successUrl = `${baseUrl}/valuation/premium-success?session_id={CHECKOUT_SESSION_ID}&valuation_id=${valuationId}`;
+    const cancelUrl = `${baseUrl}/valuation/premium?id=${valuationId}&canceled=true`;
+
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -92,59 +156,45 @@ serve(async (req) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: productName,
-              description: 'Comprehensive vehicle valuation report with CARFAX data and market analysis',
+              name: 'Premium Valuation Report',
+              description: 'Full access to detailed vehicle condition assessment and market data',
             },
-            unit_amount: productPrice,
+            unit_amount: 2999, // $29.99 in cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/valuation/premium-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin')}/premium?canceled=true`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      client_reference_id: order.id,
       metadata: {
-        valuationId,
-        userId: user.id,
+        user_id: user.id,
+        valuation_id: valuationId,
+        order_id: order.id
       },
     });
-    
-    console.log(`Created checkout session: ${session.id}`);
-    
-    // Create an order record in the database
-    const { error: orderError } = await supabase
+
+    // Update the order with the Stripe session ID
+    const { error: updateError } = await supabase
       .from('orders')
-      .insert([
-        {
-          user_id: user.id,
-          valuation_id: valuationId,
-          amount: productPrice,
-          stripe_session_id: session.id,
-          status: 'pending',
-        },
-      ]);
-      
-    if (orderError) {
-      console.error('Error saving order:', orderError);
-      // Still continue, as the webhook will handle the actual confirmation
+      .update({ stripe_session_id: session.id })
+      .eq('id', order.id);
+
+    if (updateError) {
+      console.error('Error updating order with Stripe session ID:', updateError);
     }
-    
-    // Return the checkout session URL
+
+    // Return the checkout URL
     return new Response(
       JSON.stringify({ url: session.url }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('Error in create-checkout function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -1,111 +1,87 @@
 
 import { PDFPage, rgb, PDFFont } from 'pdf-lib';
-import { wrapText } from '../../helpers/textUtils';
 
 /**
- * Draws the issues detected or AI summary text
- * Returns the updated y position
+ * Draw condition issues or summary on the PDF
  */
 export function drawConditionIssues(
   page: PDFPage,
-  aiSummary: string | undefined,
-  issuesDetected: string[] | undefined,
+  summary: string | undefined,
+  issues: string[] | undefined,
   startY: number,
   margin: number,
-  maxWidth: number,
+  boxWidth: number,
   fonts: {
-    regular: PDFFont,
-    italic: PDFFont
+    regular: PDFFont;
+    italic: PDFFont;
   }
 ): number {
   let currentY = startY;
   const { regular, italic } = fonts;
   
-  if (issuesDetected && issuesDetected.length > 0) {
-    page.drawText('Issues Detected:', {
-      x: margin + 15,
-      y: currentY,
-      size: 10,
-      font: italic,
-      color: rgb(0.4, 0.4, 0.4),
-    });
-    currentY -= 15;
-    
-    issuesDetected.slice(0, 2).forEach(issue => {
-      page.drawText(`• ${issue}`, {
-        x: margin + 25,
-        y: currentY,
-        size: 10,
-        font: regular,
-        color: rgb(0.4, 0.4, 0.4),
-      });
-      currentY -= 12;
-    });
-    
-    if (issuesDetected.length > 2) {
-      page.drawText(`• And ${issuesDetected.length - 2} more...`, {
-        x: margin + 25,
-        y: currentY,
-        size: 10,
-        font: italic,
-        color: rgb(0.4, 0.4, 0.4),
-      });
-      currentY -= 12;
-    }
-  } else if (aiSummary) {
-    // If no specific issues but there's a summary
-    page.drawText('Analysis Notes:', {
-      x: margin + 15,
-      y: currentY,
-      size: 10,
-      font: italic,
-      color: rgb(0.4, 0.4, 0.4),
-    });
-    currentY -= 15;
-    
-    // Simple word wrapping for summary text
-    const boxWidth = maxWidth - 40; // Left and right padding
-    const words = aiSummary.split(' ');
+  // Draw summary if available
+  if (summary) {
+    const words = summary.split(' ');
     let line = '';
-    let lineY = currentY;
-    const minY = lineY - 60; // Prevent too many lines
+    let textY = currentY;
     
     for (const word of words) {
-      const testLine = line + word + ' ';
-      const testWidth = regular.widthOfTextAtSize(testLine, 10);
+      const testLine = line ? `${line} ${word}` : word;
+      const textWidth = regular.widthOfTextAtSize(testLine, 10);
       
-      if (testWidth > boxWidth) {
+      if (textWidth > boxWidth - 40) {
         page.drawText(line, {
-          x: margin + 25,
-          y: lineY,
+          x: margin + 15,
+          y: textY,
           size: 10,
           font: regular,
-          color: rgb(0.4, 0.4, 0.4),
+          color: rgb(0.3, 0.3, 0.3),
         });
-        lineY -= 12;
-        line = word + ' ';
         
-        // Check if we need more space
-        if (lineY < minY) {
-          break; // Stop if we run out of space in the box
-        }
+        line = word;
+        textY -= 15;
       } else {
         line = testLine;
       }
     }
     
-    // Draw remaining text
-    if (line.trim() !== '' && lineY >= minY) {
+    // Draw remaining line
+    if (line) {
       page.drawText(line, {
-        x: margin + 25,
-        y: lineY,
+        x: margin + 15,
+        y: textY,
         size: 10,
+        font: regular,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+      
+      currentY = textY - 20;
+    }
+  }
+  
+  // Draw issues if available
+  if (issues && issues.length > 0) {
+    page.drawText('Issues detected:', {
+      x: margin + 15,
+      y: currentY,
+      size: 10,
+      font: italic,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+    
+    currentY -= 15;
+    
+    for (const issue of issues) {
+      page.drawText(`• ${issue}`, {
+        x: margin + 20,
+        y: currentY,
+        size: 9,
         font: regular,
         color: rgb(0.4, 0.4, 0.4),
       });
+      
+      currentY -= 12;
     }
-    
-    currentY = lineY;
   }
   
   return currentY;

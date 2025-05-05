@@ -1,8 +1,8 @@
 
-import { PDFPage, rgb, Color, PDFFont } from 'pdf-lib';
+import { PDFPage, rgb, Color } from 'pdf-lib';
 
 /**
- * Draws a colored box with condition information
+ * Draw a styled box with the condition information
  */
 export function drawConditionBox(
   page: PDFPage,
@@ -13,19 +13,16 @@ export function drawConditionBox(
   margin: number,
   conditionColor: Color
 ): void {
-  // Draw box with light background color
-  // Since the conditionColor could be RGB, CMYK, or Grayscale, we'll create a new light color
-  // rather than trying to access properties that might not exist
-  const lightBackgroundColor = rgb(0.95, 0.95, 0.95); // Light gray background
-  
+  // Draw box background
   page.drawRectangle({
     x: margin,
     y: boxY,
     width: boxWidth,
     height: boxHeight,
-    color: lightBackgroundColor,
-    opacity: 0.2,
+    color: rgb(0.97, 0.97, 0.97),
     borderColor: conditionColor,
     borderWidth: 1,
+    borderOpacity: 0.5,
+    opacity: 0.8,
   });
 }
