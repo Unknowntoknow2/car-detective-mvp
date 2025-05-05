@@ -1,6 +1,6 @@
 
 import { generateValuationPdf } from './pdfGenerator';
-import { generatePdf } from './pdfGeneratorService';
+import { generateValuationPdf as generatePdf } from './pdfGeneratorService';
 import { ReportData } from './types';
 
 // Mock the pdfGeneratorService
@@ -22,6 +22,9 @@ describe('pdfGenerator', () => {
       mileage: '35000',
       condition: 'Good',
       estimatedValue: 20000,
+      vin: 'TESTVIN12345678901',
+      zipCode: '90210',
+      confidenceScore: 90,
       aiCondition: {
         condition: 'Good',
         confidenceScore: 85,
@@ -55,6 +58,9 @@ describe('pdfGenerator', () => {
       mileage: '50000',
       condition: 'Excellent',
       estimatedValue: 18000,
+      vin: 'TESTVIN12345678902',
+      zipCode: '94105',
+      confidenceScore: 85,
     };
 
     // Act
@@ -77,6 +83,9 @@ describe('pdfGenerator', () => {
       mileage: '65000',
       condition: 'Fair',
       estimatedValue: 15000,
+      vin: 'TESTVIN12345678903',
+      zipCode: '60601',
+      confidenceScore: 70,
     };
 
     // Act
