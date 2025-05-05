@@ -4,7 +4,7 @@ import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
 import { toast } from 'sonner';
 import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { convertVehicleInfoToReportData } from '@/utils/pdf';
-import { convertAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
+import { convertAdjustmentsToPdfFormat } from '@/utils/formatters/adjustment-formatter';
 
 export const useVinDecoderForm = () => {
   const [vin, setVin] = useState('');
@@ -75,7 +75,7 @@ export const useVinDecoderForm = () => {
       zipCode: zipCode || requiredInputs?.zipCode || "10001",
       confidenceScore: valuationResult?.confidence_score || (carfaxData ? 92 : 85),
       adjustments: valuationResult?.adjustments 
-        ? convertAdjustmentsToLegacyFormat(valuationResult.adjustments)
+        ? convertAdjustmentsToPdfFormat(valuationResult.adjustments)
         : [
             { label: "Mileage", value: -3.5 },
             { label: "Condition", value: 2.0 },

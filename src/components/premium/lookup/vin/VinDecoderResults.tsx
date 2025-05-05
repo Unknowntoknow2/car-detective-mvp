@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Card, 
@@ -16,7 +15,7 @@ import { ValuationResults } from '@/components/valuation/ValuationResults';
 import { VehicleFoundCard } from '@/components/premium/lookup/plate/VehicleFoundCard';
 import { ValuationErrorState } from '@/components/premium/lookup/shared/ValuationErrorState';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
-import { convertNewAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
+import { convertAdjustmentsToPdfFormat } from '@/utils/formatters/adjustment-formatter';
 
 interface VinDecoderResultsProps {
   stage: string;

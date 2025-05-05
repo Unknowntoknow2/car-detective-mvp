@@ -11,6 +11,12 @@ interface LegacyAdjustment {
   percentage: number;
 }
 
+// This is the format expected by the PDF generator
+interface PdfAdjustment {
+  label: string;
+  value: number;
+}
+
 /**
  * Converts legacy adjustment format to the new format
  */
@@ -30,5 +36,15 @@ export function convertNewAdjustmentsToLegacyFormat(adjustments: ValuationAdjust
     name: adjustment.factor,
     value: 0, // We don't have this in the new format
     percentage: adjustment.impact
+  }));
+}
+
+/**
+ * Converts valuation adjustments to the format expected by PDF generator
+ */
+export function convertAdjustmentsToPdfFormat(adjustments: ValuationAdjustment[]): PdfAdjustment[] {
+  return adjustments.map(adjustment => ({
+    label: adjustment.factor,
+    value: adjustment.impact
   }));
 }
