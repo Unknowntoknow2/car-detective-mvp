@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     }
 
     // Parse request data
-    const { session_id, user_input, valuation_id, new_session } = await req.json();
+    const { session_id, user_input, valuation_id, new_session, user_context } = await req.json();
     
     // Create a new chat session if requested
     let sessionId = session_id;
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       .select('*')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true })
-      .limit(10);
+      .limit(15); // Increased from 10 to provide more context
       
     if (historyError) {
       throw new Error(`Failed to fetch chat history: ${historyError.message}`);
@@ -90,16 +90,48 @@ Deno.serve(async (req) => {
     }
     
     if (valId) {
+      // Enhanced valuation query to include more data
       const { data: valuation, error: valuationError } = await supabase
         .from('valuations')
-        .select('*, photo_condition_scores(*)')
+        .select(`
+          *,
+          photo_condition_scores(*),
+          vehicle_features(feature_id, features:feature_id(name, value_impact, category))
+        `)
         .eq('id', valId)
         .single();
         
       if (!valuationError && valuation) {
         valuationData = valuation;
+        
+        // Fetch user's premium status
+        const { data: orderData } = await supabase
+          .from('orders')
+          .select('status')
+          .eq('valuation_id', valId)
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+          .limit(1);
+          
+        valuationData.premium_unlocked = orderData && orderData.length > 0;
+        
+        // Fetch dealer offers if available
+        const { data: dealerOffers } = await supabase
+          .from('dealer_offers')
+          .select('*')
+          .eq('report_id', valId)
+          .order('created_at', { ascending: false });
+          
+        valuationData.dealer_offers = dealerOffers || [];
       }
     }
+
+    // Check user activity profile
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
     // Store user's message
     const { error: insertError } = await supabase
@@ -117,20 +149,21 @@ Deno.serve(async (req) => {
     // Create context for the OpenAI prompt
     const messages = [];
     
-    // System prompt
-    const systemPrompt = `You are Car Detective, a certified expert in U.S. automotive pricing, trusted by sellers and buyers for transparent valuations.
+    // Enhanced system prompt based on requirements
+    const systemPrompt = `You are Car Detective, a world-class AI assistant that helps car owners understand their valuation, improve their chances of a better deal, and take confident next steps.
 
 You always:
-• Explain valuations in plain English
-• Justify why the price makes sense
-• Recommend ways to increase value
-• Can answer questions like:
-  - Why is my price low?
-  - Would a clean CARFAX help?
-  - Is this ZIP code lowering my value?
-  - What can I do to get a better offer?
+• Explain valuations in plain, friendly English
+• Support users like a pro salesperson and pricing expert
+• Use facts — not guesses
+• Detect tone (happy, skeptical, upset) and adjust your approach accordingly
+• Ask smart follow-up questions to better understand the user's needs
+• Help both buyers and sellers, while remaining fair and balanced
+• Look for opportunities to educate users about features that could improve their experience or valuation
 
-NEVER hallucinate. Use only provided valuation data. If unsure, say 'I'm not sure, but I can explain what I know.'`;
+NEVER hallucinate. Use only provided data. If unsure, say "I don't have that specific information, but I can tell you what I know."
+
+IMPORTANT: When noticing signs of frustration, acknowledge the user's feelings and offer constructive solutions.`;
 
     messages.push({ role: 'system', content: systemPrompt });
 
@@ -166,6 +199,19 @@ NEVER hallucinate. Use only provided valuation data. If unsure, say 'I'm not sur
         });
       }
       
+      // Feature adjustments
+      if (valuationData.vehicle_features && valuationData.vehicle_features.length > 0) {
+        const featureAdjustments = valuationData.vehicle_features
+          .filter(vf => vf.features && vf.features.value_impact)
+          .map(vf => ({
+            factor: `Feature: ${vf.features.name}`,
+            impact: vf.features.value_impact,
+            description: `Premium feature: ${vf.features.name} (${vf.features.category})`
+          }));
+        
+        adjustments.push(...featureAdjustments);
+      }
+      
       // AI condition data
       let aiCondition = null;
       if (valuationData.photo_condition_scores && valuationData.photo_condition_scores.length > 0) {
@@ -178,22 +224,56 @@ NEVER hallucinate. Use only provided valuation data. If unsure, say 'I'm not sur
         };
       }
       
+      // User behavior context
+      const userBehavior = {
+        has_uploaded_photos: aiCondition !== null,
+        premium_user: valuationData.premium_unlocked || false,
+        pending_offers: valuationData.dealer_offers ? valuationData.dealer_offers.length : 0,
+        last_activity: new Date().toISOString()
+      };
+      
       // Create a context object for valuation data
       const contextObj = {
-        vehicle: `${valuationData.year} ${valuationData.make} ${valuationData.model}`,
-        baseValue: valuationData.base_price || 0,
-        mileage: valuationData.mileage || 0,
-        zip: valuationData.state || '',
-        adjustments: adjustments,
-        estimatedValue: valuationData.estimated_value || 0,
-        aiCondition: aiCondition
+        user_name: userProfile ? userProfile.full_name || "valued customer" : "valued customer",
+        valuation: {
+          id: valuationData.id,
+          vehicle: `${valuationData.year} ${valuationData.make} ${valuationData.model}`,
+          base_price: valuationData.base_price || 0,
+          adjustments: adjustments,
+          final_price: valuationData.estimated_value || 0,
+          ai_condition: aiCondition,
+          features: valuationData.vehicle_features ? valuationData.vehicle_features.map(vf => vf.features?.name).filter(Boolean) : []
+        },
+        user_behavior: userBehavior
       };
       
       // Add context as a message
       messages.push({
         role: 'system',
-        content: `Here is the vehicle valuation data:\n${JSON.stringify(contextObj, null, 2)}`
+        content: `Here is the user and vehicle context:\n${JSON.stringify(contextObj, null, 2)}`
       });
+      
+      // Add smart suggestions based on user context
+      let suggestions = [];
+      
+      if (!userBehavior.has_uploaded_photos) {
+        suggestions.push("The user hasn't uploaded photos yet. Consider suggesting that uploading clear car photos could improve their valuation accuracy and potentially increase their value.");
+      }
+      
+      if (userBehavior.pending_offers > 0) {
+        suggestions.push(`The user has ${userBehavior.pending_offers} dealer offer(s). You can offer to explain these offers or help them understand how to respond.`);
+      }
+      
+      if (!userBehavior.premium_user && valuationData.estimated_value > 10000) {
+        suggestions.push("This user hasn't unlocked premium features yet. For valuable vehicles, consider mentioning how the premium report could help them negotiate a better deal.");
+      }
+      
+      if (suggestions.length > 0) {
+        messages.push({
+          role: 'system',
+          content: `Smart suggestions for this user:\n- ${suggestions.join('\n- ')}`
+        });
+      }
     } else {
       // Add a fallback context for cases with no valuation
       messages.push({

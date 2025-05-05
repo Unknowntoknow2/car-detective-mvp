@@ -2,6 +2,8 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { BrainCircuit } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -11,8 +13,9 @@ interface ChatMessageProps {
 
 export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
   const isUser = role === 'user';
+  
   const formattedTime = timestamp 
-    ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    ? format(new Date(timestamp), 'h:mm a')
     : '';
 
   return (
@@ -21,9 +24,11 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
       isUser ? "justify-end" : "justify-start"
     )}>
       {!isUser && (
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-8 w-8 shrink-0">
           <AvatarImage src="/images/car-detective-avatar.png" alt="Car Detective" />
-          <AvatarFallback className="bg-primary text-white">CD</AvatarFallback>
+          <AvatarFallback className="bg-primary/10 text-primary">
+            <BrainCircuit className="h-4 w-4" />
+          </AvatarFallback>
         </Avatar>
       )}
       
@@ -37,7 +42,7 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
             ? "bg-primary text-primary-foreground rounded-tr-none" 
             : "bg-muted rounded-tl-none"
         )}>
-          <p className="whitespace-pre-wrap">{content}</p>
+          <p className="whitespace-pre-wrap text-sm">{content}</p>
         </div>
         
         {timestamp && (
@@ -48,8 +53,13 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
       </div>
       
       {isUser && (
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-muted">U</AvatarFallback>
+        <Avatar className="h-8 w-8 shrink-0">
+          <AvatarFallback className="bg-muted">
+            {/* Get first letter of user's name if available, otherwise use 'U' */}
+            {localStorage.getItem('userName') 
+              ? localStorage.getItem('userName')?.charAt(0).toUpperCase() 
+              : 'U'}
+          </AvatarFallback>
         </Avatar>
       )}
     </div>

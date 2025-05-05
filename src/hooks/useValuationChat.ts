@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -163,13 +164,21 @@ export function useValuationChat(valuationId?: string) {
       
       setMessages(prev => [...prev, userMessage]);
       
+      // Prepare user context to send with the message
+      const userContext = {
+        name: localStorage.getItem('userName') || undefined,
+        email: user.email || undefined,
+        // Add any other relevant user context here
+      };
+      
       // Call the Supabase Edge Function
       const { data, error: functionError } = await supabase.functions.invoke('ask-valuation-bot', {
         body: {
           session_id: sessionId,
           user_input: content,
           new_session: !sessionId,
-          valuation_id: valuationId
+          valuation_id: valuationId,
+          user_context: userContext
         }
       });
       
@@ -218,6 +227,13 @@ export function useValuationChat(valuationId?: string) {
       initializeSession();
     }
   }, [user, initializeSession]);
+
+  // Store user name in localStorage if available
+  useEffect(() => {
+    if (user?.user_metadata?.full_name) {
+      localStorage.setItem('userName', user.user_metadata.full_name);
+    }
+  }, [user]);
 
   return {
     messages,
