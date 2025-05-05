@@ -90,3 +90,14 @@ export function getRegionNameFromZip(zipCode: string): string {
   const zipPrefix = zipCode.substring(0, 3);
   return zipRegionMap[zipPrefix] || 'Unknown Region';
 }
+
+/**
+ * Calculates the monetary adjustment based on ZIP code
+ * @param zipCode The ZIP code
+ * @param basePrice The base price of the vehicle
+ * @returns Dollar amount adjustment based on location
+ */
+export function getZipAdjustment(zipCode: string, basePrice: number): number {
+  const multiplier = getRegionalMarketMultiplier(zipCode);
+  return basePrice * multiplier;
+}

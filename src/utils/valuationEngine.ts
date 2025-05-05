@@ -1,9 +1,10 @@
+
 import { getMileageAdjustment } from './adjustments/mileageAdjustments';
 import { getConditionAdjustment } from './adjustments/conditionAdjustments';
 import { getZipAdjustment } from './adjustments/locationAdjustments';
 import { getTrimAdjustment } from './adjustments/trimAdjustments';
 import { getAccidentHistoryAdjustment } from './adjustments/accidentAdjustments';
-import { getPremiumFeaturesAdjustment } from './adjustments/featureAdjustments';
+import { getFeatureAdjustments } from './adjustments/featureAdjustments';
 import { getTitleStatusAdjustment } from './adjustments/titleStatusAdjustments';
 import { AdjustmentBreakdown } from './rules/types';
 

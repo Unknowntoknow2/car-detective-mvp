@@ -1,6 +1,6 @@
 
 import { AdjustmentBreakdown, RulesEngineInput } from '../types';
-import { getPremiumFeaturesAdjustment } from '../../adjustments/featureAdjustments';
+import { getFeatureAdjustments } from '../../adjustments/featureAdjustments';
 import valuationRules from '../../valuationRules.json';
 
 export class FeaturesCalculator {

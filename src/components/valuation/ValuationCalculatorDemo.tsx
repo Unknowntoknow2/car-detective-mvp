@@ -296,7 +296,7 @@ const ValuationCalculatorDemo = () => {
                 </Badge>
               </CardTitle>
               <CardDescription>
-                {formData.year} {formData.make} {formData.model}
+                {formData.vehicleYear} {formData.make} {formData.model}
               </CardDescription>
             </CardHeader>
             
@@ -343,7 +343,7 @@ const ValuationCalculatorDemo = () => {
                 className="w-full"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    `${formData.year} ${formData.make} ${formData.model} - Estimated Value: ${formatCurrency(valuationResult.finalValue)}`
+                    `${formData.vehicleYear} ${formData.make} ${formData.model} - Estimated Value: ${formatCurrency(valuationResult.finalValue)}`
                   );
                   toast.success('Valuation copied to clipboard!');
                 }}

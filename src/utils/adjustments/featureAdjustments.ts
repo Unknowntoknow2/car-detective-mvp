@@ -196,3 +196,10 @@ export function getFeatureInfo(featureName: string): FeatureValue | undefined {
   const normalizedFeature = featureName.toLowerCase().trim();
   return PREMIUM_FEATURES[normalizedFeature];
 }
+
+/**
+ * Alias for getFeatureAdjustments to maintain compatibility with existing code
+ */
+export function getPremiumFeaturesAdjustment(features: string[], baseValue: number): number {
+  return getFeatureAdjustments(features, baseValue);
+}

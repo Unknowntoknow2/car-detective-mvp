@@ -46,3 +46,14 @@ export function getConditionDescription(condition: string): string {
       return "Vehicle condition is unspecified. Assuming average condition for valuation purposes.";
   }
 }
+
+/**
+ * Calculates the monetary adjustment based on vehicle condition
+ * @param condition The vehicle condition
+ * @param basePrice The base price of the vehicle
+ * @returns Dollar amount adjustment based on condition
+ */
+export function getConditionAdjustment(condition: string, basePrice: number): number {
+  const multiplier = getConditionMultiplier(condition);
+  return basePrice * multiplier;
+}

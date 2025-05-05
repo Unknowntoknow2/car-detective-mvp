@@ -60,3 +60,14 @@ export function getMileageDescription(mileage: number): string {
     return "Excessive mileage vehicle - well above typical for age";
   }
 }
+
+/**
+ * Calculates the monetary impact of mileage on vehicle value
+ * @param mileage The vehicle mileage
+ * @param basePrice The base price of the vehicle
+ * @returns Dollar amount adjustment based on mileage
+ */
+export function getMileageAdjustment(mileage: number, basePrice: number): number {
+  const multiplier = mileageAdjustmentCurve(mileage);
+  return basePrice * multiplier;
+}

@@ -17,6 +17,7 @@ export interface ValuationParams {
   
   // Vehicle details
   vehicleYear?: number;
+  year?: number; // Alternative name for vehicleYear for compatibility
   make?: string;
   model?: string;
   mileage?: number;
