@@ -2,13 +2,14 @@
 import { PDFPage, rgb, PDFFont } from 'pdf-lib';
 
 /**
- * Draw condition issues or summary on the PDF
+ * Draw condition issues or summary
+ * Returns the new Y position after drawing
  */
 export function drawConditionIssues(
   page: PDFPage,
-  summary: string | undefined,
-  issues: string[] | undefined,
-  startY: number,
+  aiSummary?: string,
+  issuesDetected?: string[],
+  currentY: number,
   margin: number,
   boxWidth: number,
   fonts: {
@@ -16,73 +17,95 @@ export function drawConditionIssues(
     italic: PDFFont;
   }
 ): number {
-  let currentY = startY;
   const { regular, italic } = fonts;
+  let yPos = currentY;
   
-  // Draw summary if available
-  if (summary) {
-    const words = summary.split(' ');
+  // If there's a summary, display it
+  if (aiSummary) {
+    // Draw summary label
+    page.drawText('AI Condition Summary:', {
+      x: margin + 15,
+      y: yPos,
+      size: 12,
+      font: regular,
+      color: rgb(0.3, 0.3, 0.3),
+    });
+    yPos -= 20;
+    
+    // Split summary into multiple lines if needed
+    const summaryText = aiSummary.slice(0, 200); // Limit to 200 chars
+    const words = summaryText.split(' ');
     let line = '';
-    let textY = currentY;
+    const maxWidth = boxWidth - 40; // Margins for text
     
     for (const word of words) {
-      const testLine = line ? `${line} ${word}` : word;
+      const testLine = line + word + ' ';
       const textWidth = regular.widthOfTextAtSize(testLine, 10);
       
-      if (textWidth > boxWidth - 40) {
+      if (textWidth > maxWidth && line) {
         page.drawText(line, {
-          x: margin + 15,
-          y: textY,
+          x: margin + 20,
+          y: yPos,
           size: 10,
-          font: regular,
-          color: rgb(0.3, 0.3, 0.3),
+          font: italic,
+          color: rgb(0.2, 0.2, 0.2),
         });
-        
-        line = word;
-        textY -= 15;
+        yPos -= 15;
+        line = word + ' ';
       } else {
         line = testLine;
       }
     }
     
-    // Draw remaining line
+    // Draw remaining text
     if (line) {
       page.drawText(line, {
-        x: margin + 15,
-        y: textY,
+        x: margin + 20,
+        y: yPos,
         size: 10,
-        font: regular,
-        color: rgb(0.3, 0.3, 0.3),
+        font: italic,
+        color: rgb(0.2, 0.2, 0.2),
       });
-      
-      currentY = textY - 20;
+      yPos -= 20;
     }
   }
   
-  // Draw issues if available
-  if (issues && issues.length > 0) {
-    page.drawText('Issues detected:', {
+  // If there are issues, list them
+  if (issuesDetected && issuesDetected.length > 0) {
+    // Draw issues label
+    page.drawText('Issues Detected:', {
       x: margin + 15,
-      y: currentY,
-      size: 10,
-      font: italic,
-      color: rgb(0.5, 0.5, 0.5),
+      y: yPos,
+      size: 12,
+      font: regular,
+      color: rgb(0.3, 0.3, 0.3),
     });
+    yPos -= 20;
     
-    currentY -= 15;
-    
-    for (const issue of issues) {
+    // Draw each issue as a bullet point
+    issuesDetected.slice(0, 3).forEach((issue) => { // Limit to 3 issues
       page.drawText(`• ${issue}`, {
         x: margin + 20,
-        y: currentY,
-        size: 9,
+        y: yPos,
+        size: 10,
         font: regular,
+        color: rgb(0.2, 0.2, 0.2),
+      });
+      yPos -= 15;
+    });
+    
+    // If there are more issues than shown
+    if (issuesDetected.length > 3) {
+      page.drawText(`• ${issuesDetected.length - 3} more issues...`, {
+        x: margin + 20,
+        y: yPos,
+        size: 10,
+        font: italic,
         color: rgb(0.4, 0.4, 0.4),
       });
-      
-      currentY -= 12;
+      yPos -= 15;
     }
   }
   
-  return currentY;
+  return yPos;
 }

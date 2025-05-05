@@ -1,42 +1,82 @@
 
-import { PDFFont } from 'pdf-lib';
+/**
+ * Get current date in a formatted string
+ */
+export function getCurrentDate(): string {
+  const now = new Date();
+  
+  // Format: May 5, 2025, 3:42 PM
+  const dateTimeFormatter = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  });
+  
+  // Format: PST/PDT depending on daylight saving
+  const timeZoneFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZoneName: 'short'
+  });
+  
+  const formattedDate = dateTimeFormatter.format(now);
+  const timeZone = timeZoneFormatter.format(now).split(' ')[1]; // Extract "PST" or "PDT"
+  
+  return `${formattedDate} ${timeZone}`;
+}
 
 /**
- * Helper function to wrap text to fit within a specified width
+ * Wrap long text to fit within a specified width
  */
-export function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
+export function wrapText(
+  text: string,
+  maxWidth: number,
+  fontSize: number,
+  fontWidthMap: (text: string) => number
+): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
   
   for (const word of words) {
-    const width = font.widthOfTextAtSize(currentLine + word + ' ', fontSize);
+    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+    const testWidth = fontWidthMap(testLine);
     
-    if (width < maxWidth) {
-      currentLine += word + ' ';
+    if (testWidth > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
     } else {
-      lines.push(currentLine.trim());
-      currentLine = word + ' ';
+      currentLine = testLine;
     }
   }
   
-  if (currentLine.trim().length > 0) {
-    lines.push(currentLine.trim());
+  if (currentLine) {
+    lines.push(currentLine);
   }
   
   return lines;
 }
 
 /**
- * Format a number as currency
+ * Format currency value
  */
 export function formatCurrency(value: number): string {
-  return value.toLocaleString();
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
 /**
- * Get current date formatted as a string
+ * Format percentage value
  */
-export function getCurrentDate(): string {
-  return new Date().toLocaleDateString();
+export function formatPercentage(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  }).format(value / 100);
 }
