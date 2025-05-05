@@ -9,13 +9,13 @@ import {
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
-import { VehicleInfoCard } from '../VehicleInfoCard';
+import { VehicleInfoCard } from '@/components/lookup/VehicleInfoCard';
 import { VehicleDetailsForm } from '@/components/premium/form/steps/vehicle-details/VehicleDetailsForm';
 import { ValuationResults } from '@/components/valuation/ValuationResults';
 import { VehicleFoundCard } from '@/components/premium/lookup/plate/VehicleFoundCard';
 import { ValuationErrorState } from '@/components/premium/lookup/shared/ValuationErrorState';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
-import { convertAdjustmentsToPdfFormat } from '@/utils/formatters/adjustment-formatter';
+import { convertNewAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
 
 interface VinDecoderResultsProps {
   stage: string;
