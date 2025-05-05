@@ -1,36 +1,23 @@
 
 import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { 
+  Photo, 
+  AICondition, 
+  PhotoScoringResult,
+  MIN_FILES,
+  MAX_FILES 
+} from '@/types/photo';
+import { 
+  fetchValuationPhotos, 
+  deletePhotos, 
+  uploadAndAnalyzePhotos 
+} from '@/services/photoService';
 
-// Constants
-const MIN_FILES = 3;
-const MAX_FILES = 5;
-
-interface Photo {
-  url: string;
-  thumbnail?: string;
-  id?: string;
-}
-
-interface AICondition {
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-  confidenceScore: number;
-  issuesDetected?: string[];
-  aiSummary?: string;
-}
-
-// Interface for custom Supabase tables not in the generated types
-interface ValuationPhoto {
-  id: string;
-  valuation_id: string;
-  photo_url: string;
-  score: number;
-  uploaded_at: string;
-}
-
-export function usePhotoScoring(valuationId: string) {
+/**
+ * Hook for managing vehicle photo uploads and AI-powered condition scoring
+ */
+export function usePhotoScoring(valuationId: string): PhotoScoringResult {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoScore, setPhotoScore] = useState<number | null>(null);
   const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
@@ -44,76 +31,24 @@ export function usePhotoScoring(valuationId: string) {
     async function loadExistingPhotos() {
       if (!valuationId) return;
       
-      try {
-        // Get existing photos
-        // Use type assertion for tables not in generated types
-        const { data: photoData, error: photoError } = await supabase
-          .from('valuation_photos')
-          .select('*')
-          .eq('valuation_id', valuationId) as { data: ValuationPhoto[] | null, error: any };
-        
-        if (photoError) {
-          console.log('Error loading photos:', photoError);
-          return;
-        }
-        
-        if (photoData && photoData.length > 0) {
-          const loadedPhotos = photoData.map((photo: ValuationPhoto) => ({
-            url: photo.photo_url,
-            thumbnail: photo.photo_url,
-            id: photo.id
-          }));
-          
-          setPhotos(loadedPhotos);
-          
-          // If we have photos, check for AI assessment
-          const { data: aiData, error: aiError } = await supabase
-            .from('photo_scores')
-            .select('*')
-            .eq('valuation_id', valuationId)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-          
-          if (!aiError && aiData) {
-            setPhotoScore(aiData.score * 100); // Convert from 0-1 to 0-100
-            
-            // Extract AI condition analysis from metadata
-            if (aiData.metadata) {
-              const metadata = aiData.metadata as any;
-              if (metadata.condition) {
-                setAiCondition({
-                  condition: metadata.condition,
-                  confidenceScore: metadata.confidenceScore || 70,
-                  issuesDetected: metadata.issuesDetected || [],
-                  aiSummary: metadata.aiSummary
-                });
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.log('Error loading existing photo data:', err);
+      const { photos: loadedPhotos, photoScore: score, aiCondition: condition } = 
+        await fetchValuationPhotos(valuationId);
+      
+      if (loadedPhotos.length > 0) {
+        setPhotos(loadedPhotos);
+        setPhotoScore(score);
+        setAiCondition(condition);
       }
     }
     
     loadExistingPhotos();
   }, [valuationId]);
 
+  /**
+   * Resets the photo upload state and deletes all photos
+   */
   const resetUpload = async () => {
-    // Delete photos from storage
-    for (const photo of photos) {
-      if (photo.id) {
-        try {
-          await supabase
-            .from('valuation_photos')
-            .delete()
-            .eq('id', photo.id) as any; // Type assertion to avoid type error
-        } catch (err) {
-          console.error('Error deleting photo record:', err);
-        }
-      }
-    }
+    await deletePhotos(photos);
     
     setPhotos([]);
     setPhotoScore(null);
@@ -122,6 +57,9 @@ export function usePhotoScoring(valuationId: string) {
     setUploadProgress(0);
   };
 
+  /**
+   * Uploads and analyzes photos
+   */
   const uploadPhotos = async (files: File[]): Promise<{ score: number, aiCondition?: AICondition } | null> => {
     // Verify minimum number of photos (including existing ones)
     if (files.length + photos.length < MIN_FILES) {
@@ -134,31 +72,18 @@ export function usePhotoScoring(valuationId: string) {
     setUploadProgress(0);
     
     try {
-      // Create form data to send to the edge function
-      const formData = new FormData();
-      formData.append('valuationId', valuationId);
-      
-      // Add files to formData
-      files.forEach((file, index) => {
-        formData.append(`photos[${index}]`, file);
-      });
-      
       setUploadProgress(20); // Show upload started
       
-      // Call the analyze-photos edge function with FormData
-      const { data, error: uploadError } = await supabase.functions
-        .invoke('analyze-photos', {
-          body: formData,
-        });
+      const result = await uploadAndAnalyzePhotos(valuationId, files);
       
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
+      if (!result) {
+        throw new Error("Failed to upload and analyze photos");
       }
       
       setUploadProgress(80);
       
       // Process the results
-      const photoUrls = data.photoUrls || [];
+      const photoUrls = result.photoUrls || [];
       const newPhotos = photoUrls.map((url: string) => ({
         url,
         thumbnail: url
@@ -166,30 +91,15 @@ export function usePhotoScoring(valuationId: string) {
       
       setPhotos(prev => [...prev, ...newPhotos]);
       
-      // Set AI condition data
-      const condition = data.condition;
-      const confidenceScore = data.confidenceScore;
-      const issuesDetected = data.issuesDetected;
-      const aiSummary = data.aiSummary;
-      
-      setPhotoScore(confidenceScore);
-      setAiCondition({
-        condition,
-        confidenceScore,
-        issuesDetected,
-        aiSummary
-      });
+      // Set score and AI condition
+      setPhotoScore(result.score);
+      setAiCondition(result.aiCondition || null);
       
       setUploadProgress(100);
       
       return {
-        score: confidenceScore,
-        aiCondition: {
-          condition,
-          confidenceScore,
-          issuesDetected,
-          aiSummary
-        }
+        score: result.score,
+        aiCondition: result.aiCondition
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';

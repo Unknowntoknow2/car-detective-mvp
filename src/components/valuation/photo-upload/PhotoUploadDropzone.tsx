@@ -1,14 +1,12 @@
-
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, Upload } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { MIN_FILES, MAX_FILES } from '@/types/photo';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
-const MIN_FILES = 3;
-const MAX_FILES = 5;
 
 const fileSchema = z.object({
   name: z.string(),
@@ -59,8 +57,8 @@ export function PhotoUploadDropzone({
   
   const handleFileSelection = async (files: File[]) => {
     try {
-      if (files.length > remainingFiles) {
-        toast.error(`You can only upload up to ${MAX_FILES} images in total. ${remainingFiles} remaining.`);
+      if (files.length + currentFileCount > MAX_FILES) {
+        toast.error(`You can only upload up to ${MAX_FILES} images in total. ${MAX_FILES - currentFileCount} remaining.`);
         return;
       }
       
@@ -98,7 +96,7 @@ export function PhotoUploadDropzone({
     }
   };
 
-  if (remainingFiles <= 0) {
+  if (MAX_FILES - currentFileCount <= 0) {
     return null;
   }
 
