@@ -22,15 +22,26 @@ export async function generateValuationExplanation(params: ValuationParams): Pro
       model: params.model,
       mileage: params.mileage,
       condition: params.condition as any,
-      zipCode: params.location
+      zipCode: params.location,
+      features: [] // Default to empty features array
     };
     
     // Calculate valuation details to enhance the explanation
     const valuationDetails = calculateFinalValuation(valuationInput);
     
+    // Extract the adjustments for the enhanced explanation
+    const { mileageAdjustment, conditionAdjustment, regionalAdjustment } = valuationDetails.adjustments;
+    const featureAdjTotal = Object.values(valuationDetails.adjustments.featureAdjustments).reduce((sum, val) => sum + val, 0);
+    
     // Prepare the data to send to the explanation function
     const requestData = {
       ...params,
+      baseMarketValue: valuationInput.baseMarketValue,
+      mileageAdj: mileageAdjustment,
+      conditionAdj: conditionAdjustment,
+      zipAdj: regionalAdjustment,
+      featureAdjTotal: featureAdjTotal,
+      finalValuation: valuationDetails.finalValue || params.valuation,
       adjustments: valuationDetails.adjustments.map(adj => ({
         factor: adj.name,
         impact: adj.percentage,

@@ -14,8 +14,13 @@ interface ExplanationRequest {
   year: number;
   mileage: number;
   condition: string;
-  location: string;
-  valuation: number;
+  zipCode: string;
+  baseMarketValue: number;
+  mileageAdj?: number;
+  conditionAdj?: number;
+  zipAdj?: number;
+  featureAdjTotal?: number;
+  finalValuation: number;
   adjustments?: AdjustmentFactor[];
 }
 
@@ -23,6 +28,8 @@ interface ExplanationRequest {
 interface ExplanationResponse {
   explanation: string;
 }
+
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -33,18 +40,30 @@ Deno.serve(async (req) => {
   try {
     // Get request body
     const requestData: ExplanationRequest = await req.json();
-    const { make, model, year, mileage, condition, location, valuation, adjustments } = requestData;
+    const { 
+      make, model, year, mileage, condition, zipCode, 
+      baseMarketValue, finalValuation, adjustments,
+      mileageAdj, conditionAdj, zipAdj, featureAdjTotal
+    } = requestData;
 
     // Validate required fields
-    if (!make || !model || !year || !valuation) {
+    if (!make || !model || !year || !finalValuation) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Generate meaningful explanation based on the vehicle data
-    const explanation = generateDetailedExplanation(requestData);
+    let explanation: string;
+
+    // Use OpenAI's GPT-4o model if API key is available
+    if (openAIApiKey) {
+      explanation = await generateGPT4Explanation(requestData);
+    } else {
+      // Fallback to the deterministic explanation generator if no API key is available
+      explanation = generateDetailedExplanation(requestData);
+      console.warn('Using fallback explanation generator because OPENAI_API_KEY is not set');
+    }
 
     // Return the explanation
     const response: ExplanationResponse = { explanation };
@@ -57,19 +76,98 @@ Deno.serve(async (req) => {
     console.error('Error generating explanation:', error);
     
     return new Response(
-      JSON.stringify({ error: 'Failed to generate explanation' }),
+      JSON.stringify({ error: 'Failed to generate explanation', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
 /**
- * Generates a detailed explanation of the vehicle valuation
+ * Generates an explanation using OpenAI's GPT-4o model
+ * @param data The valuation data
+ * @returns A professional explanation string from GPT-4o
+ */
+async function generateGPT4Explanation(data: ExplanationRequest): Promise<string> {
+  try {
+    const { 
+      make, model, year, mileage, condition, zipCode, 
+      baseMarketValue, finalValuation, adjustments,
+      mileageAdj = 0, conditionAdj = 0, zipAdj = 0, featureAdjTotal = 0
+    } = data;
+    
+    // Create system prompt for professional tone
+    const systemPrompt = `
+You are a world-class vehicle pricing analyst. Your job is to explain clearly, honestly, and concisely why a car received the valuation it did. You must sound neutral, professional, and trustworthy.
+
+Avoid hype or fluff — this is for a user who may sell a $20,000+ asset. Show them that the pricing is thoughtful, not random.
+
+Return the explanation in 3 paragraphs:
+
+1. Base market price and overview.
+2. Key adjustments (mileage, condition, ZIP, features).
+3. Final recommendation or insight.
+
+End the explanation with a confident tone that this valuation is fair and market-based.
+`;
+
+    // Create user prompt with structured data
+    const userPrompt = `
+Vehicle: ${year} ${make} ${model}
+Mileage: ${mileage.toLocaleString()} miles
+Condition: ${condition}
+ZIP Code: ${zipCode}
+Base Market Price: $${baseMarketValue.toLocaleString()}
+
+Adjustments:
+* Mileage Adjustment: $${mileageAdj.toLocaleString()}
+* Condition Adjustment: $${conditionAdj.toLocaleString()}
+* ZIP Regional Adjustment: $${zipAdj.toLocaleString()}
+* Feature Adjustments: $${featureAdjTotal.toLocaleString()}
+
+Final Valuation: $${finalValuation.toLocaleString()}
+
+Explain this to a car owner with transparency, so they understand how the price was formed.
+`;
+
+    // Call OpenAI API
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openAIApiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const result = await response.json();
+    return result.choices[0].message.content.trim();
+  } catch (error) {
+    console.error('Error generating GPT-4o explanation:', error);
+    return "We're unable to generate the explanation right now. Please try again later.";
+  }
+}
+
+/**
+ * Generates a detailed explanation of the vehicle valuation (fallback method)
  * @param data The valuation data
  * @returns A detailed explanation string
  */
 function generateDetailedExplanation(data: ExplanationRequest): string {
-  const { make, model, year, mileage, condition, location, valuation, adjustments } = data;
+  const { make, model, year, mileage, condition, zipCode, finalValuation, adjustments } = data;
   
   // Calculate vehicle age
   const currentYear = new Date().getFullYear();
@@ -78,7 +176,7 @@ function generateDetailedExplanation(data: ExplanationRequest): string {
   // Start with a general introduction
   let explanation = `# Valuation Analysis: ${year} ${make} ${model}\n\n`;
   
-  explanation += `Your ${year} ${make} ${model} has been valued at $${valuation.toLocaleString()} based on a comprehensive analysis of multiple factors including its age, mileage, condition, and location.\n\n`;
+  explanation += `Your ${year} ${make} ${model} has been valued at $${finalValuation.toLocaleString()} based on a comprehensive analysis of multiple factors including its age, mileage, condition, and location.\n\n`;
   
   // Add sections for each major factor
   explanation += `## Vehicle Overview\n`;
@@ -130,11 +228,11 @@ function generateDetailedExplanation(data: ExplanationRequest): string {
   }
   
   // Location impact
-  explanation += `Your location (ZIP: ${location}) is in `;
+  explanation += `Your location (ZIP: ${zipCode}) is in `;
   
   // Simplified location assessment - would be replaced with actual regional data
   const highDemandZips = ['90210', '10001', '94102', '98101', '33139'];
-  if (highDemandZips.includes(location)) {
+  if (highDemandZips.includes(zipCode)) {
     explanation += `an area with high vehicle demand, positively affecting the valuation.\n\n`;
   } else {
     explanation += `a market with typical demand patterns for this vehicle.\n\n`;
@@ -168,7 +266,7 @@ function generateDetailedExplanation(data: ExplanationRequest): string {
   
   // Conclusion
   explanation += `## Summary\n`;
-  explanation += `The valuation of $${valuation.toLocaleString()} represents a fair market value for your ${year} ${make} ${model} based on its specific configuration, condition, and market factors. This valuation reflects what you could reasonably expect to receive in a private party sale to an informed buyer in your market.`;
+  explanation += `The valuation of $${finalValuation.toLocaleString()} represents a fair market value for your ${year} ${make} ${model} based on its specific configuration, condition, and market factors. This valuation reflects what you could reasonably expect to receive in a private party sale to an informed buyer in your market.`;
   
   return explanation;
 }
