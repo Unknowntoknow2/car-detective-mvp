@@ -1,8 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { getListingsWithCondition, getListingsCount, ValuationWithCondition, ConditionFilterOption } from '@/utils/getListingsWithCondition';
+import { getListingsWithCondition, getListingsCount, ConditionFilterOption } from '@/utils/getListingsWithCondition';
 import { downloadPdf } from '@/utils/pdf';
 import { toast } from 'sonner';
+import { ValuationWithCondition } from '@/types/dealer';
+import { convertVehicleInfoToReportData } from '@/utils/pdf';
 
 export function useDealerValuations() {
   const [valuations, setValuations] = useState<ValuationWithCondition[]>([]);
@@ -50,7 +52,27 @@ export function useDealerValuations() {
   const handleDownloadReport = async (valuation: ValuationWithCondition) => {
     try {
       toast.success('Generating PDF report...');
-      await downloadPdf(valuation);
+      
+      // Convert the ValuationWithCondition to the ReportData format expected by downloadPdf
+      const reportData = {
+        vin: valuation.vin || 'Unknown',
+        make: valuation.make,
+        model: valuation.model,
+        year: valuation.year,
+        mileage: valuation.mileage?.toString() || '0',
+        condition: valuation.aiCondition?.condition || valuation.condition || 'Not Specified',
+        zipCode: valuation.zip_code || '',
+        estimatedValue: valuation.estimated_value,
+        confidenceScore: valuation.aiCondition?.confidenceScore || valuation.confidence_score,
+        color: valuation.color,
+        bodyStyle: valuation.body_type,
+        bodyType: valuation.body_type,
+        fuelType: valuation.fuel_type || '',
+        isPremium: false,
+        // Set additional fields as needed
+      };
+      
+      await downloadPdf(reportData);
     } catch (err) {
       console.error('Error downloading report:', err);
       toast.error('Failed to download report');
