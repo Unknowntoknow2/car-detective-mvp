@@ -30,7 +30,7 @@ export async function getConditionAnalysis(valuationId: string): Promise<AICondi
     return {
       condition: getConditionRating(data.condition_score || 0),
       confidenceScore: typeof data.confidence_score === 'number' ? data.confidence_score : 0,
-      issuesDetected: Array.isArray(data.issues) ? data.issues : [],
+      issuesDetected: Array.isArray(data.issues) ? data.issues.map(issue => String(issue)) : [],
       aiSummary: typeof data.summary === 'string' ? data.summary : ''
     };
   } catch (error) {
