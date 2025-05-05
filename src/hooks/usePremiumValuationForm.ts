@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FormData } from '@/types/premium-valuation';
@@ -21,7 +22,7 @@ export const usePremiumValuationForm = () => {
     features: [],
     condition: '50',  // Store as string
     conditionLabel: 'Fair',
-    hasAccident: 'no',  // Store as string
+    hasAccident: 'no',  // Store as string instead of boolean
     accidentDescription: '',
     zipCode: '',
     identifierType: 'vin',

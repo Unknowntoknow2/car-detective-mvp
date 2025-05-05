@@ -32,10 +32,15 @@ export function useValuation() {
             .eq('valuation_id', formData.valuationId)
             .maybeSingle();
           
-          if (!photoScoreError && photoScoreData) {
+          if (!photoScoreError && photoScoreData && photoScoreData.metadata) {
+            // Safely access condition from metadata which is a JSON object
+            const metadata = typeof photoScoreData.metadata === 'string' 
+              ? JSON.parse(photoScoreData.metadata)
+              : photoScoreData.metadata;
+              
             // Map the photo score data to our expected format
             aiConditionOverride = {
-              condition: photoScoreData.metadata?.condition || 'Fair',
+              condition: metadata?.condition || 'Fair',
               confidenceScore: Math.round((photoScoreData.score || 0) * 100)
             };
             console.log('Found AI condition override:', aiConditionOverride);
@@ -53,10 +58,12 @@ export function useValuation() {
           model: formData.model,
           year: formData.year,
           mileage: formData.mileage || 0,
-          condition: formData.conditionLabel.toLowerCase(),
+          condition: formData.conditionLabel?.toLowerCase(),
           fuelType: formData.fuelType || 'Gasoline',
           zipCode: formData.zipCode,
-          accident: formData.hasAccident ? 'yes' : 'no',
+          accident: typeof formData.hasAccident === 'string' 
+            ? formData.hasAccident 
+            : formData.hasAccident ? 'yes' : 'no',
           ...(formData.hasAccident && {
             accidentDetails: {
               count: '1', // Default to 1 for now

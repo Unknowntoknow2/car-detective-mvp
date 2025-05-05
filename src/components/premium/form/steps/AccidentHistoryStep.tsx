@@ -20,7 +20,12 @@ export function AccidentHistoryStep({
   updateValidity
 }: AccidentHistoryStepProps) {
   useEffect(() => {
-    const isValid = !formData.hasAccident || (formData.hasAccident === 'yes' && formData.accidentDescription?.trim() !== '');
+    // Convert boolean or string to boolean for validation
+    const hasAccidentBool = typeof formData.hasAccident === 'string'
+      ? formData.hasAccident === 'yes'
+      : !!formData.hasAccident;
+      
+    const isValid = !hasAccidentBool || (hasAccidentBool && formData.accidentDescription?.trim() !== '');
     updateValidity(step, isValid);
   }, [formData.hasAccident, formData.accidentDescription, step, updateValidity]);
 
@@ -39,6 +44,11 @@ export function AccidentHistoryStep({
     }));
   };
 
+  // Convert the hasAccident value to string for RadioGroup
+  const hasAccidentStr = typeof formData.hasAccident === 'boolean'
+    ? formData.hasAccident ? 'yes' : 'no'
+    : formData.hasAccident || '';
+
   return (
     <div className="space-y-6">
       <div>
@@ -54,7 +64,7 @@ export function AccidentHistoryStep({
             Has this vehicle ever been in an accident?
           </Label>
           <RadioGroup
-            value={formData.hasAccident || ''}
+            value={hasAccidentStr}
             onValueChange={handleAccidentChange}
             className="flex space-x-4 mt-2"
           >
@@ -69,7 +79,7 @@ export function AccidentHistoryStep({
           </RadioGroup>
         </div>
 
-        {formData.hasAccident === 'yes' && (
+        {hasAccidentStr === 'yes' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-start space-x-2">
               <AlertTriangle className="h-4 w-4 text-warning mt-1" />

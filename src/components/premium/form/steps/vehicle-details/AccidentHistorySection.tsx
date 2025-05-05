@@ -29,16 +29,26 @@ export function AccidentHistorySection({ formData, setFormData, errors }: Accide
     }));
   };
 
+  // Convert hasAccident to string for passing to AccidentToggle
+  const hasAccidentValue = typeof formData.hasAccident === 'boolean'
+    ? formData.hasAccident ? 'yes' : 'no'
+    : formData.hasAccident || 'no';
+
+  // Convert to string for comparison
+  const hasAccidentStr = typeof formData.hasAccident === 'boolean'
+    ? formData.hasAccident ? 'yes' : 'no'
+    : formData.hasAccident || 'no';
+
   return (
     <div className="mt-8 space-y-4">
       <h3 className="text-lg font-medium text-gray-900">Accident History</h3>
       
       <AccidentToggle 
-        hasAccident={formData.hasAccident} 
+        hasAccident={hasAccidentValue} 
         onToggle={toggleAccidentHistory} 
       />
       
-      {formData.hasAccident === 'yes' && (
+      {hasAccidentStr === 'yes' && (
         <div className="space-y-2 mt-4">
           <Label htmlFor="accidentDescription">
             Accident Details <span className="text-red-500">*</span>
@@ -46,7 +56,7 @@ export function AccidentHistorySection({ formData, setFormData, errors }: Accide
           <Textarea
             id="accidentDescription"
             placeholder="Please describe the accident(s), including severity, when it happened, and what parts of the vehicle were affected."
-            value={formData.accidentDescription}
+            value={formData.accidentDescription || ''}
             onChange={handleAccidentDescriptionChange}
             className={errors.accidentDescription ? "border-red-500" : ""}
             rows={4}

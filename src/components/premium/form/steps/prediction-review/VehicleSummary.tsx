@@ -8,6 +8,11 @@ interface VehicleSummaryProps {
 }
 
 export function VehicleSummary({ formData, aiConditionUsed }: VehicleSummaryProps) {
+  // Convert hasAccident to a consistent string format for display
+  const hasAccidentDisplay = typeof formData.hasAccident === 'boolean'
+    ? formData.hasAccident ? 'Yes' : 'No'
+    : formData.hasAccident === 'yes' ? 'Yes' : 'No';
+
   return (
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <h3 className="text-md font-medium mb-2">Vehicle Information</h3>
@@ -65,7 +70,7 @@ export function VehicleSummary({ formData, aiConditionUsed }: VehicleSummaryProp
         )}
         <div>
           <span className="text-gray-500 block">Accident History</span>
-          <span className="font-medium">{formData.hasAccident ? 'Yes' : 'No'}</span>
+          <span className="font-medium">{hasAccidentDisplay}</span>
         </div>
         {formData.features.length > 0 && (
           <div className="col-span-2">

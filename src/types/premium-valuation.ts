@@ -26,7 +26,7 @@ export interface FormData {
   transmissionType?: string;
   
   // Vehicle condition
-  hasAccident?: boolean;
+  hasAccident?: boolean | string; // Updated to accept both boolean and string for backward compatibility
   accidentDescription?: string;
   photoScore?: number;
   titleStatus?: string;
