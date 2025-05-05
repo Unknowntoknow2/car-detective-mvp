@@ -4,9 +4,10 @@ import { FormData } from '@/types/premium-valuation';
 
 interface VehicleSummaryProps {
   formData: FormData;
+  aiConditionUsed?: boolean;
 }
 
-export function VehicleSummary({ formData }: VehicleSummaryProps) {
+export function VehicleSummary({ formData, aiConditionUsed }: VehicleSummaryProps) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <h3 className="text-md font-medium mb-2">Vehicle Information</h3>
@@ -27,7 +28,14 @@ export function VehicleSummary({ formData }: VehicleSummaryProps) {
         </div>
         <div>
           <span className="text-gray-500 block">Condition</span>
-          <span className="font-medium">{formData.conditionLabel}</span>
+          <span className="font-medium">
+            {formData.conditionLabel}
+            {aiConditionUsed && (
+              <span className="ml-1 text-xs text-blue-600 bg-blue-50 px-1 py-0.5 rounded">
+                AI Verified
+              </span>
+            )}
+          </span>
         </div>
         <div>
           <span className="text-gray-500 block">Fuel Type</span>

@@ -20,6 +20,7 @@ export function GetValuationButton({
         onClick={onGetValuation}
         size="lg"
         disabled={isLoading || !isFormValid}
+        className="relative"
       >
         {isLoading ? (
           <>

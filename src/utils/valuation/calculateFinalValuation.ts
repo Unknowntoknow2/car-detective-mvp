@@ -15,6 +15,11 @@ export interface ValuationInput {
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   zipCode: string;
   features: string[];
+  aiConditionOverride?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    confidenceScore: number;
+  };
+  valuationId?: string;
 }
 
 export interface ValuationOutput {
@@ -27,6 +32,7 @@ export interface ValuationOutput {
   };
   totalAdjustments: number;
   finalValuation: number;
+  conditionSource?: 'user' | 'ai';
 }
 
 /**
@@ -63,7 +69,7 @@ function conditionAdjustment(condition: string, baseValue: number): number {
     'Poor': -0.15
   };
   
-  return baseValue * adjustments[condition];
+  return baseValue * (adjustments[condition] || 0);
 }
 
 /**
@@ -110,11 +116,20 @@ function featureAdjustments(features: string[]): { [feature: string]: number } {
  * @returns Detailed valuation output with all adjustments and final value
  */
 export function calculateFinalValuation(input: ValuationInput): ValuationOutput {
+  // Determine which condition to use - AI or user input
+  // Use AI condition if it exists and has high confidence, otherwise use user-provided condition
+  const useAiCondition = input.aiConditionOverride && 
+                          input.aiConditionOverride.confidenceScore >= 70;
+  
+  const finalCondition = useAiCondition 
+    ? input.aiConditionOverride!.condition 
+    : input.condition;
+  
   // Calculate precise mileage adjustment
   const mileageAdj = mileageAdjustment(input.mileage, input.baseMarketValue);
   
   // Calculate exact condition adjustment
-  const conditionAdj = conditionAdjustment(input.condition, input.baseMarketValue);
+  const conditionAdj = conditionAdjustment(finalCondition, input.baseMarketValue);
   
   // Assume marketData fetched from Supabase (in production would be retrieved from database)
   const marketData = { '94016': 4.5, '90001': 3.0, '10001': 2.5, '75001': 1.0 };
@@ -140,6 +155,7 @@ export function calculateFinalValuation(input: ValuationInput): ValuationOutput 
       featureAdjustments: featAdjObj
     },
     totalAdjustments,
-    finalValuation
+    finalValuation,
+    conditionSource: useAiCondition ? 'ai' : 'user'
   };
 }

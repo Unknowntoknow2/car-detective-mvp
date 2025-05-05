@@ -3,6 +3,11 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FormData } from '@/types/premium-valuation';
 
+export interface AIConditionOverride {
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  confidenceScore: number;
+}
+
 export function useValuation() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +20,32 @@ export function useValuation() {
     setError(null);
 
     try {
+      // Try to fetch AI condition data if available
+      let aiConditionOverride: AIConditionOverride | undefined;
+      
+      try {
+        // valuationId is a required parameter for photo scores
+        if (formData.valuationId) {
+          const { data: photoScoreData, error: photoScoreError } = await supabase
+            .from('photo_scores')
+            .select('metadata, score')
+            .eq('valuation_id', formData.valuationId)
+            .maybeSingle();
+          
+          if (!photoScoreError && photoScoreData) {
+            // Map the photo score data to our expected format
+            aiConditionOverride = {
+              condition: photoScoreData.metadata?.condition || 'Fair',
+              confidenceScore: Math.round((photoScoreData.score || 0) * 100)
+            };
+            console.log('Found AI condition override:', aiConditionOverride);
+          }
+        }
+      } catch (photoError) {
+        console.error('Error fetching photo score data:', photoError);
+        // Continue without AI data if fetch fails
+      }
+
       // Call the car-price-prediction edge function
       const response = await supabase.functions.invoke('car-price-prediction', {
         body: {
@@ -37,7 +68,9 @@ export function useValuation() {
           exteriorColor: formData.exteriorColor,
           interiorColor: formData.interiorColor,
           bodyStyle: formData.bodyStyle,
-          trim: formData.trim
+          trim: formData.trim,
+          valuationId: formData.valuationId,
+          aiConditionOverride
         }
       });
 

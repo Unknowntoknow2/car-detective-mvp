@@ -19,14 +19,14 @@ export interface FormData {
   conditionLabel?: string;
   
   // Vehicle features
-  features?: string[];
+  features: string[];
   exteriorColor?: string;
   colorMultiplier?: number;
   interiorColor?: string;
   transmissionType?: string;
   
   // Vehicle condition
-  hasAccident?: string;
+  hasAccident?: boolean;
   accidentDescription?: string;
   photoScore?: number;
   titleStatus?: string;
