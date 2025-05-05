@@ -142,15 +142,13 @@ export function UserManagement() {
         return;
       }
       
-      // Update all valuations to have premium unlocked
-      // Need to use raw update since the type definition doesn't know about premium_unlocked yet
-      const { error: updateError } = await supabase.rpc(
-        'update_premium_unlocked',
-        { 
-          user_id_param: userId,
-          premium_unlocked_value: true
-        }
-      );
+      // Update all valuations to have premium unlocked using raw SQL query 
+      // instead of RPC since TypeScript doesn't recognize our function yet
+      const { error: updateError } = await supabase
+        .from('valuations')
+        .update({ premium_unlocked: true })
+        .eq('user_id', userId)
+        .is('premium_unlocked', null);
         
       if (updateError) throw updateError;
       
