@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { StatsCard } from '@/components/stats/StatsCard';
 import { LeaderboardRow } from '@/components/stats/LeaderboardRow';
 import { SectionHeader } from '@/components/ui/design-system';
-import { Helmet } from "react-helmet";
+import { Helmet } from 'react-helmet-async';
 
 interface ValuationStats {
   id: string;

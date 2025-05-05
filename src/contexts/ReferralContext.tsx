@@ -117,8 +117,9 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (statsError) throw statsError;
       
-      if (statsData) {
-        setReferralStats(statsData as ReferralStats);
+      if (statsData && Array.isArray(statsData) && statsData.length > 0) {
+        // Fix for the type error - extract the first item from the array
+        setReferralStats(statsData[0] as ReferralStats);
       }
     } catch (error) {
       console.error('Error loading referrals:', error);
