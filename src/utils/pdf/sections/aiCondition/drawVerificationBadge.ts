@@ -27,7 +27,7 @@ export function drawVerificationBadge(
       borderColor: rgb(0.1, 0.6, 0.2),
       borderWidth: 1,
       opacity: 0.2,
-      borderRadius: 5,
+      // Remove the borderRadius property as it's not supported in PDFPageDrawRectangleOptions
     });
     
     // Badge text

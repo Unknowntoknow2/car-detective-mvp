@@ -1,4 +1,3 @@
-
 import { calculateFinalValuation, ValuationInput, ValuationOutput } from './calculateFinalValuation';
 import { getMarketMultiplier } from './marketData';
 
@@ -100,6 +99,26 @@ describe('calculateFinalValuation', () => {
     // Assert
     expect(getMarketMultiplier).toHaveBeenCalledWith('12345');
     expect(result.adjustments.regionalAdjustment).toBeCloseTo(1000, 0); // 5% of 20000
+  });
+
+  it('should handle missing ZIP code by applying no adjustment', async () => {
+    // Arrange
+    const input: ValuationInput = {
+      baseMarketValue: 20000,
+      vehicleYear: 2019,
+      make: 'Toyota',
+      model: 'Camry',
+      mileage: 50000,
+      condition: 'Good',
+      zipCode: '', // Empty ZIP code
+      features: [],
+    };
+
+    // Act
+    const result = await calculateFinalValuation(input);
+
+    // Assert
+    expect(result.adjustments.regionalAdjustment).toBeCloseTo(0, 0);
   });
 
   it('should calculate feature adjustments accurately', async () => {
