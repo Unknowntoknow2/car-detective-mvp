@@ -14,16 +14,16 @@ export function drawConditionBox(
   conditionColor: Color
 ): void {
   // Draw box with light background color
+  // Since the conditionColor could be RGB, CMYK, or Grayscale, we'll create a new light color
+  // rather than trying to access properties that might not exist
+  const lightBackgroundColor = rgb(0.95, 0.95, 0.95); // Light gray background
+  
   page.drawRectangle({
     x: margin,
     y: boxY,
     width: boxWidth,
     height: boxHeight,
-    color: rgb(
-      conditionColor.red * 0.95 + 0.05,
-      conditionColor.green * 0.95 + 0.05,
-      conditionColor.blue * 0.95 + 0.05
-    ),
+    color: lightBackgroundColor,
     opacity: 0.2,
     borderColor: conditionColor,
     borderWidth: 1,
