@@ -23,6 +23,7 @@ export function PremiumDownloadButton({
   
   const handleDownload = async () => {
     if (!isPremiumUnlocked) {
+      toast.info("You need to unlock premium access for this report.");
       await unlockPremium(valuationId);
       return;
     }
@@ -36,6 +37,7 @@ export function PremiumDownloadButton({
       
       // Download the PDF
       await downloadPdf(reportData);
+      toast.success("Premium report downloaded successfully!");
     } catch (error) {
       console.error('Error downloading premium report:', error);
       toast.error('Failed to download premium report');

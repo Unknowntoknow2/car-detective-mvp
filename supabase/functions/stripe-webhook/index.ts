@@ -52,16 +52,20 @@ serve(async (req) => {
       )
     }
     
+    console.log(`Processing Stripe event: ${event.type}`)
+    
     // Handle specific event types
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
+      
+      console.log('Checkout session completed:', session.id)
       
       // Update the order status in the database
       const { data: orderData, error: orderError } = await supabaseAdmin
         .from('orders')
         .update({ status: 'completed' })
         .eq('stripe_session_id', session.id)
-        .select('valuation_id')
+        .select('valuation_id, user_id')
         .single()
       
       if (orderError) {
@@ -69,20 +73,26 @@ serve(async (req) => {
         throw new Error('Failed to update order')
       }
       
-      // Update the valuation to mark it as premium unlocked
-      if (orderData?.valuation_id) {
-        const { error: valuationError } = await supabaseAdmin
-          .from('valuations')
-          .update({ premium_unlocked: true })
-          .eq('id', orderData.valuation_id)
-        
-        if (valuationError) {
-          console.error('Error updating valuation:', valuationError)
-          // Continue processing as this is not critical
-        }
+      if (!orderData?.valuation_id) {
+        console.error('No valuation ID found in order')
+        throw new Error('Invalid order data')
       }
       
-      console.log('Order marked as completed for session:', session.id)
+      console.log(`Updating premium status for valuation: ${orderData.valuation_id}`)
+      
+      // Update the valuation to mark it as premium unlocked
+      const { error: valuationError } = await supabaseAdmin
+        .from('valuations')
+        .update({ premium_unlocked: true })
+        .eq('id', orderData.valuation_id)
+        .eq('user_id', orderData.user_id)
+      
+      if (valuationError) {
+        console.error('Error updating valuation:', valuationError)
+        throw new Error('Failed to update valuation premium status')
+      }
+      
+      console.log('Order marked as completed and premium unlocked for valuation:', orderData.valuation_id)
     }
     
     return new Response(JSON.stringify({ received: true }), {

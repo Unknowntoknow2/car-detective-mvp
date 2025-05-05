@@ -12,6 +12,7 @@ export default function PremiumSuccessPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [orderDetails, setOrderDetails] = useState<any>(null);
   const { user } = useAuth();
   const sessionId = searchParams.get('session_id');
 
@@ -22,39 +23,64 @@ export default function PremiumSuccessPage() {
       return;
     }
 
-    const updateOrderStatus = async () => {
+    const verifyPayment = async () => {
       try {
-        console.log('Updating order status for session:', sessionId);
+        setIsLoading(true);
+        console.log('Verifying payment for session:', sessionId);
         
-        const { data: existingOrders, error: fetchError } = await supabase
+        // Check if this order exists and is completed
+        const { data: orderData, error: orderError } = await supabase
           .from('orders')
-          .select('*')
+          .select('*, valuations(*)')
           .eq('stripe_session_id', sessionId)
-          .eq('status', 'completed');
+          .eq('user_id', user.id)
+          .single();
           
-        if (fetchError) {
-          console.error('Error checking order status:', fetchError);
-          throw new Error('Could not verify order status');
-        }
-        
-        if (existingOrders && existingOrders.length > 0) {
-          console.log('Order already marked as completed');
-          setIsLoading(false);
+        if (orderError) {
+          console.error('Error fetching order:', orderError);
+          toast.error('Could not verify your payment');
+          navigate('/premium');
           return;
         }
-
-        const { error: updateError } = await supabase
-          .from('orders')
-          .update({ status: 'completed' })
-          .eq('stripe_session_id', sessionId)
-          .eq('user_id', user.id);
-
-        if (updateError) {
-          console.error('Error updating order:', updateError);
-          throw updateError;
+        
+        if (!orderData) {
+          toast.error('Order not found');
+          navigate('/premium');
+          return;
         }
         
-        toast.success('Your premium valuation has been activated!');
+        setOrderDetails(orderData);
+        
+        // If order is not yet completed, update status
+        // (This is a fallback in case the webhook failed)
+        if (orderData.status !== 'completed') {
+          const { error: updateError } = await supabase
+            .from('orders')
+            .update({ status: 'completed' })
+            .eq('stripe_session_id', sessionId)
+            .eq('user_id', user.id);
+
+          if (updateError) {
+            console.error('Error updating order:', updateError);
+            // Don't return, continue to check valuation status
+          }
+          
+          // Also ensure the valuation is marked as premium
+          if (orderData.valuation_id) {
+            const { error: valuationError } = await supabase
+              .from('valuations')
+              .update({ premium_unlocked: true })
+              .eq('id', orderData.valuation_id)
+              .eq('user_id', user.id);
+              
+            if (valuationError) {
+              console.error('Error updating valuation:', valuationError);
+              // Continue anyway
+            }
+          }
+        }
+        
+        toast.success('Your premium report is now available!');
       } catch (error) {
         console.error('Error processing payment confirmation:', error);
         toast.error('There was a problem confirming your payment');
@@ -63,7 +89,7 @@ export default function PremiumSuccessPage() {
       }
     };
 
-    updateOrderStatus();
+    verifyPayment();
   }, [sessionId, navigate, user]);
 
   if (isLoading) {
@@ -86,21 +112,26 @@ export default function PremiumSuccessPage() {
             Payment Successful!
           </h1>
           <p className="text-slate-600">
-            Thank you for purchasing Premium Valuation. Your report is now being prepared.
+            {orderDetails?.valuations ? 
+              `Your Premium Report for ${orderDetails.valuations.year} ${orderDetails.valuations.make} ${orderDetails.valuations.model} is now available.` :
+              'Thank you for purchasing Premium Valuation. Your report is now available.'
+            }
           </p>
           <div className="pt-4 space-y-2">
+            {orderDetails?.valuation_id && (
+              <Button 
+                onClick={() => navigate(`/valuations/${orderDetails.valuation_id}`)} 
+                className="w-full"
+              >
+                View Your Report
+              </Button>
+            )}
             <Button 
               onClick={() => navigate('/dashboard')} 
-              className="w-full"
-            >
-              Go to Dashboard
-            </Button>
-            <Button 
-              onClick={() => navigate('/premium')} 
-              variant="outline"
+              variant={orderDetails?.valuation_id ? "outline" : "default"}
               className="w-full mt-2"
             >
-              View Premium Features
+              Go to Dashboard
             </Button>
           </div>
         </div>

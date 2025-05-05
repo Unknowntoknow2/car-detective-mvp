@@ -22,6 +22,8 @@ serve(async (req) => {
       throw new Error('Valuation ID is required');
     }
     
+    console.log(`Creating checkout session for valuation: ${valuationId}`);
+    
     // Get user information from request
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -41,16 +43,35 @@ serve(async (req) => {
       throw new Error('User not authenticated: ' + (userError?.message || 'Unknown error'));
     }
     
+    console.log(`Authenticated user: ${user.id}`);
+    
     // Get the valuation details
     const { data: valuation, error: valuationError } = await supabase
       .from('valuations')
       .select('*')
       .eq('id', valuationId)
+      .eq('user_id', user.id)
       .single();
       
     if (valuationError || !valuation) {
-      throw new Error('Valuation not found: ' + (valuationError?.message || 'Unknown error'));
+      throw new Error('Valuation not found or access denied: ' + (valuationError?.message || 'Unknown error'));
     }
+    
+    // Check if premium is already unlocked
+    if (valuation.premium_unlocked) {
+      return new Response(
+        JSON.stringify({ 
+          already_unlocked: true, 
+          message: "Premium is already unlocked for this valuation" 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      );
+    }
+    
+    console.log(`Validated valuation: ${valuationId}`);
     
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -59,7 +80,9 @@ serve(async (req) => {
     
     // Product metadata
     const productName = `Premium Vehicle Report: ${valuation.year} ${valuation.make} ${valuation.model}`;
-    const productPrice = 1499; // $14.99 in cents
+    const productPrice = 2999; // $29.99 in cents
+    
+    console.log(`Creating checkout session for product: ${productName}`);
     
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({
@@ -85,6 +108,8 @@ serve(async (req) => {
         userId: user.id,
       },
     });
+    
+    console.log(`Created checkout session: ${session.id}`);
     
     // Create an order record in the database
     const { error: orderError } = await supabase
