@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { AIConditionAssessment } from './AIConditionAssessment';
 import { useAICondition } from '@/hooks/useAICondition';
+import { ChatBubble } from '@/components/chat/ChatBubble';
 
 interface ValuationResultProps {
   make: string;
@@ -172,6 +174,14 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
           </>
         )}
       </Button>
+
+      {/* Add Car Detective Chat Bubble */}
+      {valuationId && (
+        <ChatBubble 
+          valuationId={valuationId} 
+          initialMessage="Tell me about my car's valuation"
+        />
+      )}
     </div>
   );
 };

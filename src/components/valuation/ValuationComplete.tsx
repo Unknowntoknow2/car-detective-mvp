@@ -164,7 +164,6 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
 
       {auditTrail && (
         <div className="mt-4">
-          {/* Pass the audit trail with the required properties */}
           <ValuationAuditTrail 
             auditTrail={{ 
               basePrice: estimatedValue ? estimatedValue * 0.85 : 0,
@@ -197,6 +196,12 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       />
 
       <NextStepsCard />
+
+      {/* Add Car Detective Chat Bubble */}
+      <ChatBubble 
+        valuationId={valuationId} 
+        initialMessage="Tell me about my car's valuation"
+      />
     </div>
   );
 }
