@@ -11,6 +11,7 @@ import PremiumSuccessPage from './pages/PremiumSuccessPage';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerOffersPage from './pages/dealer/DealerOffersPage';
 import AdminPage from './pages/AdminPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/dealer/dashboard" element={<DealerDashboard />} />
           <Route path="/dealer/offers" element={<DealerOffersPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         </Routes>
       </Router>
     </AuthProvider>

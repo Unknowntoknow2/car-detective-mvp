@@ -103,7 +103,11 @@ export function useAdminAnalytics() {
         const aiConfidence = photoData.length > 0
           ? photoData.reduce((sum, item) => {
               const metadata = typeof item.metadata === 'object' ? item.metadata : {};
-              return sum + (metadata.confidenceScore || 0);
+              // Fix: Access metadata as a record with optional properties
+              const confidenceScore = metadata && typeof metadata === 'object' 
+                ? (metadata as Record<string, any>).confidenceScore || 0 
+                : 0;
+              return sum + confidenceScore;
             }, 0) / photoData.length
           : 0;
 

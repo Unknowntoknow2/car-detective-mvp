@@ -1,4 +1,3 @@
-
 import { TabContentWrapper } from "./TabContentWrapper";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +8,7 @@ import { toast } from "sonner";
 import { DealerOfferForm } from "@/components/dealer/DealerOfferForm";
 import { DealerOffersList } from "@/components/dealer/DealerOffersList";
 import { useDealerOffers } from "@/hooks/useDealerOffers";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DealerOffersTabProps {
   vehicleData?: {

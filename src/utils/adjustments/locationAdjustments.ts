@@ -1,10 +1,9 @@
-
 /**
  * Location Adjustment Calculator
  * Calculates value adjustments based on regional market demand and location factors.
  */
 
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Gets the regional market multiplier based on the vehicle's location

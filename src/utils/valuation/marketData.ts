@@ -1,4 +1,3 @@
-
 /**
  * Market Adjustment Data Service
  * 
@@ -6,7 +5,7 @@
  * for accurate regional car valuation adjustments.
  */
 
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Gets the market multiplier for a given ZIP code from the database

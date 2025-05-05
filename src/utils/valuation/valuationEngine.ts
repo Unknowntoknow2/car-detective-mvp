@@ -1,3 +1,4 @@
+
 import { getMileageAdjustment } from '../adjustments/mileageAdjustments';
 import { getConditionAdjustment } from '../adjustments/conditionAdjustments';
 import { getZipAdjustment } from '../adjustments/locationAdjustments';
@@ -11,7 +12,7 @@ import {
   getLocationDensityAdjustment, 
   getIncomeAdjustment 
 } from './specializedAdjustments';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { ValuationParams, ValuationResult } from './types';
 
 /**

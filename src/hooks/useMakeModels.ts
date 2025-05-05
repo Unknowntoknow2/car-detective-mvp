@@ -1,6 +1,5 @@
-
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
 // Raw types from Supabase response
 interface RawMake {
