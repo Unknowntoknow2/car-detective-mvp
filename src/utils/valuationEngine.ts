@@ -157,7 +157,7 @@ export async function calculateValuation(params: ValuationParams): Promise<Valua
   
   // Add premium features adjustment if available
   if (params.premiumFeatures && params.premiumFeatures.length > 0) {
-    const featuresAdj = getPremiumFeaturesAdjustment(params.premiumFeatures, basePrice);
+    const featuresAdj = getFeatureAdjustments(params.premiumFeatures, basePrice);
     adjustments.push({
       name: 'Premium Features',
       value: Math.round(featuresAdj),
