@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -35,8 +34,11 @@ export function ChatBubble({
           
           // Then determine the visibility class safely
           let visibleClass = 'animate-enter';
-          if (t && typeof t === 'object' && 'visible' in t && t.visible !== null && t.visible !== undefined) {
-            visibleClass = t.visible ? 'animate-enter' : 'animate-leave';
+          
+          // Use type guard to ensure t has visible property before accessing it
+          if (t && typeof t === 'object' && 'visible' in t) {
+            const visibleValue = t.visible;
+            visibleClass = visibleValue ? 'animate-enter' : 'animate-leave';
           }
             
           return (
@@ -60,9 +62,9 @@ export function ChatBubble({
                         className="mr-2"
                         onClick={() => {
                           setIsOpen(true);
-                          // Check if t exists and is an object before trying to dismiss
-                          if (t && typeof t === 'object') {
-                            toast.dismiss(t);
+                          // Use type guard to ensure t has id property before dismissing
+                          if (t && typeof t === 'object' && 'id' in t) {
+                            toast.dismiss(t.id);
                           }
                         }}
                       >
@@ -72,9 +74,9 @@ export function ChatBubble({
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          // Check if t exists and is an object before trying to dismiss
-                          if (t && typeof t === 'object') {
-                            toast.dismiss(t);
+                          // Use type guard to ensure t has id property before dismissing
+                          if (t && typeof t === 'object' && 'id' in t) {
+                            toast.dismiss(t.id);
                           }
                         }}
                       >
