@@ -14,7 +14,8 @@ interface ExplanationRequest {
   year: number;
   mileage: number;
   condition: string;
-  zipCode: string;
+  location: string;
+  zipCode?: string; // For compatibility
   baseMarketValue: number;
   mileageAdj?: number;
   conditionAdj?: number;
@@ -41,9 +42,9 @@ Deno.serve(async (req) => {
     // Get request body
     const requestData: ExplanationRequest = await req.json();
     const { 
-      make, model, year, mileage, condition, zipCode, 
+      make, model, year, mileage, condition, location, zipCode = location, 
       baseMarketValue, finalValuation, adjustments,
-      mileageAdj, conditionAdj, zipAdj, featureAdjTotal
+      mileageAdj = 0, conditionAdj = 0, zipAdj = 0, featureAdjTotal = 0
     } = requestData;
 
     // Validate required fields
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
 async function generateGPT4Explanation(data: ExplanationRequest): Promise<string> {
   try {
     const { 
-      make, model, year, mileage, condition, zipCode, 
+      make, model, year, mileage, condition, zipCode = data.location, 
       baseMarketValue, finalValuation, adjustments,
       mileageAdj = 0, conditionAdj = 0, zipAdj = 0, featureAdjTotal = 0
     } = data;

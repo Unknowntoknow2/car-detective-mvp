@@ -30,8 +30,11 @@ export async function generateValuationExplanation(params: ValuationParams): Pro
     const valuationDetails = calculateFinalValuation(valuationInput);
     
     // Extract the adjustments for the enhanced explanation
-    const { mileageAdjustment, conditionAdjustment, regionalAdjustment } = valuationDetails.adjustments;
-    const featureAdjTotal = Object.values(valuationDetails.adjustments.featureAdjustments).reduce((sum, val) => sum + val, 0);
+    // Find individual adjustments by their name
+    const mileageAdjustment = valuationDetails.adjustments.find(adj => adj.name === 'Mileage')?.impact || 0;
+    const conditionAdjustment = valuationDetails.adjustments.find(adj => adj.name === 'Condition')?.impact || 0;
+    const regionalAdjustment = valuationDetails.adjustments.find(adj => adj.name === 'Regional Market')?.impact || 0;
+    const featureAdjustment = valuationDetails.adjustments.find(adj => adj.name === 'Premium Features')?.impact || 0;
     
     // Prepare the data to send to the explanation function
     const requestData = {
@@ -40,7 +43,7 @@ export async function generateValuationExplanation(params: ValuationParams): Pro
       mileageAdj: mileageAdjustment,
       conditionAdj: conditionAdjustment,
       zipAdj: regionalAdjustment,
-      featureAdjTotal: featureAdjTotal,
+      featureAdjTotal: featureAdjustment,
       finalValuation: valuationDetails.finalValue || params.valuation,
       adjustments: valuationDetails.adjustments.map(adj => ({
         factor: adj.name,
