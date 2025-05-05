@@ -6,6 +6,7 @@ import { useDealerValuations } from '@/hooks/useDealerValuations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { PremiumBadge } from '@/components/ui/premium-badge';
+import { ShieldCheck } from 'lucide-react';
 
 export function DealerValuationsList() {
   const {
@@ -21,15 +22,28 @@ export function DealerValuationsList() {
     handleDownloadReport
   } = useDealerValuations();
 
+  // Calculate how many valuations have high AI confidence
+  const highConfidenceCount = valuations.filter(v => 
+    v.aiCondition && v.aiCondition.confidenceScore >= 85
+  ).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          Vehicle Valuations
-          <span className="ml-2 text-sm text-muted-foreground">
-            ({totalCount} total)
-          </span>
-        </h2>
+        <div>
+          <h2 className="text-xl font-semibold">
+            Vehicle Valuations
+            <span className="ml-2 text-sm text-muted-foreground">
+              ({totalCount} total)
+            </span>
+          </h2>
+          {highConfidenceCount > 0 && (
+            <div className="mt-1 text-sm text-green-600 flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4" />
+              {highConfidenceCount} vehicles with high AI confidence score
+            </div>
+          )}
+        </div>
         <PremiumBadge variant="subtle">Dealer Dashboard</PremiumBadge>
       </div>
       

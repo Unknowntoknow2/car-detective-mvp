@@ -1,79 +1,83 @@
 
-import React from 'react';
-import { AlertTriangle, Check, Info } from 'lucide-react';
-import { AIConditionResult } from '@/utils/getConditionAnalysis';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConditionBadge } from '@/components/ui/condition-badge';
+import { Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 interface AIConditionAssessmentProps {
-  conditionData: AIConditionResult;
-  isLoading?: boolean;
+  conditionData: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
+  isLoading: boolean;
 }
 
-export function AIConditionAssessment({ conditionData, isLoading = false }: AIConditionAssessmentProps) {
-  if (isLoading) {
-    return (
-      <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-pulse">
-        <p className="text-gray-500">Loading AI Condition...</p>
-      </div>
-    );
-  }
-
-  if (!conditionData) {
-    return null;
-  }
-
-  const { condition, confidenceScore, issuesDetected, aiSummary } = conditionData;
-  const isHighConfidence = confidenceScore >= 70;
+export function AIConditionAssessment({ conditionData, isLoading }: AIConditionAssessmentProps) {
+  if (!conditionData && !isLoading) return null;
 
   return (
-    <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-      <div className="flex items-center gap-2 mb-3">
-        <Info className="h-5 w-5 text-blue-500" />
-        <h3 className="text-lg font-semibold text-gray-800">AI Condition Assessment</h3>
-        <span className="text-sm text-gray-500">Verified from Uploaded Photos</span>
-      </div>
-      
-      <div className="flex items-center mb-2">
-        {isHighConfidence ? (
-          <div className="flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full text-sm mr-2">
-            <Check className="w-4 h-4 mr-1" />
-            AI Verified Condition
+    <Card className="mt-4 border border-primary/10">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">AI Condition Assessment</CardTitle>
+        </div>
+        {!isLoading && conditionData && (
+          <ConditionBadge 
+            condition={conditionData.condition} 
+            confidenceScore={conditionData.confidenceScore}
+          />
+        )}
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="py-4 flex items-center justify-center">
+            <Loader2 className="h-6 w-6 text-primary animate-spin" />
+            <span className="ml-2 text-sm">Analyzing vehicle condition...</span>
+          </div>
+        ) : conditionData ? (
+          <div className="space-y-4">
+            <p className="text-sm">{conditionData.aiSummary || `Vehicle appears to be in ${conditionData.condition?.toLowerCase() || 'unknown'} condition.`}</p>
+            
+            {conditionData.issuesDetected && conditionData.issuesDetected.length > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <h4 className="text-sm font-medium">Detected Issues</h4>
+                </div>
+                <ul className="pl-6 space-y-1 text-sm text-slate-600 list-disc">
+                  {conditionData.issuesDetected.map((issue, index) => (
+                    <li key={index}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-slate-600">AI Trust Score:</span>
+                <span className={`text-sm font-medium ${
+                  conditionData.confidenceScore >= 90 ? 'text-green-600' :
+                  conditionData.confidenceScore >= 80 ? 'text-blue-600' :
+                  conditionData.confidenceScore >= 70 ? 'text-amber-600' :
+                  'text-red-600'
+                }`}>
+                  {conditionData.confidenceScore}%
+                </span>
+              </div>
+              
+              <div className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">
+                Photo-Based Analysis
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="flex items-center px-2 py-1 bg-amber-50 text-amber-700 rounded-full text-sm mr-2">
-            <AlertTriangle className="w-4 h-4 mr-1" />
-            Low Confidence Assessment
-          </div>
+          <p className="text-sm text-slate-600 py-2">
+            No AI condition assessment available. Upload photos of your vehicle to get an AI-powered condition assessment.
+          </p>
         )}
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">Condition:</p>
-          <p className="text-base font-semibold">{condition} (AI)</p>
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">Confidence:</p>
-          <p className="text-base font-semibold">{confidenceScore}%</p>
-        </div>
-      </div>
-      
-      {issuesDetected && issuesDetected.length > 0 && (
-        <div className="mb-3">
-          <p className="text-sm font-medium text-gray-600 mb-1">Issues Detected:</p>
-          <ul className="list-disc list-inside text-sm text-gray-700">
-            {issuesDetected.map((issue, index) => (
-              <li key={index}>{issue}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      
-      {aiSummary && (
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">Summary:</p>
-          <p className="text-sm text-gray-700">{aiSummary}</p>
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Info } from "lucide-react";
+import { CheckCircle2, Info, ShieldCheck, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,6 +15,11 @@ interface ValuationResultsProps {
     impact: number;
     description?: string;
   }[];
+  aiVerified?: boolean;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+  } | null;
 }
 
 export function ValuationResults({
@@ -22,6 +27,8 @@ export function ValuationResults({
   confidenceScore,
   priceRange,
   adjustments,
+  aiVerified = false,
+  aiCondition
 }: ValuationResultsProps) {
   // Format currency with proper locale
   const formatCurrency = (value: number) => {
@@ -53,6 +60,17 @@ export function ValuationResults({
     visible: { opacity: 1, y: 0 }
   };
 
+  // Helper function to get confidence level text and color
+  const getConfidenceInfo = (score: number) => {
+    if (score >= 90) return { text: 'Very High', color: 'text-green-600' };
+    if (score >= 80) return { text: 'High', color: 'text-green-500' };
+    if (score >= 70) return { text: 'Good', color: 'text-yellow-500' };
+    if (score >= 60) return { text: 'Moderate', color: 'text-yellow-600' };
+    return { text: 'Low', color: 'text-red-500' };
+  };
+
+  const confidenceInfo = getConfidenceInfo(confidenceScore);
+
   return (
     <motion.div
       initial="hidden"
@@ -82,9 +100,17 @@ export function ValuationResults({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="px-3 py-1.5 bg-primary/5 rounded-full text-xs font-medium text-primary flex items-center gap-1.5 cursor-help">
-                    {confidenceScore}% Confidence
-                    <Info className="h-3.5 w-3.5 opacity-70" />
+                  <div className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 cursor-help",
+                    confidenceScore >= 80 ? "bg-green-50 text-green-600" : 
+                    confidenceScore >= 70 ? "bg-yellow-50 text-yellow-600" : 
+                    "bg-red-50 text-red-600"
+                  )}>
+                    {confidenceScore >= 70 ? 
+                      <ShieldCheck className="h-3.5 w-3.5 opacity-70" /> : 
+                      <AlertCircle className="h-3.5 w-3.5 opacity-70" />
+                    }
+                    {confidenceInfo.text} Confidence ({confidenceScore}%)
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
@@ -92,6 +118,22 @@ export function ValuationResults({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            
+            {aiCondition && aiCondition.confidenceScore >= 70 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 cursor-help">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      AI Verified Condition
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Our AI has analyzed vehicle photos and verified its condition with {aiCondition.confidenceScore}% confidence.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             
             {priceRange && (
               <motion.div 

@@ -1,8 +1,9 @@
 
 import { ConditionBadge } from "@/components/ui/condition-badge";
 import { Button } from "@/components/ui/button";
-import { Share, Save } from "lucide-react";
+import { Share, Save, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ValuationHeaderProps {
   valuationData: {
@@ -77,9 +78,29 @@ export function ValuationHeader({
               {estimatedValue ? formatter.format(estimatedValue) : 'N/A'}
             </p>
           )}
-          <p className="text-xs text-gray-400 mt-1">
-            {photoSubmitted ? 'Based on AI photo analysis' : 'Based on provided information'}
-          </p>
+          <div className="flex items-center justify-end mt-1 gap-1">
+            {photoSubmitted && aiCondition && aiCondition.confidenceScore >= 80 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full border border-green-100 flex items-center">
+                      <ShieldCheck className="w-3 h-3 mr-1" />
+                      High Trust Score
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm max-w-xs">
+                      This valuation has a high AI trust score based on photo analysis.
+                      Higher scores indicate more reliable assessments.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <p className="text-xs text-gray-400">
+              {photoSubmitted ? 'Based on AI photo analysis' : 'Based on provided information'}
+            </p>
+          </div>
         </div>
       </div>
       
