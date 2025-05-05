@@ -1,111 +1,93 @@
 
 import { PDFPage, rgb, PDFFont } from 'pdf-lib';
 
+interface IssuesFonts {
+  regular: PDFFont;
+  italic: PDFFont;
+}
+
 /**
- * Draw condition issues or summary
+ * Draw the detected issues or summary
  * Returns the new Y position after drawing
  */
 export function drawConditionIssues(
   page: PDFPage,
-  currentY: number,
+  yPosition: number,
   margin: number,
   boxWidth: number,
-  fonts: {
-    regular: PDFFont;
-    italic: PDFFont;
-  },
+  fonts: IssuesFonts,
   aiSummary?: string,
   issuesDetected?: string[]
 ): number {
-  const { regular, italic } = fonts;
-  let yPos = currentY;
+  let currentY = yPosition;
   
-  // If there's a summary, display it
+  // If we have a summary, display it
   if (aiSummary) {
-    // Draw summary label
-    page.drawText('AI Condition Summary:', {
-      x: margin + 15,
-      y: yPos,
-      size: 12,
-      font: regular,
-      color: rgb(0.3, 0.3, 0.3),
-    });
-    yPos -= 20;
+    const summaryLines = wrapText(aiSummary, fonts.italic, 11, boxWidth - 40);
     
-    // Split summary into multiple lines if needed
-    const summaryText = aiSummary.slice(0, 200); // Limit to 200 chars
-    const words = summaryText.split(' ');
-    let line = '';
-    const maxWidth = boxWidth - 40; // Margins for text
-    
-    for (const word of words) {
-      const testLine = line + word + ' ';
-      const textWidth = regular.widthOfTextAtSize(testLine, 10);
-      
-      if (textWidth > maxWidth && line) {
-        page.drawText(line, {
-          x: margin + 20,
-          y: yPos,
-          size: 10,
-          font: italic,
-          color: rgb(0.2, 0.2, 0.2),
-        });
-        yPos -= 15;
-        line = word + ' ';
-      } else {
-        line = testLine;
-      }
-    }
-    
-    // Draw remaining text
-    if (line) {
+    for (const line of summaryLines) {
       page.drawText(line, {
-        x: margin + 20,
-        y: yPos,
-        size: 10,
-        font: italic,
-        color: rgb(0.2, 0.2, 0.2),
+        x: margin + 15,
+        y: currentY,
+        size: 11,
+        font: fonts.italic,
+        color: rgb(0.3, 0.3, 0.3)
       });
-      yPos -= 20;
+      currentY -= 16;
     }
   }
   
-  // If there are issues, list them
+  // If we have detected issues, list them
   if (issuesDetected && issuesDetected.length > 0) {
-    // Draw issues label
+    currentY -= 10;
+    
     page.drawText('Issues Detected:', {
       x: margin + 15,
-      y: yPos,
-      size: 12,
-      font: regular,
-      color: rgb(0.3, 0.3, 0.3),
+      y: currentY,
+      size: 11,
+      font: fonts.regular,
+      color: rgb(0.6, 0.1, 0.1)
     });
-    yPos -= 20;
+    currentY -= 20;
     
-    // Draw each issue as a bullet point
-    issuesDetected.slice(0, 3).forEach((issue) => { // Limit to 3 issues
+    for (const issue of issuesDetected) {
       page.drawText(`• ${issue}`, {
         x: margin + 20,
-        y: yPos,
+        y: currentY,
         size: 10,
-        font: regular,
-        color: rgb(0.2, 0.2, 0.2),
+        font: fonts.regular,
+        color: rgb(0.4, 0.4, 0.4)
       });
-      yPos -= 15;
-    });
-    
-    // If there are more issues than shown
-    if (issuesDetected.length > 3) {
-      page.drawText(`• ${issuesDetected.length - 3} more issues...`, {
-        x: margin + 20,
-        y: yPos,
-        size: 10,
-        font: italic,
-        color: rgb(0.4, 0.4, 0.4),
-      });
-      yPos -= 15;
+      currentY -= 14;
     }
   }
   
-  return yPos;
+  return currentY;
+}
+
+/**
+ * Utility to wrap text based on available width
+ */
+function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+    const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+    
+    if (testWidth > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
 }

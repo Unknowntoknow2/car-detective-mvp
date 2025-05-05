@@ -2,36 +2,36 @@
 import { PDFPage, rgb, Color } from 'pdf-lib';
 
 /**
- * Draw a box with styling based on condition
+ * Draw a styled box for the condition display
  */
 export function drawConditionBox(
   page: PDFPage,
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null,
-  boxY: number,
+  yPosition: number,
   boxWidth: number,
   boxHeight: number,
   margin: number,
   conditionColor: Color
 ): void {
-  // Draw condition box with rounded corners
+  // Draw the main condition box with rounded corners effect
   page.drawRectangle({
     x: margin,
-    y: boxY,
+    y: yPosition,
     width: boxWidth,
     height: boxHeight,
-    color: rgb(0.97, 0.97, 0.97), // Light gray background
+    color: rgb(0.98, 0.98, 1),
     borderColor: conditionColor,
     borderWidth: 2,
-    opacity: 1,
+    opacity: 0.9,
   });
   
-  // Add colored highlight at top of box
+  // Draw a colored header bar
   page.drawRectangle({
     x: margin,
-    y: boxY + boxHeight - 20,
+    y: yPosition + boxHeight - 25,
     width: boxWidth,
-    height: 20,
+    height: 25,
     color: conditionColor,
-    opacity: 0.15,
+    opacity: 0.2,
   });
 }

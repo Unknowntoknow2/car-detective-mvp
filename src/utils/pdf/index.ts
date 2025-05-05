@@ -1,100 +1,17 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { generateValuationPdf } from './pdfGeneratorService';
-import { ReportData as ReportDataType } from './types';
+import { ReportData } from './types';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+import { ValuationResult } from '@/utils/valuation/types';
+import { generateValuationPdf } from './pdfGenerator';
 
-// Update the ReportData interface to align with the one in types.ts
-export interface ReportData {
-  vin: string;
-  make: string;
-  model: string;
-  year: number | string; // Match types.ts by supporting both number and string
-  mileage: string | number;
-  condition: string;
-  zipCode: string;
-  estimatedValue: number;
-  confidenceScore: number;
-  color: string;
-  bodyStyle: string;
-  bodyType: string;
-  fuelType: string;
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
-  isPremium: boolean;
-  valuationId?: string;
-}
-
-export const convertVehicleInfoToReportData = (vehicleInfo: any, valuationData: any): ReportData => {
-  return {
-    vin: vehicleInfo.vin || 'Unknown',
-    make: vehicleInfo.make,
-    model: vehicleInfo.model,
-    year: vehicleInfo.year,
-    mileage: typeof vehicleInfo.mileage === 'number' ? vehicleInfo.mileage.toString() : vehicleInfo.mileage || '0',
-    condition: valuationData.condition || vehicleInfo.condition || 'Not Specified',
-    zipCode: vehicleInfo.zipCode || valuationData.zipCode || '',
-    estimatedValue: valuationData.estimatedValue || 0,
-    confidenceScore: valuationData.confidenceScore || 80,
-    color: vehicleInfo.color || 'Not Specified',
-    bodyStyle: vehicleInfo.bodyType || 'Not Specified',
-    bodyType: vehicleInfo.bodyType || 'Not Specified',
-    fuelType: vehicleInfo.fuelType || 'Not Specified',
-    aiCondition: valuationData.aiConditionData || null,
-    isPremium: false,
-    valuationId: vehicleInfo.valuationId
-  };
-};
-
-export const downloadPdf = async (reportData: ReportData): Promise<void> => {
+/**
+ * Downloads a PDF report with the provided data
+ * @param data The data to include in the PDF
+ */
+export async function downloadPdf(data: ReportData): Promise<void> {
   try {
-    // Check if this is a premium report and if user has purchased access
-    let isPremiumUnlocked = false;
-    
-    if (reportData.valuationId) {
-      const { data: valuation, error } = await supabase
-        .from('valuations')
-        .select('*')
-        .eq('id', reportData.valuationId)
-        .single();
-        
-      if (error) {
-        console.error('Error checking premium status:', error);
-      } else {
-        // Using type assertion to safely access premium_unlocked
-        type ValuationWithPremium = typeof valuation & { premium_unlocked?: boolean };
-        const valuationData = valuation as ValuationWithPremium;
-        
-        isPremiumUnlocked = !!valuationData.premium_unlocked;
-      }
-    }
-    
-    // If this is a premium report but not unlocked, redirect to purchase
-    if (reportData.isPremium && !isPremiumUnlocked) {
-      toast.error('This is a premium report. Please purchase to download.');
-      // Redirect to premium purchase page
-      window.location.href = '/premium?valuationId=' + reportData.valuationId;
-      return;
-    }
-    
     // Generate the PDF
-    let pdfBytes;
-    
-    if (reportData.isPremium) {
-      // Generate premium report with additional features
-      // (This will be implemented in pdfGeneratorService.ts)
-      pdfBytes = await generateValuationPdf({
-        ...reportData, 
-        isPremium: true
-      } as ReportDataType); // Use type assertion to match the expected type
-    } else {
-      // Generate basic report
-      pdfBytes = await generateValuationPdf(reportData as ReportDataType); // Use type assertion to match the expected type
-    }
+    const pdfBytes = await generateValuationPdf(data);
     
     // Create a blob from the PDF bytes
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -102,26 +19,61 @@ export const downloadPdf = async (reportData: ReportData): Promise<void> => {
     // Create a URL for the blob
     const url = URL.createObjectURL(blob);
     
-    // Create a link element
+    // Create an anchor element and trigger a download
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${reportData.year}_${reportData.make}_${reportData.model}_valuation.pdf`;
-    
-    // Append the link to the body
+    link.download = `${data.make}-${data.model}-${data.year}-valuation.pdf`;
     document.body.appendChild(link);
-    
-    // Click the link
     link.click();
     
-    // Remove the link
+    // Clean up
     document.body.removeChild(link);
-    
-    // Log success
-    console.log('PDF downloaded successfully');
-    toast.success('PDF report downloaded successfully');
-    
-  } catch (err) {
-    console.error('Error downloading PDF:', err);
-    toast.error('Failed to download PDF report');
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    throw error;
   }
-};
+}
+
+/**
+ * Converts vehicle info and valuation data to the report data format
+ */
+export function convertVehicleInfoToReportData(
+  vehicleInfo: DecodedVehicleInfo,
+  valuationData: {
+    estimatedValue: number;
+    mileage: string | number;
+    condition: string;
+    zipCode: string;
+    confidenceScore: number | null;
+    adjustments?: any[];
+    fuelType?: string;
+    isPremium?: boolean;
+    explanation?: string;
+    aiCondition?: {
+      condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+      confidenceScore: number;
+      issuesDetected?: string[];
+      aiSummary?: string;
+    } | null;
+  }
+): ReportData {
+  return {
+    vin: vehicleInfo.vin,
+    make: vehicleInfo.make,
+    model: vehicleInfo.model,
+    year: vehicleInfo.year,
+    mileage: valuationData.mileage,
+    condition: valuationData.condition,
+    zipCode: valuationData.zipCode,
+    estimatedValue: valuationData.estimatedValue,
+    confidenceScore: valuationData.confidenceScore,
+    fuelType: valuationData.fuelType || vehicleInfo.fuelType,
+    color: vehicleInfo.color,
+    bodyStyle: vehicleInfo.bodyType,
+    bodyType: vehicleInfo.bodyType,
+    explanation: valuationData.explanation,
+    isPremium: valuationData.isPremium || false,
+    aiCondition: valuationData.aiCondition
+  };
+}

@@ -2,40 +2,42 @@
 import { PDFPage, rgb, PDFFont } from 'pdf-lib';
 
 /**
- * Draw a verification badge based on the confidence score
+ * Draw a verification badge based on confidence score
  */
 export function drawVerificationBadge(
   page: PDFPage,
   confidenceScore: number,
-  boxY: number,
+  yPosition: number,
   width: number,
   margin: number,
-  bold: PDFFont
+  boldFont: PDFFont
 ): void {
-  if (confidenceScore >= 80) {
-    // Draw verification badge
-    const badgeX = width - margin - 120;
-    const badgeY = boxY + 55;
+  // Only show badge if confidence is high enough
+  if (confidenceScore >= 70) {
+    const badgeWidth = 120;
+    const badgeHeight = 30;
+    const badgeX = width - badgeWidth - margin - 10;
+    const badgeY = yPosition + 10;
     
-    // Badge background
+    // Draw verification badge
     page.drawRectangle({
       x: badgeX,
       y: badgeY,
-      width: 110,
-      height: 30,
-      color: rgb(0.13, 0.7, 0.3), // Green
-      borderColor: rgb(0.1, 0.6, 0.2),
+      width: badgeWidth,
+      height: badgeHeight,
+      color: rgb(0.9, 0.95, 1),
+      borderColor: rgb(0, 0.5, 0.8),
       borderWidth: 1,
-      opacity: 0.2,
+      opacity: 0.9,
     });
     
-    // Badge text
-    page.drawText(`AI VERIFIED ${confidenceScore}%`, {
-      x: badgeX + 15,
+    // Add verification text
+    page.drawText('✓ AI VERIFIED', {
+      x: badgeX + 10,
       y: badgeY + 10,
-      size: 10,
-      font: bold,
-      color: rgb(0.13, 0.7, 0.3), // Green
+      size: 12,
+      font: boldFont,
+      color: rgb(0, 0.5, 0.8)
     });
   }
 }
