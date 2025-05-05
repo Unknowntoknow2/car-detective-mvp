@@ -1,13 +1,94 @@
-import { ReportData, ValuationReportOptions } from './types';
-import { generateBasicReport } from './generators/basicReportGenerator';
-import { generatePremiumReport } from './generators/premiumReportGenerator';
 
-/**
- * Downloads a PDF report with the given data
- */
-export async function downloadPdf(data: ReportData): Promise<void> {
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { generateValuationPdf } from './pdfGeneratorService';
+
+export interface ReportData {
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: string;
+  condition: string;
+  zipCode: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  color: string;
+  bodyStyle: string;
+  bodyType: string;
+  fuelType: string;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
+  isPremium: boolean;
+  valuationId?: string;
+}
+
+export const convertVehicleInfoToReportData = (vehicleInfo: any, valuationData: any): ReportData => {
+  return {
+    vin: vehicleInfo.vin || 'Unknown',
+    make: vehicleInfo.make,
+    model: vehicleInfo.model,
+    year: vehicleInfo.year,
+    mileage: typeof vehicleInfo.mileage === 'number' ? vehicleInfo.mileage.toString() : vehicleInfo.mileage || '0',
+    condition: valuationData.condition || vehicleInfo.condition || 'Not Specified',
+    zipCode: vehicleInfo.zipCode || valuationData.zipCode || '',
+    estimatedValue: valuationData.estimatedValue || 0,
+    confidenceScore: valuationData.confidenceScore || 80,
+    color: vehicleInfo.color || 'Not Specified',
+    bodyStyle: vehicleInfo.bodyType || 'Not Specified',
+    bodyType: vehicleInfo.bodyType || 'Not Specified',
+    fuelType: vehicleInfo.fuelType || 'Not Specified',
+    aiCondition: valuationData.aiConditionData || null,
+    isPremium: false,
+    valuationId: vehicleInfo.valuationId
+  };
+};
+
+export const downloadPdf = async (reportData: ReportData): Promise<void> => {
   try {
-    const pdfBytes = await generatePdf(data);
+    // Check if this is a premium report and if user has purchased access
+    let isPremiumUnlocked = false;
+    
+    if (reportData.valuationId) {
+      const { data: valuation, error } = await supabase
+        .from('valuations')
+        .select('premium_unlocked')
+        .eq('id', reportData.valuationId)
+        .single();
+        
+      if (error) {
+        console.error('Error checking premium status:', error);
+      } else {
+        isPremiumUnlocked = valuation?.premium_unlocked || false;
+      }
+    }
+    
+    // If this is a premium report but not unlocked, redirect to purchase
+    if (reportData.isPremium && !isPremiumUnlocked) {
+      toast.error('This is a premium report. Please purchase to download.');
+      // Redirect to premium purchase page
+      window.location.href = '/premium?valuationId=' + reportData.valuationId;
+      return;
+    }
+    
+    // Generate the PDF
+    let pdfBytes;
+    
+    if (reportData.isPremium) {
+      // Generate premium report with additional features
+      // (This will be implemented in pdfGeneratorService.ts)
+      pdfBytes = await generateValuationPdf({
+        ...reportData, 
+        isPremium: true
+      });
+    } else {
+      // Generate basic report
+      pdfBytes = await generateValuationPdf(reportData);
+    }
     
     // Create a blob from the PDF bytes
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -15,120 +96,26 @@ export async function downloadPdf(data: ReportData): Promise<void> {
     // Create a URL for the blob
     const url = URL.createObjectURL(blob);
     
-    // Create a temporary anchor element
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${data.make}_${data.model}_valuation_report.pdf`;
+    // Create a link element
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${reportData.year}_${reportData.make}_${reportData.model}_valuation.pdf`;
     
-    // Append to the document and trigger a click
-    document.body.appendChild(a);
-    a.click();
+    // Append the link to the body
+    document.body.appendChild(link);
     
-    // Clean up
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw error;
-  }
-}
-
-/**
- * Generates a PDF report with the given data
- */
-export async function generatePdf(data: ReportData): Promise<Uint8Array> {
-  try {
-    // Use the premium generator if this is a premium report
-    if (data.isPremium) {
-      // Convert ReportData to PremiumReportInput format
-      const premiumInput = {
-        vehicleInfo: {
-          vin: data.vin,
-          year: typeof data.year === 'string' ? parseInt(data.year, 10) : data.year as number,
-          make: data.make,
-          model: data.model,
-          mileage: typeof data.mileage === 'string' ? parseInt(data.mileage as string, 10) : data.mileage as number,
-          zipCode: data.zipCode
-        },
-        valuation: {
-          basePrice: data.estimatedValue,
-          estimatedValue: data.estimatedValue,
-          priceRange: data.priceRange || [data.estimatedValue * 0.9, data.estimatedValue * 1.1] as [number, number],
-          confidenceScore: data.confidenceScore || 85,
-          adjustments: Array.isArray(data.adjustments) 
-            ? data.adjustments.map(adj => {
-                if ('factor' in adj) {
-                  return { label: adj.factor, value: adj.impact };
-                }
-                return adj;
-              })
-            : []
-        },
-        carfaxData: data.carfaxData,
-        forecast: undefined // Add if available in your data
-      };
-      
-      return await generatePremiumReport(premiumInput);
-    }
+    // Click the link
+    link.click();
     
-    // Otherwise use the basic generator
-    return await generateBasicReport(data);
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw error;
+    // Remove the link
+    document.body.removeChild(link);
+    
+    // Log success
+    console.log('PDF downloaded successfully');
+    toast.success('PDF report downloaded successfully');
+    
+  } catch (err) {
+    console.error('Error downloading PDF:', err);
+    toast.error('Failed to download PDF report');
   }
-}
-
-/**
- * Helper function to convert vehicle info to report data format
- */
-export function convertVehicleInfoToReportData(vehicleInfo: any, estimatedValueOrOptions: number | any): ReportData {
-  // Check if second parameter is a number or an options object
-  if (typeof estimatedValueOrOptions === 'number') {
-    return {
-      vin: vehicleInfo.vin || '',
-      make: vehicleInfo.make || '',
-      model: vehicleInfo.model || '',
-      year: vehicleInfo.year || '',
-      mileage: vehicleInfo.mileage || '0', // Ensure mileage is always provided
-      plate: vehicleInfo.plate || '',
-      state: vehicleInfo.state || '',
-      color: vehicleInfo.color || '',
-      estimatedValue: estimatedValueOrOptions || 0,
-      fuelType: vehicleInfo.fuelType || '',
-      condition: vehicleInfo.condition || '',
-      zipCode: vehicleInfo.zipCode || '',
-      bodyStyle: vehicleInfo.bodyType || '',
-      bodyType: vehicleInfo.bodyType || '',
-      confidenceScore: null,
-    };
-  } else {
-    // It's an options object
-    const options = estimatedValueOrOptions;
-    return {
-      vin: vehicleInfo.vin || '',
-      make: vehicleInfo.make || '',
-      model: vehicleInfo.model || '',
-      year: vehicleInfo.year || '',
-      mileage: vehicleInfo.mileage || options.mileage || '0',
-      plate: vehicleInfo.plate || '',
-      state: vehicleInfo.state || '',
-      color: vehicleInfo.color || '',
-      estimatedValue: options.estimatedValue || 0,
-      fuelType: options.fuelType || '',
-      condition: options.condition || '',
-      zipCode: options.zipCode || '',
-      confidenceScore: options.confidenceScore,
-      adjustments: options.adjustments || [],
-      carfaxData: options.carfaxData,
-      isPremium: options.isPremium,
-      bodyStyle: vehicleInfo.bodyType || '',
-      bodyType: vehicleInfo.bodyType || '',
-      explanation: options.explanation || ''
-    };
-  }
-}
-
-// Export the generator functions
-export { generateBasicReport } from './generators/basicReportGenerator';
-export { generatePremiumReport } from './generators/premiumReportGenerator';
+};
