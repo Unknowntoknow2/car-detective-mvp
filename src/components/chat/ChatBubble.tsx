@@ -27,52 +27,58 @@ export function ChatBubble({
   useEffect(() => {
     if (!hasShownIntro && valuationId) {
       const timer = setTimeout(() => {
-        toast.custom((t) => (
-          <div className={`${t && typeof t === 'object' && 'visible' in t ? (t.visible ? 'animate-enter' : 'animate-leave') : 'animate-enter'} 
-            max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
-            <div className="flex-1 p-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 pt-0.5">
-                  <BrainCircuit className="h-10 w-10 rounded-full bg-primary/10 p-2 text-primary" />
-                </div>
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    Car Detective AI Assistant
-                  </p>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Have questions about your car's value? I can help explain your valuation or suggest ways to increase it.
-                  </p>
-                  <div className="mt-2 flex">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="mr-2"
-                      onClick={() => {
-                        setIsOpen(true);
-                        if (t && typeof t === 'object') {
-                          toast.dismiss(t);
-                        }
-                      }}
-                    >
-                      Ask a question
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        if (t && typeof t === 'object') {
-                          toast.dismiss(t);
-                        }
-                      }}
-                    >
-                      Later
-                    </Button>
+        toast.custom((t) => {
+          // Safely access properties with proper null checks
+          const visibleClass = t && typeof t === 'object' && 'visible' in t 
+            ? (t.visible ? 'animate-enter' : 'animate-leave') 
+            : 'animate-enter';
+            
+          return (
+            <div className={`${visibleClass} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
+              <div className="flex-1 p-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 pt-0.5">
+                    <BrainCircuit className="h-10 w-10 rounded-full bg-primary/10 p-2 text-primary" />
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      Car Detective AI Assistant
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Have questions about your car's value? I can help explain your valuation or suggest ways to increase it.
+                    </p>
+                    <div className="mt-2 flex">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="mr-2"
+                        onClick={() => {
+                          setIsOpen(true);
+                          if (t && typeof t === 'object') {
+                            toast.dismiss(t);
+                          }
+                        }}
+                      >
+                        Ask a question
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          if (t && typeof t === 'object') {
+                            toast.dismiss(t);
+                          }
+                        }}
+                      >
+                        Later
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ), { duration: 8000 });
+          );
+        }, { duration: 8000 });
         setHasShownIntro(true);
       }, 3000);
       
