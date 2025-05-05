@@ -1,21 +1,22 @@
 
 import { Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { MIN_FILES } from '@/types/photo';
 
 interface PhotoGuidanceProps {
   photoCount: number;
 }
 
 export function PhotoGuidance({ photoCount }: PhotoGuidanceProps) {
-  // Only show the alert if we have less than 3 photos
-  if (photoCount >= 3) return null;
+  // Only show the alert if we have less than the minimum required photos
+  if (photoCount >= MIN_FILES) return null;
   
   return (
     <Alert>
       <Info className="h-4 w-4" />
       <AlertTitle>Enhanced valuation with photos</AlertTitle>
       <AlertDescription>
-        Upload at least 3 photos (up to 5) of your vehicle for an AI-enhanced valuation that's more accurate.
+        Upload at least {MIN_FILES} photos (up to 5) of your vehicle for an AI-enhanced valuation that's more accurate.
       </AlertDescription>
     </Alert>
   );

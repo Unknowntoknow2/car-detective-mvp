@@ -1,8 +1,8 @@
 
 export interface ConditionAssessmentResult {
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  id?: string;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
   confidenceScore: number;
   issuesDetected: string[];
   aiSummary: string;
-  id?: string;
 }

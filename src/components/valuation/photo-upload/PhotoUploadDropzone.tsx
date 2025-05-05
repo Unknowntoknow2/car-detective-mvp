@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { MIN_FILES, MAX_FILES } from '@/types/photo';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
+const TOTAL_MAX_SIZE = 15 * 1024 * 1024; // 15MB total
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 
 const fileSchema = z.object({
@@ -60,6 +61,12 @@ export function PhotoUploadDropzone({
     try {
       if (files.length + currentFileCount > MAX_FILES) {
         toast.error(`You can only upload up to ${MAX_FILES} images in total. ${MAX_FILES - currentFileCount} remaining.`);
+        return;
+      }
+      
+      const totalSize = files.reduce((acc, file) => acc + file.size, 0);
+      if (totalSize > TOTAL_MAX_SIZE) {
+        toast.error(`Total file size exceeds 15MB limit.`);
         return;
       }
       
@@ -129,11 +136,11 @@ export function PhotoUploadDropzone({
         <div>
           <p className="text-sm font-medium">
             {currentFileCount === 0 
-              ? 'Upload 3-5 photos of your vehicle for better analysis'
+              ? `Upload ${MIN_FILES}-${MAX_FILES} photos of your vehicle for better analysis`
               : `Add up to ${remainingFiles} more photos`}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            JPEG or PNG, max 5MB each
+            JPEG or PNG, max 5MB each (15MB total)
           </p>
         </div>
         <Button 

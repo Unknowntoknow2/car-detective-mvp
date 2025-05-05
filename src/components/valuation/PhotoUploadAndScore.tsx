@@ -10,9 +10,14 @@ import { usePhotoScoring } from '@/hooks/usePhotoScoring';
 interface PhotoUploadAndScoreProps {
   valuationId: string;
   onScoreChange?: (score: number, aiCondition?: any) => void;
+  isPremium?: boolean;
 }
 
-export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadAndScoreProps) {
+export function PhotoUploadAndScore({ 
+  valuationId, 
+  onScoreChange,
+  isPremium = false 
+}: PhotoUploadAndScoreProps) {
   const {
     uploadPhotos,
     photos,
@@ -36,7 +41,7 @@ export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadA
   
   return (
     <div className="space-y-4">
-      <PhotoHeader />
+      <PhotoHeader isPremium={isPremium} />
       
       <PhotoGuidance photoCount={photos.length} />
       

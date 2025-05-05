@@ -116,7 +116,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           vin: valuationData.vin, // This is optional in the DB
           valuation: estimatedValue || 0,
           confidence_score: photoSubmitted ? 92 : 85, // Higher confidence with photo
-          condition_score: photoScore ? Math.round(photoScore) : null,
+          condition_score: photoScore ? Math.round(photoScore * 100) : null,
         })
         .select()
         .single();
