@@ -28,7 +28,7 @@ export function ChatBubble({
     if (!hasShownIntro && valuationId) {
       const timer = setTimeout(() => {
         toast.custom((t) => (
-          <div className={`${typeof t === 'object' && 'visible' in t ? (t.visible ? 'animate-enter' : 'animate-leave') : 'animate-enter'} 
+          <div className={`${t && typeof t === 'object' && 'visible' in t ? (t.visible ? 'animate-enter' : 'animate-leave') : 'animate-enter'} 
             max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
             <div className="flex-1 p-4">
               <div className="flex items-start">
@@ -49,7 +49,9 @@ export function ChatBubble({
                       className="mr-2"
                       onClick={() => {
                         setIsOpen(true);
-                        toast.dismiss(t);
+                        if (t && typeof t === 'object') {
+                          toast.dismiss(t);
+                        }
                       }}
                     >
                       Ask a question
@@ -57,7 +59,11 @@ export function ChatBubble({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => toast.dismiss(t)}
+                      onClick={() => {
+                        if (t && typeof t === 'object') {
+                          toast.dismiss(t);
+                        }
+                      }}
                     >
                       Later
                     </Button>
