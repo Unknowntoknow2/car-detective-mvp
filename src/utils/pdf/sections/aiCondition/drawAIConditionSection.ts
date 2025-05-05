@@ -86,13 +86,13 @@ export function drawAIConditionSection(
   
   // Draw issues or summary
   currentY = drawConditionIssues(
-    page, 
-    aiCondition.aiSummary, 
-    aiCondition.issuesDetected, 
-    currentY, 
+    page,
+    currentY,
     margin,
     boxWidth,
-    { regular, italic }
+    { regular, italic },
+    aiCondition.aiSummary,
+    aiCondition.issuesDetected
   );
   
   // Add verification badge if confidence is high enough

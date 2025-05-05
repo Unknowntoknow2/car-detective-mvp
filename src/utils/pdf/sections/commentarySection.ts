@@ -1,7 +1,37 @@
 
 import { PDFPage, rgb } from 'pdf-lib';
 import { PdfFonts, PdfConstants } from '../components/pdfCommon';
-import { wrapText } from '../helpers/textUtils';
+
+/**
+ * Function to wrap text based on font and font size
+ * @param text Text to wrap
+ * @param font Font to measure text width with
+ * @param fontSize Size of the font
+ * @param maxWidth Maximum width before wrapping
+ */
+function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+    const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+    
+    if (testWidth > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+}
 
 /**
  * Draw expert valuation commentary section on the PDF

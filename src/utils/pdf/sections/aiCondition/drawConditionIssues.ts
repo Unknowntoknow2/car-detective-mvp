@@ -7,15 +7,15 @@ import { PDFPage, rgb, PDFFont } from 'pdf-lib';
  */
 export function drawConditionIssues(
   page: PDFPage,
-  aiSummary?: string,
-  issuesDetected?: string[],
   currentY: number,
   margin: number,
   boxWidth: number,
   fonts: {
     regular: PDFFont;
     italic: PDFFont;
-  }
+  },
+  aiSummary?: string,
+  issuesDetected?: string[]
 ): number {
   const { regular, italic } = fonts;
   let yPos = currentY;
