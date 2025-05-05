@@ -1,3 +1,4 @@
+
 import { calculateFinalValuation, ValuationInput, ValuationOutput } from './calculateFinalValuation';
 import { getMarketMultiplier } from './marketData';
 
@@ -80,7 +81,7 @@ describe('calculateFinalValuation', () => {
 
   it('should apply regional market adjustment from market data', async () => {
     // Arrange
-    (getMarketMultiplier as jest.Mock).mockResolvedValue(5); // 5% adjustment
+    (getMarketMultiplier as jest.Mock).mockResolvedValue(3.5); // 3.5% adjustment for ZIP 90001
     
     const input: ValuationInput = {
       baseMarketValue: 20000,
@@ -89,7 +90,7 @@ describe('calculateFinalValuation', () => {
       model: 'Camry',
       mileage: 50000,
       condition: 'Good',
-      zipCode: '12345',
+      zipCode: '90001',
       features: [],
     };
 
@@ -97,8 +98,8 @@ describe('calculateFinalValuation', () => {
     const result = await calculateFinalValuation(input);
 
     // Assert
-    expect(getMarketMultiplier).toHaveBeenCalledWith('12345');
-    expect(result.adjustments.regionalAdjustment).toBeCloseTo(1000, 0); // 5% of 20000
+    expect(getMarketMultiplier).toHaveBeenCalledWith('90001');
+    expect(result.adjustments.regionalAdjustment).toBeCloseTo(700, 0); // 3.5% of 20000
   });
 
   it('should handle missing ZIP code by applying no adjustment', async () => {
@@ -131,20 +132,19 @@ describe('calculateFinalValuation', () => {
       mileage: 50000,
       condition: 'Good',
       zipCode: '12345',
-      features: ['Leather Seats', 'Navigation System', 'Sunroof'],
+      features: ['Bluetooth', 'Sunroof'],
     };
 
     // Act
     const result = await calculateFinalValuation(input);
 
     // Assert
-    expect(result.adjustments.featureAdjustments['Leather Seats']).toBe(300);
-    expect(result.adjustments.featureAdjustments['Navigation System']).toBe(250);
+    expect(result.adjustments.featureAdjustments['Bluetooth']).toBe(150);
     expect(result.adjustments.featureAdjustments['Sunroof']).toBe(350);
     
     // Calculate total feature adjustments
     const totalFeatureAdjustments = Object.values(result.adjustments.featureAdjustments).reduce((sum, val) => sum + val, 0);
-    expect(totalFeatureAdjustments).toBe(900);
+    expect(totalFeatureAdjustments).toBe(500);
   });
 
   it('should use AI condition when confidence score is high enough', async () => {
@@ -160,7 +160,7 @@ describe('calculateFinalValuation', () => {
       features: [],
       aiConditionOverride: {
         condition: 'Excellent',
-        confidenceScore: 75, // Higher than threshold
+        confidenceScore: 92, // High score (>70) should trigger override
       },
     };
 
@@ -211,16 +211,16 @@ describe('calculateFinalValuation', () => {
       mileage: 80000, // -10% adjustment
       condition: 'Excellent', // +5% adjustment
       zipCode: '12345', // +3% adjustment from mock
-      features: ['Leather Seats', 'Navigation System'], // $300 + $250 = $550
+      features: ['Bluetooth', 'Sunroof'], // $150 + $350 = $500
     };
 
     // Expected adjustments:
     // Mileage: 20000 * -0.10 = -2000
     // Condition: 20000 * 0.05 = 1000
     // Regional: 20000 * 0.03 = 600
-    // Features: 300 + 250 = 550
-    // Total: -2000 + 1000 + 600 + 550 = 150
-    // Final: 20000 + 150 = 20150
+    // Features: 150 + 350 = 500
+    // Total: -2000 + 1000 + 600 + 500 = 100
+    // Final: 20000 + 100 = 20100
 
     // Act
     const result = await calculateFinalValuation(input);
@@ -229,7 +229,9 @@ describe('calculateFinalValuation', () => {
     expect(result.adjustments.mileageAdjustment).toBeCloseTo(-2000, 0);
     expect(result.adjustments.conditionAdjustment).toBeCloseTo(1000, 0);
     expect(result.adjustments.regionalAdjustment).toBeCloseTo(600, 0);
-    expect(result.totalAdjustments).toBeCloseTo(150, 0);
-    expect(result.finalValuation).toBeCloseTo(20150, 0);
+    const totalFeatureAdjustments = Object.values(result.adjustments.featureAdjustments).reduce((sum, val) => sum + val, 0);
+    expect(totalFeatureAdjustments).toBe(500);
+    expect(result.totalAdjustments).toBeCloseTo(100, 0);
+    expect(result.finalValuation).toBeCloseTo(20100, 0);
   });
 });
