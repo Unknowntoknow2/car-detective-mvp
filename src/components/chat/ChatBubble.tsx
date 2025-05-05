@@ -28,11 +28,13 @@ export function ChatBubble({
     if (!hasShownIntro && valuationId) {
       const timer = setTimeout(() => {
         toast.custom((t) => {
-          // Safely access properties with proper null checks
-          let visibleClass = 'animate-enter';
-          if (t !== null && typeof t === 'object' && 'visible' in t) {
-            visibleClass = t.visible ? 'animate-enter' : 'animate-leave';
+          // Safely handle null or undefined t
+          if (t === null || typeof t !== 'object') {
+            return null;
           }
+          
+          // Safely access properties with proper null checks
+          const visibleClass = 'visible' in t && t.visible ? 'animate-enter' : 'animate-leave';
             
           return (
             <div className={`${visibleClass} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
