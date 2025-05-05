@@ -1,5 +1,5 @@
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { usePhotoScoring } from './usePhotoScoring';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -95,16 +95,14 @@ describe('usePhotoScoring', () => {
       new File(['test3'], 'test3.jpg', { type: 'image/jpeg' }),
     ];
 
-    // Render the hook
-    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring('test-valuation-id'));
+    // Render the hook with the modern approach
+    const { result } = renderHook(() => usePhotoScoring('test-valuation-id'));
 
     // Upload the photos
     let uploadResult;
-    act(() => {
-      uploadResult = result.current.uploadPhotos(mockFiles);
+    await act(async () => {
+      uploadResult = await result.current.uploadPhotos(mockFiles);
     });
-
-    await waitForNextUpdate();
 
     // Verify results
     expect(mockUpload).toHaveBeenCalledTimes(3);
@@ -138,15 +136,13 @@ describe('usePhotoScoring', () => {
       new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
     ];
 
-    // Render the hook
-    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring('test-valuation-id'));
+    // Render the hook with the modern approach
+    const { result } = renderHook(() => usePhotoScoring('test-valuation-id'));
 
     // Upload the photos
-    act(() => {
-      result.current.uploadPhotos(mockFiles);
+    await act(async () => {
+      await result.current.uploadPhotos(mockFiles);
     });
-
-    await waitForNextUpdate();
 
     // Verify error state
     expect(result.current.error).toBe('Failed to upload photos: Upload failed');
@@ -202,15 +198,13 @@ describe('usePhotoScoring', () => {
       new File(['test3'], 'test3.jpg', { type: 'image/jpeg' }),
     ];
 
-    // Render the hook
-    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring('test-valuation-id'));
+    // Render the hook with the modern approach
+    const { result } = renderHook(() => usePhotoScoring('test-valuation-id'));
 
     // Upload the photos
-    act(() => {
-      result.current.uploadPhotos(mockFiles);
+    await act(async () => {
+      await result.current.uploadPhotos(mockFiles);
     });
-
-    await waitForNextUpdate();
 
     // Verify that we still get a partial result with the successful photos
     expect(result.current.error).toBe('One or more photos could not be processed');
