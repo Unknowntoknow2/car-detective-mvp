@@ -66,6 +66,14 @@ test.describe('Vehicle Valuation Flow', () => {
     // Step 15: Verify premium gate is shown
     await expect(page.getByText(/Premium Report/i)).toBeVisible();
     await expect(page.getByText(/Unlock Premium/i)).toBeVisible();
+    
+    // Step 16: Check dealer offers tab is available
+    await page.getByRole('tab', { name: /Dealer Offers/i }).click();
+    await expect(page.getByText(/Get purchase offers/i)).toBeVisible();
+    
+    // Step 17: Request dealer offers
+    await page.getByRole('button', { name: /Request Dealer Offers/i }).click();
+    await expect(page.getByText(/Offer Requests Sent/i)).toBeVisible();
   });
   
   test('should display premium-gated features correctly', async ({ page }) => {
@@ -82,5 +90,56 @@ test.describe('Vehicle Valuation Flow', () => {
     
     // Verify the prompt to unlock premium shows clear pricing
     await expect(page.getByText(/\$[\d.]+/)).toBeVisible();
+  });
+  
+  test('should allow dealers to submit offers', async ({ page }) => {
+    // Log in as a dealer
+    await page.goto('/auth');
+    await page.getByLabel('Email').fill('dealer@example.com');
+    await page.getByLabel('Password').fill('password123');
+    await page.getByRole('button', { name: /Sign In/i }).click();
+    
+    // Navigate to a valuation
+    await page.goto('/valuation/result?mock=true');
+    
+    // Navigate to dealer offers tab
+    await page.getByRole('tab', { name: /Dealer Offers/i }).click();
+    
+    // Fill in offer details
+    await page.getByLabel('Offer Amount').fill('15000');
+    await page.getByLabel('Message').fill('Great vehicle! We would love to buy it.');
+    
+    // Submit the offer
+    await page.getByRole('button', { name: /Submit Offer/i }).click();
+    
+    // Verify submission was successful
+    await expect(page.getByText(/Offer submitted successfully/i)).toBeVisible();
+  });
+  
+  test('should display offers to users and allow accepting/rejecting', async ({ page }) => {
+    // Log in as a user
+    await page.goto('/auth');
+    await page.getByLabel('Email').fill('user@example.com');
+    await page.getByLabel('Password').fill('password123');
+    await page.getByRole('button', { name: /Sign In/i }).click();
+    
+    // Navigate to dashboard
+    await page.goto('/dashboard');
+    
+    // Check for offer notification badge
+    await expect(page.getByText(/New Dealer Offer/i)).toBeVisible();
+    
+    // Navigate to offers page
+    await page.getByRole('tab', { name: /Offers/i }).click();
+    
+    // Verify offer details are displayed
+    await expect(page.getByText(/\$15,000/)).toBeVisible();
+    await expect(page.getByText(/Great vehicle! We would love to buy it./i)).toBeVisible();
+    
+    // Accept the offer
+    await page.getByRole('button', { name: /Accept Offer/i }).click();
+    
+    // Verify acceptance
+    await expect(page.getByText(/Offer accepted/i)).toBeVisible();
   });
 });

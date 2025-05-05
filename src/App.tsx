@@ -8,6 +8,8 @@ import UserDashboardPage from './pages/UserDashboardPage';
 import AuthPage from './pages/AuthPage';
 import { AuthProvider } from './contexts/AuthContext';
 import PremiumSuccessPage from './pages/PremiumSuccessPage';
+import DealerDashboard from './pages/DealerDashboard';
+import DealerOffersPage from './pages/dealer/DealerOffersPage';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Route path="/dashboard" element={<UserDashboardPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/valuation/premium-success" element={<PremiumSuccessPage />} />
+          <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+          <Route path="/dealer/offers" element={<DealerOffersPage />} />
         </Routes>
       </Router>
     </AuthProvider>
