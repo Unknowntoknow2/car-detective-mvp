@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -9,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ValuationHeader, NextStepsCard } from './valuation-complete';
 import { calculateValuation } from '@/utils/valuationEngine';
+import { ChatBubble } from '@/components/chat/ChatBubble';
 
 // Add this interface to handle audit trail type
 export interface AuditTrail {

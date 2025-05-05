@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,7 +39,16 @@ export function useValuationChat(valuationId?: string) {
         
       if (fetchError) throw new Error(fetchError.message);
       
-      setMessages(data || []);
+      // Cast the role to ensure it's either 'user' or 'assistant'
+      if (data) {
+        const typedMessages = data.map(msg => ({
+          ...msg,
+          role: msg.role as 'user' | 'assistant'
+        }));
+        setMessages(typedMessages);
+      } else {
+        setMessages([]);
+      }
     } catch (err) {
       console.error('Error fetching chat history:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch chat history'));

@@ -33,13 +33,19 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     );
   }
 
+  // Ensure all adjustment objects have a description property
+  const adjustmentsWithDescription = data.adjustments ? data.adjustments.map(adj => ({
+    ...adj,
+    description: adj.description || `${adj.factor} adjustment` // Provide default description if missing
+  })) : [];
+
   return (
     <div className="relative">
       <ValuationResults
         estimatedValue={data.estimatedValue}
         confidenceScore={data.confidenceScore || 85}
         basePrice={data.estimatedValue * 0.9}
-        adjustments={data.adjustments}
+        adjustments={adjustmentsWithDescription}
         priceRange={data.priceRange}
         vehicleInfo={{
           year: data.year,

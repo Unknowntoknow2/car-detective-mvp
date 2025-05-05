@@ -15,7 +15,7 @@ export function ChatBubble({ valuationId, initialMessage }: ChatBubbleProps) {
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {isOpen ? (
           <motion.div
             key="chat-interface"
