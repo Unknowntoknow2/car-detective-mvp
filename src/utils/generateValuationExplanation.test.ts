@@ -126,10 +126,7 @@ describe('generateValuationExplanation', () => {
     await expect(generateValuationExplanation(params)).rejects.toThrow('No explanation received from server');
   });
 
-  it('should provide a fallback explanation if an error occurs', async () => {
-    // This test verifies that a fallback would be in place, but our current implementation throws
-    // If you implement a fallback system, this test would need to be updated accordingly
-    
+  it('should handle network errors gracefully', async () => {
     // Arrange
     (supabase.functions.invoke as jest.Mock).mockRejectedValue(new Error('Network error'));
     
@@ -150,11 +147,5 @@ describe('generateValuationExplanation', () => {
 
     // Act & Assert
     await expect(generateValuationExplanation(params)).rejects.toThrow('Failed to generate explanation: Network error');
-    
-    // Note: if implementing a fallback system, this test would instead check that a generic explanation is returned
-    // Something like:
-    // const result = await generateValuationExplanation(params);
-    // expect(result).toContain(`The 2018 Honda Civic`);
-    // expect(result).toContain(`was valued at $25,000`);
   });
 });

@@ -35,6 +35,8 @@ jobs:
 
     - name: Run unit tests
       run: npm test
+      env:
+        CI: true
 
     - name: Install Playwright browsers
       run: npx playwright install --with-deps
@@ -47,6 +49,15 @@ jobs:
       
     - name: Run Explanation Feature E2E tests
       run: npx playwright test e2e/explanation.spec.ts --reporter=github
+      
+    - name: Run Valuation Flow E2E tests
+      run: npx playwright test e2e/valuation-flow.spec.ts --reporter=github
+      
+    - name: Run Stripe Payment Flow E2E tests
+      run: npx playwright test e2e/stripe-flow.spec.ts --reporter=github
+      
+    - name: Run Dealer Offer Flow E2E tests
+      run: npx playwright test e2e/dealer-offer-flow.spec.ts --reporter=github
       
     - name: Upload Playwright report
       uses: actions/upload-artifact@v3

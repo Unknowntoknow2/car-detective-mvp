@@ -13,17 +13,17 @@ describe('calculateFinalValuation', () => {
     (getMarketMultiplier as jest.Mock).mockResolvedValue(0);
   });
 
-  it('should calculate mileage adjustment correctly', async () => {
-    // Test different mileage thresholds
+  it('should calculate mileage adjustment correctly for all ranges', async () => {
+    // Test mileage adjustment for different thresholds
     const testCases = [
-      { mileage: 5000, expectedAdjustment: 0.03 }, // <= 10000
-      { mileage: 20000, expectedAdjustment: 0.015 }, // <= 30000
-      { mileage: 40000, expectedAdjustment: 0 }, // <= 50000
-      { mileage: 60000, expectedAdjustment: -0.05 }, // <= 75000
-      { mileage: 90000, expectedAdjustment: -0.10 }, // <= 100000
-      { mileage: 110000, expectedAdjustment: -0.15 }, // <= 125000
-      { mileage: 140000, expectedAdjustment: -0.20 }, // <= 150000
-      { mileage: 160000, expectedAdjustment: -0.25 }, // > 150000
+      { mileage: 5000, expectedAdjustment: 0.03 },   // ≤ 10,000 miles: +3%
+      { mileage: 20000, expectedAdjustment: 0.015 }, // ≤ 30,000 miles: +1.5%
+      { mileage: 40000, expectedAdjustment: 0 },     // ≤ 50,000 miles: 0%
+      { mileage: 60000, expectedAdjustment: -0.05 }, // ≤ 75,000 miles: -5% 
+      { mileage: 90000, expectedAdjustment: -0.10 }, // ≤ 100,000 miles: -10%
+      { mileage: 110000, expectedAdjustment: -0.15 }, // ≤ 125,000 miles: -15%
+      { mileage: 140000, expectedAdjustment: -0.20 }, // ≤ 150,000 miles: -20%
+      { mileage: 160000, expectedAdjustment: -0.25 }, // > 150,000 miles: -25%
     ];
 
     for (const testCase of testCases) {
@@ -48,7 +48,7 @@ describe('calculateFinalValuation', () => {
     }
   });
 
-  it('should calculate condition adjustment correctly', async () => {
+  it('should calculate condition adjustment correctly for all levels', async () => {
     // Test different condition levels
     const testCases = [
       { condition: 'Excellent', expectedAdjustment: 0.05 },
@@ -79,7 +79,7 @@ describe('calculateFinalValuation', () => {
     }
   });
 
-  it('should apply regional market adjustment correctly', async () => {
+  it('should apply regional market adjustment from market data', async () => {
     // Arrange
     (getMarketMultiplier as jest.Mock).mockResolvedValue(5); // 5% adjustment
     
@@ -102,7 +102,7 @@ describe('calculateFinalValuation', () => {
     expect(result.adjustments.regionalAdjustment).toBeCloseTo(1000, 0); // 5% of 20000
   });
 
-  it('should calculate feature adjustments correctly', async () => {
+  it('should calculate feature adjustments accurately', async () => {
     // Arrange
     const input: ValuationInput = {
       baseMarketValue: 20000,
@@ -141,7 +141,7 @@ describe('calculateFinalValuation', () => {
       features: [],
       aiConditionOverride: {
         condition: 'Excellent',
-        confidenceScore: 75,
+        confidenceScore: 75, // Higher than threshold
       },
     };
 
@@ -154,7 +154,7 @@ describe('calculateFinalValuation', () => {
     expect(result.adjustments.conditionAdjustment).toBeCloseTo(1000, 0); // 5% of 20000
   });
 
-  it('should not use AI condition when confidence score is too low', async () => {
+  it('should NOT use AI condition when confidence score is too low', async () => {
     // Arrange
     const input: ValuationInput = {
       baseMarketValue: 20000,
@@ -180,7 +180,7 @@ describe('calculateFinalValuation', () => {
     expect(result.adjustments.conditionAdjustment).toBeCloseTo(0, 0);
   });
 
-  it('should calculate the final valuation correctly', async () => {
+  it('should calculate the final valuation correctly with all adjustments', async () => {
     // Arrange
     (getMarketMultiplier as jest.Mock).mockResolvedValue(3); // 3% adjustment
     
@@ -191,7 +191,7 @@ describe('calculateFinalValuation', () => {
       model: 'Camry',
       mileage: 80000, // -10% adjustment
       condition: 'Excellent', // +5% adjustment
-      zipCode: '12345', // +3% adjustment
+      zipCode: '12345', // +3% adjustment from mock
       features: ['Leather Seats', 'Navigation System'], // $300 + $250 = $550
     };
 
