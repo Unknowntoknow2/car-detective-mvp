@@ -92,24 +92,19 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
       setPhotos(prev => [...prev, ...newPhotos]);
       
       // Set score and AI condition
-      setPhotoScore(result.confidenceScore);
-      setAiCondition({
-        condition: result.condition,
-        confidenceScore: result.confidenceScore,
-        issuesDetected: result.issuesDetected || [],
-        aiSummary: result.aiSummary
-      });
+      setPhotoScore(result.score);
+      
+      // Check if result.aiCondition exists before setting state
+      if (result.aiCondition) {
+        setAiCondition(result.aiCondition);
+      }
       
       setUploadProgress(100);
       
+      // Return the score and aiCondition for the callback
       return {
-        score: result.confidenceScore,
-        aiCondition: {
-          condition: result.condition,
-          confidenceScore: result.confidenceScore,
-          issuesDetected: result.issuesDetected || [],
-          aiSummary: result.aiSummary
-        }
+        score: result.score,
+        aiCondition: result.aiCondition
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
