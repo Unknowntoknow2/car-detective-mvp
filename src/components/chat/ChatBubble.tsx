@@ -49,7 +49,7 @@ export function ChatBubble({
                       className="mr-2"
                       onClick={() => {
                         setIsOpen(true);
-                        toast.dismiss(t.id);
+                        toast.dismiss(t);
                       }}
                     >
                       Ask a question
@@ -57,7 +57,7 @@ export function ChatBubble({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => toast.dismiss(t.id)}
+                      onClick={() => toast.dismiss(t)}
                     >
                       Later
                     </Button>
