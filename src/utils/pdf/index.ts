@@ -56,7 +56,7 @@ export const downloadPdf = async (reportData: ReportData): Promise<void> => {
     if (reportData.valuationId) {
       const { data: valuation, error } = await supabase
         .from('valuations')
-        .select('premium_unlocked')
+        .select('*') // Using * instead of specific column to avoid the error
         .eq('id', reportData.valuationId)
         .single();
         

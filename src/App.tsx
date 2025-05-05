@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import ValuationPage from './pages/ValuationPage';
+import Home from './pages/Home';
 import PremiumPage from './pages/PremiumPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import UserDashboardPage from './pages/UserDashboardPage';
@@ -14,8 +14,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/valuation" element={<ValuationPage />} />
+          <Route path="/" element={<Home />} />
           <Route path="/premium" element={<PremiumPage />} />
           <Route path="/valuation/premium" element={<PremiumValuationPage />} />
           <Route path="/dashboard" element={<UserDashboardPage />} />
