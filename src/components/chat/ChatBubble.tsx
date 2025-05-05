@@ -28,7 +28,7 @@ export function ChatBubble({
     if (!hasShownIntro && valuationId) {
       const timer = setTimeout(() => {
         toast.custom((t) => (
-          <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} 
+          <div className={`${typeof t === 'object' && 'visible' in t ? (t.visible ? 'animate-enter' : 'animate-leave') : 'animate-enter'} 
             max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
             <div className="flex-1 p-4">
               <div className="flex items-start">
