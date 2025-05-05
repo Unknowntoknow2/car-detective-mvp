@@ -1,4 +1,3 @@
-
 /**
  * Vehicle Valuation Calculator
  * Enterprise-grade implementation for calculating precise vehicle valuations
@@ -250,6 +249,21 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
 }
 
 /**
+ * Enterprise-level valuation system
+ */
+import { 
+  calculateFinalValuation as enterpriseCalculateFinalValuation,
+  ValuationInput as EnterpriseValuationInput,
+  ValuationOutput as EnterpriseValuationOutput
+} from './valuation/calculateFinalValuation';
+
+export { 
+  EnterpriseValuationInput, 
+  EnterpriseValuationOutput,
+  enterpriseCalculateFinalValuation 
+};
+
+/**
  * Example usage of the valuation calculator
  */
 export function valuationExample(): void {
@@ -276,5 +290,40 @@ export function valuationExample(): void {
     });
   } catch (error) {
     console.error('Valuation Error:', error);
+  }
+}
+
+/**
+ * Example usage of the enterprise valuation calculator
+ */
+export function enterpriseValuationExample(): void {
+  const exampleParams: EnterpriseValuationInput = {
+    baseMarketValue: 25000,
+    vehicleYear: 2019,
+    make: 'Toyota',
+    model: 'RAV4',
+    mileage: 42000,
+    condition: 'Good',
+    zipCode: '90210',
+    features: ['Leather Seats', 'Sunroof', 'Navigation System']
+  };
+  
+  try {
+    const result = enterpriseCalculateFinalValuation(exampleParams);
+    console.log('Enterprise Valuation Result:', result);
+    console.log('Final Value:', new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(result.finalValuation));
+    console.log('Adjustments:');
+    console.log(`- Mileage: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(result.adjustments.mileageAdjustment)}`);
+    console.log(`- Condition: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(result.adjustments.conditionAdjustment)}`);
+    console.log(`- Regional Market: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(result.adjustments.regionalAdjustment)}`);
+    console.log('- Feature Adjustments:');
+    
+    Object.entries(result.adjustments.featureAdjustments).forEach(([feature, value]) => {
+      console.log(`  * ${feature}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}`);
+    });
+    
+    console.log(`Total Adjustments: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(result.totalAdjustments)}`);
+  } catch (error) {
+    console.error('Enterprise Valuation Error:', error);
   }
 }
