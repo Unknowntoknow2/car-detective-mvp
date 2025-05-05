@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
-const MIN_FILES = 1;
+const MIN_FILES = 3;
 const MAX_FILES = 5;
 
 const fileSchema = z.object({

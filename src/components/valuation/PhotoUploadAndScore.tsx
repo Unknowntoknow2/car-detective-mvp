@@ -5,6 +5,8 @@ import { PhotoUploadError } from './photo-upload/PhotoUploadError';
 import { Badge } from '@/components/ui/badge';
 import { usePhotoScoring } from '@/hooks/usePhotoScoring';
 import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { InfoCircle } from 'lucide-react';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;
@@ -39,6 +41,16 @@ export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadA
         <h3 className="text-lg font-medium">Vehicle Photo Analysis</h3>
         <Badge variant="outline" className="bg-primary/10">AI-Powered</Badge>
       </div>
+      
+      {photos.length < 3 && (
+        <Alert>
+          <InfoCircle className="h-4 w-4" />
+          <AlertTitle>Enhanced valuation with photos</AlertTitle>
+          <AlertDescription>
+            Upload at least 3 photos (up to 5) of your vehicle for an AI-enhanced valuation that's more accurate.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {photos.length === 0 ? (
         <PhotoUploadDropzone 

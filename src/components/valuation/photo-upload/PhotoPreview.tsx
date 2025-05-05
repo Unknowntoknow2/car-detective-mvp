@@ -1,128 +1,129 @@
 
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Trash2, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { ConditionBadge } from '@/components/ui/condition-badge';
+import { Loader2, X, AlertCircle, CheckCircle, Camera } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+interface Photo {
+  url: string;
+  thumbnail?: string;
+}
+
+interface AICondition {
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  aiSummary?: string;
+}
 
 interface PhotoPreviewProps {
-  photos: { url: string; thumbnail?: string }[];
+  photos: Photo[];
   photoScore: number | null;
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
   isUploading: boolean;
   isScoring: boolean;
   uploadProgress: number;
   onRemove: () => void;
+  aiCondition: AICondition | null;
 }
 
 export function PhotoPreview({
   photos,
   photoScore,
-  aiCondition,
   isUploading,
   isScoring,
   uploadProgress,
-  onRemove
+  onRemove,
+  aiCondition
 }: PhotoPreviewProps) {
-  if (!photos.length) return null;
-
+  const getConditionColor = (condition: string | null) => {
+    switch (condition) {
+      case 'Excellent': return 'bg-green-500 text-white';
+      case 'Good': return 'bg-blue-500 text-white';
+      case 'Fair': return 'bg-yellow-500 text-white';
+      case 'Poor': return 'bg-red-500 text-white';
+      default: return 'bg-slate-500 text-white';
+    }
+  };
+  
+  const getScoreColor = (score: number) => {
+    if (score >= 85) return "text-green-600";
+    if (score >= 70) return "text-blue-600";
+    if (score >= 55) return "text-yellow-600";
+    return "text-red-600";
+  };
+  
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="p-4 border-b bg-slate-50">
-        <div className="flex items-center justify-between">
-          <h4 className="font-medium">Uploaded Photos</h4>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRemove}
-            disabled={isUploading || isScoring}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Remove
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 p-4">
-        {photos.map((photo, index) => (
-          <div key={index} className="relative aspect-video rounded-md overflow-hidden">
-            <img 
-              src={photo.thumbnail || photo.url} 
-              alt={`Vehicle photo ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
+    <div className="space-y-4">
+      <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <Camera className="h-5 w-5 text-slate-500" />
+            <h4 className="font-medium">Vehicle Photos ({photos.length})</h4>
           </div>
-        ))}
-      </div>
-
-      {(isUploading || isScoring) && (
-        <div className="p-4 border-t bg-slate-50">
-          <p className="text-sm font-medium mb-2">
-            {isUploading ? 'Uploading photos...' : 'Analyzing vehicle condition...'}
-          </p>
-          <Progress value={uploadProgress} className="h-2" />
+          
+          {!isUploading && !isScoring && (
+            <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+              <X className="h-4 w-4 mr-1" />
+              Remove All
+            </Button>
+          )}
         </div>
-      )}
-
-      {!isUploading && !isScoring && photoScore && (
-        <div className="p-4 border-t">
+        
+        {(isUploading || isScoring) && (
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-sm">AI Analysis Results</h4>
-              {aiCondition && (
-                <ConditionBadge 
-                  condition={aiCondition.condition} 
-                  confidenceScore={aiCondition.confidenceScore}
-                />
-              )}
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm text-slate-600">
+                {isUploading ? 'Uploading photos...' : 'Analyzing photos...'}
+              </span>
+              <span className="text-sm font-medium">{uploadProgress}%</span>
+            </div>
+            <Progress value={uploadProgress} className="h-2" />
+          </div>
+        )}
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {photos.map((photo, index) => (
+            <div key={index} className="aspect-square rounded-md overflow-hidden relative group border border-slate-200">
+              <img
+                src={photo.url}
+                alt={`Vehicle photo ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        
+        {aiCondition && !isUploading && !isScoring && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Badge className={getConditionColor(aiCondition.condition)}>
+                  {aiCondition.condition || "Unknown"}
+                </Badge>
+                <span className={`text-sm font-medium ${getScoreColor(aiCondition.confidenceScore)}`}>
+                  {aiCondition.confidenceScore}/100 Score
+                </span>
+              </div>
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
             </div>
             
-            {aiCondition && (
-              <div className="text-sm text-gray-600">
-                {aiCondition.aiSummary}
+            {aiCondition.aiSummary && (
+              <p className="text-sm text-slate-600 mt-1">{aiCondition.aiSummary}</p>
+            )}
+            
+            {aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0 && (
+              <div className="mt-3">
+                <h5 className="text-xs font-medium text-slate-700 mb-1">Issues Detected:</h5>
+                <ul className="text-xs text-slate-600 space-y-1 ml-4 list-disc">
+                  {aiCondition.issuesDetected.map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
-
-          {aiCondition && aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0 && (
-            <div className="mt-4 mb-2">
-              <h5 className="text-sm font-medium flex items-center gap-1.5 mb-2">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                Detected Issues
-              </h5>
-              <ul className="text-sm space-y-1 pl-6 list-disc text-gray-600">
-                {aiCondition.issuesDetected.map((issue, index) => (
-                  <li key={index}>{issue}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="text-sm font-medium">Trust Score:</div>
-              <div className={`text-sm font-bold ${
-                aiCondition && aiCondition.confidenceScore >= 90 ? 'text-green-600' :
-                aiCondition && aiCondition.confidenceScore >= 80 ? 'text-blue-600' :
-                aiCondition && aiCondition.confidenceScore >= 70 ? 'text-amber-600' :
-                'text-red-600'
-              }`}>
-                {aiCondition?.confidenceScore || 0}%
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full bg-slate-100">
-              <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
-              <span className="text-slate-600">AI Verified</span>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
