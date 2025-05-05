@@ -1,8 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-interface ValuationResultData {
+export interface ValuationResultData {
   id: string;
   make: string;
   model: string;
@@ -11,6 +11,13 @@ interface ValuationResultData {
   condition: string;
   zipCode: string;
   estimatedValue: number;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  adjustments?: Array<{
+    name: string;
+    value: number;
+    percentage: number;
+  }>;
 }
 
 export function useValuationResult(valuationId: string) {
@@ -18,43 +25,54 @@ export function useValuationResult(valuationId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchValuationResult = async () => {
-      setIsLoading(true);
-      
-      try {
-        const { data: valuationData, error: valuationError } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', valuationId)
-          .single();
-          
-        if (valuationError) throw new Error(valuationError.message);
-        
-        if (valuationData) {
-          setData({
-            id: valuationData.id,
-            make: valuationData.make,
-            model: valuationData.model,
-            year: valuationData.year,
-            mileage: valuationData.mileage || 0,
-            condition: valuationData.condition || 'Good',
-            zipCode: valuationData.zip_code || '00000',
-            estimatedValue: valuationData.estimated_value || 0
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching valuation result:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch valuation data'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchValuationResult = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     
-    if (valuationId) {
-      fetchValuationResult();
+    try {
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('id', valuationId)
+        .single();
+        
+      if (valuationError) throw new Error(valuationError.message);
+      
+      if (valuationData) {
+        // Transform the data to the expected format with camelCase properties
+        setData({
+          id: valuationData.id,
+          make: valuationData.make,
+          model: valuationData.model,
+          year: valuationData.year,
+          mileage: valuationData.mileage || 0,
+          condition: valuationData.condition || 'Good',
+          zipCode: valuationData.zip_code || '00000',
+          estimatedValue: valuationData.estimated_value || 0,
+          confidenceScore: valuationData.confidence_score,
+          priceRange: valuationData.price_range || [0, 0],
+          adjustments: valuationData.adjustments || []
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching valuation result:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch valuation data'));
+    } finally {
+      setIsLoading(false);
     }
   }, [valuationId]);
   
-  return { data, isLoading, error };
+  useEffect(() => {
+    if (valuationId) {
+      fetchValuationResult();
+    }
+  }, [valuationId, fetchValuationResult]);
+  
+  return { 
+    data, 
+    isLoading, 
+    error,
+    isError: !!error,
+    refetch: fetchValuationResult
+  };
 }

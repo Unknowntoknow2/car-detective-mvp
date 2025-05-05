@@ -97,9 +97,9 @@ export function ValuationResultStep({
       </div>
 
       <ValuationResults
-        estimatedValue={result.estimated_value}
-        confidenceScore={result.confidence_score}
-        priceRange={result.price_range}
+        estimatedValue={result.estimatedValue}
+        confidenceScore={result.confidenceScore}
+        priceRange={result.priceRange}
         adjustments={result.adjustments}
       />
 
