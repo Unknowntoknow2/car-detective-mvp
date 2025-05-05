@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,15 @@ interface AICondition {
   aiSummary?: string;
 }
 
+// Interface for custom Supabase tables not in the generated types
+interface ValuationPhoto {
+  id: string;
+  valuation_id: string;
+  photo_url: string;
+  score: number;
+  uploaded_at: string;
+}
+
 export function usePhotoScoring(valuationId: string) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoScore, setPhotoScore] = useState<number | null>(null);
@@ -32,10 +42,11 @@ export function usePhotoScoring(valuationId: string) {
       
       try {
         // Get existing photos
+        // Use 'any' type assertion for Supabase queries to tables not in generated types
         const { data: photoData, error: photoError } = await supabase
-          .from('valuation_photos')
+          .from('valuation_photos' as any)
           .select('*')
-          .eq('valuation_id', valuationId);
+          .eq('valuation_id', valuationId) as any;
         
         if (photoError) {
           console.log('Error loading photos:', photoError);
@@ -43,7 +54,7 @@ export function usePhotoScoring(valuationId: string) {
         }
         
         if (photoData && photoData.length > 0) {
-          const loadedPhotos = photoData.map(photo => ({
+          const loadedPhotos = photoData.map((photo: ValuationPhoto) => ({
             url: photo.photo_url,
             thumbnail: photo.photo_url,
             id: photo.id
@@ -91,9 +102,9 @@ export function usePhotoScoring(valuationId: string) {
       if (photo.id) {
         try {
           await supabase
-            .from('valuation_photos')
+            .from('valuation_photos' as any)
             .delete()
-            .eq('id', photo.id);
+            .eq('id', photo.id) as any;
         } catch (err) {
           console.error('Error deleting photo record:', err);
         }
@@ -186,7 +197,7 @@ export function usePhotoScoring(valuationId: string) {
       // Save the photo records in the database
       const savedPhotoPromises = uploadedPhotos.map(async (photo, index) => {
         const { data: photoData, error: photoError } = await supabase
-          .from('valuation_photos')
+          .from('valuation_photos' as any)
           .insert({
             valuation_id: valuationId,
             photo_url: photo.url,
@@ -194,7 +205,7 @@ export function usePhotoScoring(valuationId: string) {
             uploaded_at: new Date().toISOString()
           })
           .select()
-          .single();
+          .single() as any;
           
         if (photoError) {
           console.error('Error storing photo record:', photoError);
@@ -203,7 +214,7 @@ export function usePhotoScoring(valuationId: string) {
         
         return {
           ...photo,
-          id: photoData.id
+          id: photoData?.id
         };
       });
       

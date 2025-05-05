@@ -31,6 +31,15 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   } else {
     await new Promise(resolve => setTimeout(resolve, 500));
     console.log('Generated standard PDF report');
+    
+    // Add AI condition section for non-premium reports too if available
+    if (reportData.aiCondition) {
+      console.log('Including AI condition assessment in standard PDF:');
+      console.log('- Condition:', reportData.aiCondition.condition);
+      console.log('- Confidence Score:', reportData.aiCondition.confidenceScore);
+      console.log('- Issues Detected:', reportData.aiCondition.issuesDetected?.join(', ') || 'None');
+      console.log('- AI Summary:', reportData.aiCondition.aiSummary);
+    }
   }
   
   // Return a dummy PDF (just a few bytes for demonstration)

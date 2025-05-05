@@ -1,6 +1,4 @@
 
-import { AdjustmentBreakdown } from '../rules/types';
-
 export interface ValuationParams {
   make: string;
   model: string;
@@ -15,6 +13,12 @@ export interface ValuationParams {
   mpg?: number | null;
   osmData?: any;
   censusData?: any;
+  aiConditionData?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
 }
 
 export interface ValuationResult {

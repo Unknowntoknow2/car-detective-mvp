@@ -55,8 +55,13 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
             year: valuationData.year,
             mileage: valuationData.mileage || 0,
             condition: aiCondition?.condition || valuationData.condition || 'good',
-            // Additional data from AI analysis
-            aiConditionData: aiCondition
+            // Correctly pass the AI condition data
+            aiConditionData: aiCondition ? {
+              condition: aiCondition.condition,
+              confidenceScore: aiCondition.confidenceScore,
+              issuesDetected: aiCondition.issuesDetected,
+              aiSummary: aiCondition.aiSummary
+            } : null
           });
           
           setEstimatedValue(result.estimatedValue);
