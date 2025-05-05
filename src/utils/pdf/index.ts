@@ -37,10 +37,12 @@ export async function downloadPdf(data: ReportData): Promise<void> {
 
 /**
  * Converts vehicle info and valuation data to the report data format
+ * @param vehicleInfo Vehicle information
+ * @param valuationData Valuation data or a simple number for backward compatibility
  */
 export function convertVehicleInfoToReportData(
   vehicleInfo: DecodedVehicleInfo,
-  valuationData: {
+  valuationData: number | {
     estimatedValue: number;
     mileage: string | number;
     condition: string;
@@ -58,6 +60,29 @@ export function convertVehicleInfoToReportData(
     } | null;
   }
 ): ReportData {
+  // Handle simple number case (for backward compatibility)
+  if (typeof valuationData === 'number') {
+    return {
+      vin: vehicleInfo.vin,
+      make: vehicleInfo.make,
+      model: vehicleInfo.model,
+      year: vehicleInfo.year,
+      mileage: vehicleInfo.mileage || 0,
+      condition: vehicleInfo.condition || 'Not Specified',
+      zipCode: vehicleInfo.zipCode || '10001',
+      estimatedValue: valuationData,
+      confidenceScore: 85, // Default confidence score
+      fuelType: vehicleInfo.fuelType,
+      color: vehicleInfo.color,
+      bodyStyle: vehicleInfo.bodyType,
+      bodyType: vehicleInfo.bodyType,
+      isPremium: false,
+      plate: vehicleInfo.plate,
+      state: vehicleInfo.state
+    };
+  }
+  
+  // Handle object case
   return {
     vin: vehicleInfo.vin,
     make: vehicleInfo.make,
@@ -74,6 +99,8 @@ export function convertVehicleInfoToReportData(
     bodyType: vehicleInfo.bodyType,
     explanation: valuationData.explanation,
     isPremium: valuationData.isPremium || false,
-    aiCondition: valuationData.aiCondition
+    aiCondition: valuationData.aiCondition,
+    plate: vehicleInfo.plate,
+    state: vehicleInfo.state
   };
 }

@@ -6,7 +6,7 @@ export interface DecodedVehicleInfo {
   year: number;
   trim?: string;
   engine?: string;
-  transmission: string;
+  transmission?: string; // Make transmission optional
   drivetrain?: string;
   bodyType?: string;
   mileage?: number;
@@ -14,4 +14,6 @@ export interface DecodedVehicleInfo {
   color?: string;
   condition?: string;
   zipCode?: string;
+  plate?: string; // Add plate field to support usage in ValuationTable
+  state?: string; // Add state field
 }

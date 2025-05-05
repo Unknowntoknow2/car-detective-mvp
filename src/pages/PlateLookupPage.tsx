@@ -29,7 +29,13 @@ export default function PlateLookupPage() {
 
     setIsDownloading(true);
     try {
-      const reportData = convertVehicleInfoToReportData(lookupResult, lookupResult.estimatedValue || 24500);
+      // Add transmission field before passing to convertVehicleInfoToReportData
+      const vehicleInfoWithTransmission = {
+        ...lookupResult,
+        transmission: 'Automatic' // Add default transmission
+      };
+      
+      const reportData = convertVehicleInfoToReportData(vehicleInfoWithTransmission, lookupResult.estimatedValue || 24500);
       await downloadPdf(reportData);
       toast.success("PDF report generated successfully");
     } catch (error) {

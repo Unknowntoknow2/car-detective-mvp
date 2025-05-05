@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,6 +75,11 @@ export default function PremiumReportsList() {
     const reportData = convertVehicleInfoToReportData({
       ...report.vehicle_info,
       mileage: 0, // Add default mileage value
+      vin: report.vehicle_info.vin || 'Unknown',
+      make: report.vehicle_info.make || 'Unknown',
+      model: report.vehicle_info.model || 'Unknown',
+      year: report.vehicle_info.year || 0,
+      transmission: 'Unknown', // Add the required transmission field
     }, {
       estimatedValue: report.vehicle_info.estimatedValue || 0,
       mileage: 0,

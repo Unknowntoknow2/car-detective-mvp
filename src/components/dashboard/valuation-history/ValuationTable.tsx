@@ -16,6 +16,7 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
       model: valuation.model || '',
       year: valuation.year || 0,
       vin: valuation.vin || '',
+      transmission: 'Automatic', // Add default transmission
       plate: valuation.plate || '',
       state: valuation.state || '',
     }, {

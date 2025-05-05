@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
@@ -87,8 +86,8 @@ export const useVinDecoderForm = () => {
             { label: "Market Demand", value: 4.0 },
             ...(carfaxData && carfaxData.accidentsReported > 0 ? [{ label: "Accident History", value: -3.0 }] : [])
           ],
-      carfaxData: carfaxData, // Pass CARFAX data to PDF generator
-      aiCondition: conditionData // Pass AI condition data to PDF generator
+      aiCondition: conditionData, // Pass AI condition data to PDF generator
+      isPremium: carfaxData ? true : false // Set premium flag based on carfaxData existence
     });
     
     toast.success("PDF report generated successfully!");
