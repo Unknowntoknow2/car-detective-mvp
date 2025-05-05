@@ -56,13 +56,15 @@ export const downloadPdf = async (reportData: ReportData): Promise<void> => {
     if (reportData.valuationId) {
       const { data: valuation, error } = await supabase
         .from('valuations')
-        .select('*') // Using * instead of specific column to avoid the error
+        .select('*')
         .eq('id', reportData.valuationId)
         .single();
         
       if (error) {
         console.error('Error checking premium status:', error);
       } else {
+        // Using optional chaining to safely access the property
+        // This avoids TypeScript errors when premium_unlocked isn't in the type definition
         isPremiumUnlocked = valuation?.premium_unlocked || false;
       }
     }

@@ -15,28 +15,53 @@ serve(async (req) => {
   }
 
   try {
+    // Extract request body
+    const { valuationId } = await req.json();
+    
+    if (!valuationId) {
+      throw new Error('Valuation ID is required');
+    }
+    
+    // Get user information from request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+    
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    
+    // Get the user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated: ' + (userError?.message || 'Unknown error'));
+    }
+    
+    // Get the valuation details
+    const { data: valuation, error: valuationError } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('id', valuationId)
+      .single();
+      
+    if (valuationError || !valuation) {
+      throw new Error('Valuation not found: ' + (valuationError?.message || 'Unknown error'));
+    }
+    
+    // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
-    })
-
-    // Get the user from the auth header
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    )
-
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error } = await supabaseClient.auth.getUser(token)
-
-    if (error || !user) {
-      throw new Error('Not authenticated')
-    }
-
-    const origin = req.headers.get('origin') || '';
-    console.log('Origin for redirect URLs:', origin);
-
-    // Create a Stripe checkout session
+    });
+    
+    // Product metadata
+    const productName = `Premium Vehicle Report: ${valuation.year} ${valuation.make} ${valuation.model}`;
+    const productPrice = 1499; // $14.99 in cents
+    
+    // Create a checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -44,54 +69,57 @@ serve(async (req) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Premium Valuation',
-              description: 'Full vehicle valuation report with CARFAX® history',
+              name: productName,
+              description: 'Comprehensive vehicle valuation report with CARFAX data and market analysis',
             },
-            unit_amount: 2999, // $29.99 in cents
+            unit_amount: productPrice,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${origin}/valuation/premium-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/premium`,
-      customer_email: user.email,
-    })
-
-    // Create an order record
-    const { error: orderError } = await supabaseClient
+      success_url: `${req.headers.get('origin')}/valuation/premium-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get('origin')}/premium?canceled=true`,
+      metadata: {
+        valuationId,
+        userId: user.id,
+      },
+    });
+    
+    // Create an order record in the database
+    const { error: orderError } = await supabase
       .from('orders')
-      .insert({
-        user_id: user.id,
-        stripe_session_id: session.id,
-        amount: 2999,
-        currency: 'usd',
-        status: 'pending'
-      })
-
+      .insert([
+        {
+          user_id: user.id,
+          valuation_id: valuationId,
+          amount: productPrice,
+          stripe_session_id: session.id,
+          status: 'pending',
+        },
+      ]);
+      
     if (orderError) {
-      console.error('Error creating order:', orderError)
-      throw new Error('Failed to create order')
+      console.error('Error saving order:', orderError);
+      // Still continue, as the webhook will handle the actual confirmation
     }
-
-    console.log('Checkout session created:', session.id);
-    console.log('Redirect URL:', session.url);
-
+    
+    // Return the checkout session URL
     return new Response(
-      JSON.stringify({ sessionId: session.id, url: session.url }),
-      {
+      JSON.stringify({ url: session.url }),
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        status: 200 
       }
-    )
+    );
   } catch (error) {
-    console.error('Checkout error:', error);
+    console.error('Error creating checkout session:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
+      { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 400 
       }
-    )
+    );
   }
-})
+});
