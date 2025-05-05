@@ -3,6 +3,9 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { PremiumReportInput } from '../types';
 import { drawTextPair } from '../helpers/pdfHelpers';
 import { drawAIConditionSection } from '../sections/aiConditionSection';
+import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
+import { drawForecastSection } from '../sections/forecastSection';
+import { drawFooterSection } from '../sections/footerSection';
 
 export async function generatePremiumReport(input: PremiumReportInput): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
@@ -24,27 +27,19 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
   });
   y -= 40;
 
-  // Vehicle details section
+  // Draw date
   page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y, size: 12, font });
   y -= 20;
   
-  if (input.vehicleInfo.vin) {
-    page.drawText(`VIN: ${input.vehicleInfo.vin}`, { x: 50, y, size: 12, font });
-    y -= 20;
-  }
-
-  const vehicleInfo = [
-    `Vehicle: ${input.vehicleInfo.year} ${input.vehicleInfo.make} ${input.vehicleInfo.model}`,
-    `Mileage: ${input.vehicleInfo.mileage?.toLocaleString()} miles`,
-    input.vehicleInfo.zipCode ? `Location: ${input.vehicleInfo.zipCode}` : null
-  ].filter(Boolean);
-
-  vehicleInfo.forEach(info => {
-    if (info) {
-      page.drawText(info, { x: 50, y, size: 12, font });
-      y -= 20;
-    }
-  });
+  // Draw vehicle information
+  y = drawVehicleInfoSection(
+    input.vehicleInfo, 
+    page, 
+    y, 
+    50, // margin 
+    612, // width
+    { regular: font, bold: boldFont }
+  );
   y -= 10;
 
   // Valuation section
@@ -88,30 +83,23 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
   
   // Add 12-Month Forecast section
   if (input.forecast) {
-    page.drawText('12-Month Value Forecast', { x: 50, y, size: 16, font: boldFont, color: primaryColor });
-    y -= 25;
-    
-    const forecastInfo = [
-      `Projected Value (12 months): $${input.forecast.estimatedValueAt12Months.toLocaleString()}`,
-      `Projected Change: ${input.forecast.percentageChange >= 0 ? '+' : ''}${input.forecast.percentageChange.toFixed(1)}%`,
-      `Best Time to Sell: ${input.forecast.bestTimeToSell}`,
-      `Market Trend: ${input.forecast.valueTrend === 'increasing' ? 'Appreciating' : 
-                          input.forecast.valueTrend === 'decreasing' ? 'Depreciating' : 'Stable'}`
-    ];
-    
-    forecastInfo.forEach(info => {
-      page.drawText(info, { x: 50, y, size: 12, font });
-      y -= 20;
-    });
-    y -= 15;
+    y = drawForecastSection(
+      input.forecast,
+      page,
+      y,
+      50, // margin
+      { regular: font, bold: boldFont }
+    );
   }
 
   // Add footer
   const footerY = 60;
-  page.drawText('Report Powered by Car Price Perfector', 
-    { x: 50, y: footerY, size: 10, font });
-  page.drawText('This estimate is based on market data and vehicle condition. Verify with a professional inspection.', 
-    { x: 50, y: footerY - 15, size: 10, font, color: rgb(0.5, 0.5, 0.5) });
+  drawFooterSection(
+    page,
+    footerY,
+    50, // margin
+    { regular: font }
+  );
 
   return pdfDoc.save();
 }
