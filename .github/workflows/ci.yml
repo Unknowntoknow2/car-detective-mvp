@@ -39,6 +39,9 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test --ci
       
+    - name: Run PDF & Premium E2E tests
+      run: npx playwright test e2e/download-and-premium.spec.ts --reporter=github
+      
     - name: Upload Playwright report
       uses: actions/upload-artifact@v3
       if: always()
