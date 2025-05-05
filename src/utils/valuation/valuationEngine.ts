@@ -1,4 +1,3 @@
-
 import { getMileageAdjustment } from '../adjustments/mileageAdjustments';
 import { getConditionAdjustment } from '../adjustments/conditionAdjustments';
 import { getZipAdjustment } from '../adjustments/locationAdjustments';
@@ -12,6 +11,7 @@ import {
   getLocationDensityAdjustment, 
   getIncomeAdjustment 
 } from './specializedAdjustments';
+import { supabase } from '@/lib/supabaseClient';
 import { ValuationParams, ValuationResult } from './types';
 
 /**
@@ -43,15 +43,34 @@ export async function calculateValuation(params: ValuationParams): Promise<Valua
     percentAdjustment: (conditionAdj / basePrice) * 100
   });
   
-  // Add zip code adjustment if available
+  // Add zip code adjustment if available - now using Supabase lookup
   if (params.zip) {
-    const zipAdj = getZipAdjustment(params.zip, basePrice);
-    adjustments.push({
-      name: 'Location',
-      value: Math.round(zipAdj),
-      description: `Based on market demand in ${params.zip}`,
-      percentAdjustment: (zipAdj / basePrice) * 100
-    });
+    try {
+      // Fetch market multiplier from Supabase
+      const { data, error } = await supabase
+        .from('market_adjustments')
+        .select('market_multiplier')
+        .eq('zip_code', params.zip)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching market multiplier:', error);
+      } else {
+        const multiplier = data?.market_multiplier || 0;
+        const zipAdj = basePrice * (multiplier / 100);
+        
+        adjustments.push({
+          name: 'Location',
+          value: Math.round(zipAdj),
+          description: `Based on market demand in ${params.zip}`,
+          percentAdjustment: multiplier
+        });
+        
+        console.log(`Applied market multiplier for ${params.zip}: ${multiplier}%`);
+      }
+    } catch (error) {
+      console.error('Exception fetching market multiplier:', error);
+    }
   }
   
   // Add trim adjustment if available

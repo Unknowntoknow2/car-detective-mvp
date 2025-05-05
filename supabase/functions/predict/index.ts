@@ -79,31 +79,44 @@ serve(async (req) => {
     let multiplier = 1.0;
     if (val.zip_code) {
       try {
-        // First, try to get market-based multiplier
-        const { data: marketData, error: marketErr } = await supabase.functions.invoke("fetch-market-listings", {
-          body: { 
-            zipCode: val.zip_code,
-            make: val.make,
-            model: val.model,
-            year: val.year
-          }
-        });
-        
-        if (!marketErr && marketData && marketData.marketFactor) {
-          multiplier = marketData.marketFactor;
-          console.log(`Using market factor: ${multiplier} from listings API for zip: ${val.zip_code}`);
+        // First, try to get market-based multiplier from market_adjustments table
+        const { data: marketAdjData, error: marketAdjError } = await supabase
+          .from('market_adjustments')
+          .select('market_multiplier')
+          .eq('zip_code', val.zip_code)
+          .maybeSingle();
+          
+        if (!marketAdjError && marketAdjData && marketAdjData.market_multiplier !== null) {
+          multiplier = 1 + (marketAdjData.market_multiplier / 100);
+          console.log(`Using market adjustment factor: ${multiplier} from market_adjustments table for zip: ${val.zip_code}`);
         } else {
-          // Fall back to pricing curve if market data isn't available
-          const { data: pricingData, error: pricingErr } = await supabase.functions.invoke("get-pricing-curve", {
+          // Fall back to previous methods if not found in market_adjustments
+          // First, try to get market-based multiplier
+          const { data: marketData, error: marketErr } = await supabase.functions.invoke("fetch-market-listings", {
             body: { 
-              zip_code: val.zip_code,
-              condition: condition
+              zipCode: val.zip_code,
+              make: val.make,
+              model: val.model,
+              year: val.year
             }
           });
           
-          if (!pricingErr && pricingData && pricingData.multiplier) {
-            multiplier = pricingData.multiplier;
-            console.log(`Using pricing multiplier: ${multiplier} for zip: ${val.zip_code}, condition: ${condition}`);
+          if (!marketErr && marketData && marketData.marketFactor) {
+            multiplier = marketData.marketFactor;
+            console.log(`Using market factor: ${multiplier} from listings API for zip: ${val.zip_code}`);
+          } else {
+            // Fall back to pricing curve if market data isn't available
+            const { data: pricingData, error: pricingErr } = await supabase.functions.invoke("get-pricing-curve", {
+              body: { 
+                zip_code: val.zip_code,
+                condition: condition
+              }
+            });
+            
+            if (!pricingErr && pricingData && pricingData.multiplier) {
+              multiplier = pricingData.multiplier;
+              console.log(`Using pricing multiplier: ${multiplier} for zip: ${val.zip_code}, condition: ${condition}`);
+            }
           }
         }
       } catch (err) {

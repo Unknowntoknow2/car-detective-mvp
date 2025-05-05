@@ -329,6 +329,24 @@ export type Database = {
         }
         Relationships: []
       }
+      market_adjustments: {
+        Row: {
+          last_updated: string
+          market_multiplier: number
+          zip_code: string
+        }
+        Insert: {
+          last_updated?: string
+          market_multiplier: number
+          zip_code: string
+        }
+        Update: {
+          last_updated?: string
+          market_multiplier?: number
+          zip_code?: string
+        }
+        Relationships: []
+      }
       market_listings: {
         Row: {
           created_at: string | null

@@ -6,6 +6,8 @@
  * based on industry-standard formulas and data.
  */
 
+import { getMarketMultiplier } from './marketData';
+
 export interface ValuationInput {
   baseMarketValue: number;
   vehicleYear: number;
@@ -76,11 +78,12 @@ function conditionAdjustment(condition: string, baseValue: number): number {
  * Calculates regional market adjustment based on ZIP code
  * @param zipCode The vehicle's location ZIP code
  * @param baseValue The base market value of the vehicle
- * @param marketData Record of ZIP codes and their market multipliers
  * @returns The exact dollar adjustment for regional market conditions
  */
-function regionalAdjustment(zipCode: string, baseValue: number, marketData: Record<string, number>): number {
-  const multiplier = marketData[zipCode] ?? 0;
+async function regionalAdjustment(zipCode: string, baseValue: number): Promise<number> {
+  // Use the getMarketMultiplier function to fetch multiplier from Supabase
+  const multiplier = await getMarketMultiplier(zipCode);
+  console.log(`Applied market multiplier for ${zipCode}: ${multiplier}%`);
   return baseValue * (multiplier / 100);
 }
 
@@ -115,7 +118,7 @@ function featureAdjustments(features: string[]): { [feature: string]: number } {
  * @param input Complete valuation input parameters
  * @returns Detailed valuation output with all adjustments and final value
  */
-export function calculateFinalValuation(input: ValuationInput): ValuationOutput {
+export async function calculateFinalValuation(input: ValuationInput): Promise<ValuationOutput> {
   // Determine which condition to use - AI or user input
   // Use AI condition if it exists and has high confidence, otherwise use user-provided condition
   const useAiCondition = input.aiConditionOverride && 
@@ -131,9 +134,8 @@ export function calculateFinalValuation(input: ValuationInput): ValuationOutput 
   // Calculate exact condition adjustment
   const conditionAdj = conditionAdjustment(finalCondition, input.baseMarketValue);
   
-  // Assume marketData fetched from Supabase (in production would be retrieved from database)
-  const marketData = { '94016': 4.5, '90001': 3.0, '10001': 2.5, '75001': 1.0 };
-  const regionalAdj = regionalAdjustment(input.zipCode, input.baseMarketValue, marketData);
+  // Get regional market adjustment from Supabase
+  const regionalAdj = await regionalAdjustment(input.zipCode, input.baseMarketValue);
 
   // Calculate exact feature adjustments
   const featAdjObj = featureAdjustments(input.features);

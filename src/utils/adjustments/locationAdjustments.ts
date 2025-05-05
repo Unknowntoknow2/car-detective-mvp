@@ -1,61 +1,37 @@
-
 /**
  * Location Adjustment Calculator
  * Calculates value adjustments based on regional market demand and location factors.
  */
 
-/**
- * Sample regional market demand data
- * In a production environment, this would be fetched from a database or API
- * Values represent percentage adjustments to the base value
- */
-const REGIONAL_MARKET_DATA: Record<string, number> = {
-  // High demand areas (urban centers, affluent areas)
-  '90210': 0.05,  // Beverly Hills
-  '10001': 0.04,  // Manhattan
-  '94102': 0.06,  // San Francisco
-  '98101': 0.05,  // Seattle
-  '33139': 0.04,  // Miami Beach
-  '02108': 0.04,  // Boston
-  
-  // Moderate demand areas
-  '80202': 0.02,  // Denver
-  '30303': 0.01,  // Atlanta
-  '37203': 0.01,  // Nashville
-  '97204': 0.02,  // Portland
-  '78701': 0.02,  // Austin
-  
-  // Low demand areas (economically challenged or oversaturated markets)
-  '48226': -0.02, // Detroit
-  '44101': -0.01, // Cleveland
-  '15222': -0.01, // Pittsburgh
-  '71101': -0.03, // Shreveport
-  '27601': -0.01  // Raleigh
-};
+import { supabase } from '@/lib/supabaseClient';
 
 /**
  * Gets the regional market multiplier based on the vehicle's location
  * @param zipCode The ZIP code where the vehicle is located
  * @returns A multiplier to be applied to the base value
  */
-export function getRegionalMarketMultiplier(zipCode: string): number {
-  // First check for direct match
-  if (REGIONAL_MARKET_DATA[zipCode]) {
-    return REGIONAL_MARKET_DATA[zipCode];
-  }
+export async function getRegionalMarketMultiplier(zipCode: string): Promise<number> {
+  if (!zipCode) return 0;
   
-  // If no direct match, check first 3 digits (ZIP code region)
-  const zipRegion = zipCode.substring(0, 3);
-  
-  // Look for any ZIP codes in our data that start with the same region
-  for (const zip in REGIONAL_MARKET_DATA) {
-    if (zip.startsWith(zipRegion)) {
-      return REGIONAL_MARKET_DATA[zip];
+  try {
+    // Fetch multiplier from Supabase market_adjustments table
+    const { data, error } = await supabase
+      .from('market_adjustments')
+      .select('market_multiplier')
+      .eq('zip_code', zipCode)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching market multiplier:', error);
+      return 0;
     }
+    
+    // Return the multiplier if found, otherwise return 0
+    return data?.market_multiplier ? data.market_multiplier / 100 : 0;
+  } catch (error) {
+    console.error('Exception fetching market multiplier:', error);
+    return 0;
   }
-  
-  // Default adjustment is 0 (no adjustment) if no data is available
-  return 0;
 }
 
 /**
@@ -97,7 +73,7 @@ export function getRegionNameFromZip(zipCode: string): string {
  * @param basePrice The base price of the vehicle
  * @returns Dollar amount adjustment based on location
  */
-export function getZipAdjustment(zipCode: string, basePrice: number): number {
-  const multiplier = getRegionalMarketMultiplier(zipCode);
+export async function getZipAdjustment(zipCode: string, basePrice: number): Promise<number> {
+  const multiplier = await getRegionalMarketMultiplier(zipCode);
   return basePrice * multiplier;
 }
