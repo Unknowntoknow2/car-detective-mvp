@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,12 @@ interface ChatBubbleProps {
   initialMessage?: string;
   position?: 'bottom-right' | 'bottom-left';
   title?: string;
+}
+
+// Define toast object type for better TypeScript support
+interface ToastObject {
+  id: string;
+  visible?: boolean;
 }
 
 export function ChatBubble({ 
@@ -35,11 +42,9 @@ export function ChatBubble({
           // Then determine the visibility class safely
           let visibleClass = 'animate-enter';
           
-          // Use type guard to ensure t has visible property before accessing it
-          if (t && typeof t === 'object' && 'visible' in t) {
-            const visibleValue = t.visible;
-            visibleClass = visibleValue ? 'animate-enter' : 'animate-leave';
-          }
+          // Cast t to our defined type to help TypeScript understand the structure
+          const toastObj = t as unknown as ToastObject;
+          visibleClass = toastObj.visible ? 'animate-enter' : 'animate-leave';
             
           return (
             <div className={`${visibleClass} max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex`}>
@@ -62,10 +67,9 @@ export function ChatBubble({
                         className="mr-2"
                         onClick={() => {
                           setIsOpen(true);
-                          // Use type guard to ensure t has id property before dismissing
-                          if (t && typeof t === 'object' && 'id' in t) {
-                            toast.dismiss(t.id);
-                          }
+                          // Cast to our defined type for safe property access
+                          const toastObj = t as unknown as ToastObject;
+                          toast.dismiss(toastObj.id);
                         }}
                       >
                         Ask a question
@@ -74,10 +78,9 @@ export function ChatBubble({
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          // Use type guard to ensure t has id property before dismissing
-                          if (t && typeof t === 'object' && 'id' in t) {
-                            toast.dismiss(t.id);
-                          }
+                          // Cast to our defined type for safe property access
+                          const toastObj = t as unknown as ToastObject;
+                          toast.dismiss(toastObj.id);
                         }}
                       >
                         Later
