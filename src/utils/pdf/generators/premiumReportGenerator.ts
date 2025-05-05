@@ -96,17 +96,17 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
     const boxX = 50;
     const boxY = y - boxHeight + 15;
     
-    // Draw box with light background color
+    // Draw box with light background color - Fix: Use the correct RGB syntax
     page.drawRectangle({
       x: boxX,
       y: boxY,
       width: boxWidth,
       height: boxHeight,
-      color: {
-        r: conditionColor.r * 0.95 + 0.05,
-        g: conditionColor.g * 0.95 + 0.05,
-        b: conditionColor.b * 0.95 + 0.05,
-      },
+      color: rgb(
+        conditionColor.red * 0.95 + 0.05,
+        conditionColor.green * 0.95 + 0.05,
+        conditionColor.blue * 0.95 + 0.05
+      ),
       opacity: 0.2,
       borderColor: conditionColor,
       borderWidth: 1,
