@@ -35,7 +35,7 @@ export function ChatBubble({
           
           // Then determine the visibility class safely
           let visibleClass = 'animate-enter';
-          if ('visible' in t) {
+          if ('visible' in t && t.visible !== null && t.visible !== undefined) {
             visibleClass = t.visible ? 'animate-enter' : 'animate-leave';
           }
             
