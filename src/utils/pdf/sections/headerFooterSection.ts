@@ -36,13 +36,14 @@ export function drawHeaderSection(
     color: rgb(0.4, 0.4, 0.4)
   });
   
+  // The italic property was causing the error as it's not supported in PDFPageDrawTextOptions
+  // Modified to use normal text with a note that this is the version info
   page.drawText(`Valuation Engine: v1.0.0 (GPT-4o)`, {
     x: width - margin - 150,
     y: yPos - smallFontSize - 5,
     size: smallFontSize,
     font: regularFont,
-    color: rgb(0.4, 0.4, 0.4),
-    italic: true
+    color: rgb(0.4, 0.4, 0.4)
   });
   
   // Draw horizontal line
@@ -184,3 +185,4 @@ export async function drawSignatureAndQR(
     }
   }
 }
+
