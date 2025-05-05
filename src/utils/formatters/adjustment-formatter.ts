@@ -6,16 +6,29 @@ interface ValuationAdjustment {
 }
 
 interface LegacyAdjustment {
-  label: string;
+  name: string;
   value: number;
+  percentage: number;
 }
 
 /**
- * Converts the new adjustment format to the legacy format expected by PDF generation
+ * Converts legacy adjustment format to the new format
  */
-export function convertAdjustmentsToLegacyFormat(adjustments: ValuationAdjustment[]): LegacyAdjustment[] {
+export function convertLegacyAdjustmentsToNewFormat(adjustments: LegacyAdjustment[]): ValuationAdjustment[] {
   return adjustments.map(adjustment => ({
-    label: adjustment.factor,
-    value: adjustment.impact
+    factor: adjustment.name,
+    impact: adjustment.percentage,
+    description: `Impact of ${adjustment.name} on vehicle value: ${adjustment.value}`
+  }));
+}
+
+/**
+ * Converts new adjustment format to legacy format
+ */
+export function convertNewAdjustmentsToLegacyFormat(adjustments: ValuationAdjustment[]): LegacyAdjustment[] {
+  return adjustments.map(adjustment => ({
+    name: adjustment.factor,
+    value: 0, // We don't have this in the new format
+    percentage: adjustment.impact
   }));
 }

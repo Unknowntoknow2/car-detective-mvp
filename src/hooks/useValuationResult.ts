@@ -14,9 +14,9 @@ export interface ValuationResultData {
   confidenceScore?: number;
   priceRange?: [number, number];
   adjustments?: Array<{
-    name: string;
-    value: number;
-    percentage: number;
+    factor: string;
+    impact: number;
+    description?: string;
   }>;
 }
 
@@ -40,6 +40,13 @@ export function useValuationResult(valuationId: string) {
       
       if (valuationData) {
         // Transform the data to the expected format with camelCase properties
+        // Convert adjustments from {name, value, percentage} to {factor, impact, description}
+        const formattedAdjustments = (valuationData.adjustments || []).map(adj => ({
+          factor: adj.name || adj.factor || '',
+          impact: adj.percentage || adj.impact || 0,
+          description: adj.description || `Impact of ${adj.name || adj.factor} on vehicle value`
+        }));
+        
         setData({
           id: valuationData.id,
           make: valuationData.make,
@@ -51,7 +58,7 @@ export function useValuationResult(valuationId: string) {
           estimatedValue: valuationData.estimated_value || 0,
           confidenceScore: valuationData.confidence_score,
           priceRange: valuationData.price_range || [0, 0],
-          adjustments: valuationData.adjustments || []
+          adjustments: formattedAdjustments
         });
       }
     } catch (err) {
