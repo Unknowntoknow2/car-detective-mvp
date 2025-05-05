@@ -97,4 +97,10 @@ export interface PremiumReportInput {
   };
   carfaxData?: CarfaxData;
   forecast?: ForecastData;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
 }

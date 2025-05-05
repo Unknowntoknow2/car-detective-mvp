@@ -5,6 +5,7 @@ import { Download, Lock } from 'lucide-react';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { downloadPdf, ReportData, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
+import { useAICondition } from '@/hooks/useAICondition';
 
 interface PremiumDownloadButtonProps {
   valuationId: string;
@@ -20,6 +21,7 @@ export function PremiumDownloadButton({
   children 
 }: PremiumDownloadButtonProps) {
   const { isPremiumUnlocked, isLoading, unlockPremium } = usePremiumStatus(valuationId);
+  const { conditionData } = useAICondition(valuationId);
   
   const handleDownload = async () => {
     if (!isPremiumUnlocked) {
@@ -34,6 +36,11 @@ export function PremiumDownloadButton({
       
       // Set as premium report
       reportData.isPremium = true;
+      
+      // Add AI condition data if available
+      if (conditionData) {
+        reportData.aiCondition = conditionData;
+      }
       
       // Download the PDF
       await downloadPdf(reportData);

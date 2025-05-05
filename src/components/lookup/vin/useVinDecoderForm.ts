@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
@@ -5,6 +6,7 @@ import { toast } from 'sonner';
 import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { convertVehicleInfoToReportData } from '@/utils/pdf';
 import { convertAdjustmentsToPdfFormat } from '@/utils/formatters/adjustment-formatter';
+import { useAICondition } from '@/hooks/useAICondition';
 
 export const useVinDecoderForm = () => {
   const [vin, setVin] = useState('');
@@ -68,6 +70,9 @@ export const useVinDecoderForm = () => {
   const handleDownloadPdf = () => {
     if (!result) return;
     
+    // Get AI condition data if available
+    const { conditionData } = useAICondition(vin);
+    
     const reportData = convertVehicleInfoToReportData(result, {
       mileage: requiredInputs?.mileage || 76000,
       estimatedValue: valuationResult?.estimated_value || 24500,
@@ -82,7 +87,8 @@ export const useVinDecoderForm = () => {
             { label: "Market Demand", value: 4.0 },
             ...(carfaxData && carfaxData.accidentsReported > 0 ? [{ label: "Accident History", value: -3.0 }] : [])
           ],
-      carfaxData: carfaxData // Pass CARFAX data to PDF generator
+      carfaxData: carfaxData, // Pass CARFAX data to PDF generator
+      aiCondition: conditionData // Pass AI condition data to PDF generator
     });
     
     toast.success("PDF report generated successfully!");

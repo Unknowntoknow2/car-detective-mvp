@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { VehicleHistory } from './VehicleHistory';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
 import { useSaveValuation } from '@/hooks/useSaveValuation';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
+import { useAICondition } from '@/hooks/useAICondition';
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -32,6 +34,7 @@ export const VehicleInfoCard = ({
 }: VehicleInfoCardProps) => {
   const basePrice = 24500;
   const { saveValuation, isSaving } = useSaveValuation();
+  const { conditionData } = useAICondition(vehicleInfo.vin);
 
   const handleSaveValuation = () => {
     saveValuation({
@@ -41,7 +44,7 @@ export const VehicleInfoCard = ({
       year: vehicleInfo.year,
       valuation: basePrice,
       confidenceScore: carfaxData ? 92 : 85,
-      conditionScore: 75,
+      conditionScore: conditionData?.confidenceScore || 75,
       is_vin_lookup: true
     });
   };

@@ -86,7 +86,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         adjustments: [],
         fuelType: 'Not Specified',
         explanation: explanation, // Add the explanation to the valuation data
-        aiConditionData: conditionData // Pass AI condition data to the PDF generator
+        aiCondition: conditionData // Pass AI condition data to the PDF generator
       };
 
       // Convert to report data format

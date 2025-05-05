@@ -5,6 +5,7 @@ import { CheckCircle, AlertCircle, Download, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAICondition } from '@/hooks/useAICondition';
 
 interface Adjustment {
   factor: string;
@@ -27,6 +28,7 @@ interface ValuationResultsProps {
     mileage?: number;
     condition?: string;
   };
+  valuationId?: string;
   onDownloadPdf?: () => void;
   onEmailReport?: () => void;
 }
@@ -39,10 +41,12 @@ export function ValuationResults({
   priceRange,
   demandFactor,
   vehicleInfo,
+  valuationId,
   onDownloadPdf,
   onEmailReport
 }: ValuationResultsProps) {
   const isMobile = useIsMobile();
+  const { conditionData } = valuationId ? useAICondition(valuationId) : { conditionData: null };
   
   const handleDownloadPdf = () => {
     if (onDownloadPdf) {
@@ -76,6 +80,9 @@ export function ValuationResults({
             {vehicleInfo.trim && `${vehicleInfo.trim} • `}
             {vehicleInfo.mileage && `${vehicleInfo.mileage.toLocaleString()} miles • `}
             {vehicleInfo.condition && vehicleInfo.condition}
+            {conditionData && conditionData.confidenceScore >= 80 && (
+              <span className="ml-2 text-green-600 font-medium"> • AI Verified: {conditionData.condition}</span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
