@@ -10,28 +10,19 @@ export interface AIConditionResult {
 
 export async function getConditionAnalysis(valuationId: string): Promise<AIConditionResult | null> {
   try {
-    // First, check if the photo_condition_scores table exists
-    const { error: tableCheckError } = await supabase
-      .from('photo_condition_scores')
-      .select('count')
-      .limit(1)
-      .throwOnError();
-
-    // If we got an error, the table probably doesn't exist, return null
-    if (tableCheckError) {
-      console.warn('photo_condition_scores table may not exist:', tableCheckError);
-      return null;
-    }
-
-    // If no error, proceed with the query
+    // First, check if the photo_condition_scores table exists by trying to fetch data
     const { data, error } = await supabase
       .from('photo_condition_scores')
       .select('*')
       .eq('valuation_id', valuationId)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
       console.error('Error fetching condition analysis:', error);
+      return null;
+    }
+
+    if (!data) {
       return null;
     }
 

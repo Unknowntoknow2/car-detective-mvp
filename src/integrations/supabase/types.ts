@@ -488,6 +488,44 @@ export type Database = {
           },
         ]
       }
+      photo_condition_scores: {
+        Row: {
+          condition_score: number
+          confidence_score: number
+          created_at: string
+          id: string
+          issues: Json | null
+          summary: string | null
+          valuation_id: string
+        }
+        Insert: {
+          condition_score: number
+          confidence_score: number
+          created_at?: string
+          id?: string
+          issues?: Json | null
+          summary?: string | null
+          valuation_id: string
+        }
+        Update: {
+          condition_score?: number
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          issues?: Json | null
+          summary?: string | null
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_condition_scores_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photo_scores: {
         Row: {
           created_at: string
