@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { calculateFinalValuation } from './valuationCalculator';
 
 interface ValuationParams {
   make: string;
@@ -13,8 +14,33 @@ interface ValuationParams {
 
 export async function generateValuationExplanation(params: ValuationParams): Promise<string> {
   try {
+    // Convert the valuation parameters to the format expected by our valuation calculator
+    const valuationInput = {
+      baseMarketValue: params.valuation * 0.85, // Estimate base value from final valuation
+      vehicleYear: params.year,
+      make: params.make,
+      model: params.model,
+      mileage: params.mileage,
+      condition: params.condition as any,
+      zipCode: params.location
+    };
+    
+    // Calculate valuation details to enhance the explanation
+    const valuationDetails = calculateFinalValuation(valuationInput);
+    
+    // Prepare the data to send to the explanation function
+    const requestData = {
+      ...params,
+      adjustments: valuationDetails.adjustments.map(adj => ({
+        factor: adj.name,
+        impact: adj.percentage,
+        description: adj.description
+      }))
+    };
+    
+    // Call the Supabase Edge Function to generate the explanation
     const { data, error } = await supabase.functions.invoke('generate-explanation', {
-      body: params,
+      body: requestData,
     });
 
     if (error) {
