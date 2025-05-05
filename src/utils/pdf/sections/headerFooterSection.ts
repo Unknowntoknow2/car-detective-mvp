@@ -19,7 +19,7 @@ export function drawHeaderSection(
   // Set up title
   page.drawText('Vehicle Valuation Report', {
     x: margin,
-    y,
+    y: yPos,
     size: titleFontSize,
     font: boldFont,
     color: rgb(0, 0, 0.8)
@@ -29,7 +29,7 @@ export function drawHeaderSection(
   const currentDate = getCurrentDate();
   page.drawText(`Generated on: ${currentDate}`, {
     x: width - margin - 150,
-    y,
+    y: yPos,
     size: smallFontSize,
     font: regularFont,
     color: rgb(0.4, 0.4, 0.4)
