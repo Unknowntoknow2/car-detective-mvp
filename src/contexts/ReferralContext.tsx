@@ -78,7 +78,7 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setLoading(true);
     try {
       // Fetch user's referrals
-      const { data: referrals, error } = await supabase
+      const { data: referralsData, error } = await supabase
         .from('referrals')
         .select('*')
         .eq('inviter_id', user.id)
@@ -86,12 +86,18 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (error) throw error;
       
-      setMyReferrals(referrals || []);
+      // Convert string reward_status to the correct type
+      const typedReferrals: Referral[] = (referralsData || []).map(ref => ({
+        ...ref,
+        reward_status: ref.reward_status as 'pending' | 'earned' | 'claimed'
+      }));
+      
+      setMyReferrals(typedReferrals);
       
       // Get existing token or create a new one
-      if (referrals && referrals.length > 0) {
+      if (typedReferrals.length > 0) {
         // Find the most recent valid token
-        const latestReferral = referrals.find(r => !r.referred_user_id);
+        const latestReferral = typedReferrals.find(r => !r.referred_user_id);
         if (latestReferral) {
           setMyReferralToken(latestReferral.referral_token);
         } else {
@@ -106,12 +112,14 @@ export const ReferralProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       
       // Get referral stats
-      const { data: stats, error: statsError } = await supabase
+      const { data: statsData, error: statsError } = await supabase
         .rpc('get_user_referral_stats', { user_id: user.id });
         
       if (statsError) throw statsError;
       
-      setReferralStats(stats as ReferralStats);
+      if (statsData) {
+        setReferralStats(statsData as ReferralStats);
+      }
     } catch (error) {
       console.error('Error loading referrals:', error);
       toast.error('Failed to load referrals');

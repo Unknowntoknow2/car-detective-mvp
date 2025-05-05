@@ -907,6 +907,33 @@ export type Database = {
         }
         Relationships: []
       }
+      top_referrers: {
+        Row: {
+          id: string
+          referral_count: number | null
+          reward_count: number | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          id?: string
+          referral_count?: number | null
+          reward_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          id?: string
+          referral_count?: number | null
+          reward_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       transmission_adjustment: {
         Row: {
           description: string | null
@@ -973,6 +1000,36 @@ export type Database = {
           multiplier?: number
           step?: number
           tip?: string
+        }
+        Relationships: []
+      }
+      valuation_stats: {
+        Row: {
+          average_price: number | null
+          id: string
+          make: string | null
+          model: string | null
+          total_valuations: number | null
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          average_price?: number | null
+          id?: string
+          make?: string | null
+          model?: string | null
+          total_valuations?: number | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          average_price?: number | null
+          id?: string
+          make?: string | null
+          model?: string | null
+          total_valuations?: number | null
+          updated_at?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }
@@ -1386,6 +1443,14 @@ export type Database = {
       text_to_bytea: {
         Args: { data: string }
         Returns: string
+      }
+      update_top_referrers: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_valuation_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       urlencode: {
         Args: { data: Json } | { string: string } | { string: string }

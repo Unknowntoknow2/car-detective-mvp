@@ -14,6 +14,7 @@ import DealerOffersPage from './pages/dealer/DealerOffersPage';
 import AdminPage from './pages/AdminPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ReferralDashboardPage from './pages/ReferralDashboardPage';
+import StatsPage from './pages/StatsPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/dealer/offers" element={<DealerOffersPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/stats" element={<StatsPage />} />
           </Routes>
         </Router>
       </ReferralProvider>

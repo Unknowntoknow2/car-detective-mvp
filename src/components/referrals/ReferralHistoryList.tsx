@@ -21,12 +21,12 @@ export function ReferralHistoryList({ referrals, onSendReminder, isLoading }: Re
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: 'pending' | 'earned' | 'claimed') => {
     switch (status) {
       case 'pending':
         return <Badge variant="outline">Pending</Badge>;
       case 'earned':
-        return <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">Reward Earned</Badge>;
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Reward Earned</Badge>;
       case 'claimed':
         return <Badge variant="secondary">Claimed</Badge>;
       default:

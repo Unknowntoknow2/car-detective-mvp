@@ -82,6 +82,9 @@ verify_jwt = true
 [functions.send-referral-email]
 verify_jwt = true
 
+[functions.update-platform-stats]
+verify_jwt = true
+
 [analytics]
 enabled = false
 port = 54328

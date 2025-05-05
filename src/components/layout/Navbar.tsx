@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, X, ChevronDown, Users } from 'lucide-react';
+import { Menu, X, ChevronDown, Users, ChartBar } from 'lucide-react';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -49,6 +48,10 @@ export function Navbar() {
               </div>
             </div>
           </div>
+          <Link to="/stats" className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent">
+            <ChartBar className="h-4 w-4" />
+            Stats
+          </Link>
           {user ? (
             <div className="relative group">
               <button className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
@@ -130,6 +133,15 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Plate Lookup
+              </Link>
+              
+              <Link 
+                to="/stats" 
+                className="px-4 py-3 rounded-md hover:bg-accent text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <ChartBar className="h-4 w-4" />
+                Stats
               </Link>
               
               {user ? (
