@@ -1,9 +1,8 @@
-
 import { TabContentWrapper } from "./TabContentWrapper";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Building, ShieldCheck, Loader2, Car, DollarSign, MessageSquare } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { DealerOfferForm } from "@/components/dealer/DealerOfferForm";
@@ -29,17 +28,20 @@ export function DealerOffersTab({ vehicleData, valuationId = "mock-id" }: Dealer
   const { submitOffer, isSubmitting } = useDealerOffers(valuationId);
   const [isDealer, setIsDealer] = useState<boolean | null>(null);
   
-  // Check if current user is a dealer
-  useState(() => {
+  // Fixed: Changed useState to useEffect for checking dealer status
+  useEffect(() => {
     const checkIfDealer = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsDealer(false);
+        return;
+      }
       
       try {
         const { data, error } = await supabase
           .from('dealers')
           .select('id, verified')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
         if (error) {
           console.error('Error checking dealer status:', error);
@@ -55,7 +57,7 @@ export function DealerOffersTab({ vehicleData, valuationId = "mock-id" }: Dealer
     };
     
     checkIfDealer();
-  });
+  }, [user]);
   
   const handleRequestOffers = async () => {
     if (!vehicleData) return;
@@ -87,7 +89,7 @@ export function DealerOffersTab({ vehicleData, valuationId = "mock-id" }: Dealer
         .from('valuations')
         .select('user_id')
         .eq('id', valuationId)
-        .single();
+        .maybeSingle();
         
       if (valuationError) {
         console.error('Error getting valuation owner:', valuationError);
@@ -97,7 +99,7 @@ export function DealerOffersTab({ vehicleData, valuationId = "mock-id" }: Dealer
       
       submitOffer({
         reportId: valuationId,
-        userId: valuationData.user_id,
+        userId: valuationData?.user_id,
         amount: data.amount,
         message: data.message
       });
