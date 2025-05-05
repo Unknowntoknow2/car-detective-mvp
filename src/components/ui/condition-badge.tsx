@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircleIcon, XCircleIcon } from '@/components/ui/icons';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type ConditionLevel = 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
@@ -53,9 +53,9 @@ export function ConditionBadge({
       )}
     >
       {isVerified ? (
-        <CheckCircleIcon className="h-3.5 w-3.5" />
+        <CheckCircle className="h-3.5 w-3.5" />
       ) : (
-        <XCircleIcon className="h-3.5 w-3.5" />
+        <XCircle className="h-3.5 w-3.5" />
       )}
       
       {isVerified ? (

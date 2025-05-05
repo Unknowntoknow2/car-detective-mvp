@@ -1,83 +1,119 @@
 
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Loader2, X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Loader2, Trash2, AlertCircle, Check } from "lucide-react";
+import { ConditionBadge } from "@/components/ui/condition-badge";
 
 interface PhotoPreviewProps {
-  photoUrl: string;
-  thumbnailUrl: string | null;
+  photos: {
+    url: string;
+    thumbnail?: string;
+    id?: string;
+  }[];
   photoScore: number | null;
   isUploading: boolean;
   isScoring: boolean;
   uploadProgress: number;
   onRemove: () => void;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
 }
 
 export function PhotoPreview({
-  photoUrl,
-  thumbnailUrl,
+  photos,
   photoScore,
   isUploading,
   isScoring,
   uploadProgress,
-  onRemove
+  onRemove,
+  aiCondition
 }: PhotoPreviewProps) {
-  
-  const getScoreColor = (score: number) => {
-    if (score >= 0.8) return 'bg-green-500 text-white';
-    if (score >= 0.5) return 'bg-yellow-500 text-white';
-    return 'bg-red-500 text-white';
-  };
-  
-  const formatScorePercentage = (score: number) => {
-    return Math.round(score * 100);
-  };
-  
   return (
-    <Card className="relative overflow-hidden">
-      {isScoring && (
-        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white z-10">
-          <Loader2 className="h-8 w-8 animate-spin mb-2" />
-          <p>Analyzing photo...</p>
-        </div>
-      )}
-      
-      <div className="aspect-video relative overflow-hidden">
-        <img 
-          src={thumbnailUrl || photoUrl} 
-          alt="Vehicle" 
-          className="w-full h-full object-cover"
-        />
-        {photoScore !== null && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-400" />
-                <span className="text-white font-medium">Analysis Complete</span>
-              </div>
-              <Badge className={getScoreColor(photoScore)}>
-                Score: {formatScorePercentage(photoScore)}%
-              </Badge>
-            </div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {photos.map((photo, index) => (
+          <div key={index} className="aspect-square rounded-md overflow-hidden border border-gray-200 relative group">
+            <img 
+              src={photo.thumbnail || photo.url} 
+              alt={`Vehicle photo ${index + 1}`} 
+              className="w-full h-full object-cover"
+            />
           </div>
-        )}
-        
-        <button 
-          className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full hover:bg-black/80 transition"
-          onClick={onRemove}
-          aria-label="Remove photo"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        ))}
       </div>
-      
-      {isUploading && (
-        <div className="p-3">
-          <p className="text-sm font-medium mb-1">Uploading...</p>
-          <Progress value={uploadProgress} className="h-2" />
+
+      {(isUploading || isScoring) && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium flex items-center">
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading photos...
+                </>
+              ) : (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analyzing vehicle photos with AI...
+                </>
+              )}
+            </p>
+            <span className="text-xs text-gray-500">{uploadProgress}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-1" />
         </div>
       )}
-    </Card>
+
+      {!isUploading && !isScoring && aiCondition && (
+        <div className="border rounded-md p-4 bg-background">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium">AI Condition Assessment</h4>
+            <ConditionBadge 
+              condition={aiCondition.condition}
+              confidenceScore={aiCondition.confidenceScore}
+            />
+          </div>
+          
+          {aiCondition.aiSummary && (
+            <p className="text-sm mb-3 text-gray-600">{aiCondition.aiSummary}</p>
+          )}
+          
+          {aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0 && (
+            <div className="space-y-1 mt-2">
+              <p className="text-xs font-medium text-gray-600">Issues detected:</p>
+              <ul className="text-xs list-disc pl-5 text-gray-600 space-y-1">
+                {aiCondition.issuesDetected.map((issue, i) => (
+                  <li key={i}>{issue}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!isUploading && !isScoring && photoScore && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Check className="h-4 w-4 mr-2 text-green-500" />
+            <span className="text-sm">
+              {photos.length} {photos.length === 1 ? 'photo' : 'photos'} analyzed
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Remove All Photos
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

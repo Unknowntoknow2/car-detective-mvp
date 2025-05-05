@@ -15,6 +15,12 @@ export async function generateValuationPdf(params: {
   explanationText?: string;
   comparables?: { source: string; price: number; date: string }[];
   valuationId?: string;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
 }): Promise<Uint8Array> {
   // Convert the params to the expected ReportData format
   const reportData: ReportData = {
@@ -33,7 +39,8 @@ export async function generateValuationPdf(params: {
     fuelType: params.vehicle.fuelType || 'Not Specified',
     explanation: params.explanation,
     isPremium: false,
-    valuationId: params.valuationId
+    valuationId: params.valuationId,
+    aiCondition: params.aiCondition
   };
   
   return generatePdf(reportData);

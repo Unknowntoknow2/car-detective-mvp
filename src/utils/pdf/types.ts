@@ -1,3 +1,4 @@
+
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
 import { ForecastResult } from '@/utils/forecasting/valuation-forecast';
 
@@ -37,6 +38,14 @@ export interface ReportData {
   isPremium?: boolean;
   location?: string;
   valuationId?: string;
+  
+  // Add AI condition assessment
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
 }
 
 export interface ValuationReportOptions {

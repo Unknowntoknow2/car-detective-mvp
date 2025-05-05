@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -34,26 +35,28 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [photoScore, setPhotoScore] = useState<number | null>(null);
+  const [aiCondition, setAiCondition] = useState<any | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrail[] | null>(null);
   const [estimatedValue, setEstimatedValue] = useState<number | undefined>(valuationData.estimatedValue);
   const [calculationInProgress, setCalculationInProgress] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Recalculate valuation when photo score changes
+  // Recalculate valuation when photo score or AI condition changes
   useEffect(() => {
-    if (photoScore && valuationData) {
+    if ((photoScore || aiCondition) && valuationData) {
       const calculateNewValuation = async () => {
         setCalculationInProgress(true);
         try {
-          // Recalculate valuation with photo score
+          // Recalculate valuation with photo score and AI condition
           const result = await calculateValuation({
             make: valuationData.make,
             model: valuationData.model,
             year: valuationData.year,
             mileage: valuationData.mileage || 0,
-            condition: valuationData.condition || 'good',
-            // We'll handle photo score separately
+            condition: aiCondition?.condition || valuationData.condition || 'good',
+            // Additional data from AI analysis
+            aiConditionData: aiCondition
           });
           
           setEstimatedValue(result.estimatedValue);
@@ -72,7 +75,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           }
         } catch (error) {
           console.error("Error calculating valuation:", error);
-          toast.error("Failed to update valuation with photo score");
+          toast.error("Failed to update valuation with photo analysis");
         } finally {
           setCalculationInProgress(false);
         }
@@ -80,12 +83,13 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       
       calculateNewValuation();
     }
-  }, [photoScore, valuationData]);
+  }, [photoScore, aiCondition, valuationData]);
 
-  const handlePhotoScoreChange = (score: number) => {
+  const handlePhotoScoreChange = (score: number, condition?: any) => {
     setPhotoScore(score);
+    setAiCondition(condition);
     setPhotoSubmitted(true);
-    toast.success(`Photo analyzed and scored at ${Math.round(score * 100)}%`);
+    toast.success(`Photos analyzed and vehicle condition assessed`);
   };
 
   const saveToAccount = async () => {
@@ -107,7 +111,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
           vin: valuationData.vin, // This is optional in the DB
           valuation: estimatedValue || 0,
           confidence_score: photoSubmitted ? 92 : 85, // Higher confidence with photo
-          condition_score: photoScore ? Math.round(photoScore * 100) : null,
+          condition_score: photoScore ? Math.round(photoScore) : null,
         })
         .select()
         .single();
@@ -145,6 +149,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         valuationData={valuationData}
         photoSubmitted={photoSubmitted}
         photoScore={photoScore}
+        aiCondition={aiCondition}
         estimatedValue={estimatedValue}
         calculationInProgress={calculationInProgress}
         onShareValuation={shareValuation}
@@ -172,7 +177,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
                 make: valuationData.make,
                 model: valuationData.model,
                 mileage: valuationData.mileage || 0,
-                condition: valuationData.condition || 'good'
+                condition: aiCondition?.condition || valuationData.condition || 'good'
               }
             }} 
           />

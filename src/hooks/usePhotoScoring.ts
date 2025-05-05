@@ -3,146 +3,259 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface Photo {
+  url: string;
+  thumbnail?: string;
+  id?: string;
+}
+
+interface AICondition {
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  aiSummary?: string;
+}
+
 export function usePhotoScoring(valuationId: string) {
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoScore, setPhotoScore] = useState<number | null>(null);
+  const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isScoring, setIsScoring] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [photoId, setPhotoId] = useState<string | null>(null);
 
-  // Load existing photo score if available
+  // Load existing photos and assessment if available
   useEffect(() => {
-    async function loadExistingPhotoScore() {
+    async function loadExistingPhotos() {
       if (!valuationId) return;
       
       try {
-        const { data, error } = await supabase
-          .from('photo_scores')
+        // Get existing photos
+        const { data: photoData, error: photoError } = await supabase
+          .from('valuation_photos')
           .select('*')
-          .eq('valuation_id', valuationId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .eq('valuation_id', valuationId);
         
-        if (error) {
-          console.log('No existing photo score found');
+        if (photoError) {
+          console.log('Error loading photos:', photoError);
           return;
         }
         
-        if (data) {
-          setPhotoScore(data.score);
-          setThumbnailUrl(data.thumbnail_url);
+        if (photoData && photoData.length > 0) {
+          const loadedPhotos = photoData.map(photo => ({
+            url: photo.photo_url,
+            thumbnail: photo.photo_url,
+            id: photo.id
+          }));
           
-          // Handle metadata safely by checking its structure
-          if (data.metadata && typeof data.metadata === 'object' && !Array.isArray(data.metadata)) {
-            // Type casting the metadata to a record with string keys and any values
-            const metadataObj = data.metadata as Record<string, any>;
-            setPhotoUrl(metadataObj.original_url || data.thumbnail_url);
-          } else {
-            setPhotoUrl(data.thumbnail_url);
+          setPhotos(loadedPhotos);
+          
+          // If we have photos, check for AI assessment
+          const { data: aiData, error: aiError } = await supabase
+            .from('photo_scores')
+            .select('*')
+            .eq('valuation_id', valuationId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (!aiError && aiData) {
+            setPhotoScore(aiData.score * 100); // Convert from 0-1 to 0-100
+            
+            // Extract AI condition analysis from metadata
+            if (aiData.metadata) {
+              const metadata = aiData.metadata as any;
+              if (metadata.condition) {
+                setAiCondition({
+                  condition: metadata.condition,
+                  confidenceScore: metadata.confidenceScore || 70,
+                  issuesDetected: metadata.issuesDetected || [],
+                  aiSummary: metadata.aiSummary
+                });
+              }
+            }
           }
-          
-          setPhotoId(data.id);
         }
       } catch (err) {
-        // No photo score yet, that's okay
-        console.log('Error or no photo score yet:', err);
+        console.log('Error loading existing photo data:', err);
       }
     }
     
-    loadExistingPhotoScore();
+    loadExistingPhotos();
   }, [valuationId]);
 
-  const resetUpload = () => {
-    setPhotoUrl(null);
-    setThumbnailUrl(null);
+  const resetUpload = async () => {
+    // Delete photos from storage
+    for (const photo of photos) {
+      if (photo.id) {
+        try {
+          await supabase
+            .from('valuation_photos')
+            .delete()
+            .eq('id', photo.id);
+        } catch (err) {
+          console.error('Error deleting photo record:', err);
+        }
+      }
+    }
+    
+    setPhotos([]);
     setPhotoScore(null);
+    setAiCondition(null);
     setError(null);
     setUploadProgress(0);
-    setPhotoId(null);
   };
 
-  const uploadPhoto = async (file: File): Promise<number | null> => {
+  const uploadPhotos = async (files: File[]): Promise<{ score: number, aiCondition?: AICondition } | null> => {
     setIsUploading(true);
     setError(null);
+    setUploadProgress(0);
     
     try {
-      // Create a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${valuationId}/${fileName}`;
+      // First, upload all photos to storage
+      const uploadedPhotos: Photo[] = [];
+      const totalFiles = files.length;
+      let uploadedCount = 0;
       
-      // Upload the file to Supabase storage
-      const { data, error: uploadError } = await supabase.storage
-        .from('vehicle-photos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
+      for (const file of files) {
+        // Create a unique file name
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `${valuationId}/${fileName}`;
+        
+        // Upload the file to Supabase storage
+        const { data, error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+        
+        if (uploadError) {
+          throw uploadError;
+        }
+        
+        // Get the URL of the uploaded file
+        const { data: urlData } = supabase.storage
+          .from('vehicle-photos')
+          .getPublicUrl(filePath);
+        
+        uploadedPhotos.push({
+          url: urlData.publicUrl,
+          thumbnail: urlData.publicUrl
         });
-      
-      if (uploadError) {
-        throw uploadError;
+        
+        uploadedCount++;
+        setUploadProgress(Math.round((uploadedCount / totalFiles) * 50)); // First 50% is for uploads
       }
       
-      // Get the URL of the uploaded file
-      const { data: urlData } = supabase.storage
-        .from('vehicle-photos')
-        .getPublicUrl(filePath);
-      
-      setPhotoUrl(urlData.publicUrl);
-      
-      // Create a thumbnail version for display
-      setThumbnailUrl(urlData.publicUrl);
-      
-      // Now, score the photo using AI
+      setPhotos(prev => [...prev, ...uploadedPhotos]);
       setIsUploading(false);
       setIsScoring(true);
       
-      // Call scoring API (using Edge Function if available, otherwise mock)
-      let score: number;
+      // Now analyze the photos with the Edge Function
+      const formData = new FormData();
+      formData.append('valuationId', valuationId);
+      
+      // Re-add the files to the FormData for analysis
+      files.forEach((file, index) => {
+        formData.append(`photos[${index}]`, file);
+      });
+      
+      // Call the analyze-photos edge function
+      let aiResult;
       try {
-        // Try to use the edge function
-        const { data: scoreData, error: scoreError } = await supabase.functions
-          .invoke('score-image', {
-            body: { imageUrl: urlData.publicUrl, valuationId }
+        setUploadProgress(60); // Show progress during analysis
+        
+        const { data: analyzeData, error: analyzeError } = await supabase.functions
+          .invoke('analyze-photos', {
+            body: formData,
           });
         
-        if (scoreError) throw scoreError;
-        score = scoreData.score;
-      } catch (scoringErr) {
-        console.log('Edge function scoring failed, using mock:', scoringErr);
-        // Fall back to mock scoring
-        score = await mockScorePhoto(urlData.publicUrl);
+        if (analyzeError) throw analyzeError;
+        aiResult = analyzeData;
+        
+        setUploadProgress(80);
+      } catch (analyzeErr) {
+        console.log('Edge function analysis failed:', analyzeErr);
+        // Fall back to a mock analysis
+        aiResult = await mockAnalyzePhotos(uploadedPhotos.map(p => p.url));
       }
       
-      setPhotoScore(score);
+      // Save the photo records in the database
+      const savedPhotoPromises = uploadedPhotos.map(async (photo, index) => {
+        const { data: photoData, error: photoError } = await supabase
+          .from('valuation_photos')
+          .insert({
+            valuation_id: valuationId,
+            photo_url: photo.url,
+            score: aiResult.confidenceScore / 100, // Store as 0-1 value
+            uploaded_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+          
+        if (photoError) {
+          console.error('Error storing photo record:', photoError);
+          return photo;
+        }
+        
+        return {
+          ...photo,
+          id: photoData.id
+        };
+      });
       
-      // Store the scored photo in the database
-      const { data: dbData, error: dbError } = await supabase
+      const updatedPhotos = await Promise.all(savedPhotoPromises);
+      setPhotos(prev => {
+        // Keep any previously existing photos, update newly added ones
+        const oldPhotos = prev.slice(0, prev.length - uploadedPhotos.length);
+        return [...oldPhotos, ...updatedPhotos];
+      });
+      
+      // Store the assessment result
+      const { data: assessmentData, error: assessmentError } = await supabase
         .from('photo_scores')
         .insert({
           valuation_id: valuationId,
-          score: score,
-          thumbnail_url: urlData.publicUrl,
+          score: aiResult.confidenceScore / 100, // Store as 0-1 value
+          thumbnail_url: uploadedPhotos[0]?.url || null,
           metadata: {
-            original_url: urlData.publicUrl,
-            analysis_timestamp: new Date().toISOString()
+            condition: aiResult.condition,
+            confidenceScore: aiResult.confidenceScore,
+            issuesDetected: aiResult.issuesDetected,
+            aiSummary: aiResult.aiSummary,
+            analysis_timestamp: new Date().toISOString(),
+            photo_count: updatedPhotos.length
           }
-        })
-        .select()
-        .single();
+        });
       
-      if (dbError) {
-        console.error('Error storing photo scoring in DB:', dbError);
-      } else if (dbData) {
-        setPhotoId(dbData.id);
+      if (assessmentError) {
+        console.error('Error storing assessment result:', assessmentError);
       }
       
+      // Update state with results
+      setPhotoScore(aiResult.confidenceScore);
+      setAiCondition({
+        condition: aiResult.condition,
+        confidenceScore: aiResult.confidenceScore,
+        issuesDetected: aiResult.issuesDetected,
+        aiSummary: aiResult.aiSummary
+      });
+      
+      setUploadProgress(100);
       setIsScoring(false);
-      return score;
+      
+      return {
+        score: aiResult.confidenceScore,
+        aiCondition: {
+          condition: aiResult.condition,
+          confidenceScore: aiResult.confidenceScore,
+          issuesDetected: aiResult.issuesDetected,
+          aiSummary: aiResult.aiSummary
+        }
+      };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
@@ -153,21 +266,57 @@ export function usePhotoScoring(valuationId: string) {
     }
   };
   
-  // Mock function to simulate AI photo scoring
-  const mockScorePhoto = async (imageUrl: string): Promise<number> => {
+  // Mock function to simulate AI photo analysis
+  const mockAnalyzePhotos = async (imageUrls: string[]): Promise<{
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    confidenceScore: number;
+    issuesDetected: string[];
+    aiSummary: string;
+  }> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Return a random score between 0.60 and 0.95
-    return Math.round((0.60 + Math.random() * 0.35) * 100) / 100;
+    // Generate a mock assessment
+    const conditions = ['Excellent', 'Good', 'Fair', 'Poor'] as const;
+    const randomIndex = Math.floor(Math.random() * 3); // Bias toward better conditions
+    const condition = conditions[randomIndex];
+    
+    const confidenceScore = Math.round(85 - (randomIndex * 10) + (Math.random() * 10));
+    
+    const possibleIssues = [
+      'Minor scratches on front bumper',
+      'Light wear on driver seat',
+      'Small dent on passenger door',
+      'Windshield has minor chip',
+      'Paint fading on hood',
+      'Wheel rim has curb rash',
+      'Headlight lens slightly cloudy'
+    ];
+    
+    const issuesDetected = randomIndex === 0 
+      ? [] 
+      : possibleIssues.slice(0, randomIndex + 1);
+    
+    const summaries = [
+      'Vehicle appears to be in excellent condition with no visible issues detected.',
+      'Vehicle is in good condition overall with minimal wear appropriate for its age.',
+      'Vehicle shows normal wear and would benefit from minor cosmetic repairs.',
+      'Vehicle has several issues that should be addressed to improve its condition.'
+    ];
+    
+    return {
+      condition,
+      confidenceScore,
+      issuesDetected,
+      aiSummary: summaries[randomIndex]
+    };
   };
   
   return {
-    uploadPhoto,
-    photoUrl,
-    thumbnailUrl,
+    uploadPhotos,
+    photos,
     photoScore,
-    photoId,
+    aiCondition,
     isUploading,
     isScoring,
     uploadProgress,

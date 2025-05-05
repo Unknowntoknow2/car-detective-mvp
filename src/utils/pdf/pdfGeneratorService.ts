@@ -15,10 +15,19 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   // For this demo, we're just returning a placeholder Uint8Array
   // In a real application, this would be replaced with actual PDF generation
   
-  // Simulate taking longer for premium PDFs (would contain more content)
+  // Enhanced PDF generation for premium reports with AI condition
   if (reportData.isPremium) {
     await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log('Generated premium PDF report');
+    console.log('Generated premium PDF report with AI condition assessment');
+    
+    // Here you would add the AI condition section to the PDF
+    if (reportData.aiCondition) {
+      console.log('Including AI condition assessment in PDF:');
+      console.log('- Condition:', reportData.aiCondition.condition);
+      console.log('- Confidence Score:', reportData.aiCondition.confidenceScore);
+      console.log('- Issues Detected:', reportData.aiCondition.issuesDetected);
+      console.log('- AI Summary:', reportData.aiCondition.aiSummary);
+    }
   } else {
     await new Promise(resolve => setTimeout(resolve, 500));
     console.log('Generated standard PDF report');

@@ -4,18 +4,19 @@ import { PhotoPreview } from './photo-upload/PhotoPreview';
 import { PhotoUploadError } from './photo-upload/PhotoUploadError';
 import { Badge } from '@/components/ui/badge';
 import { usePhotoScoring } from '@/hooks/usePhotoScoring';
+import { useState } from 'react';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;
-  onScoreChange?: (score: number) => void;
+  onScoreChange?: (score: number, aiCondition?: any) => void;
 }
 
 export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadAndScoreProps) {
   const {
-    uploadPhoto,
-    photoUrl,
-    thumbnailUrl,
+    uploadPhotos,
+    photos,
     photoScore,
+    aiCondition,
     isUploading,
     isScoring,
     uploadProgress,
@@ -23,12 +24,12 @@ export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadA
     resetUpload
   } = usePhotoScoring(valuationId);
   
-  const handleFileSelection = async (file: File) => {
-    const score = await uploadPhoto(file);
+  const handleFileSelection = async (files: File[]) => {
+    const result = await uploadPhotos(files);
     
     // Call the onScoreChange callback if provided
-    if (score && onScoreChange) {
-      onScoreChange(score);
+    if (result && onScoreChange) {
+      onScoreChange(result.score, result.aiCondition);
     }
   };
   
@@ -39,27 +40,37 @@ export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadA
         <Badge variant="outline" className="bg-primary/10">AI-Powered</Badge>
       </div>
       
-      {!photoUrl ? (
+      {photos.length === 0 ? (
         <PhotoUploadDropzone 
-          onFileSelect={handleFileSelection}
+          onFilesSelect={handleFileSelection}
           isLoading={isUploading || isScoring}
+          currentFileCount={photos.length}
         />
       ) : (
         <PhotoPreview
-          photoUrl={photoUrl}
-          thumbnailUrl={thumbnailUrl}
+          photos={photos}
           photoScore={photoScore}
           isUploading={isUploading}
           isScoring={isScoring}
           uploadProgress={uploadProgress}
           onRemove={resetUpload}
+          aiCondition={aiCondition}
+        />
+      )}
+      
+      {photos.length < 5 && photos.length > 0 && !isUploading && !isScoring && (
+        <PhotoUploadDropzone 
+          onFilesSelect={handleFileSelection}
+          isLoading={isUploading || isScoring}
+          currentFileCount={photos.length}
         />
       )}
       
       <PhotoUploadError error={error} />
       
       <div className="text-xs text-gray-500">
-        <p>Upload a clear photo of your vehicle to improve valuation accuracy.</p>
+        <p>Upload 3-5 clear photos of your vehicle to improve valuation accuracy.</p>
+        <p>Include exterior from different angles, interior, and any damage for the best results.</p>
         <p>Our AI will analyze the condition and features to provide a more personalized estimate.</p>
       </div>
     </div>

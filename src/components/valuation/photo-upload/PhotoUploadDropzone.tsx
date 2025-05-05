@@ -1,12 +1,14 @@
 
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera } from 'lucide-react';
+import { Camera, Upload } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+const MIN_FILES = 1;
+const MAX_FILES = 5;
 
 const fileSchema = z.object({
   name: z.string(),
@@ -17,13 +19,19 @@ const fileSchema = z.object({
 });
 
 interface PhotoUploadDropzoneProps {
-  onFileSelect: (file: File) => Promise<void>;
+  onFilesSelect: (files: File[]) => Promise<void>;
   isLoading: boolean;
+  currentFileCount: number;
 }
 
-export function PhotoUploadDropzone({ onFileSelect, isLoading }: PhotoUploadDropzoneProps) {
+export function PhotoUploadDropzone({ 
+  onFilesSelect, 
+  isLoading, 
+  currentFileCount
+}: PhotoUploadDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const remainingFiles = MAX_FILES - currentFileCount;
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -39,28 +47,48 @@ export function PhotoUploadDropzone({ onFileSelect, isLoading }: PhotoUploadDrop
     setIsDragging(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      await handleFileSelection(e.dataTransfer.files[0]);
+      await handleFileSelection(Array.from(e.dataTransfer.files));
     }
   };
   
   const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      await handleFileSelection(e.target.files[0]);
+      await handleFileSelection(Array.from(e.target.files));
     }
   };
   
-  const handleFileSelection = async (file: File) => {
+  const handleFileSelection = async (files: File[]) => {
     try {
-      // Validate file
-      fileSchema.parse(file);
-      await onFileSelect(file);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        toast.error(err.errors[0].message);
-      } else {
-        toast.error('Failed to process image');
-        console.error('File upload error:', err);
+      if (files.length > remainingFiles) {
+        toast.error(`You can only upload up to ${MAX_FILES} images in total. ${remainingFiles} remaining.`);
+        return;
       }
+      
+      // Validate each file
+      const validFiles: File[] = [];
+      const errors: string[] = [];
+      
+      for (const file of files) {
+        try {
+          fileSchema.parse(file);
+          validFiles.push(file);
+        } catch (err) {
+          if (err instanceof z.ZodError) {
+            errors.push(`${file.name}: ${err.errors[0].message}`);
+          }
+        }
+      }
+      
+      if (errors.length > 0) {
+        errors.forEach(error => toast.error(error));
+      }
+      
+      if (validFiles.length > 0) {
+        await onFilesSelect(validFiles);
+      }
+    } catch (err) {
+      toast.error('Failed to process images');
+      console.error('File upload error:', err);
     }
   };
   
@@ -69,6 +97,10 @@ export function PhotoUploadDropzone({ onFileSelect, isLoading }: PhotoUploadDrop
       fileInputRef.current.click();
     }
   };
+
+  if (remainingFiles <= 0) {
+    return null;
+  }
 
   return (
     <div
@@ -88,18 +120,21 @@ export function PhotoUploadDropzone({ onFileSelect, isLoading }: PhotoUploadDrop
         ref={fileInputRef}
         onChange={handleFileInputChange}
         disabled={isLoading}
+        multiple
       />
       
       <div className="flex flex-col items-center justify-center space-y-3">
         <div className="p-3 bg-primary/10 rounded-full">
-          <Camera className="h-6 w-6 text-primary" />
+          <Upload className="h-6 w-6 text-primary" />
         </div>
         <div>
           <p className="text-sm font-medium">
-            Drag and drop or click to upload a photo
+            {currentFileCount === 0 
+              ? 'Upload 3-5 photos of your vehicle for better analysis'
+              : `Add up to ${remainingFiles} more photos`}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            JPEG or PNG, max 5MB
+            JPEG or PNG, max 5MB each
           </p>
         </div>
         <Button 
@@ -108,7 +143,7 @@ export function PhotoUploadDropzone({ onFileSelect, isLoading }: PhotoUploadDrop
           onClick={triggerFileInput}
           disabled={isLoading}
         >
-          Select Photo
+          Select Photos
         </Button>
       </div>
     </div>

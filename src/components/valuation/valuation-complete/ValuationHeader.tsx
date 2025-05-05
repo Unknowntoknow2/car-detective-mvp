@@ -1,10 +1,8 @@
 
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Share, BookmarkPlus } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
+import { ConditionBadge } from "@/components/ui/condition-badge";
+import { Button } from "@/components/ui/button";
+import { Share, Save } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ValuationHeaderProps {
   valuationData: {
@@ -13,11 +11,16 @@ interface ValuationHeaderProps {
     year: number;
     trim?: string;
     mileage?: number;
-    estimatedValue?: number;
   };
   photoSubmitted: boolean;
   photoScore: number | null;
-  estimatedValue: number | undefined;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
+  estimatedValue?: number;
   calculationInProgress: boolean;
   onShareValuation: () => void;
   onSaveToAccount: () => void;
@@ -28,65 +31,80 @@ export function ValuationHeader({
   valuationData,
   photoSubmitted,
   photoScore,
+  aiCondition,
   estimatedValue,
   calculationInProgress,
   onShareValuation,
   onSaveToAccount,
   isSaving
 }: ValuationHeaderProps) {
-  return (
-    <Card>
-      <CardHeader className="bg-primary/5">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Valuation Complete</h2>
-          <Badge variant="outline" className="px-3">
-            {valuationData.year} {valuationData.make} {valuationData.model} {valuationData.trim || ''}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-6 pb-4">
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm text-gray-500">Estimated Value</p>
-              <p className="text-2xl font-semibold">
-                {estimatedValue 
-                  ? formatCurrency(estimatedValue)
-                  : calculationInProgress ? 'Calculating...' : 'Not available'}
-              </p>
-              {photoSubmitted && photoScore && (
-                <p className="text-xs text-green-600">Includes photo analysis ({Math.round(photoScore * 100)}% condition score)</p>
-              )}
-            </div>
-            
-            <div className="space-y-1">
-              <p className="text-sm text-gray-500">Mileage</p>
-              <p className="text-lg">
-                {valuationData.mileage 
-                  ? `${new Intl.NumberFormat('en-US').format(valuationData.mileage)} miles`
-                  : 'Not specified'}
-              </p>
-            </div>
-          </div>
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  });
 
-          {!photoSubmitted && (
-            <Alert>
-              <AlertTitle>Improve your valuation accuracy</AlertTitle>
-              <AlertDescription>
-                Upload a photo of your vehicle below to get a more accurate valuation based on visual condition.
-              </AlertDescription>
-            </Alert>
+  return (
+    <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-100">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold">
+            {valuationData.year} {valuationData.make} {valuationData.model} {valuationData.trim}
+          </h2>
+          
+          {valuationData.mileage && (
+            <p className="text-gray-500 text-sm">
+              {new Intl.NumberFormat().format(valuationData.mileage)} miles
+            </p>
+          )}
+          
+          {photoSubmitted && aiCondition && (
+            <div className="mt-2">
+              <ConditionBadge 
+                condition={aiCondition.condition}
+                confidenceScore={aiCondition.confidenceScore}
+              />
+            </div>
           )}
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-end gap-2 border-t bg-gray-50 p-4">
-        <Button variant="outline" onClick={onShareValuation}>
-          <Share className="mr-2 h-4 w-4" /> Share
+        
+        <div className="text-center md:text-right">
+          <p className="text-sm text-gray-500 mb-1">Estimated Value</p>
+          {calculationInProgress ? (
+            <Skeleton className="h-8 w-40 bg-gray-200" />
+          ) : (
+            <p className="text-2xl font-bold text-primary">
+              {estimatedValue ? formatter.format(estimatedValue) : 'N/A'}
+            </p>
+          )}
+          <p className="text-xs text-gray-400 mt-1">
+            {photoSubmitted ? 'Based on AI photo analysis' : 'Based on provided information'}
+          </p>
+        </div>
+      </div>
+      
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 sm:flex-none"
+          onClick={onShareValuation}
+        >
+          <Share className="w-4 h-4 mr-2" />
+          Share
         </Button>
-        <Button variant="outline" onClick={onSaveToAccount} disabled={isSaving}>
-          <BookmarkPlus className="mr-2 h-4 w-4" /> {isSaving ? 'Saving...' : 'Save'}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 sm:flex-none"
+          onClick={onSaveToAccount}
+          disabled={isSaving}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {isSaving ? 'Saving...' : 'Save to My Account'}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
