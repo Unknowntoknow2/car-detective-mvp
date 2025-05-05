@@ -4,6 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Constants
+const MIN_FILES = 3;
+const MAX_FILES = 5;
+
 interface Photo {
   url: string;
   thumbnail?: string;
@@ -42,11 +46,11 @@ export function usePhotoScoring(valuationId: string) {
       
       try {
         // Get existing photos
-        // Use 'any' type assertion for Supabase queries to tables not in generated types
+        // Use type assertion for tables not in generated types
         const { data: photoData, error: photoError } = await supabase
           .from('valuation_photos')
           .select('*')
-          .eq('valuation_id', valuationId);
+          .eq('valuation_id', valuationId) as { data: ValuationPhoto[] | null, error: any };
         
         if (photoError) {
           console.log('Error loading photos:', photoError);
@@ -104,7 +108,7 @@ export function usePhotoScoring(valuationId: string) {
           await supabase
             .from('valuation_photos')
             .delete()
-            .eq('id', photo.id);
+            .eq('id', photo.id) as any; // Type assertion to avoid type error
         } catch (err) {
           console.error('Error deleting photo record:', err);
         }

@@ -1,4 +1,3 @@
-
 import { PhotoUploadDropzone } from './photo-upload/PhotoUploadDropzone';
 import { PhotoPreview } from './photo-upload/PhotoPreview';
 import { PhotoUploadError } from './photo-upload/PhotoUploadError';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { usePhotoScoring } from '@/hooks/usePhotoScoring';
 import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { InfoCircle } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;
@@ -44,7 +43,7 @@ export function PhotoUploadAndScore({ valuationId, onScoreChange }: PhotoUploadA
       
       {photos.length < 3 && (
         <Alert>
-          <InfoCircle className="h-4 w-4" />
+          <Info className="h-4 w-4" />
           <AlertTitle>Enhanced valuation with photos</AlertTitle>
           <AlertDescription>
             Upload at least 3 photos (up to 5) of your vehicle for an AI-enhanced valuation that's more accurate.
