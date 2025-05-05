@@ -13,7 +13,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
   try {
     // Get existing photos - use type assertion for tables not in generated types
     const { data: photoData, error: photoError } = await supabase
-      .from('valuation_photos')
+      .from('valuation_photos' as any)
       .select('*')
       .eq('valuation_id', valuationId) as unknown as { 
         data: ValuationPhoto[] | null; 
@@ -81,7 +81,7 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
       try {
         // Type assertion to avoid type error
         await supabase
-          .from('valuation_photos')
+          .from('valuation_photos' as any)
           .delete()
           .eq('id', photo.id) as unknown as any;
       } catch (err) {
