@@ -1,11 +1,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { DealerOffer } from '@/types/dealer';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useDealerOffers(reportId?: string) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: offers, isLoading } = useQuery({
     queryKey: ['dealer-offers', reportId],
@@ -22,11 +24,28 @@ export function useDealerOffers(reportId?: string) {
     enabled: !!reportId
   });
 
-  const { mutate: submitOffer } = useMutation({
-    mutationFn: async (offerData: Omit<DealerOffer, 'id' | 'created_at' | 'updated_at'>) => {
+  const { mutate: submitOffer, isPending: isSubmitting } = useMutation({
+    mutationFn: async ({ 
+      reportId, 
+      userId, 
+      amount, 
+      message 
+    }: { 
+      reportId: string; 
+      userId: string;
+      amount: number; 
+      message?: string;
+    }) => {
       const { data, error } = await supabase
         .from('dealer_offers')
-        .insert(offerData)
+        .insert({
+          report_id: reportId,
+          user_id: userId,
+          dealer_id: user?.id,
+          offer_amount: amount,
+          message: message || null,
+          status: 'pending'
+        })
         .select()
         .single();
 
@@ -68,6 +87,7 @@ export function useDealerOffers(reportId?: string) {
   return {
     offers,
     isLoading,
+    isSubmitting,
     submitOffer,
     updateOfferStatus
   };
