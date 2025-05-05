@@ -253,15 +253,14 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
  */
 import { 
   calculateFinalValuation as enterpriseCalculateFinalValuation,
+} from './valuation/calculateFinalValuation';
+import type { 
   ValuationInput as EnterpriseValuationInput,
   ValuationOutput as EnterpriseValuationOutput
 } from './valuation/calculateFinalValuation';
 
-export { 
-  EnterpriseValuationInput, 
-  EnterpriseValuationOutput,
-  enterpriseCalculateFinalValuation 
-};
+export { enterpriseCalculateFinalValuation };
+export type { EnterpriseValuationInput, EnterpriseValuationOutput };
 
 /**
  * Example usage of the valuation calculator
