@@ -1,83 +1,60 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
-export interface ValuationResultType {
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
+interface ValuationResultData {
   id: string;
-  estimated_value: number;
-  confidence_score: number;
-  price_range?: [number, number];
-  base_price?: number;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  // Keep the original fields available too
-  accident_count: number;
-  auction_avg_price?: number;
-  dealer_avg_price?: number;
-  condition_score: number;
-  year: number;
   make: string;
   model: string;
-  mileage?: number;
-  zip_demand_factor?: number;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  estimatedValue: number;
 }
 
-export function useValuationResult(valuationId?: string) {
-  return useQuery({
-    queryKey: ['valuation', valuationId],
-    queryFn: async () => {
-      if (!valuationId) {
-        throw new Error('Valuation ID is required');
+export function useValuationResult(valuationId: string) {
+  const [data, setData] = useState<ValuationResultData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const fetchValuationResult = async () => {
+      setIsLoading(true);
+      
+      try {
+        const { data: valuationData, error: valuationError } = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('id', valuationId)
+          .single();
+          
+        if (valuationError) throw new Error(valuationError.message);
+        
+        if (valuationData) {
+          setData({
+            id: valuationData.id,
+            make: valuationData.make,
+            model: valuationData.model,
+            year: valuationData.year,
+            mileage: valuationData.mileage || 0,
+            condition: valuationData.condition || 'Good',
+            zipCode: valuationData.zip_code || '00000',
+            estimatedValue: valuationData.estimated_value || 0
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching valuation result:', err);
+        setError(err instanceof Error ? err : new Error('Failed to fetch valuation data'));
+      } finally {
+        setIsLoading(false);
       }
-
-      const { data, error } = await supabase
-        .from('valuations')
-        .select('*')
-        .eq('id', valuationId)
-        .single();
-
-      if (error) {
-        throw new Error(`Failed to fetch valuation: ${error.message}`);
-      }
-
-      // Transform the data to include calculated fields like price_range
-      // and format adjustments based on the raw data
-      const valuation: ValuationResultType = {
-        ...data,
-        price_range: data.estimated_value ? [
-          Math.round(data.estimated_value * 0.95),
-          Math.round(data.estimated_value * 1.05)
-        ] as [number, number] : undefined,
-        adjustments: [
-          // Calculate adjustments based on various factors from the database
-          data.accident_count > 0 ? {
-            factor: 'Accident History',
-            impact: -data.accident_count * 5,
-          } : undefined,
-          data.mileage && data.mileage > 70000 ? {
-            factor: 'High Mileage',
-            impact: -Math.round((data.mileage - 70000) / 10000) * 2,
-          } : undefined,
-          data.condition_score >= 80 ? {
-            factor: 'Excellent Condition',
-            impact: 5,
-          } : data.condition_score < 50 ? {
-            factor: 'Poor Condition', 
-            impact: -10
-          } : undefined,
-          data.zip_demand_factor && data.zip_demand_factor !== 1.0 ? {
-            factor: 'Location Demand',
-            impact: Math.round((data.zip_demand_factor - 1) * 100),
-          } : undefined
-        ].filter(Boolean), // Remove undefined entries
-      };
-
-      return valuation;
-    },
-    enabled: !!valuationId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 3,
-  });
+    };
+    
+    if (valuationId) {
+      fetchValuationResult();
+    }
+  }, [valuationId]);
+  
+  return { data, isLoading, error };
 }

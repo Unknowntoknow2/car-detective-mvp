@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Download, RefreshCw } from 'lucide-react';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
+import { AIConditionAssessment } from './AIConditionAssessment';
+import { useAICondition } from '@/hooks/useAICondition';
 
 interface ValuationResultProps {
   make: string;
@@ -14,6 +16,7 @@ interface ValuationResultProps {
   condition: string;
   location: string;
   valuation: number;
+  valuationId?: string;
 }
 
 const ValuationResult: React.FC<ValuationResultProps> = ({
@@ -24,11 +27,13 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   condition,
   location,
   valuation,
+  valuationId,
 }) => {
   const [explanation, setExplanation] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const { conditionData, isLoading: isLoadingCondition } = useAICondition(valuationId);
 
   const fetchExplanation = useCallback(async () => {
     setLoading(true);
@@ -80,7 +85,8 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         confidenceScore: 80, // Default value
         adjustments: [],
         fuelType: 'Not Specified',
-        explanation: explanation // Add the explanation to the valuation data
+        explanation: explanation, // Add the explanation to the valuation data
+        aiConditionData: conditionData // Pass AI condition data to the PDF generator
       };
 
       // Convert to report data format
@@ -109,6 +115,14 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         <span className="capitalize">{condition}</span> condition in {location} is
         valued at <span className="font-bold">${valuation.toLocaleString()}</span>.
       </p>
+      
+      {/* AI Condition Assessment */}
+      {valuationId && (
+        <AIConditionAssessment 
+          conditionData={conditionData} 
+          isLoading={isLoadingCondition} 
+        />
+      )}
       
       <div className="mt-4 p-4 bg-gray-50 rounded">
         <div className="flex items-center justify-between mb-2">
