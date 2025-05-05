@@ -31,9 +31,15 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
   page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y, size: 12, font });
   y -= 20;
   
+  // Create a copy of vehicleInfo with definite mileage to match the required type
+  const vehicleInfoWithMileage = {
+    ...input.vehicleInfo,
+    mileage: input.vehicleInfo.mileage || 0,
+  };
+  
   // Draw vehicle information
   y = drawVehicleInfoSection(
-    input.vehicleInfo, 
+    vehicleInfoWithMileage, 
     page, 
     y, 
     50, // margin 
