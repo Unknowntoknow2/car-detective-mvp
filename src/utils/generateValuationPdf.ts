@@ -11,9 +11,10 @@ export async function generateValuationPdf(params: {
   vehicle: DecodedVehicleInfo;
   valuation: number;
   explanation: string;
+  explanationText?: string;
   comparables?: { source: string; price: number; date: string }[];
 }): Promise<Uint8Array> {
-  const { vehicle, valuation, explanation, comparables = [] } = params;
+  const { vehicle, valuation, explanation, explanationText, comparables = [] } = params;
   
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
@@ -133,9 +134,9 @@ export async function generateValuationPdf(params: {
     color: rgb(0, 0.5, 0)
   });
   
-  // Explanation section
+  // Expert Valuation Commentary section
   yPos -= 40;
-  page.drawText('Valuation Explanation', {
+  page.drawText('Expert Valuation Commentary', {
     x: margin,
     y: yPos,
     size: headingFontSize,
@@ -143,12 +144,27 @@ export async function generateValuationPdf(params: {
     color: rgb(0, 0, 0.8)
   });
   
-  // Format and wrap the explanation text
-  yPos -= 25;
-  const maxWidth = width - (margin * 2);
-  const lines = wrapText(explanation, helveticaFont, normalFontSize, maxWidth);
+  // Draw a light gray background for the commentary
+  yPos -= 10;
+  const commentaryText = explanationText || explanation || "This valuation explanation is currently unavailable. Please contact support.";
+  const commentaryLines = wrapText(commentaryText, helveticaFont, normalFontSize, width - (margin * 2));
+  const commentaryHeight = commentaryLines.length * 16 + 20; // Height of all lines plus padding
   
-  for (const line of lines) {
+  // Draw background rectangle
+  page.drawRectangle({
+    x: margin - 10,
+    y: yPos - commentaryHeight + 10,
+    width: width - (margin * 2) + 20,
+    height: commentaryHeight,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  // Format and wrap the explanation text
+  yPos -= 15;
+  
+  for (const line of commentaryLines) {
     page.drawText(line, {
       x: margin,
       y: yPos,
@@ -177,6 +193,16 @@ export async function generateValuationPdf(params: {
       yPos -= 40;
     }
   }
+  
+  // Power by note
+  yPos -= 15;
+  page.drawText('Powered by GPT-4o | CarDetective AI', {
+    x: margin,
+    y: yPos,
+    size: smallFontSize,
+    font: helveticaFont,
+    color: rgb(0.5, 0.5, 0.5)
+  });
   
   // Comparables section if available
   if (comparables.length > 0) {
