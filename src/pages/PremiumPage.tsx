@@ -7,14 +7,17 @@ import { PremiumHero } from '@/components/premium/sections/PremiumHero';
 import { PremiumValuationTabs } from '@/components/premium/sections/PremiumValuationTabs';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
 import { EnhancedPremiumFeaturesTabs } from '@/components/premium/features/EnhancedPremiumFeaturesTabs';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuthTestPanel } from '@/components/testing/AuthTestPanel';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { Link } from 'react-router-dom';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const { isAdmin } = useAdminRole();
   
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,6 +63,19 @@ export default function PremiumPage() {
                 <AuthTestPanel />
               </div>
             </details>
+          </div>
+        )}
+        
+        {isAdmin && (
+          <div className="container py-4">
+            <div className="flex justify-end">
+              <Link to="/admin">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Admin Panel
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
         

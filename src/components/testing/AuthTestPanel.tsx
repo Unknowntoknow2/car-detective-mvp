@@ -3,10 +3,49 @@ import React from 'react';
 import { useAuthTests } from '@/hooks/useAuthTests';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function AuthTestPanel() {
   const { results, isRunning, runTests } = useAuthTests();
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
+  const [isCheckingAdmin, setIsCheckingAdmin] = React.useState(false);
+  
+  const checkAdminStatus = async () => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    
+    setIsCheckingAdmin(true);
+    try {
+      // Check if user has admin role in the database
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+        
+      if (error) throw error;
+      setIsAdmin(!!data);
+    } catch (err) {
+      console.error('Error checking admin status:', err);
+      setIsAdmin(false);
+    } finally {
+      setIsCheckingAdmin(false);
+    }
+  };
+  
+  React.useEffect(() => {
+    if (user) {
+      checkAdminStatus();
+    } else {
+      setIsAdmin(null);
+    }
+  }, [user]);
   
   return (
     <Card className="w-full">
@@ -27,6 +66,30 @@ export function AuthTestPanel() {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
+          {user && (
+            <div className={`p-3 rounded-md flex items-start gap-2 ${
+              isAdmin === true ? 'bg-green-50' : 
+              isAdmin === false ? 'bg-yellow-50' : 'bg-gray-50'
+            }`}>
+              <ShieldCheck className={`h-5 w-5 ${
+                isAdmin === true ? 'text-green-500' : 
+                isAdmin === false ? 'text-yellow-500' : 'text-gray-500'
+              } mt-0.5`} />
+              <div>
+                <h3 className="font-medium">Admin Status</h3>
+                <p className="text-sm">
+                  {isCheckingAdmin ? 'Checking admin status...' : 
+                   isAdmin === true ? 'User has admin privileges' : 
+                   isAdmin === false ? 'User does not have admin privileges' : 
+                   'Status unknown'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  User ID: {user.id}
+                </p>
+              </div>
+            </div>
+          )}
+          
           {Object.keys(results).length === 0 ? (
             <p className="text-sm text-muted-foreground">No tests have been run yet.</p>
           ) : (

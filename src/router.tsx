@@ -19,6 +19,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import UserDashboardPage from '@/pages/UserDashboardPage';
 import MyValuationsPage from '@/pages/MyValuationsPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import AdminPage from '@/pages/AdminPage';
 
 const router = createBrowserRouter([
   {
@@ -94,6 +95,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <MyValuationsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute>
+        <AdminPage />
       </ProtectedRoute>
     ),
   },
