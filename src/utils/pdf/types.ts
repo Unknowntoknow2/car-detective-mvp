@@ -1,4 +1,3 @@
-
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
 import { ForecastResult } from '@/utils/forecasting/valuation-forecast';
 
@@ -6,7 +5,7 @@ export interface ReportData {
   vin: string;
   make: string;
   model: string;
-  year: number | string;
+  year: number | string; // Support both number and string for flexibility
   mileage: string | number;
   condition: string;
   zipCode: string;
@@ -31,12 +30,13 @@ export interface ReportData {
   photo?: string;
   explanation?: string;
   
-  // Add the missing properties causing errors
+  // Add the missing properties
   plate?: string;
   state?: string;
   carfaxData?: CarfaxData;
   isPremium?: boolean;
   location?: string;
+  valuationId?: string;
 }
 
 export interface ValuationReportOptions {

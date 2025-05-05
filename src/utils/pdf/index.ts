@@ -63,9 +63,11 @@ export const downloadPdf = async (reportData: ReportData): Promise<void> => {
       if (error) {
         console.error('Error checking premium status:', error);
       } else {
-        // Using optional chaining to safely access the property
-        // This avoids TypeScript errors when premium_unlocked isn't in the type definition
-        isPremiumUnlocked = valuation?.premium_unlocked || false;
+        // Using type assertion to safely access premium_unlocked
+        type ValuationWithPremium = typeof valuation & { premium_unlocked?: boolean };
+        const valuationData = valuation as ValuationWithPremium;
+        
+        isPremiumUnlocked = !!valuationData.premium_unlocked;
       }
     }
     

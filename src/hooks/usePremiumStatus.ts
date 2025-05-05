@@ -26,8 +26,12 @@ export function usePremiumStatus(valuationId?: string) {
           throw new Error(error.message);
         }
         
-        // Access the premium_unlocked property safely with optional chaining
-        setIsPremiumUnlocked(data?.premium_unlocked || false);
+        // Use type assertion to access the premium_unlocked property
+        type ValuationWithPremium = typeof data & { premium_unlocked?: boolean };
+        const valuationData = data as ValuationWithPremium;
+        
+        // Access the premium_unlocked property safely
+        setIsPremiumUnlocked(!!valuationData.premium_unlocked);
       } catch (err) {
         console.error('Error checking premium status:', err);
         setError(err instanceof Error ? err : new Error('Unknown error'));
