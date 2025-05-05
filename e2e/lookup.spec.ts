@@ -72,6 +72,50 @@ test.describe('Vehicle Lookup Flows', () => {
     await expect(page.getByText(new RegExp(`${TEST_MANUAL_ENTRY.year}.*${TEST_MANUAL_ENTRY.make}.*${TEST_MANUAL_ENTRY.model}`, 'i'))).toBeVisible();
   });
   
+  test('Premium valuation flow should work correctly', async ({ page }) => {
+    // Navigate to the premium valuation page
+    await page.goto('/premium-valuation');
+    
+    // Verify we're on the premium page
+    await expect(page.getByText(/premium valuation/i, { exact: false })).toBeVisible();
+    
+    // Check if premium features are visible
+    await expect(page.getByText(/enhanced accuracy/i, { exact: false })).toBeVisible();
+    
+    // Fill in the vehicle details form (similar to manual entry)
+    // This assumes similar form fields to the manual entry page
+    // Look for a make dropdown or selector
+    const makeSelector = page.getByLabel(/make/i);
+    await makeSelector.selectOption(TEST_MANUAL_ENTRY.make);
+    
+    // Wait for model options to load after make selection
+    await page.waitForTimeout(500);
+    
+    // Select model
+    await page.getByLabel(/model/i).selectOption(TEST_MANUAL_ENTRY.model);
+    
+    // Fill year and mileage
+    await page.getByLabel(/year/i).fill(TEST_MANUAL_ENTRY.year);
+    await page.getByLabel(/mileage/i).fill(TEST_MANUAL_ENTRY.mileage);
+    
+    // Verify premium-only fields are present (like Carfax option)
+    await expect(page.getByText(/carfax|vehicle history/i, { exact: false })).toBeVisible();
+    
+    // Look for any premium-specific checkboxes and toggle them
+    const historyCheckbox = page.getByRole('checkbox', { name: /include.*history|carfax/i });
+    if (await historyCheckbox.isVisible())
+      await historyCheckbox.check();
+    
+    // Submit the premium valuation form
+    await page.getByRole('button', { name: /get.*premium.*valuation|submit/i }).click();
+    
+    // Wait for the premium valuation result
+    await page.waitForSelector('text=Premium Valuation Result', { timeout: 15000 });
+    
+    // Verify premium result elements are visible
+    await expect(page.getByText(/confidence score/i, { exact: false })).toBeVisible();
+  });
+  
   test('PDF download should work from valuation result', async ({ page }) => {
     // Navigate to manual lookup page since it's the quickest way to get a valuation
     await page.goto('/manual-lookup');
