@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, Users } from 'lucide-react';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -58,6 +58,10 @@ export function Navbar() {
                 <div className="py-1">
                   <Link to="/dashboard" className="block px-4 py-2 text-sm hover:bg-primary/10">
                     Dashboard
+                  </Link>
+                  <Link to="/dashboard/referrals" className="block px-4 py-2 text-sm hover:bg-primary/10 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Referrals
                   </Link>
                   <Link to="/saved" className="block px-4 py-2 text-sm hover:bg-primary/10">
                     Saved Valuations
@@ -137,6 +141,14 @@ export function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
+                  </Link>
+                  <Link 
+                    to="/dashboard/referrals" 
+                    className="px-4 py-3 rounded-md hover:bg-primary/10 text-sm font-medium flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Users className="h-4 w-4" />
+                    Referrals
                   </Link>
                   <Link 
                     to="/saved" 

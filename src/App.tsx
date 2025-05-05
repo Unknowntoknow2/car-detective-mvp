@@ -7,29 +7,34 @@ import PremiumValuationPage from './pages/PremiumValuationPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import AuthPage from './pages/AuthPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { ReferralProvider } from './contexts/ReferralContext';
 import PremiumSuccessPage from './pages/PremiumSuccessPage';
 import DealerDashboard from './pages/DealerDashboard';
 import DealerOffersPage from './pages/dealer/DealerOffersPage';
 import AdminPage from './pages/AdminPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import ReferralDashboardPage from './pages/ReferralDashboardPage';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/premium" element={<PremiumPage />} />
-          <Route path="/valuation/premium" element={<PremiumValuationPage />} />
-          <Route path="/dashboard" element={<UserDashboardPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/valuation/premium-success" element={<PremiumSuccessPage />} />
-          <Route path="/dealer/dashboard" element={<DealerDashboard />} />
-          <Route path="/dealer/offers" element={<DealerOffersPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-        </Routes>
-      </Router>
+      <ReferralProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/premium" element={<PremiumPage />} />
+            <Route path="/valuation/premium" element={<PremiumValuationPage />} />
+            <Route path="/dashboard" element={<UserDashboardPage />} />
+            <Route path="/dashboard/referrals" element={<ReferralDashboardPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/valuation/premium-success" element={<PremiumSuccessPage />} />
+            <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+            <Route path="/dealer/offers" element={<DealerOffersPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          </Routes>
+        </Router>
+      </ReferralProvider>
     </AuthProvider>
   );
 }

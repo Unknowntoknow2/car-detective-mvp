@@ -740,6 +740,45 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          inviter_id: string
+          referral_token: string
+          referred_email: string | null
+          referred_user_id: string | null
+          reward_amount: number | null
+          reward_status: string
+          reward_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inviter_id: string
+          referral_token: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          reward_amount?: number | null
+          reward_status?: string
+          reward_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inviter_id?: string
+          referral_token?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          reward_amount?: number | null
+          reward_status?: string
+          reward_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_valuations: {
         Row: {
           condition_score: number | null
@@ -1260,9 +1299,26 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      claim_referral_reward: {
+        Args: { referral_id: string }
+        Returns: boolean
+      }
       clean_old_zip_validations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_referral_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_referral_stats: {
+        Args: { user_id: string }
+        Returns: {
+          total_referrals: number
+          pending_referrals: number
+          earned_rewards: number
+          claimed_rewards: number
+        }[]
       }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
@@ -1318,6 +1374,14 @@ export type Database = {
       is_dealer: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      mark_referral_earned: {
+        Args: { user_id: string; reward_type?: string; reward_amount?: number }
+        Returns: undefined
+      }
+      process_referral: {
+        Args: { token: string; new_user_id: string }
+        Returns: undefined
       }
       text_to_bytea: {
         Args: { data: string }
