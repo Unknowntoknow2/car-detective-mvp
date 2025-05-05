@@ -1,13 +1,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Valuation } from '@/types/dealer';
+import { ConditionBadge } from '@/components/ui/condition-badge';
 
 interface ValuationCardProps {
   valuation: Valuation;
   onDownload: (valuation: Valuation) => void;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+  } | null;
 }
 
-export const ValuationCard = ({ valuation, onDownload }: ValuationCardProps) => {
+export const ValuationCard = ({ valuation, onDownload, aiCondition }: ValuationCardProps) => {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex justify-between items-start">
@@ -22,6 +27,16 @@ export const ValuationCard = ({ valuation, onDownload }: ValuationCardProps) => 
             <p className="text-sm text-muted-foreground">
               Mileage: {valuation.mileage.toLocaleString()}
             </p>
+          )}
+          
+          {/* Display the condition badge if aiCondition data exists */}
+          {aiCondition && (
+            <div className="mt-2">
+              <ConditionBadge 
+                condition={aiCondition.condition} 
+                confidenceScore={aiCondition.confidenceScore} 
+              />
+            </div>
           )}
         </div>
         <Button

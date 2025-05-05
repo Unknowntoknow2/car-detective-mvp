@@ -1,173 +1,111 @@
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ValuationCard } from '@/components/dealer/ValuationCard';
+import { ConditionFilter } from '@/components/dealer/ConditionFilter';
+import { useDealerValuations } from '@/hooks/useDealerValuations';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
-import { toast } from 'sonner';
-import { Valuation } from '@/types/dealer';
-import { AlertCircle, CheckCircle, Shield, AlertTriangle } from 'lucide-react';
-import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 
-export const DealerValuationsList = () => {
-  const [loadingCarfax, setLoadingCarfax] = useState<Record<string, boolean>>({});
-
-  const { data: valuations, isLoading } = useQuery({
-    queryKey: ['dealer-valuations'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('valuations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as Valuation[];
-    }
-  });
-
-  const handleDownloadReport = async (valuation: Valuation, includePremium = false) => {
-    try {
-      setLoadingCarfax({...loadingCarfax, [valuation.id]: true});
-      
-      // Get CARFAX data if this is a premium report and we have a VIN
-      let carfaxData = undefined;
-      if (includePremium && valuation.vin) {
-        carfaxData = await getCarfaxReport(valuation.vin);
-      }
-      
-      const reportData = convertVehicleInfoToReportData(
-        {
-          make: valuation.make,
-          model: valuation.model,
-          year: valuation.year,
-          mileage: valuation.mileage || 0,
-          vin: valuation.vin
-        }, 
-        {
-          estimatedValue: valuation.estimated_value || 0,
-          confidenceScore: valuation.confidence_score || 85,
-          mileage: valuation.mileage || 0,
-          condition: valuation.condition || "Good",
-          fuelType: valuation.fuel_type || "Not Specified",
-          zipCode: valuation.zip_code || "10001",
-          carfaxData,
-          isPremium: includePremium,
-          adjustments: [] // Add the required adjustments property
-        }
-      );
-      
-      await downloadPdf(reportData);
-      toast.success(`${includePremium ? 'Premium' : 'Standard'} PDF report downloaded`);
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast.error('Failed to download PDF report');
-    } finally {
-      setLoadingCarfax({...loadingCarfax, [valuation.id]: false});
-    }
-  };
-
-  if (isLoading) {
-    return <div className="text-center py-8">Loading valuations...</div>;
-  }
+export function DealerValuationsList() {
+  const {
+    valuations,
+    isLoading,
+    error,
+    totalCount,
+    currentPage,
+    pageSize,
+    conditionFilter,
+    handlePageChange,
+    handleConditionFilterChange,
+    handleDownloadReport
+  } = useDealerValuations();
 
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Recent Valuations</h2>
-      <div className="space-y-4">
-        {valuations?.map((valuation) => (
-          <div key={valuation.id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold">
-                  {valuation.year} {valuation.make} {valuation.model}
-                  {valuation.vin && (
-                    <span className="ml-2">
-                      <Badge variant="outline" className="ml-2">
-                        VIN Available
-                      </Badge>
-                    </span>
-                  )}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Estimated Value: ${valuation.estimated_value?.toLocaleString()}
-                </p>
-                {valuation.mileage && (
-                  <p className="text-sm text-muted-foreground">
-                    Mileage: {valuation.mileage.toLocaleString()}
-                  </p>
-                )}
-                {valuation.confidence_score && (
-                  <div className="flex items-center mt-1">
-                    <p className="text-sm text-muted-foreground mr-1">
-                      Confidence:
-                    </p>
-                    <ConfidenceBadge score={valuation.confidence_score} />
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handleDownloadReport(valuation)}
-                  size="sm"
-                >
-                  Standard Report
-                </Button>
-                {valuation.vin && (
-                  <Button
-                    variant="default"
-                    onClick={() => handleDownloadReport(valuation, true)}
-                    disabled={loadingCarfax[valuation.id]}
-                    size="sm"
-                  >
-                    {loadingCarfax[valuation.id] ? 'Loading CARFAX...' : 'Premium Report'}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-        {valuations?.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">
-            No valuations found
-          </p>
-        )}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">
+          Vehicle Valuations
+          <span className="ml-2 text-sm text-muted-foreground">
+            ({totalCount} total)
+          </span>
+        </h2>
+        <PremiumBadge variant="subtle">Dealer Dashboard</PremiumBadge>
       </div>
-    </Card>
+      
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="md:col-span-1">
+          <ConditionFilter 
+            selectedFilter={conditionFilter} 
+            onFilterChange={handleConditionFilterChange} 
+          />
+        </div>
+        
+        <div className="md:col-span-3">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle>Recent Valuations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="text-center py-6 text-red-500">
+                  {error}
+                </div>
+              ) : valuations.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  No valuations found with the selected filter.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {valuations.map((valuation) => (
+                    <ValuationCard
+                      key={valuation.id}
+                      valuation={valuation}
+                      aiCondition={valuation.aiCondition}
+                      onDownload={handleDownloadReport}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* Pagination */}
+              {!isLoading && totalCount > pageSize && (
+                <div className="flex justify-center mt-6 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center mx-2">
+                    <span className="text-sm">
+                      Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                    </span>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
-};
-
-// Helper component for displaying confidence badges
-const ConfidenceBadge = ({ score }: { score: number }) => {
-  if (score >= 80) {
-    return (
-      <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-        <CheckCircle className="h-3 w-3 mr-1" />
-        High ({score}%)
-      </Badge>
-    );
-  } else if (score >= 60) {
-    return (
-      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
-        <Shield className="h-3 w-3 mr-1" />
-        Good ({score}%)
-      </Badge>
-    );
-  } else if (score >= 40) {
-    return (
-      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-        <AlertCircle className="h-3 w-3 mr-1" />
-        Moderate ({score}%)
-      </Badge>
-    );
-  } else {
-    return (
-      <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
-        <AlertTriangle className="h-3 w-3 mr-1" />
-        Low ({score}%)
-      </Badge>
-    );
-  }
-};
+}

@@ -1,3 +1,4 @@
+
 export interface Valuation {
   id: string;
   make: string;
@@ -46,4 +47,15 @@ export interface DealerOffer {
   message?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface AIConditionData {
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  aiSummary?: string;
+}
+
+export interface ValuationWithCondition extends Valuation {
+  aiCondition?: AIConditionData | null;
 }
