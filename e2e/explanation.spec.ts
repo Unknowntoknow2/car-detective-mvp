@@ -1,139 +1,125 @@
+
 import { test, expect } from '@playwright/test';
 
-// Test data for our manual entry form - keeping consistent with other tests
-const TEST_MANUAL_ENTRY = {
-  make: 'Toyota',
-  model: 'Camry',
-  year: '2020',
-  mileage: '45000',
-  condition: 'good',
-  location: '90210'
-};
+test.describe('Explanation Feature', () => {
+  test('should generate and display valuation explanation', async ({ page }) => {
+    // Navigate to the valuation form
+    await page.goto('/valuation');
+    
+    // Fill out the form with minimal required fields
+    await page.fill('input[name="make"]', 'Ford');
+    await page.fill('input[name="model"]', 'Mustang');
+    await page.fill('input[name="year"]', '2020');
+    await page.fill('input[name="mileage"]', '25000');
+    await page.selectOption('select[name="condition"]', 'Excellent');
+    
+    // Submit the form
+    await page.click('button[type="submit"]');
+    
+    // Verify valuation result appears
+    await expect(page.locator('h2:has-text("Valuation Result")')).toBeVisible();
+    
+    // Verify explanation section is present
+    const explanationSection = page.locator('h3:has-text("Why this price?")');
+    await expect(explanationSection).toBeVisible();
+    
+    // Verify explanation content is not empty
+    const explanationText = page.locator('h3:has-text("Why this price?") + p');
+    await expect(explanationText).not.toBeEmpty();
+    
+    // Check that explanation includes key elements (vehicle info)
+    const explanationContent = await explanationText.textContent();
+    expect(explanationContent).toContain('Ford');
+    expect(explanationContent).toContain('Mustang');
+    
+    // Test the regenerate explanation button
+    await page.click('button:has-text("Regenerate Explanation")');
+    
+    // Verify that a loading state appears
+    await expect(page.locator('text=Regenerating...')).toBeVisible();
+    
+    // Wait for the new explanation to load
+    await expect(page.locator('text=Regenerating...')).not.toBeVisible();
+    
+    // Verify that we still have content after regeneration
+    await expect(explanationText).not.toBeEmpty();
+  });
 
-test.describe('Price Explanation Feature', () => {
-  test('initial explanation is generated and displayed', async ({ page }) => {
-    // Navigate to the manual lookup page (consistent with other tests)
-    await page.goto('/manual-lookup');
+  test('should display AI confidence score in the explanation', async ({ page }) => {
+    // Navigate to the premium valuation page with mock data
+    await page.goto('/premium-valuation');
     
-    // Fill in the vehicle information form
-    await page.getByLabel(/make/i).selectOption(TEST_MANUAL_ENTRY.make);
-    await page.getByLabel(/model/i).selectOption(TEST_MANUAL_ENTRY.model);
-    await page.getByLabel(/year/i).fill(TEST_MANUAL_ENTRY.year);
-    await page.getByLabel(/mileage/i).fill(TEST_MANUAL_ENTRY.mileage);
-    await page.getByLabel(/^zip code$/i).fill(TEST_MANUAL_ENTRY.location);
-    
-    // Submit the form to get valuation
-    await page.getByRole('button', { name: /submit|get valuation/i }).click();
-    
-    // Wait for valuation result to appear
-    await page.waitForSelector('text=Valuation Result', { timeout: 10000 });
-    
-    // Check for the "Why this price?" heading
-    const heading = page.getByText(/why this price\?/i);
-    await expect(heading).toBeVisible();
-    
-    // Verify loading text appears
-    await expect(page.getByText(/generating explanation|italic text-gray-500/i)).toBeVisible();
-    
-    // Wait for explanation to load (loading text disappears)
-    await expect(page.getByText(/generating explanation|italic text-gray-500/i)).not.toBeVisible({ timeout: 15000 });
-    
-    // Assert the actual explanation text is visible - using the whitespace-pre-wrap class
-    const explanation = page.locator('.whitespace-pre-wrap');
-    await expect(explanation).toBeVisible();
-    await expect(explanation).toContainText(/\w/); // Contains at least one word character
-    
-    // Verify the explanation has reasonable length
-    const text = await explanation.textContent();
-    expect(text?.length).toBeGreaterThan(50); // A reasonable explanation should be longer than 50 chars
-  });
-  
-  test('clicking regenerate fetches a new explanation', async ({ page }) => {
-    // Navigate to the manual lookup page
-    await page.goto('/manual-lookup');
-    
-    // Fill in the vehicle information form
-    await page.getByLabel(/make/i).selectOption(TEST_MANUAL_ENTRY.make);
-    await page.getByLabel(/model/i).selectOption(TEST_MANUAL_ENTRY.model);
-    await page.getByLabel(/year/i).fill(TEST_MANUAL_ENTRY.year);
-    await page.getByLabel(/mileage/i).fill(TEST_MANUAL_ENTRY.mileage);
-    await page.getByLabel(/^zip code$/i).fill(TEST_MANUAL_ENTRY.location);
-    
-    // Submit the form to get valuation
-    await page.getByRole('button', { name: /submit|get valuation/i }).click();
-    
-    // Wait for valuation result and initial explanation to load
-    await page.waitForSelector('text=Valuation Result', { timeout: 10000 });
-    await page.waitForSelector('text=Why this price?', { timeout: 10000 });
-    
-    // Wait for the initial explanation to finish loading
-    await expect(page.getByText(/generating explanation|italic text-gray-500/i)).not.toBeVisible({ timeout: 15000 });
-    
-    // Capture the initial explanation text
-    const initialExplanation = await page.locator('.whitespace-pre-wrap').textContent();
-    
-    // Intercept and mock the generate-explanation function call
-    await page.route('**/functions/generate-explanation', route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ explanation: 'This is a test explanation from a mocked API response.' }),
-      });
+    // Mock completion of premium valuation with AI condition
+    await page.evaluate(() => {
+      // Simulate successful premium valuation
+      window.dispatchEvent(new CustomEvent('test:mockPremiumValuationSuccess', {
+        detail: {
+          make: 'BMW',
+          model: '3 Series',
+          year: 2021,
+          mileage: 15000,
+          condition: 'Excellent',
+          zipCode: '10001',
+          valuation: 35000,
+          aiCondition: {
+            condition: 'Excellent',
+            confidenceScore: 92,
+            issuesDetected: [],
+          }
+        }
+      }));
     });
     
-    // Click the Regenerate Explanation button
-    await page.getByRole('button', { name: /regenerate explanation/i }).click();
+    // Verify AI Condition Assessment appears
+    await expect(page.locator('text=AI Condition Assessment')).toBeVisible();
     
-    // Verify loading indicator appears
-    await expect(page.getByText(/regenerating/i)).toBeVisible();
+    // Verify confidence score
+    await expect(page.locator('text=AI Trust Score:')).toBeVisible();
+    await expect(page.locator('text=92%')).toBeVisible();
     
-    // Wait for the new explanation to appear
-    await page.waitForSelector('text=This is a test explanation from a mocked API response', { timeout: 10000 });
+    // Verify badge shows verified status
+    await expect(page.locator('text=AI Verified')).toBeVisible();
     
-    // Verify the explanation has changed
-    const newExplanation = await page.locator('.whitespace-pre-wrap').textContent();
-    expect(newExplanation).not.toEqual(initialExplanation);
-    expect(newExplanation).toContain('This is a test explanation from a mocked API response');
+    // Verify explanation includes AI assessment
+    await expect(page.locator('text=This valuation has been AI-verified')).toBeVisible();
   });
-  
-  test('handles errors when explanation generation fails', async ({ page }) => {
-    // Navigate to the manual lookup page
-    await page.goto('/manual-lookup');
+
+  test('should handle explanation generation failures gracefully', async ({ page }) => {
+    // Navigate to the valuation page
+    await page.goto('/valuation');
     
-    // Fill in the vehicle information form
-    await page.getByLabel(/make/i).selectOption(TEST_MANUAL_ENTRY.make);
-    await page.getByLabel(/model/i).selectOption(TEST_MANUAL_ENTRY.model);
-    await page.getByLabel(/year/i).fill(TEST_MANUAL_ENTRY.year);
-    await page.getByLabel(/mileage/i).fill(TEST_MANUAL_ENTRY.mileage);
-    await page.getByLabel(/^zip code$/i).fill(TEST_MANUAL_ENTRY.location);
+    // Fill out the form
+    await page.fill('input[name="make"]', 'Honda');
+    await page.fill('input[name="model"]', 'Accord');
+    await page.fill('input[name="year"]', '2018');
+    await page.fill('input[name="mileage"]', '50000');
     
-    // Submit the form to get valuation
-    await page.getByRole('button', { name: /submit|get valuation/i }).click();
+    // Submit the form
+    await page.click('button[type="submit"]');
     
-    // Wait for valuation result and initial explanation to load
-    await page.waitForSelector('text=Valuation Result', { timeout: 10000 });
-    await page.waitForSelector('text=Why this price?', { timeout: 10000 });
-    
-    // Wait for the initial explanation to finish loading
-    await expect(page.getByText(/generating explanation|italic text-gray-500/i)).not.toBeVisible({ timeout: 15000 });
-    
-    // Intercept and mock a failed response
-    await page.route('**/functions/generate-explanation', route => {
-      route.fulfill({
-        status: 500,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'API Error' }),
-      });
+    // Mock a failure in the explanation generation
+    await page.evaluate(() => {
+      window.dispatchEvent(new CustomEvent('test:mockExplanationFailure', {}));
     });
     
-    // Click the Regenerate Explanation button
-    await page.getByRole('button', { name: /regenerate explanation/i }).click();
+    // Verify that an error message appears
+    await expect(page.locator('text=Failed to load explanation')).toBeVisible();
     
-    // Verify loading indicator appears and then disappears
-    await expect(page.getByText(/regenerating/i)).toBeVisible();
-    await expect(page.getByText(/regenerating/i)).not.toBeVisible({ timeout: 10000 });
+    // Verify that the regenerate button is available
+    await expect(page.locator('button:has-text("Regenerate Explanation")')).toBeVisible();
     
-    // Verify error message appears
-    await expect(page.getByText(/failed to load explanation|error/i)).toBeVisible();
+    // Click regenerate and mock success this time
+    await page.click('button:has-text("Regenerate Explanation")');
+    
+    await page.evaluate(() => {
+      window.dispatchEvent(new CustomEvent('test:mockExplanationSuccess', {
+        detail: {
+          explanation: 'This is a successfully regenerated explanation for your Honda Accord.'
+        }
+      }));
+    });
+    
+    // Verify success message now appears
+    await expect(page.locator('text=This is a successfully regenerated explanation')).toBeVisible();
   });
 });

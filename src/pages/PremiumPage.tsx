@@ -9,10 +9,12 @@ import { ComparisonSection } from '@/components/premium/ComparisonSection';
 import { EnhancedPremiumFeaturesTabs } from '@/components/premium/features/EnhancedPremiumFeaturesTabs';
 import { ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AuthTestPanel } from '@/components/testing/AuthTestPanel';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showTestPanel, setShowTestPanel] = useState(false);
   
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,6 +34,13 @@ export default function PremiumPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
+  // Check if we're in development mode
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      setShowTestPanel(true);
+    }
+  }, []);
+  
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -42,6 +51,17 @@ export default function PremiumPage() {
       <Navbar />
       <main>
         <PremiumHero scrollToForm={scrollToForm} />
+        
+        {showTestPanel && (
+          <div className="container py-4">
+            <details className="border rounded-lg p-4 bg-white shadow-sm">
+              <summary className="cursor-pointer font-medium">Developer Test Panel</summary>
+              <div className="mt-4">
+                <AuthTestPanel />
+              </div>
+            </details>
+          </div>
+        )}
         
         <EnhancedPremiumFeaturesTabs />
         
