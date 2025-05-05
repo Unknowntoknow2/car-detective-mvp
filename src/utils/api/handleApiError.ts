@@ -2,11 +2,11 @@
 import { toast } from 'sonner';
 import { ApiErrorType } from '@/utils/api-utils';
 
-export function handleApiError(error: any, context: string) {
+export function handleApiError(error: unknown, context: string) {
   console.error(`API Error in ${context}:`, error);
   
-  const message = error?.message || "An unexpected error occurred";
-  const type = error?.type || ApiErrorType.UNKNOWN;
+  const message = error instanceof Error ? error.message : "An unexpected error occurred";
+  const type = (error as any)?.type || ApiErrorType.UNKNOWN;
   
   switch (type) {
     case ApiErrorType.NETWORK:

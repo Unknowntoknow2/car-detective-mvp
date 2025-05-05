@@ -24,10 +24,10 @@ export const errorHandler = {
   /**
    * Handle an error with appropriate logging and user feedback
    */
-  handle: (error: any, context: string = 'application'): ErrorDetails => {
+  handle: (error: unknown, context: string = 'application'): ErrorDetails => {
     // Extract error details
-    const message = error?.message || 'An unexpected error occurred';
-    const code = error?.code || 'UNKNOWN_ERROR';
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+    const code = (error as any)?.code || 'UNKNOWN_ERROR';
     const severity = getSeverity(error);
     
     // Create structured error object
@@ -70,19 +70,19 @@ export const errorHandler = {
 };
 
 // Helper to determine error severity
-function getSeverity(error: any): ErrorSeverity {
+function getSeverity(error: unknown): ErrorSeverity {
   // Network errors are critical as they may indicate connectivity issues
-  if (error?.name === 'NetworkError' || error?.message?.includes('network')) {
+  if ((error as any)?.name === 'NetworkError' || (error as any)?.message?.includes('network')) {
     return ErrorSeverity.CRITICAL;
   }
   
   // Authentication errors are treated as warnings
-  if (error?.code === 'auth/unauthorized' || error?.message?.includes('permission')) {
+  if ((error as any)?.code === 'auth/unauthorized' || (error as any)?.message?.includes('permission')) {
     return ErrorSeverity.WARNING;
   }
   
   // Validation errors are treated as info
-  if (error?.code === 'validation' || error?.message?.includes('validation')) {
+  if ((error as any)?.code === 'validation' || (error as any)?.message?.includes('validation')) {
     return ErrorSeverity.INFO;
   }
   
