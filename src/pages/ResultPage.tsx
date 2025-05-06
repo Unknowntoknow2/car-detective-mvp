@@ -61,6 +61,7 @@ const ResultPage = () => {
     data: valuationData, 
     isLoading, 
     error, 
+    isError,
     refetch 
   } = useValuationResult(valuationId || '');
 
@@ -137,9 +138,23 @@ const ResultPage = () => {
             
             <TabsContent value="valuation" className="space-y-6">
               {valuationId ? (
-                <PredictionResult valuationId={valuationId} />
+                <PredictionResult 
+                  valuationId={valuationId} 
+                  manualValuation={manualData}
+                />
               ) : manualData ? (
-                <ValuationResult valuationData={manualData} />
+                <PredictionResult 
+                  valuationId="" 
+                  manualValuation={{
+                    make: manualData.make,
+                    model: manualData.model,
+                    year: parseInt(manualData.year, 10),
+                    mileage: parseInt(manualData.mileage, 10),
+                    condition: manualData.condition,
+                    zipCode: manualData.zipCode,
+                    valuation: manualData.valuation
+                  }}
+                />
               ) : (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
@@ -252,6 +267,4 @@ const ResultPage = () => {
       </div>
     </div>
   );
-};
-
-export default ResultPage;
+}

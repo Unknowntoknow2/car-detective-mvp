@@ -17,9 +17,18 @@ import { ErrorAlert } from './result/ErrorAlert';
 
 interface PredictionResultProps {
   valuationId: string;
+  manualValuation?: {
+    make: string;
+    model: string;
+    year: number;
+    mileage: number;
+    condition?: string;
+    zipCode?: string;
+    valuation?: number;
+  };
 }
 
-export function PredictionResult({ valuationId }: PredictionResultProps) {
+export function PredictionResult({ valuationId, manualValuation }: PredictionResultProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   
@@ -30,6 +39,7 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     data, 
     isLoading, 
     error, 
+    isError,
     refetch 
   } = useValuationResult(localValuationId || '');
   
@@ -38,9 +48,9 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     isLoading: isLoadingCondition 
   } = useAICondition(localValuationId);
 
-  // Retry logic if data fetch fails
+  // Force a retry if there was a Supabase error
   useEffect(() => {
-    if (error && retryCount < 3) {
+    if (error && retryCount < 3 && !manualValuation) {
       const timer = setTimeout(() => {
         console.log(`Retrying valuation fetch (attempt ${retryCount + 1}/3)...`);
         refetch();
@@ -49,40 +59,62 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
       
       return () => clearTimeout(timer);
     }
-  }, [error, retryCount, refetch]);
+  }, [error, retryCount, refetch, manualValuation]);
+
+  // Handle manual valuation data if provided and no database data was found
+  const valuationData = data || (manualValuation && error ? {
+    id: 'manual-' + Date.now(),
+    make: manualValuation.make,
+    model: manualValuation.model,
+    year: manualValuation.year,
+    mileage: manualValuation.mileage,
+    condition: manualValuation.condition || 'Good',
+    zipCode: manualValuation.zipCode || '',
+    estimatedValue: manualValuation.valuation || 20000,
+    confidenceScore: 75,
+    priceRange: [
+      manualValuation.valuation ? Math.round(manualValuation.valuation * 0.95) : 19000,
+      manualValuation.valuation ? Math.round(manualValuation.valuation * 1.05) : 21000
+    ],
+    adjustments: [
+      { name: 'Base Condition', value: 0, percentage: 0 },
+      { name: 'Market Demand', value: 300, percentage: 0.015 }
+    ],
+    createdAt: new Date().toISOString()
+  } : null);
 
   const handleDownloadPdf = async () => {
-    if (!data) return;
+    if (!valuationData) return;
     
     setIsDownloading(true);
     try {
       // Prepare the vehicle information and valuation data
       const vehicleInfo = {
-        vin: data.id || 'VALUATION-ID',
-        make: data.make,
-        model: data.model,
-        year: data.year,
-        mileage: data.mileage,
+        vin: valuationData.id || 'VALUATION-ID',
+        make: valuationData.make,
+        model: valuationData.model,
+        year: valuationData.year,
+        mileage: valuationData.mileage,
         transmission: 'Not Specified',
-        condition: data.condition,
-        zipCode: data.zipCode
+        condition: valuationData.condition,
+        zipCode: valuationData.zipCode
       };
 
       // Prepare valuation data for PDF generation
-      const valuationData = {
-        estimatedValue: data.estimatedValue,
-        mileage: data.mileage.toString(),
-        condition: data.condition,
-        zipCode: data.zipCode,
-        confidenceScore: data.confidenceScore || 75,
-        adjustments: data.adjustments || [],
+      const valuationReportData = {
+        estimatedValue: valuationData.estimatedValue,
+        mileage: valuationData.mileage.toString(),
+        condition: valuationData.condition,
+        zipCode: valuationData.zipCode,
+        confidenceScore: valuationData.confidenceScore || 75,
+        adjustments: valuationData.adjustments || [],
         fuelType: 'Not Specified',
         explanation: 'Detailed valuation report for your vehicle', 
         aiCondition: conditionData
       };
 
       // Convert to report data format
-      const reportData = convertVehicleInfoToReportData(vehicleInfo, valuationData);
+      const reportData = convertVehicleInfoToReportData(vehicleInfo, valuationReportData);
       
       // Generate and download the PDF
       await downloadPdf(reportData);
@@ -95,7 +127,8 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     }
   };
 
-  if (isLoading) {
+  // Show loading state during initial data fetch
+  if (isLoading && !manualValuation) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -111,7 +144,8 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     );
   }
 
-  if (error || !data) {
+  // Show error state if fetch failed and no manual data is available
+  if ((error && !valuationData) || (isError && !valuationData)) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
@@ -131,13 +165,22 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
     );
   }
 
+  if (!valuationData) {
+    return (
+      <ErrorAlert 
+        title="No Valuation Data" 
+        description="We couldn't find valuation data for this vehicle. Please try again with different information."
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <ValuationResults
-        estimatedValue={data.estimatedValue}
-        confidenceScore={data.confidenceScore || 75}
-        priceRange={data.priceRange}
-        adjustments={data.adjustments}
+        estimatedValue={valuationData.estimatedValue}
+        confidenceScore={valuationData.confidenceScore || 75}
+        priceRange={valuationData.priceRange}
+        adjustments={valuationData.adjustments}
         aiVerified={!!conditionData && conditionData.confidenceScore > 70}
         aiCondition={conditionData}
       />
