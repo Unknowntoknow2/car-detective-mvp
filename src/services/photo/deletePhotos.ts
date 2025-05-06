@@ -12,13 +12,15 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     if (photo.id) {
       try {
         // Delete from valuation_photos table
-        // Cast the entire query chain to any to avoid TypeScript errors
-        const query = supabase
-          .from('valuation_photos')
+        // Use type assertion on the from() call to avoid deep type recursion
+        const { error } = await (supabase
+          .from('valuation_photos' as any)
           .delete()
-          .eq('id', photo.id);
+          .eq('id', photo.id));
           
-        await query as any;
+        if (error) {
+          console.error('Error deleting photo from database:', error);
+        }
           
         // Extract file path from URL to delete from storage
         const url = new URL(photo.url);
@@ -26,9 +28,13 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
         
         if (filePath) {
           // Also try to remove from storage
-          await supabase.storage
+          const { error: storageError } = await supabase.storage
             .from('vehicle-photos')
             .remove([filePath]);
+            
+          if (storageError) {
+            console.error('Error deleting photo from storage:', storageError);
+          }
         }
       } catch (err) {
         console.error('Error deleting photo:', err);
@@ -42,13 +48,15 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     
     if (photoUrls.length > 0) {
       // Delete corresponding scores
-      // Cast the entire query chain to any to avoid TypeScript errors
-      const query = supabase
-        .from('photo_condition_scores')
+      // Use type assertion on the from() call to avoid deep type recursion
+      const { error } = await (supabase
+        .from('photo_condition_scores' as any)
         .delete()
-        .in('image_url', photoUrls);
-        
-      await query as any;
+        .in('image_url', photoUrls));
+      
+      if (error) {
+        console.error('Error cleaning up condition scores:', error);
+      }
     }
   } catch (error) {
     console.error('Error cleaning up condition scores:', error);
