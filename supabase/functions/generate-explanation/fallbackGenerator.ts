@@ -2,111 +2,86 @@
 import { ExplanationRequest } from './types.ts';
 
 /**
- * Generates a detailed explanation of the vehicle valuation (fallback method)
- * @param data The valuation data
- * @returns A detailed explanation string
+ * Generates a deterministic explanation without using AI
+ * @param data The valuation data 
+ * @returns A formatted explanation string
  */
 export function generateDetailedExplanation(data: ExplanationRequest): string {
-  const { make, model, year, mileage, condition, zipCode, finalValuation, adjustments } = data;
-  
-  // Calculate vehicle age
-  const currentYear = new Date().getFullYear();
-  const vehicleAge = currentYear - year;
+  const { 
+    make, model, year, mileage, condition, zipCode = data.location, 
+    baseMarketValue, finalValuation, adjustments = [],
+    mileageAdj = 0, conditionAdj = 0, zipAdj = 0, featureAdjTotal = 0
+  } = data;
 
-  // Start with a general introduction
-  let explanation = `# Valuation Analysis: ${year} ${make} ${model}\n\n`;
-  
-  explanation += `Your ${year} ${make} ${model} has been valued at $${finalValuation.toLocaleString()} based on a comprehensive analysis of multiple factors including its age, mileage, condition, and location.\n\n`;
-  
-  // Add sections for each major factor
-  explanation += `## Vehicle Overview\n`;
-  explanation += `This ${year} ${make} ${model} is ${vehicleAge} years old with ${mileage.toLocaleString()} miles, which is `;
-  
-  // Comment on mileage relative to age
-  const averageMileagePerYear = 12000;
-  const expectedMileage = vehicleAge * averageMileagePerYear;
-  if (mileage < expectedMileage * 0.8) {
-    explanation += `significantly below average for its age (${expectedMileage.toLocaleString()} miles would be typical). This positively impacts its value.\n\n`;
-  } else if (mileage < expectedMileage * 1.1) {
-    explanation += `close to the average for its age (${expectedMileage.toLocaleString()} miles would be typical).\n\n`;
-  } else {
-    explanation += `above average for its age (${expectedMileage.toLocaleString()} miles would be typical). This somewhat reduces its value.\n\n`;
-  }
-  
-  // Condition assessment
-  explanation += `## Condition Assessment\n`;
-  explanation += `The vehicle is reported to be in ${condition} condition. `;
-  
-  switch (condition.toLowerCase()) {
-    case 'excellent':
-      explanation += `Excellent condition means the vehicle shows minimal wear and tear, has been meticulously maintained, and requires no reconditioning. This significantly enhances its market value compared to similar vehicles in average condition.\n\n`;
-      break;
-    case 'good':
-      explanation += `Good condition indicates the vehicle has been well-maintained with only minor cosmetic flaws and no significant mechanical issues. This is the baseline condition expected for a vehicle of this age.\n\n`;
-      break;
-    case 'fair':
-      explanation += `Fair condition suggests the vehicle has noticeable wear and tear, may have some cosmetic defects, and might require minor mechanical repairs. This condition reduces its value compared to similar vehicles in good condition.\n\n`;
-      break;
-    case 'poor':
-      explanation += `Poor condition indicates significant cosmetic and/or mechanical issues that require substantial repair. This condition significantly reduces its market value compared to similar vehicles in better condition.\n\n`;
-      break;
-    default:
-      explanation += `This is considered the standard benchmark for valuation purposes.\n\n`;
-  }
-  
-  // Market factors
-  explanation += `## Market Factors\n`;
-  explanation += `The ${make} ${model} has `;
-  
-  // Make/model specific comments (simplified)
-  if (['Toyota', 'Honda', 'Lexus'].includes(make)) {
-    explanation += `a reputation for reliability and strong resale value. `;
-  } else if (['BMW', 'Mercedes-Benz', 'Audi'].includes(make)) {
-    explanation += `a premium brand value but typically experiences steeper depreciation in the first few years. `;
-  } else if (make === 'Tesla') {
-    explanation += `strong demand in the electric vehicle market with generally good value retention. `;
-  }
-  
-  // Location impact
-  explanation += `Your location (ZIP: ${zipCode}) is in `;
-  
-  // Simplified location assessment - would be replaced with actual regional data
-  const highDemandZips = ['90210', '10001', '94102', '98101', '33139'];
-  if (highDemandZips.includes(zipCode as string)) {
-    explanation += `an area with high vehicle demand, positively affecting the valuation.\n\n`;
-  } else {
-    explanation += `a market with typical demand patterns for this vehicle.\n\n`;
-  }
-  
-  // Detailed adjustment breakdown
-  if (adjustments && adjustments.length > 0) {
-    explanation += `## Value Adjustment Factors\n`;
-    explanation += `The following specific factors were considered in this valuation:\n\n`;
+  // Format numbers for display
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  // Generate condition text
+  const getConditionText = () => {
+    switch (condition.toLowerCase()) {
+      case 'excellent':
+        return 'excellent condition, which positively affects its value';
+      case 'good':
+        return 'good condition, which is typical for a vehicle of this age';
+      case 'fair':
+        return 'fair condition, which slightly reduces its value';
+      case 'poor':
+        return 'poor condition, which significantly affects its value';
+      default:
+        return `${condition} condition`;
+    }
+  };
+
+  // Generate mileage text
+  const getMileageText = () => {
+    const avgMileage = (year ? (new Date().getFullYear() - year) * 12000 : 60000);
     
-    adjustments.forEach(adj => {
-      const impact = adj.impact.toFixed(1);
-      const direction = adj.impact >= 0 ? 'Increases' : 'Decreases';
-      explanation += `- **${adj.factor}**: ${direction} value by ${Math.abs(Number(impact))}%. ${adj.description}\n`;
-    });
-    
-    explanation += `\n`;
+    if (mileage < avgMileage * 0.7) {
+      return `lower than average mileage (${mileage.toLocaleString()} miles), which increases its value`;
+    } else if (mileage > avgMileage * 1.3) {
+      return `higher than average mileage (${mileage.toLocaleString()} miles), which decreases its value`;
+    } else {
+      return `average mileage (${mileage.toLocaleString()} miles) for a vehicle of this age`;
+    }
+  };
+
+  // Build the explanation paragraphs
+  const paragraphs = [];
+
+  // Paragraph 1: Base market value and overview
+  paragraphs.push(
+    `Your ${year} ${make} ${model} has a base market value of approximately ${formatCurrency(baseMarketValue)}. This baseline value is derived from recent sales data for similar vehicles in the national market, considering the make, model, year, and current market trends.`
+  );
+
+  // Paragraph 2: Key adjustments
+  let adjustmentText = `The valuation has been adjusted based on several factors specific to your vehicle. It has ${getMileageText()} and is in ${getConditionText()}.`;
+  
+  // Add regional adjustment text if significant
+  if (Math.abs(zipAdj) > 100) {
+    if (zipAdj > 0) {
+      adjustmentText += ` The vehicle market in your location (${zipCode}) typically commands higher prices, adding ${formatCurrency(zipAdj)} to your valuation.`;
+    } else {
+      adjustmentText += ` The vehicle market in your location (${zipCode}) typically sees lower prices, reducing your valuation by ${formatCurrency(Math.abs(zipAdj))}.`;
+    }
   }
   
-  // Future value projection
-  explanation += `## Market Outlook\n`;
-  explanation += `Based on current market trends, `;
-  
-  if (vehicleAge < 3) {
-    explanation += `this vehicle is still in its steeper depreciation phase and will likely continue to depreciate at a rate of approximately 15-20% per year for the next two years.\n\n`;
-  } else if (vehicleAge < 7) {
-    explanation += `this vehicle has passed its steepest depreciation phase and will likely depreciate at a more moderate rate of 8-12% per year for the next few years.\n\n`;
-  } else {
-    explanation += `this vehicle has already experienced most of its depreciation and will likely depreciate at a slower rate of 5-8% per year going forward.\n\n`;
+  // Add feature adjustment text if significant
+  if (featureAdjTotal > 0) {
+    adjustmentText += ` Your vehicle's special features and options add ${formatCurrency(featureAdjTotal)} to its overall value.`;
   }
   
-  // Conclusion
-  explanation += `## Summary\n`;
-  explanation += `The valuation of $${finalValuation.toLocaleString()} represents a fair market value for your ${year} ${make} ${model} based on its specific configuration, condition, and market factors. This valuation reflects what you could reasonably expect to receive in a private party sale to an informed buyer in your market.`;
-  
-  return explanation;
+  paragraphs.push(adjustmentText);
+
+  // Paragraph 3: Final recommendation
+  paragraphs.push(
+    `Based on all these factors, the estimated value of your ${year} ${make} ${model} is ${formatCurrency(finalValuation)}. This valuation reflects current market conditions and the specific details you've provided about your vehicle. It represents a fair market value that could be expected in a private party sale under typical circumstances.`
+  );
+
+  return paragraphs.join('\n\n');
 }
