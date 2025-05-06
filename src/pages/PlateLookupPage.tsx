@@ -1,16 +1,18 @@
+
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
+import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
 import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 export default function PlateLookupPage() {
   const [showManualEntry, setShowManualEntry] = useState(false);
 
   // Add a handler for the ManualEntryForm
-  const handleManualSubmit = (data: any) => {
+  const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log("Manual entry form submitted:", data);
     // Here you would typically handle the form submission
   };
