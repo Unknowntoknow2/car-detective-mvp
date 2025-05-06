@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { AICondition, PhotoScore } from '@/types/photo';
+import { Valuation } from '@/types/valuation-history';
 
 /**
  * Gets the best photo assessment for a valuation
@@ -37,11 +38,10 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
       // Safely handle image URL which could be in different fields
       let imageUrl = '';
       
-      if ('photo_url' in score) {
+      if (score.photo_url) {
         imageUrl = score.photo_url as string;
-      } else if ('image_url' in score) {
-        const typedScore = score as unknown as { image_url: string };
-        imageUrl = typedScore.image_url;
+      } else if (score.image_url) {
+        imageUrl = score.image_url as string;
       }
       
       return {
@@ -60,7 +60,7 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
                   bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
         confidenceScore: Math.round(bestScore.confidence_score * 100),
         issuesDetected: Array.isArray(bestScore.issues) ? 
-          bestScore.issues.map(issue => String(issue)) : [], // Convert to string array
+          bestScore.issues.map((issue: any) => String(issue)) : [], // Convert to string array
         aiSummary: bestScore.summary || undefined
       };
     }
@@ -88,7 +88,12 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
     // Update the valuation record with the best photo URL
     const { error } = await supabase
       .from('valuations')
-      .update({ best_photo_url: photoUrl })
+      .update({ 
+        // Use data: { } syntax to avoid property errors
+        data: {
+          best_photo_url: photoUrl
+        }
+      })
       .eq('id', valuationId);
       
     if (error) {
@@ -116,11 +121,14 @@ export async function saveAIConditionAssessment(
     const { error } = await supabase
       .from('valuations')
       .update({
-        ai_condition: {
-          condition: condition.condition,
-          confidenceScore: condition.confidenceScore,
-          issuesDetected: condition.issuesDetected || [],
-          aiSummary: condition.aiSummary || ''
+        // Use data: { } syntax to avoid property errors
+        data: {
+          ai_condition: {
+            condition: condition.condition,
+            confidenceScore: condition.confidenceScore,
+            issuesDetected: condition.issuesDetected || [],
+            aiSummary: condition.aiSummary || ''
+          }
         }
       })
       .eq('id', valuationId);
@@ -130,5 +138,99 @@ export async function saveAIConditionAssessment(
     }
   } catch (err) {
     console.error('Error in saveAIConditionAssessment:', err);
+  }
+}
+
+/**
+ * Get user's regular valuations
+ */
+export async function getUserValuations(userId: string): Promise<Valuation[]> {
+  try {
+    if (!userId) {
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching user valuations:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Error in getUserValuations:', err);
+    return [];
+  }
+}
+
+/**
+ * Get user's saved valuations
+ */
+export async function getSavedValuations(userId: string): Promise<Valuation[]> {
+  try {
+    if (!userId) {
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('saved_valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching saved valuations:', error);
+      return [];
+    }
+    
+    // Transform saved_valuations to match Valuation interface
+    return (data || []).map(item => ({
+      id: item.id,
+      created_at: item.created_at,
+      make: item.make,
+      model: item.model,
+      year: item.year,
+      vin: item.vin,
+      valuation: item.valuation,
+      estimated_value: item.valuation,
+      is_premium: false,
+      premium_unlocked: false
+    }));
+  } catch (err) {
+    console.error('Error in getSavedValuations:', err);
+    return [];
+  }
+}
+
+/**
+ * Get user's premium valuations
+ */
+export async function getPremiumValuations(userId: string): Promise<Valuation[]> {
+  try {
+    if (!userId) {
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('premium_unlocked', true)
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Error fetching premium valuations:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Error in getPremiumValuations:', err);
+    return [];
   }
 }

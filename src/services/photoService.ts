@@ -58,14 +58,19 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         // Map all scores to the expected format
         scoreData.forEach(score => {
           // Safely handle the image URL field which might be in different properties
-          const imageUrl = score.photo_url || 
-                           // Handle potential undefined fields safely
-                           score.image_url || 
-                           '';
+          // Handling potential undefined fields safely by checking properties
+          let imageUrl = '';
+          
+          // Check both possible properties for image URLs
+          if ('photo_url' in score && score.photo_url) {
+            imageUrl = String(score.photo_url);
+          } else if ('image_url' in score && score.image_url) {
+            imageUrl = String(score.image_url);
+          }
           
           if (imageUrl) {
             individualScores.push({
-              url: imageUrl as string,
+              url: imageUrl,
               score: score.condition_score || 0
             });
           }
@@ -82,8 +87,9 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
                       bestScore.condition_score >= 0.6 ? 'Good' : 
                       bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
             confidenceScore: Math.round(bestScore.confidence_score * 100),
+            // Properly handle issues array with type casting
             issuesDetected: Array.isArray(bestScore.issues) ? 
-              bestScore.issues.map(issue => String(issue)) : [], // Convert to string array
+              bestScore.issues.map((issue: any) => String(issue)) : [], 
             aiSummary: bestScore.summary || undefined
           };
         }
