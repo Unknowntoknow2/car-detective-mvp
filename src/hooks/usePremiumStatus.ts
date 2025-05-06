@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatStripeError } from '@/utils/stripe-error-handling';
+import { checkPremiumAccess } from '@/utils/premiumService';
 
 export function usePremiumStatus(valuationId?: string) {
   const { user } = useAuth();
@@ -23,36 +24,9 @@ export function usePremiumStatus(valuationId?: string) {
       setError(null);
       
       try {
-        // First, check if the valuation itself has premium_unlocked flag
-        const { data: valuationData, error: valuationError } = await supabase
-          .from('valuations')
-          .select('premium_unlocked')
-          .eq('id', valuationId)
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (valuationError) throw new Error(valuationError.message);
-        
-        // If valuation has premium_unlocked set to true, it's premium
-        if (valuationData?.premium_unlocked) {
-          setIsPremium(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        // Otherwise, check if there's a completed order for this valuation
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .select('status')
-          .eq('valuation_id', valuationId)
-          .eq('user_id', user.id)
-          .eq('status', 'paid')
-          .maybeSingle();
-        
-        if (orderError) throw new Error(orderError.message);
-        
-        // Set premium status based on order existence
-        setIsPremium(!!orderData);
+        // Use the checkPremiumAccess function that now uses the RPC function
+        const hasPremiumAccess = await checkPremiumAccess(valuationId);
+        setIsPremium(hasPremiumAccess);
       } catch (err) {
         console.error('Error checking premium access:', err);
         setError(err instanceof Error ? err : new Error('Failed to check premium status'));
@@ -86,18 +60,10 @@ export function usePremiumStatus(valuationId?: string) {
       toast.info('Preparing checkout...', { id: 'checkout-preparation' });
       
       // First, check if already unlocked to avoid unnecessary checkout
-      const { data: valuationData, error: valuationError } = await supabase
-        .from('valuations')
-        .select('premium_unlocked')
-        .eq('id', valuationId)
-        .maybeSingle();
-      
-      if (valuationError) {
-        console.error('Error checking valuation status:', valuationError);
-        // Continue anyway, since the edge function will also verify
-      } else if (valuationData?.premium_unlocked) {
+      const hasPremiumAccess = await checkPremiumAccess(valuationId);
+      if (hasPremiumAccess) {
         toast.success('Premium features are already unlocked!');
-        return { success: true, url: window.location.href };
+        return { success: true };
       }
       
       // Call the Edge Function to create a checkout session

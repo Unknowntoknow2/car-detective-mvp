@@ -1,17 +1,19 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { verifyPaymentStatus } from '@/utils/premiumService';
 
 export function PremiumSuccessPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sessionId = searchParams.get('session_id');
   const valuationId = searchParams.get('valuation_id');
+  const [verifying, setVerifying] = useState(true);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   
   useEffect(() => {
     // Redirect if no session ID or valuation ID
@@ -24,28 +26,27 @@ export function PremiumSuccessPage() {
     // Check payment status
     async function verifyPayment() {
       try {
-        // Check the order status in the database
-        const { data, error } = await supabase
-          .from('orders')
-          .select('status')
-          .eq('stripe_session_id', sessionId)
-          .eq('valuation_id', valuationId)
-          .maybeSingle();
-          
-        if (error) {
-          console.error('Error verifying payment:', error);
-          return;
-        }
+        setVerifying(true);
         
-        // If order exists and is completed, show success message
-        if (data && data.status === 'completed') {
-          toast.success('Payment confirmed! Premium features are now available.');
+        const result = await verifyPaymentStatus(sessionId, valuationId);
+        
+        if (result.success) {
+          setPaymentConfirmed(result.paymentConfirmed);
+          
+          if (result.paymentConfirmed) {
+            toast.success('Payment confirmed! Premium features are now available.');
+          } else {
+            // Payment exists but isn't completed yet
+            toast.info('Your payment is being processed. Premium features will be available shortly.');
+          }
         } else {
-          // Order exists but isn't completed yet, let the user know it's processing
-          toast.info('Your payment is being processed. Premium features will be available shortly.');
+          toast.error('Unable to verify payment status. Please contact support.');
         }
       } catch (err) {
         console.error('Error verifying payment status:', err);
+        toast.error('Failed to verify payment. Please contact support if premium features are not available.');
+      } finally {
+        setVerifying(false);
       }
     }
     
@@ -57,28 +58,42 @@ export function PremiumSuccessPage() {
       <Card className="border-primary/20">
         <CardHeader className="text-center pb-4 border-b">
           <div className="mx-auto mb-4 bg-primary/10 p-3 rounded-full inline-flex">
-            <CheckCircle className="h-8 w-8 text-primary" />
+            {verifying ? (
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            ) : (
+              <CheckCircle className="h-8 w-8 text-primary" />
+            )}
           </div>
-          <CardTitle className="text-2xl font-bold">Payment Successful!</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            {verifying ? 'Verifying Payment...' : 
+             paymentConfirmed ? 'Payment Successful!' : 
+             'Payment Processing'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-4">
             <p className="text-center text-muted-foreground">
-              Thank you for your purchase. Your premium valuation report is now ready.
+              {verifying ? 'Please wait while we verify your payment...' :
+               paymentConfirmed ? 'Thank you for your purchase. Your premium valuation report is now ready.' :
+               'Your payment is being processed. Premium features will be available shortly.'}
             </p>
             
             <div className="grid gap-4 mt-8">
-              <Button asChild size="lg">
-                <Link to={`/valuation/premium?id=${valuationId}`}>
-                  View Premium Report <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild>
-                <Link to="/dashboard">
-                  Go to Dashboard
-                </Link>
-              </Button>
+              {!verifying && (
+                <>
+                  <Button asChild size="lg">
+                    <Link to={`/valuation/${valuationId}${paymentConfirmed ? '/premium' : ''}`}>
+                      {paymentConfirmed ? 'View Premium Report' : 'View Valuation'} <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  
+                  <Button variant="outline" asChild>
+                    <Link to="/dashboard">
+                      Go to Dashboard
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
             
             <div className="text-xs text-center text-muted-foreground mt-6">

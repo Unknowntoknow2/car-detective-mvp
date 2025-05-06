@@ -73,42 +73,16 @@ export async function checkPremiumAccess(valuationId: string): Promise<boolean> 
   try {
     if (!valuationId) return false;
     
-    // First, check if the valuation itself has premium_unlocked
-    const { data: valuationData, error: valuationError } = await supabase
-      .from('valuations')
-      .select('premium_unlocked')
-      .eq('id', valuationId)
-      .maybeSingle();
+    // Use the database function has_premium_access to check if the user has premium access
+    const { data, error } = await supabase
+      .rpc('has_premium_access', { valuation_id: valuationId });
     
-    if (valuationError) throw valuationError;
-    
-    if (valuationData?.premium_unlocked) {
-      return true;
+    if (error) {
+      console.error("Error checking premium access:", error);
+      throw error;
     }
     
-    // If not unlocked in valuation, check orders
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .select('status')
-      .eq('valuation_id', valuationId)
-      .eq('status', 'paid')
-      .maybeSingle();
-    
-    if (orderError) throw orderError;
-    
-    // If order exists and is paid, but premium_unlocked flag is not set,
-    // this is a data inconsistency - fix it
-    if (orderData) {
-      // Fix the inconsistency by updating premium_unlocked flag
-      await supabase
-        .from('valuations')
-        .update({ premium_unlocked: true })
-        .eq('id', valuationId);
-        
-      return true;
-    }
-    
-    return false;
+    return !!data;
   } catch (error) {
     errorHandler.handle(error, 'premium-access-check');
     return false;
