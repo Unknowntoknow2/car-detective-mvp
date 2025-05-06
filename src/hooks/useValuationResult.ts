@@ -22,9 +22,16 @@ export function useValuationResult(valuationId: string) {
       return {
         ...data,
         isPremium,
-        // Map snake_case to camelCase for convenience
-        estimatedValue: data.estimated_value || data.valuation || 0,
-        confidenceScore: data.confidence_score || 75,
+        // Map to consistent camelCase format for frontend use
+        estimatedValue: data.estimatedValue || data.valuation || 0,
+        confidenceScore: data.confidenceScore || 75,
+        // Add these properties from data if they exist (or null if they don't)
+        color: data.color || null,
+        body_style: data.body_style || null,
+        body_type: data.body_type || null,
+        fuel_type: data.fuel_type || null,
+        explanation: data.explanation || null,
+        transmission: data.transmission || null
       };
     },
     enabled: !!valuationId,

@@ -93,12 +93,12 @@ export default function PremiumValuationPage() {
     premium_unlocked: true,
     condition: valuation.condition,
     confidence_score: valuation.confidenceScore,
-    color: valuation.color || null,
-    body_style: valuation.body_style || null,
-    body_type: valuation.body_type || null,
-    fuel_type: valuation.fuel_type || null,
-    explanation: valuation.explanation || null,
-    transmission: valuation.transmission || null
+    color: valuation.color,
+    body_style: valuation.body_style,
+    body_type: valuation.body_type,
+    fuel_type: valuation.fuel_type,
+    explanation: valuation.explanation,
+    transmission: valuation.transmission
   };
   
   return (
