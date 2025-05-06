@@ -1,10 +1,11 @@
+
 import { generateValuationPdf } from '../generateValuationPdf';
-import { generatePdf } from './pdfGenerator';
+import { generateValuationPdf as generatePdf } from './pdfGenerator';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 // Mock the PDF generator service
 jest.mock('./pdfGenerator', () => ({
-  generatePdf: jest.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4])),
+  generateValuationPdf: jest.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4])),
 }));
 
 describe('PDF Export', () => {
