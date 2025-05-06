@@ -2,11 +2,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { ConditionAssessmentResult } from "./types.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
 /**
  * Stores the assessment result in the database
  */
@@ -17,31 +12,20 @@ export async function storeAssessmentResult(
 ): Promise<boolean> {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     
-    if (!supabaseUrl || !supabaseServiceRole) {
-      console.error("Missing Supabase credentials");
-      return false;
-    }
+    // Use the service role key for admin privileges
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const adminClient = createClient(supabaseUrl, supabaseServiceRole);
-    
-    // Convert confidence score to 0-1 range for storage
-    const normalizedScore = assessment.confidenceScore / 100;
-    
-    // Store in photo_scores table
-    const { error } = await adminClient
-      .from('photo_scores')
+    // Store the assessment in photo_condition_scores table
+    const { error } = await supabase
+      .from('photo_condition_scores')
       .insert({
         valuation_id: valuationId,
-        score: normalizedScore,
-        metadata: {
-          condition: assessment.condition,
-          confidenceScore: assessment.confidenceScore,
-          issuesDetected: assessment.issuesDetected,
-          aiSummary: assessment.aiSummary,
-          photoCount
-        }
+        condition_score: assessment.confidenceScore / 100, // Convert percentage to 0-1 value
+        confidence_score: assessment.confidenceScore / 100,
+        issues: assessment.issuesDetected || [],
+        summary: assessment.aiSummary || ''
       });
     
     if (error) {
@@ -49,30 +33,25 @@ export async function storeAssessmentResult(
       return false;
     }
     
-    // Also update the valuation with the AI condition score if confidence is high enough
-    if (assessment.confidenceScore >= 70) {
-      const conditionScoreMap = {
-        'Excellent': 90,
-        'Good': 75,
-        'Fair': 60,
-        'Poor': 40
-      };
-      
-      const { error: updateError } = await adminClient
-        .from('valuations')
-        .update({
-          condition_score: conditionScoreMap[assessment.condition] || 50
-        })
-        .eq('id', valuationId);
-      
-      if (updateError) {
-        console.error('Error updating valuation condition:', updateError);
-      }
+    // Optionally update the main valuation record
+    const { error: updateError } = await supabase
+      .from('valuations')
+      .update({
+        condition_score: Math.round(assessment.confidenceScore),
+        // Only update confidence score if it's below 90
+        confidence_score: (val: any) => 
+          val < 90 ? Math.min(val + 7, 95) : val
+      })
+      .eq('id', valuationId);
+    
+    if (updateError) {
+      console.error('Error updating valuation:', updateError);
+      // Not critical, so we'll still return true
     }
     
     return true;
   } catch (error) {
-    console.error('Database error storing assessment:', error);
+    console.error('Exception storing assessment result:', error);
     return false;
   }
 }

@@ -1,18 +1,14 @@
 
-import { PDFPage, rgb, PDFFont } from 'pdf-lib';
-import { drawConditionBox } from './aiCondition/drawConditionBox';
-import { drawConditionTitle } from './aiCondition/drawConditionTitle';
-import { drawVerificationBadge } from './aiCondition/drawVerificationBadge';
-import { drawConditionIssues } from './aiCondition/drawConditionIssues';
+import { PDFPage, rgb, PDFFont, Color } from 'pdf-lib';
 
-interface AiConditionData {
+interface AICondition {
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
   confidenceScore: number;
   issuesDetected?: string[];
   aiSummary?: string;
 }
 
-interface DrawAiConditionParams {
+interface DrawAIConditionOptions {
   page: PDFPage;
   yPosition: number;
   margin: number;
@@ -21,102 +17,216 @@ interface DrawAiConditionParams {
     regular: PDFFont;
     bold: PDFFont;
     italic: PDFFont;
-  };
+  }
 }
 
 /**
- * Draw AI condition assessment section
+ * Draws the AI condition assessment section on a PDF page
  * Returns the new Y position after drawing
  */
 export function drawAIConditionSection(
-  aiCondition: AiConditionData,
-  params: DrawAiConditionParams
+  aiCondition: AICondition,
+  options: DrawAIConditionOptions
 ): number {
-  const { page, yPosition, margin, width, fonts } = params;
+  const { page, yPosition, margin, width, fonts } = options;
   
-  // Skip if no condition data
   if (!aiCondition || !aiCondition.condition) {
     return yPosition;
   }
   
-  let currentY = yPosition - 20;
+  const boxWidth = width - (margin * 2);
+  let y = yPosition;
   
   // Draw section title
-  page.drawText('AI Vehicle Condition Assessment', {
+  page.drawText('AI Condition Assessment', {
     x: margin,
-    y: currentY,
-    size: 16,
+    y,
+    size: 14,
     font: fonts.bold,
-    color: rgb(0.2, 0.2, 0.6)
+    color: rgb(0.12, 0.46, 0.70)
   });
-  currentY -= 25;
+  y -= 20;
   
-  // Get condition color based on condition level
+  // Draw condition badge
   const conditionColor = getConditionColor(aiCondition.condition);
   
-  // Create a condition box
-  const boxHeight = 150;
-  const boxWidth = width - (margin * 2);
+  // Draw a background for the condition
+  page.drawRectangle({
+    x: margin,
+    y: y - 14,
+    width: 120,
+    height: 22,
+    color: conditionColor.light,
+    borderColor: conditionColor.border,
+    borderWidth: 1,
+    opacity: 0.8,
+    borderOpacity: 1
+  });
   
-  // Draw the container box
-  drawConditionBox(
-    page,
-    aiCondition.condition,
-    currentY - boxHeight + 15,
-    boxWidth,
-    boxHeight,
-    margin,
-    conditionColor
-  );
+  // Draw condition text
+  page.drawText(`${aiCondition.condition} Condition`, {
+    x: margin + 10,
+    y: y - 10,
+    size: 12,
+    font: fonts.bold,
+    color: conditionColor.text
+  });
   
-  // Draw the condition title
-  drawConditionTitle(
-    page,
-    aiCondition.condition,
-    currentY - 10,
-    margin + 20,
-    fonts.bold,
-    conditionColor
-  );
+  // Draw confidence score
+  page.drawText(`${aiCondition.confidenceScore}% confidence`, {
+    x: margin + 140,
+    y: y - 10,
+    size: 10,
+    font: fonts.regular,
+    color: rgb(0.5, 0.5, 0.5)
+  });
   
-  // Draw verification badge if confidence is high enough
-  drawVerificationBadge(
-    page,
-    aiCondition.confidenceScore,
-    currentY - boxHeight + 15,
-    width,
-    margin,
-    fonts.bold
-  );
+  // Draw AI verified badge
+  const badgeText = "AI VERIFIED";
+  const badgeWidth = fonts.bold.widthOfTextAtSize(badgeText, 8) + 14;
   
-  // Draw detected issues and summary
-  drawConditionIssues(
-    page,
-    currentY - 45,
-    margin,
-    boxWidth,
-    { regular: fonts.regular, italic: fonts.italic },
-    aiCondition.aiSummary,
-    aiCondition.issuesDetected
-  );
+  page.drawRectangle({
+    x: width - margin - badgeWidth,
+    y: y - 14,
+    width: badgeWidth,
+    height: 22,
+    color: rgb(0.9, 0.95, 1),
+    borderColor: rgb(0.4, 0.6, 0.9),
+    borderWidth: 1,
+    opacity: 0.8,
+    borderOpacity: 1
+  });
   
-  return currentY - boxHeight - 10;
+  page.drawText(badgeText, {
+    x: width - margin - badgeWidth + 7,
+    y: y - 10,
+    size: 8,
+    font: fonts.bold,
+    color: rgb(0.2, 0.4, 0.8)
+  });
+  
+  y -= 30;
+  
+  // Draw summary and issues
+  if (aiCondition.aiSummary) {
+    // Draw a light background for the summary
+    page.drawRectangle({
+      x: margin,
+      y: y - 45,
+      width: boxWidth,
+      height: 55,
+      color: rgb(0.97, 0.97, 0.98),
+      borderColor: rgb(0.9, 0.9, 0.92),
+      borderWidth: 1,
+      borderRadius: 4
+    });
+    
+    // Draw summary text
+    page.drawText("AI Summary:", {
+      x: margin + 10,
+      y: y - 15,
+      size: 10,
+      font: fonts.bold,
+      color: rgb(0.4, 0.4, 0.6)
+    });
+    
+    // Draw the actual summary text with word wrapping
+    // This is simplified; in a production environment, you would implement proper text wrapping
+    page.drawText(aiCondition.aiSummary.substring(0, 100) + (aiCondition.aiSummary.length > 100 ? "..." : ""), {
+      x: margin + 10,
+      y: y - 35,
+      size: 9,
+      font: fonts.italic,
+      color: rgb(0.3, 0.3, 0.4)
+    });
+    
+    y -= 65;
+  }
+  
+  // Draw issues if any
+  if (aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0) {
+    page.drawText("Issues Detected:", {
+      x: margin,
+      y: y,
+      size: 10,
+      font: fonts.bold,
+      color: rgb(0.7, 0.3, 0.3)
+    });
+    y -= 15;
+    
+    // Draw each issue as a bullet point
+    for (let i = 0; i < Math.min(5, aiCondition.issuesDetected.length); i++) {
+      const issue = aiCondition.issuesDetected[i];
+      
+      page.drawText("•", {
+        x: margin,
+        y,
+        size: 10,
+        font: fonts.bold,
+        color: rgb(0.7, 0.3, 0.3)
+      });
+      
+      page.drawText(issue, {
+        x: margin + 15,
+        y,
+        size: 9,
+        font: fonts.regular,
+        color: rgb(0.3, 0.3, 0.3)
+      });
+      
+      y -= 15;
+    }
+    
+    // If there are more issues than we can show
+    if (aiCondition.issuesDetected.length > 5) {
+      page.drawText(`+${aiCondition.issuesDetected.length - 5} more issues...`, {
+        x: margin + 15,
+        y,
+        size: 9,
+        font: fonts.italic,
+        color: rgb(0.5, 0.5, 0.5)
+      });
+      y -= 15;
+    }
+  }
+  
+  return y - 10;
 }
 
 /**
- * Get the color for a condition level
+ * Gets the appropriate colors for a condition level
  */
-function getConditionColor(condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null) {
+function getConditionColor(condition: string) {
   switch (condition) {
     case 'Excellent':
-      return rgb(0, 0.7, 0.3); // Green
+      return {
+        light: rgb(0.85, 0.95, 0.85),
+        border: rgb(0.6, 0.8, 0.6),
+        text: rgb(0.2, 0.6, 0.2)
+      };
     case 'Good':
-      return rgb(0.2, 0.5, 0.8); // Blue
+      return {
+        light: rgb(0.9, 0.95, 0.8),
+        border: rgb(0.7, 0.8, 0.5),
+        text: rgb(0.5, 0.6, 0.1)
+      };
     case 'Fair':
-      return rgb(0.9, 0.6, 0.1); // Orange
+      return {
+        light: rgb(0.97, 0.93, 0.8),
+        border: rgb(0.8, 0.7, 0.5),
+        text: rgb(0.7, 0.5, 0.1)
+      };
     case 'Poor':
-      return rgb(0.8, 0.2, 0.2); // Red
+      return {
+        light: rgb(0.97, 0.85, 0.85),
+        border: rgb(0.8, 0.6, 0.6),
+        text: rgb(0.7, 0.2, 0.2)
+      };
     default:
-      return rgb(0.5, 0.5, 0.5); // Gray
+      return {
+        light: rgb(0.9, 0.9, 0.9),
+        border: rgb(0.7, 0.7, 0.7),
+        text: rgb(0.4, 0.4, 0.4)
+      };
   }
 }

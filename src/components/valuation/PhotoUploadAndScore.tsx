@@ -27,7 +27,8 @@ export function PhotoUploadAndScore({
     isScoring,
     uploadProgress,
     error,
-    resetUpload
+    resetUpload,
+    individualScores
   } = usePhotoScoring(valuationId);
   
   const handleFileSelection = async (files: File[]) => {
@@ -60,10 +61,11 @@ export function PhotoUploadAndScore({
           uploadProgress={uploadProgress}
           onRemove={resetUpload}
           aiCondition={aiCondition}
+          individualScores={individualScores}
         />
       )}
       
-      {photos.length < 5 && photos.length > 0 && !isUploading && !isScoring && (
+      {photos.length < MAX_FILES && photos.length > 0 && !isUploading && !isScoring && (
         <PhotoUploadDropzone 
           onFilesSelect={handleFileSelection}
           isLoading={isUploading || isScoring}

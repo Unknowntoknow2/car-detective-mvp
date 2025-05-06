@@ -1,7 +1,10 @@
 
+/**
+ * Result of vehicle condition assessment
+ */
 export interface ConditionAssessmentResult {
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   confidenceScore: number;
-  issuesDetected: string[];
-  aiSummary: string;
+  issuesDetected?: string[];
+  aiSummary?: string;
 }

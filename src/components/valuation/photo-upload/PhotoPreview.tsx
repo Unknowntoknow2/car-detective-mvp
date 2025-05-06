@@ -14,6 +14,7 @@ interface PhotoPreviewProps {
   uploadProgress: number;
   onRemove: () => void;
   aiCondition: AICondition | null;
+  individualScores?: {url: string, score: number}[];
 }
 
 export function PhotoPreview({
@@ -23,7 +24,8 @@ export function PhotoPreview({
   isScoring,
   uploadProgress,
   onRemove,
-  aiCondition
+  aiCondition,
+  individualScores = []
 }: PhotoPreviewProps) {
   return (
     <div className="space-y-4">
@@ -55,16 +57,42 @@ export function PhotoPreview({
         )}
         
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {photos.map((photo, index) => (
-            <div key={index} className="aspect-square rounded-md overflow-hidden relative group border border-slate-200">
-              <img
-                src={photo.url}
-                alt={`Vehicle photo ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
+          {photos.map((photo, index) => {
+            // Find the score for this photo URL
+            const matchingScore = individualScores.find(score => score.url === photo.url);
+            const score = matchingScore ? matchingScore.score : null;
+            
+            return (
+              <div key={index} className="aspect-square rounded-md overflow-hidden relative group border border-slate-200">
+                <img
+                  src={photo.url}
+                  alt={`Vehicle photo ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                {score !== null && (
+                  <div className="absolute bottom-0 right-0 m-1">
+                    <Badge className={`text-xs ${getScoreColorClass(score)}`}>
+                      {Math.round(score * 100)}%
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+        
+        {photoScore !== null && !isUploading && !isScoring && (
+          <div className="mt-4 p-2 bg-slate-100 rounded border border-slate-200">
+            <p className="text-sm font-medium text-slate-700">
+              Overall condition score: <span className={getScoreTextColorClass(photoScore)}>{Math.round(photoScore * 100)}%</span>
+              {individualScores.length > 0 && (
+                <span className="text-xs text-slate-500 ml-2">
+                  (Average of {individualScores.length} photos)
+                </span>
+              )}
+            </p>
+          </div>
+        )}
         
         {aiCondition && !isUploading && !isScoring && (
           <AIConditionDisplay aiCondition={aiCondition} photoScore={photoScore} />
@@ -72,4 +100,18 @@ export function PhotoPreview({
       </div>
     </div>
   );
+}
+
+function getScoreColorClass(score: number): string {
+  if (score >= 0.8) return "bg-green-100 text-green-800";
+  if (score >= 0.6) return "bg-emerald-100 text-emerald-800";
+  if (score >= 0.4) return "bg-yellow-100 text-yellow-800";
+  return "bg-red-100 text-red-800";
+}
+
+function getScoreTextColorClass(score: number): string {
+  if (score >= 0.8) return "text-green-600";
+  if (score >= 0.6) return "text-emerald-600";
+  if (score >= 0.4) return "text-yellow-600";
+  return "text-red-600";
 }

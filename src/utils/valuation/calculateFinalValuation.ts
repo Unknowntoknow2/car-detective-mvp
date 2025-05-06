@@ -19,6 +19,8 @@ export interface ValuationInput {
   aiConditionOverride?: {
     condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
     confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
   };
   valuationId?: string;
 }
@@ -34,6 +36,7 @@ export interface ValuationOutput {
   totalAdjustments: number;
   finalValuation: number;
   conditionSource?: 'user' | 'ai';
+  aiSummary?: string;
 }
 
 /**
@@ -147,7 +150,7 @@ export async function calculateFinalValuation(input: ValuationInput): Promise<Va
   const finalValuation = input.baseMarketValue + totalAdjustments;
 
   // Return complete valuation output with all precise adjustments
-  return {
+  const result: ValuationOutput = {
     adjustedMarketValue: input.baseMarketValue,
     adjustments: {
       mileageAdjustment: mileageAdj,
@@ -159,4 +162,11 @@ export async function calculateFinalValuation(input: ValuationInput): Promise<Va
     finalValuation,
     conditionSource: useAiCondition ? 'ai' : 'user'
   };
+  
+  // Include AI summary if available and being used
+  if (useAiCondition && input.aiConditionOverride?.aiSummary) {
+    result.aiSummary = input.aiConditionOverride.aiSummary;
+  }
+  
+  return result;
 }

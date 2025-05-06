@@ -51,8 +51,11 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     const adminClient = createClient(supabaseUrl, supabaseServiceRole);
 
-    // Upload all photos to Supabase Storage
+    // Upload all photos to Supabase Storage and analyze each one
     const photoUrls = [];
+    const individualResults = [];
+    const individualScores = [];
+    
     for (const [_, file] of fileEntries) {
       const photoFile = file as File;
       const fileExt = photoFile.name.split('.').pop();
@@ -81,6 +84,42 @@ serve(async (req) => {
       
       // Log successful upload
       console.log(`Uploaded photo: ${publicUrl}`);
+      
+      // Analyze individual photo
+      try {
+        const result = await analyzeImagesWithOpenAI([publicUrl]);
+        
+        // If the result is a Response (error), skip this image
+        if (result instanceof Response) {
+          console.error("Error analyzing image:", await result.text());
+          continue;
+        }
+        
+        individualResults.push(result);
+        individualScores.push({
+          url: publicUrl,
+          score: result.confidenceScore / 100 // Convert to 0-1 range
+        });
+        
+        // Store this individual photo score
+        const { error: scoreError } = await adminClient
+          .from('photo_condition_scores')
+          .insert({
+            valuation_id: valuationId,
+            image_url: publicUrl,
+            condition_score: result.confidenceScore / 100,
+            confidence_score: result.confidenceScore / 100,
+            issues: result.issuesDetected || [],
+            summary: result.aiSummary || ''
+          });
+          
+        if (scoreError) {
+          console.error('Error storing photo score:', scoreError);
+        }
+        
+      } catch (error) {
+        console.error("Error analyzing individual photo:", error);
+      }
     }
 
     if (photoUrls.length === 0) {
@@ -90,18 +129,55 @@ serve(async (req) => {
       );
     }
 
-    // Process images with OpenAI Vision
+    // Process all images together to get overall assessment
     let assessmentResult: ConditionAssessmentResult;
     try {
-      // Call OpenAI to analyze images
-      const aiResult = await analyzeImagesWithOpenAI(photoUrls);
-      
-      // If the result is a Response (error), return it
-      if (aiResult instanceof Response) {
-        return aiResult;
+      // If we have individual results, compute an average
+      if (individualResults.length > 0) {
+        // Calculate average confidence score
+        const avgConfidenceScore = individualResults.reduce(
+          (sum, result) => sum + result.confidenceScore, 0
+        ) / individualResults.length;
+        
+        // Determine overall condition based on weighted assessment
+        // This logic can be adjusted based on business requirements
+        const conditions = ['Poor', 'Fair', 'Good', 'Excellent'] as const;
+        const conditionScores = {
+          'Poor': individualResults.filter(r => r.condition === 'Poor').length,
+          'Fair': individualResults.filter(r => r.condition === 'Fair').length,
+          'Good': individualResults.filter(r => r.condition === 'Good').length,
+          'Excellent': individualResults.filter(r => r.condition === 'Excellent').length
+        };
+        
+        // Find condition with highest score
+        const overallCondition = Object.entries(conditionScores)
+          .sort((a, b) => b[1] - a[1])[0][0] as 'Excellent' | 'Good' | 'Fair' | 'Poor';
+          
+        // Combine issues detected from all images
+        const allIssues = individualResults.flatMap(r => r.issuesDetected || []);
+        // Remove duplicates
+        const uniqueIssues = [...new Set(allIssues)];
+        
+        // Generate combined summary
+        const aiSummary = generateCombinedSummary(individualResults, overallCondition);
+        
+        assessmentResult = {
+          condition: overallCondition,
+          confidenceScore: avgConfidenceScore,
+          issuesDetected: uniqueIssues,
+          aiSummary
+        };
+      } else {
+        // Call OpenAI to analyze all images together as fallback
+        const aiResult = await analyzeImagesWithOpenAI(photoUrls);
+        
+        // If the result is a Response (error), return it
+        if (aiResult instanceof Response) {
+          return aiResult;
+        }
+        
+        assessmentResult = aiResult;
       }
-      
-      assessmentResult = aiResult;
     } catch (error) {
       console.error("AI analysis error:", error);
       
@@ -136,7 +212,8 @@ serve(async (req) => {
         confidenceScore: assessmentResult.confidenceScore,
         issuesDetected: assessmentResult.issuesDetected,
         aiSummary: assessmentResult.aiSummary,
-        analysisTimestamp: new Date().toISOString()
+        analysisTimestamp: new Date().toISOString(),
+        individualScores
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -194,4 +271,56 @@ async function simulatePhotoAnalysis(imageUrls: string[]): Promise<ConditionAsse
     issuesDetected,
     aiSummary: summaries[randomIndex]
   };
+}
+
+/**
+ * Generates a combined summary from multiple image analyses
+ */
+function generateCombinedSummary(
+  results: ConditionAssessmentResult[], 
+  overallCondition: 'Excellent' | 'Good' | 'Fair' | 'Poor'
+): string {
+  // Select 1-3 of the most important issues to highlight
+  const allIssues = results.flatMap(r => r.issuesDetected || []);
+  const uniqueIssues = [...new Set(allIssues)];
+  const topIssues = uniqueIssues.slice(0, Math.min(3, uniqueIssues.length));
+  
+  // Create the summary based on the overall condition
+  let summary = '';
+  
+  switch (overallCondition) {
+    case 'Excellent':
+      summary = 'Vehicle appears to be in excellent condition based on multiple photos. ';
+      if (topIssues.length === 0) {
+        summary += 'No significant issues were detected.';
+      } else {
+        summary += `Only minor cosmetic issues noted: ${topIssues.join('; ')}.`;
+      }
+      break;
+      
+    case 'Good':
+      summary = 'Vehicle is in good overall condition with some minor wear appropriate for its age. ';
+      if (topIssues.length > 0) {
+        summary += `Issues to note: ${topIssues.join('; ')}.`;
+      }
+      break;
+      
+    case 'Fair':
+      summary = 'Vehicle shows signs of normal wear and would benefit from some maintenance. ';
+      if (topIssues.length > 0) {
+        summary += `Key issues include: ${topIssues.join('; ')}.`;
+      }
+      break;
+      
+    case 'Poor':
+      summary = 'Vehicle condition is below average with multiple issues detected. ';
+      if (topIssues.length > 0) {
+        summary += `Major concerns include: ${topIssues.join('; ')}.`;
+      } else {
+        summary += 'Detailed inspection recommended.';
+      }
+      break;
+  }
+  
+  return summary;
 }

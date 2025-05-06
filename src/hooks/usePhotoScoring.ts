@@ -25,19 +25,23 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
   const [isScoring, setIsScoring] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [individualScores, setIndividualScores] = useState<{url: string, score: number}[]>([]);
 
   // Load existing photos and assessment if available
   useEffect(() => {
     async function loadExistingPhotos() {
       if (!valuationId) return;
       
-      const { photos: loadedPhotos, photoScore: score, aiCondition: condition } = 
+      const { photos: loadedPhotos, photoScore: score, aiCondition: condition, individualScores: loadedScores } = 
         await fetchValuationPhotos(valuationId);
       
       if (loadedPhotos.length > 0) {
         setPhotos(loadedPhotos);
         setPhotoScore(score);
         setAiCondition(condition);
+        if (loadedScores) {
+          setIndividualScores(loadedScores);
+        }
       }
     }
     
@@ -55,6 +59,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
     setAiCondition(null);
     setError(null);
     setUploadProgress(0);
+    setIndividualScores([]);
   };
 
   /**
@@ -67,6 +72,12 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
       return null;
     }
     
+    // Verify we don't exceed maximum
+    if (files.length + photos.length > MAX_FILES) {
+      toast.error(`You can only upload up to ${MAX_FILES} photos in total.`);
+      return null;
+    }
+    
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
@@ -74,6 +85,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
     try {
       setUploadProgress(20); // Show upload started
       
+      // Process each photo with the analyze-photos edge function
       const result = await uploadAndAnalyzePhotos(valuationId, files);
       
       if (!result) {
@@ -94,6 +106,11 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
       // Set score and AI condition
       setPhotoScore(result.score);
       
+      // Store individual scores for each photo
+      if (result.individualScores && result.individualScores.length > 0) {
+        setIndividualScores(prev => [...prev, ...result.individualScores]);
+      }
+      
       // Check if result.aiCondition exists before setting state
       if (result.aiCondition) {
         setAiCondition(result.aiCondition);
@@ -104,7 +121,8 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
       // Return the score and aiCondition for the callback
       return {
         score: result.score,
-        aiCondition: result.aiCondition
+        aiCondition: result.aiCondition,
+        individualScores: result.individualScores
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
@@ -126,6 +144,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
     isScoring,
     uploadProgress,
     error,
-    resetUpload
+    resetUpload,
+    individualScores
   };
 }

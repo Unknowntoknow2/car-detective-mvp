@@ -24,9 +24,19 @@ export interface ValuationPhoto {
   uploaded_at: string;
 }
 
+// Type for individual photo scores
+export interface PhotoScore {
+  url: string;
+  score: number;
+}
+
 // Type for the return value of the usePhotoScoring hook
 export interface PhotoScoringResult {
-  uploadPhotos: (files: File[]) => Promise<{ score: number, aiCondition?: AICondition } | null>;
+  uploadPhotos: (files: File[]) => Promise<{ 
+    score: number, 
+    aiCondition?: AICondition,
+    individualScores?: PhotoScore[]
+  } | null>;
   photos: Photo[];
   photoScore: number | null;
   aiCondition: AICondition | null;
@@ -35,4 +45,5 @@ export interface PhotoScoringResult {
   uploadProgress: number;
   error: string | null;
   resetUpload: () => Promise<void>;
+  individualScores: PhotoScore[];
 }
