@@ -164,10 +164,10 @@ export async function uploadAndAnalyzePhotos(
   valuationId: string, 
   files: File[]
 ): Promise<{ 
-  photoUrls: string[],
-  score: number,
-  aiCondition?: AICondition,
-  individualScores?: PhotoScore[]
+  photoUrls: string[];
+  score: number;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
 } | null> {
   try {
     if (!valuationId || !files.length) {
@@ -198,21 +198,29 @@ export async function uploadAndAnalyzePhotos(
       throw new Error("No data returned from photo analysis");
     }
     
-    // Update the return type to properly handle the JSON structure
+    // Define a temporary type for return data
+    type PhotoAnalysisResponse = {
+      photoUrls: string[];
+      confidenceScore: number;
+      condition?: string;
+      issuesDetected?: string[];
+      aiSummary?: string;
+      individualScores?: Array<{url: string; score: number}>;
+    };
+    
+    // Cast the data to our temporary type
+    const responseData = data as PhotoAnalysisResponse;
+    
     return {
-      photoUrls: data.photoUrls || [],
-      score: data.confidenceScore / 100, // Convert to 0-1 range
-      aiCondition: data.condition ? {
-        condition: data.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
-        confidenceScore: data.confidenceScore,
-        issuesDetected: Array.isArray(data.issuesDetected) ? 
-          data.issuesDetected.map(String) : [], // Ensure string array by mapping
-        aiSummary: data.aiSummary
+      photoUrls: responseData.photoUrls || [],
+      score: (responseData.confidenceScore || 0) / 100, // Convert to 0-1 range
+      aiCondition: responseData.condition ? {
+        condition: responseData.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
+        confidenceScore: responseData.confidenceScore || 0,
+        issuesDetected: responseData.issuesDetected || [],
+        aiSummary: responseData.aiSummary
       } : undefined,
-      individualScores: data.individualScores?.map((score: any) => ({
-        url: String(score.url), // Ensure string type
-        score: score.score
-      })) || []
+      individualScores: responseData.individualScores || []
     };
   } catch (err) {
     console.error('Photo upload and analysis error:', err);

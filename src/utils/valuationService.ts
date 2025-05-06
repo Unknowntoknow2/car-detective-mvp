@@ -86,12 +86,15 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
       return;
     }
     
-    // Update the valuation record with the best photo URL by using data field
+    // Create a data object to update with nested structure
+    const updateData = {
+      data: { best_photo_url: photoUrl }
+    };
+    
+    // Update the valuation record with the best photo URL
     const { error } = await supabase
       .from('valuations')
-      .update({ 
-        data: { best_photo_url: photoUrl } 
-      })
+      .update(updateData)
       .eq('id', valuationId);
       
     if (error) {
@@ -115,19 +118,22 @@ export async function saveAIConditionAssessment(
       return;
     }
     
+    // Create a data object to update with nested structure
+    const updateData = {
+      data: {
+        ai_condition: {
+          condition: condition.condition,
+          confidenceScore: condition.confidenceScore,
+          issuesDetected: condition.issuesDetected || [],
+          aiSummary: condition.aiSummary || ''
+        }
+      }
+    };
+    
     // Update the valuation record with AI condition data
     const { error } = await supabase
       .from('valuations')
-      .update({
-        data: {
-          ai_condition: {
-            condition: condition.condition,
-            confidenceScore: condition.confidenceScore,
-            issuesDetected: condition.issuesDetected || [],
-            aiSummary: condition.aiSummary || ''
-          }
-        }
-      })
+      .update(updateData)
       .eq('id', valuationId);
       
     if (error) {
