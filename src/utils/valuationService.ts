@@ -129,11 +129,13 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
       // If no score meets our threshold, return null condition but still return scores
       const mappedScores = photoScores.map(score => {
         // Get the correct image URL field based on the schema
-        const imageUrl = 'photo_url' in score ? score.photo_url : 
-                         'image_url' in score ? score.image_url : '';
+        // Handle possible undefined fields with fallbacks
+        const imageUrl = score.photo_url || 
+                         (score as any).image_url || 
+                         '';
         
         return {
-          url: imageUrl || '',
+          url: imageUrl as string,
           score: score.condition_score
         };
       });
@@ -150,18 +152,20 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
                  bestScore.condition_score >= 0.6 ? 'Good' : 
                  bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
       confidenceScore: Math.round(bestScore.confidence_score * 100),
-      issuesDetected: Array.isArray(bestScore.issues) ? bestScore.issues : [],
+      issuesDetected: Array.isArray(bestScore.issues) ? 
+        ((bestScore.issues || []) as any[]).map(String) : [], // Convert to string array
       aiSummary: bestScore.summary || undefined
     };
     
     // Map the photo scores to the expected format
     const mappedScores = photoScores.map(score => {
       // Get the correct image URL field based on the schema
-      const imageUrl = 'photo_url' in score ? score.photo_url : 
-                       'image_url' in score ? score.image_url : '';
+      const imageUrl = score.photo_url || 
+                       (score as any).image_url || 
+                       '';
       
       return {
-        url: imageUrl || '',
+        url: imageUrl as string,
         score: score.condition_score
       };
     });

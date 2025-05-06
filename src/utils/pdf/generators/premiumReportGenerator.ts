@@ -1,3 +1,4 @@
+
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { ReportData } from '../types';
 
@@ -55,10 +56,14 @@ export async function generatePremiumReport(data: ReportData): Promise<Uint8Arra
     color: rgb(0.1, 0.5, 0.1)
   });
   
-  // Add more premium content (placeholder)
+  // Add more premium content
   const premiumData = {
     ...data,
-    priceRange: [data.estimatedValue * 0.95, data.estimatedValue * 1.05]
+    // Use the priceRange property that we've added to ReportData
+    priceRange: data.priceRange || [
+      Math.round(data.estimatedValue * 0.95), 
+      Math.round(data.estimatedValue * 1.05)
+    ]
   };
   
   // Serialize and save the PDF

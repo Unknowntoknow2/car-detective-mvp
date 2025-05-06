@@ -1,11 +1,31 @@
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { ArrowUp, ArrowDown, Info } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
+import { AIConditionBadge } from './AIConditionBadge';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ValuationAuditTrail as AuditTrailType } from "@/utils/rules/RulesEngine";
-import { formatCurrency } from "@/utils/formatters";
+export interface AdjustmentItem {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+}
 
-interface ValuationAuditTrailProps {
-  auditTrail: AuditTrailType;
+export interface ValuationAuditTrailProps {
+  auditTrail: {
+    basePrice: number;
+    adjustments: AdjustmentItem[];
+    totalAdjustment: number;
+    estimatedValue: number;
+    timestamp: string;
+    inputData: {
+      year: number;
+      make: string;
+      model: string;
+      mileage: number;
+      condition: string;
+    };
+  };
   photoUrl?: string;
   aiCondition?: any;
 }
@@ -14,11 +34,28 @@ export function ValuationAuditTrail({ auditTrail, photoUrl, aiCondition }: Valua
   if (!auditTrail) return null;
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
+    <Card className="border border-primary/10">
+      <CardHeader className="bg-muted/30">
         <CardTitle className="text-lg">Valuation Breakdown</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
+        {photoUrl && (
+          <div className="mb-4 flex items-center gap-4">
+            <div className="h-16 w-16 overflow-hidden rounded-md">
+              <img src={photoUrl} alt="Vehicle" className="h-full w-full object-cover" />
+            </div>
+            {aiCondition && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">AI Condition Assessment</p>
+                <AIConditionBadge 
+                  condition={aiCondition.condition} 
+                  confidenceScore={aiCondition.confidenceScore} 
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="space-y-6">
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-2">Base Price</h4>

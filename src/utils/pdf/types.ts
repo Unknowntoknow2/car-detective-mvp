@@ -23,7 +23,7 @@ export interface ReportData {
     aiSummary?: string;
   } | null;
   bestPhotoUrl?: string;
-  // Add missing fields referenced in the code
+  // Add missing fields
   plate?: string;
   state?: string;
   transmission?: string;
@@ -42,6 +42,7 @@ export interface ValuationReportOptions {
   adjustments?: any[];
   carfaxData?: any;
   isPremium?: boolean;
+  explanation?: string;
   aiCondition?: {
     condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
     confidenceScore: number;

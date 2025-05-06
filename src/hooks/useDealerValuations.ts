@@ -1,10 +1,35 @@
-
 import { useState, useEffect } from 'react';
 import { getListingsWithCondition, getListingsCount, ConditionFilterOption } from '@/utils/getListingsWithCondition';
 import { downloadPdf } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { ValuationWithCondition } from '@/types/dealer';
-import { convertVehicleInfoToReportData } from '@/utils/pdf';
+import { convertVehicleInfoToReportData } from '@/utils/pdf/dataConverter';
+
+// Add a type definition for ValuationWithCondition that includes explanation
+declare module '@/types/dealer' {
+  interface ValuationWithCondition {
+    explanation?: string;
+    // Add other potentially missing fields
+    vin?: string;
+    make: string;
+    model: string;
+    year: number;
+    mileage?: number;
+    condition?: string;
+    estimated_value: number;
+    confidence_score: number;
+    color?: string;
+    body_type?: string;
+    fuel_type?: string;
+    zip_code?: string;
+    aiCondition?: {
+      condition: string;
+      confidenceScore: number;
+      issuesDetected?: string[];
+      aiSummary?: string;
+    };
+  }
+}
 
 export function useDealerValuations() {
   const [valuations, setValuations] = useState<ValuationWithCondition[]>([]);
@@ -64,13 +89,12 @@ export function useDealerValuations() {
         zipCode: valuation.zip_code || '',
         estimatedValue: valuation.estimated_value,
         confidenceScore: valuation.aiCondition?.confidenceScore || valuation.confidence_score,
-        color: valuation.color,
-        bodyStyle: valuation.body_type,
-        bodyType: valuation.body_type,
+        color: valuation.color || 'Unknown',
+        bodyStyle: valuation.body_type || 'Unknown',
+        bodyType: valuation.body_type || 'Unknown',
         fuelType: valuation.fuel_type || '',
-        isPremium: false,
         explanation: valuation.explanation || 'No additional information available for this vehicle.',
-        // Set additional fields as needed
+        isPremium: false
       };
       
       await downloadPdf(reportData);

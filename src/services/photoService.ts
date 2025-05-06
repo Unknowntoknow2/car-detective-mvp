@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
@@ -58,12 +57,14 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         // Map all scores to the expected format
         scoreData.forEach(score => {
           // Use the appropriate field name based on the database schema
-          const imageUrl = 'photo_url' in score ? score.photo_url : 
-                           'image_url' in score ? score.image_url : '';
+          // Safely handle the image URL field which might be in different properties
+          const imageUrl = score.photo_url || 
+                           (score as any).image_url || 
+                           '';
           
           if (imageUrl) {
             individualScores.push({
-              url: imageUrl,
+              url: imageUrl as string,
               score: score.condition_score || 0
             });
           }
@@ -80,7 +81,8 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
                       bestScore.condition_score >= 0.6 ? 'Good' : 
                       bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
             confidenceScore: Math.round(bestScore.confidence_score * 100),
-            issuesDetected: Array.isArray(bestScore.issues) ? bestScore.issues : [],
+            issuesDetected: Array.isArray(bestScore.issues) ? 
+              (bestScore.issues as unknown as string[]) : [], // Type assertion for safety
             aiSummary: bestScore.summary || undefined
           };
         }
@@ -190,18 +192,19 @@ export async function uploadAndAnalyzePhotos(
       throw new Error("No data returned from photo analysis");
     }
     
-    // Return the results with proper typing
+    // Update the return type to properly handle the JSON structure
     return {
       photoUrls: data.photoUrls || [],
       score: data.confidenceScore / 100, // Convert to 0-1 range
       aiCondition: data.condition ? {
         condition: data.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
         confidenceScore: data.confidenceScore,
-        issuesDetected: Array.isArray(data.issuesDetected) ? data.issuesDetected : [],
+        issuesDetected: Array.isArray(data.issuesDetected) ? 
+          data.issuesDetected.map(String) : [], // Ensure string array by mapping
         aiSummary: data.aiSummary
       } : undefined,
       individualScores: data.individualScores?.map((score: any) => ({
-        url: score.url,
+        url: String(score.url), // Ensure string type
         score: score.score
       })) || []
     };
