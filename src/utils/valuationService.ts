@@ -84,7 +84,8 @@ export async function getPremiumValuations(userId: string): Promise<Valuation[]>
         plate: order.valuations.plate,
         state: order.valuations.state,
         estimated_value: order.valuations.estimated_value,
-        is_premium: true
+        is_premium: true,
+        premium_unlocked: true
       })) || [];
       
     return premiumValuations;
@@ -92,4 +93,20 @@ export async function getPremiumValuations(userId: string): Promise<Valuation[]>
     errorHandler.handle(error, 'premium-valuations-fetch');
     return [];
   }
+}
+
+// Add a function to create a test valuation entry (for testing purposes)
+export function createTestValuation(overrides: Partial<Valuation> = {}): Valuation {
+  return {
+    id: `test-${Math.random().toString(36).substring(2, 9)}`,
+    created_at: new Date().toISOString(),
+    make: 'Test Make',
+    model: 'Test Model',
+    year: 2023,
+    vin: 'TEST12345678901234',
+    estimated_value: 20000,
+    is_premium: false,
+    premium_unlocked: false,
+    ...overrides
+  };
 }
