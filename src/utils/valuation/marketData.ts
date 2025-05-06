@@ -16,7 +16,7 @@ export async function getMarketMultiplier(zipCode: string): Promise<number> {
       .from('market_adjustments')
       .select('market_multiplier')
       .eq('zip_code', zipCode)
-      .single();
+      .maybeSingle();
     
     if (error || !data) {
       console.error('Error fetching market multiplier:', error);

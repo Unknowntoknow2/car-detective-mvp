@@ -1,3 +1,4 @@
+
 /**
  * Location Adjustment Calculator
  * Calculates value adjustments based on regional market demand and location factors.

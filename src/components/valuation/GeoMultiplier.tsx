@@ -1,17 +1,60 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOsmGeocode } from '@/hooks/useOsmGeocode';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, MapPin } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GeoMultiplierProps {
   zip: string;
 }
 
 export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
-  const { data, isLoading, error } = useOsmGeocode(zip);
+  const { data: geocodeData, isLoading: isLoadingGeocode, error: geocodeError } = useOsmGeocode(zip);
+  const [marketMultiplier, setMarketMultiplier] = useState<number | null>(null);
+  const [isLoadingMultiplier, setIsLoadingMultiplier] = useState(false);
   
-  const getLocationImpact = (geocodeData: any): { percentage: number; description: string } => {
+  useEffect(() => {
+    async function fetchMarketMultiplier() {
+      if (!zip) return;
+      
+      setIsLoadingMultiplier(true);
+      try {
+        const { data, error } = await supabase
+          .from('market_adjustments')
+          .select('market_multiplier')
+          .eq('zip_code', zip)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Error fetching market multiplier:', error);
+          return;
+        }
+        
+        setMarketMultiplier(data?.market_multiplier || 0);
+      } catch (error) {
+        console.error('Exception in fetchMarketMultiplier:', error);
+      } finally {
+        setIsLoadingMultiplier(false);
+      }
+    }
+    
+    fetchMarketMultiplier();
+  }, [zip]);
+  
+  const getLocationImpact = (): { percentage: number; description: string } => {
+    // If we have a specific market multiplier from the database, use it
+    if (marketMultiplier !== null) {
+      return { 
+        percentage: marketMultiplier, 
+        description: marketMultiplier > 0 
+          ? 'High demand in this area increases value' 
+          : marketMultiplier < 0 
+            ? 'Lower demand in this area affects value'
+            : 'Average market demand in this area'
+      };
+    }
+    
+    // Otherwise, fallback to geocode-based logic
     if (!geocodeData?.data || geocodeData.data.length === 0) {
       return { percentage: 0, description: 'Location data unavailable' };
     }
@@ -51,8 +94,8 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
     };
   };
   
-  const impact = data ? getLocationImpact(data) : { percentage: 0, description: 'Processing location data' };
-
+  const isLoading = isLoadingGeocode || isLoadingMultiplier;
+  
   if (isLoading) {
     return (
       <Card className="bg-primary-50 border border-primary-200">
@@ -66,22 +109,27 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
     );
   }
 
-  if (error || !data || data.data.length === 0) {
+  if ((geocodeError && !marketMultiplier) || (!geocodeData && !marketMultiplier)) {
     return null;
   }
 
-  const locationName = data.data[0].display_name.split(',').slice(0, 2).join(', ');
+  const impact = getLocationImpact();
+  const locationName = geocodeData?.data && geocodeData.data.length > 0
+    ? geocodeData.data[0].display_name.split(',').slice(0, 2).join(', ')
+    : zip;
 
   return (
-    <Card className={`${impact.percentage > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'} border`}>
+    <Card className={`${impact.percentage > 0 ? 'bg-green-50 border-green-200' : impact.percentage < 0 ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'} border`}>
       <CardContent className="p-4">
         <div className="flex items-start space-x-3">
-          <MapPin className={`h-5 w-5 ${impact.percentage > 0 ? 'text-green-600' : 'text-gray-600'} mt-0.5`} />
+          <MapPin className={`h-5 w-5 ${impact.percentage > 0 ? 'text-green-600' : impact.percentage < 0 ? 'text-red-600' : 'text-gray-600'} mt-0.5`} />
           <div>
             <h4 className="text-sm font-medium">Location: {locationName}</h4>
             <p className="text-xs mt-1 font-medium">
-              {impact.percentage > 0 ? (
-                <span className="text-green-600">+{impact.percentage}% value adjustment</span>
+              {impact.percentage !== 0 ? (
+                <span className={impact.percentage > 0 ? 'text-green-600' : 'text-red-600'}>
+                  {impact.percentage > 0 ? '+' : ''}{impact.percentage}% value adjustment
+                </span>
               ) : (
                 <span className="text-gray-600">No value adjustment</span>
               )}

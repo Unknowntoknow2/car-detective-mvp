@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 import { convertLegacyAdjustmentsToNewFormat } from '@/utils/formatters/adjustment-formatter';
+import { getRegionalMarketMultiplierAsync } from '@/utils/adjustments/locationAdjustments';
 
 export function useValuationResult(valuationId: string) {
   const [data, setData] = useState<ValuationResult | null>(null);
@@ -39,6 +40,13 @@ export function useValuationResult(valuationId: string) {
           throw new Error('Valuation not found');
         }
 
+        // Get the market multiplier for the ZIP code
+        const zipCode = valuationData.state || '';
+        const marketMultiplier = await getRegionalMarketMultiplierAsync(zipCode);
+        
+        // Calculate market adjustment value
+        const marketAdjustmentValue = valuationData.estimated_value * marketMultiplier;
+        
         // Transform the data to match the ValuationResult interface
         const result: ValuationResult = {
           id: valuationData.id,
@@ -60,7 +68,11 @@ export function useValuationResult(valuationId: string) {
           adjustments: convertLegacyAdjustmentsToNewFormat([
             { name: 'Base Value', value: 0, percentage: 0 },
             { name: 'Condition Adjustment', value: Math.round(valuationData.estimated_value * 0.01), percentage: 0.01 },
-            { name: 'Market Demand', value: Math.round(valuationData.estimated_value * 0.015), percentage: 0.015 }
+            { 
+              name: 'Location Adjustment', 
+              value: Math.round(marketAdjustmentValue), 
+              percentage: marketMultiplier 
+            }
           ]),
           createdAt: valuationData.created_at
         };
@@ -101,6 +113,13 @@ export function useValuationResult(valuationId: string) {
         throw new Error('Valuation not found');
       }
 
+      // Get the market multiplier for the ZIP code
+      const zipCode = valuationData.state || '';
+      const marketMultiplier = await getRegionalMarketMultiplierAsync(zipCode);
+      
+      // Calculate market adjustment value
+      const marketAdjustmentValue = valuationData.estimated_value * marketMultiplier;
+
       // Transform the data to match the ValuationResult interface
       const result: ValuationResult = {
         id: valuationData.id,
@@ -122,7 +141,11 @@ export function useValuationResult(valuationId: string) {
         adjustments: convertLegacyAdjustmentsToNewFormat([
           { name: 'Base Value', value: 0, percentage: 0 },
           { name: 'Condition Adjustment', value: Math.round(valuationData.estimated_value * 0.01), percentage: 0.01 },
-          { name: 'Market Demand', value: Math.round(valuationData.estimated_value * 0.015), percentage: 0.015 }
+          { 
+            name: 'Location Adjustment', 
+            value: Math.round(marketAdjustmentValue), 
+            percentage: marketMultiplier 
+          }
         ]),
         createdAt: valuationData.created_at
       };

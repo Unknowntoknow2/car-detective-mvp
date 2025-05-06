@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DesignCard } from "@/components/ui/design-system";
-import { MapPin, TrendingUp, AlertCircle } from "lucide-react";
+import { MapPin, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import { ZipValidation } from "@/components/common/ZipValidation";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ZipMarketAnalysisProps {
   zipCode: string;
@@ -20,6 +21,9 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
   const [marketDemand, setMarketDemand] = useState<"high" | "medium" | "low" | null>(null);
   const [isValidZip, setIsValidZip] = useState(false);
   const [comparableCount, setComparableCount] = useState(0);
+  const [marketMultiplier, setMarketMultiplier] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Validate zip code format
   useEffect(() => {
@@ -27,40 +31,94 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
     setIsValidZip(zipRegex.test(zipCode));
 
     if (zipRegex.test(zipCode)) {
-      // Simulate fetching market data based on zip code
-      // In a real implementation, this would come from an API call
-      simulateMarketAnalysis(zipCode);
+      fetchMarketAnalysis(zipCode);
     } else {
       setMarketDemand(null);
       setComparableCount(0);
+      setMarketMultiplier(null);
     }
   }, [zipCode]);
 
-  // This is a simulation - in a real app, this would be an API call to get market data
-  const simulateMarketAnalysis = (zip: string) => {
-    // Simulating network delay
-    setTimeout(() => {
-      // Deterministic "random" based on zip code for demo purposes
-      const zipSum = zip.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+  const fetchMarketAnalysis = async (zip: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch market multiplier from Supabase
+      const { data, error } = await supabase
+        .from('market_adjustments')
+        .select('market_multiplier')
+        .eq('zip_code', zip)
+        .maybeSingle();
       
-      if (zipSum % 3 === 0) {
-        setMarketDemand("high");
-        setComparableCount(75 + (zipSum % 25));
-      } else if (zipSum % 3 === 1) {
-        setMarketDemand("medium");
-        setComparableCount(40 + (zipSum % 30));
-      } else {
-        setMarketDemand("low");
-        setComparableCount(15 + (zipSum % 25));
+      if (error) {
+        console.error('Error fetching market multiplier:', error);
+        setError('Could not fetch market data');
+        // Continue with fallback
       }
-    }, 500);
+      
+      // If we found market data in the database
+      if (data && data.market_multiplier !== null) {
+        setMarketMultiplier(data.market_multiplier);
+        
+        // Categorize demand based on multiplier
+        if (data.market_multiplier >= 3) {
+          setMarketDemand("high");
+        } else if (data.market_multiplier >= -1) {
+          setMarketDemand("medium");
+        } else {
+          setMarketDemand("low");
+        }
+        
+        // Get comparable count from valuation_stats if available
+        const { data: statsData } = await supabase
+          .from('valuation_stats')
+          .select('total_valuations')
+          .eq('zip_code', zip)
+          .maybeSingle();
+          
+        if (statsData && statsData.total_valuations) {
+          setComparableCount(statsData.total_valuations);
+        } else {
+          // Random comparables as fallback
+          const zipSum = zip.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+          setComparableCount(40 + (zipSum % 40));
+        }
+      } else {
+        // Fallback to deterministic simulation if no data in database
+        const zipSum = zip.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+        
+        if (zipSum % 3 === 0) {
+          setMarketDemand("high");
+          setMarketMultiplier(3.5);
+          setComparableCount(75 + (zipSum % 25));
+        } else if (zipSum % 3 === 1) {
+          setMarketDemand("medium");
+          setMarketMultiplier(0);
+          setComparableCount(40 + (zipSum % 30));
+        } else {
+          setMarketDemand("low");
+          setMarketMultiplier(-2.5);
+          setComparableCount(15 + (zipSum % 25));
+        }
+      }
+    } catch (err) {
+      console.error('Error in market analysis:', err);
+      setError('Failed to analyze market data');
+      
+      // Set fallback values
+      setMarketDemand("medium");
+      setMarketMultiplier(0);
+      setComparableCount(35);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getMarketImpact = () => {
-    if (marketDemand === "high") return "+3.5%";
-    if (marketDemand === "medium") return "0%";
-    if (marketDemand === "low") return "-2.5%";
-    return "Unknown";
+    if (marketMultiplier === null) return "Unknown";
+    if (marketMultiplier === 0) return "0%";
+    return `${marketMultiplier > 0 ? '+' : ''}${marketMultiplier}%`;
   };
 
   const getMarketColor = () => {
@@ -112,12 +170,24 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
         </div>
         
         <div className="md:col-span-2">
-          {marketDemand && isValidZip ? (
+          {isLoading ? (
             <DesignCard
               variant="outline"
               className="h-full bg-surface-dark/30"
             >
-              <div className="space-y-3">
+              <div className="h-full flex items-center justify-center p-4">
+                <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                <p className="text-sm text-text-secondary">
+                  Analyzing market data...
+                </p>
+              </div>
+            </DesignCard>
+          ) : marketDemand && isValidZip ? (
+            <DesignCard
+              variant="outline"
+              className="h-full bg-surface-dark/30"
+            >
+              <div className="space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Market Analysis</h4>
                   <span className="text-xs text-text-secondary flex items-center gap-1">
@@ -140,6 +210,13 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
                     </div>
                   </div>
                 </div>
+                
+                {error && (
+                  <p className="text-xs text-error flex items-center mt-2">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    {error}
+                  </p>
+                )}
               </div>
             </DesignCard>
           ) : (
