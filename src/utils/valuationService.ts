@@ -86,16 +86,15 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
       return;
     }
     
-    // Create a data object to update with nested structure
-    const updateData = {
-      data: { best_photo_url: photoUrl }
-    };
-    
-    // Update the valuation record with the best photo URL
-    const { error } = await supabase
-      .from('valuations')
-      .update(updateData)
-      .eq('id', valuationId);
+    // For the JSON field, we need to use the -> operator with raw SQL
+    // to update a specific JSON field without affecting the rest
+    const { error } = await supabase.rpc(
+      'update_valuation_best_photo',
+      { 
+        valuation_id: valuationId,
+        photo_url: photoUrl
+      }
+    );
       
     if (error) {
       console.error('Error updating best photo URL:', error);
@@ -118,23 +117,19 @@ export async function saveAIConditionAssessment(
       return;
     }
     
-    // Create a data object to update with nested structure
-    const updateData = {
-      data: {
-        ai_condition: {
+    // Use the RPC function to update the AI condition as a JSON field
+    const { error } = await supabase.rpc(
+      'update_valuation_ai_condition',
+      { 
+        valuation_id: valuationId,
+        condition_data: {
           condition: condition.condition,
           confidenceScore: condition.confidenceScore,
           issuesDetected: condition.issuesDetected || [],
           aiSummary: condition.aiSummary || ''
         }
       }
-    };
-    
-    // Update the valuation record with AI condition data
-    const { error } = await supabase
-      .from('valuations')
-      .update(updateData)
-      .eq('id', valuationId);
+    );
       
     if (error) {
       console.error('Error saving AI condition assessment:', error);

@@ -1,7 +1,7 @@
 
 import { generateValuationExplanation } from './generateValuationExplanation';
 import { supabase } from '@/integrations/supabase/client';
-import { calculateFinalValuation } from './valuation/calculateFinalValuation';
+import { calculateFinalValuation } from './valuationCalculator';
 
 // Mock the Supabase client and calculateFinalValuation function
 jest.mock('@/integrations/supabase/client', () => ({
@@ -12,7 +12,7 @@ jest.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-jest.mock('./valuation/calculateFinalValuation', () => ({
+jest.mock('./valuationCalculator', () => ({
   calculateFinalValuation: jest.fn(),
 }));
 
@@ -32,24 +32,25 @@ describe('generateValuationExplanation', () => {
     });
     
     // Mock calculateFinalValuation to return some valuation details
-    (calculateFinalValuation as jest.Mock).mockResolvedValue({
+    (calculateFinalValuation as jest.Mock).mockReturnValue({
       adjustments: [
-        { name: 'Mileage', impact: -5, description: 'High mileage' },
-        { name: 'Condition', impact: 3, description: 'Good condition' },
-        { name: 'Regional Market', impact: 2, description: 'High demand area' },
-        { name: 'Premium Features', impact: 1, description: 'Some premium features' },
+        { name: 'Mileage', impact: -2000, description: 'High mileage', percentage: -10 },
+        { name: 'Condition', impact: 1000, description: 'Excellent condition', percentage: 5 },
+        { name: 'Regional Market', impact: 600, description: 'High demand area', percentage: 3 },
+        { name: 'Premium Features', impact: 650, description: 'Premium features including Leather Seats, Sunroof', percentage: 3.25 },
       ],
-      finalValue: 25000,
+      finalValue: 20250,
+      baseValue: 20000
     });
     
     const params = {
-      make: 'Honda',
-      model: 'Civic',
-      year: 2018,
-      mileage: 45000,
-      condition: 'Good',
-      location: '90210',
-      valuation: 25000,
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2019,
+      mileage: 80000,
+      condition: 'Excellent',
+      location: '12345',
+      valuation: 20250,
     };
 
     // Act
@@ -59,13 +60,68 @@ describe('generateValuationExplanation', () => {
     expect(result).toBe(mockExplanation);
     expect(supabase.functions.invoke).toHaveBeenCalledWith('generate-explanation', {
       body: expect.objectContaining({
-        make: 'Honda',
-        model: 'Civic',
-        year: 2018,
-        mileage: 45000,
-        condition: 'Good',
-        location: '90210',
-        valuation: 25000,
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        mileage: 80000,
+        condition: 'Excellent',
+        location: '12345',
+        valuation: 20250,
+        baseMarketValue: expect.any(Number),
+        adjustments: expect.any(Array)
+      }),
+    });
+  });
+
+  it('should verify correct formatting of the request data to the edge function', async () => {
+    // Arrange
+    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+      data: { explanation: 'Explanation text' },
+      error: null,
+    });
+    
+    (calculateFinalValuation as jest.Mock).mockReturnValue({
+      adjustments: [
+        { name: 'Mileage', impact: -2000, description: 'High mileage', percentage: -10 },
+        { name: 'Condition', impact: 1000, description: 'Excellent condition', percentage: 5 },
+      ],
+      finalValue: 19000,
+      baseValue: 20000
+    });
+    
+    const params = {
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2019,
+      mileage: 80000,
+      condition: 'Excellent',
+      location: '12345',
+      valuation: 19000,
+    };
+
+    // Act
+    await generateValuationExplanation(params);
+
+    // Assert - check that the request body is formatted correctly with all required fields
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('generate-explanation', {
+      body: expect.objectContaining({
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        mileage: 80000,
+        condition: 'Excellent',
+        location: '12345',
+        valuation: 19000,
+        baseMarketValue: expect.any(Number),
+        mileageAdj: expect.any(Number),
+        conditionAdj: expect.any(Number),
+        adjustments: expect.arrayContaining([
+          expect.objectContaining({
+            factor: expect.any(String),
+            impact: expect.any(Number),
+            description: expect.any(String)
+          })
+        ])
       }),
     });
   });
@@ -80,9 +136,10 @@ describe('generateValuationExplanation', () => {
       error: { message: errorMessage },
     });
     
-    (calculateFinalValuation as jest.Mock).mockResolvedValue({
+    (calculateFinalValuation as jest.Mock).mockReturnValue({
       adjustments: [],
-      finalValue: 25000,
+      finalValue: 20000,
+      baseValue: 20000
     });
     
     const params = {
@@ -92,7 +149,7 @@ describe('generateValuationExplanation', () => {
       mileage: 45000,
       condition: 'Good',
       location: '90210',
-      valuation: 25000,
+      valuation: 18500,
     };
 
     // Act & Assert
@@ -107,9 +164,10 @@ describe('generateValuationExplanation', () => {
       error: null,
     });
     
-    (calculateFinalValuation as jest.Mock).mockResolvedValue({
+    (calculateFinalValuation as jest.Mock).mockReturnValue({
       adjustments: [],
-      finalValue: 25000,
+      finalValue: 20000,
+      baseValue: 20000
     });
     
     const params = {
@@ -119,7 +177,7 @@ describe('generateValuationExplanation', () => {
       mileage: 45000,
       condition: 'Good',
       location: '90210',
-      valuation: 25000,
+      valuation: 18500,
     };
 
     // Act & Assert
@@ -130,9 +188,10 @@ describe('generateValuationExplanation', () => {
     // Arrange
     (supabase.functions.invoke as jest.Mock).mockRejectedValue(new Error('Network error'));
     
-    (calculateFinalValuation as jest.Mock).mockResolvedValue({
+    (calculateFinalValuation as jest.Mock).mockReturnValue({
       adjustments: [],
-      finalValue: 25000,
+      finalValue: 20000,
+      baseValue: 20000
     });
     
     const params = {
@@ -142,7 +201,7 @@ describe('generateValuationExplanation', () => {
       mileage: 45000,
       condition: 'Good',
       location: '90210',
-      valuation: 25000,
+      valuation: 18500,
     };
 
     // Act & Assert

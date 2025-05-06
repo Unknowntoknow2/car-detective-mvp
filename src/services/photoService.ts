@@ -199,14 +199,14 @@ export async function uploadAndAnalyzePhotos(
     }
     
     // Define a temporary type for return data
-    type PhotoAnalysisResponse = {
+    interface PhotoAnalysisResponse {
       photoUrls: string[];
       confidenceScore: number;
       condition?: string;
       issuesDetected?: string[];
       aiSummary?: string;
       individualScores?: Array<{url: string; score: number}>;
-    };
+    }
     
     // Cast the data to our temporary type
     const responseData = data as PhotoAnalysisResponse;
