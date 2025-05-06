@@ -97,6 +97,7 @@ export interface PremiumReportInput {
   };
   carfaxData?: CarfaxData;
   forecast?: ForecastData;
+  explanation?: string; // Add explanation property
   aiCondition?: {
     condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
     confidenceScore: number;

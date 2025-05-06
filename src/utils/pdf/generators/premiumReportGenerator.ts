@@ -6,6 +6,7 @@ import { drawAIConditionSection } from '../sections/aiConditionSection';
 import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
 import { drawForecastSection } from '../sections/forecastSection';
 import { drawFooterSection } from '../sections/footerSection';
+import { drawExplanationSection } from '../sections/explanationSection';
 
 export async function generatePremiumReport(input: PremiumReportInput): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
