@@ -32,3 +32,10 @@ verify_jwt = true
 
 [functions.schedule-email-campaigns]
 verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+

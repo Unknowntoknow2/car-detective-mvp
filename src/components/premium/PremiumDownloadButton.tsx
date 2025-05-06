@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, Download, Loader2, CheckCircle } from 'lucide-react';
+import { Lock, Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,7 +19,7 @@ export function PremiumDownloadButton({
   className 
 }: PremiumDownloadButtonProps) {
   const { user } = useAuth();
-  const { isPremium, isLoading } = usePremiumStatus(valuationId);
+  const { hasPremiumAccess, isLoading } = usePremiumAccess(valuationId);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePremiumUnlock = async () => {
@@ -68,7 +68,7 @@ export function PremiumDownloadButton({
     );
   }
 
-  if (isPremium) {
+  if (hasPremiumAccess) {
     return (
       <Button onClick={onDownload} className={className} variant="default">
         <Download className="mr-2 h-4 w-4" />

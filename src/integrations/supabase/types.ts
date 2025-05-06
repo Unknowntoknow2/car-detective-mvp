@@ -1377,6 +1377,10 @@ export type Database = {
           claimed_rewards: number
         }[]
       }
+      has_premium_access: {
+        Args: { valuation_id: string }
+        Returns: boolean
+      }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
         Returns: Database["public"]["CompositeTypes"]["http_response"]

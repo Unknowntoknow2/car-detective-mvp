@@ -25,7 +25,7 @@ export function EmailCampaignRunner() {
         setError(result.error || 'Failed to run email campaigns');
         toast.error('Failed to run email campaigns');
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
       toast.error('Error running email campaigns');
     } finally {

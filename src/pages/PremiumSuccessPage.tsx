@@ -51,9 +51,20 @@ export default function PremiumSuccessPage() {
         setValuationId(orderData.valuation_id);
         
         // Check if the webhook has processed this payment already
-        if (orderData.status === 'completed') {
+        if (orderData.status === 'paid') {
           setVerificationSuccess(true);
           setIsVerifying(false);
+          
+          // Update valuation to mark premium as unlocked
+          const { error: updateError } = await supabase
+            .from('valuations')
+            .update({ premium_unlocked: true })
+            .eq('id', orderData.valuation_id);
+            
+          if (updateError) {
+            console.error("Error updating valuation premium status:", updateError);
+          }
+          
           return;
         }
         
@@ -72,7 +83,7 @@ export default function PremiumSuccessPage() {
             
           if (error) throw error;
           
-          if (updatedOrder?.status === 'completed') {
+          if (updatedOrder?.status === 'paid') {
             setVerificationSuccess(true);
             setIsVerifying(false);
             return;
