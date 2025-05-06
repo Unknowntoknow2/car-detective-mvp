@@ -39,14 +39,10 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     
     if (photoUrls.length > 0) {
       // Delete corresponding scores
-      const { error } = await supabase
+      await supabase
         .from('photo_condition_scores')
         .delete()
         .in('image_url', photoUrls);
-        
-      if (error) {
-        console.error('Error deleting condition scores:', error);
-      }
     }
   } catch (error) {
     console.error('Error cleaning up condition scores:', error);
