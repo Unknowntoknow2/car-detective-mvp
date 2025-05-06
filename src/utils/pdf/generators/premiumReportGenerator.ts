@@ -44,7 +44,9 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
     zipCode: input.vehicleInfo.zipCode || '10001',
     priceRange: input.valuation.priceRange,
     adjustments: input.valuation.adjustments,
-    isPremium: true
+    isPremium: true,
+    explanation: input.explanation || undefined,
+    aiCondition: input.aiCondition || undefined
   };
   
   // Draw vehicle information section
@@ -112,6 +114,18 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
       y,
       50, // margin
       { regular: font, bold: boldFont }
+    );
+  }
+
+  // Add explanation section if available
+  if (input.explanation) {
+    y = drawExplanationSection(
+      input.explanation,
+      page,
+      y,
+      50, // margin
+      { regular: font, bold: boldFont },
+      primaryColor
     );
   }
 
