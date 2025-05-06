@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { AICondition, PhotoScore } from '@/types/photo';
 import { Valuation } from '@/types/valuation-history';
@@ -86,15 +85,13 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
       return;
     }
     
-    // For the JSON field, we need to use the -> operator with raw SQL
-    // to update a specific JSON field without affecting the rest
-    const { error } = await supabase.rpc(
-      'update_valuation_best_photo',
-      { 
+    // Call SQL function using raw query to avoid type errors
+    const { error } = await supabase
+      .from('valuations')
+      .rpc('update_valuation_best_photo', { 
         valuation_id: valuationId,
         photo_url: photoUrl
-      }
-    );
+      } as any);
       
     if (error) {
       console.error('Error updating best photo URL:', error);
@@ -117,10 +114,10 @@ export async function saveAIConditionAssessment(
       return;
     }
     
-    // Use the RPC function to update the AI condition as a JSON field
-    const { error } = await supabase.rpc(
-      'update_valuation_ai_condition',
-      { 
+    // Use raw query to avoid type errors
+    const { error } = await supabase
+      .from('valuations')
+      .rpc('update_valuation_ai_condition', { 
         valuation_id: valuationId,
         condition_data: {
           condition: condition.condition,
@@ -128,8 +125,7 @@ export async function saveAIConditionAssessment(
           issuesDetected: condition.issuesDetected || [],
           aiSummary: condition.aiSummary || ''
         }
-      }
-    );
+      } as any);
       
     if (error) {
       console.error('Error saving AI condition assessment:', error);

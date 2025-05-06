@@ -1,6 +1,5 @@
-
 import { generateValuationPdf } from '../generateValuationPdf';
-import { generatePdf as pdfServiceGenerate } from './pdfGenerator';
+import { generatePdf } from './pdfGenerator';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 // Mock the PDF generator service
@@ -44,7 +43,7 @@ describe('PDF Export', () => {
     const result = await generateValuationPdf(params);
 
     // Assert
-    expect(pdfServiceGenerate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
       vin: 'JH4DA9380PS000111',
       make: 'Toyota',
       model: 'Camry',
@@ -98,7 +97,7 @@ describe('PDF Export', () => {
     const result = await generateValuationPdf(params);
 
     // Assert
-    expect(pdfServiceGenerate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
       aiCondition: {
         condition: 'Good',
         confidenceScore: 85,
@@ -127,7 +126,7 @@ describe('PDF Export', () => {
     const result = await generateValuationPdf(params);
 
     // Assert
-    expect(pdfServiceGenerate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
       vin: 'Unknown', // Should default when missing
       make: 'Ford',
       model: 'F-150',
@@ -141,7 +140,7 @@ describe('PDF Export', () => {
 
   it('should throw an error if PDF generation fails', async () => {
     // Arrange
-    (pdfServiceGenerate as jest.Mock).mockRejectedValue(new Error('PDF generation failed'));
+    (generatePdf as jest.Mock).mockRejectedValue(new Error('PDF generation failed'));
     
     const vehicle: DecodedVehicleInfo = {
       vin: 'JH4DA9380PS000333',

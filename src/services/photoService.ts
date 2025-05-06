@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
@@ -157,6 +156,16 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
   }
 }
 
+// Define explicit interface for the upload response to fix Type instantiation error
+interface PhotoAnalysisResponse {
+  photoUrls: string[];
+  confidenceScore: number;
+  condition?: string;
+  issuesDetected?: string[];
+  aiSummary?: string;
+  individualScores?: Array<{url: string; score: number}>;
+}
+
 /**
  * Uploads and analyzes multiple photos
  */
@@ -198,17 +207,7 @@ export async function uploadAndAnalyzePhotos(
       throw new Error("No data returned from photo analysis");
     }
     
-    // Define a temporary type for return data
-    interface PhotoAnalysisResponse {
-      photoUrls: string[];
-      confidenceScore: number;
-      condition?: string;
-      issuesDetected?: string[];
-      aiSummary?: string;
-      individualScores?: Array<{url: string; score: number}>;
-    }
-    
-    // Cast the data to our temporary type
+    // Cast data to our explicitly defined interface to avoid deep type instantiation
     const responseData = data as PhotoAnalysisResponse;
     
     return {
