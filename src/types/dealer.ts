@@ -10,7 +10,7 @@ export interface Valuation {
   condition?: string;
   fuel_type?: string;
   zip_code?: string;
-  body_type: string;
+  body_type?: string; // Made optional to match ValuationWithCondition
   color: string;
   condition_score: number;
   created_at: string;
