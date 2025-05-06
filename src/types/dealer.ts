@@ -1,4 +1,5 @@
 
+
 export interface Valuation {
   id: string;
   make: string;
@@ -11,7 +12,7 @@ export interface Valuation {
   fuel_type?: string;
   zip_code?: string;
   body_type?: string; // Made optional to match ValuationWithCondition
-  color: string;
+  color?: string; // Made optional to match ValuationWithCondition
   condition_score: number;
   created_at: string;
   is_vin_lookup: boolean;
@@ -59,3 +60,4 @@ export interface AIConditionData {
 export interface ValuationWithCondition extends Valuation {
   aiCondition?: AIConditionData | null;
 }
+
