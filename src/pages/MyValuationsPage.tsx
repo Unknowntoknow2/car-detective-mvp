@@ -10,6 +10,7 @@ import { useValuationHistory } from "@/hooks/useValuationHistory";
 import { toast } from "sonner";
 import { PremiumBadge } from "@/components/ui/premium-badge";
 import { downloadPdf } from '@/utils/pdf';
+import { ReportData } from '@/utils/pdf/types';
 
 export default function MyValuationsPage() {
   const { user } = useAuth();
@@ -47,6 +48,32 @@ export default function MyValuationsPage() {
       return `Plate: ${valuation.plate}${valuation.state ? ` (${valuation.state})` : ''}`;
     }
     return 'No identifier';
+  };
+  
+  const handleDownloadPdf = (valuation: any) => {
+    // Create a properly formatted ReportData object with all required fields
+    const reportData: ReportData = {
+      vin: valuation.vin || '',
+      make: valuation.make || '',
+      model: valuation.model || '',
+      year: valuation.year || 0,
+      plate: valuation.plate || '',
+      state: valuation.state || '',
+      mileage: valuation.mileage?.toString() || '0',
+      condition: valuation.condition || 'Not Specified',
+      zipCode: valuation.zip_code || 'Not Available',
+      estimatedValue: valuation.estimated_value || 0,
+      confidenceScore: valuation.confidence_score || 0,
+      color: valuation.color || 'Not Specified',
+      bodyStyle: valuation.body_style || 'Not Specified',
+      bodyType: valuation.body_type || 'Not Specified',
+      fuelType: valuation.fuel_type || 'Not Specified',
+      explanation: valuation.explanation || 'No additional information available for this vehicle.',
+      isPremium: valuation.premium_unlocked || false,
+      transmission: valuation.transmission
+    };
+    
+    downloadPdf(reportData);
   };
   
   return (
@@ -140,17 +167,7 @@ export default function MyValuationsPage() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => {
-                          const vehicleInfo = {
-                            vin: valuation.vin,
-                            make: valuation.make,
-                            model: valuation.model,
-                            year: valuation.year,
-                            plate: valuation.plate,
-                            state: valuation.state
-                          };
-                          downloadPdf(vehicleInfo);
-                        }}
+                        onClick={() => handleDownloadPdf(valuation)}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
