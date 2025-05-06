@@ -57,10 +57,16 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         
         // Map all scores to the expected format
         scoreData.forEach(score => {
-          individualScores.push({
-            url: score.image_url,
-            score: score.condition_score || 0
-          });
+          // Use the appropriate field name based on the database schema
+          const imageUrl = 'photo_url' in score ? score.photo_url : 
+                           'image_url' in score ? score.image_url : '';
+          
+          if (imageUrl) {
+            individualScores.push({
+              url: imageUrl,
+              score: score.condition_score || 0
+            });
+          }
         });
         
         // If we have a best score, create the AI condition
@@ -74,7 +80,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
                       bestScore.condition_score >= 0.6 ? 'Good' : 
                       bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
             confidenceScore: Math.round(bestScore.confidence_score * 100),
-            issuesDetected: bestScore.issues || [],
+            issuesDetected: Array.isArray(bestScore.issues) ? bestScore.issues : [],
             aiSummary: bestScore.summary || undefined
           };
         }
@@ -191,13 +197,13 @@ export async function uploadAndAnalyzePhotos(
       aiCondition: data.condition ? {
         condition: data.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
         confidenceScore: data.confidenceScore,
-        issuesDetected: data.issuesDetected || [],
+        issuesDetected: Array.isArray(data.issuesDetected) ? data.issuesDetected : [],
         aiSummary: data.aiSummary
       } : undefined,
       individualScores: data.individualScores?.map((score: any) => ({
         url: score.url,
         score: score.score
-      }))
+      })) || []
     };
   } catch (err) {
     console.error('Photo upload and analysis error:', err);

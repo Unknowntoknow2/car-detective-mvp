@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PhotoUploadDropzone } from './photo-upload/PhotoUploadDropzone';
 import { PhotoPreview } from './photo-upload/PhotoPreview';
@@ -103,7 +102,7 @@ export function PhotoUploadAndScore({
       )}
       
       {validationMessage && (
-        <Alert variant="warning" className="mt-2">
+        <Alert variant="destructive" className="mt-2">
           <AlertDescription>{validationMessage}</AlertDescription>
         </Alert>
       )}

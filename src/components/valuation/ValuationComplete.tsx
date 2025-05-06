@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -219,7 +218,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
                 mileage: valuationData.mileage || 0,
                 condition: aiCondition?.condition || valuationData.condition || 'good'
               }
-            }} 
+            }}
             photoUrl={bestPhotoUrl}
             aiCondition={aiCondition}
           />

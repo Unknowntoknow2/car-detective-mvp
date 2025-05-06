@@ -127,10 +127,16 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
     
     if (!bestScore) {
       // If no score meets our threshold, return null condition but still return scores
-      const mappedScores = photoScores.map(score => ({
-        url: score.image_url,
-        score: score.condition_score
-      }));
+      const mappedScores = photoScores.map(score => {
+        // Get the correct image URL field based on the schema
+        const imageUrl = 'photo_url' in score ? score.photo_url : 
+                         'image_url' in score ? score.image_url : '';
+        
+        return {
+          url: imageUrl || '',
+          score: score.condition_score
+        };
+      });
       
       return { 
         aiCondition: null, 
@@ -144,15 +150,21 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
                  bestScore.condition_score >= 0.6 ? 'Good' : 
                  bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
       confidenceScore: Math.round(bestScore.confidence_score * 100),
-      issuesDetected: bestScore.issues || [],
+      issuesDetected: Array.isArray(bestScore.issues) ? bestScore.issues : [],
       aiSummary: bestScore.summary || undefined
     };
     
     // Map the photo scores to the expected format
-    const mappedScores = photoScores.map(score => ({
-      url: score.image_url,
-      score: score.condition_score
-    }));
+    const mappedScores = photoScores.map(score => {
+      // Get the correct image URL field based on the schema
+      const imageUrl = 'photo_url' in score ? score.photo_url : 
+                       'image_url' in score ? score.image_url : '';
+      
+      return {
+        url: imageUrl || '',
+        score: score.condition_score
+      };
+    });
     
     return { 
       aiCondition, 

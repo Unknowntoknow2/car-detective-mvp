@@ -23,4 +23,30 @@ export interface ReportData {
     aiSummary?: string;
   } | null;
   bestPhotoUrl?: string;
+  // Add missing fields referenced in the code
+  plate?: string;
+  state?: string;
+  transmission?: string;
+  adjustments?: any[];
+  priceRange?: [number, number];
+  carfaxData?: any;
+}
+
+export interface ValuationReportOptions {
+  mileage?: string | number;
+  estimatedValue?: number;
+  confidenceScore?: number;
+  condition?: string;
+  fuelType?: string;
+  zipCode?: string;
+  adjustments?: any[];
+  carfaxData?: any;
+  isPremium?: boolean;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
+  bestPhotoUrl?: string;
 }

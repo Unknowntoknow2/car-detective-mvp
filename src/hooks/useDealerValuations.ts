@@ -69,6 +69,7 @@ export function useDealerValuations() {
         bodyType: valuation.body_type,
         fuelType: valuation.fuel_type || '',
         isPremium: false,
+        explanation: valuation.explanation || 'No additional information available for this vehicle.',
         // Set additional fields as needed
       };
       

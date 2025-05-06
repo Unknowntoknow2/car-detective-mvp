@@ -6,9 +6,11 @@ import { formatCurrency } from "@/utils/formatters";
 
 interface ValuationAuditTrailProps {
   auditTrail: AuditTrailType;
+  photoUrl?: string;
+  aiCondition?: any;
 }
 
-export function ValuationAuditTrail({ auditTrail }: ValuationAuditTrailProps) {
+export function ValuationAuditTrail({ auditTrail, photoUrl, aiCondition }: ValuationAuditTrailProps) {
   if (!auditTrail) return null;
 
   return (
