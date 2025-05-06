@@ -1,4 +1,3 @@
-
 import { rgb, PDFPage, RGB } from 'pdf-lib';
 
 export interface PdfStyles {
@@ -146,7 +145,6 @@ export function drawPremiumBadge(
     borderColor: rgb(0.988, 0.6, 0.055),
     borderWidth: 1,
     opacity: 0.9,
-    borderRadius: 4,
   });
   
   // Draw badge text

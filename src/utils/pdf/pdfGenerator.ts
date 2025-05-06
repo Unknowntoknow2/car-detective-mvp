@@ -1,4 +1,3 @@
-
 import { ReportData } from './types';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { mvpPdfStyles, drawStyledHeading, drawStyledBox, drawPremiumBadge } from './styles';
@@ -71,7 +70,6 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
     color: colors.highlight,
     borderColor: colors.primary,
     borderWidth: 1,
-    borderRadius: 4,
   });
   
   // Format numbers for display
@@ -374,3 +372,6 @@ export async function generatePdf(data: ReportData): Promise<Uint8Array> {
   // Return PDF as Uint8Array
   return await pdfDoc.save();
 }
+
+// Alias for backward compatibility
+export const generateValuationPdf = generatePdf;

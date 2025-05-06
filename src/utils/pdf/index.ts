@@ -55,6 +55,8 @@ export function convertVehicleInfoToReportData(
     bodyType?: string;
     color?: string;
     fuelType?: string;
+    plate?: string;
+    state?: string;
   },
   valuationData: {
     estimatedValue: number;
@@ -75,6 +77,25 @@ export function convertVehicleInfoToReportData(
     bestPhotoUrl?: string;
   }
 ): ReportData {
+  // Convert condition to one of the allowed values
+  const normalizeCondition = (condition?: string): 'Excellent' | 'Good' | 'Fair' | 'Poor' => {
+    if (!condition) return 'Good';
+    
+    const normalized = condition.toLowerCase().trim();
+    if (normalized.includes('excellent')) return 'Excellent';
+    if (normalized.includes('good')) return 'Good';
+    if (normalized.includes('fair')) return 'Fair';
+    return 'Poor';
+  };
+
+  // Process AI condition if present
+  const aiCondition = valuationData.aiCondition ? {
+    condition: normalizeCondition(valuationData.aiCondition.condition),
+    confidenceScore: valuationData.aiCondition.confidenceScore,
+    issuesDetected: valuationData.aiCondition.issuesDetected || [],
+    aiSummary: valuationData.aiCondition.aiSummary || ''
+  } : null;
+
   return {
     vin: vehicleInfo.vin,
     make: vehicleInfo.make,
@@ -84,7 +105,7 @@ export function convertVehicleInfoToReportData(
       ? vehicleInfo.mileage.toString() 
       : vehicleInfo.mileage?.toString() || '0',
     transmission: vehicleInfo.transmission || 'Not Specified',
-    condition: valuationData.condition || vehicleInfo.condition || 'Not Specified',
+    condition: normalizeCondition(valuationData.condition || vehicleInfo.condition),
     zipCode: valuationData.zipCode || vehicleInfo.zipCode || '',
     estimatedValue: valuationData.estimatedValue,
     confidenceScore: valuationData.confidenceScore || 80,
@@ -95,7 +116,7 @@ export function convertVehicleInfoToReportData(
     explanation: valuationData.explanation || '',
     isPremium: valuationData.isPremium || false,
     adjustments: valuationData.adjustments || [],
-    aiCondition: valuationData.aiCondition || null,
+    aiCondition,
     bestPhotoUrl: valuationData.bestPhotoUrl
   };
 }

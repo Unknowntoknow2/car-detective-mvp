@@ -1,6 +1,6 @@
 
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { generateValuationPdf as generatePdf } from './pdf/pdfGenerator';
+import { generatePdf } from './pdf/pdfGenerator';
 import { ReportData } from './pdf/types';
 
 /**
@@ -30,7 +30,7 @@ export async function generateValuationPdf(params: {
     model: params.vehicle.model,
     year: params.vehicle.year,
     mileage: params.vehicle.mileage?.toString() || '0',
-    condition: params.vehicle.condition || 'Not Specified',
+    condition: params.vehicle.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor' || 'Good',
     zipCode: params.vehicle.zipCode || '',
     estimatedValue: params.valuation,
     confidenceScore: 85, // Default value
@@ -41,7 +41,12 @@ export async function generateValuationPdf(params: {
     explanation: params.explanation,
     isPremium: false,
     valuationId: params.valuationId,
-    aiCondition: params.aiCondition,
+    aiCondition: params.aiCondition ? {
+      condition: params.aiCondition.condition || 'Good',
+      confidenceScore: params.aiCondition.confidenceScore,
+      issuesDetected: params.aiCondition.issuesDetected || [],
+      aiSummary: params.aiCondition.aiSummary || ''
+    } : null,
     bestPhotoUrl: params.bestPhotoUrl
   };
   

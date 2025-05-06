@@ -1,5 +1,4 @@
-
-import { generateValuationPdf } from './pdfGenerator';
+import { generatePdf } from './pdfGenerator';
 import { ReportData } from './types';
 
 describe('PDF Generator', () => {
@@ -24,7 +23,7 @@ describe('PDF Generator', () => {
     };
 
     // Generate the PDF
-    const pdfBytes = await generateValuationPdf(mockData);
+    const pdfBytes = await generatePdf(mockData);
     
     // Verify we got some bytes back
     expect(pdfBytes).toBeTruthy();
@@ -58,7 +57,7 @@ describe('PDF Generator', () => {
     };
 
     // Generate the PDF
-    const pdfBytes = await generateValuationPdf(mockData);
+    const pdfBytes = await generatePdf(mockData);
     
     // Verify we got some bytes back
     expect(pdfBytes).toBeTruthy();
@@ -86,7 +85,7 @@ describe('PDF Generator', () => {
     };
 
     // Generate the PDF
-    const pdfBytes = await generateValuationPdf(mockData);
+    const pdfBytes = await generatePdf(mockData);
     
     // Verify we got some bytes back
     expect(pdfBytes).toBeTruthy();

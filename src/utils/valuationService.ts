@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { AICondition, PhotoScore } from "@/types/photo";
 
@@ -186,5 +185,97 @@ export async function getPremiumValuations(userId: string) {
   } catch (err) {
     console.error('Error fetching premium valuations:', err);
     return [];
+  }
+}
+
+/**
+ * Get valuation result data for a specific valuation
+ * 
+ * @param valuationId The valuation ID to fetch
+ * @returns The valuation data including vehicle and pricing information
+ */
+export async function getValuationResult(valuationId: string) {
+  try {
+    // Fetch valuation data from database
+    const { data: valuationData, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('id', valuationId)
+      .single();
+      
+    if (error) throw error;
+    
+    // Get photo assessment data including AI condition
+    const photoAssessment = await getBestPhotoAssessment(valuationId);
+    
+    // Transform valuation data to expected format
+    return {
+      id: valuationData.id,
+      make: valuationData.make,
+      model: valuationData.model,
+      year: valuationData.year,
+      mileage: valuationData.mileage || 0,
+      condition: valuationData.condition || 'Good',
+      zipCode: valuationData.state || '',
+      estimatedValue: valuationData.estimated_value,
+      confidenceScore: valuationData.confidence_score,
+      priceRange: [
+        Math.round(valuationData.estimated_value * 0.95),
+        Math.round(valuationData.estimated_value * 1.05)
+      ],
+      adjustments: [
+        { 
+          factor: 'Base Value', 
+          impact: 0, 
+          description: 'Starting valuation'
+        },
+        { 
+          factor: 'Mileage', 
+          impact: valuationData.mileage_adjustment || 0, 
+          description: 'Based on current mileage'
+        },
+        { 
+          factor: 'Condition', 
+          impact: valuationData.condition_adjustment || 0, 
+          description: 'Based on vehicle condition'
+        },
+        { 
+          factor: 'Market Demand', 
+          impact: valuationData.market_adjustment || 0, 
+          description: 'Based on current market conditions'
+        }
+      ],
+      aiCondition: photoAssessment.aiCondition,
+      bestPhotoUrl: photoAssessment.photoScores.length > 0 ? 
+        photoAssessment.photoScores[0].url : undefined,
+      isPremium: valuationData.premium_unlocked
+    };
+  } catch (err) {
+    console.error('Error fetching valuation result:', err);
+    throw err;
+  }
+}
+
+/**
+ * Check if a user has premium access to a specific valuation
+ * 
+ * @param valuationId The valuation ID to check
+ * @returns Boolean indicating if premium access is available
+ */
+export async function checkPremiumAccess(valuationId: string): Promise<boolean> {
+  try {
+    // Check if the valuation has premium_unlocked flag
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('premium_unlocked')
+      .eq('id', valuationId)
+      .maybeSingle();
+      
+    if (error) throw error;
+    
+    return data?.premium_unlocked === true;
+  } catch (err) {
+    console.error('Error checking premium access:', err);
+    return false;
   }
 }

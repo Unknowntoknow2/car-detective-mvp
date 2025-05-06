@@ -1,12 +1,17 @@
-
 import { useState, useCallback } from 'react';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
 import { toast } from 'sonner';
 import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { convertVehicleInfoToReportData } from '@/utils/pdf';
-import { convertAdjustmentsToPdfFormat } from '@/utils/formatters/adjustment-formatter';
 import { useAICondition } from '@/hooks/useAICondition';
+
+// Interface for adjustment format needed by PDF
+interface PdfAdjustment {
+  factor: string;
+  impact: number;
+  description: string;
+}
 
 export function useVinDecoderForm() {
   const [vin, setVin] = useState('');
@@ -73,6 +78,22 @@ export function useVinDecoderForm() {
     // Get AI condition data if available
     const { conditionData } = useAICondition(vin);
     
+    // Default adjustments if none available from valuation
+    const defaultAdjustments: PdfAdjustment[] = [
+      { factor: "Mileage", impact: -3.5, description: "Based on mileage comparison to average" },
+      { factor: "Condition", impact: 2.0, description: "Based on reported condition" },
+      { factor: "Market Demand", impact: 4.0, description: "Current market trends" }
+    ];
+    
+    // Add accident adjustment if carfax data is available
+    if (carfaxData && carfaxData.accidentsReported > 0) {
+      defaultAdjustments.push({ 
+        factor: "Accident History", 
+        impact: -3.0,
+        description: "Vehicle has reported accidents"
+      });
+    }
+    
     const reportData = convertVehicleInfoToReportData(result, {
       mileage: requiredInputs?.mileage || 76000,
       estimatedValue: valuationResult?.estimated_value || 24500,
@@ -80,13 +101,12 @@ export function useVinDecoderForm() {
       zipCode: zipCode || requiredInputs?.zipCode || "10001",
       confidenceScore: valuationResult?.confidence_score || (carfaxData ? 92 : 85),
       adjustments: valuationResult?.adjustments 
-        ? convertAdjustmentsToPdfFormat(valuationResult.adjustments)
-        : [
-            { label: "Mileage", value: -3.5 },
-            { label: "Condition", value: 2.0 },
-            { label: "Market Demand", value: 4.0 },
-            ...(carfaxData && carfaxData.accidentsReported > 0 ? [{ label: "Accident History", value: -3.0 }] : [])
-          ],
+        ? valuationResult.adjustments.map(adj => ({
+            factor: adj.factor || "Adjustment",
+            impact: adj.impact || 0,
+            description: adj.description || ""
+          }))
+        : defaultAdjustments,
       aiCondition: conditionData, // Pass AI condition data to PDF generator
       isPremium: carfaxData ? true : false // Set premium flag based on carfaxData existence
     });
