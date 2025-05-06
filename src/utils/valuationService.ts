@@ -1,238 +1,91 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { AICondition, PhotoScore } from '@/types/photo';
-import { Valuation } from '@/types/valuation-history';
+import { supabase } from "@/integrations/supabase/client";
+import { AICondition, PhotoScore } from "@/types/photo";
 
 /**
- * Gets the best photo assessment for a valuation
- * Returns the highest confidence score assessment
+ * Get the best photo assessment for a valuation including AI condition data and photo scores
+ * 
+ * @param valuationId The valuation ID to get photo assessment for
+ * @returns Object containing AI condition assessment and photo scores
  */
 export async function getBestPhotoAssessment(valuationId: string): Promise<{
-  aiCondition: AICondition | null;
-  photoScores: PhotoScore[];
+  aiCondition: AICondition | null,
+  photoScores: PhotoScore[]
 }> {
   try {
-    if (!valuationId) {
-      return { aiCondition: null, photoScores: [] };
-    }
-    
-    // Get photo scores from the database
-    const { data: scoreData, error: scoreError } = await supabase
+    // Check for condition data in photo_condition_scores table
+    const { data: conditionData, error: conditionError } = await supabase
       .from('photo_condition_scores')
       .select('*')
       .eq('valuation_id', valuationId)
-      .order('confidence_score', { ascending: false });
-      
-    if (scoreError || !scoreData || scoreData.length === 0) {
-      if (scoreError) {
-        console.error('Error loading photo scores:', scoreError);
-      }
-      return { aiCondition: null, photoScores: [] };
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (conditionError) {
+      console.error('Error fetching photo condition scores:', conditionError);
     }
     
-    // Get highest confidence score that meets minimum threshold (70%)
-    const bestScore = scoreData.find(score => score.confidence_score >= 0.7);
-    
-    // Convert scores to PhotoScore format
-    const photoScores: PhotoScore[] = scoreData.map(score => {
-      // Safely handle image URL which could be in different fields
-      let imageUrl = '';
+    // Get photo scores
+    const { data: photoData, error: photoError } = await supabase
+      .from('photo_scores')
+      .select('*')
+      .eq('valuation_id', valuationId)
+      .order('score', { ascending: false });
       
-      // Check if these properties exist and handle them safely
-      if ('photo_url' in score && (score as any).photo_url) {
-        imageUrl = (score as any).photo_url as string;
-      } else if ('image_url' in score && (score as any).image_url) {
-        imageUrl = (score as any).image_url as string;
-      }
-      
-      return {
-        url: imageUrl || '',
-        score: score.condition_score || 0
-      };
-    }).filter(s => s.url); // Filter out any items with empty URLs
+    if (photoError) {
+      console.error('Error fetching photo scores:', photoError);
+    }
     
+    // Process condition data
     let aiCondition: AICondition | null = null;
-    
-    // If we have a best score, create the AI condition
-    if (bestScore) {
+    if (conditionData) {
       aiCondition = {
-        condition: bestScore.condition_score >= 0.8 ? 'Excellent' : 
-                  bestScore.condition_score >= 0.6 ? 'Good' : 
-                  bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
-        confidenceScore: Math.round(bestScore.confidence_score * 100),
-        issuesDetected: Array.isArray(bestScore.issues) ? 
-          bestScore.issues.map((issue: any) => String(issue)) : [], // Convert to string array
-        aiSummary: bestScore.summary || undefined
+        condition: getConditionRating(conditionData.condition_score),
+        confidenceScore: conditionData.confidence_score || 0,
+        issuesDetected: Array.isArray(conditionData.issues) ? conditionData.issues : [],
+        aiSummary: conditionData.summary || ''
       };
+    } else {
+      // Check in photo_scores.metadata as fallback
+      const primaryPhoto = photoData?.find(p => p.metadata?.isPrimary) || photoData?.[0];
+      if (primaryPhoto?.metadata?.condition) {
+        const metadata = primaryPhoto.metadata;
+        aiCondition = {
+          condition: metadata.condition,
+          confidenceScore: metadata.confidenceScore || 0,
+          issuesDetected: metadata.issuesDetected || [],
+          aiSummary: metadata.aiSummary || ''
+        };
+      }
     }
     
-    return { 
-      aiCondition, 
-      photoScores 
+    // Process photo scores
+    const photoScores: PhotoScore[] = (photoData || []).map(photo => ({
+      url: photo.thumbnail_url || '',
+      score: photo.score || 0,
+      isPrimary: photo.metadata?.isPrimary || false
+    }));
+    
+    return {
+      aiCondition,
+      photoScores
     };
   } catch (err) {
-    console.error('Error loading photo assessment:', err);
-    return { aiCondition: null, photoScores: [] };
+    console.error('Error in getBestPhotoAssessment:', err);
+    return {
+      aiCondition: null,
+      photoScores: []
+    };
   }
 }
 
 /**
- * Updates the best photo URL for a valuation
+ * Convert a numeric condition score to a text rating
  */
-export async function updateBestPhotoUrl(valuationId: string, photoUrl: string): Promise<void> {
-  try {
-    if (!valuationId || !photoUrl) {
-      console.error('Missing valuationId or photoUrl for updateBestPhotoUrl');
-      return;
-    }
-    
-    // Since we need to use a field that exists in the schema to store the URL,
-    // we'll check first what fields are available in the valuations table
-    const { error } = await supabase
-      .from('valuations')
-      .update({ 
-        // Using conditional_source field which likely exists in the schema
-        condition_source: 'photo',
-        // You may need to add the photo_url column to the database if it doesn't exist
-        // or use another existing field
-        confidence_score: 80 // We'll use an existing field as a workaround for now
-      })
-      .eq('id', valuationId);
-      
-    if (error) {
-      console.error('Error updating best photo URL:', error);
-    }
-  } catch (err) {
-    console.error('Error in updateBestPhotoUrl:', err);
-  }
-}
-
-/**
- * Saves AI condition assessment to a valuation
- */
-export async function saveAIConditionAssessment(
-  valuationId: string,
-  condition: AICondition
-): Promise<void> {
-  try {
-    if (!valuationId || !condition) {
-      console.error('Missing valuationId or condition for saveAIConditionAssessment');
-      return;
-    }
-    
-    // Update the valuations table directly with the AI condition assessment data
-    // Only use fields that exist in the valuations table schema
-    const { error } = await supabase
-      .from('valuations')
-      .update({
-        condition: condition.condition,
-        condition_score: condition.confidenceScore,
-        // Ensure these fields exist in your schema
-        confidence_score: condition.confidenceScore,
-        // If your schema has these fields, uncomment them
-        // ai_summary: condition.aiSummary || '',
-        // issues_detected: condition.issuesDetected || []
-      })
-      .eq('id', valuationId);
-      
-    if (error) {
-      console.error('Error saving AI condition assessment:', error);
-    }
-  } catch (err) {
-    console.error('Error in saveAIConditionAssessment:', err);
-  }
-}
-
-/**
- * Get user's regular valuations
- */
-export async function getUserValuations(userId: string): Promise<Valuation[]> {
-  try {
-    if (!userId) {
-      return [];
-    }
-    
-    const { data, error } = await supabase
-      .from('valuations')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching user valuations:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (err) {
-    console.error('Error in getUserValuations:', err);
-    return [];
-  }
-}
-
-/**
- * Get user's saved valuations
- */
-export async function getSavedValuations(userId: string): Promise<Valuation[]> {
-  try {
-    if (!userId) {
-      return [];
-    }
-    
-    const { data, error } = await supabase
-      .from('saved_valuations')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching saved valuations:', error);
-      return [];
-    }
-    
-    // Transform saved_valuations to match Valuation interface
-    return (data || []).map(item => ({
-      id: item.id,
-      created_at: item.created_at,
-      make: item.make,
-      model: item.model,
-      year: item.year,
-      vin: item.vin,
-      valuation: item.valuation,
-      estimated_value: item.valuation,
-      is_premium: false,
-      premium_unlocked: false
-    }));
-  } catch (err) {
-    console.error('Error in getSavedValuations:', err);
-    return [];
-  }
-}
-
-/**
- * Get user's premium valuations
- */
-export async function getPremiumValuations(userId: string): Promise<Valuation[]> {
-  try {
-    if (!userId) {
-      return [];
-    }
-    
-    const { data, error } = await supabase
-      .from('valuations')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('premium_unlocked', true)
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching premium valuations:', error);
-      return [];
-    }
-    
-    return data || [];
-  } catch (err) {
-    console.error('Error in getPremiumValuations:', err);
-    return [];
-  }
+function getConditionRating(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' {
+  if (score >= 85) return 'Excellent';
+  if (score >= 70) return 'Good';
+  if (score >= 50) return 'Fair';
+  return 'Poor';
 }

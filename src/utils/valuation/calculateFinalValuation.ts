@@ -1,3 +1,4 @@
+
 /**
  * Enterprise-Level, 100% Accurate Car Valuation Logic
  * 
@@ -132,28 +133,35 @@ export async function calculateFinalValuation(input: ValuationInput): Promise<Va
   
   if (input.valuationId && !aiConditionOverride) {
     console.log(`Checking for AI photo assessment for valuation ${input.valuationId}`);
-    const { aiCondition, photoScores } = await getBestPhotoAssessment(input.valuationId);
-    
-    if (aiCondition && aiCondition.confidenceScore >= 70) {
-      console.log(`Found valid AI condition assessment: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
-      aiConditionOverride = aiCondition;
+    try {
+      const { aiCondition, photoScores } = await getBestPhotoAssessment(input.valuationId);
       
-      // If we have photo scores, include them in the output
-      if (photoScores && photoScores.length > 0) {
-        // Find the primary photo (highest score) to use as the best photo
-        const sortedScores = [...photoScores].sort((a, b) => b.score - a.score);
-        photoAssessment = {
-          bestPhotoUrl: sortedScores[0].url,
-          individualScores: photoScores
-        };
+      if (aiCondition && aiCondition.confidenceScore >= 70) {
+        console.log(`Found valid AI condition assessment: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
+        aiConditionOverride = aiCondition;
+        
+        // If we have photo scores, include them in the output
+        if (photoScores && photoScores.length > 0) {
+          // Find the primary photo (highest score) to use as the best photo
+          const sortedScores = [...photoScores].sort((a, b) => b.score - a.score);
+          photoAssessment = {
+            bestPhotoUrl: sortedScores[0].url,
+            individualScores: photoScores
+          };
+        }
+      } else if (aiCondition) {
+        console.log(`Found AI condition assessment but confidence too low: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
       }
+    } catch (err) {
+      console.error('Error fetching AI condition data:', err);
+      // Continue with user-provided condition if AI assessment fails
     }
   }
   
   // Determine which condition to use - AI or user input
   // Use AI condition if it exists and has high confidence, otherwise use user-provided condition
   const useAiCondition = aiConditionOverride && 
-                          aiConditionOverride.confidenceScore >= 70;
+                         aiConditionOverride.confidenceScore >= 70;
   
   const finalCondition = useAiCondition 
     ? aiConditionOverride!.condition 

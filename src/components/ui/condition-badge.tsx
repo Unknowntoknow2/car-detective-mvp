@@ -34,16 +34,6 @@ export function ConditionBadge({
     return "outline"; // Default
   };
   
-  // Text color classes based on confidence
-  const getTextColorClass = () => {
-    if (!isVerified) return "text-gray-500";
-    
-    if (confidenceScore >= 90) return "text-green-600";
-    if (confidenceScore >= 80) return "text-blue-600";
-    if (confidenceScore >= 70) return "text-amber-600";
-    return "text-red-600";
-  };
-  
   return (
     <TooltipProvider>
       <Tooltip>
