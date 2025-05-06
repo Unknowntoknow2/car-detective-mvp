@@ -23,8 +23,8 @@ export function useValuationResult(valuationId: string) {
         ...data,
         isPremium,
         // Map to consistent camelCase format for frontend use
-        estimatedValue: data.estimatedValue || data.valuation || 0,
-        confidenceScore: data.confidenceScore || 75,
+        estimatedValue: data.estimated_value || 0,
+        confidenceScore: data.confidence_score || 75,
         // Add these properties from data if they exist (or null if they don't)
         color: data.color || null,
         body_style: data.body_style || null,
