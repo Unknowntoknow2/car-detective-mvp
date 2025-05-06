@@ -62,9 +62,9 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
           
           // Check both possible URL properties and handle them safely
           if ('photo_url' in score) {
-            imageUrl = score.photo_url as string || '';
+            imageUrl = (score as any).photo_url || '';
           } else if ('image_url' in score) {
-            imageUrl = score.image_url as string || '';
+            imageUrl = (score as any).image_url || '';
           }
           
           if (imageUrl) {
@@ -124,7 +124,7 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
         await supabase
           .from('valuation_photos' as any)
           .delete()
-          .eq('id', photo.id) as unknown as any;
+          .eq('id', photo.id);
           
         // Extract file path from URL to delete from storage
         const url = new URL(photo.url);

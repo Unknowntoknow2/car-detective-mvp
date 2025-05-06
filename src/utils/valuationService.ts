@@ -39,10 +39,10 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
       let imageUrl = '';
       
       // Check if these properties exist and handle them safely
-      if ('photo_url' in score && score.photo_url) {
-        imageUrl = score.photo_url as string;
-      } else if ('image_url' in score && score.image_url) {
-        imageUrl = score.image_url as string;
+      if ('photo_url' in score && (score as any).photo_url) {
+        imageUrl = (score as any).photo_url as string;
+      } else if ('image_url' in score && (score as any).image_url) {
+        imageUrl = (score as any).image_url as string;
       }
       
       return {
@@ -90,7 +90,7 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
     const { error } = await supabase
       .from('valuations')
       .update({ 
-        best_photo_url: photoUrl 
+        data: { best_photo_url: photoUrl } 
       })
       .eq('id', valuationId);
       
@@ -119,11 +119,13 @@ export async function saveAIConditionAssessment(
     const { error } = await supabase
       .from('valuations')
       .update({
-        ai_condition: {
-          condition: condition.condition,
-          confidenceScore: condition.confidenceScore,
-          issuesDetected: condition.issuesDetected || [],
-          aiSummary: condition.aiSummary || ''
+        data: {
+          ai_condition: {
+            condition: condition.condition,
+            confidenceScore: condition.confidenceScore,
+            issuesDetected: condition.issuesDetected || [],
+            aiSummary: condition.aiSummary || ''
+          }
         }
       })
       .eq('id', valuationId);
