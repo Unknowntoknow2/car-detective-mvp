@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ValuationResult } from '@/components/valuation/free/ValuationResult';
@@ -268,3 +267,5 @@ const ResultPage = () => {
     </div>
   );
 }
+
+export default ResultPage;

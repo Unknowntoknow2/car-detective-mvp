@@ -9,7 +9,7 @@ export interface ManualEntryFormData {
   fuelType?: string;
   transmission?: string;
   accident?: string;
-  accidentDetails?: string;
+  accidentDetails?: AccidentDetails;
   selectedFeatures?: string[];
   valuationId?: string;
   valuation?: number;

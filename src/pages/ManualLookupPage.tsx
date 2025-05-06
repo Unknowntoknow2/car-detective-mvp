@@ -25,8 +25,8 @@ export default function ManualLookupPage() {
       vin: 'MANUAL-ENTRY', // Placeholder for manual entries
       make: data.make,
       model: data.model,
-      year: parseInt(data.year, 10), // Convert string to number
-      mileage: parseInt(data.mileage, 10), // Convert string to number
+      year: parseInt(data.year), // Convert string to number
+      mileage: parseInt(data.mileage), // Convert string to number
       fuelType: data.fuelType || 'Gasoline',
       condition: data.condition,
       transmission: 'Unknown', // Required field in DecodedVehicleInfo

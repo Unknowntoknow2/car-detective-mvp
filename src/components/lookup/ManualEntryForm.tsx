@@ -12,6 +12,7 @@ import { VehicleBasicInfoInputs } from './form-parts/VehicleBasicInfoInputs';
 import { ConditionInput } from './form-parts/ConditionInput';
 import { ManualEntryFormData } from './types/manualEntry';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 // Define validation schema
 const formSchema = z.object({
@@ -27,9 +28,17 @@ const formSchema = z.object({
 
 interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
 }
 
-export default function ManualEntryForm({ onSubmit }: ManualEntryFormProps) {
+export default function ManualEntryForm({ 
+  onSubmit, 
+  isLoading = false, 
+  submitButtonText = "Get Valuation",
+  isPremium = false
+}: ManualEntryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -97,8 +106,8 @@ export default function ManualEntryForm({ onSubmit }: ManualEntryFormProps) {
       // Call the onSubmit callback with the form data
       onSubmit(data);
       
-      // Navigate to the results page if we have a valuation ID
-      if (valuationData) {
+      // Navigate to the results page if we have a valuation ID and not in premium mode
+      if (valuationData && !isPremium) {
         navigate(`/result?valuationId=${valuationData.id}`);
       }
       
@@ -120,9 +129,16 @@ export default function ManualEntryForm({ onSubmit }: ManualEntryFormProps) {
         <Button 
           type="submit" 
           className="w-full h-12" 
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLoading}
         >
-          {isSubmitting ? 'Processing...' : 'Get Valuation'}
+          {isSubmitting || isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            submitButtonText
+          )}
         </Button>
       </form>
     </Form>

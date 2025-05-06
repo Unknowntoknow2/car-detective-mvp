@@ -39,7 +39,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form
           <FormItem>
             <FormLabel>Year</FormLabel>
             <Select
-              onValueChange={(value) => field.onChange(parseInt(value, 10))}
+              onValueChange={(value) => field.onChange(value)}
               value={field.value ? field.value.toString() : undefined}
             >
               <FormControl>
@@ -75,7 +75,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form
                 placeholder="e.g., 25000"
                 {...field}
                 value={field.value === '0' ? '' : field.value}
-                onChange={(e) => handleMileageChange(e, field.onChange)}
+                onChange={(e) => field.onChange(e.target.value)}
                 className="h-12"
               />
             </FormControl>
