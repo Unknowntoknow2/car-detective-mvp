@@ -41,13 +41,20 @@ export async function generateBasicReport(reportData: ReportData): Promise<Uint8
   yPosition -= 50;
 
   // Draw vehicle information section
-  // Fixed: Removed extra parameter to match function signature
   yPosition = drawVehicleInfoSection(
     page, 
     reportData, 
     yPosition, 
     { regular: font, bold: boldFont }, 
-    { margin, width, height }
+    { 
+      margin, 
+      width, 
+      height,
+      titleFontSize: 24,
+      headingFontSize: 16,
+      normalFontSize: 12,
+      smallFontSize: 10
+    }
   );
   
   // Add AI Condition Assessment section if available
@@ -76,7 +83,8 @@ export async function generateBasicReport(reportData: ReportData): Promise<Uint8
     page,
     yPosition,
     margin,
-    { regular: font, bold: boldFont }
+    { regular: font, bold: boldFont },
+    primaryColor
   );
 
   // Add disclaimer

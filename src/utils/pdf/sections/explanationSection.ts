@@ -1,71 +1,72 @@
 
-import { PDFPage, rgb, PDFFont } from 'pdf-lib';
+import { PDFPage, PDFFont, rgb, Color } from 'pdf-lib';
 
 /**
- * Draw explanation section on the PDF
- * Returns the new Y position after drawing the section
+ * Draws the explanation section on the PDF
+ * Returns the new Y position after drawing
  */
 export function drawExplanationSection(
   explanation: string | undefined,
   page: PDFPage,
   yPosition: number,
   margin: number,
-  width: number,
-  fonts: {
-    regular: PDFFont;
-    bold: PDFFont;
-  }
+  fonts: { regular: PDFFont; bold: PDFFont },
+  titleColor: Color = rgb(0.12, 0.46, 0.70) // Default color
 ): number {
   if (!explanation) {
     return yPosition;
   }
-  
-  let currentY = yPosition - 20;
+
   const { regular, bold } = fonts;
-  const primaryColor = rgb(0.12, 0.46, 0.70);
   
-  page.drawText('Valuation Explanation:', {
+  // Draw section header
+  page.drawText('Expert Commentary', {
     x: margin,
-    y: currentY,
-    size: 14,
+    y: yPosition,
+    size: 16,
     font: bold,
-    color: primaryColor,
+    color: titleColor,
   });
-  currentY -= 20;
+  yPosition -= 25;
+
+  // Break explanation into paragraphs
+  const paragraphs = explanation.split(/\n\n|\r\n\r\n/);
   
-  // Simple word wrapping for explanation
-  const maxWidth = width - (margin * 2);
-  const words = explanation.split(' ');
-  let line = '';
-  
-  for (const word of words) {
-    const testLine = line + word + ' ';
-    const testWidth = regular.widthOfTextAtSize(testLine, 10);
+  // Draw each paragraph
+  paragraphs.forEach((paragraph) => {
+    // Wrap text at about 80 characters per line
+    const maxCharsPerLine = 80;
+    let currentLine = '';
+    const words = paragraph.split(' ');
     
-    if (testWidth > maxWidth) {
-      page.drawText(line, {
+    for (const word of words) {
+      if ((currentLine + word).length > maxCharsPerLine) {
+        page.drawText(currentLine, {
+          x: margin,
+          y: yPosition,
+          size: 12,
+          font: regular,
+        });
+        yPosition -= 18;
+        currentLine = word + ' ';
+      } else {
+        currentLine += word + ' ';
+      }
+    }
+    
+    if (currentLine.trim().length > 0) {
+      page.drawText(currentLine, {
         x: margin,
-        y: currentY,
-        size: 10,
+        y: yPosition,
+        size: 12,
         font: regular,
       });
-      currentY -= 15;
-      line = word + ' ';
-    } else {
-      line = testLine;
+      yPosition -= 18;
     }
-  }
-  
-  // Draw remaining text
-  if (line.trim() !== '') {
-    page.drawText(line, {
-      x: margin,
-      y: currentY,
-      size: 10,
-      font: regular,
-    });
-    currentY -= 20;
-  }
-  
-  return currentY;
+    
+    // Add space between paragraphs
+    yPosition -= 8;
+  });
+
+  return yPosition;
 }

@@ -1,6 +1,6 @@
 
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { PremiumReportInput } from '../types';
+import { PremiumReportInput, ReportData } from '../types';
 import { drawTextPair } from '../helpers/pdfHelpers';
 import { drawAIConditionSection } from '../sections/aiConditionSection';
 import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
@@ -31,20 +31,37 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
   page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y, size: 12, font });
   y -= 20;
   
-  // Create a copy of vehicleInfo with definite mileage to match the required type
-  const vehicleInfoWithMileage = {
-    ...input.vehicleInfo,
+  // Create a properly formatted ReportData object from the input
+  const reportData: ReportData = {
+    vin: input.vehicleInfo.vin || 'Unknown',
+    make: input.vehicleInfo.make,
+    model: input.vehicleInfo.model,
+    year: input.vehicleInfo.year,
     mileage: input.vehicleInfo.mileage || 0,
+    condition: 'Good', // Default condition
+    estimatedValue: input.valuation.estimatedValue,
+    confidenceScore: input.valuation.confidenceScore,
+    zipCode: input.vehicleInfo.zipCode || '10001',
+    priceRange: input.valuation.priceRange,
+    adjustments: input.valuation.adjustments,
+    isPremium: true
   };
   
   // Draw vehicle information section
-  // Fixed: Removed extra parameter to match function signature
   y = drawVehicleInfoSection(
     page, 
-    vehicleInfoWithMileage, 
+    reportData, 
     y, 
     { regular: font, bold: boldFont }, 
-    { margin: 50, width: 612, height: 792 }
+    { 
+      margin: 50, 
+      width: 612, 
+      height: 792,
+      titleFontSize: 24,
+      headingFontSize: 16,
+      normalFontSize: 12,
+      smallFontSize: 10
+    }
   );
   y -= 10;
 
