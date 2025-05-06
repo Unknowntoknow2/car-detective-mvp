@@ -7,29 +7,61 @@ import { useUnifiedDecoder } from '@/hooks/useUnifiedDecoder';
 import { Card } from '@/components/ui/card';
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { Loader2 } from 'lucide-react';
+import { useManualValuation, type ManualVehicleInfo } from '@/hooks/useManualValuation';
 
 interface FreeValuationFormProps {
-  onValuationComplete: () => void;
+  onValuationComplete: (data: ManualVehicleInfo) => void;
+  onStartLoading?: () => void;
+  isLoading?: boolean;
 }
 
-export function FreeValuationForm({ onValuationComplete }: FreeValuationFormProps) {
+export function FreeValuationForm({ 
+  onValuationComplete, 
+  onStartLoading, 
+  isLoading: externalLoading 
+}: FreeValuationFormProps) {
   const [vin, setVin] = useState('');
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
-  const { decode, isLoading } = useUnifiedDecoder();
+  const { decode, isLoading: decoderLoading } = useUnifiedDecoder();
+  const { calculateValuation, isLoading: calculationLoading } = useManualValuation();
   const [activeTab, setActiveTab] = useState('vin');
+  
+  const isLoading = externalLoading || decoderLoading || calculationLoading;
 
   const handleSubmit = async (e: React.FormEvent, type: 'vin' | 'plate' | 'manual') => {
     e.preventDefault();
+    
+    if (onStartLoading) {
+      onStartLoading();
+    }
     
     try {
       const params = type === 'vin' 
         ? { vin } 
         : { licensePlate: plate, state };
       
-      const result = await decode(type, params);
-      if (result) {
-        onValuationComplete();
+      const decodedVehicle = await decode(type, params);
+      
+      if (decodedVehicle) {
+        // Convert the decoded vehicle to manual vehicle info format
+        const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+          make: decodedVehicle.make || '',
+          model: decodedVehicle.model || '',
+          year: decodedVehicle.year || new Date().getFullYear(),
+          mileage: 50000, // Default mileage
+          fuelType: decodedVehicle.fuelType || 'gasoline',
+          condition: 'Good',
+          zipCode: '10001', // Default zip
+          trim: decodedVehicle.trim
+        };
+        
+        // Calculate valuation for the decoded vehicle
+        const valuationResult = await calculateValuation(vehicleData);
+        
+        if (valuationResult) {
+          onValuationComplete(valuationResult);
+        }
       }
     } catch (error) {
       console.error('Valuation error:', error);
@@ -37,9 +69,33 @@ export function FreeValuationForm({ onValuationComplete }: FreeValuationFormProp
   };
 
   const handleManualSubmit = async (data: any) => {
-    // Store the manual entry data and proceed
-    localStorage.setItem('manual_valuation_data', JSON.stringify(data));
-    onValuationComplete();
+    if (onStartLoading) {
+      onStartLoading();
+    }
+    
+    try {
+      // Convert form data to the format expected by calculateValuation
+      const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+        make: data.make,
+        model: data.model,
+        year: parseInt(data.year),
+        mileage: parseInt(data.mileage),
+        fuelType: data.fuelType || 'gasoline',
+        condition: data.condition || 'Good',
+        zipCode: data.zipCode || '10001'
+      };
+      
+      // Calculate the valuation using the manual data
+      const valuationResult = await calculateValuation(vehicleData);
+      
+      if (valuationResult) {
+        // Store the manual entry data and send to parent
+        localStorage.setItem('manual_valuation_data', JSON.stringify(data));
+        onValuationComplete(valuationResult);
+      }
+    } catch (error) {
+      console.error('Manual valuation error:', error);
+    }
   };
 
   return (

@@ -10,9 +10,22 @@ import { UpsellBanner } from '@/components/valuation/free/UpsellBanner';
 import { FeaturesIncluded } from '@/components/valuation/free/FeaturesIncluded';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
+import type { ManualVehicleInfo } from '@/hooks/useManualValuation';
 
 export default function FreeValuationPage() {
   const [valuationComplete, setValuationComplete] = useState(false);
+  const [valuationData, setValuationData] = useState<ManualVehicleInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleValuationComplete = (data: ManualVehicleInfo) => {
+    setValuationData(data);
+    setValuationComplete(true);
+    setIsLoading(false);
+  };
+  
+  const handleStartLoading = () => {
+    setIsLoading(true);
+  };
   
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -38,11 +51,15 @@ export default function FreeValuationPage() {
             />
           )}
 
-          <FreeValuationForm onValuationComplete={() => setValuationComplete(true)} />
-          
-          {valuationComplete && (
+          {!valuationComplete ? (
+            <FreeValuationForm 
+              onValuationComplete={handleValuationComplete} 
+              onStartLoading={handleStartLoading}
+              isLoading={isLoading}
+            />
+          ) : (
             <div className="space-y-4 sm:space-y-6">
-              <ValuationResult />
+              <ValuationResult valuationData={valuationData} />
               <UpsellBanner />
               <FeaturesIncluded />
             </div>
