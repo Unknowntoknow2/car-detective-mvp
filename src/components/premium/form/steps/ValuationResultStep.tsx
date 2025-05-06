@@ -26,6 +26,7 @@ export function ValuationResultStep({
     data: result,
     isLoading,
     error,
+    isError,
     refetch,
   } = useValuationResult(valuationId);
 

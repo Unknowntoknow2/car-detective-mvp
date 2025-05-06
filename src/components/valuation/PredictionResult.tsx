@@ -77,8 +77,16 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
       manualValuation.valuation ? Math.round(manualValuation.valuation * 1.05) : 21000
     ],
     adjustments: [
-      { name: 'Base Condition', value: 0, percentage: 0 },
-      { name: 'Market Demand', value: 300, percentage: 0.015 }
+      { 
+        factor: 'Base Condition', 
+        impact: 0, 
+        description: 'Baseline vehicle value' 
+      },
+      { 
+        factor: 'Market Demand', 
+        impact: 1.5, 
+        description: 'Current market conditions' 
+      }
     ],
     createdAt: new Date().toISOString()
   } : null);

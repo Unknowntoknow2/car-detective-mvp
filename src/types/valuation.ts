@@ -11,9 +11,9 @@ export interface ValuationResult {
   confidenceScore: number;
   priceRange: [number, number];
   adjustments: {
-    name: string;
-    value: number;
-    percentage: number;
+    factor: string;
+    impact: number;
+    description: string;
   }[];
   createdAt?: string;
 }

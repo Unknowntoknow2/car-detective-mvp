@@ -1,5 +1,5 @@
 
-interface ValuationAdjustment {
+export interface ValuationAdjustment {
   factor: string;
   impact: number;
   description: string;

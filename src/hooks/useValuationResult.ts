@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
+import { convertLegacyAdjustmentsToNewFormat } from '@/utils/formatters/adjustment-formatter';
 
 export function useValuationResult(valuationId: string) {
   const [data, setData] = useState<ValuationResult | null>(null);
@@ -45,7 +46,10 @@ export function useValuationResult(valuationId: string) {
           model: valuationData.model,
           year: valuationData.year,
           mileage: valuationData.mileage,
-          condition: valuationData.condition_rating || 'Good',
+          condition: valuationData.condition_score ? 
+            (valuationData.condition_score >= 80 ? 'Excellent' : 
+             valuationData.condition_score >= 70 ? 'Good' : 
+             valuationData.condition_score >= 50 ? 'Fair' : 'Poor') : 'Good',
           confidenceScore: valuationData.confidence_score || 75,
           zipCode: valuationData.state || '',
           estimatedValue: valuationData.estimated_value,
@@ -53,11 +57,11 @@ export function useValuationResult(valuationId: string) {
             Math.round(valuationData.estimated_value * 0.95),
             Math.round(valuationData.estimated_value * 1.05)
           ],
-          adjustments: [
+          adjustments: convertLegacyAdjustmentsToNewFormat([
             { name: 'Base Value', value: 0, percentage: 0 },
             { name: 'Condition Adjustment', value: Math.round(valuationData.estimated_value * 0.01), percentage: 0.01 },
             { name: 'Market Demand', value: Math.round(valuationData.estimated_value * 0.015), percentage: 0.015 }
-          ],
+          ]),
           createdAt: valuationData.created_at
         };
 
@@ -104,7 +108,10 @@ export function useValuationResult(valuationId: string) {
         model: valuationData.model,
         year: valuationData.year,
         mileage: valuationData.mileage,
-        condition: valuationData.condition_rating || 'Good',
+        condition: valuationData.condition_score ? 
+          (valuationData.condition_score >= 80 ? 'Excellent' : 
+           valuationData.condition_score >= 70 ? 'Good' : 
+           valuationData.condition_score >= 50 ? 'Fair' : 'Poor') : 'Good',
         confidenceScore: valuationData.confidence_score || 75,
         zipCode: valuationData.state || '',
         estimatedValue: valuationData.estimated_value,
@@ -112,11 +119,11 @@ export function useValuationResult(valuationId: string) {
           Math.round(valuationData.estimated_value * 0.95),
           Math.round(valuationData.estimated_value * 1.05)
         ],
-        adjustments: [
+        adjustments: convertLegacyAdjustmentsToNewFormat([
           { name: 'Base Value', value: 0, percentage: 0 },
           { name: 'Condition Adjustment', value: Math.round(valuationData.estimated_value * 0.01), percentage: 0.01 },
           { name: 'Market Demand', value: Math.round(valuationData.estimated_value * 0.015), percentage: 0.015 }
-        ],
+        ]),
         createdAt: valuationData.created_at
       };
 
