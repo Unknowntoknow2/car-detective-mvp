@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,7 +78,7 @@ export default function MyValuationsPage() {
       fuelType: valuation.fuel_type || 'Not Specified',
       explanation: valuation.explanation || 'No additional information available for this vehicle.',
       isPremium: valuation.premium_unlocked || valuation.is_premium || false,
-      transmission: valuation.transmission
+      transmission: valuation.transmission || 'Not Specified'
     };
     
     downloadPdf(reportData);
