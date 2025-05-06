@@ -49,7 +49,8 @@ describe('Confidence Calculator', () => {
     expect(score).toBeLessThan(70);
     
     const level = getConfidenceLevel(score);
-    expect(level).toBe('Medium').or(expect(level).toBe('Low'));
+    // Using toBe with a condition instead of .or which is not available in Jest
+    expect(['Medium', 'Low'].includes(level)).toBeTruthy();
   });
 
   it('should handle negative factors properly', () => {

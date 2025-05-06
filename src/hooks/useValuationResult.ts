@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getValuationResult, checkPremiumAccess } from '@/utils/valuationService';
+import { Valuation } from '@/types/valuation-history';
 
 export function useValuationResult(valuationId: string) {
   return useQuery({
@@ -17,9 +18,13 @@ export function useValuationResult(valuationId: string) {
       // Check if this is a premium report
       const isPremium = await checkPremiumAccess(valuationId);
       
+      // Return the data with standardized property names to work with our components
       return {
         ...data,
-        isPremium
+        isPremium,
+        // Map snake_case to camelCase for convenience
+        estimatedValue: data.estimated_value || data.valuation || 0,
+        confidenceScore: data.confidence_score || 75,
       };
     },
     enabled: !!valuationId,

@@ -48,8 +48,8 @@ export default function PremiumValuationPage() {
     );
   }
   
-  // Check if this is actually a premium valuation
-  if (!valuation.premium_unlocked && !valuation.is_premium) {
+  // Check if this is actually a premium valuation using the isPremium property
+  if (!valuation.isPremium) {
     return (
       <div className="container mx-auto py-8">
         <Button 
@@ -79,6 +79,27 @@ export default function PremiumValuationPage() {
       </div>
     );
   }
+  
+  // Convert valuation data to match the Valuation type expected by our components
+  const valuationData = {
+    id: valuation.id,
+    created_at: new Date().toISOString(), // Add required property
+    make: valuation.make,
+    model: valuation.model,
+    year: valuation.year,
+    mileage: valuation.mileage,
+    estimated_value: valuation.estimatedValue,
+    is_premium: true,
+    premium_unlocked: true,
+    condition: valuation.condition,
+    confidence_score: valuation.confidenceScore,
+    color: valuation.color || null,
+    body_style: valuation.body_style || null,
+    body_type: valuation.body_type || null,
+    fuel_type: valuation.fuel_type || null,
+    explanation: valuation.explanation || null,
+    transmission: valuation.transmission || null
+  };
   
   return (
     <div className="container mx-auto py-8">
@@ -116,19 +137,19 @@ export default function PremiumValuationPage() {
                 style: 'currency',
                 currency: 'USD',
                 maximumFractionDigits: 0
-              }).format(valuation.estimated_value || 0)}
+              }).format(valuation.estimatedValue || 0)}
             </div>
             <p className="text-gray-600">
-              Confidence Score: {valuation.confidence_score || 75}%
+              Confidence Score: {valuation.confidenceScore || 75}%
             </p>
           </CardContent>
         </Card>
         
-        <ValuationBreakdown valuation={valuation} />
+        <ValuationBreakdown valuation={valuationData} />
       </div>
       
       <div className="space-y-6">
-        <PremiumFeatures valuation={valuation} />
+        <PremiumFeatures valuation={valuationData} />
         <MarketTrends vehicleInfo={{
           make: valuation.make || '',
           model: valuation.model || '',
@@ -137,7 +158,7 @@ export default function PremiumValuationPage() {
       </div>
       
       {/* Add the AI Chat Bubble */}
-      <AIChatBubble valuation={valuation} />
+      <AIChatBubble valuation={valuationData} />
     </div>
   );
 }

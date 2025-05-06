@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,8 @@ export default function ValuationDetailPage() {
     );
   }
   
-  const isPremium = valuation.premium_unlocked || valuation.is_premium;
+  // Use the isPremium property from the result of useValuationResult
+  const isPremium = valuation.isPremium;
   
   return (
     <div className="container mx-auto py-8">
@@ -78,8 +79,22 @@ export default function ValuationDetailPage() {
         </CardContent>
       </Card>
       
-      {/* Add the AI Chat Bubble */}
-      <AIChatBubble valuation={valuation} />
+      {/* Convert the valuation data to match the Valuation type expected by AIChatBubble */}
+      <AIChatBubble 
+        valuation={{
+          id: valuation.id,
+          created_at: new Date().toISOString(), // Add required property
+          make: valuation.make,
+          model: valuation.model,
+          year: valuation.year,
+          mileage: valuation.mileage,
+          estimated_value: valuation.estimatedValue,
+          is_premium: isPremium,
+          premium_unlocked: isPremium,
+          condition: valuation.condition,
+          confidence_score: valuation.confidenceScore,
+        }} 
+      />
     </div>
   );
 }
