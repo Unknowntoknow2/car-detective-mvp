@@ -1,249 +1,217 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { 
-  Photo, 
-  AICondition, 
-  PhotoScoringResult,
-  MIN_FILES,
-  MAX_FILES,
-  PhotoScore 
-} from '@/types/photo';
-import { 
-  fetchValuationPhotos, 
-  deletePhotos, 
-  uploadAndAnalyzePhotos,
-} from '@/services/photoService';
-import { errorHandler } from '@/utils/error-handling';
+import { supabase } from '@/integrations/supabase/client';
+import { Photo, PhotoScore, PhotoScoringResult, AICondition } from '@/types/photo';
 
-/**
- * Hook for managing vehicle photo uploads and AI-powered condition scoring
- */
-export function usePhotoScoring(valuationId: string): PhotoScoringResult {
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+const UPLOAD_TIMEOUT = 30000; // 30 seconds
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoScore, setPhotoScore] = useState<number | null>(null);
-  const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
+  const [aiCondition, setAICondition] = useState<AICondition | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isScoring, setIsScoring] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [individualScores, setIndividualScores] = useState<PhotoScore[]>([]);
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 2;
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Load existing photos and assessment if available
-  useEffect(() => {
-    async function loadExistingPhotos() {
-      if (!valuationId) return;
-      
-      try {
-        setIsProcessing(true);
-        const { photos: loadedPhotos, photoScore: score, aiCondition: condition, individualScores: loadedScores } = 
-          await fetchValuationPhotos(valuationId);
-        
-        if (loadedPhotos.length > 0) {
-          setPhotos(loadedPhotos);
-          setPhotoScore(score);
-          setAiCondition(condition);
-          if (loadedScores && loadedScores.length > 0) {
-            setIndividualScores(loadedScores);
-          }
-        }
-      } catch (err) {
-        console.error("Error loading photos:", err);
-        // Don't show error toast for initial load failures to avoid disrupting the flow
-        setError("Unable to load existing photos. You can try uploading new ones.");
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-    
-    loadExistingPhotos();
-  }, [valuationId]);
-
-  /**
-   * Resets the photo upload state and deletes all photos
-   */
+  // Reset the uploader state
   const resetUpload = async () => {
-    if (!photos.length) return;
-    
-    try {
-      await deletePhotos(photos);
-    } catch (error) {
-      console.error("Error deleting photos:", error);
-      toast.error("Failed to delete photos. Please try again.");
-    }
-    
     setPhotos([]);
     setPhotoScore(null);
-    setAiCondition(null);
-    setError(null);
+    setAICondition(null);
+    setIsUploading(false);
+    setIsScoring(false);
     setUploadProgress(0);
+    setError(null);
     setIndividualScores([]);
-    setRetryCount(0);
-  };
-
-  /**
-   * Fallback scoring when AI analysis fails
-   * Provides a basic score based on photo count and quality heuristics
-   */
-  const fallbackScoring = (photoUrls: string[]): { score: number; aiCondition: AICondition } => {
-    // Simple heuristic: more photos = better score, up to a point
-    const photoCountFactor = Math.min(photoUrls.length / MAX_FILES, 1);
-    const fallbackScore = 0.5 + (photoCountFactor * 0.2); // Base 0.5, up to 0.7
     
-    // Default condition assessment with low confidence
-    const fallbackCondition: AICondition = {
-      condition: 'Good', // Default to 'Good' as a safe middle ground
-      confidenceScore: 40, // Low confidence since this is a fallback
-      issuesDetected: [],
-      aiSummary: 'Unable to fully analyze vehicle condition from the provided photos. This is an estimated assessment only.'
-    };
-    
-    toast.info("AI analysis limited. Using basic photo assessment.", {
-      description: "For better results, try uploading clearer photos from multiple angles."
-    });
-    
-    return { score: fallbackScore, aiCondition: fallbackCondition };
-  };
-
-  /**
-   * Uploads and analyzes photos with retry logic and fallback mechanism
-   */
-  const uploadPhotos = useCallback(async (files: File[]): Promise<{ 
-    score: number, 
-    aiCondition?: AICondition, 
-    individualScores?: PhotoScore[] 
-  } | null> => {
-    // Verify minimum number of photos (including existing ones)
-    if (files.length + photos.length < MIN_FILES) {
-      toast.error(`Please select at least ${MIN_FILES} photos total. You need ${MIN_FILES - photos.length} more.`);
-      return null;
-    }
-    
-    // Verify we don't exceed maximum
-    if (files.length + photos.length > MAX_FILES) {
-      toast.error(`You can only upload up to ${MAX_FILES} photos in total.`);
-      return null;
-    }
-    
-    setIsUploading(true);
-    setError(null);
-    setUploadProgress(0);
-    
-    const toastId = toast.loading("Uploading and analyzing your vehicle photos...", {
-      duration: 10000 // Longer duration since this operation can take time
-    });
-    
-    try {
-      setUploadProgress(20); // Show upload started
-      
-      // Process each photo with the analyze-photos edge function
-      const result = await uploadAndAnalyzePhotos(valuationId, files);
-      
-      if (!result) {
-        throw new Error("Failed to upload and analyze photos");
-      }
-      
-      setUploadProgress(80);
-      
-      // Process the results
-      const photoUrls = result.photoUrls || [];
-      const newPhotos = photoUrls.map((url: string) => ({
-        url,
-        thumbnail: url
-      }));
-      
-      setPhotos(prev => [...prev, ...newPhotos]);
-      
-      // Store individual scores for each photo
-      if (result.individualScores && result.individualScores.length > 0) {
-        setIndividualScores(prev => [...prev, ...result.individualScores]);
-      }
-      
-      // Set score and AI condition 
-      if (result.score && result.score > 0) {
-        setPhotoScore(result.score);
+    // Delete any previously uploaded photos if valuationId is provided
+    if (valuationId) {
+      try {
+        await supabase
+          .from('photo_scores')
+          .delete()
+          .eq('valuation_id', valuationId);
         
-        // Check if result.aiCondition exists before setting state
-        if (result.aiCondition) {
-          setAiCondition(result.aiCondition);
-        } else {
-          // If photos uploaded but no AI condition returned, use fallback
-          const fallback = fallbackScoring(photoUrls);
-          setPhotoScore(fallback.score);
-          setAiCondition(fallback.aiCondition);
-          result.score = fallback.score;
-          result.aiCondition = fallback.aiCondition;
+        await supabase
+          .from('photo_condition_scores')
+          .delete()
+          .eq('valuation_id', valuationId);
+          
+        console.log('Deleted previous photo records for valuation:', valuationId);
+      } catch (err) {
+        console.error('Error cleaning up previous photos:', err);
+        // Don't throw here, we'll continue with the new upload
+      }
+    }
+    
+    return Promise.resolve();
+  };
+
+  // Upload and score photos
+  const uploadPhotos = useCallback(async (files: File[]) => {
+    if (!valuationId) {
+      setError("No valuation ID provided");
+      return null;
+    }
+    
+    if (files.length === 0) {
+      setError("No files selected");
+      return null;
+    }
+
+    try {
+      setError(null);
+      setIsUploading(true);
+      setUploadProgress(0);
+      
+      // Validate files
+      const validFiles: File[] = [];
+      const invalidFiles: string[] = [];
+      
+      for (const file of files) {
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+          invalidFiles.push(`${file.name} (invalid type)`);
+          continue;
         }
-      } else {
-        // If no score provided, use fallback scoring
-        const fallback = fallbackScoring(photoUrls);
-        setPhotoScore(fallback.score);
-        setAiCondition(fallback.aiCondition);
-        result.score = fallback.score;
-        result.aiCondition = fallback.aiCondition;
+        
+        if (file.size > MAX_UPLOAD_SIZE) {
+          invalidFiles.push(`${file.name} (too large, max 5MB)`);
+          continue;
+        }
+        
+        validFiles.push(file);
       }
       
-      setUploadProgress(100);
-      toast.dismiss(toastId);
-      toast.success(`${files.length} photos processed successfully`);
+      if (invalidFiles.length > 0) {
+        toast.warning(`Some files were skipped`, {
+          description: invalidFiles.join(', ')
+        });
+      }
       
-      // Return the score and aiCondition for the callback
-      return {
-        score: result.score,
-        aiCondition: result.aiCondition,
-        individualScores: result.individualScores
-      };
-    } catch (err) {
-      toast.dismiss(toastId);
+      if (validFiles.length === 0) {
+        setIsUploading(false);
+        setError("No valid files to upload");
+        return null;
+      }
       
-      // Implement retry logic
-      if (retryCount < MAX_RETRIES) {
-        setRetryCount(prev => prev + 1);
-        toast.info("Retrying photo analysis...", {
-          description: `Attempt ${retryCount + 1} of ${MAX_RETRIES + 1}`
+      // Process files
+      const uploadedPhotos: Photo[] = [];
+      const scoredPhotos: PhotoScore[] = [];
+      let totalScore = 0;
+      
+      // Progress tracking
+      const totalSteps = validFiles.length * 2; // Upload + scoring for each file
+      let completedSteps = 0;
+      
+      // Upload each photo and calculate its score
+      for (const file of validFiles) {
+        try {
+          // Create a readable file name
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${valuationId}-${Date.now()}.${fileExt}`;
+          
+          // Upload the file
+          const { data: photoData, error: uploadError } = await supabase.functions.invoke('score-image', {
+            body: { 
+              file: await fileToBase64(file),
+              fileName,
+              valuationId
+            }
+          });
+          
+          if (uploadError) throw new Error(uploadError.message);
+          
+          // Update progress
+          completedSteps++;
+          setUploadProgress(Math.floor((completedSteps / totalSteps) * 100));
+          
+          if (!photoData) {
+            throw new Error("No data returned from image scoring function");
+          }
+          
+          const { url, score, bestPhoto = false } = photoData;
+          
+          // Store the uploaded photo
+          uploadedPhotos.push({ url, id: fileName });
+          
+          // Store individual score
+          scoredPhotos.push({ 
+            url, 
+            score: Number(score) || 0,
+            isPrimary: bestPhoto 
+          });
+          
+          // Update the total score
+          totalScore += Number(score) || 0;
+          
+          // Update progress again (for scoring step)
+          completedSteps++;
+          setUploadProgress(Math.floor((completedSteps / totalSteps) * 100));
+        } catch (error) {
+          console.error("Error processing photo:", error);
+          toast.error(`Failed to process photo: ${file.name}`);
+        }
+      }
+      
+      // Calculate the average score
+      const averageScore = scoredPhotos.length > 0 ? totalScore / scoredPhotos.length : 0;
+      
+      // Get AI condition assessment
+      setIsScoring(true);
+      
+      try {
+        const { data: aiData, error: aiError } = await supabase.functions.invoke('analyze-vehicle-condition', {
+          body: { 
+            valuationId,
+            photoUrls: uploadedPhotos.map(p => p.url),
+            individualScores: scoredPhotos
+          }
         });
         
-        // Wait a bit before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return uploadPhotos(files);
+        if (aiError) {
+          console.error("AI condition analysis error:", aiError);
+        } else if (aiData) {
+          setAICondition(aiData);
+          
+          // Save condition data to database
+          await supabase.from('photo_condition_scores').upsert({
+            valuation_id: valuationId,
+            condition_score: aiData.condition ? mapConditionToScore(aiData.condition) : 0,
+            confidence_score: aiData.confidenceScore || 0,
+            issues: aiData.issuesDetected || [],
+            summary: aiData.aiSummary || ''
+          });
+        }
+      } catch (err) {
+        console.error("Error analyzing vehicle condition:", err);
       }
       
-      // If all retries failed, use fallback scoring for the photos that were uploaded
-      const fallbackUrls = files.map(file => URL.createObjectURL(file));
-      const fallback = fallbackScoring(fallbackUrls);
-      
-      // Still save the uploads even if analysis failed
-      setPhotos(prev => [
-        ...prev, 
-        ...files.map((file, idx) => ({
-          url: fallbackUrls[idx],
-          thumbnail: fallbackUrls[idx]
-        }))
-      ]);
-      
-      setPhotoScore(fallback.score);
-      setAiCondition(fallback.aiCondition);
-      
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
-      
-      // Log the error for further analysis
-      errorHandler.handle(err, 'Photo analysis');
+      // Update state
+      setPhotos(uploadedPhotos);
+      setPhotoScore(averageScore);
+      setIndividualScores(scoredPhotos);
       
       return {
-        score: fallback.score,
-        aiCondition: fallback.aiCondition,
-        individualScores: []
+        score: averageScore,
+        aiCondition,
+        individualScores: scoredPhotos
       };
+    } catch (err) {
+      console.error("Upload photos error:", err);
+      setError(err instanceof Error ? err.message : String(err));
+      toast.error("Failed to upload and score photos");
+      return null;
     } finally {
       setIsUploading(false);
       setIsScoring(false);
-      setRetryCount(0);
+      setUploadProgress(100);
     }
-  }, [valuationId, photos, retryCount]);
+  }, [valuationId, aiCondition]);
 
   return {
     uploadPhotos,
@@ -256,6 +224,34 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
     error,
     resetUpload,
     individualScores,
-    isLoading: isUploading || isScoring || isProcessing
+    isLoading: isUploading || isScoring
   };
+}
+
+// Helper function to convert a file to base64
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+}
+
+// Helper function to map condition string to numeric score
+function mapConditionToScore(condition: string | null): number {
+  if (!condition) return 0;
+  
+  switch (condition.toLowerCase()) {
+    case 'excellent': return 100;
+    case 'good': return 75;
+    case 'fair': return 50;
+    case 'poor': return 25;
+    default: return 0;
+  }
 }

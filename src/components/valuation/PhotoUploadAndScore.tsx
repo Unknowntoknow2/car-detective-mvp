@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PhotoUploadDropzone } from './photo-upload/PhotoUploadDropzone';
 import { PhotoPreview } from './photo-upload/PhotoPreview';
@@ -12,6 +11,7 @@ import { InfoIcon, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { AlertCircle } from 'lucide-react';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;
@@ -196,6 +196,14 @@ export function PhotoUploadAndScore({
       <PhotoUploadError error={error} />
       
       {showTips && <PhotoTips />}
+      
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
       {error && photoScore && (
         <Alert variant="destructive" className="bg-amber-50 border-amber-200">
