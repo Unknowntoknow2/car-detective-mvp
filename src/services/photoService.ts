@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
@@ -163,7 +164,10 @@ interface PhotoUploadResponse {
   confidenceScore: number;
   issuesDetected?: string[];
   aiSummary?: string;
-  individualScores?: PhotoScore[];
+  individualScores?: {
+    url: string;
+    score: number;
+  }[];
 }
 
 /**
@@ -207,7 +211,7 @@ export async function uploadAndAnalyzePhotos(
       throw new Error("No data returned from photo analysis");
     }
     
-    // Use explicitly typed response data
+    // Use a type assertion with our explicit interface
     const responseData = data as PhotoUploadResponse;
     
     return {
@@ -219,7 +223,10 @@ export async function uploadAndAnalyzePhotos(
         issuesDetected: responseData.issuesDetected || [],
         aiSummary: responseData.aiSummary
       } : undefined,
-      individualScores: responseData.individualScores || []
+      individualScores: responseData.individualScores?.map(score => ({
+        url: score.url,
+        score: score.score
+      })) || []
     };
   } catch (err) {
     console.error('Photo upload and analysis error:', err);
