@@ -206,7 +206,8 @@ const OffersPage = () => {
                       Offer ID: {offer.id.slice(0, 8)}
                     </CardDescription>
                   </div>
-                  <Badge variant={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'success' : 'default'}>
+                  <Badge variant={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'secondary' : 'default'} 
+                         className={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''}>
                     {offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'Above Market' : 'Market Offer'}
                   </Badge>
                 </div>
