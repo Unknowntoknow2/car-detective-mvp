@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Lock, Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { createCheckoutSession } from '@/utils/premiumService';
 
 interface PremiumDownloadButtonProps {
   valuationId: string;
@@ -28,32 +28,38 @@ export function PremiumDownloadButton({
       return;
     }
 
+    if (!valuationId) {
+      toast.error('Valuation ID is required');
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
-      // Call the Edge Function to create a checkout session
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { valuationId }
-      });
+      const result = await createCheckoutSession(valuationId);
       
-      if (error) throw new Error(error.message);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create checkout session');
+      }
       
-      // If already unlocked, just notify the user
-      if (data.already_unlocked) {
+      // If already unlocked, reload the page to update UI state
+      if (result.alreadyUnlocked) {
         toast.success('Premium features are already unlocked!');
-        window.location.reload(); // Refresh to update UI state
+        window.location.reload();
         return;
       }
       
       // Redirect to Stripe checkout
-      if (data.url) {
-        window.location.href = data.url;
+      if (result.url) {
+        window.location.href = result.url;
       } else {
         throw new Error('No checkout URL returned');
       }
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to start checkout process. Please try again.');
+    } catch (error: any) {
+      console.error('Error in premium unlock:', error);
+      toast.error('Failed to start checkout process', {
+        description: error.message || 'Please try again'
+      });
     } finally {
       setIsProcessing(false);
     }

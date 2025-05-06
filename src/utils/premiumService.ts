@@ -1,28 +1,75 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { errorHandler } from '@/utils/error-handling';
 
-/**
- * Checks if a user has premium access to a specific valuation
- * @param valuationId The ID of the valuation to check
- * @returns Promise resolving to a boolean indicating if the user has premium access
- */
+export interface CheckoutResult {
+  success: boolean;
+  url?: string;
+  alreadyUnlocked?: boolean;
+  error?: string;
+}
+
+export async function createCheckoutSession(valuationId: string): Promise<CheckoutResult> {
+  try {
+    if (!valuationId) {
+      throw new Error('Valuation ID is required');
+    }
+
+    // Call the Edge Function to create a checkout session
+    const { data, error } = await supabase.functions.invoke('create-checkout', {
+      body: { valuationId }
+    });
+    
+    if (error) {
+      console.error('Edge function error:', error);
+      throw new Error(`Checkout creation failed: ${error.message || 'Unknown error'}`);
+    }
+    
+    // If already unlocked, return success with that flag
+    if (data?.already_unlocked) {
+      return { 
+        success: true, 
+        alreadyUnlocked: true 
+      };
+    }
+    
+    // Check that we have a URL
+    if (!data?.url) {
+      throw new Error('No checkout URL returned from server');
+    }
+    
+    return { 
+      success: true, 
+      url: data.url 
+    };
+  } catch (error) {
+    const errorDetails = errorHandler.handle(error, 'stripe-checkout');
+    return { 
+      success: false, 
+      error: errorDetails.message 
+    };
+  }
+}
+
 export async function checkPremiumAccess(valuationId: string): Promise<boolean> {
   try {
-    // First check if the valuation itself has premium_unlocked flag
+    if (!valuationId) return false;
+    
+    // First, check if the valuation itself has premium_unlocked
     const { data: valuationData, error: valuationError } = await supabase
       .from('valuations')
-      .select('premium_unlocked, user_id')
+      .select('premium_unlocked')
       .eq('id', valuationId)
       .maybeSingle();
     
-    if (valuationError) throw new Error(valuationError.message);
+    if (valuationError) throw valuationError;
     
-    // If valuation has premium_unlocked set to true, access is granted
     if (valuationData?.premium_unlocked) {
       return true;
     }
     
-    // If not, check if there's a completed order for this valuation
+    // If not unlocked in valuation, check orders
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .select('status')
@@ -30,33 +77,11 @@ export async function checkPremiumAccess(valuationId: string): Promise<boolean> 
       .eq('status', 'paid')
       .maybeSingle();
     
-    if (orderError) throw new Error(orderError.message);
+    if (orderError) throw orderError;
     
-    // Return true if a paid order exists
     return !!orderData;
   } catch (error) {
-    console.error('Error checking premium access:', error);
-    return false;
-  }
-}
-
-/**
- * Updates the premium_unlocked status for a valuation
- * @param valuationId The ID of the valuation to update
- * @param isUnlocked The new premium unlocked status
- * @returns Promise resolving to a boolean indicating success
- */
-export async function updatePremiumStatus(valuationId: string, isUnlocked: boolean): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('valuations')
-      .update({ premium_unlocked: isUnlocked })
-      .eq('id', valuationId);
-    
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error updating premium status:', error);
+    errorHandler.handle(error, 'premium-access-check');
     return false;
   }
 }

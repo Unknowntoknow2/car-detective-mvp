@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Valuation } from "@/types/valuation-history";
+import { getUserValuations, getSavedValuations, getPremiumValuations } from "@/utils/valuationService";
 
 export function useValuationHistory() {
   const [valuations, setValuations] = useState<Valuation[]>([]);
@@ -14,61 +14,47 @@ export function useValuationHistory() {
     if (!user) return;
 
     const fetchValuations = async () => {
+      setIsLoading(true);
       try {
-        // Get saved valuations
-        const { data: savedValuations, error: savedError } = await supabase
-          .from('saved_valuations')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (savedError) throw savedError;
+        // Fetch all types of valuations in parallel
+        const [savedValuations, premiumValuations, regularValuations] = await Promise.all([
+          getSavedValuations(user.id),
+          getPremiumValuations(user.id),
+          getUserValuations(user.id)
+        ]);
         
         // Format saved valuations
-        const formattedValuations = savedValuations?.map(val => ({
-          id: val.id,
-          created_at: val.created_at,
-          make: val.make,
-          model: val.model,
-          year: val.year,
-          vin: val.vin,
-          valuation: val.valuation,
+        const formattedSavedValuations = savedValuations.map(val => ({
+          ...val,
           is_premium: false
-        })) || [];
+        }));
         
-        // Get premium valuations from orders
-        const { data: premiumOrders, error: ordersError } = await supabase
-          .from('orders')
-          .select('*, valuations(*)')
-          .eq('user_id', user.id)
-          .eq('status', 'completed');
+        // Format regular valuations to add the is_premium flag
+        const formattedRegularValuations = regularValuations.map(val => ({
+          ...val,
+          is_premium: val.premium_unlocked || false
+        }));
         
-        if (ordersError) throw ordersError;
+        // Combine and sort by date (most recent first)
+        const allValuations = [
+          ...formattedSavedValuations,
+          ...premiumValuations,
+          ...formattedRegularValuations
+        ].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
         
-        // Format premium valuations
-        const premiumValuations = premiumOrders
-          ?.filter(order => order.valuations)
-          .map(order => ({
-            id: order.valuations.id,
-            created_at: order.created_at,
-            make: order.valuations.make,
-            model: order.valuations.model,
-            year: order.valuations.year,
-            vin: order.valuations.vin,
-            plate: order.valuations.plate,
-            state: order.valuations.state,
-            estimated_value: order.valuations.estimated_value,
-            is_premium: true
-          })) || [];
+        // Remove duplicates (if a valuation appears in multiple lists)
+        const uniqueValuations = Array.from(
+          new Map(allValuations.map(item => [item.id, item])).values()
+        );
         
-        // Combine and sort by date
-        const allValuations = [...formattedValuations, ...premiumValuations]
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        
-        setValuations(allValuations);
+        setValuations(uniqueValuations);
       } catch (error: any) {
-        console.error('Error fetching valuations:', error.message);
-        toast.error('Failed to load valuation history');
+        console.error('Error fetching valuations:', error);
+        toast.error('Failed to load valuation history', {
+          description: error.message || 'An unknown error occurred'
+        });
       } finally {
         setIsLoading(false);
       }

@@ -4,25 +4,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/profile';
 import { toast } from 'sonner';
 import { User } from '@supabase/supabase-js';
+import { getProfile, updateProfile as updateProfileService } from '@/utils/profileService';
 
 export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchProfile = async (user: User) => {
+    if (!user?.id) {
+      toast.error('User not authenticated');
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
+      const profileData = await getProfile(user.id);
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        toast.error('Failed to fetch profile');
+      }
     } catch (error: any) {
+      console.error('Error in fetchProfile:', error);
       toast.error('Failed to fetch profile', {
-        description: error.message
+        description: error.message || 'Unknown error occurred'
       });
     } finally {
       setIsLoading(false);
@@ -30,29 +35,33 @@ export function useProfile() {
   };
 
   const updateProfile = async (updatedProfile: Partial<Profile>) => {
-    const user = supabase.auth.getUser();
-    if (!user) {
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) {
       toast.error('Not authenticated');
       return null;
     }
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updatedProfile)
-        .eq('id', (await user).data.user?.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      // Ensure the profile has the user ID
+      const profileToUpdate = {
+        ...updatedProfile,
+        id: user.data.user.id
+      };
       
-      setProfile(data);
-      toast.success('Profile updated successfully');
-      return data;
+      const data = await updateProfileService(profileToUpdate);
+      
+      if (data) {
+        setProfile(data);
+        toast.success('Profile updated successfully');
+        return data;
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (error: any) {
+      console.error('Error in updateProfile:', error);
       toast.error('Failed to update profile', {
-        description: error.message
+        description: error.message || 'Unknown error occurred'
       });
       return null;
     } finally {
@@ -61,16 +70,16 @@ export function useProfile() {
   };
 
   const uploadAvatar = async (file: File) => {
-    const user = supabase.auth.getUser();
-    if (!user) {
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) {
       toast.error('Not authenticated');
       return null;
     }
 
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${(await user).data.user?.id}/avatar.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `${user.data.user.id}/avatar.${fileExt}`;
+      const filePath = fileName;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -79,7 +88,10 @@ export function useProfile() {
           cacheControl: '3600' 
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Avatar upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
@@ -87,14 +99,15 @@ export function useProfile() {
 
       // Update profile with new avatar URL
       const updatedProfile = await updateProfile({ 
-        avatar_url: publicUrl.toString() 
+        avatar_url: publicUrl
       });
 
       toast.success('Avatar uploaded successfully');
       return updatedProfile;
     } catch (error: any) {
+      console.error('Error in uploadAvatar:', error);
       toast.error('Avatar upload failed', {
-        description: error.message
+        description: error.message || 'Unknown error occurred'
       });
       return null;
     }
