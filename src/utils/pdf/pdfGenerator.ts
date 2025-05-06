@@ -1,6 +1,6 @@
 
 import { ReportData } from './types';
-import { generateValuationPdf as generatePdf } from './pdfGeneratorService';
+import { generateValuationPdf as generatePdfService } from './pdfGeneratorService';
 
 /**
  * Generates a valuation PDF report
@@ -24,5 +24,8 @@ export async function generateValuationPdf(data: ReportData): Promise<Uint8Array
     } : null
   };
   
-  return generatePdf(processedData);
+  return generatePdfService(processedData);
 }
+
+// Export the function that's imported by the test
+export { generatePdfService as generatePdf };
