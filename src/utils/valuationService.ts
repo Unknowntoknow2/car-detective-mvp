@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { AICondition, PhotoScore } from '@/types/photo';
 import { Valuation } from '@/types/valuation-history';
@@ -85,12 +86,13 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
       return;
     }
     
-    // Use the database function we already have defined in migrations
+    // Use direct update instead of RPC function
     const { error } = await supabase
-      .rpc('update_valuation_best_photo', {
-        valuation_id: valuationId,
-        photo_url: photoUrl
-      });
+      .from('valuations')
+      .update({
+        data: JSON.stringify({ best_photo_url: photoUrl })
+      })
+      .eq('id', valuationId);
       
     if (error) {
       console.error('Error updating best photo URL:', error);
@@ -113,7 +115,7 @@ export async function saveAIConditionAssessment(
       return;
     }
     
-    // Use the database function we already have defined in migrations
+    // Prepare condition data
     const conditionData = {
       condition: condition.condition,
       confidenceScore: condition.confidenceScore,
@@ -121,11 +123,13 @@ export async function saveAIConditionAssessment(
       aiSummary: condition.aiSummary || ''
     };
     
+    // Use direct update instead of RPC function
     const { error } = await supabase
-      .rpc('update_valuation_ai_condition', {
-        valuation_id: valuationId,
-        condition_data: conditionData
-      });
+      .from('valuations')
+      .update({
+        data: JSON.stringify({ ai_condition: conditionData })
+      })
+      .eq('id', valuationId);
       
     if (error) {
       console.error('Error saving AI condition assessment:', error);
