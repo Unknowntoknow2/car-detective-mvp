@@ -15,6 +15,7 @@ interface ValuationFormActionsProps {
   downloadButtonText?: string;
   isDownloading?: boolean;
   isSuccess?: boolean;
+  onManualEntryClick?: () => void; // Add this new prop to the interface
 }
 
 export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
@@ -26,7 +27,8 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
   showDownload = false,
   downloadButtonText = "Download Report",
   isDownloading = false,
-  isSuccess = false
+  isSuccess = false,
+  onManualEntryClick // Add this prop to the component parameters
 }) => {
   const handleDownloadClick = () => {
     if (onDownloadPdf) {
@@ -68,6 +70,17 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
                 {downloadButtonText}
               </>
             )}
+          </Button>
+        )}
+        
+        {/* Add Manual Entry button */}
+        {onManualEntryClick && (
+          <Button
+            onClick={onManualEntryClick}
+            variant="outline"
+            className="h-12 font-medium text-base rounded-lg"
+          >
+            Manual Entry
           </Button>
         )}
       </div>
