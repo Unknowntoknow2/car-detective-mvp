@@ -1,6 +1,12 @@
 
 export type ConditionLevel = 'excellent' | 'good' | 'fair' | 'poor';
 
+export interface AccidentDetails {
+  count?: string;
+  severity?: string;
+  area?: string;
+}
+
 export interface ManualEntryFormData {
   make: string;
   model: string;
@@ -10,11 +16,7 @@ export interface ManualEntryFormData {
   zipCode: string;
   fuelType?: string;
   accident?: boolean;
-  accidentDetails?: {
-    count?: string;
-    severity?: string;
-    area?: string;
-  };
+  accidentDetails?: AccidentDetails;
   selectedFeatures?: string[];
   bodyType?: string;
   transmissionType?: string;

@@ -17,6 +17,12 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   // Add debugging logs for component mounting
   console.log("LookupTabs rendering with activeTab:", activeTab);
 
+  // Add a mock onSubmit function for ManualEntryForm
+  const handleManualSubmit = (data: any) => {
+    console.log("Manual entry form submitted:", data);
+    // Here you would typically handle the form submission
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg tabs-navigation">
@@ -82,7 +88,7 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
             <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
           </CardHeader>
           <CardContent>
-            <ManualEntryForm />
+            <ManualEntryForm onSubmit={handleManualSubmit} />
           </CardContent>
         </Card>
       </TabsContent>

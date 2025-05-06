@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -11,6 +10,12 @@ import { CarFront, Search, FileText } from "lucide-react";
 
 export default function VinLookupPage() {
   const [activeTab, setActiveTab] = useState<string>("vin");
+
+  // Add a mock onSubmit function for ManualEntryForm
+  const handleManualSubmit = (data: any) => {
+    console.log("Manual entry form submitted:", data);
+    // Here you would typically handle the form submission
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,7 +91,7 @@ export default function VinLookupPage() {
                   <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ManualEntryForm />
+                  <ManualEntryForm onSubmit={handleManualSubmit} />
                 </CardContent>
               </Card>
             </TabsContent>

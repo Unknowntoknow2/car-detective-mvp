@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -44,6 +43,12 @@ export default function PlateLookupPage() {
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  // Add a mock onSubmit function for ManualEntryForm
+  const handleManualSubmit = (data: any) => {
+    console.log("Manual entry form submitted:", data);
+    // Here you would typically handle the form submission
   };
 
   return (
@@ -124,7 +129,7 @@ export default function PlateLookupPage() {
                   <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ManualEntryForm />
+                  <ManualEntryForm onSubmit={handleManualSubmit} />
                 </CardContent>
               </Card>
             </TabsContent>

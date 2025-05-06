@@ -6,9 +6,10 @@ export interface ZipValidationProps {
   zip: string;
   onValidChange?: (isValid: boolean) => void;
   compact?: boolean;
+  className?: string;
 }
 
-export function ZipValidation({ zip, onValidChange, compact = false }: ZipValidationProps) {
+export function ZipValidation({ zip, onValidChange, compact = false, className = '' }: ZipValidationProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [location, setLocation] = useState<{ city?: string; state?: string } | null>(null);
@@ -63,7 +64,7 @@ export function ZipValidation({ zip, onValidChange, compact = false }: ZipValida
 
   if (compact) {
     return (
-      <div className="flex items-center h-4 mt-1">
+      <div className={`flex items-center h-4 mt-1 ${className}`}>
         {isValidating ? (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         ) : isValid ? (
@@ -82,7 +83,7 @@ export function ZipValidation({ zip, onValidChange, compact = false }: ZipValida
   }
 
   return (
-    <div className="mt-2">
+    <div className={`mt-2 ${className}`}>
       {isValidating ? (
         <div className="flex items-center text-sm text-gray-500">
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
