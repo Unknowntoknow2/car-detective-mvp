@@ -37,14 +37,14 @@ export async function generatePremiumReport(input: PremiumReportInput): Promise<
     mileage: input.vehicleInfo.mileage || 0,
   };
   
-  // Draw vehicle information
+  // Draw vehicle information section
+  // Fixed: Removed extra parameter to match function signature
   y = drawVehicleInfoSection(
-    vehicleInfoWithMileage, 
     page, 
+    vehicleInfoWithMileage, 
     y, 
-    50, // margin 
-    612, // width
-    { regular: font, bold: boldFont }
+    { regular: font, bold: boldFont }, 
+    { margin: 50, width: 612, height: 792 }
   );
   y -= 10;
 
