@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Trans } from 'react-i18next';
+import { createEmailCampaign } from '@/utils/emailService';
 
 // Define types for email campaigns
 type EmailCampaign = {

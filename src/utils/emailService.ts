@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export type EmailType = 
@@ -80,12 +81,16 @@ export async function createEmailCampaign(
   recipientCount: number
 ): Promise<{ success: boolean; message?: string; error?: string }> {
   try {
+    // Get the current user's ID before making the insert
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+
     const { error } = await supabase.from('email_campaigns').insert({
       subject,
       body,
       audience_type: audienceType,
       recipient_count: recipientCount,
-      user_id: supabase.auth.getUser().then(({ data }) => data.user?.id)
+      user_id: userId
     });
 
     if (error) {
