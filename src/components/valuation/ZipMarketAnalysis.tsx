@@ -9,9 +9,11 @@ import { getMarketMultiplier, getMarketMultiplierDescription } from '@/utils/val
 interface ZipMarketAnalysisProps {
   zipCode: string;
   basePrice?: number;
+  setZipCode?: (zipCode: string) => void;
+  disabled?: boolean;
 }
 
-export function ZipMarketAnalysis({ zipCode, basePrice = 0 }: ZipMarketAnalysisProps) {
+export function ZipMarketAnalysis({ zipCode, basePrice = 0, setZipCode, disabled }: ZipMarketAnalysisProps) {
   const [marketMultiplier, setMarketMultiplier] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

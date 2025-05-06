@@ -40,32 +40,51 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
     // Process condition data
     let aiCondition: AICondition | null = null;
     if (conditionData) {
+      // Type-safe handling of issues array
+      const issuesArray: string[] = Array.isArray(conditionData.issues) 
+        ? (conditionData.issues as any[]).map(issue => String(issue))
+        : [];
+        
       aiCondition = {
         condition: getConditionRating(conditionData.condition_score),
         confidenceScore: conditionData.confidence_score || 0,
-        issuesDetected: Array.isArray(conditionData.issues) ? conditionData.issues : [],
+        issuesDetected: issuesArray,
         aiSummary: conditionData.summary || ''
       };
     } else {
       // Check in photo_scores.metadata as fallback
-      const primaryPhoto = photoData?.find(p => p.metadata?.isPrimary) || photoData?.[0];
-      if (primaryPhoto?.metadata?.condition) {
-        const metadata = primaryPhoto.metadata;
-        aiCondition = {
-          condition: metadata.condition,
-          confidenceScore: metadata.confidenceScore || 0,
-          issuesDetected: metadata.issuesDetected || [],
-          aiSummary: metadata.aiSummary || ''
-        };
+      const primaryPhoto = photoData?.find(p => {
+        if (!p.metadata) return false;
+        const meta = p.metadata as Record<string, any>;
+        return meta.isPrimary === true;
+      }) || photoData?.[0];
+      
+      if (primaryPhoto?.metadata) {
+        const metadata = primaryPhoto.metadata as Record<string, any>;
+        if (metadata.condition) {
+          const detectedIssues = Array.isArray(metadata.issuesDetected) 
+            ? metadata.issuesDetected.map((issue: any) => String(issue))
+            : [];
+            
+          aiCondition = {
+            condition: metadata.condition as AICondition['condition'],
+            confidenceScore: Number(metadata.confidenceScore) || 0,
+            issuesDetected: detectedIssues,
+            aiSummary: metadata.aiSummary ? String(metadata.aiSummary) : ''
+          };
+        }
       }
     }
     
     // Process photo scores
-    const photoScores: PhotoScore[] = (photoData || []).map(photo => ({
-      url: photo.thumbnail_url || '',
-      score: photo.score || 0,
-      isPrimary: photo.metadata?.isPrimary || false
-    }));
+    const photoScores: PhotoScore[] = (photoData || []).map(photo => {
+      const metadata = photo.metadata as Record<string, any> || {};
+      return {
+        url: photo.thumbnail_url || '',
+        score: photo.score || 0,
+        isPrimary: metadata.isPrimary === true
+      };
+    });
     
     return {
       aiCondition,
@@ -88,4 +107,54 @@ function getConditionRating(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poo
   if (score >= 70) return 'Good';
   if (score >= 50) return 'Fair';
   return 'Poor';
+}
+
+// Add the missing exported functions that are imported in useValuationHistory.ts
+export async function getUserValuations(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching user valuations:', err);
+    return [];
+  }
+}
+
+export async function getSavedValuations(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('saved_valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching saved valuations:', err);
+    return [];
+  }
+}
+
+export async function getPremiumValuations(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('premium_unlocked', true)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching premium valuations:', err);
+    return [];
+  }
 }
