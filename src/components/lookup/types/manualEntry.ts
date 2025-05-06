@@ -24,3 +24,7 @@ export interface ManualEntryFormData {
   trim?: string;
   valuation?: number;
 }
+
+export interface ManualEntryFormProps {
+  onSubmit: (data: ManualEntryFormData) => void;
+}

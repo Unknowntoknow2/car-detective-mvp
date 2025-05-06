@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Card, 
@@ -94,6 +95,7 @@ export const VinDecoderForm = () => {
                 <ZipValidation 
                   zip={zipCode} 
                   compact={true} 
+                  className=""
                 />
               )}
             </div>

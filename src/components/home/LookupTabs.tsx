@@ -6,6 +6,7 @@ import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
 import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
 import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { CarFront, Search, FileText } from "lucide-react";
+import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
 
 interface LookupTabsProps {
   defaultTab?: string;
@@ -18,7 +19,7 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   console.log("LookupTabs rendering with activeTab:", activeTab);
 
   // Add a mock onSubmit function for ManualEntryForm
-  const handleManualSubmit = (data: any) => {
+  const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log("Manual entry form submitted:", data);
     // Here you would typically handle the form submission
   };

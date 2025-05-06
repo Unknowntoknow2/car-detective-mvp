@@ -1,139 +1,53 @@
-import { useState } from "react";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlateLookupInfo } from "@/types/lookup";
-import { downloadPdf, convertVehicleInfoToReportData } from "@/utils/pdf";
-import { toast } from "sonner";
-import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
-import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
-import { CarFront, Search, FileText } from "lucide-react";
+import React, { useState } from 'react';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
+import ManualEntryForm from '@/components/lookup/ManualEntryForm';
+import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
+import { MarketingBanner } from '@/components/marketing/MarketingBanner';
 
 export default function PlateLookupPage() {
-  const [lookupResult, setLookupResult] = useState<PlateLookupInfo | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("plate");
+  const [showManualEntry, setShowManualEntry] = useState(false);
 
-  const handleLookupComplete = (result: PlateLookupInfo | null) => {
-    setLookupResult(result);
-  };
-
-  const handleDownloadPdf = async () => {
-    if (!lookupResult) {
-      toast.error("No vehicle data available to generate a report");
-      return;
-    }
-
-    setIsDownloading(true);
-    try {
-      // Add transmission field before passing to convertVehicleInfoToReportData
-      const vehicleInfoWithTransmission = {
-        ...lookupResult,
-        transmission: 'Automatic' // Add default transmission
-      };
-      
-      const reportData = convertVehicleInfoToReportData(vehicleInfoWithTransmission, lookupResult.estimatedValue || 24500);
-      await downloadPdf(reportData);
-      toast.success("PDF report generated successfully");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF report");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  // Add a mock onSubmit function for ManualEntryForm
+  // Add a handler for the ManualEntryForm
   const handleManualSubmit = (data: any) => {
     console.log("Manual entry form submitted:", data);
     // Here you would typically handle the form submission
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      <AnnouncementBar />
       <Navbar />
-      <main className="flex-1 container py-10">
-        <div className="mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold text-center mb-8">Vehicle Lookup</h1>
-          <p className="text-center text-muted-foreground mb-8">
-            Look up vehicle information using VIN, license plate, or manual entry
-          </p>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
-              <TabsTrigger 
-                value="vin" 
-                className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <CarFront className="w-5 h-5" />
-                  <span>VIN Lookup</span>
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger 
-                value="plate" 
-                className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <Search className="w-5 h-5" />
-                  <span>Plate Lookup</span>
-                </div>
-              </TabsTrigger>
-              
-              <TabsTrigger 
-                value="manual" 
-                className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  <span>Manual Entry</span>
-                </div>
-              </TabsTrigger>
-            </TabsList>
+      <main className="flex-1 container max-w-2xl py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+              License Plate Lookup
+            </h1>
+            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">
+              Enter your license plate details to get vehicle information.
+            </p>
+          </div>
 
-            <TabsContent value="vin" className="mt-6 z-0">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <CardTitle>VIN Lookup</CardTitle>
-                  <CardDescription>Enter your Vehicle Identification Number for a detailed analysis</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <VinDecoderForm />
-                </CardContent>
-              </Card>
-            </TabsContent>
+          <MarketingBanner
+            headline="Unlock detailed vehicle insights"
+            subtext="Get access to vehicle specifications, market value, and more with our premium valuation."
+            ctaText="Explore Premium Features"
+            ctaHref="/premium"
+          />
 
-            <TabsContent value="plate" className="mt-6 z-0">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <CardTitle>License Plate Lookup</CardTitle>
-                  <CardDescription>Look up your vehicle using license plate information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <PlateDecoderForm 
-                    onLookupComplete={handleLookupComplete} 
-                    onDownloadPdf={handleDownloadPdf}
-                    isDownloading={isDownloading}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
+          <PlateDecoderForm onManualEntryClick={() => setShowManualEntry(true)} />
 
-            <TabsContent value="manual" className="mt-6 z-0">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <CardTitle>Manual Entry</CardTitle>
-                  <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ManualEntryForm onSubmit={handleManualSubmit} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          {showManualEntry && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Manual Entry</h2>
+              <p className="text-gray-600 mb-6">
+                If you prefer, you can manually enter your vehicle details below.
+              </p>
+              <ManualEntryForm onSubmit={handleManualSubmit} />
+            </div>
+          )}
         </div>
       </main>
       <Footer />
