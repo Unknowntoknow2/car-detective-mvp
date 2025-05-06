@@ -1,24 +1,61 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ValuationResults } from '@/components/premium/common/ValuationResults';
 import { PremiumDownloadButton } from '@/components/premium/PremiumDownloadButton';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { useAICondition } from '@/hooks/useAICondition';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PredictionResultProps {
   valuationId: string;
 }
 
 export function PredictionResult({ valuationId }: PredictionResultProps) {
-  const { data, isLoading, error } = useValuationResult(valuationId);
-  const { conditionData } = useAICondition(valuationId);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isLocalValuationId, setIsLocalValuationId] = useState<string>(valuationId);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  // Try to recover valuationId from localStorage if not provided or if query fails
+  useEffect(() => {
+    if (!isLocalValuationId) {
+      const storedValuation = localStorage.getItem('latest_valuation_id');
+      if (storedValuation) {
+        setIsLocalValuationId(storedValuation);
+        console.log("Recovered valuationId from localStorage:", storedValuation);
+      }
+    }
+  }, [isLocalValuationId]);
+
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useValuationResult(isLocalValuationId);
+  
+  const { 
+    conditionData, 
+    isLoading: isLoadingCondition 
+  } = useAICondition(isLocalValuationId);
+
+  // Retry logic if data fetch fails
+  useEffect(() => {
+    if (error && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log(`Retrying valuation fetch (attempt ${retryCount + 1}/3)...`);
+        refetch();
+        setRetryCount(prev => prev + 1);
+      }, 1000 * (retryCount + 1)); // Exponential backoff
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount, refetch]);
 
   const handleDownloadPdf = async () => {
     if (!data) return;
@@ -85,8 +122,16 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          {error?.message || "Failed to load valuation data"}
+        <AlertDescription className="space-y-2">
+          <p>{error?.message || "Failed to load valuation data"}</p>
+          <div className="mt-2">
+            <button 
+              onClick={() => refetch()} 
+              className="px-3 py-1 text-sm bg-white text-red-600 border border-red-600 rounded hover:bg-red-50"
+            >
+              {retryCount >= 3 ? "Try Again" : <div className="flex items-center"><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Retrying...</div>}
+            </button>
+          </div>
         </AlertDescription>
       </Alert>
     );
@@ -105,9 +150,10 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
       
       <div className="mt-6">
         <PremiumDownloadButton 
-          valuationId={valuationId}
+          valuationId={isLocalValuationId}
           onDownload={handleDownloadPdf}
           className="w-full"
+          isDownloading={isDownloading}
         />
       </div>
     </div>

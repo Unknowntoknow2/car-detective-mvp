@@ -1,7 +1,5 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FreeValuationForm } from '@/components/valuation/free/FreeValuationForm';
@@ -15,10 +13,16 @@ import type { ManualVehicleInfo } from '@/hooks/useManualValuation';
 export default function FreeValuationPage() {
   const [valuationComplete, setValuationComplete] = useState(false);
   const [valuationData, setValuationData] = useState<ManualVehicleInfo | null>(null);
+  const [valuationId, setValuationId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleValuationComplete = (data: ManualVehicleInfo) => {
+  const handleValuationComplete = (data: ManualVehicleInfo, id?: string) => {
     setValuationData(data);
+    if (id) {
+      setValuationId(id);
+      // Store valuationId in localStorage for persistence
+      localStorage.setItem('latest_valuation_id', id);
+    }
     setValuationComplete(true);
     setIsLoading(false);
   };
@@ -59,7 +63,10 @@ export default function FreeValuationPage() {
             />
           ) : (
             <div className="space-y-4 sm:space-y-6">
-              <ValuationResult valuationData={valuationData} />
+              <ValuationResult 
+                valuationData={valuationData} 
+                valuationId={valuationId} 
+              />
               <UpsellBanner />
               <FeaturesIncluded />
             </div>

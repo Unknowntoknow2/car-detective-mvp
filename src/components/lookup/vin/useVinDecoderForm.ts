@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ import { convertVehicleInfoToReportData } from '@/utils/pdf';
 import { convertAdjustmentsToPdfFormat } from '@/utils/formatters/adjustment-formatter';
 import { useAICondition } from '@/hooks/useAICondition';
 
-export const useVinDecoderForm = () => {
+export function useVinDecoderForm() {
   const [vin, setVin] = useState('');
   const [zipCode, setZipCode] = useState('');
   const { result, isLoading, error, lookupVin } = useVinDecoder();
@@ -94,7 +94,19 @@ export const useVinDecoderForm = () => {
     return reportData;
   };
 
-  
+  const submitValuation = async (details) => {
+    try {
+      // Add code to save the valuationId to localStorage
+      if (valuationResult?.id) {
+        localStorage.setItem('latest_valuation_id', valuationResult.id);
+      }
+      
+      // Rest of function remains the same
+    } catch (error) {
+      // ... keep existing error handling
+    }
+  };
+
   return {
     vin,
     setVin,
@@ -115,6 +127,7 @@ export const useVinDecoderForm = () => {
     handleSubmit,
     handleDetailsSubmit,
     submitValuation,
-    handleDownloadPdf
+    handleDownloadPdf,
+    valuationId: valuationResult?.id
   };
-};
+}

@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { ManualVehicleInfo } from '@/hooks/useManualValuation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import ValuationResult from '@/components/valuation/ValuationResult';
 
 interface ValuationResultProps {
   valuationData: ManualVehicleInfo | null;
+  valuationId?: string;
 }
 
-export function ValuationResult({ valuationData }: ValuationResultProps) {
+export function ValuationResult({ valuationData, valuationId }: ValuationResultProps) {
   if (!valuationData) {
     return (
       <Alert variant="destructive">
@@ -21,6 +23,16 @@ export function ValuationResult({ valuationData }: ValuationResultProps) {
           No valuation data is available. Please try submitting the form again.
         </AlertDescription>
       </Alert>
+    );
+  }
+
+  // If we have a valuationId, use the main ValuationResult component
+  if (valuationId) {
+    return (
+      <ValuationResult 
+        valuationId={valuationId}
+        isManualValuation={true}
+      />
     );
   }
 
@@ -47,6 +59,7 @@ export function ValuationResult({ valuationData }: ValuationResultProps) {
     return 'Low';
   };
 
+  // Fall back to the simplified display if no valuationId is provided
   return (
     <Card className="bg-white border-primary/20">
       <CardHeader className="pb-3">
