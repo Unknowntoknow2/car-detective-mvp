@@ -11,11 +11,11 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
   for (const photo of photos) {
     if (photo.id) {
       try {
-        // Delete from valuation_photos table - use type assertion
+        // Delete from valuation_photos table using any type
         await supabase
-          .from('valuation_photos' as string)
+          .from('valuation_photos')
           .delete()
-          .eq('id', photo.id);
+          .eq('id', photo.id) as any;
           
         // Extract file path from URL to delete from storage
         const url = new URL(photo.url);
@@ -38,11 +38,11 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     const photoUrls = photos.map(photo => photo.url);
     
     if (photoUrls.length > 0) {
-      // Delete corresponding scores - use type assertion
+      // Delete corresponding scores using any type
       await supabase
-        .from('photo_condition_scores' as string)
+        .from('photo_condition_scores')
         .delete()
-        .in('image_url', photoUrls);
+        .in('image_url', photoUrls) as any;
     }
   } catch (error) {
     console.error('Error cleaning up condition scores:', error);
