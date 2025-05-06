@@ -3,29 +3,32 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { ConditionAssessmentResult } from "./types.ts";
 
 /**
- * Stores the assessment result in the database
+ * Stores photo assessment result in the database
  */
 export async function storeAssessmentResult(
-  valuationId: string,
+  valuationId: string, 
   assessment: ConditionAssessmentResult,
   photoCount: number
 ): Promise<boolean> {
   try {
+    // Set up Supabase admin client with service role key
     const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const adminClient = createClient(supabaseUrl, supabaseServiceRole);
     
-    // Use the service role key for admin privileges
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Store the assessment in photo_condition_scores table
-    const { error } = await supabase
-      .from('photo_condition_scores')
+    // Store the overall assessment in photo_scores table
+    const { error } = await adminClient
+      .from('photo_scores')
       .insert({
         valuation_id: valuationId,
-        condition_score: assessment.confidenceScore / 100, // Convert percentage to 0-1 value
-        confidence_score: assessment.confidenceScore / 100,
-        issues: assessment.issuesDetected || [],
-        summary: assessment.aiSummary || ''
+        score: assessment.confidenceScore / 100, // Convert to 0-1 scale
+        metadata: {
+          condition: assessment.condition,
+          confidenceScore: assessment.confidenceScore,
+          issuesDetected: assessment.issuesDetected,
+          aiSummary: assessment.aiSummary,
+          photoCount
+        }
       });
     
     if (error) {
@@ -33,25 +36,28 @@ export async function storeAssessmentResult(
       return false;
     }
     
-    // Optionally update the main valuation record
-    const { error: updateError } = await supabase
-      .from('valuations')
-      .update({
-        condition_score: Math.round(assessment.confidenceScore),
-        // Only update confidence score if it's below 90
-        confidence_score: (val: any) => 
-          val < 90 ? Math.min(val + 7, 95) : val
-      })
-      .eq('id', valuationId);
-    
-    if (updateError) {
-      console.error('Error updating valuation:', updateError);
-      // Not critical, so we'll still return true
+    // Update the valuation with condition score if confidence is high enough
+    if (assessment.confidenceScore >= 70) {
+      const conditionScoreValue = 
+        assessment.condition === 'Excellent' ? 90 :
+        assessment.condition === 'Good' ? 75 :
+        assessment.condition === 'Fair' ? 60 : 40;
+        
+      const { error: updateError } = await adminClient
+        .from('valuations')
+        .update({ 
+          condition_score: conditionScoreValue
+        })
+        .eq('id', valuationId);
+      
+      if (updateError) {
+        console.error('Error updating valuation condition score:', updateError);
+      }
     }
     
     return true;
   } catch (error) {
-    console.error('Exception storing assessment result:', error);
+    console.error('Error in storeAssessmentResult:', error);
     return false;
   }
 }

@@ -1,7 +1,7 @@
 
 import { AICondition } from '@/types/photo';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface AIConditionDisplayProps {
   aiCondition: AICondition;
@@ -9,49 +9,70 @@ interface AIConditionDisplayProps {
 }
 
 export function AIConditionDisplay({ aiCondition, photoScore }: AIConditionDisplayProps) {
-  const { condition, confidenceScore, issuesDetected, aiSummary } = aiCondition;
-  
-  if (!condition) return null;
-  
-  const getConditionColor = (condition: string) => {
-    switch (condition) {
-      case 'Excellent': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Good': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'Fair': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Poor': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+  // Generate a color class based on the condition
+  const getConditionColorClass = (condition: string | null): string => {
+    if (!condition) return 'bg-gray-100 text-gray-800';
+    
+    switch(condition) {
+      case 'Excellent': return 'bg-green-100 text-green-800';
+      case 'Good': return 'bg-blue-100 text-blue-800';
+      case 'Fair': return 'bg-yellow-100 text-yellow-800';
+      case 'Poor': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
   
+  // Generate an appropriate icon
+  const getConditionIcon = (condition: string | null) => {
+    if (!condition) return null;
+    
+    switch(condition) {
+      case 'Excellent':
+      case 'Good':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'Fair':
+      case 'Poor':
+        return <AlertTriangle className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+  
+  if (!aiCondition || !aiCondition.condition) {
+    return null;
+  }
+  
   return (
-    <div className="mt-4 p-3 rounded border space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Badge className={getConditionColor(condition)}>
-            {condition} Condition
-          </Badge>
-          <span className="text-xs text-slate-500">
-            {confidenceScore}% confidence
-          </span>
+    <div className="mt-4 space-y-2">
+      <div className="flex flex-wrap items-start gap-2 justify-between">
+        <div>
+          <p className="text-sm font-medium">AI Condition Assessment</p>
+          <div className="flex items-center gap-2 mt-1">
+            <Badge className={`px-2 py-0.5 flex items-center gap-1 ${getConditionColorClass(aiCondition.condition)}`}>
+              {getConditionIcon(aiCondition.condition)}
+              {aiCondition.condition || 'Unknown'}
+            </Badge>
+            {aiCondition.confidenceScore && (
+              <span className="text-xs text-slate-500">
+                {aiCondition.confidenceScore}% confidence
+              </span>
+            )}
+          </div>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-          AI Verified
-        </Badge>
       </div>
       
-      {aiSummary && (
-        <p className="text-sm text-slate-700 italic">{aiSummary}</p>
+      {aiCondition.aiSummary && (
+        <p className="text-xs text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">
+          "{aiCondition.aiSummary}"
+        </p>
       )}
       
-      {issuesDetected && issuesDetected.length > 0 && (
-        <div className="mt-1 space-y-1">
-          <p className="text-xs font-medium text-slate-700">Issues detected:</p>
-          <ul className="text-xs text-slate-600 space-y-1">
-            {issuesDetected.map((issue, i) => (
-              <li key={i} className="flex items-start gap-1">
-                <AlertTriangle className="h-3 w-3 text-amber-500 mt-0.5 flex-shrink-0" />
-                <span>{issue}</span>
-              </li>
+      {aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0 && (
+        <div className="text-xs">
+          <p className="font-medium text-slate-700">Issues detected:</p>
+          <ul className="pl-4 list-disc text-slate-600 mt-1 space-y-0.5">
+            {aiCondition.issuesDetected.map((issue, i) => (
+              <li key={i}>{issue}</li>
             ))}
           </ul>
         </div>

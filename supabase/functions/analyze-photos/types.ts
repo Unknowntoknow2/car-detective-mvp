@@ -1,6 +1,6 @@
 
 /**
- * Result of vehicle condition assessment
+ * Result from image condition assessment
  */
 export interface ConditionAssessmentResult {
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';

@@ -21,6 +21,7 @@ export async function generateValuationPdf(params: {
     issuesDetected?: string[];
     aiSummary?: string;
   } | null;
+  bestPhotoUrl?: string;
 }): Promise<Uint8Array> {
   // Convert the params to the expected ReportData format
   const reportData: ReportData = {
@@ -40,7 +41,8 @@ export async function generateValuationPdf(params: {
     explanation: params.explanation,
     isPremium: false,
     valuationId: params.valuationId,
-    aiCondition: params.aiCondition
+    aiCondition: params.aiCondition,
+    bestPhotoUrl: params.bestPhotoUrl
   };
   
   return generatePdf(reportData);

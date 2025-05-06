@@ -1,3 +1,4 @@
+
 /**
  * Enterprise-Level, 100% Accurate Car Valuation Logic
  * 
@@ -6,6 +7,7 @@
  */
 
 import { getMarketMultiplier } from './marketData';
+import { getBestPhotoAssessment } from '../valuationService';
 
 export interface ValuationInput {
   baseMarketValue: number;
@@ -121,13 +123,26 @@ function featureAdjustments(features: string[]): { [feature: string]: number } {
  * @returns Detailed valuation output with all adjustments and final value
  */
 export async function calculateFinalValuation(input: ValuationInput): Promise<ValuationOutput> {
+  // If a valuation ID is provided, try to get AI condition assessment
+  let aiConditionOverride = input.aiConditionOverride;
+  
+  if (input.valuationId && !aiConditionOverride) {
+    console.log(`Checking for AI photo assessment for valuation ${input.valuationId}`);
+    const { aiCondition } = await getBestPhotoAssessment(input.valuationId);
+    
+    if (aiCondition && aiCondition.confidenceScore >= 70) {
+      console.log(`Found valid AI condition assessment: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
+      aiConditionOverride = aiCondition;
+    }
+  }
+  
   // Determine which condition to use - AI or user input
   // Use AI condition if it exists and has high confidence, otherwise use user-provided condition
-  const useAiCondition = input.aiConditionOverride && 
-                          input.aiConditionOverride.confidenceScore >= 70;
+  const useAiCondition = aiConditionOverride && 
+                          aiConditionOverride.confidenceScore >= 70;
   
   const finalCondition = useAiCondition 
-    ? input.aiConditionOverride!.condition 
+    ? aiConditionOverride!.condition 
     : input.condition;
   
   // Calculate precise mileage adjustment
@@ -164,8 +179,8 @@ export async function calculateFinalValuation(input: ValuationInput): Promise<Va
   };
   
   // Include AI summary if available and being used
-  if (useAiCondition && input.aiConditionOverride?.aiSummary) {
-    result.aiSummary = input.aiConditionOverride.aiSummary;
+  if (useAiCondition && aiConditionOverride?.aiSummary) {
+    result.aiSummary = aiConditionOverride.aiSummary;
   }
   
   return result;

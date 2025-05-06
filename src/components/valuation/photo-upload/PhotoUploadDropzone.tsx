@@ -1,7 +1,7 @@
 
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload } from 'lucide-react';
+import { Camera, Upload, Plus, Image } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { MIN_FILES, MAX_FILES } from '@/types/photo';
@@ -22,12 +22,16 @@ interface PhotoUploadDropzoneProps {
   onFilesSelect: (files: File[]) => Promise<void>;
   isLoading: boolean;
   currentFileCount: number;
+  additionalMode?: boolean;
+  minRequired?: number;
 }
 
 export function PhotoUploadDropzone({ 
   onFilesSelect, 
   isLoading, 
-  currentFileCount
+  currentFileCount,
+  additionalMode = false,
+  minRequired
 }: PhotoUploadDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +66,10 @@ export function PhotoUploadDropzone({
       if (files.length + currentFileCount > MAX_FILES) {
         toast.error(`You can only upload up to ${MAX_FILES} images in total. ${MAX_FILES - currentFileCount} remaining.`);
         return;
+      }
+      
+      if (minRequired && files.length < minRequired && currentFileCount === 0) {
+        toast.warning(`Please select at least ${minRequired} photos for accurate analysis.`);
       }
       
       const totalSize = files.reduce((acc, file) => acc + file.size, 0);
@@ -108,6 +116,33 @@ export function PhotoUploadDropzone({
     return null;
   }
 
+  // For additional photo mode (when some photos are already uploaded)
+  if (additionalMode) {
+    return (
+      <div className="mt-4">
+        <Button 
+          variant="outline" 
+          onClick={triggerFileInput}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 border-dashed h-14"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add more photos ({remainingFiles} remaining)</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            disabled={isLoading}
+            multiple
+          />
+        </Button>
+      </div>
+    );
+  }
+
+  // Initial upload mode (no photos uploaded yet)
   return (
     <div
       className={`border-2 ${
@@ -131,12 +166,18 @@ export function PhotoUploadDropzone({
       
       <div className="flex flex-col items-center justify-center space-y-3">
         <div className="p-3 bg-primary/10 rounded-full">
-          <Upload className="h-6 w-6 text-primary" />
+          {minRequired ? (
+            <Camera className="h-6 w-6 text-primary" />
+          ) : (
+            <Upload className="h-6 w-6 text-primary" />
+          )}
         </div>
         <div>
           <p className="text-sm font-medium">
             {currentFileCount === 0 
-              ? `Upload ${MIN_FILES}-${MAX_FILES} photos of your vehicle for better analysis`
+              ? minRequired
+                ? `Upload ${minRequired}-${MAX_FILES} photos of your vehicle exterior & interior`
+                : `Upload ${MIN_FILES}-${MAX_FILES} photos of your vehicle for better analysis`
               : `Add up to ${remainingFiles} more photos`}
           </p>
           <p className="text-xs text-gray-500 mt-1">
@@ -148,9 +189,16 @@ export function PhotoUploadDropzone({
           size="sm" 
           onClick={triggerFileInput}
           disabled={isLoading}
+          className="gap-1"
         >
+          <Image className="h-4 w-4 mr-1" />
           Select Photos
         </Button>
+        {minRequired && (
+          <p className="text-xs text-amber-600">
+            *Required for accurate condition assessment
+          </p>
+        )}
       </div>
     </div>
   );

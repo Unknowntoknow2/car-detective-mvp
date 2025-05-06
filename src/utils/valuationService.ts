@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { errorHandler } from '@/utils/error-handling';
 import type { Valuation } from "@/types/valuation-history";
+import type { PhotoScore, AICondition } from "@/types/photo";
 
 export async function getUserValuations(userId: string): Promise<Valuation[]> {
   try {
@@ -92,6 +93,74 @@ export async function getPremiumValuations(userId: string): Promise<Valuation[]>
   } catch (error) {
     errorHandler.handle(error, 'premium-valuations-fetch');
     return [];
+  }
+}
+
+// Get the best quality photo assessment for a valuation
+export async function getBestPhotoAssessment(valuationId: string): Promise<{
+  aiCondition: AICondition | null;
+  photoScores: PhotoScore[];
+}> {
+  try {
+    if (!valuationId) {
+      return { aiCondition: null, photoScores: [] };
+    }
+    
+    // Get all photo scores for this valuation
+    const { data: photoScores, error: scoresError } = await supabase
+      .from('photo_condition_scores')
+      .select('*')
+      .eq('valuation_id', valuationId)
+      .order('confidence_score', { ascending: false });
+      
+    if (scoresError) {
+      console.error('Error fetching photo scores:', scoresError.message);
+      return { aiCondition: null, photoScores: [] };
+    }
+    
+    if (!photoScores || photoScores.length === 0) {
+      return { aiCondition: null, photoScores: [] };
+    }
+    
+    // Find the score with highest confidence that meets our threshold (70%)
+    const bestScore = photoScores.find(score => score.confidence_score >= 0.7);
+    
+    if (!bestScore) {
+      // If no score meets our threshold, return null condition but still return scores
+      const mappedScores = photoScores.map(score => ({
+        url: score.image_url,
+        score: score.condition_score
+      }));
+      
+      return { 
+        aiCondition: null, 
+        photoScores: mappedScores 
+      };
+    }
+    
+    // Create the AI condition from the best score
+    const aiCondition: AICondition = {
+      condition: bestScore.condition_score >= 0.8 ? 'Excellent' : 
+                 bestScore.condition_score >= 0.6 ? 'Good' : 
+                 bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
+      confidenceScore: Math.round(bestScore.confidence_score * 100),
+      issuesDetected: bestScore.issues || [],
+      aiSummary: bestScore.summary || undefined
+    };
+    
+    // Map the photo scores to the expected format
+    const mappedScores = photoScores.map(score => ({
+      url: score.image_url,
+      score: score.condition_score
+    }));
+    
+    return { 
+      aiCondition, 
+      photoScores: mappedScores 
+    };
+  } catch (error) {
+    console.error('Error getting best photo assessment:', error);
+    return { aiCondition: null, photoScores: [] };
   }
 }
 

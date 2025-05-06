@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { ValuationHeader, NextStepsCard } from './valuation-complete';
 import { calculateValuation } from '@/utils/valuationEngine';
 import { ChatBubble } from '@/components/chat/ChatBubble';
+import { getBestPhotoAssessment } from '@/utils/valuationService';
 
 // Add this interface to handle audit trail type
 export interface AuditTrail {
@@ -39,8 +41,35 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   const [auditTrail, setAuditTrail] = useState<AuditTrail[] | null>(null);
   const [estimatedValue, setEstimatedValue] = useState<number | undefined>(valuationData.estimatedValue);
   const [calculationInProgress, setCalculationInProgress] = useState(false);
+  const [bestPhotoUrl, setBestPhotoUrl] = useState<string | undefined>(undefined);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Check for existing photo assessment on load
+  useEffect(() => {
+    const loadPhotoAssessment = async () => {
+      try {
+        const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId);
+        
+        if (aiCondition) {
+          setAiCondition(aiCondition);
+          setPhotoSubmitted(true);
+          
+          // Find the highest score photo
+          if (photoScores.length > 0) {
+            const bestScore = [...photoScores].sort((a, b) => b.score - a.score)[0];
+            setBestPhotoUrl(bestScore?.url);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading photo assessment:', error);
+      }
+    };
+    
+    if (valuationId) {
+      loadPhotoAssessment();
+    }
+  }, [valuationId]);
 
   // Recalculate valuation when photo score or AI condition changes
   useEffect(() => {
@@ -94,6 +123,12 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
     setPhotoScore(score);
     setAiCondition(condition);
     setPhotoSubmitted(true);
+    
+    // Find the highest score photo from the condition
+    if (condition?.bestPhotoUrl) {
+      setBestPhotoUrl(condition.bestPhotoUrl);
+    }
+    
     toast.success(`Photos analyzed and vehicle condition assessed`);
   };
 
@@ -160,6 +195,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         onShareValuation={shareValuation}
         onSaveToAccount={saveToAccount}
         isSaving={isSaving}
+        bestPhotoUrl={bestPhotoUrl}
       />
 
       {auditTrail && (
@@ -184,6 +220,8 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
                 condition: aiCondition?.condition || valuationData.condition || 'good'
               }
             }} 
+            photoUrl={bestPhotoUrl}
+            aiCondition={aiCondition}
           />
         </div>
       )}
@@ -193,6 +231,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       <PhotoUploadAndScore 
         valuationId={valuationId} 
         onScoreChange={handlePhotoScoreChange} 
+        isPremium={true}
       />
 
       <NextStepsCard />

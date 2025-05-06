@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
@@ -8,9 +9,13 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
   photos: Photo[];
   photoScore: number | null;
   aiCondition: AICondition | null;
-  individualScores?: PhotoScore[];
+  individualScores: PhotoScore[];
 }> {
   try {
+    if (!valuationId) {
+      return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
+    }
+    
     // Get existing photos - use type assertion for tables not in generated types
     const { data: photoData, error: photoError } = await supabase
       .from('valuation_photos' as any)
@@ -21,14 +26,14 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
       };
     
     if (photoError) {
-      console.log('Error loading photos:', photoError);
+      console.error('Error loading photos:', photoError);
       return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
     }
     
     const photos: Photo[] = [];
     let photoScore: number | null = null;
     let aiCondition: AICondition | null = null;
-    let individualScores: PhotoScore[] = [];
+    const individualScores: PhotoScore[] = [];
     
     if (photoData && photoData.length > 0) {
       const loadedPhotos = photoData.map((photo) => ({
@@ -37,54 +42,57 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         id: photo.id
       }));
       
-      // Also load individual scores
-      const { data: scoreData } = await supabase
+      photos.push(...loadedPhotos);
+      
+      // Get individual photo scores
+      const { data: scoreData, error: scoreError } = await supabase
         .from('photo_condition_scores')
         .select('*')
-        .eq('valuation_id', valuationId);
-        
-      if (scoreData && scoreData.length > 0) {
-        // Map the scores correctly - fixing the property access issue
-        // Create objects with the expected structure regardless of DB field names
-        individualScores = scoreData.map(item => ({
-          // Use a fallback empty string if photo_url doesn't exist
-          url: '', // Not using photo_url since it might not exist in the table
-          score: item.condition_score || 0
-        }));
-      }
-      
-      // If we have photos, check for AI assessment
-      const { data: aiData, error: aiError } = await supabase
-        .from('photo_scores')
-        .select('*')
         .eq('valuation_id', valuationId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (!aiError && aiData) {
-        photoScore = aiData.score * 100; // Convert from 0-1 to 0-100
+        .order('confidence_score', { ascending: false });
         
-        // Extract AI condition analysis from metadata
-        if (aiData.metadata) {
-          const metadata = aiData.metadata as any;
-          if (metadata.condition) {
-            aiCondition = {
-              condition: metadata.condition,
-              confidenceScore: metadata.confidenceScore || 70,
-              issuesDetected: metadata.issuesDetected || [],
-              aiSummary: metadata.aiSummary
-            };
-          }
+      if (!scoreError && scoreData && scoreData.length > 0) {
+        // Get highest confidence score 
+        const bestScore = scoreData.find(score => score.confidence_score >= 0.7);
+        
+        // Map all scores to the expected format
+        scoreData.forEach(score => {
+          individualScores.push({
+            url: score.image_url,
+            score: score.condition_score || 0
+          });
+        });
+        
+        // If we have a best score, create the AI condition
+        if (bestScore) {
+          // Set overall photo score from the best score
+          photoScore = bestScore.condition_score * 100;
+          
+          // Create AI condition from best score
+          aiCondition = {
+            condition: bestScore.condition_score >= 0.8 ? 'Excellent' : 
+                      bestScore.condition_score >= 0.6 ? 'Good' : 
+                      bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
+            confidenceScore: Math.round(bestScore.confidence_score * 100),
+            issuesDetected: bestScore.issues || [],
+            aiSummary: bestScore.summary || undefined
+          };
         }
+      } else if (scoreError) {
+        console.error('Error loading photo scores:', scoreError);
       }
       
-      return { photos: loadedPhotos, photoScore, aiCondition, individualScores };
+      return { 
+        photos, 
+        photoScore, 
+        aiCondition, 
+        individualScores 
+      };
     }
     
     return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
   } catch (err) {
-    console.log('Error loading existing photo data:', err);
+    console.error('Error loading existing photo data:', err);
     return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
   }
 }
@@ -93,18 +101,45 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
  * Deletes photos associated with a valuation
  */
 export async function deletePhotos(photos: Photo[]): Promise<void> {
+  if (!photos.length) return;
+  
   for (const photo of photos) {
     if (photo.id) {
       try {
-        // Type assertion to avoid type error
+        // Delete from valuation_photos table
         await supabase
           .from('valuation_photos' as any)
           .delete()
           .eq('id', photo.id) as unknown as any;
+          
+        // Extract file path from URL to delete from storage
+        const url = new URL(photo.url);
+        const filePath = url.pathname.split('/').slice(2).join('/');
+        
+        if (filePath) {
+          // Also try to remove from storage
+          await supabase.storage
+            .from('vehicle-photos')
+            .remove([filePath]);
+        }
       } catch (err) {
-        console.error('Error deleting photo record:', err);
+        console.error('Error deleting photo:', err);
       }
     }
+  }
+  
+  // Also clean up any condition scores
+  try {
+    const fileUrls = photos.map(p => p.url);
+    if (fileUrls.length > 0) {
+      // Delete corresponding scores
+      await supabase
+        .from('photo_condition_scores')
+        .delete()
+        .in('image_url', fileUrls);
+    }
+  } catch (error) {
+    console.error('Error cleaning up condition scores:', error);
   }
 }
 
@@ -121,6 +156,10 @@ export async function uploadAndAnalyzePhotos(
   individualScores?: PhotoScore[]
 } | null> {
   try {
+    if (!valuationId || !files.length) {
+      throw new Error("Missing valuation ID or files");
+    }
+    
     // Create form data to send to the edge function
     const formData = new FormData();
     formData.append('valuationId', valuationId);
@@ -131,29 +170,37 @@ export async function uploadAndAnalyzePhotos(
     });
     
     // Call the analyze-photos edge function with FormData
-    const { data, error: uploadError } = await supabase.functions
+    const { data, error } = await supabase.functions
       .invoke('analyze-photos', {
         body: formData,
       });
     
-    if (uploadError) {
-      throw new Error(`Upload failed: ${uploadError.message}`);
+    if (error) {
+      console.error('Upload error:', error);
+      throw new Error(`Upload failed: ${error.message}`);
     }
     
-    // Return the results
+    if (!data) {
+      throw new Error("No data returned from photo analysis");
+    }
+    
+    // Return the results with proper typing
     return {
       photoUrls: data.photoUrls || [],
-      score: data.confidenceScore,
-      aiCondition: {
-        condition: data.condition,
+      score: data.confidenceScore / 100, // Convert to 0-1 range
+      aiCondition: data.condition ? {
+        condition: data.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
         confidenceScore: data.confidenceScore,
-        issuesDetected: data.issuesDetected,
+        issuesDetected: data.issuesDetected || [],
         aiSummary: data.aiSummary
-      },
-      individualScores: data.individualScores || []
+      } : undefined,
+      individualScores: data.individualScores?.map((score: any) => ({
+        url: score.url,
+        score: score.score
+      }))
     };
   } catch (err) {
     console.error('Photo upload and analysis error:', err);
-    return null;
+    throw err;
   }
 }

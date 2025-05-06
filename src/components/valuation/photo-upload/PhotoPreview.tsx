@@ -5,6 +5,7 @@ import { Loader2, X, CheckCircle, Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AIConditionDisplay } from './AIConditionDisplay';
 import { Photo, AICondition } from '@/types/photo';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PhotoPreviewProps {
   photos: Photo[];
@@ -70,11 +71,20 @@ export function PhotoPreview({
                   className="w-full h-full object-cover"
                 />
                 {score !== null && (
-                  <div className="absolute bottom-0 right-0 m-1">
-                    <Badge className={`text-xs ${getScoreColorClass(score)}`}>
-                      {Math.round(score * 100)}%
-                    </Badge>
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="absolute bottom-0 right-0 m-1">
+                          <Badge className={`text-xs ${getScoreColorClass(score)}`}>
+                            {Math.round(score * 100)}%
+                          </Badge>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">Condition score: {Math.round(score * 100)}%</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
             );

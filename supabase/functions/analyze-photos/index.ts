@@ -167,6 +167,30 @@ serve(async (req) => {
           issuesDetected: uniqueIssues,
           aiSummary
         };
+        
+        // Find the highest confidence score image and mark it as primary
+        const bestResult = [...individualResults]
+          .sort((a, b) => b.confidenceScore - a.confidenceScore)[0];
+        
+        if (bestResult && bestResult.confidenceScore >= 70) {
+          const bestImageIndex = individualResults.indexOf(bestResult);
+          if (bestImageIndex >= 0 && bestImageIndex < photoUrls.length) {
+            // Mark this as the primary image in the database
+            const bestImageUrl = photoUrls[bestImageIndex];
+            
+            // Update this specific image to mark it as primary
+            const { error: updateError } = await adminClient
+              .from('photo_condition_scores')
+              .update({ is_primary: true })
+              .eq('image_url', bestImageUrl);
+              
+            if (updateError) {
+              console.error('Error marking primary image:', updateError);
+            } else {
+              console.log(`Marked ${bestImageUrl} as primary image with confidence ${bestResult.confidenceScore}`);
+            }
+          }
+        }
       } else {
         // Call OpenAI to analyze all images together as fallback
         const aiResult = await analyzeImagesWithOpenAI(photoUrls);

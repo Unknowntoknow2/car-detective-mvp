@@ -40,7 +40,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
         setPhotos(loadedPhotos);
         setPhotoScore(score);
         setAiCondition(condition);
-        if (loadedScores) {
+        if (loadedScores && loadedScores.length > 0) {
           setIndividualScores(loadedScores);
         }
       }
@@ -53,7 +53,14 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
    * Resets the photo upload state and deletes all photos
    */
   const resetUpload = async () => {
-    await deletePhotos(photos);
+    if (!photos.length) return;
+    
+    try {
+      await deletePhotos(photos);
+    } catch (error) {
+      console.error("Error deleting photos:", error);
+      toast.error("Failed to delete photos. Please try again.");
+    }
     
     setPhotos([]);
     setPhotoScore(null);
