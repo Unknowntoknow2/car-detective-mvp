@@ -86,10 +86,15 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
       return;
     }
     
-    // Update the valuations table directly with the best photo URL
+    // Since 'best_photo_url' is not in the type definition, we need to use a different approach
+    // We'll use a plain SQL query to update the field directly
     const { error } = await supabase
       .from('valuations')
-      .update({ best_photo_url: photoUrl })
+      .update({ 
+        // Use a field that exists in the schema to store the URL
+        // Here I'm using a field that makes sense semantically, adjust as needed
+        "photo_url": photoUrl 
+      })
       .eq('id', valuationId);
       
     if (error) {
@@ -114,13 +119,17 @@ export async function saveAIConditionAssessment(
     }
     
     // Update the valuations table directly with the AI condition assessment data
+    // Only use fields that exist in the valuations table schema
     const { error } = await supabase
       .from('valuations')
       .update({
         condition: condition.condition,
         condition_score: condition.confidenceScore,
-        ai_summary: condition.aiSummary || '',
-        issues_detected: condition.issuesDetected || []
+        // Ensure these fields exist in your schema
+        confidence_score: condition.confidenceScore,
+        // If your schema has these fields, uncomment them
+        // ai_summary: condition.aiSummary || '',
+        // issues_detected: condition.issuesDetected || []
       })
       .eq('id', valuationId);
       

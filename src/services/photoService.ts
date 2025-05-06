@@ -208,7 +208,7 @@ export async function uploadAndAnalyzePhotos(
       throw new Error("No data returned from photo analysis");
     }
     
-    // Use the explicitly defined interface instead of dynamic type inference
+    // Use the explicitly defined interface
     const responseData = data as PhotoUploadResponse;
     
     return {
