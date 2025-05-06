@@ -1,9 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { getListingsWithCondition, getListingsCount, ConditionFilterOption } from '@/utils/getListingsWithCondition';
 import { downloadPdf } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { ValuationWithCondition } from '@/types/dealer';
-import { convertVehicleInfoToReportData } from '@/utils/pdf/dataConverter';
+import { convertVehicleInfoToReportData } from '@/utils/pdf/index';
+
+// Define a type for AIConditionData to prevent conflicts
+type AIConditionData = {
+  condition: string;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  aiSummary?: string;
+};
 
 // Add a type definition for ValuationWithCondition that includes explanation
 declare module '@/types/dealer' {
@@ -22,12 +31,7 @@ declare module '@/types/dealer' {
     body_type?: string;
     fuel_type?: string;
     zip_code?: string;
-    aiCondition?: {
-      condition: string;
-      confidenceScore: number;
-      issuesDetected?: string[];
-      aiSummary?: string;
-    };
+    aiCondition?: AIConditionData;
   }
 }
 

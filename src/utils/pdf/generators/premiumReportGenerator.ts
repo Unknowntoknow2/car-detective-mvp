@@ -57,14 +57,11 @@ export async function generatePremiumReport(data: ReportData): Promise<Uint8Arra
   });
   
   // Add more premium content
-  const premiumData = {
-    ...data,
-    // Use the priceRange property that we've added to ReportData
-    priceRange: data.priceRange || [
-      Math.round(data.estimatedValue * 0.95), 
-      Math.round(data.estimatedValue * 1.05)
-    ]
-  };
+  // Use the priceRange property if available, or calculate it
+  const priceRange = data.priceRange || [
+    Math.round(data.estimatedValue * 0.95), 
+    Math.round(data.estimatedValue * 1.05)
+  ];
   
   // Serialize and save the PDF
   return await pdfDoc.save();

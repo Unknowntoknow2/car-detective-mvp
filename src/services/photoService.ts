@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
@@ -56,10 +57,10 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         
         // Map all scores to the expected format
         scoreData.forEach(score => {
-          // Use the appropriate field name based on the database schema
           // Safely handle the image URL field which might be in different properties
           const imageUrl = score.photo_url || 
-                           (score as any).image_url || 
+                           // Handle potential undefined fields safely
+                           score.image_url || 
                            '';
           
           if (imageUrl) {
@@ -82,7 +83,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
                       bestScore.condition_score >= 0.4 ? 'Fair' : 'Poor',
             confidenceScore: Math.round(bestScore.confidence_score * 100),
             issuesDetected: Array.isArray(bestScore.issues) ? 
-              (bestScore.issues as unknown as string[]) : [], // Type assertion for safety
+              bestScore.issues.map(issue => String(issue)) : [], // Convert to string array
             aiSummary: bestScore.summary || undefined
           };
         }

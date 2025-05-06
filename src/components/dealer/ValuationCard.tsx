@@ -1,60 +1,87 @@
 
-import { Button } from '@/components/ui/button';
-import { Valuation } from '@/types/dealer';
+import { formatCurrency } from '@/utils/formatters';
 import { ConditionBadge } from '@/components/ui/condition-badge';
-import { ShieldCheck } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ValuationWithCondition } from '@/types/dealer';
+import { Download, ExternalLink } from 'lucide-react';
+import { formatDate } from '@/utils/formatters';
 
 interface ValuationCardProps {
-  valuation: Valuation;
-  onDownload: (valuation: Valuation) => void;
+  valuation: ValuationWithCondition;
   aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    condition: string;
     confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
   } | null;
+  onDownload: (valuation: ValuationWithCondition) => void;
 }
 
-export const ValuationCard = ({ valuation, onDownload, aiCondition }: ValuationCardProps) => {
+export function ValuationCard({ valuation, aiCondition, onDownload }: ValuationCardProps) {
   return (
-    <div className="border rounded-lg p-4 hover:border-primary/30 hover:bg-primary/5 transition-colors">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-semibold">
-            {valuation.year} {valuation.make} {valuation.model}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Estimated Value: ${valuation.estimated_value?.toLocaleString()}
-          </p>
-          {valuation.mileage && (
-            <p className="text-sm text-muted-foreground">
-              Mileage: {valuation.mileage.toLocaleString()}
-            </p>
-          )}
+    <Card className="bg-card hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div>
+            <h3 className="font-semibold text-base">
+              {valuation.year} {valuation.make} {valuation.model}
+            </h3>
+            <div className="flex items-center gap-2 mt-1">
+              {aiCondition ? (
+                <ConditionBadge 
+                  condition={aiCondition.condition as any} 
+                  confidenceScore={aiCondition.confidenceScore} 
+                />
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {valuation.condition || 'Condition unknown'}
+                </span>
+              )}
+              <span className="text-xs text-muted-foreground">•</span>
+              <span className="text-xs text-muted-foreground">
+                {valuation.mileage?.toLocaleString() || 'Unknown'} miles
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Created {formatDate(valuation.created_at || new Date().toISOString())}
+            </div>
+          </div>
           
-          {/* Display the condition badge if aiCondition data exists */}
-          {aiCondition && (
-            <div className="mt-2">
-              <ConditionBadge 
-                condition={aiCondition.condition} 
-                confidenceScore={aiCondition.confidenceScore} 
-              />
+          <div className="text-center">
+            <span className="text-sm text-muted-foreground">Valuation</span>
+            <div className="text-xl font-bold text-primary">
+              {formatCurrency(valuation.estimated_value)}
             </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-2 items-end">
-          {aiCondition?.confidenceScore >= 85 && (
-            <div className="flex items-center text-xs text-green-600 gap-1 bg-green-50 px-2 py-1 rounded-full border border-green-100">
-              <ShieldCheck className="w-3 h-3" />
-              <span>High Trust</span>
+            <div className="text-xs text-muted-foreground">
+              {valuation.confidence_score ? `${valuation.confidence_score}% confidence` : ''}
             </div>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => onDownload(valuation)}
-          >
-            Download Report
-          </Button>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={() => onDownload(valuation)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>PDF</span>
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="flex items-center gap-1"
+              asChild
+            >
+              <a href={`/valuations/${valuation.id}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>View</span>
+              </a>
+            </Button>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
-};
+}

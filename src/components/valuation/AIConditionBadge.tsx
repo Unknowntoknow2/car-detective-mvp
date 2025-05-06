@@ -1,6 +1,6 @@
 
 import { Badge } from "@/components/ui/badge";
-import { InfoCircle, CheckCircle } from "lucide-react";
+import { Info, CheckCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AIConditionBadgeProps {

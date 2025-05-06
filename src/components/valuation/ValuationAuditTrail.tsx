@@ -1,8 +1,17 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ArrowUp, ArrowDown, Info } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { AIConditionBadge } from './AIConditionBadge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 
 export interface AdjustmentItem {
   name: string;
