@@ -5,6 +5,10 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { getMarketMultiplier } from '../valuation/marketData';
+
+// Cache for synchronous lookups to avoid repeated default values
+const syncMarketMultiplierCache = new Map<string, number>();
 
 /**
  * Gets the regional market multiplier based on the vehicle's location
@@ -14,6 +18,11 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export function getRegionalMarketMultiplier(zipCode: string): number {
   if (!zipCode) return 0;
+  
+  // Check our sync cache first
+  if (syncMarketMultiplierCache.has(zipCode)) {
+    return syncMarketMultiplierCache.get(zipCode)! / 100;
+  }
   
   // Since we can't do async here, return a default value
   // The async version should be preferred where possible
@@ -30,20 +39,14 @@ export async function getRegionalMarketMultiplierAsync(zipCode: string): Promise
   if (!zipCode) return 0;
   
   try {
-    // Fetch multiplier from Supabase market_adjustments table
-    const { data, error } = await supabase
-      .from('market_adjustments')
-      .select('market_multiplier')
-      .eq('zip_code', zipCode)
-      .maybeSingle();
+    // Use the shared market multiplier function
+    const multiplierPercentage = await getMarketMultiplier(zipCode);
     
-    if (error) {
-      console.error('Error fetching market multiplier:', error);
-      return 0;
-    }
+    // Update sync cache for future synchronous lookups
+    syncMarketMultiplierCache.set(zipCode, multiplierPercentage);
     
-    // Return the multiplier if found, otherwise return 0
-    return data?.market_multiplier ? data.market_multiplier / 100 : 0;
+    // Return the multiplier as a decimal (divide by 100)
+    return multiplierPercentage / 100;
   } catch (error) {
     console.error('Exception fetching market multiplier:', error);
     return 0;

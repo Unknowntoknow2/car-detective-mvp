@@ -3,6 +3,7 @@ import { useOsmGeocode } from '@/hooks/useOsmGeocode';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getMarketMultiplier, getMarketMultiplierDescription } from '@/utils/valuation/marketData';
 
 interface GeoMultiplierProps {
   zip: string;
@@ -19,18 +20,8 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
       
       setIsLoadingMultiplier(true);
       try {
-        const { data, error } = await supabase
-          .from('market_adjustments')
-          .select('market_multiplier')
-          .eq('zip_code', zip)
-          .maybeSingle();
-          
-        if (error) {
-          console.error('Error fetching market multiplier:', error);
-          return;
-        }
-        
-        setMarketMultiplier(data?.market_multiplier || 0);
+        const multiplier = await getMarketMultiplier(zip);
+        setMarketMultiplier(multiplier);
       } catch (error) {
         console.error('Exception in fetchMarketMultiplier:', error);
       } finally {
@@ -46,11 +37,7 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
     if (marketMultiplier !== null) {
       return { 
         percentage: marketMultiplier, 
-        description: marketMultiplier > 0 
-          ? 'High demand in this area increases value' 
-          : marketMultiplier < 0 
-            ? 'Lower demand in this area affects value'
-            : 'Average market demand in this area'
+        description: getMarketMultiplierDescription(marketMultiplier)
       };
     }
     

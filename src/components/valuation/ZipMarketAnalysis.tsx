@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { DesignCard } from "@/components/ui/design-system";
 import { MapPin, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import { ZipValidation } from "@/components/common/ZipValidation";
-import { supabase } from "@/integrations/supabase/client";
+import { getMarketMultiplier, getMarketMultiplierDescription } from "@/utils/valuation/marketData";
 
 interface ZipMarketAnalysisProps {
   zipCode: string;
@@ -44,63 +44,28 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
     setError(null);
     
     try {
-      // Fetch market multiplier from Supabase
-      const { data, error } = await supabase
-        .from('market_adjustments')
-        .select('market_multiplier')
-        .eq('zip_code', zip)
-        .maybeSingle();
+      // Use our unified market multiplier function
+      const multiplier = await getMarketMultiplier(zip);
+      setMarketMultiplier(multiplier);
       
-      if (error) {
-        console.error('Error fetching market multiplier:', error);
-        setError('Could not fetch market data');
-        // Continue with fallback
+      // Categorize demand based on multiplier
+      if (multiplier >= 3) {
+        setMarketDemand("high");
+      } else if (multiplier >= -1) {
+        setMarketDemand("medium");
+      } else {
+        setMarketDemand("low");
       }
       
-      // If we found market data in the database
-      if (data && data.market_multiplier !== null) {
-        setMarketMultiplier(data.market_multiplier);
-        
-        // Categorize demand based on multiplier
-        if (data.market_multiplier >= 3) {
-          setMarketDemand("high");
-        } else if (data.market_multiplier >= -1) {
-          setMarketDemand("medium");
-        } else {
-          setMarketDemand("low");
-        }
-        
-        // Get comparable count from valuation_stats if available
-        const { data: statsData } = await supabase
-          .from('valuation_stats')
-          .select('total_valuations')
-          .eq('zip_code', zip)
-          .maybeSingle();
-          
-        if (statsData && statsData.total_valuations) {
-          setComparableCount(statsData.total_valuations);
-        } else {
-          // Random comparables as fallback
-          const zipSum = zip.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
-          setComparableCount(40 + (zipSum % 40));
-        }
+      // For comparable count, use a deterministic algorithm based on ZIP
+      // This will be consistent for the same ZIP code
+      const zipSum = zip.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+      if (multiplier > 3) {
+        setComparableCount(75 + (zipSum % 45)); // High demand areas have more comparables
+      } else if (multiplier > 0) {
+        setComparableCount(35 + (zipSum % 35)); // Medium demand areas
       } else {
-        // Fallback to deterministic simulation if no data in database
-        const zipSum = zip.split('').reduce((sum, digit) => sum + parseInt(digit), 0);
-        
-        if (zipSum % 3 === 0) {
-          setMarketDemand("high");
-          setMarketMultiplier(3.5);
-          setComparableCount(75 + (zipSum % 25));
-        } else if (zipSum % 3 === 1) {
-          setMarketDemand("medium");
-          setMarketMultiplier(0);
-          setComparableCount(40 + (zipSum % 30));
-        } else {
-          setMarketDemand("low");
-          setMarketMultiplier(-2.5);
-          setComparableCount(15 + (zipSum % 25));
-        }
+        setComparableCount(15 + (zipSum % 25)); // Low demand areas
       }
     } catch (err) {
       console.error('Error in market analysis:', err);
@@ -151,13 +116,17 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
               type="text"
               placeholder="Enter ZIP code"
               value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
+              onChange={(e) => {
+                // Allow only numbers and limit to 5 digits
+                const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                setZipCode(value);
+              }}
+              className={errors.zipCode ? "border-red-500" : ""}
               maxLength={5}
-              className="font-mono"
               disabled={disabled}
             />
             
-            {/* Use our new ZipValidation component */}
+            {/* Show ZIP validation when we have 5 digits */}
             {zipCode && zipCode.length === 5 && <ZipValidation zip={zipCode} compact />}
             
             {zipCode && !isValidZip && zipCode.length > 0 && zipCode.length < 5 && (
@@ -211,6 +180,12 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
                   </div>
                 </div>
                 
+                {marketMultiplier !== null && marketMultiplier !== 0 && (
+                  <p className="text-xs text-gray-600 mt-2">
+                    {getMarketMultiplierDescription(marketMultiplier)}
+                  </p>
+                )}
+                
                 {error && (
                   <p className="text-xs text-error flex items-center mt-2">
                     <AlertCircle className="h-3 w-3 mr-1" />
@@ -230,4 +205,4 @@ export const ZipMarketAnalysis: React.FC<ZipMarketAnalysisProps> = ({
       </div>
     </div>
   );
-}
+};

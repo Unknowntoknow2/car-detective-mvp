@@ -2,6 +2,7 @@
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 import rulesConfig from '../../valuationRules.json';
 import { supabase } from '@/integrations/supabase/client';
+import { getMarketMultiplier, getMarketMultiplierDescription } from '../../valuation/marketData';
 
 interface ZipLocationData {
   places: {
@@ -16,50 +17,52 @@ export class LocationCalculator implements AdjustmentCalculator {
   async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
     if (!input.zipCode) return null;
     
-    // First, check if we have a specific multiplier in market_adjustments
     try {
-      const { data: marketData, error: marketError } = await supabase
-        .from('market_adjustments')
-        .select('market_multiplier')
-        .eq('zip_code', input.zipCode)
-        .maybeSingle();
+      // Get market multiplier from our utility function
+      const marketMultiplier = await getMarketMultiplier(input.zipCode);
       
-      if (!marketError && marketData && marketData.market_multiplier !== null) {
+      // Early return if we have a valid multiplier
+      if (marketMultiplier !== 0) {
         // Convert percentage to decimal for calculation
-        const multiplier = marketData.market_multiplier / 100;
+        const multiplier = marketMultiplier / 100;
         const adjustment = input.basePrice * multiplier;
         
         // Get location info for better description
         let locationName = input.zipCode;
         
         // Try to get the cached location data for better description
-        const { data: zipData } = await supabase
-          .from('zip_cache')
-          .select('location_data')
-          .eq('zip', input.zipCode)
-          .maybeSingle();
-        
-        if (zipData?.location_data) {
-          const locationData = zipData.location_data as unknown as ZipLocationData;
-          if (locationData.places && locationData.places.length > 0) {
-            const place = locationData.places[0];
-            locationName = `${place['place name']}, ${place['state abbreviation']}`;
+        try {
+          const { data: zipData } = await supabase
+            .from('zip_cache')
+            .select('location_data')
+            .eq('zip', input.zipCode)
+            .maybeSingle();
+          
+          if (zipData?.location_data) {
+            const locationData = zipData.location_data as unknown as ZipLocationData;
+            if (locationData.places && locationData.places.length > 0) {
+              const place = locationData.places[0];
+              locationName = `${place['place name']}, ${place['state abbreviation']}`;
+            }
           }
+        } catch (err) {
+          // If there's an error with zip_cache, just use the ZIP code as the location name
+          console.log('Error fetching location data from zip_cache:', err);
         }
         
         return {
           name: 'Location Impact',
           value: Math.round(adjustment),
-          description: `Based on market demand in ${locationName}`,
-          percentAdjustment: marketData.market_multiplier
+          description: `${getMarketMultiplierDescription(marketMultiplier)} (${locationName})`,
+          percentAdjustment: marketMultiplier
         };
       }
     } catch (err) {
-      console.error('Error fetching market_adjustments data:', err);
-      // Continue to use fallback if market_adjustments lookup failed
+      console.error('Error in LocationCalculator market_adjustments:', err);
+      // Fall through to default calculation
     }
     
-    // Fallback to configured rules
+    // Fallback to configured rules if no market data found
     const zipRules = rulesConfig.adjustments.zip;
     
     let zoneType: 'hot' | 'cold' | 'default' = 'default';
