@@ -33,9 +33,10 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     }
   }
   
-  // Also clean up any condition scores
   try {
+    // Define file URLs for querying photo_condition_scores
     const fileUrls = photos.map(p => p.url);
+    
     if (fileUrls.length > 0) {
       // Delete corresponding scores
       await supabase
