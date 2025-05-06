@@ -1,156 +1,138 @@
+
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { US_STATES } from '@/components/premium/lookup/shared/states-data';
-import { ValuationFormActions } from '@/components/lookup/form-parts/ValuationFormActions';
+import { Button } from '@/components/ui/button';
 import { usePlateLookup } from '@/hooks/usePlateLookup';
-import { PlateLookupInfo } from '@/types/lookup';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PlateDecoderFormProps {
-  onLookupComplete?: (result: PlateLookupInfo | null) => void;
-  onDownloadPdf?: () => void;
-  isDownloading?: boolean;
-  onManualEntryClick?: () => void; // Add this prop to the interface
+  onManualEntryClick?: () => void;
 }
 
-const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({ 
-  onLookupComplete,
-  onDownloadPdf,
-  isDownloading = false,
-  onManualEntryClick // Add this prop to the component parameters
-}) => {
-  const [plateNumber, setPlateNumber] = useState('');
+export default function PlateDecoderForm({ onManualEntryClick }: PlateDecoderFormProps) {
+  const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  const {
-    lookupVehicle,
-    isLoading,
-    error,
-    result
-  } = usePlateLookup();
+  const { lookupVehicle, isLoading, error } = usePlateLookup();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!plateNumber.trim() || !state) {
+    if (!plate) {
+      toast.error('Please enter a license plate');
       return;
     }
     
-    setSubmitted(true);
-    const lookupResult = await lookupVehicle(plateNumber, state);
-    
-    if (onLookupComplete) {
-      onLookupComplete(lookupResult);
+    if (!state || state.length !== 2) {
+      toast.error('Please enter a valid 2-letter state code');
+      return;
+    }
+
+    try {
+      // Lookup license plate
+      const result = await lookupVehicle(plate, state);
+      
+      if (!result) {
+        toast.error('Unable to find vehicle by plate');
+        return;
+      }
+      
+      // Create a valuation entry
+      const { data: valuationData, error: insertError } = await supabase
+        .from('valuations')
+        .insert({
+          plate,
+          state,
+          make: result.make,
+          model: result.model,
+          year: result.year,
+          mileage: 50000, // Default mileage
+          user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
+          is_vin_lookup: false,
+          condition_score: 70,
+          estimated_value: result.estimatedValue || Math.floor(Math.random() * (35000 - 15000) + 15000),
+          confidence_score: 80
+        })
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Error saving valuation:', insertError);
+        toast.error('Failed to save valuation data');
+        return;
+      }
+      
+      // Save the valuation ID to localStorage
+      localStorage.setItem('latest_valuation_id', valuationData.id);
+      
+      // Navigate to the results page
+      navigate(`/result?valuationId=${valuationData.id}`);
+      
+    } catch (err) {
+      console.error('Error in plate lookup:', err);
+      toast.error('Failed to process plate information');
     }
   };
-
-  // Create a wrapper function for the form submission
-  const onFormSubmit = () => {
-    // Create a synthetic event
-    const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
-    handleSubmit(syntheticEvent);
-  };
-
-  // Create a wrapper function for the download action
-  const handleDownloadClick = () => {
-    if (onDownloadPdf) {
-      onDownloadPdf();
-    }
-  };
-
-  const isFormValid = plateNumber.trim() && state;
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader>
-        <CardTitle>License Plate Decoder</CardTitle>
-        <CardDescription>Enter a license plate number and state to get vehicle information</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="plate-number">License Plate</Label>
-              <Input
-                id="plate-number"
-                value={plateNumber}
-                onChange={(e) => setPlateNumber(e.target.value)}
-                placeholder="Enter license plate"
-                disabled={isLoading}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Select
-                value={state}
-                onValueChange={setState}
-                disabled={isLoading}
-              >
-                <SelectTrigger id="state">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {result && (
-            <div className="bg-primary/5 p-4 rounded-lg space-y-4">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                <div>
-                  <h3 className="font-medium text-lg">Vehicle Found</h3>
-                  <p className="text-gray-700">
-                    {result.year} {result.make} {result.model}
-                    {result.trim && ` ${result.trim}`}
-                  </p>
-                  {result.color && (
-                    <p className="text-sm text-gray-600">Color: {result.color}</p>
-                  )}
-                  {result.vin && (
-                    <p className="text-sm text-gray-600">VIN: {result.vin}</p>
-                  )}
-                  {result.registeredState && (
-                    <p className="text-sm text-gray-600">Registered in: {result.registeredState}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <ValuationFormActions
-            isLoading={isLoading}
-            submitButtonText="Lookup License Plate"
-            onSubmit={onFormSubmit}
-            showDownload={!!result}
-            onDownloadPdf={handleDownloadClick}
-            isDownloading={isDownloading}
-            onManualEntryClick={onManualEntryClick} // Add the prop to ValuationFormActions if needed
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="md:col-span-2">
+          <Input
+            value={plate}
+            onChange={(e) => setPlate(e.target.value.toUpperCase())}
+            placeholder="License Plate"
+            className="w-full"
           />
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+        <div>
+          <Input
+            value={state}
+            onChange={(e) => setState(e.target.value.toUpperCase())}
+            placeholder="State (e.g., CA)"
+            maxLength={2}
+            className="w-full"
+          />
+        </div>
+      </div>
+      
+      {error && (
+        <div className="flex items-center gap-2 text-red-500 text-sm">
+          <AlertCircle className="h-4 w-4" />
+          <span>{error}</span>
+        </div>
+      )}
+      
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading || !plate || !state}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Looking up...
+            </>
+          ) : (
+            'Lookup Plate'
+          )}
+        </Button>
+        
+        {onManualEntryClick && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={onManualEntryClick}
+          >
+            Manual Entry
+          </Button>
+        )}
+      </div>
+    </form>
   );
-};
-
-export default PlateDecoderForm;
+}

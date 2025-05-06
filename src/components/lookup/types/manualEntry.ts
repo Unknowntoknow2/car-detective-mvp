@@ -1,30 +1,17 @@
 
-export type ConditionLevel = 'excellent' | 'good' | 'fair' | 'poor';
-
-export interface AccidentDetails {
-  count?: string;
-  severity?: string;
-  area?: string;
-}
-
 export interface ManualEntryFormData {
   make: string;
   model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  zipCode: string;
+  year: string;
+  mileage: string;
+  zipCode?: string;
+  condition?: string;
   fuelType?: string;
-  accident?: boolean;
-  accidentDetails?: AccidentDetails;
+  transmission?: string;
+  accident?: string;
+  accidentDetails?: string;
   selectedFeatures?: string[];
-  bodyType?: string;
-  transmissionType?: string;
-  confidenceScore?: number;
-  trim?: string;
+  valuationId?: string;
   valuation?: number;
-}
-
-export interface ManualEntryFormProps {
-  onSubmit: (data: ManualEntryFormData) => void;
+  confidenceScore?: number;
 }

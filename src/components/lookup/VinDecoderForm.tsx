@@ -1,132 +1,100 @@
 
-import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { downloadPdf } from '@/utils/pdf';
-import { useVinDecoderForm } from './vin/useVinDecoderForm';
-import { VinLookupForm } from './vin/VinLookupForm';
-import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
-import { VinDecoderResults } from './vin/VinDecoderResults';
-import { NhtsaRecalls } from '@/components/valuation/NhtsaRecalls';
-import { ZipValidation } from '@/components/common/ZipValidation';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useVinDecoder } from '@/hooks/useVinDecoder';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
-export const VinDecoderForm = () => {
-  const {
-    vin,
-    setVin,
-    result,
-    isLoading,
-    carfaxData,
-    isLoadingCarfax,
-    carfaxError,
-    stage,
-    pipelineVehicle,
-    requiredInputs,
-    valuationResult,
-    valuationError,
-    pipelineLoading,
-    zipCode,
-    setZipCode,
-    handleSubmit,
-    submitValuation,
-    handleDownloadPdf
-  } = useVinDecoderForm();
+export function VinDecoderForm() {
+  const [vin, setVin] = useState('');
+  const { lookupVin, isLoading, error } = useVinDecoder();
+  const navigate = useNavigate();
 
-  // Fix the return type of handleDetailsSubmit to match expected Promise<void>
-  const handleDetailsSubmit = async (details: any): Promise<void> => {
-    await submitValuation(details);
-    // Result handling is done via state updates, no return needed
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!vin || vin.length !== 17) {
+      toast.error('Please enter a valid 17-character VIN');
+      return;
+    }
 
-  const onDownloadPdf = () => {
-    const reportData = handleDownloadPdf();
-    if (reportData) {
-      downloadPdf(reportData);
+    try {
+      // Lookup VIN
+      const result = await lookupVin(vin);
+      
+      if (!result) {
+        toast.error('Unable to decode VIN');
+        return;
+      }
+      
+      // Create a valuation entry
+      const { data: valuationData, error: insertError } = await supabase
+        .from('valuations')
+        .insert({
+          vin,
+          make: result.make,
+          model: result.model,
+          year: result.year,
+          mileage: 50000, // Default mileage
+          user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
+          is_vin_lookup: true,
+          condition_score: 70,
+          estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000), // Mock value for demo
+          confidence_score: 85
+        })
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Error saving valuation:', insertError);
+        toast.error('Failed to save valuation data');
+        return;
+      }
+      
+      // Save the valuation ID to localStorage
+      localStorage.setItem('latest_valuation_id', valuationData.id);
+      
+      // Navigate to the results page
+      navigate(`/result?valuationId=${valuationData.id}`);
+      
+    } catch (err) {
+      console.error('Error in VIN lookup:', err);
+      toast.error('Failed to process VIN');
     }
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto">
-      <Card className="border-2 border-primary/20">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">VIN Lookup</CardTitle>
-          <CardDescription>
-            Enter a Vehicle Identification Number (VIN) to get detailed information
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <VinLookupForm
-            vin={vin}
-            isLoading={isLoading || pipelineLoading || isLoadingCarfax}
-            onVinChange={setVin}
-            onSubmit={handleSubmit}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <div className="flex items-center gap-3">
+          <Input
+            value={vin}
+            onChange={(e) => setVin(e.target.value.toUpperCase())}
+            placeholder="Enter 17-character VIN"
+            className="font-mono"
+            maxLength={17}
           />
-          
-          {carfaxError && !isLoadingCarfax && (
-            <CarfaxErrorAlert error={carfaxError} />
-          )}
-
-          {/* Add ZIP Code input and validation when VIN lookup is successful */}
-          {result && (
-            <div className="mt-6 space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="zipCode" className="text-sm font-medium">
-                  ZIP Code (for regional pricing)
-                </label>
-                <input 
-                  id="zipCode"
-                  type="text"
-                  value={zipCode || ''}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="Enter ZIP code (e.g. 90210)"
-                  className="w-full p-2 border rounded-md"
-                  maxLength={5}
-                  pattern="\d*"
-                />
-              </div>
-              
-              {/* ZIP validation component */}
-              {zipCode && zipCode.length === 5 && (
-                <ZipValidation 
-                  zip={zipCode} 
-                  compact={true} 
-                  className=""
-                />
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <VinDecoderResults 
-        stage={stage}
-        result={result}
-        pipelineVehicle={pipelineVehicle}
-        requiredInputs={requiredInputs}
-        valuationResult={valuationResult}
-        valuationError={valuationError}
-        pipelineLoading={pipelineLoading}
-        submitValuation={handleDetailsSubmit}
-        vin={vin}
-        carfaxData={carfaxData}
-        onDownloadPdf={onDownloadPdf}
-      />
-
-      {/* Show recalls if we have vehicle data - Fix: Ensure year is always a number */}
-      {result?.make && result?.model && result?.year && (
-        <div className="mt-4">
-          <NhtsaRecalls 
-            make={result.make} 
-            model={result.model} 
-            year={typeof result.year === 'string' ? parseInt(result.year, 10) : result.year} 
-          />
+          <Button type="submit" disabled={isLoading || vin.length !== 17}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Decoding...
+              </>
+            ) : (
+              'Lookup'
+            )}
+          </Button>
         </div>
-      )}
-    </div>
+        {error && (
+          <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
+            <AlertCircle className="h-4 w-4" />
+            <span>{error}</span>
+          </div>
+        )}
+      </div>
+    </form>
   );
-};
+}

@@ -1,8 +1,9 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-export interface ValuationResultData {
+interface ValuationResult {
   id: string;
   make: string;
   model: string;
@@ -11,137 +12,136 @@ export interface ValuationResultData {
   condition: string;
   zipCode: string;
   estimatedValue: number;
-  confidenceScore?: number;
+  confidenceScore: number;
   priceRange?: [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
+  adjustments?: any[];
+  createdAt: string;
 }
 
-export function useValuationResult(valuationId: string) {
-  const [data, setData] = useState<ValuationResultData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function useValuationResult(id: string) {
+  const [data, setData] = useState<ValuationResult | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchValuationResult = useCallback(async () => {
+  const fetchValuation = async () => {
+    if (!id) {
+      setError(new Error('No valuation ID provided'));
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const { data: valuationData, error: valuationError } = await supabase
+      const { data: valuationData, error: fetchError } = await supabase
         .from('valuations')
         .select('*')
-        .eq('id', valuationId)
+        .eq('id', id)
         .single();
-        
-      if (valuationError) throw new Error(valuationError.message);
-      
-      if (valuationData) {
-        // Transform the data to the expected format with camelCase properties
-        // Create adjustments array from valuation data
-        const formattedAdjustments = [];
-        
-        // Add condition adjustment if available
-        if (valuationData.condition_score) {
-          formattedAdjustments.push({
-            factor: 'Condition',
-            impact: calculateConditionImpact(valuationData.condition_score),
-            description: `Vehicle condition score: ${valuationData.condition_score}`
-          });
-        }
-        
-        // Add mileage adjustment if available
-        if (valuationData.mileage) {
-          formattedAdjustments.push({
-            factor: 'Mileage',
-            impact: calculateMileageImpact(valuationData.mileage),
-            description: `Vehicle mileage: ${valuationData.mileage.toLocaleString()} miles`
-          });
-        }
-        
-        // Add market adjustment if available
-        if (valuationData.zip_demand_factor) {
-          formattedAdjustments.push({
-            factor: 'Market',
-            impact: Math.round((valuationData.zip_demand_factor - 1) * 100),
-            description: 'Based on local market demand'
-          });
-        }
-        
-        setData({
-          id: valuationData.id,
-          make: valuationData.make || '',
-          model: valuationData.model || '',
-          year: valuationData.year || 0,
-          mileage: valuationData.mileage || 0,
-          condition: getConditionLabel(valuationData.condition_score),
-          zipCode: valuationData.state || '',
-          estimatedValue: valuationData.estimated_value || 0,
-          confidenceScore: valuationData.confidence_score,
-          priceRange: calculatePriceRange(valuationData.estimated_value),
-          adjustments: formattedAdjustments
-        });
+
+      if (fetchError) {
+        throw new Error(fetchError.message);
       }
+
+      if (!valuationData) {
+        throw new Error('Valuation not found');
+      }
+
+      // Transform data to expected format
+      const result: ValuationResult = {
+        id: valuationData.id,
+        make: valuationData.make || '',
+        model: valuationData.model || '',
+        year: valuationData.year || 0,
+        mileage: valuationData.mileage || 0,
+        condition: getConditionText(valuationData.condition_score || 0),
+        zipCode: valuationData.state || '',
+        estimatedValue: valuationData.estimated_value || 0,
+        confidenceScore: valuationData.confidence_score || 75,
+        createdAt: valuationData.created_at,
+        // Generate a price range for display purposes
+        priceRange: [
+          Math.round(valuationData.estimated_value * 0.93),
+          Math.round(valuationData.estimated_value * 1.07)
+        ],
+        // Mock adjustments for now
+        adjustments: generateMockAdjustments(valuationData)
+      };
+
+      setData(result);
     } catch (err) {
-      console.error('Error fetching valuation result:', err);
+      console.error('Error fetching valuation:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch valuation data'));
     } finally {
       setIsLoading(false);
     }
-  }, [valuationId]);
-  
+  };
+
+  // Fetch data when ID changes
   useEffect(() => {
-    if (valuationId) {
-      fetchValuationResult();
+    if (id) {
+      fetchValuation();
+    } else {
+      setData(null);
+      setError(null);
     }
-  }, [valuationId, fetchValuationResult]);
-  
-  return { 
-    data, 
-    isLoading, 
+  }, [id]);
+
+  return {
+    data,
+    isLoading,
     error,
-    isError: !!error,
-    refetch: fetchValuationResult
+    refetch: fetchValuation
   };
 }
 
-// Helper function to calculate price range based on estimated value
-function calculatePriceRange(value: number | null | undefined): [number, number] {
-  if (!value) return [0, 0];
-  return [
-    Math.round(value * 0.95), // Lower bound: 95% of estimated value
-    Math.round(value * 1.05)  // Upper bound: 105% of estimated value
-  ];
-}
-
-// Helper function to convert condition score to label
-function getConditionLabel(score: number | null | undefined): string {
-  if (!score) return 'Unknown';
-  if (score >= 85) return 'Excellent';
+// Helper function to convert condition score to text
+function getConditionText(score: number): string {
+  if (score >= 90) return 'Excellent';
   if (score >= 70) return 'Good';
   if (score >= 50) return 'Fair';
   return 'Poor';
 }
 
-// Helper function to calculate condition impact
-function calculateConditionImpact(score: number | null | undefined): number {
-  if (!score) return 0;
-  if (score >= 85) return 10;     // Excellent: +10%
-  if (score >= 70) return 5;      // Good: +5%
-  if (score >= 50) return 0;      // Fair: 0%
-  return -10;                     // Poor: -10%
-}
-
-// Helper function to calculate mileage impact
-function calculateMileageImpact(mileage: number | null | undefined): number {
-  if (!mileage) return 0;
-  if (mileage < 10000) return 15;          // Very low: +15%
-  if (mileage < 30000) return 10;          // Low: +10%
-  if (mileage < 60000) return 5;           // Below average: +5%
-  if (mileage < 100000) return 0;          // Average: 0%
-  if (mileage < 150000) return -5;         // Above average: -5%
-  if (mileage < 200000) return -10;        // High: -10%
-  return -20;                             // Very high: -20%
+// Helper function to generate mock adjustment data for display
+function generateMockAdjustments(valuationData: any) {
+  const adjustments = [];
+  
+  // Mileage adjustment
+  const mileage = valuationData.mileage || 50000;
+  const avgMileage = 12000 * (new Date().getFullYear() - valuationData.year);
+  const mileageDiff = mileage - avgMileage;
+  
+  if (Math.abs(mileageDiff) > 5000) {
+    adjustments.push({
+      factor: 'Mileage',
+      description: mileageDiff > 0 ? 'Above average mileage' : 'Below average mileage',
+      impact: mileageDiff > 0 ? -Math.round(mileageDiff / 5000) : Math.round(Math.abs(mileageDiff) / 10000),
+    });
+  }
+  
+  // Condition adjustment
+  const conditionScore = valuationData.condition_score || 70;
+  if (conditionScore >= 90) {
+    adjustments.push({
+      factor: 'Condition',
+      description: 'Excellent condition',
+      impact: 5,
+    });
+  } else if (conditionScore <= 50) {
+    adjustments.push({
+      factor: 'Condition',
+      description: 'Below average condition',
+      impact: -7,
+    });
+  }
+  
+  // Market demand adjustment (random for now)
+  adjustments.push({
+    factor: 'Market Demand',
+    description: 'Current market conditions',
+    impact: Math.floor(Math.random() * 7) - 3,
+  });
+  
+  return adjustments;
 }

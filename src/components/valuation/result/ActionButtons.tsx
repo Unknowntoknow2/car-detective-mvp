@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
-import { ShareableLink } from '@/components/valuation/ShareableLink';
+import { Link } from 'react-router-dom';
+import { Download, Car, FileQuestion } from 'lucide-react';
 
 interface ActionButtonsProps {
-  onDownload: () => Promise<void>;
+  onDownload: () => void;
   isDownloading: boolean;
   disabled: boolean;
   valuationId?: string;
@@ -15,32 +15,35 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   onDownload,
   isDownloading,
   disabled,
-  valuationId,
+  valuationId
 }) => {
   return (
-    <div className="flex flex-wrap gap-2 mt-4">
+    <div className="flex flex-col sm:flex-row gap-2 mt-6">
       <Button 
-        onClick={onDownload}
-        disabled={isDownloading || disabled}
+        variant="outline" 
+        onClick={onDownload} 
+        disabled={disabled || isDownloading}
         className="flex-1"
       >
-        {isDownloading ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Generating PDF...
-          </>
-        ) : (
-          <>
-            <Download className="h-4 w-4 mr-2" />
-            Download Report
-          </>
-        )}
+        <Download className="h-4 w-4 mr-2" />
+        {isDownloading ? 'Downloading...' : 'Download PDF'}
       </Button>
       
-      {/* Add Share button only if valuationId exists */}
       {valuationId && (
-        <ShareableLink valuationId={valuationId} />
+        <Link to={`/offers?valuationId=${valuationId}`} className="flex-1">
+          <Button className="w-full" variant="default">
+            <Car className="h-4 w-4 mr-2" />
+            View Dealer Offers
+          </Button>
+        </Link>
       )}
+      
+      <Link to="/premium" className="flex-1">
+        <Button variant="secondary" className="w-full">
+          <FileQuestion className="h-4 w-4 mr-2" />
+          Premium Report
+        </Button>
+      </Link>
     </div>
   );
 };
