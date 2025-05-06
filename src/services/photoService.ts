@@ -160,8 +160,8 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
 // Define explicit interface for the upload response to fix Type instantiation error
 interface PhotoUploadResponse {
   photoUrls: string[];
-  confidenceScore: number;
   condition?: string;
+  confidenceScore: number;
   issuesDetected?: string[];
   aiSummary?: string;
   individualScores?: Array<{url: string; score: number}>;
