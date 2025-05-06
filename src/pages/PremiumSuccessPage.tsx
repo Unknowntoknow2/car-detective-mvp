@@ -5,17 +5,20 @@ import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { CheckCircle, Loader2, FileText } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Helmet } from "react-helmet-async";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function PremiumSuccessPage() {
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [valuationId, setValuationId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -27,83 +30,50 @@ export default function PremiumSuccessPage() {
         const sessionId = searchParams.get('session_id');
         
         if (!sessionId) {
+          setError("Missing session information");
           toast.error("Missing session information");
           setIsVerifying(false);
           return;
         }
         
-        // Query for the associated order
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .select('valuation_id, status')
-          .eq('stripe_session_id', sessionId)
-          .maybeSingle();
-          
-        if (orderError) throw orderError;
+        // Verify the payment status using our edge function
+        const { data, error: verifyError } = await supabase.functions.invoke('verify-payment', {
+          body: { sessionId }
+        });
         
-        if (!orderData) {
-          toast.error("Could not verify payment");
+        if (verifyError) {
+          console.error("Payment verification error:", verifyError);
+          setError("Failed to verify payment status");
+          toast.error("Failed to verify payment status");
           setIsVerifying(false);
           return;
         }
         
-        // Store the valuation ID for navigation
-        setValuationId(orderData.valuation_id);
+        if (!data.success) {
+          setError(data.error || "Payment verification failed");
+          toast.error(data.error || "Payment verification failed");
+          setIsVerifying(false);
+          return;
+        }
         
-        // Check if the webhook has processed this payment already
-        if (orderData.status === 'paid') {
+        // Store the valuation ID and payment status
+        setValuationId(data.valuationId);
+        setPaymentStatus(data.paymentStatus);
+        
+        // Set verification status based on payment success
+        if (data.paymentSucceeded) {
           setVerificationSuccess(true);
-          setIsVerifying(false);
-          
-          // Update valuation to mark premium as unlocked
-          const { error: updateError } = await supabase
-            .from('valuations')
-            .update({ premium_unlocked: true })
-            .eq('id', orderData.valuation_id);
-            
-          if (updateError) {
-            console.error("Error updating valuation premium status:", updateError);
-          }
-          
-          return;
+          toast.success("Payment confirmed! Premium features are now available.");
+        } else {
+          setError(`Payment not completed. Status: ${data.paymentStatus}`);
+          toast.error("Payment has not been completed");
         }
         
-        // If not yet processed, we'll poll a few times (webhook might be delayed)
-        let attempts = 0;
-        const maxAttempts = 5;
-        
-        const checkStatus = async () => {
-          attempts++;
-          
-          const { data: updatedOrder, error } = await supabase
-            .from('orders')
-            .select('status')
-            .eq('stripe_session_id', sessionId)
-            .maybeSingle();
-            
-          if (error) throw error;
-          
-          if (updatedOrder?.status === 'paid') {
-            setVerificationSuccess(true);
-            setIsVerifying(false);
-            return;
-          }
-          
-          if (attempts < maxAttempts) {
-            setTimeout(checkStatus, 2000); // Check again in 2 seconds
-          } else {
-            // After max attempts, assume it's probably fine
-            // The webhook will eventually process it
-            setVerificationSuccess(true);
-            setIsVerifying(false);
-          }
-        };
-        
-        checkStatus();
-        
+        setIsVerifying(false);
       } catch (error) {
-        console.error("Payment verification error:", error);
-        toast.error("Error verifying payment");
+        console.error("Error in payment verification:", error);
+        setError("An unexpected error occurred while verifying your payment");
+        toast.error("An unexpected error occurred");
         setIsVerifying(false);
       }
     };
@@ -111,6 +81,7 @@ export default function PremiumSuccessPage() {
     if (user) {
       verifyPayment();
     } else {
+      setError("You need to be logged in to verify payment");
       setIsVerifying(false);
     }
   }, [location.search, user]);
@@ -118,39 +89,69 @@ export default function PremiumSuccessPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Helmet>
-        <title>Payment Successful - Car Detective</title>
+        <title>Payment Status - Car Detective</title>
       </Helmet>
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto rounded-full bg-green-100 p-3 w-16 h-16 flex items-center justify-center mb-4">
+            <div className="mx-auto rounded-full bg-slate-100 p-3 w-16 h-16 flex items-center justify-center mb-4">
               {isVerifying ? (
-                <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
-              ) : (
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              ) : verificationSuccess ? (
                 <CheckCircle className="h-8 w-8 text-green-600" />
+              ) : (
+                <XCircle className="h-8 w-8 text-red-600" />
               )}
             </div>
             <CardTitle className="text-2xl">
-              {isVerifying ? "Verifying Payment..." : "Payment Successful!"}
+              {isVerifying ? "Verifying Payment..." : 
+               verificationSuccess ? "Payment Successful!" : 
+               "Payment Verification Issue"}
             </CardTitle>
             <CardDescription>
               {isVerifying 
                 ? "Please wait while we verify your payment." 
-                : "Your premium report is now available."}
+                : verificationSuccess
+                  ? "Your premium report is now available."
+                  : "There was an issue with your payment verification."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             {!isVerifying && (
               <>
-                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-                  <p className="text-center text-sm">
-                    Thank you for your purchase! Your premium valuation report has been unlocked with comprehensive details and insights.
-                  </p>
-                </div>
+                {verificationSuccess ? (
+                  <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                    <p className="text-center text-sm">
+                      Thank you for your purchase! Your premium valuation report has been unlocked with comprehensive details and insights.
+                    </p>
+                    {paymentStatus && (
+                      <p className="text-center text-xs mt-2 text-gray-500">
+                        Payment Status: {paymentStatus}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <p className="text-center text-sm">
+                      There was an issue confirming your payment. If you believe this is an error, please contact support.
+                    </p>
+                    {paymentStatus && (
+                      <p className="text-center text-xs mt-2 text-gray-500">
+                        Payment Status: {paymentStatus}
+                      </p>
+                    )}
+                  </div>
+                )}
                 
                 <div className="grid gap-3">
-                  {valuationId && (
+                  {verificationSuccess && valuationId && (
                     <Button asChild>
                       <Link to={`/valuation/premium?id=${valuationId}`}>
                         <FileText className="mr-2 h-4 w-4" />
@@ -158,6 +159,15 @@ export default function PremiumSuccessPage() {
                       </Link>
                     </Button>
                   )}
+                  
+                  {!verificationSuccess && (
+                    <Button variant="outline" asChild onClick={() => window.location.reload()}>
+                      <div>
+                        Retry Verification
+                      </div>
+                    </Button>
+                  )}
+                  
                   <Button variant="outline" asChild>
                     <Link to="/dashboard">
                       Go to Dashboard

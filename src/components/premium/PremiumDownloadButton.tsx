@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, Download, Loader2 } from 'lucide-react';
+import { Lock, Download, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useAuth } from '@/contexts/AuthContext';
-import { createCheckoutSession } from '@/utils/premiumService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface PremiumDownloadButtonProps {
   valuationId: string;
@@ -19,8 +19,9 @@ export function PremiumDownloadButton({
   className 
 }: PremiumDownloadButtonProps) {
   const { user } = useAuth();
-  const { hasPremiumAccess, isLoading } = usePremiumAccess(valuationId);
+  const { isPremium, isLoading, createCheckoutSession } = usePremiumStatus(valuationId);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePremiumUnlock = async () => {
     if (!user) {
@@ -34,6 +35,7 @@ export function PremiumDownloadButton({
     }
 
     setIsProcessing(true);
+    setError(null);
     
     try {
       const result = await createCheckoutSession(valuationId);
@@ -43,20 +45,16 @@ export function PremiumDownloadButton({
       }
       
       // If already unlocked, reload the page to update UI state
-      if (result.alreadyUnlocked) {
-        toast.success('Premium features are already unlocked!');
+      if (!result.url) {
         window.location.reload();
         return;
       }
       
       // Redirect to Stripe checkout
-      if (result.url) {
-        window.location.href = result.url;
-      } else {
-        throw new Error('No checkout URL returned');
-      }
+      window.location.href = result.url;
     } catch (error: any) {
       console.error('Error in premium unlock:', error);
+      setError(error.message || 'Failed to start checkout process');
       toast.error('Failed to start checkout process', {
         description: error.message || 'Please try again'
       });
@@ -74,7 +72,7 @@ export function PremiumDownloadButton({
     );
   }
 
-  if (hasPremiumAccess) {
+  if (isPremium) {
     return (
       <Button onClick={onDownload} className={className} variant="default">
         <Download className="mr-2 h-4 w-4" />
@@ -84,23 +82,32 @@ export function PremiumDownloadButton({
   }
 
   return (
-    <Button 
-      onClick={handlePremiumUnlock} 
-      className={className} 
-      variant="premium"
-      disabled={isProcessing}
-    >
-      {isProcessing ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Processing...
-        </>
-      ) : (
-        <>
-          <Lock className="mr-2 h-4 w-4" />
-          Unlock Premium Report
-        </>
+    <div className="space-y-2 w-full">
+      {error && (
+        <Alert variant="destructive" className="mb-2">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-    </Button>
+      
+      <Button 
+        onClick={handlePremiumUnlock} 
+        className={className} 
+        variant="premium"
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Lock className="mr-2 h-4 w-4" />
+            Unlock Premium Report
+          </>
+        )}
+      </Button>
+    </div>
   );
 }
