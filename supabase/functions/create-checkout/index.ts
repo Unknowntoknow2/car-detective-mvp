@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@11.18.0?target=deno";
 
@@ -128,30 +129,30 @@ serve(async (req) => {
           },
         ],
         mode: 'payment',
-        success_url: `${baseUrl}/premium-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/premium${valuationId ? `?id=${valuationId}` : ''}`,
+        success_url: `${baseUrl}/premium-success?session_id={CHECKOUT_SESSION_ID}&valuation_id=${valuationId}`,
+        cancel_url: `${baseUrl}/valuation/premium?id=${valuationId}`,
         metadata: {
           valuationId: valuationId || '',
+          userId: user.id
         },
       });
       
-      // If we have a valuationId, create a pending order record
-      if (valuationId) {
-        // Create an order record with 'pending' status
-        const { error: insertError } = await req.supabaseClient
-          .from('orders')
-          .insert({
-            user_id: user.id,
-            valuation_id: valuationId,
-            amount: price,
-            status: 'pending',
-            stripe_session_id: session.id,
-          });
+      // Create an order record with 'pending' status
+      const { error: insertError } = await req.supabaseClient
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          valuation_id: valuationId,
+          amount: price,
+          status: 'pending',
+          stripe_session_id: session.id,
+        });
           
-        if (insertError) {
-          console.error("Error creating order record:", insertError.message);
-          // Continue anyway as the checkout can still proceed
-        }
+      if (insertError) {
+        console.error("Error creating order record:", insertError.message);
+        // Continue anyway as the checkout can still proceed
+      } else {
+        console.log("Created pending order for session:", session.id);
       }
       
       // Return the checkout URL

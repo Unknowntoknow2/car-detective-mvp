@@ -4,8 +4,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2, FileText, RefreshCw } from "lucide-react";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { CheckCircle, XCircle, Loader2, FileText, RefreshCw, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,93 +16,81 @@ export default function PremiumSuccessPage() {
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [valuationId, setValuationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
   const verifyPayment = async () => {
     try {
       setIsVerifying(true);
       // Get session ID from URL
-      const searchParams = new URLSearchParams(location.search);
       const sessionId = searchParams.get('session_id');
+      const valId = searchParams.get('valuation_id');
       
       if (!sessionId) {
-        setError("Missing session information");
-        toast.error("Missing session information");
+        setError("Missing payment session information");
+        toast.error("Missing payment information");
         setIsVerifying(false);
         return;
       }
       
-      // First check if the order exists and is marked as paid
+      // First, check if the order exists and is confirmed paid in the database
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .select('status, valuation_id')
+        .select('status, valuation_id, updated_at')
         .eq('stripe_session_id', sessionId)
         .maybeSingle();
       
       if (orderError) {
-        console.error("Order verification error:", orderError);
-        setError("Failed to verify order status");
+        console.error("Error checking order status:", orderError);
+        setError(`Error verifying payment: ${orderError.message}`);
         setIsVerifying(false);
         return;
       }
       
-      if (!orderData) {
-        // Order not found yet, which could happen if webhook hasn't processed
-        if (retryCount < 3) {
-          // Wait with exponential backoff and retry
-          const timeout = Math.pow(2, retryCount) * 1000;
-          console.log(`Order not found yet. Retrying in ${timeout/1000} seconds...`);
-          setTimeout(() => {
-            setRetryCount(prevCount => prevCount + 1);
-            verifyPayment();
-          }, timeout);
-          return;
-        } else {
-          setError("Payment information not found. Please try refreshing.");
-          setIsVerifying(false);
-          return;
-        }
-      }
-      
-      setValuationId(orderData.valuation_id);
-      setPaymentStatus(orderData.status);
-      
-      // Next, verify if the valuation is marked as premium_unlocked
-      if (orderData.valuation_id) {
-        const { data: valuationData, error: valuationError } = await supabase
-          .from('valuations')
-          .select('premium_unlocked')
-          .eq('id', orderData.valuation_id)
-          .maybeSingle();
+      // If order exists, use that data
+      if (orderData) {
+        setPaymentStatus(orderData.status);
+        setValuationId(orderData.valuation_id);
         
-        if (valuationError) {
-          console.error("Valuation verification error:", valuationError);
-          setError("Failed to verify premium access");
-          setIsVerifying(false);
-          return;
-        }
-        
-        // Set verification success based on both order status and premium_unlocked flag
-        const paymentSucceeded = orderData.status === 'paid' && valuationData?.premium_unlocked === true;
-        
-        if (paymentSucceeded) {
-          setVerificationSuccess(true);
-          toast.success("Payment confirmed! Premium features are now available.");
-        } else {
-          // Still processing or failed
-          if (orderData.status === 'paid' && !valuationData?.premium_unlocked) {
-            setError("Premium access is still being processed. Please try refreshing.");
-          } else {
-            setError(`Payment processing. Status: ${orderData.status}`);
+        // If order is marked as paid, check the valuation premium_unlocked status
+        if (orderData.status === 'paid') {
+          const { data: valData, error: valError } = await supabase
+            .from('valuations')
+            .select('premium_unlocked')
+            .eq('id', orderData.valuation_id)
+            .maybeSingle();
+          
+          if (valError) {
+            console.error("Error checking valuation premium status:", valError);
+          } else if (valData) {
+            // Payment confirmed and premium unlocked, show success
+            if (valData.premium_unlocked) {
+              setVerificationSuccess(true);
+              toast.success("Premium access confirmed!");
+            } else {
+              // Payment confirmed but premium not unlocked yet (webhook might be delayed)
+              setIsProcessing(true);
+              // Call verify-payment edge function to force an update 
+              await verifyWithEdgeFunction(sessionId, orderData.valuation_id);
+            }
           }
+        } else if (orderData.status === 'pending') {
+          // Payment is still processing, let's double-check with the edge function
+          setIsProcessing(true);
+          await verifyWithEdgeFunction(sessionId, orderData.valuation_id);
+        } else {
+          // Failed or other status
+          setError(`Payment was not successful. Status: ${orderData.status}`);
         }
       } else {
-        setError("Missing valuation information");
+        // No order found in database, use the edge function to verify with Stripe API
+        console.log("No order found in database, verifying with Stripe");
+        await verifyWithEdgeFunction(sessionId, valId);
       }
     } catch (error) {
       console.error("Error in payment verification:", error);
@@ -110,6 +98,48 @@ export default function PremiumSuccessPage() {
       toast.error("An unexpected error occurred");
     } finally {
       setIsVerifying(false);
+    }
+  };
+  
+  const verifyWithEdgeFunction = async (sessionId: string, valId: string | null = null) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { sessionId, valuationId: valId }
+      });
+      
+      if (error) {
+        console.error("Edge function error:", error);
+        setError(`Verification failed: ${error.message}`);
+        return;
+      }
+      
+      if (data.paymentSucceeded) {
+        setVerificationSuccess(true);
+        setPaymentStatus('paid');
+        if (data.valuation_id) {
+          setValuationId(data.valuation_id);
+        }
+        toast.success("Payment confirmed! Premium features are now available.");
+      } else if (data.status === 'pending') {
+        // Still processing
+        setIsProcessing(true);
+        setPaymentStatus('pending');
+        setError("Your payment is being processed. This may take a moment.");
+        
+        // Retry after a delay if we haven't retried too many times
+        if (retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prevCount => prevCount + 1);
+            verifyWithEdgeFunction(sessionId, valId);
+          }, 3000 * (retryCount + 1)); // Exponential backoff
+        }
+      } else {
+        setPaymentStatus(data.status || 'failed');
+        setError("Payment verification failed. Please contact support if you believe this is an error.");
+      }
+    } catch (e) {
+      console.error("Error invoking verify-payment function:", e);
+      setError("Failed to verify payment status");
     }
   };
   
@@ -125,6 +155,7 @@ export default function PremiumSuccessPage() {
   const handleRetry = () => {
     setRetryCount(0);
     setError(null);
+    setIsVerifying(true);
     verifyPayment();
   };
   
@@ -140,6 +171,8 @@ export default function PremiumSuccessPage() {
             <div className="mx-auto rounded-full bg-slate-100 p-3 w-16 h-16 flex items-center justify-center mb-4">
               {isVerifying ? (
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              ) : isProcessing ? (
+                <Clock className="h-8 w-8 text-amber-500 animate-pulse" />
               ) : verificationSuccess ? (
                 <CheckCircle className="h-8 w-8 text-green-600" />
               ) : (
@@ -148,30 +181,35 @@ export default function PremiumSuccessPage() {
             </div>
             <CardTitle className="text-2xl">
               {isVerifying ? "Verifying Payment..." : 
+               isProcessing ? "Payment Processing..." :
                verificationSuccess ? "Payment Successful!" : 
                "Payment Verification Issue"}
             </CardTitle>
             <CardDescription>
               {isVerifying 
                 ? "Please wait while we verify your payment." 
-                : verificationSuccess
-                  ? "Your premium report is now available."
-                  : "There was an issue with your payment verification."}
+                : isProcessing
+                  ? "Your payment is being processed by our payment provider."
+                  : verificationSuccess
+                    ? "Your premium report is now available."
+                    : "There was an issue with your payment verification."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant={isProcessing ? "default" : "destructive"}>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
             
             {!isVerifying && (
               <>
-                {verificationSuccess ? (
-                  <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                {(verificationSuccess || isProcessing) ? (
+                  <div className={`rounded-lg p-4 border ${verificationSuccess ? 'bg-primary/5 border-primary/20' : 'bg-amber-50 border-amber-200'}`}>
                     <p className="text-center text-sm">
-                      Thank you for your purchase! Your premium valuation report has been unlocked with comprehensive details and insights.
+                      {verificationSuccess 
+                        ? "Thank you for your purchase! Your premium valuation report has been unlocked with comprehensive details and insights."
+                        : "Your payment is being processed by our payment provider. This might take a few moments. You can safely leave this page and check back later."}
                     </p>
                     {paymentStatus && (
                       <p className="text-center text-xs mt-2 text-gray-500">
@@ -204,9 +242,9 @@ export default function PremiumSuccessPage() {
                     </Button>
                   )}
                   
-                  {!verificationSuccess && (
-                    <Button variant="outline" onClick={handleRetry}>
-                      <RefreshCw className="mr-2 h-4 w-4" />
+                  {!verificationSuccess && !isProcessing && (
+                    <Button variant="outline" onClick={handleRetry} disabled={isVerifying}>
+                      <RefreshCw className={`mr-2 h-4 w-4 ${isVerifying ? 'animate-spin' : ''}`} />
                       Retry Verification
                     </Button>
                   )}
