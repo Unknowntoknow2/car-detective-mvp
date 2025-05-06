@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -73,7 +74,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form
                 step={100}
                 placeholder="e.g., 25000"
                 {...field}
-                value={field.value === 0 ? '' : field.value}
+                value={field.value === '0' ? '' : field.value}
                 onChange={(e) => handleMileageChange(e, field.onChange)}
                 className="h-12"
               />

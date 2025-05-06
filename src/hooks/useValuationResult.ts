@@ -22,15 +22,18 @@ export function useValuationResult(id: string) {
   const [data, setData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isError, setIsError] = useState<boolean>(false);
 
   const fetchValuation = async () => {
     if (!id) {
       setError(new Error('No valuation ID provided'));
+      setIsError(true);
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setIsError(false);
 
     try {
       const { data: valuationData, error: fetchError } = await supabase
@@ -72,6 +75,7 @@ export function useValuationResult(id: string) {
     } catch (err) {
       console.error('Error fetching valuation:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch valuation data'));
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +88,7 @@ export function useValuationResult(id: string) {
     } else {
       setData(null);
       setError(null);
+      setIsError(false);
     }
   }, [id]);
 
@@ -91,6 +96,7 @@ export function useValuationResult(id: string) {
     data,
     isLoading,
     error,
+    isError,
     refetch: fetchValuation
   };
 }

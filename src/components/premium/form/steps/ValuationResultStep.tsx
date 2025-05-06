@@ -25,7 +25,7 @@ export function ValuationResultStep({
   const {
     data: result,
     isLoading,
-    isError,
+    error,
     refetch,
   } = useValuationResult(valuationId);
 
@@ -72,7 +72,7 @@ export function ValuationResultStep({
     );
   }
 
-  if (isError || !result) {
+  if (error || !result) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />

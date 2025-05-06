@@ -15,3 +15,11 @@ export interface ManualEntryFormData {
   valuation?: number;
   confidenceScore?: number;
 }
+
+export type ConditionLevel = 'poor' | 'fair' | 'good' | 'excellent';
+
+export interface AccidentDetails {
+  count: string;
+  severity: string;
+  area: string;
+}
