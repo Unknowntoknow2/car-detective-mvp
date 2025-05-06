@@ -9,6 +9,7 @@ import Layout from "@/components/layout/Layout";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import PremiumSuccessPage from "./pages/PremiumSuccessPage";
+import MyValuationsPage from "./pages/MyValuationsPage";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "/my-valuations",
+        element: <MyValuationsPage />,
       },
     ],
   },
