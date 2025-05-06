@@ -734,6 +734,38 @@ export type Database = {
         }
         Relationships: []
       }
+      public_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token: string
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_tokens_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recall_factor: {
         Row: {
           description: string | null

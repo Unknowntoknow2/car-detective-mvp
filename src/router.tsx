@@ -21,6 +21,7 @@ import MyValuationsPage from '@/pages/MyValuationsPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import AdminPage from '@/pages/AdminPage';
 import FreeValuationPage from '@/pages/FreeValuationPage';
+import SharedValuationPage from '@/pages/share/[token]';
 
 const router = createBrowserRouter([
   {
@@ -88,36 +89,24 @@ const router = createBrowserRouter([
     element: <ResetPasswordPage />,
   },
   {
-    path: '/profile',
-    element: (
-      <ProtectedRoute>
-        <ProfilePage />
-      </ProtectedRoute>
-    ),
+    path: '/share/:token',
+    element: <SharedValuationPage />,
   },
   {
     path: '/dashboard',
-    element: (
-      <ProtectedRoute>
-        <UserDashboardPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute><UserDashboardPage /></ProtectedRoute>,
   },
   {
     path: '/my-valuations',
-    element: (
-      <ProtectedRoute>
-        <MyValuationsPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute><MyValuationsPage /></ProtectedRoute>,
+  },
+  {
+    path: '/profile',
+    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
   },
   {
     path: '/admin',
-    element: (
-      <ProtectedRoute>
-        <AdminPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute><AdminPage /></ProtectedRoute>,
   },
   {
     path: '/privacy-policy',

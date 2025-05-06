@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { AIConditionAssessment } from './AIConditionAssessment';
 import { useAICondition } from '@/hooks/useAICondition';
 import { ChatBubble } from '@/components/chat/ChatBubble';
+import { ShareableLink } from './ShareableLink';
 
 interface ValuationResultProps {
   make: string;
@@ -157,23 +158,30 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         )}
       </div>
       
-      <Button 
-        onClick={handleDownloadPdf}
-        disabled={isDownloading || loading || !!error}
-        className="w-full mt-4"
-      >
-        {isDownloading ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Generating PDF...
-          </>
-        ) : (
-          <>
-            <Download className="h-4 w-4 mr-2" />
-            Download Report
-          </>
+      <div className="flex flex-wrap gap-2 mt-4">
+        <Button 
+          onClick={handleDownloadPdf}
+          disabled={isDownloading || loading || !!error}
+          className="flex-1"
+        >
+          {isDownloading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating PDF...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Download Report
+            </>
+          )}
+        </Button>
+        
+        {/* Add Share button only if valuationId exists */}
+        {valuationId && (
+          <ShareableLink valuationId={valuationId} />
         )}
-      </Button>
+      </div>
 
       {/* Add Car Detective Chat Bubble */}
       {valuationId && (
