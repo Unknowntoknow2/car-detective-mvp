@@ -75,7 +75,7 @@ export function useValuationHistory() {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         
-        // Improved deduplication logic - use an object to track IDs
+        // Improved deduplication logic - use a Map to track IDs
         // If a valuation appears multiple times, prioritize the premium version
         const valuationMap = new Map<string, Valuation>();
         
@@ -126,7 +126,10 @@ export function useValuationHistory() {
 }
 
 // Add a test function that can be imported in tests
-export function testDeduplication(valuations: Valuation[]): Valuation[] {
+export function testDeduplication(valuations: Valuation[] | null | undefined): Valuation[] {
+  // Fallback protection for null or undefined input
+  if (!valuations) return [];
+  
   // Implementation of the deduplication logic for testing
   const valuationMap = new Map<string, Valuation>();
   
