@@ -1,111 +1,72 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Lock } from 'lucide-react';
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { supabase } from '@/integrations/supabase/client';
-import ValuationResult from '@/components/valuation/ValuationResult';
-import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { PredictionResult } from '@/components/valuation/PredictionResult';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { AIChatBubble } from '@/components/chat/AIChatBubble';
 
 export default function ValuationDetailPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [valuationData, setValuationData] = useState<any>(null);
-  const { hasPremiumAccess, isLoading: isPremiumLoading } = usePremiumAccess(valuationId);
+  const { data: valuation, isLoading, error } = useValuationResult(valuationId || '');
   
-  useEffect(() => {
-    if (!user) {
-      toast.error("Please sign in to view this valuation");
-      navigate('/auth');
-      return;
-    }
-    
-    if (!valuationId) {
-      toast.error("No valuation ID provided");
-      navigate('/my-valuations');
-      return;
-    }
-    
-    const fetchValuationData = async () => {
-      try {
-        setIsLoading(true);
-        
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', valuationId)
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (!data) {
-          toast.error("Valuation not found or you don't have access to it");
-          navigate('/my-valuations');
-          return;
-        }
-        
-        setValuationData(data);
-      } catch (error: any) {
-        console.error('Error fetching valuation:', error);
-        toast.error("Failed to load valuation");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchValuationData();
-  }, [valuationId, user, navigate]);
-  
-  // Redirect to premium if user has premium access
-  useEffect(() => {
-    if (!isPremiumLoading && hasPremiumAccess) {
-      navigate(`/valuation/${valuationId}/premium`);
-    }
-  }, [hasPremiumAccess, isPremiumLoading, valuationId, navigate]);
-  
-  const handleUpgradeToPremium = () => {
-    navigate(`/premium?id=${valuationId}`);
-  };
-  
-  const handleBackToList = () => {
-    navigate('/my-valuations');
-  };
-  
-  if (isLoading || isPremiumLoading) {
+  if (isLoading) {
     return (
-      <div className="container py-8 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="flex justify-center items-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
   
+  if (error || !valuation) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Valuation</h2>
+            <p className="text-gray-600 mb-4">
+              {error?.message || "Could not load the valuation details."}
+            </p>
+            <Button onClick={() => navigate('/my-valuations')}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Valuations
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  const isPremium = valuation.premium_unlocked || valuation.is_premium;
+  
   return (
-    <div className="container py-8">
-      <div className="mb-6 flex justify-between items-center">
+    <div className="container mx-auto py-8">
+      <div className="mb-6">
         <Button 
           variant="outline" 
-          onClick={handleBackToList}
-          className="flex items-center gap-2"
+          onClick={() => navigate('/my-valuations')} 
+          className="mb-4"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to My Valuations
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Valuations
         </Button>
-        
-        <Button 
-          onClick={handleUpgradeToPremium}
-          className="flex items-center gap-2"
-        >
-          <Lock className="h-4 w-4" />
-          Upgrade to Premium
-        </Button>
+        <h1 className="text-3xl font-bold">
+          Valuation Details
+          {isPremium && (
+            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+              Premium
+            </span>
+          )}
+        </h1>
+        <p className="text-gray-600 mt-2">
+          {valuation.year} {valuation.make} {valuation.model}
+          {valuation.mileage && ` • ${valuation.mileage.toLocaleString()} miles`}
+        </p>
       </div>
       
       <Card>
@@ -113,20 +74,12 @@ export default function ValuationDetailPage() {
           <CardTitle>Valuation Report</CardTitle>
         </CardHeader>
         <CardContent>
-          {valuationData && (
-            <ValuationResult 
-              valuationId={valuationId}
-              make={valuationData.make}
-              model={valuationData.model}
-              year={valuationData.year}
-              mileage={valuationData.mileage}
-              condition={valuationData.condition}
-              location={valuationData.state}
-              valuation={valuationData.estimated_value}
-            />
-          )}
+          <PredictionResult valuationId={valuationId || ''} />
         </CardContent>
       </Card>
+      
+      {/* Add the AI Chat Bubble */}
+      <AIChatBubble valuation={valuation} />
     </div>
   );
 }
