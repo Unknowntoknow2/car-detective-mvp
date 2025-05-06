@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { FeatureValueEditor } from '@/components/admin/FeatureValueEditor';
-import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
+import { AdminAnalyticsDashboard } from '@/components/admin/AdminAnalyticsDashboard';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CalibrationWeights } from '@/components/admin/CalibrationWeights';
 import { useAdminRole } from '@/hooks/useAdminRole';
@@ -62,20 +62,20 @@ export default function AdminPage() {
       <main className="flex-grow container py-8">
         <h1 className="text-3xl font-bold mb-8">Admin Control Panel</h1>
         
-        <Tabs defaultValue="features" className="mb-8">
+        <Tabs defaultValue="analytics" className="mb-8">
           <TabsList className="grid grid-cols-4 w-full max-w-3xl">
-            <TabsTrigger value="features">Feature Calibration</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="features">Feature Calibration</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="calibration">System Calibration</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="features" className="p-4 mt-4 bg-white rounded-lg shadow">
-            <FeatureValueEditor />
+          <TabsContent value="analytics" className="p-4 mt-4 bg-white rounded-lg shadow">
+            <AdminAnalyticsDashboard />
           </TabsContent>
           
-          <TabsContent value="analytics" className="p-4 mt-4 bg-white rounded-lg shadow">
-            <AdminAnalytics />
+          <TabsContent value="features" className="p-4 mt-4 bg-white rounded-lg shadow">
+            <FeatureValueEditor />
           </TabsContent>
           
           <TabsContent value="users" className="p-4 mt-4 bg-white rounded-lg shadow">

@@ -4,10 +4,9 @@ import { Navigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { useAdminRole } from '@/hooks/useAdminRole';
-import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
+import { AdminAnalyticsDashboard } from '@/components/admin/AdminAnalyticsDashboard';
 
 export default function AdminDashboardPage() {
   const { user, isLoading } = useAuth();
@@ -53,7 +52,7 @@ export default function AdminDashboardPage() {
       <Navbar />
       <main className="flex-grow container py-8">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-        <AdminAnalytics />
+        <AdminAnalyticsDashboard />
       </main>
       <Footer />
     </div>
