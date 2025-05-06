@@ -6,7 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { useAdminRole } from '@/hooks/useAdminRole';
-import { AdminAnalyticsDashboard } from '@/components/admin/AdminAnalyticsDashboard';
+import { AdminAnalyticsDashboard } from '@/components/admin/dashboard/AdminAnalyticsDashboard';
 
 export default function AdminDashboardPage() {
   const { user, isLoading } = useAuth();

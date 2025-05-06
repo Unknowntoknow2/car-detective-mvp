@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import { FeatureValueEditor } from '@/components/admin/FeatureValueEditor';
-import { AdminAnalyticsDashboard } from '@/components/admin/AdminAnalyticsDashboard';
+import { AdminAnalyticsDashboard } from '@/components/admin/dashboard/AdminAnalyticsDashboard';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CalibrationWeights } from '@/components/admin/CalibrationWeights';
 import { useAdminRole } from '@/hooks/useAdminRole';

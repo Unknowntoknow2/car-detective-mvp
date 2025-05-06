@@ -38,7 +38,7 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     const photoUrls = photos.map(photo => photo.url);
     
     if (photoUrls.length > 0) {
-      // Delete corresponding scores - fixed by removing deep type instantiation
+      // Delete corresponding scores
       await supabase
         .from('photo_condition_scores')
         .delete()
