@@ -58,14 +58,13 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         // Map all scores to the expected format
         scoreData.forEach(score => {
           // Safely handle the image URL field which might be in different properties
-          // Handling potential undefined fields safely by checking properties
           let imageUrl = '';
           
-          // Check both possible properties for image URLs
-          if ('photo_url' in score && score.photo_url) {
-            imageUrl = String(score.photo_url);
-          } else if ('image_url' in score && score.image_url) {
-            imageUrl = String(score.image_url);
+          // Check both possible URL properties and handle them safely
+          if ('photo_url' in score) {
+            imageUrl = score.photo_url as string || '';
+          } else if ('image_url' in score) {
+            imageUrl = score.image_url as string || '';
           }
           
           if (imageUrl) {
