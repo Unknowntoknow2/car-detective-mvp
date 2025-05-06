@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { AICondition, PhotoScore } from "@/types/photo";
 
@@ -208,6 +209,9 @@ export async function getValuationResult(valuationId: string) {
     // Get photo assessment data including AI condition
     const photoAssessment = await getBestPhotoAssessment(valuationId);
     
+    // Map the condition_score to a text condition
+    const conditionText = getConditionRating(valuationData.condition_score || 60);
+    
     // Transform valuation data to expected format
     return {
       id: valuationData.id,
@@ -215,14 +219,14 @@ export async function getValuationResult(valuationId: string) {
       model: valuationData.model,
       year: valuationData.year,
       mileage: valuationData.mileage || 0,
-      condition: valuationData.condition || 'Good',
+      condition: conditionText,
       zipCode: valuationData.state || '',
       estimatedValue: valuationData.estimated_value,
       confidenceScore: valuationData.confidence_score,
       priceRange: [
         Math.round(valuationData.estimated_value * 0.95),
         Math.round(valuationData.estimated_value * 1.05)
-      ],
+      ] as [number, number],
       adjustments: [
         { 
           factor: 'Base Value', 
@@ -231,17 +235,20 @@ export async function getValuationResult(valuationId: string) {
         },
         { 
           factor: 'Mileage', 
-          impact: valuationData.mileage_adjustment || 0, 
+          impact: valuationData.zip_demand_factor ? ((valuationData.zip_demand_factor - 1) * 100) : 0, 
           description: 'Based on current mileage'
         },
         { 
           factor: 'Condition', 
-          impact: valuationData.condition_adjustment || 0, 
-          description: 'Based on vehicle condition'
+          impact: conditionText === 'Excellent' ? 5 : 
+                 conditionText === 'Good' ? 0 : 
+                 conditionText === 'Fair' ? -5 : -10, 
+          description: `Based on ${conditionText.toLowerCase()} condition`
         },
         { 
           factor: 'Market Demand', 
-          impact: valuationData.market_adjustment || 0, 
+          impact: valuationData.zip_demand_factor ? 
+                 ((valuationData.zip_demand_factor - 1) * 100) : 0, 
           description: 'Based on current market conditions'
         }
       ],

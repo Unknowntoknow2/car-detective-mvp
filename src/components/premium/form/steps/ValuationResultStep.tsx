@@ -88,6 +88,14 @@ export function ValuationResultStep({
     );
   }
 
+  // Ensure priceRange is a tuple with exactly two elements
+  const priceRange: [number, number] = result.priceRange && result.priceRange.length >= 2 
+    ? [result.priceRange[0], result.priceRange[1]] 
+    : [
+        Math.round(result.estimatedValue * 0.95),
+        Math.round(result.estimatedValue * 1.05)
+      ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -100,7 +108,7 @@ export function ValuationResultStep({
       <ValuationResults
         estimatedValue={result.estimatedValue}
         confidenceScore={result.confidenceScore}
-        priceRange={result.priceRange}
+        priceRange={priceRange}
         adjustments={result.adjustments}
       />
 

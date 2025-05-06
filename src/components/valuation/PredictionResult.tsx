@@ -75,7 +75,7 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
     priceRange: [
       manualValuation.valuation ? Math.round(manualValuation.valuation * 0.95) : 19000,
       manualValuation.valuation ? Math.round(manualValuation.valuation * 1.05) : 21000
-    ],
+    ] as [number, number],
     adjustments: [
       { 
         factor: 'Base Condition', 
@@ -182,12 +182,20 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
     );
   }
 
+  // Ensure priceRange is a tuple with exactly two elements
+  const priceRange: [number, number] = valuationData.priceRange && valuationData.priceRange.length >= 2 
+    ? [valuationData.priceRange[0], valuationData.priceRange[1]] 
+    : [
+        Math.round(valuationData.estimatedValue * 0.95),
+        Math.round(valuationData.estimatedValue * 1.05)
+      ];
+
   return (
     <div className="space-y-6">
       <ValuationResults
         estimatedValue={valuationData.estimatedValue}
         confidenceScore={valuationData.confidenceScore || 75}
-        priceRange={valuationData.priceRange}
+        priceRange={priceRange}
         adjustments={valuationData.adjustments}
         aiVerified={!!conditionData && conditionData.confidenceScore > 70}
         aiCondition={conditionData}
