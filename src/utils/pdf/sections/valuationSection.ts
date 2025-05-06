@@ -78,14 +78,36 @@ export function drawValuationSection(
     });
   }
   
-  // Show condition
-  page.drawText(`Vehicle Condition: ${data.condition || 'Not Specified'}`, {
+  // Show condition - prioritize AI condition if available
+  const conditionText = data.aiCondition?.condition || data.condition || 'Not Specified';
+  const conditionSource = data.aiCondition ? 'AI-Verified' : 'Owner-Reported';
+  
+  page.drawText(`Vehicle Condition (${conditionSource}):`, {
     x: width - margin - 200,
     y: currentY - 30,
     size: 12,
     font: bold,
     color: rgb(0.3, 0.3, 0.3)
   });
+  
+  page.drawText(conditionText, {
+    x: width - margin - 200,
+    y: currentY - 50,
+    size: 16,
+    font: bold,
+    color: rgb(0.1, 0.6, 0.1)
+  });
+  
+  // If AI condition is available, show confidence
+  if (data.aiCondition?.confidenceScore) {
+    page.drawText(`AI Confidence: ${Math.round(data.aiCondition.confidenceScore)}%`, {
+      x: width - margin - 200,
+      y: currentY - 70,
+      size: 10,
+      font: regular,
+      color: rgb(0.4, 0.4, 0.4)
+    });
+  }
   
   // Return the updated y position
   return currentY - boxHeight - 10;

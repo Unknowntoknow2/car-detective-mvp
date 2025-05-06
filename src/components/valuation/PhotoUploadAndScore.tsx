@@ -1,13 +1,15 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { PhotoUploadDropzone } from './photo-upload/PhotoUploadDropzone';
 import { PhotoPreview } from './photo-upload/PhotoPreview';
 import { PhotoUploadError } from './photo-upload/PhotoUploadError';
 import { PhotoHeader } from './photo-upload/PhotoHeader';
 import { PhotoGuidance, PhotoTips } from './photo-upload/PhotoGuidance';
 import { usePhotoScoring } from '@/hooks/usePhotoScoring';
-import { MAX_FILES, MIN_FILES } from '@/types/photo';
+import { MAX_FILES, MIN_FILES, Photo, PhotoScore } from '@/types/photo';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;
@@ -36,6 +38,15 @@ export function PhotoUploadAndScore({
   } = usePhotoScoring(valuationId);
   
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [showTips, setShowTips] = useState<boolean>(true);
+  
+  useEffect(() => {
+    // Hide tips after 10 seconds if photos are uploaded
+    if (photos.length > 0) {
+      const timer = setTimeout(() => setShowTips(false), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [photos.length]);
   
   const handleFileSelection = async (files: File[]) => {
     setValidationMessage(null);
@@ -45,11 +56,23 @@ export function PhotoUploadAndScore({
       return;
     }
     
-    const result = await uploadPhotos(files);
-    
-    // Call the onScoreChange callback if provided
-    if (result && onScoreChange) {
-      onScoreChange(result.score, result.aiCondition);
+    try {
+      const result = await uploadPhotos(files);
+      
+      // Call the onScoreChange callback if provided
+      if (result && onScoreChange) {
+        onScoreChange(result.score, result.aiCondition);
+        
+        // Show success toast with more detailed information
+        if (result.individualScores && result.individualScores.length > 0) {
+          toast.success(`${files.length} photos analyzed successfully`, {
+            description: `AI detected ${result.aiCondition?.condition || 'Good'} condition with ${Math.round(result.aiCondition?.confidenceScore || 0)}% confidence.`
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error uploading photos:', err);
+      toast.error('Failed to upload photos. Please try again.');
     }
   };
   
@@ -109,7 +132,7 @@ export function PhotoUploadAndScore({
       
       <PhotoUploadError error={error} />
       
-      <PhotoTips />
+      {showTips && <PhotoTips />}
     </div>
   );
 }

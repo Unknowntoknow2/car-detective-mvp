@@ -38,6 +38,10 @@ export interface ValuationOutput {
   finalValuation: number;
   conditionSource?: 'user' | 'ai';
   aiSummary?: string;
+  photoAssessment?: {
+    bestPhotoUrl?: string;
+    individualScores?: { url: string; score: number; isPrimary?: boolean }[];
+  };
 }
 
 /**
@@ -124,14 +128,25 @@ function featureAdjustments(features: string[]): { [feature: string]: number } {
 export async function calculateFinalValuation(input: ValuationInput): Promise<ValuationOutput> {
   // If a valuation ID is provided, try to get AI condition assessment
   let aiConditionOverride = input.aiConditionOverride;
+  let photoAssessment = undefined;
   
   if (input.valuationId && !aiConditionOverride) {
     console.log(`Checking for AI photo assessment for valuation ${input.valuationId}`);
-    const { aiCondition } = await getBestPhotoAssessment(input.valuationId);
+    const { aiCondition, photoScores } = await getBestPhotoAssessment(input.valuationId);
     
     if (aiCondition && aiCondition.confidenceScore >= 70) {
       console.log(`Found valid AI condition assessment: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
       aiConditionOverride = aiCondition;
+      
+      // If we have photo scores, include them in the output
+      if (photoScores && photoScores.length > 0) {
+        // Find the primary photo (highest score) to use as the best photo
+        const sortedScores = [...photoScores].sort((a, b) => b.score - a.score);
+        photoAssessment = {
+          bestPhotoUrl: sortedScores[0].url,
+          individualScores: photoScores
+        };
+      }
     }
   }
   
@@ -174,7 +189,8 @@ export async function calculateFinalValuation(input: ValuationInput): Promise<Va
     },
     totalAdjustments,
     finalValuation,
-    conditionSource: useAiCondition ? 'ai' : 'user'
+    conditionSource: useAiCondition ? 'ai' : 'user',
+    photoAssessment
   };
   
   // Include AI summary if available and being used

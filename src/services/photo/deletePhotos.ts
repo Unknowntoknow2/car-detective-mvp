@@ -11,9 +11,9 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
   for (const photo of photos) {
     if (photo.id) {
       try {
-        // Delete from valuation_photos table - use string literal type assertion
+        // Delete from valuation_photos table - use type assertion
         await supabase
-          .from('valuation_photos' as any)
+          .from('valuation_photos' as string)
           .delete()
           .eq('id', photo.id);
           
@@ -38,9 +38,9 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     const photoUrls = photos.map(photo => photo.url);
     
     if (photoUrls.length > 0) {
-      // Delete corresponding scores - use string literal type assertion
+      // Delete corresponding scores - use type assertion
       await supabase
-        .from('photo_condition_scores' as any)
+        .from('photo_condition_scores' as string)
         .delete()
         .in('image_url', photoUrls);
     }

@@ -1,5 +1,3 @@
-
-
 export interface Valuation {
   id: string;
   make: string;
@@ -60,4 +58,3 @@ export interface AIConditionData {
 export interface ValuationWithCondition extends Valuation {
   aiCondition?: AIConditionData | null;
 }
-

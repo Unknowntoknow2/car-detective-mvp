@@ -1,11 +1,11 @@
 
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, X, CheckCircle, Camera } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Trash2, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { Photo, AICondition, PhotoScore } from '@/types/photo';
 import { Badge } from '@/components/ui/badge';
-import { AIConditionDisplay } from './AIConditionDisplay';
-import { Photo, AICondition } from '@/types/photo';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface PhotoPreviewProps {
   photos: Photo[];
@@ -13,115 +13,136 @@ interface PhotoPreviewProps {
   isUploading: boolean;
   isScoring: boolean;
   uploadProgress: number;
-  onRemove: () => void;
+  onRemove: () => Promise<void>;
   aiCondition: AICondition | null;
-  individualScores?: {url: string, score: number}[];
+  individualScores: PhotoScore[];
 }
 
-export function PhotoPreview({
-  photos,
-  photoScore,
-  isUploading,
-  isScoring,
-  uploadProgress,
+export function PhotoPreview({ 
+  photos, 
+  photoScore, 
+  isUploading, 
+  isScoring, 
+  uploadProgress, 
   onRemove,
   aiCondition,
-  individualScores = []
+  individualScores
 }: PhotoPreviewProps) {
+  const getConditionColor = (condition: string | null | undefined) => {
+    if (!condition) return "bg-gray-500";
+    
+    switch (condition) {
+      case 'Excellent': return "bg-green-500";
+      case 'Good': return "bg-emerald-500";
+      case 'Fair': return "bg-amber-500";
+      case 'Poor': return "bg-red-500";
+      default: return "bg-gray-500";
+    }
+  };
+
+  const getScoreBadge = (url: string) => {
+    const photoScore = individualScores.find(score => score.url === url);
+    
+    if (!photoScore) return null;
+    
+    // Convert score from 0-1 range to percentage
+    const scorePercentage = Math.round(photoScore.score * 100);
+    
+    let color = "bg-gray-500";
+    if (scorePercentage >= 85) color = "bg-green-500";
+    else if (scorePercentage >= 70) color = "bg-emerald-500";
+    else if (scorePercentage >= 50) color = "bg-amber-500";
+    else color = "bg-red-500";
+    
+    return (
+      <Badge className={`absolute bottom-2 right-2 ${color} text-white`}>
+        {scorePercentage}%
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center gap-2">
-            <Camera className="h-5 w-5 text-slate-500" />
-            <h4 className="font-medium">Vehicle Photos ({photos.length})</h4>
+      {(isUploading || isScoring) && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span>
+              {isUploading ? 'Uploading photos...' : 'Analyzing vehicle condition...'}
+            </span>
+            <span>{Math.round(uploadProgress)}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+        </div>
+      )}
+      
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {photos.map((photo, index) => (
+          <div 
+            key={index} 
+            className="relative aspect-square border rounded-md overflow-hidden group"
+          >
+            <img 
+              src={photo.thumbnail || photo.url} 
+              alt={`Vehicle photo ${index + 1}`} 
+              className="w-full h-full object-cover"
+            />
+            {getScoreBadge(photo.url)}
+          </div>
+        ))}
+      </div>
+      
+      {aiCondition && (
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg border space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge className={`${getConditionColor(aiCondition.condition)}`}>
+                {aiCondition.condition || 'Unknown'} Condition
+              </Badge>
+              <span className="text-sm text-gray-500">
+                {Math.round(aiCondition.confidenceScore)}% confidence
+              </span>
+            </div>
+            {photoScore !== null && (
+              <Badge variant="outline" className="bg-primary/10">
+                Overall Score: {Math.round(photoScore * 100)}%
+              </Badge>
+            )}
           </div>
           
-          {!isUploading && !isScoring && (
-            <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50">
-              <X className="h-4 w-4 mr-1" />
-              Remove All
-            </Button>
+          {aiCondition.aiSummary && (
+            <p className="text-sm text-gray-700">{aiCondition.aiSummary}</p>
+          )}
+          
+          {aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-medium text-gray-700">Issues detected:</p>
+              <ScrollArea className="h-24 w-full rounded-md border p-2">
+                <ul className="text-sm space-y-1">
+                  {aiCondition.issuesDetected.map((issue, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <span>{issue}</span>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            </div>
           )}
         </div>
-        
-        {(isUploading || isScoring) && (
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm text-slate-600">
-                {isUploading ? 'Uploading photos...' : 'Analyzing photos...'}
-              </span>
-              <span className="text-sm font-medium">{uploadProgress}%</span>
-            </div>
-            <Progress value={uploadProgress} className="h-2" />
-          </div>
-        )}
-        
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {photos.map((photo, index) => {
-            // Find the score for this photo URL
-            const matchingScore = individualScores.find(score => score.url === photo.url);
-            const score = matchingScore ? matchingScore.score : null;
-            
-            return (
-              <div key={index} className="aspect-square rounded-md overflow-hidden relative group border border-slate-200">
-                <img
-                  src={photo.url}
-                  alt={`Vehicle photo ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                {score !== null && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="absolute bottom-0 right-0 m-1">
-                          <Badge className={`text-xs ${getScoreColorClass(score)}`}>
-                            {Math.round(score * 100)}%
-                          </Badge>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs">Condition score: {Math.round(score * 100)}%</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        
-        {photoScore !== null && !isUploading && !isScoring && (
-          <div className="mt-4 p-2 bg-slate-100 rounded border border-slate-200">
-            <p className="text-sm font-medium text-slate-700">
-              Overall condition score: <span className={getScoreTextColorClass(photoScore)}>{Math.round(photoScore * 100)}%</span>
-              {individualScores.length > 0 && (
-                <span className="text-xs text-slate-500 ml-2">
-                  (Average of {individualScores.length} photos)
-                </span>
-              )}
-            </p>
-          </div>
-        )}
-        
-        {aiCondition && !isUploading && !isScoring && (
-          <AIConditionDisplay aiCondition={aiCondition} photoScore={photoScore} />
-        )}
+      )}
+      
+      <div className="flex justify-end">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={onRemove}
+          disabled={isUploading || isScoring}
+          className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Remove All Photos
+        </Button>
       </div>
     </div>
   );
-}
-
-function getScoreColorClass(score: number): string {
-  if (score >= 0.8) return "bg-green-100 text-green-800";
-  if (score >= 0.6) return "bg-emerald-100 text-emerald-800";
-  if (score >= 0.4) return "bg-yellow-100 text-yellow-800";
-  return "bg-red-100 text-red-800";
-}
-
-function getScoreTextColorClass(score: number): string {
-  if (score >= 0.8) return "text-green-600";
-  if (score >= 0.6) return "text-emerald-600";
-  if (score >= 0.4) return "text-yellow-600";
-  return "text-red-600";
 }

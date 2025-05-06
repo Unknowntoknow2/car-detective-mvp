@@ -13,6 +13,7 @@ export interface AICondition {
   confidenceScore: number;
   issuesDetected?: string[];
   aiSummary?: string;
+  bestPhotoUrl?: string;
 }
 
 // Interface for valuation_photos table
@@ -28,6 +29,7 @@ export interface ValuationPhoto {
 export interface PhotoScore {
   url: string;
   score: number;
+  isPrimary?: boolean;
 }
 
 // Type for the return value of the usePhotoScoring hook
