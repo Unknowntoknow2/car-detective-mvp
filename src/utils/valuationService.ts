@@ -74,6 +74,36 @@ export async function getBestPhotoAssessment(valuationId: string): Promise<{
           };
         }
       }
+      
+      // Manual fallback logic when no valid photos or condition data are present
+      if (!aiCondition && !photoData?.length) {
+        console.log('No photo data found, using manual fallback condition');
+        aiCondition = {
+          condition: 'Good', // Default to "Good" condition
+          confidenceScore: 25, // Low confidence score to indicate manual fallback
+          issuesDetected: ['No photo analysis available'],
+          aiSummary: 'Vehicle condition was estimated without photo analysis. For better accuracy, please upload vehicle photos.'
+        };
+        
+        // Store this fallback assessment in the database for future reference
+        try {
+          const { error: storeError } = await supabase
+            .from('photo_condition_scores')
+            .insert({
+              valuation_id: valuationId,
+              condition_score: 70, // "Good" numeric value
+              confidence_score: 25, // Low confidence
+              issues: ['No photo analysis available'],
+              summary: 'Vehicle condition was estimated without photo analysis. For better accuracy, please upload vehicle photos.'
+            });
+            
+          if (storeError) {
+            console.error('Error storing fallback condition data:', storeError);
+          }
+        } catch (err) {
+          console.error('Error in fallback condition storage:', err);
+        }
+      }
     }
     
     // Process photo scores

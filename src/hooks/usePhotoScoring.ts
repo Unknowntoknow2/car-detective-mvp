@@ -17,6 +17,7 @@ export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [individualScores, setIndividualScores] = useState<PhotoScore[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Reset the uploader state
   const resetUpload = async () => {
@@ -67,6 +68,7 @@ export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
     try {
       setError(null);
       setIsUploading(true);
+      setIsLoading(true);
       setUploadProgress(0);
       
       // Validate files
@@ -95,6 +97,7 @@ export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
       
       if (validFiles.length === 0) {
         setIsUploading(false);
+        setIsLoading(false);
         setError("No valid files to upload");
         return null;
       }
@@ -175,26 +178,56 @@ export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
         
         if (aiError) {
           console.error("AI condition analysis error:", aiError);
+          throw new Error(aiError.message);
         } else if (aiData) {
           setAICondition(aiData);
           
           // Save condition data to database
-          await supabase.from('photo_condition_scores').upsert({
+          const { error: saveError } = await supabase.from('photo_condition_scores').upsert({
             valuation_id: valuationId,
             condition_score: aiData.condition ? mapConditionToScore(aiData.condition) : 0,
             confidence_score: aiData.confidenceScore || 0,
             issues: aiData.issuesDetected || [],
             summary: aiData.aiSummary || ''
           });
+          
+          if (saveError) {
+            console.error("Error saving condition data:", saveError);
+          }
+        } else {
+          throw new Error("No data returned from AI condition analysis");
         }
       } catch (err) {
         console.error("Error analyzing vehicle condition:", err);
+        
+        // Create fallback condition data if AI analysis fails
+        const fallbackCondition: AICondition = {
+          condition: scoredPhotos.length > 0 ? estimateConditionFromScore(averageScore) : 'Good',
+          confidenceScore: 35,
+          issuesDetected: ['AI analysis incomplete'],
+          aiSummary: 'Our system could only partially analyze your vehicle. The condition is an estimate based on image quality.'
+        };
+        
+        setAICondition(fallbackCondition);
+        
+        // Save fallback condition to database
+        try {
+          await supabase.from('photo_condition_scores').upsert({
+            valuation_id: valuationId,
+            condition_score: mapConditionToScore(fallbackCondition.condition),
+            confidence_score: fallbackCondition.confidenceScore,
+            issues: fallbackCondition.issuesDetected || [],
+            summary: fallbackCondition.aiSummary || ''
+          });
+        } catch (saveErr) {
+          console.error("Error saving fallback condition:", saveErr);
+        }
+      } finally {
+        // Make sure to update state even if AI analysis fails
+        setPhotos(uploadedPhotos);
+        setPhotoScore(averageScore);
+        setIndividualScores(scoredPhotos);
       }
-      
-      // Update state
-      setPhotos(uploadedPhotos);
-      setPhotoScore(averageScore);
-      setIndividualScores(scoredPhotos);
       
       return {
         score: averageScore,
@@ -209,6 +242,7 @@ export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
     } finally {
       setIsUploading(false);
       setIsScoring(false);
+      setIsLoading(false);
       setUploadProgress(100);
     }
   }, [valuationId, aiCondition]);
@@ -224,7 +258,7 @@ export function usePhotoScoring(valuationId?: string): PhotoScoringResult {
     error,
     resetUpload,
     individualScores,
-    isLoading: isUploading || isScoring
+    isLoading
   };
 }
 
@@ -254,4 +288,12 @@ function mapConditionToScore(condition: string | null): number {
     case 'poor': return 25;
     default: return 0;
   }
+}
+
+// Helper function to estimate condition from photo score
+function estimateConditionFromScore(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' {
+  if (score >= 0.85) return 'Excellent';
+  if (score >= 0.7) return 'Good';
+  if (score >= 0.5) return 'Fair';
+  return 'Poor';
 }
