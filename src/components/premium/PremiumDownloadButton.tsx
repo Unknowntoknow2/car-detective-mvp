@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, Download, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Download, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,7 @@ export function PremiumDownloadButton({
   const { isPremium, isLoading, createCheckoutSession } = usePremiumStatus(valuationId);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
 
   const handlePremiumUnlock = async () => {
     if (!user) {
@@ -36,6 +37,7 @@ export function PremiumDownloadButton({
 
     setIsProcessing(true);
     setError(null);
+    setSuccess(false);
     
     try {
       const result = await createCheckoutSession(valuationId);
@@ -46,12 +48,25 @@ export function PremiumDownloadButton({
       
       // If already unlocked, reload the page to update UI state
       if (!result.url) {
-        window.location.reload();
+        setSuccess(true);
+        toast.success('Premium features unlocked!', {
+          description: 'Refresh the page to access all premium features.'
+        });
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
         return;
       }
       
+      toast.success('Redirecting to secure checkout...', {
+        description: 'You will be taken to our payment processor.'
+      });
+      
       // Redirect to Stripe checkout
-      window.location.href = result.url;
+      setTimeout(() => {
+        window.location.href = result.url;
+      }, 800);
     } catch (error: any) {
       console.error('Error in premium unlock:', error);
       setError(error.message || 'Failed to start checkout process');
@@ -60,6 +75,29 @@ export function PremiumDownloadButton({
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleDownloadClick = async () => {
+    setIsProcessing(true);
+    setSuccess(false);
+    
+    try {
+      await onDownload();
+      setSuccess(true);
+      toast.success('Report downloaded successfully!');
+    } catch (error: any) {
+      console.error('Download error:', error);
+      setError(error.message || 'Failed to download report');
+      toast.error('Download failed', {
+        description: error.message || 'Please try again'
+      });
+    } finally {
+      setIsProcessing(false);
+      // Reset success state after 3 seconds
+      if (success) {
+        setTimeout(() => setSuccess(false), 3000);
+      }
     }
   };
 
@@ -74,9 +112,27 @@ export function PremiumDownloadButton({
 
   if (isPremium) {
     return (
-      <Button onClick={onDownload} className={className} variant="default">
-        <Download className="mr-2 h-4 w-4" />
-        Download Premium Report
+      <Button 
+        onClick={handleDownloadClick} 
+        className={`relative ${className}`} 
+        variant="default"
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : success ? (
+          <CheckCircle className="mr-2 h-4 w-4" />
+        ) : (
+          <Download className="mr-2 h-4 w-4" />
+        )}
+        {isProcessing ? 'Preparing Download...' : 
+         success ? 'Downloaded Successfully' : 
+         'Download Premium Report'}
+        
+        {/* Success animation */}
+        {success && (
+          <span className="absolute inset-0 rounded-md bg-green-500/10 animate-pulse" />
+        )}
       </Button>
     );
   }
@@ -92,7 +148,7 @@ export function PremiumDownloadButton({
       
       <Button 
         onClick={handlePremiumUnlock} 
-        className={className} 
+        className={`${className} transition-all duration-300 relative`} 
         variant="premium"
         disabled={isProcessing}
       >
@@ -107,7 +163,15 @@ export function PremiumDownloadButton({
             Unlock Premium Report
           </>
         )}
+        
+        {/* Subtle pulsing effect to draw attention */}
+        <span className="absolute inset-0 rounded-md bg-white/10 animate-pulse" 
+              style={{animationDuration: '3s'}} />
       </Button>
+      
+      <p className="text-xs text-center text-muted-foreground">
+        Secure payment • Instant access • 100% Satisfaction guarantee
+      </p>
     </div>
   );
 }

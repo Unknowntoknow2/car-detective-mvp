@@ -24,6 +24,9 @@ export function VinInput({
   isLoading,
   onKeyPress
 }: VinInputProps) {
+  const hasError = (touched && validationError) || externalError;
+  const showSuccessIcon = isValid && !isLoading && !hasError;
+  
   return (
     <div className="space-y-3">
       <div className="relative">
@@ -31,15 +34,11 @@ export function VinInput({
           value={value}
           onChange={onChange}
           placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
-          className={`text-lg font-mono tracking-wide h-12 pr-10 ${
-            (touched && validationError) ? 'border-red-500 focus-visible:ring-red-500' : 
-            (isValid) ? 'border-green-500 focus-visible:ring-green-500' : ''
-          }`}
+          className={`text-lg font-mono tracking-wide h-12`}
+          error={Boolean(hasError)}
           onKeyPress={onKeyPress}
+          trailingIcon={showSuccessIcon ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : undefined}
         />
-        {isValid && !isLoading && (
-          <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
-        )}
       </div>
       
       {touched && validationError ? (

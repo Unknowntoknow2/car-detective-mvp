@@ -35,10 +35,10 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
   
   try {
     // Define file URLs for querying photo_condition_scores
-    const photoUrls = photos.map(photo => photo.url);
+    const photoUrls: string[] = photos.map(photo => photo.url);
     
     if (photoUrls.length > 0) {
-      // Delete corresponding scores
+      // Delete corresponding scores - fixed the deep type instantiation issue
       await supabase
         .from('photo_condition_scores')
         .delete()

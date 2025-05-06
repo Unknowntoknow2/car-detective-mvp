@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger 
 } from '@/components/ui/tooltip';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, HelpCircle } from 'lucide-react';
 
 interface VehicleConditionSliderProps {
   value: number;
@@ -64,7 +64,37 @@ export const VehicleConditionSlider = ({
   return (
     <div className="w-full space-y-6 py-2">
       <div className="flex justify-between items-center">
-        <label className="text-sm font-medium">Vehicle Condition</label>
+        <div className="flex items-center">
+          <label className="text-sm font-medium mr-2">Vehicle Condition</label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs p-4">
+                <p className="text-sm font-medium mb-2">How to rate your vehicle condition</p>
+                <ul className="text-xs space-y-2">
+                  <li className="flex items-start">
+                    <span className="text-destructive font-medium mr-1">Poor:</span> 
+                    {conditionDescriptions.poor}
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-amber-500 font-medium mr-1">Fair:</span> 
+                    {conditionDescriptions.fair}
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 font-medium mr-1">Good:</span> 
+                    {conditionDescriptions.good}
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-blue-500 font-medium mr-1">Excellent:</span> 
+                    {conditionDescriptions.excellent}
+                  </li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

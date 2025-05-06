@@ -1,5 +1,7 @@
 
 import React, { useEffect } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface MakeModelSelectProps {
   makes: { id: string; name: string }[];
@@ -9,6 +11,7 @@ export interface MakeModelSelectProps {
   selectedModelId: string;
   setSelectedModelId: (id: string) => void;
   isDisabled?: boolean;
+  isLoading?: boolean;
 }
 
 const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
@@ -19,6 +22,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   selectedModelId,
   setSelectedModelId,
   isDisabled = false,
+  isLoading = false,
 }) => {
   console.log('MakeModelSelect render:', { 
     selectedMakeId, 
@@ -56,17 +60,32 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
     setSelectedModelId(newModelId);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex space-x-4">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Make</label>
+          <Skeleton className="h-10 w-full rounded" />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+          <Skeleton className="h-10 w-full rounded" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex space-x-4">
       {/* Make Dropdown */}
       <div className="flex-1">
-        <label htmlFor="make" className="block text-sm font-medium text-gray-700">Make</label>
+        <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">Make</label>
         <select
           id="make"
           value={selectedMakeId}
           onChange={handleMakeChange}
           disabled={isDisabled}
-          className="mt-1 block w-full border rounded p-2"
+          className="bg-white w-full border-2 border-slate-200 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
         >
           <option value="">Select a make</option>
           {makes.map(make => (
@@ -76,15 +95,16 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
           ))}
         </select>
       </div>
+      
       {/* Model Dropdown */}
       <div className="flex-1">
-        <label htmlFor="model" className="block text-sm font-medium text-gray-700">Model</label>
+        <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">Model</label>
         <select
           id="model"
           value={selectedModelId}
           onChange={handleModelChange}
           disabled={isDisabled || !selectedMakeId}
-          className="mt-1 block w-full border rounded p-2"
+          className="bg-white w-full border-2 border-slate-200 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
         >
           <option value="">
             {!selectedMakeId ? "Select Make First" : "Select Model"}

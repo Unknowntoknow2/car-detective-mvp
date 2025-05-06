@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Download } from 'lucide-react';
+import { Loader2, Download, ArrowRight, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -14,6 +14,7 @@ interface ValuationFormActionsProps {
   showDownload?: boolean;
   downloadButtonText?: string;
   isDownloading?: boolean;
+  isSuccess?: boolean;
 }
 
 export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
@@ -24,7 +25,8 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
   onDownloadPdf,
   showDownload = false,
   downloadButtonText = "Download Report",
-  isDownloading = false
+  isDownloading = false,
+  isSuccess = false
 }) => {
   const handleDownloadClick = () => {
     if (onDownloadPdf) {
@@ -51,13 +53,14 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
           <Button
             onClick={handleDownloadClick}
             variant="outline"
-            disabled={isDownloading}
+            isLoading={isDownloading}
+            loadingText="Generating..."
             className="h-12 font-medium text-base rounded-lg"
           >
-            {isDownloading ? (
+            {isSuccess ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Generating...
+                <Check className="mr-2 h-5 w-5 text-green-500" />
+                Downloaded
               </>
             ) : (
               <>
@@ -76,18 +79,25 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
       >
         <Button 
           onClick={onSubmit} 
-          disabled={isLoading}
+          isLoading={isLoading}
+          loadingText="Processing..."
           className="w-full bg-primary text-white h-12 font-medium text-base rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
         >
-          {isLoading ? (
+          {!isLoading && (
             <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Processing...
+              {submitButtonText}
+              <ArrowRight className="ml-2 h-5 w-5" />
             </>
-          ) : (
-            submitButtonText
           )}
         </Button>
+        
+        {/* Visual feedback for focus */}
+        <motion.span 
+          className="absolute inset-0 -z-10 bg-primary/20 rounded-lg"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileHover={{ opacity: 1, scale: 1.05 }}
+          transition={{ duration: 0.2 }}
+        />
       </motion.div>
     </div>
   );
