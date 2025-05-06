@@ -8,8 +8,10 @@ import { PhotoGuidance, PhotoTips } from './photo-upload/PhotoGuidance';
 import { usePhotoScoring } from '@/hooks/usePhotoScoring';
 import { MAX_FILES, MIN_FILES, Photo, PhotoScore } from '@/types/photo';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;
@@ -34,7 +36,8 @@ export function PhotoUploadAndScore({
     uploadProgress,
     error,
     resetUpload,
-    individualScores
+    individualScores,
+    isLoading
   } = usePhotoScoring(valuationId);
   
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
@@ -57,7 +60,12 @@ export function PhotoUploadAndScore({
     }
     
     try {
+      // Show initial processing toast
+      toast.loading("Processing your photos...", { id: "photo-processing" });
+      
       const result = await uploadPhotos(files);
+      
+      toast.dismiss("photo-processing");
       
       // Call the onScoreChange callback if provided
       if (result && onScoreChange) {
@@ -71,9 +79,33 @@ export function PhotoUploadAndScore({
         }
       }
     } catch (err) {
+      toast.dismiss("photo-processing");
+      toast.error('Failed to upload photos. Please try again.', {
+        description: 'You can still proceed with your valuation, but it may be less accurate.',
+        action: {
+          label: 'Try Again',
+          onClick: () => handleFileSelection(files)
+        }
+      });
       console.error('Error uploading photos:', err);
-      toast.error('Failed to upload photos. Please try again.');
     }
+  };
+  
+  // Function to add more photos
+  const handleAddMorePhotos = (files: File[]) => {
+    const remainingSlots = MAX_FILES - photos.length;
+    if (remainingSlots <= 0) {
+      toast.error(`Maximum of ${MAX_FILES} photos reached`);
+      return;
+    }
+    
+    // If more files selected than slots available, trim the selection
+    const filesToUpload = files.slice(0, remainingSlots);
+    if (filesToUpload.length !== files.length) {
+      toast.warning(`Only uploading first ${filesToUpload.length} photos due to ${MAX_FILES} photo limit`);
+    }
+    
+    handleFileSelection(filesToUpload);
   };
   
   return (
@@ -95,10 +127,23 @@ export function PhotoUploadAndScore({
       
       <PhotoGuidance photoCount={photos.length} />
       
+      {isLoading && (
+        <div className="bg-muted p-4 rounded-md space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">Processing your photos...</span>
+            <span className="text-xs text-muted-foreground">{Math.round(uploadProgress)}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Our AI is analyzing your vehicle photos. This may take a moment.
+          </p>
+        </div>
+      )}
+      
       {photos.length === 0 ? (
         <PhotoUploadDropzone 
           onFilesSelect={handleFileSelection}
-          isLoading={isUploading || isScoring}
+          isLoading={isLoading}
           currentFileCount={photos.length}
           minRequired={isRequired ? MIN_FILES : undefined}
         />
@@ -115,13 +160,31 @@ export function PhotoUploadAndScore({
         />
       )}
       
-      {photos.length < MAX_FILES && photos.length > 0 && !isUploading && !isScoring && (
-        <PhotoUploadDropzone 
-          onFilesSelect={handleFileSelection}
-          isLoading={isUploading || isScoring}
-          currentFileCount={photos.length}
-          additionalMode={true}
-        />
+      {photos.length < MAX_FILES && photos.length > 0 && !isLoading && (
+        <div>
+          <Button 
+            variant="outline" 
+            onClick={() => document.getElementById('additional-photo-input')?.click()}
+            className="w-full flex items-center justify-center gap-2"
+            type="button"
+          >
+            <ImagePlus className="h-4 w-4" />
+            Add More Photos ({photos.length}/{MAX_FILES})
+          </Button>
+          <input
+            id="additional-photo-input"
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) {
+                handleAddMorePhotos(Array.from(e.target.files));
+                e.target.value = ''; // Reset input
+              }
+            }}
+          />
+        </div>
       )}
       
       {validationMessage && (
@@ -133,6 +196,19 @@ export function PhotoUploadAndScore({
       <PhotoUploadError error={error} />
       
       {showTips && <PhotoTips />}
+      
+      {error && photoScore && (
+        <Alert variant="warning" className="bg-amber-50 border-amber-200">
+          <AlertTitle className="flex items-center gap-2">
+            <InfoIcon className="h-4 w-4" />
+            Limited Analysis Mode
+          </AlertTitle>
+          <AlertDescription>
+            We encountered some issues analyzing your photos, but we've still provided a basic assessment.
+            For more accurate results, you might want to try uploading clearer photos from multiple angles.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }
