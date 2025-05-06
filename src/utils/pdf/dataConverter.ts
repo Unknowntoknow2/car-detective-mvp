@@ -71,3 +71,7 @@ export function convertVehicleInfoToReportData(
 
   return baseReportData;
 }
+
+export default {
+  convertVehicleInfoToReportData
+};

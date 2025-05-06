@@ -1,16 +1,9 @@
 
+import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { ReportData } from './types';
-import { reportPdfImage } from './reportBackground';
-import { addValuationDetails } from './sections/valuationDetails';
-import { addVehicleDetails } from './sections/vehicleDetails';
-import { addPremiumBadge } from './sections/premiumBadge';
-import { addLogo } from './sections/logo';
-import { addFooter } from './sections/footer';
-import { addTimestamp } from './sections/timestamp';
-import { addExplanation } from './sections/explanation';
-import { addHeader } from './sections/header';
-import { toast } from 'sonner';
+import { convertVehicleInfoToReportData } from './dataConverter';
+import { generateValuationPdf } from './pdfGenerator';
 
 /**
  * Downloads a PDF report for the given vehicle data
@@ -22,49 +15,26 @@ export const downloadPdf = async (data: ReportData) => {
   });
 
   try {
-    // Create new PDF document
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    // Add report background image
-    const img = new Image();
-    img.src = reportPdfImage;
-    doc.addImage(img, 'PNG', 0, 0, 210, 297);
-
-    // Add logo and header
-    addLogo(doc);
-    addHeader(doc, data);
+    // Create new PDF document using pdf-lib
+    const pdfBytes = await generateValuationPdf(data);
     
-    // Add timestamp at the top right
-    addTimestamp(doc);
+    // Convert to Blob
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
     
-    // Add premium badge if applicable
-    if (data.isPremium) {
-      addPremiumBadge(doc);
-    }
-    
-    // Add vehicle details section
-    addVehicleDetails(doc, data);
-    
-    // Add valuation details
-    addValuationDetails(doc, data);
-    
-    // Add explanation if available
-    if (data.explanation && data.explanation.length > 0) {
-      addExplanation(doc, data.explanation);
-    }
-    
-    // Add footer with disclaimer
-    addFooter(doc);
+    // Create an invisible download link
+    const link = document.createElement('a');
+    link.href = url;
     
     // Generate filename
     const filename = `${data.make}_${data.model}_Valuation_${new Date().toISOString().split('T')[0]}.pdf`;
+    link.download = filename;
     
-    // Save file
-    doc.save(filename);
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
     // Dismiss loading toast and show success
     toast.dismiss(toastId);
@@ -89,3 +59,7 @@ export const downloadPdf = async (data: ReportData) => {
     return null;
   }
 };
+
+// Export all the necessary functions
+export { convertVehicleInfoToReportData } from './dataConverter';
+export { generateValuationPdf } from './pdfGenerator';

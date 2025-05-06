@@ -48,4 +48,5 @@ export interface PhotoScoringResult {
   error: string | null;
   resetUpload: () => Promise<void>;
   individualScores: PhotoScore[];
+  isLoading: boolean; // Add the isLoading property
 }

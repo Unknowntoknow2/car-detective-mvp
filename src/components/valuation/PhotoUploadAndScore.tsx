@@ -198,7 +198,7 @@ export function PhotoUploadAndScore({
       {showTips && <PhotoTips />}
       
       {error && photoScore && (
-        <Alert variant="warning" className="bg-amber-50 border-amber-200">
+        <Alert variant="destructive" className="bg-amber-50 border-amber-200">
           <AlertTitle className="flex items-center gap-2">
             <InfoIcon className="h-4 w-4" />
             Limited Analysis Mode

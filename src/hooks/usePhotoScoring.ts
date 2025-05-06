@@ -30,6 +30,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
   const [individualScores, setIndividualScores] = useState<PhotoScore[]>([]);
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 2;
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Load existing photos and assessment if available
   useEffect(() => {
@@ -37,7 +38,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
       if (!valuationId) return;
       
       try {
-        setIsLoading(true);
+        setIsProcessing(true);
         const { photos: loadedPhotos, photoScore: score, aiCondition: condition, individualScores: loadedScores } = 
           await fetchValuationPhotos(valuationId);
         
@@ -54,7 +55,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
         // Don't show error toast for initial load failures to avoid disrupting the flow
         setError("Unable to load existing photos. You can try uploading new ones.");
       } finally {
-        setIsLoading(false);
+        setIsProcessing(false);
       }
     }
     
@@ -255,6 +256,6 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
     error,
     resetUpload,
     individualScores,
-    isLoading: isUploading || isScoring
+    isLoading: isUploading || isScoring || isProcessing
   };
 }
