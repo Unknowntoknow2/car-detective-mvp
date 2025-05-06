@@ -15,12 +15,14 @@ interface PlateDecoderFormProps {
   onLookupComplete?: (result: PlateLookupInfo | null) => void;
   onDownloadPdf?: () => void;
   isDownloading?: boolean;
+  onManualEntryClick?: () => void; // Add this prop to the interface
 }
 
 const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({ 
   onLookupComplete,
   onDownloadPdf,
-  isDownloading = false
+  isDownloading = false,
+  onManualEntryClick // Add this prop to the component parameters
 }) => {
   const [plateNumber, setPlateNumber] = useState('');
   const [state, setState] = useState('');
@@ -143,6 +145,7 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
             showDownload={!!result}
             onDownloadPdf={handleDownloadClick}
             isDownloading={isDownloading}
+            onManualEntryClick={onManualEntryClick} // Add the prop to ValuationFormActions if needed
           />
         </form>
       </CardContent>

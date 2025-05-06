@@ -5,7 +5,9 @@ export * from './ValuationComplete';
 export * from './ValuationAuditTrail';
 export * from './PhotoUploadAndScore';
 export * from './PredictionResult';
-export * from './valuation-complete';
+// Rename exports from valuation-complete to avoid name conflicts
+export { ValuationHeader as ValuationCompleteHeader } from './valuation-complete';
+export { NextStepsCard } from './valuation-complete';
 export * from './result/ValuationHeader';
 export * from './result/ExplanationSection';
 export * from './result/ActionButtons';
