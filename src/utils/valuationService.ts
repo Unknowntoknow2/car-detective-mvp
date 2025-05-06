@@ -93,7 +93,7 @@ export async function updateBestPhotoUrl(valuationId: string, photoUrl: string):
       .update({ 
         // Use a field that exists in the schema to store the URL
         // Here I'm using a field that makes sense semantically, adjust as needed
-        "photo_url": photoUrl 
+        photo_url: photoUrl 
       })
       .eq('id', valuationId);
       
