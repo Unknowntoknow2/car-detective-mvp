@@ -6,7 +6,8 @@ import {
   AICondition, 
   PhotoScoringResult,
   MIN_FILES,
-  MAX_FILES 
+  MAX_FILES,
+  PhotoScore 
 } from '@/types/photo';
 import { 
   fetchValuationPhotos, 
@@ -25,7 +26,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
   const [isScoring, setIsScoring] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [individualScores, setIndividualScores] = useState<{url: string, score: number}[]>([]);
+  const [individualScores, setIndividualScores] = useState<PhotoScore[]>([]);
 
   // Load existing photos and assessment if available
   useEffect(() => {
@@ -65,7 +66,11 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
   /**
    * Uploads and analyzes photos
    */
-  const uploadPhotos = async (files: File[]): Promise<{ score: number, aiCondition?: AICondition } | null> => {
+  const uploadPhotos = async (files: File[]): Promise<{ 
+    score: number, 
+    aiCondition?: AICondition, 
+    individualScores?: PhotoScore[] 
+  } | null> => {
     // Verify minimum number of photos (including existing ones)
     if (files.length + photos.length < MIN_FILES) {
       toast.error(`Please select at least ${MIN_FILES} photos total. You need ${MIN_FILES - photos.length} more.`);

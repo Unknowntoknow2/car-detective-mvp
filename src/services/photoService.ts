@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Photo, ValuationPhoto, AICondition } from '@/types/photo';
+import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
 /**
  * Fetches existing photos and assessment for a valuation
@@ -9,6 +8,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
   photos: Photo[];
   photoScore: number | null;
   aiCondition: AICondition | null;
+  individualScores?: PhotoScore[];
 }> {
   try {
     // Get existing photos - use type assertion for tables not in generated types
@@ -22,12 +22,13 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
     
     if (photoError) {
       console.log('Error loading photos:', photoError);
-      return { photos: [], photoScore: null, aiCondition: null };
+      return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
     }
     
     const photos: Photo[] = [];
     let photoScore: number | null = null;
     let aiCondition: AICondition | null = null;
+    let individualScores: PhotoScore[] = [];
     
     if (photoData && photoData.length > 0) {
       const loadedPhotos = photoData.map((photo) => ({
@@ -35,6 +36,19 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         thumbnail: photo.photo_url,
         id: photo.id
       }));
+      
+      // Also load individual scores
+      const { data: scoreData } = await supabase
+        .from('photo_condition_scores')
+        .select('*')
+        .eq('valuation_id', valuationId);
+        
+      if (scoreData && scoreData.length > 0) {
+        individualScores = scoreData.map(item => ({
+          url: item.image_url || '',
+          score: item.condition_score || 0
+        }));
+      }
       
       // If we have photos, check for AI assessment
       const { data: aiData, error: aiError } = await supabase
@@ -62,13 +76,13 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         }
       }
       
-      return { photos: loadedPhotos, photoScore, aiCondition };
+      return { photos: loadedPhotos, photoScore, aiCondition, individualScores };
     }
     
-    return { photos: [], photoScore: null, aiCondition: null };
+    return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
   } catch (err) {
     console.log('Error loading existing photo data:', err);
-    return { photos: [], photoScore: null, aiCondition: null };
+    return { photos: [], photoScore: null, aiCondition: null, individualScores: [] };
   }
 }
 
@@ -100,7 +114,8 @@ export async function uploadAndAnalyzePhotos(
 ): Promise<{ 
   photoUrls: string[],
   score: number,
-  aiCondition?: AICondition
+  aiCondition?: AICondition,
+  individualScores?: PhotoScore[]
 } | null> {
   try {
     // Create form data to send to the edge function
@@ -131,7 +146,8 @@ export async function uploadAndAnalyzePhotos(
         confidenceScore: data.confidenceScore,
         issuesDetected: data.issuesDetected,
         aiSummary: data.aiSummary
-      }
+      },
+      individualScores: data.individualScores || []
     };
   } catch (err) {
     console.error('Photo upload and analysis error:', err);

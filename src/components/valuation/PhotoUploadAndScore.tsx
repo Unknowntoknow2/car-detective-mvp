@@ -6,6 +6,7 @@ import { PhotoUploadError } from './photo-upload/PhotoUploadError';
 import { PhotoHeader } from './photo-upload/PhotoHeader';
 import { PhotoGuidance, PhotoTips } from './photo-upload/PhotoGuidance';
 import { usePhotoScoring } from '@/hooks/usePhotoScoring';
+import { MAX_FILES } from '@/types/photo';
 
 interface PhotoUploadAndScoreProps {
   valuationId: string;

@@ -1,4 +1,3 @@
-
 import { PDFPage, rgb, PDFFont, Color } from 'pdf-lib';
 
 interface AICondition {
@@ -117,8 +116,7 @@ export function drawAIConditionSection(
       height: 55,
       color: rgb(0.97, 0.97, 0.98),
       borderColor: rgb(0.9, 0.9, 0.92),
-      borderWidth: 1,
-      borderRadius: 4
+      borderWidth: 1
     });
     
     // Draw summary text
