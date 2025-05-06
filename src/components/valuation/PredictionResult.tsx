@@ -11,6 +11,9 @@ import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { useAICondition } from '@/hooks/useAICondition';
 import { supabase } from '@/integrations/supabase/client';
+import { useValuationId } from './result/useValuationId';
+import { LoadingState } from './result/LoadingState';
+import { ErrorAlert } from './result/ErrorAlert';
 
 interface PredictionResultProps {
   valuationId: string;
@@ -18,31 +21,22 @@ interface PredictionResultProps {
 
 export function PredictionResult({ valuationId }: PredictionResultProps) {
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isLocalValuationId, setIsLocalValuationId] = useState<string>(valuationId);
   const [retryCount, setRetryCount] = useState(0);
   
-  // Try to recover valuationId from localStorage if not provided or if query fails
-  useEffect(() => {
-    if (!isLocalValuationId) {
-      const storedValuation = localStorage.getItem('latest_valuation_id');
-      if (storedValuation) {
-        setIsLocalValuationId(storedValuation);
-        console.log("Recovered valuationId from localStorage:", storedValuation);
-      }
-    }
-  }, [isLocalValuationId]);
+  // Get valuation ID (from prop or localStorage)
+  const { localValuationId } = useValuationId(valuationId);
 
   const { 
     data, 
     isLoading, 
     error, 
     refetch 
-  } = useValuationResult(isLocalValuationId);
+  } = useValuationResult(localValuationId || '');
   
   const { 
     conditionData, 
     isLoading: isLoadingCondition 
-  } = useAICondition(isLocalValuationId);
+  } = useAICondition(localValuationId);
 
   // Retry logic if data fetch fails
   useEffect(() => {
@@ -150,7 +144,7 @@ export function PredictionResult({ valuationId }: PredictionResultProps) {
       
       <div className="mt-6">
         <PremiumDownloadButton 
-          valuationId={isLocalValuationId}
+          valuationId={localValuationId}
           onDownload={handleDownloadPdf}
           className="w-full"
           isDownloading={isDownloading}
