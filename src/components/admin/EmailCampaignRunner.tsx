@@ -96,7 +96,7 @@ export const EmailCampaignRunner = () => {
     }
   };
 
-  // Fix the Trans component usage
+  // Fix the Trans component usage - removing the incorrect name property
   const renderMessage = (message: string) => {
     return (
       <Trans>
