@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Loader2, Copy, Share2, Check, QrCode, Twitter, Linkedin } from 'lucide-react';
+import { Loader2, Copy, Share2, Check, Twitter, Linkedin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import QRCode from 'qrcode.react';
@@ -49,14 +49,14 @@ export function ShareableLink({ valuationId }: ShareableLinkProps) {
   };
   
   const handleCopyLink = () => {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
-      setIsCopied(true);
-      toast.success('Link copied to clipboard');
-      
-      // Reset copied state after 2 seconds
-      setTimeout(() => setIsCopied(false), 2000);
-    }
+    if (!shareUrl) return;
+    
+    navigator.clipboard.writeText(shareUrl);
+    setIsCopied(true);
+    toast.success('Link copied to clipboard');
+    
+    // Reset copied state after 2 seconds
+    setTimeout(() => setIsCopied(false), 2000);
   };
   
   const handleShare = (platform: 'twitter' | 'linkedin') => {
@@ -64,15 +64,15 @@ export function ShareableLink({ valuationId }: ShareableLinkProps) {
     
     const text = 'Check out my car valuation report from Car Detective!';
     
-    let shareUrl;
+    let platformUrl;
     if (platform === 'twitter') {
-      shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+      platformUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
     } else if (platform === 'linkedin') {
-      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+      platformUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
     }
     
-    if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
+    if (platformUrl) {
+      window.open(platformUrl, '_blank', 'width=600,height=400');
     }
   };
   

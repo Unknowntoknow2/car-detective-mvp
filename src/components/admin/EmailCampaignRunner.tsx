@@ -154,7 +154,7 @@ export const EmailCampaignRunner = () => {
                 rows={8}
               />
               <p className="text-sm text-muted-foreground">
-                You can use HTML for formatting. Use {{name}} to personalize with the recipient's name.
+                You can use HTML for formatting. Use <code>{`{{name}}`}</code> to personalize with the recipient&apos;s name.
               </p>
             </div>
           </form>

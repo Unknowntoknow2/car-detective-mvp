@@ -110,7 +110,7 @@ export default function SharedValuationPage() {
     return (
       <div className="container max-w-4xl mx-auto py-12 min-h-[70vh]">
         {getMetaTags()}
-        <Alert variant="warning" className="mb-4 border-amber-300 bg-amber-50">
+        <Alert variant="default" className="mb-4 border-amber-300 bg-amber-50">
           <Info className="h-4 w-4 text-amber-600" />
           <AlertTitle className="text-amber-700">Expired Link</AlertTitle>
           <AlertDescription className="text-amber-600">
