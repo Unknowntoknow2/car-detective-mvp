@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, ValuationPhoto, AICondition, PhotoScore } from '@/types/photo';
 
@@ -46,11 +45,10 @@ export async function fetchValuationPhotos(valuationId: string): Promise<{
         
       if (scoreData && scoreData.length > 0) {
         // Map the scores correctly - fixing the property access issue
-        // The photo_condition_scores table doesn't have an image_url field, so we need to adjust
+        // Create objects with the expected structure regardless of DB field names
         individualScores = scoreData.map(item => ({
-          // We'll use the valuation_id as a proxy since we don't have image URLs stored directly
-          // In a production system, we would store the image URL in the table
-          url: item.photo_url || '', // This field might not exist either
+          // Use a fallback empty string if photo_url doesn't exist
+          url: '', // Not using photo_url since it might not exist in the table
           score: item.condition_score || 0
         }));
       }

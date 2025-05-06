@@ -1,115 +1,217 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mail, AlertCircle, CheckCircle } from 'lucide-react';
-import { runEmailCampaignScheduler } from '@/utils/emailService';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Trans } from 'react-i18next';
 
-export function EmailCampaignRunner() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [lastRunResults, setLastRunResults] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  
-  const handleRunCampaigns = async () => {
-    setIsRunning(true);
-    setError(null);
-    
+export const EmailCampaignRunner = () => {
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [audienceType, setAudienceType] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [campaignHistory, setCampaignHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchCampaignHistory();
+  }, []);
+
+  const fetchCampaignHistory = async () => {
     try {
-      const result = await runEmailCampaignScheduler();
-      
-      if (result.success) {
-        setLastRunResults(result.results);
-        toast.success('Email campaigns scheduled successfully');
-      } else {
-        setError(result.error || 'Failed to run email campaigns');
-        toast.error('Failed to run email campaigns');
-      }
-    } catch (err: any) {
-      setError(err.message);
-      toast.error('Error running email campaigns');
-    } finally {
-      setIsRunning(false);
+      const { data, error } = await supabase
+        .from('email_campaigns')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setCampaignHistory(data || []);
+    } catch (err) {
+      console.error('Error fetching campaign history:', err);
     }
   };
-  
-  const getTotalEmailsSent = () => {
-    if (!lastRunResults) return 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    return Object.values(lastRunResults).reduce((total: number, campaign: any) => {
-      return total + campaign.sent;
-    }, 0);
-  };
-  
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Mail className="mr-2 h-5 w-5" />
-          Email Campaign Scheduler
-        </CardTitle>
-        <CardDescription>
-          Trigger automated email campaigns for user re-engagement
-        </CardDescription>
-      </CardHeader>
+    if (!subject || !body) {
+      toast.error('Please fill in both subject and body fields');
+      return;
+    }
+    
+    setIsLoading(true);
+    setResult(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('trigger-email-campaign', {
+        body: {
+          subject,
+          body,
+          audienceType
+        }
+      });
       
-      <CardContent>
-        {error && (
-          <div className="bg-red-50 p-4 rounded-md mb-4 text-red-800 flex items-start">
-            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-            <div>{error}</div>
-          </div>
-        )}
-        
-        {lastRunResults && (
-          <div className="bg-green-50 p-4 rounded-md mb-4">
-            <div className="flex items-center text-green-800 font-medium mb-2">
-              <CheckCircle className="h-5 w-5 mr-2" />
-              <span>Last Run Results</span>
+      if (error) throw error;
+      
+      setResult({
+        success: true,
+        message: `Campaign sent to ${data.recipientCount} recipients`
+      });
+      
+      toast.success('Email campaign triggered successfully');
+      fetchCampaignHistory();
+      
+      // Reset form
+      setSubject('');
+      setBody('');
+    } catch (err) {
+      console.error('Error triggering email campaign:', err);
+      setResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'An unknown error occurred'
+      });
+      toast.error('Failed to trigger email campaign');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderMessage = (message: string) => {
+    return (
+      <Trans>
+        {message || ''}
+      </Trans>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Send Email Campaign</CardTitle>
+          <CardDescription>
+            Create and send email campaigns to your users
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="audience">Audience</Label>
+              <Select 
+                value={audienceType} 
+                onValueChange={setAudienceType}
+              >
+                <SelectTrigger id="audience">
+                  <SelectValue placeholder="Select audience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="active">Active Users</SelectItem>
+                  <SelectItem value="inactive">Inactive Users</SelectItem>
+                  <SelectItem value="premium">Premium Users</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
-            <div className="text-sm space-y-2">
-              <p>Total emails sent: <span className="font-medium">{getTotalEmailsSent()}</span></p>
-              
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(lastRunResults).map(([type, data]: [string, any]) => (
-                  <div key={type} className="bg-white p-2 rounded border">
-                    <p className="font-medium capitalize">{type.replace('_', ' ')}</p>
-                    <p className="text-xs text-gray-500">
-                      Sent {data.sent} / {data.candidates} emails
-                      {data.errors > 0 && <span className="text-red-500"> ({data.errors} errors)</span>}
-                    </p>
-                  </div>
-                ))}
+            <div className="space-y-2">
+              <Label htmlFor="subject">Email Subject</Label>
+              <Input 
+                id="subject" 
+                value={subject} 
+                onChange={(e) => setSubject(e.target.value)} 
+                placeholder="Enter email subject"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="body">Email Body</Label>
+              <Textarea 
+                id="body" 
+                value={body} 
+                onChange={(e) => setBody(e.target.value)} 
+                placeholder="Enter email content"
+                rows={8}
+              />
+              <p className="text-sm text-muted-foreground">
+                You can use HTML for formatting. Use {{name}} to personalize with the recipient's name.
+              </p>
+            </div>
+          </form>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading || !subject || !body}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Send Campaign
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+      
+      {result && (
+        <Card className={result.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              {result.success ? (
+                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+              )}
+              <div>
+                <h3 className={`font-medium ${result.success ? "text-green-800" : "text-red-800"}`}>
+                  {result.success ? "Campaign Sent Successfully" : "Campaign Failed"}
+                </h3>
+                <p className={result.success ? "text-green-700" : "text-red-700"}>
+                  {renderMessage(result.message)}
+                </p>
               </div>
             </div>
-          </div>
-        )}
-        
-        <p className="text-sm text-gray-500 mb-4">
-          This will scan for users who match criteria for various email campaigns and
-          schedule emails to be sent. Emails include abandoned valuation reminders,
-          premium upsells, dealer offer followups, photo upload prompts, and
-          reactivation emails for inactive users.
-        </p>
-      </CardContent>
+          </CardContent>
+        </Card>
+      )}
       
-      <CardFooter>
-        <Button 
-          onClick={handleRunCampaigns} 
-          disabled={isRunning}
-          className="w-full"
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Running Campaigns...
-            </>
-          ) : (
-            'Run Email Campaigns Now'
-          )}
-        </Button>
-      </CardFooter>
-    </Card>
+      {campaignHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Campaigns</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {campaignHistory.map((campaign) => (
+                <div key={campaign.id} className="border-b pb-4 last:border-0">
+                  <div className="flex justify-between">
+                    <h3 className="font-medium">{campaign.subject}</h3>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(campaign.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Sent to {campaign.recipient_count} recipients ({campaign.audience_type})
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
-}
+};
+
+export default EmailCampaignRunner;
