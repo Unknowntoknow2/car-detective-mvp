@@ -5,13 +5,15 @@ import { BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PremiumBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'outline' | 'subtle';
+  variant?: 'default' | 'outline' | 'subtle' | 'gold';
   size?: 'sm' | 'md' | 'lg';
+  icon?: boolean;
 }
 
 export function PremiumBadge({
   variant = 'default',
   size = 'md',
+  icon = true,
   className,
   children,
   ...props
@@ -20,6 +22,7 @@ export function PremiumBadge({
     default: "bg-primary text-primary-foreground",
     outline: "bg-primary/10 text-primary border-primary/40",
     subtle: "bg-primary/5 text-primary",
+    gold: "bg-amber-100 text-amber-800 border-amber-300",
   };
   
   const sizes = {
@@ -39,7 +42,7 @@ export function PremiumBadge({
       )}
       {...props}
     >
-      <BadgeCheck className="h-3.5 w-3.5" />
+      {icon && <BadgeCheck className="h-3.5 w-3.5" />}
       {children || "Premium"}
     </Badge>
   );

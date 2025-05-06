@@ -1,65 +1,104 @@
 
-import { toast } from 'sonner';
-import { jsPDF } from 'jspdf';
+import { generatePdf } from './pdfGenerator';
 import { ReportData } from './types';
-import { convertVehicleInfoToReportData } from './dataConverter';
-import { generateValuationPdf } from './pdfGenerator';
 
 /**
- * Downloads a PDF report for the given vehicle data
+ * Downloads a PDF report
+ * @param data The report data
+ * @returns Promise that resolves when PDF download is complete
  */
-export const downloadPdf = async (data: ReportData) => {
-  // Show a toast for long-running operation
-  const toastId = toast.loading('Generating your PDF report...', {
-    duration: 5000 // Set a longer duration for PDF generation
-  });
-
+export async function downloadPdf(data: ReportData): Promise<void> {
   try {
-    // Create new PDF document using pdf-lib
-    const pdfBytes = await generateValuationPdf(data);
+    // Generate PDF
+    const pdfBytes = await generatePdf(data);
     
-    // Convert to Blob
+    // Create a blob from the PDF bytes
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    
+    // Create a URL for the blob
     const url = URL.createObjectURL(blob);
     
-    // Create an invisible download link
+    // Create a link element
     const link = document.createElement('a');
     link.href = url;
+    link.download = `${data.year}_${data.make}_${data.model}_report.pdf`;
     
-    // Generate filename
-    const filename = `${data.make}_${data.model}_Valuation_${new Date().toISOString().split('T')[0]}.pdf`;
-    link.download = filename;
-    
-    // Trigger download
+    // Trigger a click on the link
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
     
-    // Dismiss loading toast and show success
-    toast.dismiss(toastId);
-    toast.success('PDF report generated successfully', {
-      description: `Saved as ${filename}`
-    });
-    
-    return filename;
+    // Release the URL object
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    
-    // Dismiss loading toast and show error
-    toast.dismiss(toastId);
-    toast.error('Failed to generate PDF report', {
-      description: 'Please try again or contact support if the problem persists.',
-      action: {
-        label: 'Try Again',
-        onClick: () => downloadPdf(data)
-      }
-    });
-    
-    return null;
+    console.error('Error downloading PDF:', error);
+    throw error;
   }
-};
+}
 
-// Export all the necessary functions
-export { convertVehicleInfoToReportData } from './dataConverter';
-export { generateValuationPdf } from './pdfGenerator';
+/**
+ * Converts vehicle information to report data
+ * @param vehicleInfo Vehicle information
+ * @param valuationData Valuation data
+ * @returns ReportData object
+ */
+export function convertVehicleInfoToReportData(
+  vehicleInfo: {
+    vin: string;
+    make: string;
+    model: string;
+    year: number;
+    mileage?: number | string;
+    transmission?: string;
+    condition?: string;
+    zipCode?: string;
+    bodyType?: string;
+    color?: string;
+    fuelType?: string;
+  },
+  valuationData: {
+    estimatedValue: number;
+    mileage?: string | number;
+    condition?: string;
+    zipCode?: string;
+    confidenceScore?: number;
+    adjustments?: Array<{ factor: string, impact: number, description: string }>;
+    fuelType?: string;
+    explanation?: string;
+    isPremium?: boolean;
+    aiCondition?: {
+      condition: string;
+      confidenceScore: number;
+      issuesDetected?: string[];
+      aiSummary?: string;
+    } | null;
+    bestPhotoUrl?: string;
+  }
+): ReportData {
+  return {
+    vin: vehicleInfo.vin,
+    make: vehicleInfo.make,
+    model: vehicleInfo.model,
+    year: vehicleInfo.year,
+    mileage: typeof vehicleInfo.mileage === 'number' 
+      ? vehicleInfo.mileage.toString() 
+      : vehicleInfo.mileage?.toString() || '0',
+    transmission: vehicleInfo.transmission || 'Not Specified',
+    condition: valuationData.condition || vehicleInfo.condition || 'Not Specified',
+    zipCode: valuationData.zipCode || vehicleInfo.zipCode || '',
+    estimatedValue: valuationData.estimatedValue,
+    confidenceScore: valuationData.confidenceScore || 80,
+    bodyStyle: vehicleInfo.bodyType || 'Not Specified',
+    bodyType: vehicleInfo.bodyType || 'Not Specified',
+    color: vehicleInfo.color || 'Not Specified',
+    fuelType: valuationData.fuelType || vehicleInfo.fuelType || 'Not Specified',
+    explanation: valuationData.explanation || '',
+    isPremium: valuationData.isPremium || false,
+    adjustments: valuationData.adjustments || [],
+    aiCondition: valuationData.aiCondition || null,
+    bestPhotoUrl: valuationData.bestPhotoUrl
+  };
+}
+
+export { generatePdf };
+export type { ReportData };

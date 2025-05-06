@@ -1,105 +1,28 @@
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ValuationResult } from '@/types/valuation';
-import { convertLegacyAdjustmentsToNewFormat } from '@/utils/formatters/adjustment-formatter';
-import { getRegionalMarketMultiplierAsync } from '@/utils/adjustments/locationAdjustments';
+import { getValuationResult, checkPremiumAccess } from '@/utils/valuationService';
 
 export function useValuationResult(valuationId: string) {
-  const [data, setData] = useState<ValuationResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [isError, setIsError] = useState(false);
-
-  const fetchValuationData = async () => {
-    setIsLoading(true);
-    setError(null);
-    setIsError(false);
-
-    try {
-      // Fetch the valuation record
-      const { data: valuationData, error: valuationError } = await supabase
-        .from('valuations')
-        .select('*')
-        .eq('id', valuationId)
-        .single();
-
-      if (valuationError) {
-        throw new Error(`Failed to fetch valuation: ${valuationError.message}`);
-      }
-
-      if (!valuationData) {
-        throw new Error('Valuation not found');
-      }
-
-      // Get the market multiplier for the ZIP code
-      const zipCode = valuationData.state || '';
-      const marketMultiplier = await getRegionalMarketMultiplierAsync(zipCode);
-      
-      // Calculate market adjustment value
-      const marketAdjustmentValue = valuationData.estimated_value * marketMultiplier;
-      
-      // Map condition score to readable condition
-      let conditionLabel = 'Good'; // Default
-      if (valuationData.condition_score) {
-        if (valuationData.condition_score >= 80) conditionLabel = 'Excellent';
-        else if (valuationData.condition_score >= 70) conditionLabel = 'Good';
-        else if (valuationData.condition_score >= 50) conditionLabel = 'Fair';
-        else conditionLabel = 'Poor';
+  return useQuery({
+    queryKey: ['valuation', valuationId],
+    queryFn: async () => {
+      if (!valuationId) {
+        throw new Error('Valuation ID is required');
       }
       
-      // Transform the data to match the ValuationResult interface
-      const result: ValuationResult = {
-        id: valuationData.id,
-        make: valuationData.make,
-        model: valuationData.model,
-        year: valuationData.year,
-        mileage: valuationData.mileage,
-        condition: conditionLabel,
-        confidenceScore: valuationData.confidence_score || 75,
-        zipCode: valuationData.state || '',
-        estimatedValue: valuationData.estimated_value,
-        priceRange: [
-          Math.round(valuationData.estimated_value * 0.95),
-          Math.round(valuationData.estimated_value * 1.05)
-        ],
-        adjustments: convertLegacyAdjustmentsToNewFormat([
-          { name: 'Base Value', value: 0, percentage: 0 },
-          { name: 'Condition Adjustment', value: Math.round(valuationData.estimated_value * 0.01), percentage: 0.01 },
-          { 
-            name: 'Location Adjustment', 
-            value: Math.round(marketAdjustmentValue), 
-            percentage: marketMultiplier 
-          }
-        ]),
-        createdAt: valuationData.created_at
+      // Get the valuation data
+      const data = await getValuationResult(valuationId);
+      
+      // Check if this is a premium report
+      const isPremium = await checkPremiumAccess(valuationId);
+      
+      return {
+        ...data,
+        isPremium
       };
-
-      setData(result);
-    } catch (err: any) {
-      console.error('Error fetching valuation data:', err);
-      setError(err instanceof Error ? err : new Error(err.message || 'Unknown error'));
-      setIsError(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!valuationId) {
-      setIsLoading(false);
-      setIsError(true);
-      setError(new Error('No valuation ID provided'));
-      return;
-    }
-
-    fetchValuationData();
-  }, [valuationId]);
-
-  const refetch = async () => {
-    if (!valuationId) return;
-    await fetchValuationData();
-  };
-
-  return { data, isLoading, error, isError, refetch };
+    },
+    enabled: !!valuationId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 }
