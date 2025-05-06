@@ -1,6 +1,6 @@
 
 import { TabContentWrapper } from "./TabContentWrapper";
-import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

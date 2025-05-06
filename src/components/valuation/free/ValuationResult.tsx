@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { ManualVehicleInfo } from '@/hooks/useManualValuation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import ValuationResult from '@/components/valuation/ValuationResult';
+import ValuationResultComponent from '@/components/valuation/ValuationResult';
 
 interface ValuationResultProps {
   valuationData: ManualVehicleInfo | null;
@@ -29,7 +29,7 @@ export function ValuationResult({ valuationData, valuationId }: ValuationResultP
   // If we have a valuationId, use the main ValuationResult component
   if (valuationId) {
     return (
-      <ValuationResult 
+      <ValuationResultComponent 
         valuationId={valuationId}
         isManualValuation={true}
       />

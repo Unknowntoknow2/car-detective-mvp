@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUnifiedDecoder } from '@/hooks/useUnifiedDecoder';
 import { Card } from '@/components/ui/card';
-import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { Loader2 } from 'lucide-react';
 import { useManualValuation, type ManualVehicleInfo } from '@/hooks/useManualValuation';
 

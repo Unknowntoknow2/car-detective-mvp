@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
 import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
-import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { CarFront, Search, FileText } from "lucide-react";
 
 interface LookupTabsProps {

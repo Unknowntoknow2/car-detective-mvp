@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
@@ -33,6 +34,7 @@ const formSchema = z.object({
     area: z.string().optional(),
   }).optional(),
   selectedFeatures: z.array(z.string()).optional(),
+  bodyType: z.string().optional(),
 });
 
 interface ManualEntryFormProps {
@@ -42,12 +44,12 @@ interface ManualEntryFormProps {
   isPremium?: boolean;
 }
 
-const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
+const ManualEntryForm = ({ 
   onSubmit, 
   isLoading = false, 
   submitButtonText = "Get Valuation",
   isPremium = false
-}) => {
+}: ManualEntryFormProps) => {
   const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isZipValid, setIsZipValid] = useState(false);
@@ -148,7 +150,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
             year: values.year,
             mileage: values.mileage,
             condition_score: getConditionScore(values.condition),
-            body_type: values.bodyType,
+            body_type: values.bodyType || null,
             user_id: user?.id || '00000000-0000-0000-0000-000000000000',
             state: values.zipCode,
             is_vin_lookup: false
@@ -380,7 +382,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
                   render={({ field }) => (
                     <Checkbox
                       id="accident"
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       disabled={isLoading || isSubmitting}
                     />

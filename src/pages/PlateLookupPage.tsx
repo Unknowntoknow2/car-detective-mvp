@@ -9,7 +9,7 @@ import { downloadPdf, convertVehicleInfoToReportData } from "@/utils/pdf";
 import { toast } from "sonner";
 import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
 import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
-import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { CarFront, Search, FileText } from "lucide-react";
 
 export default function PlateLookupPage() {

@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
@@ -24,7 +25,7 @@ export function useVinDecoderForm() {
     error: valuationError,
     isLoading: pipelineLoading,
     runLookup,
-    submitValuation
+    submitValuation: runSubmitValuation
   } = useFullValuationPipeline();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,7 +57,7 @@ export function useVinDecoderForm() {
 
   // Modified function signature to return Promise<void> to fix type error
   const handleDetailsSubmit = async (details: any): Promise<void> => {
-    const result = await submitValuation({
+    await runSubmitValuation({
       ...details,
       // Add ZIP code if available
       zipCode: zipCode || details.zipCode,
@@ -94,7 +95,7 @@ export function useVinDecoderForm() {
     return reportData;
   };
 
-  const submitValuation = async (details) => {
+  const handleValuationSubmit = async (details: any) => {
     try {
       // Add code to save the valuationId to localStorage
       if (valuationResult?.id) {
@@ -126,7 +127,7 @@ export function useVinDecoderForm() {
     pipelineLoading,
     handleSubmit,
     handleDetailsSubmit,
-    submitValuation,
+    submitValuation: handleValuationSubmit,
     handleDownloadPdf,
     valuationId: valuationResult?.id
   };

@@ -44,7 +44,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   });
   
   // Fetch valuation data from Supabase if valuationId is provided
-  const { data: valuationData, isLoading: isLoadingValuation } = 
+  const { data: valuationDataResult, isLoading: isLoadingValuation } = 
     useValuationResult(localValuationId || '');
     
   const { conditionData, isLoading: isLoadingCondition } = 
@@ -61,6 +61,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   }, [localValuationId]);
 
   // Use valuation data or fallback to props
+  const valuationData = valuationDataResult;
   const make = valuationData?.make || fallbackData.make;
   const model = valuationData?.model || fallbackData.model;
   const year = valuationData?.year || fallbackData.year;
@@ -120,8 +121,8 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         mileage: mileage.toString(),
         condition,
         zipCode: location,
-        confidenceScore: valuationData?.confidenceScore || 80, // Default value
-        adjustments: valuationData?.adjustments || [],
+        confidenceScore: valuationDataResult?.confidenceScore || 80, // Default value
+        adjustments: valuationDataResult?.adjustments || [],
         fuelType: 'Not Specified',
         explanation: explanation,
         aiCondition: conditionData
