@@ -20,7 +20,8 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     // If no profile exists, create one
     if (!data) {
       console.log('No profile found, creating one...');
-      const newProfile: Partial<Profile> = {
+      // Ensure id is included and not optional
+      const newProfile = {
         id: userId,
         created_at: new Date().toISOString()
       };

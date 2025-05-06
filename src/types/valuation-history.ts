@@ -10,6 +10,7 @@ export interface Valuation {
   state?: string | null;
   estimated_value?: number | null;
   is_premium?: boolean;
+  premium_unlocked?: boolean;
   valuation?: number | null;
   mileage?: number | null;
 }
