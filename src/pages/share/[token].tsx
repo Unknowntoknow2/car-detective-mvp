@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertCircle, Info, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import Footer from '@/components/layout/Footer';
+import { Footer } from '@/components/layout/Footer';
 
 export default function SharedValuationPage() {
   const { token } = useParams<{ token: string }>();
