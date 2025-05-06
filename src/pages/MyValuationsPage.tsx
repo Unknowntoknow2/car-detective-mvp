@@ -1,20 +1,29 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, PlusCircle } from 'lucide-react';
+import { Loader2, Download, PlusCircle, RefreshCw, Filter } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { useValuationHistory } from "@/hooks/useValuationHistory";
 import { toast } from "sonner";
 import { PremiumBadge } from "@/components/ui/premium-badge";
 import { downloadPdf } from '@/utils/pdf';
 import { ReportData } from '@/utils/pdf/types';
+import { Valuation } from '@/types/valuation-history';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 export default function MyValuationsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [filterType, setFilterType] = useState<string>("all");
   const { valuations, isLoading, error, isEmpty } = useValuationHistory();
   
   // Redirect to auth if not logged in
@@ -42,7 +51,7 @@ export default function MyValuationsPage() {
     }).format(value);
   };
   
-  const getIdentifier = (valuation: any) => {
+  const getIdentifier = (valuation: Valuation) => {
     if (valuation.vin) return `VIN: ${valuation.vin}`;
     if (valuation.plate) {
       return `Plate: ${valuation.plate}${valuation.state ? ` (${valuation.state})` : ''}`;
@@ -50,7 +59,7 @@ export default function MyValuationsPage() {
     return 'No identifier';
   };
   
-  const handleDownloadPdf = (valuation: any) => {
+  const handleDownloadPdf = (valuation: Valuation) => {
     // Create a properly formatted ReportData object with all required fields
     const reportData: ReportData = {
       vin: valuation.vin || '',
@@ -61,20 +70,35 @@ export default function MyValuationsPage() {
       state: valuation.state || '',
       mileage: valuation.mileage?.toString() || '0',
       condition: valuation.condition || 'Not Specified',
-      zipCode: valuation.zip_code || 'Not Available',
-      estimatedValue: valuation.estimated_value || 0,
+      zipCode: valuation.state || 'Not Available',
+      estimatedValue: valuation.estimated_value || valuation.valuation || 0,
       confidenceScore: valuation.confidence_score || 0,
       color: valuation.color || 'Not Specified',
       bodyStyle: valuation.body_style || 'Not Specified',
       bodyType: valuation.body_type || 'Not Specified',
       fuelType: valuation.fuel_type || 'Not Specified',
       explanation: valuation.explanation || 'No additional information available for this vehicle.',
-      isPremium: valuation.premium_unlocked || false,
+      isPremium: valuation.premium_unlocked || valuation.is_premium || false,
       transmission: valuation.transmission
     };
     
     downloadPdf(reportData);
   };
+
+  const handleViewValuation = (valuation: Valuation) => {
+    if (valuation.premium_unlocked) {
+      navigate(`/valuation/${valuation.id}/premium`);
+    } else {
+      navigate(`/valuation/${valuation.id}`);
+    }
+  };
+
+  const filteredValuations = valuations.filter(valuation => {
+    if (filterType === "all") return true;
+    if (filterType === "premium") return valuation.premium_unlocked || valuation.is_premium;
+    if (filterType === "standard") return !valuation.premium_unlocked && !valuation.is_premium;
+    return true;
+  });
   
   return (
     <div className="container mx-auto py-8">
@@ -87,11 +111,39 @@ export default function MyValuationsPage() {
       </div>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Valuation History</CardTitle>
-          <CardDescription>
-            View and manage your vehicle valuation reports
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Valuation History</CardTitle>
+            <CardDescription>
+              View and manage your vehicle valuation reports
+            </CardDescription>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Select
+              value={filterType}
+              onValueChange={setFilterType}
+            >
+              <SelectTrigger className="w-[150px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Reports</SelectItem>
+                <SelectItem value="premium">Premium Only</SelectItem>
+                <SelectItem value="standard">Standard Only</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -120,6 +172,19 @@ export default function MyValuationsPage() {
                 Get Your First Valuation
               </Button>
             </div>
+          ) : filteredValuations.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">
+                No valuations match your current filter.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setFilterType("all")}
+              >
+                Clear Filter
+              </Button>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -133,7 +198,7 @@ export default function MyValuationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {valuations.map((valuation) => (
+                {filteredValuations.map((valuation) => (
                   <TableRow key={valuation.id}>
                     <TableCell>{formatDate(valuation.created_at)}</TableCell>
                     <TableCell>
@@ -160,7 +225,7 @@ export default function MyValuationsPage() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => navigate(`/valuation/${valuation.id}${valuation.premium_unlocked ? '/premium' : ''}`)}
+                        onClick={() => handleViewValuation(valuation)}
                       >
                         View
                       </Button>

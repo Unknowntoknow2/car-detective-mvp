@@ -3,22 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Download } from 'lucide-react';
+import { Loader2, ArrowLeft, Lock } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import ValuationResult from '@/components/valuation/ValuationResult';
-import { PremiumAccessRequired } from '@/components/premium/PremiumAccessRequired';
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
-import { downloadPdf } from '@/utils/pdf';
-import { ReportData } from '@/utils/pdf/types';
 
-export default function PremiumValuationPage() {
+export default function ValuationDetailPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [valuationData, setValuationData] = useState<any>(null);
   const { hasPremiumAccess, isLoading: isPremiumLoading } = usePremiumAccess(valuationId);
   
@@ -68,41 +64,15 @@ export default function PremiumValuationPage() {
     fetchValuationData();
   }, [valuationId, user, navigate]);
   
-  const handleDownloadPdf = async () => {
-    if (!valuationData) return;
-    
-    setIsDownloading(true);
-    try {
-      // Create a properly formatted ReportData object with all required fields
-      const reportData: ReportData = {
-        vin: valuationData.vin || '',
-        make: valuationData.make || '',
-        model: valuationData.model || '',
-        year: valuationData.year || 0,
-        plate: valuationData.plate || '',
-        state: valuationData.state || '',
-        mileage: valuationData.mileage?.toString() || '0',
-        condition: valuationData.condition || 'Not Specified',
-        zipCode: valuationData.zip_code || 'Not Available',
-        estimatedValue: valuationData.estimated_value || 0,
-        confidenceScore: valuationData.confidence_score || 0,
-        color: valuationData.color || 'Not Specified',
-        bodyStyle: valuationData.body_style || 'Not Specified',
-        bodyType: valuationData.body_type || 'Not Specified',
-        fuelType: valuationData.fuel_type || 'Not Specified',
-        explanation: valuationData.explanation || 'No additional information available for this vehicle.',
-        isPremium: true,
-        transmission: valuationData.transmission
-      };
-      
-      await downloadPdf(reportData);
-      toast.success("PDF report downloaded successfully");
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast.error("Failed to download PDF report");
-    } finally {
-      setIsDownloading(false);
+  // Redirect to premium if user has premium access
+  useEffect(() => {
+    if (!isPremiumLoading && hasPremiumAccess) {
+      navigate(`/valuation/${valuationId}/premium`);
     }
+  }, [hasPremiumAccess, isPremiumLoading, valuationId, navigate]);
+  
+  const handleUpgradeToPremium = () => {
+    navigate(`/premium?id=${valuationId}`);
   };
   
   const handleBackToList = () => {
@@ -113,23 +83,6 @@ export default function PremiumValuationPage() {
     return (
       <div className="container py-8 flex justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  if (!hasPremiumAccess) {
-    return (
-      <div className="container py-8">
-        <Button 
-          variant="outline" 
-          onClick={handleBackToList}
-          className="mb-6 flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to My Valuations
-        </Button>
-        
-        <PremiumAccessRequired valuationId={valuationId} />
       </div>
     );
   }
@@ -147,22 +100,17 @@ export default function PremiumValuationPage() {
         </Button>
         
         <Button 
-          onClick={handleDownloadPdf}
-          disabled={isDownloading}
+          onClick={handleUpgradeToPremium}
           className="flex items-center gap-2"
         >
-          {isDownloading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
-          Download PDF Report
+          <Lock className="h-4 w-4" />
+          Upgrade to Premium
         </Button>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Premium Valuation Report</CardTitle>
+          <CardTitle>Valuation Report</CardTitle>
         </CardHeader>
         <CardContent>
           {valuationData && (
