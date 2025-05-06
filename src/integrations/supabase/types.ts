@@ -300,6 +300,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaigns: {
+        Row: {
+          audience_type: string
+          body: string
+          created_at: string | null
+          id: string
+          recipient_count: number | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          audience_type: string
+          body: string
+          created_at?: string | null
+          id?: string
+          recipient_count?: number | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          audience_type?: string
+          body?: string
+          created_at?: string | null
+          id?: string
+          recipient_count?: number | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       equipment_options: {
         Row: {
           created_at: string | null

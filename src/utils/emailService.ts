@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export type EmailType = 
@@ -62,6 +61,41 @@ export async function runEmailCampaignScheduler(): Promise<{ success: boolean; r
     return { success: true, results: data.results };
   } catch (err) {
     console.error('Exception running email campaign scheduler:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Create a new email campaign in the database
+ * @param subject Email subject
+ * @param body Email body
+ * @param audienceType Audience type
+ * @param recipientCount Number of recipients
+ * @returns Promise with the result of the operation
+ */
+export async function createEmailCampaign(
+  subject: string,
+  body: string,
+  audienceType: string,
+  recipientCount: number
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const { error } = await supabase.from('email_campaigns').insert({
+      subject,
+      body,
+      audience_type: audienceType,
+      recipient_count: recipientCount,
+      user_id: supabase.auth.getUser().then(({ data }) => data.user?.id)
+    });
+
+    if (error) {
+      console.error('Error creating email campaign:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, message: 'Email campaign created successfully' };
+  } catch (err) {
+    console.error('Exception creating email campaign:', err);
     return { success: false, error: err.message };
   }
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,13 +11,24 @@ import { Loader2, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Trans } from 'react-i18next';
 
+// Define types for email campaigns
+type EmailCampaign = {
+  id: string;
+  subject: string;
+  body: string;
+  audience_type: string;
+  recipient_count: number | null;
+  status: string | null;
+  created_at: string;
+};
+
 export const EmailCampaignRunner = () => {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [audienceType, setAudienceType] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [campaignHistory, setCampaignHistory] = useState<any[]>([]);
+  const [campaignHistory, setCampaignHistory] = useState<EmailCampaign[]>([]);
 
   useEffect(() => {
     fetchCampaignHistory();
@@ -24,11 +36,12 @@ export const EmailCampaignRunner = () => {
 
   const fetchCampaignHistory = async () => {
     try {
+      // Use type assertion to handle the custom table
       const { data, error } = await supabase
         .from('email_campaigns')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(10) as { data: EmailCampaign[] | null; error: any };
 
       if (error) throw error;
       setCampaignHistory(data || []);
@@ -82,10 +95,11 @@ export const EmailCampaignRunner = () => {
     }
   };
 
+  // Fix the Trans component usage
   const renderMessage = (message: string) => {
     return (
       <Trans>
-        {message || ''}
+        {message}
       </Trans>
     );
   };
