@@ -1,120 +1,89 @@
-
-import { createBrowserRouter } from 'react-router-dom';
-import Index from '@/pages/Index';
-import PremiumPage from '@/pages/PremiumPage';
-import Home from '@/pages/Home';
-import ManualLookupPage from '@/pages/ManualLookupPage';
-import NotFound from '@/pages/NotFound';
-import VinLookupPage from '@/pages/VinLookupPage';
-import VpicDecoderPage from '@/pages/VpicDecoderPage';
-import PlateLookupPage from '@/pages/PlateLookupPage';
-import VehicleHistoryPage from '@/pages/VehicleHistoryPage';
-import PremiumValuationPage from '@/pages/PremiumValuationPage';
-import AuthPage from '@/pages/AuthPage';
-import ProfilePage from '@/pages/ProfilePage';
-import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
-import PremiumSuccessPage from '@/pages/PremiumSuccessPage';
-import AuthCallbackPage from '@/pages/AuthCallbackPage';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import UserDashboardPage from '@/pages/UserDashboardPage';
-import MyValuationsPage from '@/pages/MyValuationsPage';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import AdminPage from '@/pages/AdminPage';
-import FreeValuationPage from '@/pages/FreeValuationPage';
-import SharedValuationPage from '@/pages/share/[token]';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Route,
+  createRoutesFromElements,
+} from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
+import { Home } from "./pages/Home";
+import { About } from "./pages/About";
+import { Contact } from "./pages/Contact";
+import { Terms } from "./pages/Terms";
+import { Privacy } from "./pages/Privacy";
+import { NotFound } from "./pages/NotFound";
+import { Dashboard } from "./pages/Dashboard";
+import { Auth } from "./pages/Auth";
+import { Account } from "./pages/Account";
+import { Orders } from "./pages/Orders";
+import { ValuationPage } from "./pages/ValuationPage";
+import { ValuationResultPage } from "./pages/ValuationResultPage";
+import { PremiumValuationPage } from "./pages/PremiumValuationPage";
+import { CarLookupPage } from "./pages/CarLookupPage";
+import PremiumSuccessPage from "./pages/PremiumSuccessPage";
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Index />,
+    path: "/",
+    element: <Layout />,
+    errorElement: <NotFound />,
+    children: [
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/about",
+        element: <About />,
+      },
+      {
+        path: "/contact",
+        element: <Contact />,
+      },
+      {
+        path: "/terms",
+        element: <Terms />,
+      },
+      {
+        path: "/privacy",
+        element: <Privacy />,
+      },
+      {
+        path: "/dashboard",
+        element: <Dashboard />,
+      },
+      {
+        path: "/account",
+        element: <Account />,
+      },
+      {
+        path: "/account/orders",
+        element: <Orders />,
+      },
+      {
+        path: "/valuation",
+        element: <ValuationPage />,
+      },
+      {
+        path: "/valuation/result/:id",
+        element: <ValuationResultPage />,
+      },
+      {
+        path: "/valuation/premium",
+        element: <PremiumValuationPage />,
+      },
+      {
+        path: "/car-lookup",
+        element: <CarLookupPage />,
+      },
+    ],
   },
   {
-    path: '/home',
-    element: <Home />,
+    path: "/auth",
+    element: <Auth />,
   },
   {
-    path: '/premium',
-    element: <PremiumPage />,
-  },
-  {
-    path: '/free-valuation',
-    element: <FreeValuationPage />,
-  },
-  {
-    path: '/vin-lookup',
-    element: <VinLookupPage />,
-  },
-  {
-    path: '/manual-lookup',
-    element: <ManualLookupPage />,
-  },
-  {
-    path: '/vpic-decode',
-    element: <VpicDecoderPage />,
-  },
-  {
-    path: '/plate-lookup',
-    element: <PlateLookupPage />,
-  },
-  {
-    path: '/vehicle-history',
-    element: <VehicleHistoryPage />,
-  },
-  {
-    path: '/premium-valuation',
-    element: <PremiumValuationPage />,
-  },
-  {
-    path: '/valuation/premium',
-    element: <PremiumValuationPage />,
-  },
-  {
-    path: '/premium-success',
+    path: "/premium-success",
     element: <PremiumSuccessPage />,
-  },
-  {
-    path: '/valuation/premium-success',
-    element: <PremiumSuccessPage />,
-  },
-  {
-    path: '/auth',
-    element: <AuthPage />,
-  },
-  {
-    path: '/auth/callback',
-    element: <AuthCallbackPage />,
-  },
-  {
-    path: '/reset-password',
-    element: <ResetPasswordPage />,
-  },
-  {
-    path: '/share/:token',
-    element: <SharedValuationPage />,
-  },
-  {
-    path: '/dashboard',
-    element: <ProtectedRoute><UserDashboardPage /></ProtectedRoute>,
-  },
-  {
-    path: '/my-valuations',
-    element: <ProtectedRoute><MyValuationsPage /></ProtectedRoute>,
-  },
-  {
-    path: '/profile',
-    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
-  },
-  {
-    path: '/admin',
-    element: <ProtectedRoute><AdminPage /></ProtectedRoute>,
-  },
-  {
-    path: '/privacy-policy',
-    element: <PrivacyPolicyPage />,
-  },
-  {
-    path: '*',
-    element: <NotFound />,
   },
 ]);
 
