@@ -11,11 +11,14 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
   for (const photo of photos) {
     if (photo.id) {
       try {
-        // Delete from valuation_photos table using any type
-        await supabase
+        // Delete from valuation_photos table
+        // Cast the entire query chain to any to avoid TypeScript errors
+        const query = supabase
           .from('valuation_photos')
           .delete()
-          .eq('id', photo.id) as any;
+          .eq('id', photo.id);
+          
+        await query as any;
           
         // Extract file path from URL to delete from storage
         const url = new URL(photo.url);
@@ -38,11 +41,14 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
     const photoUrls = photos.map(photo => photo.url);
     
     if (photoUrls.length > 0) {
-      // Delete corresponding scores using any type
-      await supabase
+      // Delete corresponding scores
+      // Cast the entire query chain to any to avoid TypeScript errors
+      const query = supabase
         .from('photo_condition_scores')
         .delete()
-        .in('image_url', photoUrls) as any;
+        .in('image_url', photoUrls);
+        
+      await query as any;
     }
   } catch (error) {
     console.error('Error cleaning up condition scores:', error);
