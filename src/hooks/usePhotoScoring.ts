@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { 
   Photo, 
@@ -12,7 +11,8 @@ import {
 import { 
   fetchValuationPhotos, 
   deletePhotos, 
-  uploadAndAnalyzePhotos 
+  uploadAndAnalyzePhotos,
+  PhotoAnalysisResult
 } from '@/services/photoService';
 
 /**
@@ -73,7 +73,7 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
   /**
    * Uploads and analyzes photos
    */
-  const uploadPhotos = async (files: File[]): Promise<{ 
+  const uploadPhotos = useCallback(async (files: File[]): Promise<{ 
     score: number, 
     aiCondition?: AICondition, 
     individualScores?: PhotoScore[] 
@@ -145,8 +145,8 @@ export function usePhotoScoring(valuationId: string): PhotoScoringResult {
       setIsUploading(false);
       setIsScoring(false);
     }
-  };
-  
+  }, [valuationId, photos]);
+
   return {
     uploadPhotos,
     photos,
