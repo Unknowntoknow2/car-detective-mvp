@@ -15,9 +15,10 @@ export interface RulesEngineInput {
   condition: string;
   mileage: number;
   zipCode?: string;
+  basePrice?: number;
+  accidentCount?: number;
 }
 
-// Updated AdjustmentBreakdown to have both naming conventions to support existing code
 export interface AdjustmentBreakdown {
   factor: string;  // Primary key used by newer code
   impact: number;  // Primary value used by newer code
@@ -25,6 +26,10 @@ export interface AdjustmentBreakdown {
   value?: number;  // Legacy field - supported for backward compatibility
   description: string;
   percentAdjustment?: number;
+  
+  // Adding these fields to support usage elsewhere in the codebase
+  label?: string;
+  amount?: number;
 }
 
 export interface AdjustmentCalculator {
