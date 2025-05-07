@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { AuthLayout } from '@/layouts/AuthLayout';
-import { DashboardLayout } from '@/layouts/DashboardLayout';
-import { AuthGuard } from '@/guards/AuthGuard';
-import { GuestGuard } from '@/guards/GuestGuard';
+import AuthLayout from '@/layouts/AuthLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import AuthGuard from '@/guards/AuthGuard';
+import GuestGuard from '@/guards/GuestGuard';
 import VinLookupPage from '@/pages/VinLookupPage';
 import LookupPage from '@/pages/LookupPage';
 import LoginPage from '@/pages/LoginPage';

@@ -1,17 +1,32 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { Container } from '@/components/ui/container';
 
 const DashboardLayout: React.FC = () => {
   return (
-    <div className="flex h-screen bg-gray-100">
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Outlet />
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="py-4 bg-white border-b">
+        <Container>
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold">Dashboard</h1>
           </div>
-        </main>
-      </div>
+        </Container>
+      </header>
+      
+      <main className="flex-1 py-8">
+        <Container>
+          <Outlet />
+        </Container>
+      </main>
+      
+      <footer className="py-4 bg-white border-t">
+        <Container>
+          <p className="text-sm text-center text-gray-500">
+            &copy; {new Date().getFullYear()} Car Detective. All rights reserved.
+          </p>
+        </Container>
+      </footer>
     </div>
   );
 };

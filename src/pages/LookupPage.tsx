@@ -1,8 +1,8 @@
-
-import React, { useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { VINLookupForm } from '@/components/lookup/vin/VINLookupForm';
+import { VinLookupForm } from '@/components/lookup/vin/VinLookupForm';
 import { PlateLookupForm } from '@/components/lookup/plate/PlateLookupForm';
 import { ManualEntryForm } from '@/components/lookup/manual/ManualEntryForm';
 import { PhotoLookupForm } from '@/components/lookup/photo/PhotoLookupForm';
@@ -104,7 +104,7 @@ const LookupPage: React.FC = () => {
                   <h2 className="text-xl font-semibold mb-2">VIN Lookup</h2>
                   <p className="text-gray-600">Enter your Vehicle Identification Number (VIN) to get started.</p>
                 </div>
-                <VINLookupForm onSubmit={handleVinSubmit} isLoading={isLoading} />
+                <VinLookupForm onSubmit={handleVinSubmit} isLoading={isLoading} />
               </TabsContent>
               
               <TabsContent value="plate">

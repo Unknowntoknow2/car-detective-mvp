@@ -20,6 +20,7 @@ export interface RulesEngineInput {
   zipCode: string;
   fuelType?: string;
   transmission?: string;
+  transmissionType?: string; // Added for compatibility
   color?: string;
   photoScore?: number;
   recallCount?: number;
@@ -28,6 +29,16 @@ export interface RulesEngineInput {
   features?: string[];
   valuationId?: string;
   aiConditionOverride?: AICondition;
+  // Additional properties for compatibility
+  premiumFeatures?: boolean;
+  equipmentIds?: string[];
+  exteriorColor?: string;
+  colorMultiplier?: number;
+  fuelTypeMultiplier?: number;
+  transmissionMultiplier?: number;
+  hasOpenRecall?: boolean;
+  recallMultiplier?: number;
+  warrantyStatus?: string;
 }
 
 export type AdjustmentCalculator = (

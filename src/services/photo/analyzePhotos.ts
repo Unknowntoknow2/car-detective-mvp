@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { PhotoScoringResult, AICondition } from '@/types/photo';
+import { PhotoScoringResult, AICondition, PhotoScore } from '@/types/photo';
 
 /**
  * Analyzes photos using the photo analysis edge function
@@ -32,10 +32,18 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
       };
     }
 
+    if (!data || !Array.isArray(data.scores)) {
+      throw new Error('Invalid response from photo analysis service');
+    }
+
     // Process the response data
     const result: PhotoScoringResult = {
       overallScore: data.score || 0,
-      individualScores: data.scores || [],
+      individualScores: data.scores.map((score: any) => ({
+        url: score.url,
+        score: score.score,
+        isPrimary: score.isPrimary || false
+      })) || [],
       aiCondition: data.aiCondition as AICondition
     };
 

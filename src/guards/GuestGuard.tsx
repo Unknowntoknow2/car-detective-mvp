@@ -7,13 +7,14 @@ interface GuestGuardProps {
 }
 
 const GuestGuard: React.FC<GuestGuardProps> = ({ children }) => {
+  // This is a simplified implementation
+  // In a real app, you would check if the user is authenticated
   const isAuthenticated = localStorage.getItem('auth_token') !== null;
-
+  
   if (isAuthenticated) {
-    // Redirect authenticated users to dashboard
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" />;
   }
-
+  
   return <>{children}</>;
 };
 

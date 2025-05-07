@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 
@@ -104,8 +105,8 @@ export async function fetchValuation(id: string): Promise<ValuationResult> {
       zipCode: data.state || '90210', // Default to 90210 if not available
       estimatedValue: data.estimated_value,
       confidenceScore: data.confidence_score,
-      fuelType: data.fuel_type || '',
-      bestPhotoUrl: data.photo_url || '',
+      fuelType: data.fuel_type || '', // Match property names
+      bestPhotoUrl: data.photo_url || '', // Match property names
       adjustments: generateMockAdjustments(data),
       priceRange: calculatePriceRange(data.estimated_value, data.confidence_score),
       vin: data.vin,
@@ -140,7 +141,7 @@ function generateMockAdjustments(data: any): Array<{ factor: string; impact: num
     {
       factor: 'Market Demand',
       impact: data.zip_demand_factor ? (data.zip_demand_factor - 1) * 5 : 1.5,
-      description: `Market demand in ${data.zip || 'your area'}`
+      description: `Market demand in ${data.state || 'your area'}` // Use state instead of zip
     }
   ];
 }

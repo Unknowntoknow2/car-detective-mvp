@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
@@ -46,7 +45,7 @@ export const useValuationPdf = ({ valuationData, conditionData }: UseValuationPd
       // Prepare valuation data for PDF generation
       const valuationReportData = {
         estimatedValue: valuationData.estimatedValue,
-        mileage: valuationData.mileage.toString(),
+        mileage: valuationData.mileage, // Changed from string to number to match expected type
         condition: valuationData.condition,
         zipCode: valuationData.zipCode,
         confidenceScore: valuationData.confidenceScore || 75,
