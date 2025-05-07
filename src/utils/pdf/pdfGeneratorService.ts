@@ -1,3 +1,4 @@
+
 import { ReportData } from './types';
 import { PDFDocument, rgb, StandardFonts, PDFFont, degrees } from 'pdf-lib';
 import { drawSectionHeading, drawHorizontalLine, initializePdf } from './components/pdfCommon';
@@ -5,6 +6,7 @@ import { drawVehicleInfoSection } from './sections/vehicleInfoSection';
 import { drawValuationSection } from './sections/valuationSection';
 import { drawCommentarySection } from './sections/commentarySection';
 import { drawAIConditionSection } from './sections/aiConditionSection';
+import { applyWatermark } from './sections/watermark';
 
 /**
  * Generates a PDF for the valuation report
@@ -18,6 +20,22 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   const { pdfDoc, page, fonts, constants } = await initializePdf();
   const { regular, bold } = fonts;
   const { margin, width, height } = constants;
+  
+  // Create section params for use with watermark and other sections
+  const sectionParams = {
+    page,
+    width,
+    height,
+    margin,
+    regularFont: regular,
+    boldFont: bold,
+    contentWidth: width - margin * 2
+  };
+  
+  // Apply watermark if it's a premium report
+  if (reportData.isPremium) {
+    applyWatermark(sectionParams, "Car Detective™ • Premium Report");
+  }
   
   // Set up current Y position tracker (starts from top)
   let currentY = height - margin;
@@ -81,13 +99,6 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   
   // Start main content below header
   currentY = height - 120;
-  
-  // Create a unified params object to pass to section drawing functions
-  const sectionParams = {
-    page,
-    fonts,
-    constants
-  };
   
   // Vehicle Information Section
   currentY = await drawVehicleInfoSection(
@@ -158,7 +169,7 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
     currentY = currentY - 15;
   }
   
-  // Draw watermark diagonally across the page
+  // Draw watermark diagonally across the page (using the old method, consider replacing with new applyWatermark)
   const watermarkFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
   page.drawText('Car Detective Valuation Report', {
     x: 150,

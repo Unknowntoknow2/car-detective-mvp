@@ -6,6 +6,7 @@ import { drawValuationSection } from './sections/valuationSection';
 import { drawExplanationSection } from './sections/explanationSection';
 import { drawFooterSection } from './sections/footerSection';
 import { drawAIConditionSection } from './sections/aiConditionSection';
+import { applyWatermark } from './sections/watermark';
 
 /**
  * Generates a PDF report based on the provided data
@@ -47,6 +48,11 @@ export async function generatePdf(
     boldFont,
     contentWidth
   };
+  
+  // Apply watermark if branding is included
+  if (options.includeBranding) {
+    applyWatermark(sectionParams, "Car Detective™ • Premium Report");
+  }
   
   // Track the vertical position as we add content
   let yPosition = height - margin;
@@ -94,23 +100,20 @@ export async function generatePdf(
       photoExplanation: data.photoExplanation
     };
     
-    // Use updated parameter structure
-    const aiSectionParams = {
-      page,
-      yPosition,
-      margin,
-      width,
-      fonts: { 
-        regular: regularFont, 
-        bold: boldFont
-      }
-    };
-    
     try {
       // Update to correctly handle the returned yPosition
       const newYPosition = await drawAIConditionSection(
         conditionParams, 
-        aiSectionParams
+        {
+          page,
+          yPosition,
+          margin,
+          width,
+          fonts: { 
+            regular: regularFont, 
+            bold: boldFont
+          }
+        }
       );
       
       // Update yPosition safely
@@ -132,7 +135,7 @@ export async function generatePdf(
     );
   }
   
-  // Add footer with updated parameters (now supports page numbering)
+  // Add footer with updated parameters
   if (options.includeFooter) {
     drawFooterSection(
       sectionParams,

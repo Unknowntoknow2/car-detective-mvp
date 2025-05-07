@@ -13,40 +13,66 @@ export interface ValuationWithVehicle {
   year: number;
   mileage: number;
   condition: string;
+  confidence_score?: number;
+  condition_score?: number;
+  is_vin_lookup?: boolean;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+  };
 }
 
-export function useDealerValuations() {
+export type ConditionFilterOption = 'all' | 'excellent' | 'good' | 'fair' | 'poor';
+
+export function useDealerValuations(dealerId?: string) {
   const [valuations, setValuations] = useState<ValuationWithVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [conditionFilter, setConditionFilter] = useState<ConditionFilterOption>('all');
   const { user } = useUser();
   
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id && !dealerId) return;
     
     async function fetchDealerValuations() {
       try {
         setLoading(true);
         
-        const { data, error } = await supabase
+        // Build the query
+        let query = supabase
           .from('valuations')
-          .select('*')
-          .eq('dealer_id', user.id);
+          .select('*', { count: 'exact' });
+        
+        // Filter by dealer ID (use provided dealerId or user.id)
+        const effectiveDealerId = dealerId || user?.id;
+        if (effectiveDealerId) {
+          query = query.eq('dealer_id', effectiveDealerId);
+        }
+        
+        // Apply condition filter if not 'all'
+        if (conditionFilter !== 'all') {
+          query = query.eq('condition', conditionFilter);
+        }
+        
+        // Add pagination
+        const from = (currentPage - 1) * pageSize;
+        const to = from + pageSize - 1;
+        
+        // Execute the query with pagination
+        const { data, error, count } = await query
+          .order('created_at', { ascending: false })
+          .range(from, to);
           
         if (error) throw error;
         
-        // Optional date filtering example - commented out as it needs proper implementation
-        /*
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('dealer_id', user.id)
-          .gte('created_at', startDate.toISOString())
-          .lt('created_at', endDate.toISOString());
-        */
-        
+        // Update the state with the results and total count
         if (data) {
           setValuations(data as ValuationWithVehicle[]);
+          setTotalCount(count || 0);
         }
       } catch (err) {
         console.error('Error fetching dealer valuations:', err);
@@ -57,7 +83,36 @@ export function useDealerValuations() {
     }
     
     fetchDealerValuations();
-  }, [user]);
+  }, [user, dealerId, currentPage, pageSize, conditionFilter]);
   
-  return { valuations, loading, error };
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  
+  // Handle condition filter change
+  const handleConditionFilterChange = (condition: ConditionFilterOption) => {
+    setConditionFilter(condition);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+  
+  // Handle download report
+  const handleDownloadReport = (valuation: ValuationWithVehicle) => {
+    // Implementation for downloading report
+    console.log('Downloading report for valuation:', valuation.id);
+    // Here you would call your PDF generation function
+  };
+  
+  return { 
+    valuations, 
+    loading, 
+    error, 
+    totalCount, 
+    currentPage, 
+    pageSize, 
+    conditionFilter,
+    handlePageChange,
+    handleConditionFilterChange,
+    handleDownloadReport
+  };
 }

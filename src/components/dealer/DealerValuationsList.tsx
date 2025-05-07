@@ -7,10 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { PremiumBadge } from '@/components/ui/premium-badge';
 import { ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
 
 export function DealerValuationsList() {
-  const dealerId = ''; // Replace with actual dealer ID retrieval logic if needed
-  
+  // Use the hook without parameters to get current user's valuations
   const {
     valuations,
     loading,
@@ -22,11 +22,11 @@ export function DealerValuationsList() {
     handlePageChange,
     handleConditionFilterChange,
     handleDownloadReport
-  } = useDealerValuations(dealerId);
+  } = useDealerValuations();
 
-  // Calculate how many valuations have high AI confidence
+  // Calculate how many valuations have high confidence scores
   const highConfidenceCount = valuations.filter(v => 
-    v.aiCondition && v.aiCondition.confidenceScore >= 85
+    v.confidence_score ? v.confidence_score >= 85 : false
   ).length;
 
   return (
@@ -42,7 +42,7 @@ export function DealerValuationsList() {
           {highConfidenceCount > 0 && (
             <div className="mt-1 text-sm text-green-600 flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4" />
-              {highConfidenceCount} vehicles with high AI confidence score
+              {highConfidenceCount} vehicles with high confidence score
             </div>
           )}
         </div>
@@ -71,7 +71,7 @@ export function DealerValuationsList() {
                 </div>
               ) : error ? (
                 <div className="text-center py-6 text-red-500">
-                  {error.message}
+                  {error}
                 </div>
               ) : valuations.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
@@ -83,7 +83,6 @@ export function DealerValuationsList() {
                     <ValuationCard
                       key={valuation.id}
                       valuation={valuation}
-                      aiCondition={valuation.aiCondition}
                       onDownload={() => handleDownloadReport(valuation)}
                     />
                   ))}
