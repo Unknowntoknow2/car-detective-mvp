@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,7 @@ import { RecallToggle } from '../../vehicle-details/RecallToggle';
 import { WarrantySelect } from '../../vehicle-details/WarrantySelect';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { ZipMarketAnalysis } from '@/components/valuation/ZipMarketAnalysis';
+import { CarDetectiveValidator } from '@/utils/validation/CarDetectiveValidator';
 
 interface VehicleDetailsFormProps {
   initialData: {
@@ -68,29 +68,20 @@ export function VehicleDetailsForm({ initialData, onSubmit, isLoading = false }:
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.mileage) {
-      newErrors.mileage = 'Mileage is required';
-    } else if (formData.mileage < 0) {
-      newErrors.mileage = 'Mileage cannot be negative';
-    } else if (formData.mileage > 1000000) {
-      newErrors.mileage = 'Mileage value seems unusually high';
+    // Use our CarDetectiveValidator for validation
+    const validationResult = CarDetectiveValidator.isValidForm({
+      mileage: formData.mileage,
+      fuelType: formData.fuelType,
+      zipCode: formData.zipCode,
+      condition: conditionLabel,
+      transmission: formData.transmissionType
+    });
+    
+    if (!validationResult.valid) {
+      Object.assign(newErrors, validationResult.errors);
     }
     
-    if (!formData.fuelType) {
-      newErrors.fuelType = 'Fuel type is required';
-    }
-    
-    if (!formData.zipCode) {
-      newErrors.zipCode = 'ZIP code is required';
-    } else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) {
-      newErrors.zipCode = 'Please enter a valid 5-digit ZIP code';
-    }
-    
-    if (!formData.transmissionType) {
-      newErrors.transmissionType = 'Transmission type is required';
-    }
-    
-    // Only validate accident description if hasAccident is 'yes'
+    // Additional validation for accident description
     if (formData.hasAccident === 'yes' && !formData.accidentDescription.trim()) {
       newErrors.accidentDescription = 'Please provide accident details';
     }

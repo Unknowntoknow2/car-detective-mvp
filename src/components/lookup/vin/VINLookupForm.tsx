@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { CarDetectiveValidator } from '@/utils/validation/CarDetectiveValidator';
+import { VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
 
 interface VINLookupFormProps {
   onSubmit: (vin: string) => void;
@@ -24,10 +26,12 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
       setValidationError('VIN is required');
       return false;
     }
-    if (value.length !== 17) {
-      setValidationError('VIN must be 17 characters');
+    
+    if (!CarDetectiveValidator.isValidVIN(value)) {
+      setValidationError('VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q');
       return false;
     }
+    
     setValidationError(null);
     return true;
   };
@@ -48,20 +52,30 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
     }
   };
 
+  const isValid = vin.length === 17 && !validationError;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <label htmlFor="vin" className="text-sm font-medium block">
           Vehicle Identification Number (VIN)
         </label>
-        <Input
-          id="vin"
-          value={vin}
-          onChange={handleVinChange}
-          placeholder="Enter 17-character VIN"
-          maxLength={17}
-          className="uppercase font-mono text-base tracking-wider"
-        />
+        <div className="relative">
+          <Input
+            id="vin"
+            value={vin}
+            onChange={handleVinChange}
+            placeholder="Enter 17-character VIN"
+            maxLength={17}
+            className={`uppercase font-mono text-base tracking-wider ${
+              touched && validationError ? 'border-red-500 focus-visible:ring-red-500' : 
+              (isValid && !isLoading) ? 'border-green-500 focus-visible:ring-green-500' : ''
+            }`}
+          />
+          {isValid && !isLoading && (
+            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+          )}
+        </div>
         
         {touched && validationError ? (
           <div className="text-sm text-red-500 flex items-start gap-1">
@@ -74,16 +88,14 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
             <span>{error}</span>
           </div>
         ) : (
-          <p className="text-xs text-gray-500">
-            Your VIN can be found on your vehicle registration or driver's side dashboard
-          </p>
+          <VinInfoMessage />
         )}
       </div>
       
       <Button 
         type="submit" 
         className="w-full" 
-        disabled={isLoading || !vin || vin.length !== 17}
+        disabled={isLoading || !isValid}
       >
         {isLoading ? (
           <>
