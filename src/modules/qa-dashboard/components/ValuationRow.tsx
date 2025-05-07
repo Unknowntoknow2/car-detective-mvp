@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Trash2, Eye, Database, FileText, CreditCard } from 'lucide-react';
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { CDButton } from '@/components/ui-kit/CDButton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 // Define this function earlier
 const getConditionLabel = (condition: string | undefined) => {
@@ -97,6 +98,7 @@ export function ValuationRow({
                 <p>{valuation.error_message || 'Unknown error'}</p>
               </TooltipContent>
             </Tooltip>
+          </TooltipProvider>
         )}
       </td>
 
