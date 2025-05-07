@@ -1,5 +1,5 @@
 
-import { validateVin, isValidVIN } from './vin-validation-helpers';
+import { validateVin, validateVinCheckDigit, isValidVIN } from './vin-validation-helpers';
 
 describe('VIN Validation', () => {
   // Valid VIN test cases
@@ -43,5 +43,20 @@ describe('VIN Validation', () => {
     const result = validateVin('1HGCM826#3A004352');
     expect(result.valid).toBe(false);
     expect(result.message).toBe('VIN can only contain letters A-H, J-N, P, R-Z and numbers 0-9');
+  });
+
+  // Check digit validation tests
+  test('validateVinCheckDigit correctly validates check digit', () => {
+    expect(validateVinCheckDigit('1HGCM82633A004352')).toBe(true);
+    expect(validateVinCheckDigit('5TFEV54198X063405')).toBe(true);
+  });
+
+  test('validateVinCheckDigit fails invalid check digit', () => {
+    expect(validateVinCheckDigit('1HGCM82643A004352')).toBe(false); // Changed '3' to '4' at position 9
+  });
+
+  test('validateVinCheckDigit handles X check digit correctly', () => {
+    // This is a fabricated example where the check digit should be X
+    expect(validateVinCheckDigit('11111111X11111111')).toBe(true);
   });
 });
