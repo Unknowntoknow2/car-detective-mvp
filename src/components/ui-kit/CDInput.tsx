@@ -83,7 +83,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
         )}
       >
         {label && (
-          <Label htmlFor={id} className="text-neutral-darkest">
+          <Label className="text-neutral-darkest">
             {label}
           </Label>
         )}

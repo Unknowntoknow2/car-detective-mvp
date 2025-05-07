@@ -1,3 +1,4 @@
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -12,6 +13,7 @@ import MyValuationsPage from "./pages/MyValuationsPage";
 import ValuationDetailPage from "./pages/ValuationDetailPage";
 import PremiumValuationPage from "./pages/PremiumValuationPage";
 import DesignSystem from './pages/DesignSystem';
+import { ValuationHomepage } from './modules/valuation-homepage';
 
 const router = createBrowserRouter([
   {
@@ -20,7 +22,7 @@ const router = createBrowserRouter([
     errorElement: <NotFound />,
     children: [
       {
-        path: "/",
+        path: "/home",
         element: <Home />,
       },
       {
@@ -36,6 +38,11 @@ const router = createBrowserRouter([
         element: <PremiumValuationPage />,
       },
     ],
+  },
+  {
+    path: "/",
+    element: <ValuationHomepage />,
+    index: true,
   },
   {
     path: "/premium-success",

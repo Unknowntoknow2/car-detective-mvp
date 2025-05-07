@@ -74,9 +74,8 @@ export const CDButton: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={isDisabled || isLoading}
       aria-label={ariaLabel}
-      whileHover={{ scale: isDisabled || isLoading ? 1 : 1.02 }}
-      whileTap={{ scale: isDisabled || isLoading ? 1 : 0.98 }}
-      {...motionProps}
+      whileHover={isDisabled || isLoading ? {} : { scale: 1.02 }}
+      whileTap={isDisabled || isLoading ? {} : { scale: 0.98 }}
       {...props}
     >
       {isLoading && (

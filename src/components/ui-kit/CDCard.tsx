@@ -51,35 +51,41 @@ export const CDCard: React.FC<CardProps> = ({
     md: "p-5",
     lg: "p-7",
   };
-
-  const WrapperComponent = interactive ? motion.button : motion.div;
   
-  const interactiveProps = interactive
-    ? {
-        onClick,
-        type: "button",
-        whileHover: { y: -2 },
-        whileTap: { y: 0 },
-        ...motionProps,
-      }
-    : {
-        ...motionProps,
-      };
+  if (interactive) {
+    return (
+      <motion.button
+        className={cn(
+          "rounded-lg overflow-hidden w-full transition duration-200",
+          variantClasses[variant],
+          paddingClasses[padding],
+          "cursor-pointer hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/25",
+          className
+        )}
+        onClick={onClick}
+        type="button"
+        whileHover={{ y: -2 }}
+        whileTap={{ y: 0 }}
+        {...motionProps}
+      >
+        {children}
+      </motion.button>
+    );
+  }
 
   return (
-    <WrapperComponent
+    <motion.div
       className={cn(
         "rounded-lg overflow-hidden w-full transition duration-200",
         variantClasses[variant],
         paddingClasses[padding],
-        interactive && "cursor-pointer hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/25",
         interactive === false && "shadow-sm hover:shadow-md",
         className
       )}
-      {...interactiveProps}
+      {...motionProps}
     >
       {children}
-    </WrapperComponent>
+    </motion.div>
   );
 };
 

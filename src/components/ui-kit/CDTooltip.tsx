@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type TooltipProps = {
   children: React.ReactNode;
-  content: React.ReactNode;
+  content?: React.ReactNode;
   side?: "top" | "right" | "bottom" | "left";
   align?: "start" | "center" | "end";
   open?: boolean;
@@ -47,7 +47,7 @@ export const CDTooltip: React.FC<TooltipProps> = ({
           <span className={className}>{children}</span>
         </TooltipPrimitive.Trigger>
         <AnimatePresence>
-          {open && (
+          {open && content && (
             <TooltipPrimitive.Portal forceMount>
               <TooltipPrimitive.Content
                 asChild

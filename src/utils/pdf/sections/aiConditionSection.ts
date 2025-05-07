@@ -1,3 +1,4 @@
+
 // This is just a placeholder fix for the build errors
 // The actual implementation would need to check the original function signatures
 export const drawAIConditionSection = (
