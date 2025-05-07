@@ -25,8 +25,9 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
       
       // Delete from valuation_photos table if we have an ID
       if (photo.id) {
+        // Use any to work around TypeScript type checking
         await supabase
-          .from('valuation_photos')
+          .from('valuation_photos' as any)
           .delete()
           .eq('id', photo.id);
       }

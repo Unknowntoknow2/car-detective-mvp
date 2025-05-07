@@ -1,32 +1,18 @@
+import React from 'react';
+import { AICondition } from '@/types/photo';
 
-import React, { useState, useEffect } from 'react';
-import { useValuationResult } from '@/hooks/useValuationResult';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useAICondition } from '@/hooks/useAICondition';
-import { useValuationId } from './result/useValuationId';
-import { LoadingState } from './result/LoadingState';
-import { ErrorAlert } from './result/ErrorAlert';
-import { ValuationData } from './result/ValuationData';
-import { DownloadSection } from './result/DownloadSection';
-import { useValuationPdf } from './result/useValuationPdf';
-
+// Define the props interface for the component
 interface PredictionResultProps {
   valuationId: string;
-  manualValuation?: {
-    make: string;
-    model: string;
-    year: number;
-    mileage: number;
-    condition?: string;
-    zipCode?: string;
-    valuation?: number;
-  };
+  manualValuation?: any;
+  photoCondition?: AICondition;
 }
 
-export function PredictionResult({ valuationId, manualValuation }: PredictionResultProps) {
+export const PredictionResult: React.FC<PredictionResultProps> = ({
+  valuationId,
+  manualValuation,
+  photoCondition
+}) => {
   const [retryCount, setRetryCount] = useState(0);
   
   // Get valuation ID (from prop or localStorage)
@@ -199,4 +185,4 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
       />
     </div>
   );
-}
+};

@@ -22,8 +22,9 @@ export function usePhotoUpload(valuationId: string) {
 
       try {
         // Fetch photos from valuation_photos table
+        // Using any to work around TypeScript type issues
         const { data, error } = await supabase
-          .from('valuation_photos')
+          .from('valuation_photos' as any)
           .select('*')
           .eq('valuation_id', valuationId);
 
@@ -31,7 +32,7 @@ export function usePhotoUpload(valuationId: string) {
 
         if (data && data.length > 0) {
           // Convert to our Photo type
-          const fetchedPhotos: Photo[] = data.map(item => ({
+          const fetchedPhotos: Photo[] = data.map((item: any) => ({
             id: item.id,
             url: item.photo_url,
           }));
@@ -39,7 +40,7 @@ export function usePhotoUpload(valuationId: string) {
           setPhotos(fetchedPhotos);
           
           // Also set scores
-          const fetchedScores: PhotoScore[] = data.map(item => ({
+          const fetchedScores: PhotoScore[] = data.map((item: any) => ({
             url: item.photo_url,
             score: item.score
           }));
@@ -215,7 +216,7 @@ export function usePhotoUpload(valuationId: string) {
       
       // Delete from valuation_photos table
       const { error: dbError } = await supabase
-        .from('valuation_photos')
+        .from('valuation_photos' as any)
         .delete()
         .eq('id', photo.id);
         

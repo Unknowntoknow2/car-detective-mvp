@@ -1071,6 +1071,38 @@ export type Database = {
         }
         Relationships: []
       }
+      valuation_photos: {
+        Row: {
+          id: string
+          photo_url: string
+          score: number
+          uploaded_at: string | null
+          valuation_id: string
+        }
+        Insert: {
+          id?: string
+          photo_url: string
+          score: number
+          uploaded_at?: string | null
+          valuation_id: string
+        }
+        Update: {
+          id?: string
+          photo_url?: string
+          score?: number
+          uploaded_at?: string | null
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_valuation"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       valuation_stats: {
         Row: {
           average_price: number | null

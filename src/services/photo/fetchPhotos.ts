@@ -11,8 +11,10 @@ export async function fetchValuationPhotos(valuationId: string): Promise<Photo[]
   }
   
   try {
+    // Use any type to work around TypeScript type checking issues
+    // This is temporary until Supabase types are regenerated
     const { data, error } = await supabase
-      .from('valuation_photos')
+      .from('valuation_photos' as any)
       .select('*')
       .eq('valuation_id', valuationId);
       

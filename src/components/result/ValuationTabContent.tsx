@@ -31,7 +31,8 @@ export const ValuationTabContent: React.FC<ValuationTabContentProps> = ({
         <PredictionResult 
           valuationId={valuationId} 
           manualValuation={manualData}
-          photoCondition={aiCondition}
+          // Pass condition to PredictionResult only if we have it
+          {...(aiCondition && { photoCondition: aiCondition })}
         />
         
         <PhotoUploadAndScore 
