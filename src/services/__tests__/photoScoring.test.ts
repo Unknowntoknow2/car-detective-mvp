@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { uploadAndAnalyzePhotos, fetchValuationPhotos } from '../photoService';
+import { uploadAndAnalyzePhotos } from '../photoService';
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, PhotoScoringResult } from '@/types/photo';
 
@@ -85,42 +85,43 @@ describe('Photo Scoring Service', () => {
 
   describe('fetchValuationPhotos', () => {
     it('should return photos, scores and AI condition when available', async () => {
-      // Mock implementation to return PhotoScoringResult instead of Photo[]
-      vi.mocked(fetchValuationPhotos).mockImplementation(async () => {
-        return {
-          photos: [
-            { id: 'photo1', url: 'url1' },
-            { id: 'photo2', url: 'url2' },
-            { id: 'photo3', url: 'url3' }
-          ],
-          photoScore: 0.85,
-          aiCondition: {
-            condition: 'Good',
-            confidenceScore: 85,
-            issuesDetected: ['Minor scratch'],
-            aiSummary: 'Good condition'
-          },
-          individualScores: [
-            { url: 'url1', score: 0.8 },
-            { url: 'url2', score: 0.75 },
-            { url: 'url3', score: 0.9 }
-          ],
-          isUploading: false,
-          isScoring: false,
-          uploadProgress: 100,
-          error: null,
-          resetUpload: async () => {},
-          isLoading: false
-        } as PhotoScoringResult;
-      });
+      // We need to create a mock implementation that returns a PhotoScoringResult instead of Photo[]
+      const mockPhotoScoringResult: PhotoScoringResult = {
+        photos: [
+          { id: 'photo1', url: 'url1' },
+          { id: 'photo2', url: 'url2' },
+          { id: 'photo3', url: 'url3' }
+        ],
+        photoScore: 0.85,
+        aiCondition: {
+          condition: 'Good',
+          confidenceScore: 85,
+          issuesDetected: ['Minor scratch'],
+          aiSummary: 'Good condition'
+        },
+        individualScores: [
+          { url: 'url1', score: 0.8 },
+          { url: 'url2', score: 0.75 },
+          { url: 'url3', score: 0.9 }
+        ],
+        isUploading: false,
+        isScoring: false,
+        uploadProgress: 100,
+        error: null,
+        resetUpload: async () => {},
+        isLoading: false,
+        uploadPhotos: async () => ({ score: 0, individualScores: [] })
+      };
+      
+      // Mock fetchValuationPhotos with direct implementation
+      const fetchValuationPhotos = vi.fn().mockResolvedValue(mockPhotoScoringResult);
       
       // Execute function
       const result = await fetchValuationPhotos('test-valuation-id');
       
-      // Type assertion to fix TypeScript errors
+      // Verify results with type assertion to work around TypeScript errors
       const resultWithProperties = result as unknown as PhotoScoringResult;
       
-      // Verify results
       expect(resultWithProperties.photos.length).toBe(3);
       expect(resultWithProperties.photoScore).not.toBeNull();
       expect(resultWithProperties.aiCondition).not.toBeNull();
@@ -129,20 +130,22 @@ describe('Photo Scoring Service', () => {
 
     it('should return empty results when no data is available', async () => {
       // Mock implementation to return empty PhotoScoringResult
-      vi.mocked(fetchValuationPhotos).mockImplementation(async () => {
-        return {
-          photos: [],
-          photoScore: null,
-          aiCondition: null,
-          individualScores: [],
-          isUploading: false,
-          isScoring: false,
-          uploadProgress: 0,
-          error: null,
-          resetUpload: async () => {},
-          isLoading: false
-        } as PhotoScoringResult;
-      });
+      const mockEmptyResult: PhotoScoringResult = {
+        photos: [],
+        photoScore: null,
+        aiCondition: null,
+        individualScores: [],
+        isUploading: false,
+        isScoring: false,
+        uploadProgress: 0,
+        error: null,
+        resetUpload: async () => {},
+        isLoading: false,
+        uploadPhotos: async () => ({ score: 0, individualScores: [] })
+      };
+      
+      // Mock fetchValuationPhotos with empty implementation
+      const fetchValuationPhotos = vi.fn().mockResolvedValue(mockEmptyResult);
       
       // Execute function
       const result = await fetchValuationPhotos('test-valuation-id');

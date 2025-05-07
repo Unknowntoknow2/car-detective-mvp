@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,7 +82,7 @@ export default function PremiumValuationPage() {
   // Convert valuation data to match the Valuation type expected by our components
   const valuationData = {
     id: valuation.id,
-    created_at: new Date().toISOString(), // Add required property
+    created_at: new Date().toISOString(),
     make: valuation.make,
     model: valuation.model,
     year: valuation.year,
@@ -93,12 +92,12 @@ export default function PremiumValuationPage() {
     premium_unlocked: true,
     condition: valuation.condition,
     confidence_score: valuation.confidenceScore,
-    color: valuation.color,
-    body_style: valuation.bodyStyle,
-    body_type: valuation.bodyType,
-    fuel_type: valuation.fuelType,
-    explanation: valuation.explanation,
-    transmission: valuation.transmission
+    color: valuation.color || '',
+    body_style: valuation.bodyStyle || '',
+    body_type: valuation.bodyType || '',
+    fuel_type: valuation.fuelType || '',
+    explanation: valuation.explanation || '',
+    transmission: valuation.transmission || ''
   };
   
   return (

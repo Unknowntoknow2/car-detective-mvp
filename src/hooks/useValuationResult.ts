@@ -17,6 +17,13 @@ interface ValuationData {
   createdAt: string;
   aiCondition?: any;
   isPremium?: boolean;
+  // Add missing properties to fix Premium Valuation Page errors
+  color?: string;
+  bodyStyle?: string;
+  bodyType?: string;
+  fuelType?: string;
+  explanation?: string;
+  transmission?: string;
 }
 
 export function useValuationResult(valuationId: string) {
@@ -57,7 +64,13 @@ export function useValuationResult(valuationId: string) {
         model: valuationData.model || '',
         year: valuationData.year || 0,
         mileage: valuationData.mileage || 0,
-        condition: valuationData.condition || 'Good',
+        // Use condition_score as a fallback if condition doesn't exist
+        condition: valuationData.condition || 
+                  (valuationData.condition_score ? 
+                    (valuationData.condition_score >= 90 ? 'Excellent' : 
+                     valuationData.condition_score >= 75 ? 'Good' : 
+                     valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
+                    'Good'),
         zipCode: valuationData.state || '',
         estimatedValue: valuationData.estimated_value || 0,
         confidenceScore: valuationData.confidence_score || 75,
@@ -78,7 +91,14 @@ export function useValuationResult(valuationId: string) {
           }
         ],
         createdAt: valuationData.created_at,
-        isPremium: valuationData.premium_unlocked || false
+        isPremium: valuationData.premium_unlocked || false,
+        // Add additional properties needed for PremiumValuationPage
+        color: valuationData.color || '',
+        bodyStyle: valuationData.body_style || '',
+        bodyType: valuationData.body_type || '',
+        fuelType: valuationData.fuel_type || '',
+        explanation: valuationData.explanation || '',
+        transmission: valuationData.transmission || ''
       };
 
       setData(transformedData);

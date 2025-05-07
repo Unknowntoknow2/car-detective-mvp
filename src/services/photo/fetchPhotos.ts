@@ -11,7 +11,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<Photo[]
   }
   
   try {
-    // Use type assertion to work around TypeScript issues
+    // Use type assertion to work around TypeScript issues with the table name
     const { data, error } = await supabase
       .from('valuation_photos' as any)
       .select('*')
