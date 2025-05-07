@@ -1,4 +1,3 @@
-
 export * from './types';
 export { 
   mileageAdjustmentCurve,
@@ -17,11 +16,8 @@ export {
 } from './locationAdjustments';
 export * from './trimAdjustments';
 export * from './accidentAdjustments';
-export {
-  getFeatureAdjustments,
-  standardizeFeatureNames,
-  getFeatureInfo,
-  getPremiumFeaturesAdjustment
+export { 
+  getFeatureAdjustments 
 } from './featureAdjustments';
 export * from './titleStatusAdjustments';
 export * from './descriptions';

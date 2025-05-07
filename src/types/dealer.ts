@@ -16,6 +16,8 @@ export interface Valuation {
   created_at: string;
   is_vin_lookup: boolean;
   vin?: string;
+  user_id?: string; // Add this field for dealer offers
+  photo_url?: string; // Add this field for photo display
 }
 
 export interface DealerSignupData {

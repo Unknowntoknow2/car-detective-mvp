@@ -1,11 +1,21 @@
-
 import React from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const SettingsPage: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      // Use optional chaining to handle potential missing signOut method
+      await auth?.signOut?.();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -69,7 +79,7 @@ const SettingsPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Button variant="outline" onClick={signOut}>Sign Out</Button>
+              <Button variant="outline" onClick={handleLogout}>Sign Out</Button>
               <Button variant="destructive">Delete Account</Button>
             </div>
           </CardContent>

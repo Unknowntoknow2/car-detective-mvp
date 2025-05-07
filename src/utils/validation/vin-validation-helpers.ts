@@ -11,3 +11,14 @@ export function isValidVIN(vin: string): boolean {
   if (!vin) return false;
   return VIN_REGEX.test(vin.toUpperCase());
 }
+
+/**
+ * A helper component for displaying VIN-related information messages
+ */
+export function VinInfoMessage() {
+  return (
+    <div className="flex items-start gap-2 text-xs text-slate-500">
+      <p>Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.</p>
+    </div>
+  );
+}

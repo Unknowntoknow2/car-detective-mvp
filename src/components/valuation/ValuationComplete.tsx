@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ValuationHeader, NextStepsCard } from './valuation-complete';
-import { calculateValuation } from '@/utils/valuationEngine';
+import { calculateFinalValuation } from '@/utils/valuationEngine';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { getBestPhotoAssessment } from '@/utils/valuationService';
 
@@ -77,7 +77,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         setCalculationInProgress(true);
         try {
           // Recalculate valuation with photo score and AI condition
-          const result = await calculateValuation({
+          const result = await calculateFinalValuation({
             make: valuationData.make,
             model: valuationData.model,
             year: valuationData.year,

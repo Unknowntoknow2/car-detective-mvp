@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
 import { CDButton } from '@/components/ui-kit/CDButton';
@@ -6,6 +7,7 @@ import { LeadFilters } from './LeadFilters';
 import { useDealerValuations } from '@/hooks/useDealerValuations';
 import { useDealerOffers } from '@/hooks/useDealerOffers';
 import { ConditionFilterOption } from '@/hooks/useDealerValuations';
+import { ValuationWithCondition } from '@/types/dealer';
 
 export function DealerValuationsList() {
   const [activeTab, setActiveTab] = useState<'all' | 'offers'>('all');

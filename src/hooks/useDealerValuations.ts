@@ -2,36 +2,17 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import { useUser } from './useUser';
+import { ValuationWithCondition } from '@/types/dealer';
 
 // This is a simplified structure - expand as needed
-export interface ValuationWithVehicle {
-  id: string;
-  created_at: string;
-  estimated_value: number;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  confidence_score: number;
-  condition_score?: number;
-  is_vin_lookup?: boolean;
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-  };
-}
-
-// Create a compatible interface with the ValuationWithCondition that's being used
-export interface ValuationWithCondition extends ValuationWithVehicle {
-  condition_score: number;
+export interface ValuationWithVehicle extends ValuationWithCondition {
+  // Add any additional fields here
 }
 
 export type ConditionFilterOption = 'all' | 'excellent' | 'good' | 'fair' | 'poor';
 
 export function useDealerValuations(dealerId?: string) {
-  const [valuations, setValuations] = useState<ValuationWithVehicle[]>([]);
+  const [valuations, setValuations] = useState<ValuationWithCondition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -76,7 +57,7 @@ export function useDealerValuations(dealerId?: string) {
         
         // Update the state with the results and total count
         if (data) {
-          setValuations(data as ValuationWithVehicle[]);
+          setValuations(data as ValuationWithCondition[]);
           setTotalCount(count || 0);
         }
       } catch (err) {
@@ -102,7 +83,7 @@ export function useDealerValuations(dealerId?: string) {
   };
   
   // Handle download report
-  const handleDownloadReport = (valuation: ValuationWithVehicle) => {
+  const handleDownloadReport = (valuation: ValuationWithCondition) => {
     // Implementation for downloading report
     console.log('Downloading report for valuation:', valuation.id);
     // Here you would call your PDF generation function

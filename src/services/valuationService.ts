@@ -45,10 +45,10 @@ export async function getValuationByToken(token: string): Promise<ValuationResul
       estimatedValue: valuation.estimated_value,
       confidenceScore: valuation.confidence_score,
       fuelType: valuation.fuel_type || '', // Map fuel_type
-      fuel_type: valuation.fuel_type || '', // Direct DB column mapping
-      isPremium: valuation.premium_unlocked,
       bestPhotoUrl: valuation.photo_url || '', // Map best_photo_url
-      photo_url: valuation.photo_url || '' // Direct DB column mapping
+      // Include these for backward compatibility
+      photo_url: valuation.photo_url || '',
+      fuel_type: valuation.fuel_type || ''
     };
   } catch (error) {
     console.error('Error in getValuationByToken:', error);
@@ -111,9 +111,9 @@ export async function fetchValuation(id: string): Promise<ValuationResult> {
       estimatedValue: data.estimated_value,
       confidenceScore: data.confidence_score,
       fuelType: data.fuel_type || '', // Match property names
-      fuel_type: data.fuel_type || '', // Direct DB column mapping
+      fuel_type: data.fuel_type || '', // For backward compatibility 
       bestPhotoUrl: data.photo_url || '', // Match property names
-      photo_url: data.photo_url || '', // Direct DB column mapping
+      photo_url: data.photo_url || '', // For backward compatibility
       adjustments: generateMockAdjustments(data),
       priceRange: calculatePriceRange(data.estimated_value, data.confidence_score),
       vin: data.vin,

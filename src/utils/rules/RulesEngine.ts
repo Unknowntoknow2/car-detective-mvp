@@ -1,148 +1,119 @@
-
-import { AdjustmentBreakdown, RulesEngineInput } from './types';
-import { MileageCalculator } from './calculators/mileageCalculator';
-import { ConditionCalculator } from './calculators/conditionCalculator';
-import { LocationCalculator } from './calculators/locationCalculator';
-import { TrimCalculator } from './calculators/trimCalculator';
-import { AccidentCalculator } from './calculators/accidentCalculator';
-import { FeaturesCalculator } from './calculators/featuresCalculator';
-import { CarfaxCalculator } from './calculators/carfaxCalculator';
-import { PhotoScoreCalculator } from './calculators/photoScoreCalculator';
-import { EquipmentCalculator } from './calculators/equipmentCalculator';
-import { ColorCalculator } from './calculators/colorCalculator';
-import { FuelTypeCalculator } from './calculators/fuelTypeCalculator';
-import { TransmissionCalculator } from './calculators/transmissionCalculator';
-import { RecallCalculator } from './calculators/recallCalculator';
-import { WarrantyCalculator } from './calculators/warrantyCalculator';
-import { SeasonalCalculator } from '../valuation-adjustments/SeasonalCalculator';
-import { MarketDemandCalculator } from '../valuation-adjustments/MarketDemandCalculator';
-import { DrivingBehaviorCalculator } from '../valuation-adjustments/DrivingBehaviorCalculator';
+import { Rule } from './types';
 
 export class RulesEngine {
-  private calculators = [
-    new MileageCalculator(),
-    new ConditionCalculator(),
-    new LocationCalculator(),
-    new TrimCalculator(),
-    new AccidentCalculator(),
-    new FeaturesCalculator(),
-    new CarfaxCalculator(),
-    new PhotoScoreCalculator(),
-    new EquipmentCalculator(),
-    new ColorCalculator(),
-    new FuelTypeCalculator(),
-    new TransmissionCalculator(),
-    new RecallCalculator(),
-    new WarrantyCalculator(),
-    new SeasonalCalculator(),
-    new MarketDemandCalculator(),
-    new DrivingBehaviorCalculator()
-  ];
+  private rules: Rule[];
 
-  public async calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
-    const adjustments: AdjustmentBreakdown[] = [];
-    
-    for (const calculator of this.calculators) {
-      const adjustment = await calculator.calculate(input);
-      if (adjustment) {
-        adjustments.push(adjustment);
+  constructor(rules: Rule[]) {
+    this.rules = rules;
+  }
+
+  public evaluate(data: any): any {
+    let results: any = {};
+
+    for (const rule of this.rules) {
+      try {
+        const condition = this.evaluateCondition(rule.condition, data);
+
+        if (condition) {
+          const consequence = this.evaluateConsequence(rule.consequence, data);
+          results = { ...results, ...consequence };
+        }
+      } catch (error) {
+        console.error(`Error evaluating rule ${rule.name}:`, error);
       }
     }
-    
-    return adjustments;
+
+    return results;
   }
 
-  public calculateTotalAdjustment(adjustments: AdjustmentBreakdown[]): number {
-    return adjustments.reduce((sum, item) => sum + item.value, 0);
-  }
+  private evaluateCondition(condition: any, data: any): boolean {
+    if (typeof condition === 'boolean') {
+      return condition;
+    }
 
-  // Create an audit trail of the valuation calculation
-  public createAuditTrail(
-    input: RulesEngineInput, 
-    adjustments: AdjustmentBreakdown[], 
-    totalAdjustment: number
-  ): ValuationAuditTrail {
-    return {
-      timestamp: new Date().toISOString(),
-      basePrice: input.basePrice,
-      adjustments: adjustments.map(adj => ({
-        name: adj.name,
-        value: adj.value,
-        percentAdjustment: adj.percentAdjustment,
-        description: adj.description
-      })),
-      totalAdjustment: totalAdjustment,
-      estimatedValue: input.basePrice + totalAdjustment,
-      inputData: {
-        make: input.make,
-        model: input.model,
-        year: input.year,
-        mileage: input.mileage,
-        condition: input.condition,
-        zipCode: input.zipCode,
-        photoScore: input.photoScore,
-        accidentCount: input.accidentCount,
-        features: input.premiumFeatures,
-        equipmentIds: input.equipmentIds,
-        exteriorColor: input.exteriorColor,
-        colorMultiplier: input.colorMultiplier,
-        fuelType: input.fuelType,
-        fuelTypeMultiplier: input.fuelTypeMultiplier,
-        transmissionType: input.transmissionType,
-        transmissionMultiplier: input.transmissionMultiplier,
-        hasOpenRecall: input.hasOpenRecall,
-        recallMultiplier: input.recallMultiplier,
-        warrantyStatus: input.warrantyStatus,
-        warrantyMultiplier: input.warrantyMultiplier,
-        bodyStyle: input.bodyStyle,
-        saleDate: input.saleDate,
-        drivingProfile: input.drivingProfile,
-        drivingProfileMultiplier: input.drivingProfileMultiplier
+    if (typeof condition === 'function') {
+      return condition(data);
+    }
+
+    if (Array.isArray(condition)) {
+      return condition.every(subCondition => this.evaluateCondition(subCondition, data));
+    }
+
+    if (typeof condition === 'object' && condition !== null) {
+      const { fact, operator, value } = condition;
+      const factValue = data[fact];
+
+      switch (operator) {
+        case 'equal':
+          return factValue == value;
+        case 'notEqual':
+          return factValue != value;
+        case 'greaterThan':
+          return factValue > value;
+        case 'lessThan':
+          return factValue < value;
+        case 'greaterThanOrEqual':
+          return factValue >= value;
+        case 'lessThanOrEqual':
+          return factValue <= value;
+        case 'contains':
+          if (!Array.isArray(factValue)) {
+            console.warn(`'contains' operator requires fact '${fact}' to be an array.`);
+            return false;
+          }
+          return factValue.includes(value);
+        case 'notContains':
+          if (!Array.isArray(factValue)) {
+            console.warn(`'notContains' operator requires fact '${fact}' to be an array.`);
+            return false;
+          }
+          return !factValue.includes(value);
+        case 'isOneOf':
+          if (!Array.isArray(value)) {
+            console.warn(`'isOneOf' operator requires value to be an array.`);
+            return false;
+          }
+          return value.includes(factValue);
+        case 'isNotOneOf':
+          if (!Array.isArray(value)) {
+            console.warn(`'isNotOneOf' operator requires value to be an array.`);
+            return false;
+          }
+          return !value.includes(factValue);
+        default:
+          console.warn(`Unknown operator: ${operator}`);
+          return false;
       }
-    };
+    }
+
+    console.warn(`Unknown condition type: ${typeof condition}`);
+    return false;
+  }
+
+  private evaluateConsequence(consequence: any, data: any): any {
+    if (typeof consequence === 'function') {
+      return consequence(data);
+    }
+
+    if (typeof consequence === 'object' && consequence !== null) {
+      let results: any = {};
+
+      for (const key in consequence) {
+        if (consequence.hasOwnProperty(key)) {
+          const value = consequence[key];
+
+          if (typeof value === 'function') {
+            results[key] = value(data);
+          } else {
+            results[key] = value;
+          }
+        }
+      }
+
+      return results;
+    }
+
+    console.warn(`Unknown consequence type: ${typeof consequence}`);
+    return {};
   }
 }
-
-// Type for the valuation audit trail
-export interface ValuationAuditTrail {
-  timestamp: string;
-  basePrice: number;
-  adjustments: {
-    name: string;
-    value: number;
-    percentAdjustment: number;
-    description: string;
-  }[];
-  totalAdjustment: number;
-  estimatedValue: number;
-  inputData: {
-    make: string;
-    model: string;
-    year?: number;
-    mileage: number;
-    condition: string;
-    zipCode?: string;
-    photoScore?: number;
-    accidentCount?: number;
-    features?: string[];
-    equipmentIds?: number[];
-    exteriorColor?: string;
-    colorMultiplier?: number;
-    fuelType?: string;
-    fuelTypeMultiplier?: number;
-    transmissionType?: string;
-    transmissionMultiplier?: number;
-    hasOpenRecall?: boolean;
-    recallMultiplier?: number;
-    warrantyStatus?: string;
-    warrantyMultiplier?: number;
-    bodyStyle?: string;
-    saleDate?: string | Date;
-    drivingProfile?: string;
-    drivingProfileMultiplier?: number;
-  };
-}
-
-// Singleton instance
-const rulesEngine = new RulesEngine();
-export default rulesEngine;

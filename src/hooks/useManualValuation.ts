@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { calculateValuation } from '@/utils/valuationEngine';
+import { calculateFinalValuation } from '@/utils/valuationEngine';
 import type { AdjustmentBreakdown } from '@/utils/rulesEngine';
 
 export type ManualVehicleInfo = {
@@ -31,7 +30,7 @@ export function useManualValuation() {
     setError(null);
     
     try {
-      const result = await calculateValuation({
+      const result = await calculateFinalValuation({
         make: data.make,
         model: data.model,
         year: data.year,

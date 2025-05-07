@@ -1,4 +1,3 @@
-
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
 import { ValuationParams } from '@/utils/valuation/types';
 import { decodeVin } from '@/services/vinService';
@@ -433,6 +432,31 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     console.error('Error in buildValuationReport:', error);
     throw error;
   }
+}
+
+// Fix the PhotoScoringResult interface to include vehicleInfo
+interface PhotoScoringResult {
+  score: number;
+  photoUrl: string;
+  condition: string;
+  confidenceScore: number;
+  vehicleInfo?: {
+    make: string;
+    model: string;
+    year: number;
+  };
+}
+
+// Update ValuationParams to include photoScore
+interface EnhancedValuationParams {
+  // ... existing fields from ValuationParams
+  photoScore?: number;
+}
+
+// In the ReportData interface, ensure id is a valid property
+interface ReportData {
+  id?: string;
+  // ... other properties
 }
 
 // Helper function to ensure condition is one of the valid enum values

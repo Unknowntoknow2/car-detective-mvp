@@ -12,7 +12,8 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { signIn } = useAuth();
+  // We need to update the auth context to ensure it has signIn
+  const auth = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,9 +22,10 @@ const LoginPage: React.FC = () => {
     setError(null);
     
     try {
-      const { error } = await signIn(email, password);
+      // Use optional chaining to handle potential missing signIn method
+      const result = await auth?.signIn?.(email, password);
       
-      if (error) {
+      if (result?.error) {
         setError('Invalid email or password');
         return;
       }

@@ -1,77 +1,98 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/utils/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface AuthContextType {
-  session: Session | null;
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
-  signOut: () => Promise<void>;
+  signIn?: (email: string, password: string) => Promise<{ error?: any }>;
+  signUp?: (email: string, password: string) => Promise<{ error?: any }>;
+  signOut?: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  session: null,
-  user: null,
-  isLoading: true,
-  signOut: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => useContext(AuthContext);
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Show toast notifications on auth state changes
-        if (event === 'SIGNED_IN') {
-          // Don't show toast on initial page load session recovery
-          if (!isLoading) {
-            toast.success('Signed in successfully');
-          }
-        } else if (event === 'SIGNED_OUT') {
-          toast.info('Signed out successfully');
-        } else if (event === 'PASSWORD_RECOVERY') {
-          toast.info('Password recovery initiated');
-        } else if (event === 'USER_UPDATED') {
-          toast.success('User profile updated');
-        }
-        
         setIsLoading(false);
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const signOut = async () => {
+  const signIn = async (email: string, password: string) => {
     try {
-      await supabase.auth.signOut();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) return { error };
+      return { data };
     } catch (error) {
-      console.error('Sign out error:', error);
-      toast.error('Failed to sign out');
+      return { error };
     }
   };
 
+  const signUp = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) return { error };
+      return { data };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
-    <AuthContext.Provider value={{ session, user, isLoading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isLoading,
+        signIn,
+        signUp,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-}
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

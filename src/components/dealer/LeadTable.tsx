@@ -61,6 +61,7 @@ export function LeadTable({ leads, isLoading, onMakeOffer }: LeadTableProps) {
     return <CDBadge variant="error">Poor</CDBadge>;
   };
 
+  // Update the columns to use proper typing
   const columns = [
     {
       header: (
@@ -71,7 +72,7 @@ export function LeadTable({ leads, isLoading, onMakeOffer }: LeadTableProps) {
           Date {getSortIcon('created_at')}
         </div>
       ),
-      accessor: 'created_at',
+      accessor: (lead: ValuationWithCondition) => lead.created_at,
       cell: (lead: ValuationWithCondition) => format(new Date(lead.created_at), 'MMM d')
     },
     {
@@ -88,7 +89,7 @@ export function LeadTable({ leads, isLoading, onMakeOffer }: LeadTableProps) {
           Estimated Value {getSortIcon('estimated_value')}
         </div>
       ),
-      accessor: 'estimated_value',
+      accessor: (lead: ValuationWithCondition) => lead.estimated_value,
       cell: (lead: ValuationWithCondition) => `$${lead.estimated_value.toLocaleString()}`
     },
     {
@@ -100,12 +101,12 @@ export function LeadTable({ leads, isLoading, onMakeOffer }: LeadTableProps) {
           Condition {getSortIcon('condition_score')}
         </div>
       ),
-      accessor: 'condition_score',
+      accessor: (lead: ValuationWithCondition) => lead.condition_score,
       cell: (lead: ValuationWithCondition) => getConditionBadge(lead.condition_score)
     },
     {
       header: 'Actions',
-      accessor: 'id',
+      accessor: (lead: ValuationWithCondition) => lead.id,
       cell: (lead: ValuationWithCondition) => (
         <div className="flex gap-2">
           <CDButton 

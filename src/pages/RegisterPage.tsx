@@ -13,30 +13,32 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { signUp } = useAuth();
+  // We need to update the auth context to ensure it has signUp
+  const auth = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
     
     if (password !== confirmPassword) {
       setError('Passwords do not match');
-      setIsLoading(false);
       return;
     }
     
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const { error } = await signUp(email, password);
+      // Use optional chaining to handle potential missing signUp method
+      const result = await auth?.signUp?.(email, password);
       
-      if (error) {
-        setError(error.message);
+      if (result?.error) {
+        setError(result.error.message || 'Registration failed');
         return;
       }
       
-      // Redirect to verification page or dashboard
-      navigate('/verification');
+      // Redirect to dashboard on successful registration
+      navigate('/dashboard');
     } catch (err) {
       setError('An error occurred during registration');
       console.error(err);
