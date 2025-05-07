@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 
@@ -38,7 +39,7 @@ export async function getValuationByToken(token: string): Promise<ValuationResul
       model: valuation.model,
       year: valuation.year,
       mileage: valuation.mileage,
-      condition: valuation.condition_score.toString(), // Map to string condition
+      condition: valuation.condition_score ? valuation.condition_score.toString() : 'Good', // Map to string condition
       zipCode: valuation.zip || '', // Map zip to zipCode
       estimatedValue: valuation.estimated_value,
       confidenceScore: valuation.confidence_score,
@@ -71,7 +72,7 @@ export async function getAllUserValuations(userId: string): Promise<ValuationRes
       model: val.model,
       year: val.year,
       mileage: val.mileage,
-      condition: val.condition_score.toString(), // Map condition_score to condition string
+      condition: val.condition_score ? val.condition_score.toString() : 'Good', // Map condition_score to condition string
       zipCode: val.zip || '', // Map zip to zipCode
       estimatedValue: val.estimated_value,
       confidenceScore: val.confidence_score
@@ -101,7 +102,7 @@ export async function fetchValuation(id: string): Promise<ValuationResult> {
       year: data.year,
       mileage: data.mileage,
       condition: mapConditionScore(data.condition_score), // Map condition score to string
-      zipCode: data.zip_code || '90210', // Default to 90210 if not available
+      zipCode: data.zip || '90210', // Default to 90210 if not available
       estimatedValue: data.estimated_value,
       confidenceScore: data.confidence_score,
       fuelType: data.fuel_type,
@@ -140,7 +141,7 @@ function generateMockAdjustments(data: any): Array<{ factor: string; impact: num
     {
       factor: 'Market Demand',
       impact: data.zip_demand_factor ? (data.zip_demand_factor - 1) * 5 : 1.5,
-      description: `Market demand in ${data.zip_code || 'your area'}`
+      description: `Market demand in ${data.zip || 'your area'}`
     }
   ];
 }

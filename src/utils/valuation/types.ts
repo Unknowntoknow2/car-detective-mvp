@@ -55,4 +55,6 @@ export interface FinalValuationResult {
   priceRange: [number, number];
   confidenceScore: number;
   adjustments: AdjustmentBreakdown[];
+  aiSummary?: string;
+  conditionSource?: string;
 }

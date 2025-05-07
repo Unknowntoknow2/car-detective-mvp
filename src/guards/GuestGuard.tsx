@@ -1,20 +1,20 @@
 
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 interface GuestGuardProps {
-  redirectTo?: string;
+  children: React.ReactNode;
 }
 
-const GuestGuard: React.FC<GuestGuardProps> = ({ redirectTo = '/' }) => {
-  // Dummy implementation - should check actual authentication state
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  
+const GuestGuard: React.FC<GuestGuardProps> = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('auth_token') !== null;
+
   if (isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    // Redirect authenticated users to dashboard
+    return <Navigate to="/dashboard" replace />;
   }
-  
-  return <Outlet />;
+
+  return <>{children}</>;
 };
 
 export default GuestGuard;

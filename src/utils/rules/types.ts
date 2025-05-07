@@ -20,6 +20,7 @@ export interface RulesEngineInput {
   photoScore?: number;
   accidentCount?: number;
   carfaxScore?: number;
+  carfaxData?: any;
   features?: string[];
   premiumFeatures?: string[];
   equipmentIds?: number[];
@@ -37,4 +38,11 @@ export interface RulesEngineInput {
   saleDate?: string | Date;
   drivingProfile?: string;
   drivingProfileMultiplier?: number;
+  trim?: string;
+  recallCount?: number;
+}
+
+// Export AdjustmentCalculator interface
+export interface AdjustmentCalculator {
+  calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> | AdjustmentBreakdown | null;
 }

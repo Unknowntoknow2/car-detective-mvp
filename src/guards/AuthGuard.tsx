@@ -1,20 +1,21 @@
 
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface AuthGuardProps {
-  redirectTo?: string;
+  children: React.ReactNode;
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ redirectTo = '/login' }) => {
-  // Dummy implementation - should check actual authentication state
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  
+const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+  const location = useLocation();
+  const isAuthenticated = localStorage.getItem('auth_token') !== null;
+
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    // Redirect to login page with return url
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
-  return <Outlet />;
+
+  return <>{children}</>;
 };
 
 export default AuthGuard;

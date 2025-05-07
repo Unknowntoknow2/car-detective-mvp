@@ -1,3 +1,4 @@
+
 import { calculateValuation } from '@/utils/valuation/valuationEngine';
 import { ValuationParams } from '@/utils/valuation/types';
 import { decodeVin } from '@/services/vinService';
@@ -79,8 +80,8 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
           mileage: input.mileage || plateLookup.mileage || 0,
           condition: input.condition || 'Good',
           zip: input.zipCode,
-          transmission: plateLookup.transmission || undefined,
-          fuelType: plateLookup.fuelType || undefined
+          transmission: plateLookup.transmission,
+          fuelType: plateLookup.fuelType
         };
         break;
 
@@ -182,6 +183,19 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     }
 
     // 6. Construct Result
+    const adjustments = valuationResult.adjustments.map(adj => ({
+      factor: adj.name,
+      impact: adj.value,
+      description: adj.description
+    }));
+
+    // Convert condition string to AICondition enum type if needed
+    const safeAiCondition = aiCondition ? {
+      condition: ensureValidCondition(aiCondition.condition),
+      confidenceScore: aiCondition.confidenceScore,
+      issuesDetected: aiCondition.issuesDetected || []
+    } : undefined;
+
     const result: ValuationResult = {
       id: input.valuationId || 'VALUATION-ID',
       make: vehicleDetails.make,
@@ -192,62 +206,35 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
       zipCode: input.zipCode || '90210',
       estimatedValue: valuationResult.estimatedValue,
       confidenceScore: valuationResult.confidenceScore,
-      adjustments: valuationResult.adjustments.map((adj: AdjustmentBreakdown) => ({
-        factor: adj.factor || adj.name,
-        impact: adj.impact || adj.value,
-        description: adj.description || ""
-      })),
+      adjustments: adjustments,
       priceRange: valuationResult.priceRange,
       isPremium: isPremiumUser,
       photoScore,
       bestPhotoUrl: bestPhotoUrl || null,
-      aiCondition: aiCondition ? {
-        condition: (aiCondition.condition as "Excellent" | "Good" | "Fair" | "Poor"),
-        confidenceScore: aiCondition.confidenceScore,
-        issuesDetected: aiCondition.issuesDetected || []
-      } : undefined,
+      aiCondition: safeAiCondition,
       explanation,
       vin: input.vin,
       features: input.features
     };
 
-    // 7. Generate and Download PDF (if premium)
-    if (isPremiumUser) {
-      try {
-        // Convert to ReportData format
-        const reportData: ReportData = {
-          make: result.make,
-          model: result.model,
-          year: result.year,
-          mileage: result.mileage,
-          condition: result.condition,
-          zipCode: result.zipCode,
-          estimatedValue: result.estimatedValue,
-          confidenceScore: result.confidenceScore || 80,
-          features: result.features || [],
-          valuationId: result.id,
-          adjustments: result.adjustments?.map(adj => ({
-            name: adj.name || adj.factor || "",
-            value: adj.value,
-            percentAdjustment: adj.percentAdjustment,
-            description: adj.description || ""
-          })) || [],
-          aiCondition: result.aiCondition,
-          bestPhotoUrl: result.bestPhotoUrl || undefined,
-          explanation: result.explanation,
-          vin: result.vin
-        };
-        
-        await downloadPdf(reportData);
-      } catch (pdfError: any) {
-        console.error('PDF generation failed:', pdfError);
-      }
-    }
-
     return result;
-
   } catch (error: any) {
-    console.error('Valuation failed:', error);
-    throw new Error(`Valuation failed: ${error.message}`);
+    console.error('Error in buildValuationReport:', error);
+    throw error;
   }
+}
+
+// Helper function to ensure condition is one of the valid enum values
+function ensureValidCondition(condition: any): "Excellent" | "Good" | "Fair" | "Poor" {
+  if (typeof condition === 'string') {
+    const validValues = ["Excellent", "Good", "Fair", "Poor"];
+    const normalized = condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
+    
+    if (validValues.includes(normalized)) {
+      return normalized as "Excellent" | "Good" | "Fair" | "Poor";
+    }
+  }
+  
+  // Default to "Good" if not valid
+  return "Good";
 }

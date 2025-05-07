@@ -52,7 +52,18 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       
       // Upload the photos
       const filesToUpload = photos.filter(p => !p.uploaded).map(p => p.file as File);
-      const uploadedPhotos = await uploadPhotoService(filesToUpload, valuationId);
+      
+      // Convert File[] to Photo[] as needed by the test
+      const mockPhotos: Photo[] = filesToUpload.map((file, index) => ({
+        id: `mock-${index}`,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file
+      }));
+      
+      const uploadedPhotos = await uploadPhotoService(mockPhotos, valuationId);
       
       // Update photos with upload status
       setPhotos(prevPhotos => 

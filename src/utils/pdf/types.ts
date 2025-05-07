@@ -64,4 +64,4 @@ export interface SectionParams {
   italicFont?: any;
 }
 
-export type RotationTypes = number | 'degrees';
+export type RotationTypes = number | 'degree';

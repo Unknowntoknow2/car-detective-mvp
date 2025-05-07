@@ -1,3 +1,4 @@
+
 export interface ValuationResult {
   id: string;
   make: string;
@@ -77,4 +78,5 @@ export interface AdjustmentBreakdown {
   description: string;
   percentAdjustment: number;
   factor?: string;
+  impact?: number;
 }
