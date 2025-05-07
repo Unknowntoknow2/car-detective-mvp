@@ -1,49 +1,63 @@
-import React, { Suspense } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider } from '@/modules/auth/AuthContext';
+import React from 'react';
+import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+import App from './App';
+import HomePage from './pages/HomePage';
+import ValuationPage from './pages/ValuationPage';
+import PremiumPage from './pages/PremiumPage';
+import UpgradePage from './pages/UpgradePage';
+import ProfilePage from './pages/ProfilePage';
+import VehicleHistoryPage from './pages/VehicleHistoryPage';
+import MyValuationsPage from './pages/MyValuationsPage';
+import NotFoundPage from './pages/NotFoundPage';
+import { AuthLayout } from './modules/auth/AuthLayout';
+import SignInPage from './modules/auth/SignInPage';
+import SignUpPage from './modules/auth/SignUpPage';
+import ForgotPasswordPage from './modules/auth/ForgotPasswordPage';
+import ResetPasswordPage from './modules/auth/ResetPasswordPage';
+import ConfirmationPage from './modules/auth/ConfirmationPage';
+import { withAuth } from './modules/auth/withAuth';
+import AdminAnalyticsDashboard from './components/admin/dashboard/AdminAnalyticsDashboard';
+import { DesignSystemPage } from './pages/DesignSystem';
+import { PremiumValuationPage } from './pages/PremiumValuationPage';
 
-// Lazy load pages
-const HomePage = React.lazy(() => import('./pages/HomePage'));
-const SignInPage = React.lazy(() => import('./modules/auth/SignInPage'));
-const SignUpPage = React.lazy(() => import('./modules/auth/SignUpPage'));
-const MagicLinkPage = React.lazy(() => import('./modules/auth/MagicLinkPage'));
-const ResetPasswordPage = React.lazy(() => import('./modules/auth/ResetPasswordPage'));
-const ConfirmationPage = React.lazy(() => import('./modules/auth/ConfirmationPage'));
-const AuthCallbackPage = React.lazy(() => import('./modules/auth/AuthCallbackPage'));
-const QADashboardPage = React.lazy(() => import('./modules/qa-dashboard/page'));
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route path="/" element={<App />}>
+        <Route index element={<HomePage />} />
+        <Route path="valuation" element={<ValuationPage />} />
+        <Route path="premium" element={<PremiumPage />} />
+        <Route path="premium-valuation" element={<PremiumValuationPage />} />
+        <Route path="upgrade" element={<UpgradePage />} />
+        <Route path="profile" element={withAuth(ProfilePage)} />
+        <Route path="vehicle-history" element={withAuth(VehicleHistoryPage)} />
+        <Route path="my-valuations" element={withAuth(MyValuationsPage)} />
+        <Route path="design-system" element={<DesignSystemPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
 
-function Router() {
-  return (
-    <AuthProvider>
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        </div>
-      }>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<HomePage />} />
-          
-          {/* Auth routes */}
-          <Route path="/auth">
-            <Route path="signin" element={<SignInPage />} />
-            <Route path="signup" element={<SignUpPage />} />
-            <Route path="magic-link" element={<MagicLinkPage />} />
-            <Route path="forgot-password" element={<ResetPasswordPage />} />
-            <Route path="reset-password" element={<ResetPasswordPage />} />
-            <Route path="confirmation" element={<ConfirmationPage />} />
-            <Route path="callback" element={<AuthCallbackPage />} />
-          </Route>
-          
-          {/* Protected routes */}
-          <Route path="/qa" element={<QADashboardPage />} />
-          
-          {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Suspense>
-    </AuthProvider>
-  );
-}
+      <Route path="/auth" element={<AuthLayout />}>
+        <Route path="signin" element={<SignInPage />} />
+        <Route path="signup" element={<SignUpPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
+        <Route
+          path="confirmation"
+          element={<ConfirmationPage
+            title="Email Confirmed"
+            message="Your email has been confirmed successfully."
+            buttonText="Go to Login"
+            buttonHref="/auth/signin"
+          />}
+        />
+      </Route>
 
-export default Router;
+      <Route
+        path="/admin"
+        element={withAuth(AdminAnalyticsDashboard, ['admin'])}
+      />
+    </>
+  )
+);
+
+export default router;

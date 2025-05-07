@@ -1,4 +1,3 @@
-
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { AICondition } from '@/types/photo';
 import { ReportData, ReportOptions } from './types';
@@ -31,7 +30,7 @@ export function convertVehicleInfoToReportData(
     make: vehicle.make || '',
     model: vehicle.model || '',
     year: vehicle.year || 0,
-    mileage: options.mileage?.toString() || vehicle.mileage?.toString() || '0',
+    mileage: options.mileage || (vehicle.mileage ? Number(vehicle.mileage) : 0),
     condition: (options.condition || vehicle.condition || 'Good') as 'Excellent' | 'Good' | 'Fair' | 'Poor',
     zipCode: options.zipCode || vehicle.zipCode || '',
     estimatedValue: options.estimatedValue || 0,
@@ -57,7 +56,12 @@ export function convertVehicleInfoToReportData(
 
   // Add adjustments if provided
   if (options.adjustments && options.adjustments.length > 0) {
-    reportData.adjustments = options.adjustments;
+    reportData.adjustments = options.adjustments?.map(adj => ({
+      name: adj.factor,
+      value: adj.impact,
+      description: adj.description || '',
+      percentAdjustment: (adj.impact / options.estimatedValue) * 100
+    })) || [];
   }
 
   // Handle aiCondition correctly

@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { analyzePhotos } from '@/services/photo/analyzePhotos';
 import { uploadPhotos } from '@/services/photo/uploadPhotoService';
-import { Photo, PhotoScore, AICondition } from '@/types/photo';
+import { Photo, PhotoScore, AICondition, PhotoScoringResult } from '@/types/photo';
 
 export interface UsePhotoScoringOptions {
   valuationId: string;
@@ -35,7 +35,7 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
     setPhotos(prev => prev.filter(photo => photo.id !== id));
   }, []);
 
-  const uploadPhotos = useCallback(async () => {
+  const uploadAndAnalyzePhotos = useCallback(async () => {
     if (photos.length === 0) {
       setError('No photos to upload');
       return;
@@ -94,7 +94,7 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
     isUploading,
     error,
     handleFileSelect,
-    uploadPhotos,
+    uploadPhotos: uploadAndAnalyzePhotos,
     removePhoto,
     addExplanation,
     createPhotoScores,

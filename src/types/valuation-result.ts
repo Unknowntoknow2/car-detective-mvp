@@ -9,4 +9,5 @@ export interface ValuationResultProps {
   location?: string;
   valuation?: number;
   isManualValuation?: boolean;
+  features?: string[];
 }

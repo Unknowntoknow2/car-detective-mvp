@@ -1,4 +1,3 @@
-
 import { generateValuationPdf } from '../generateValuationPdf';
 import { generatePdf } from './pdfGenerator';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -41,7 +40,24 @@ describe('PDF Export', () => {
     };
 
     // Act
-    const result = await generateValuationPdf(params);
+    const result = await generateValuationPdf({
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      mileage: vehicle.mileage,
+      condition: vehicle.condition || 'Good',
+      zipCode: vehicle.zipCode || '90210',
+      estimatedValue: 21500,
+      explanation: 'The vehicle is in good condition with average mileage...',
+      features: [],
+      adjustments: [],
+      vin: vehicle.vin,
+      color: vehicle.color,
+      bodyStyle: vehicle.bodyType,
+      bodyType: vehicle.bodyType,
+      fuelType: vehicle.fuelType,
+      valuationId: '123e4567-e89b-12d3-a456-426614174000'
+    });
 
     // Assert
     expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -95,7 +111,27 @@ describe('PDF Export', () => {
     };
 
     // Act
-    const result = await generateValuationPdf(params);
+    const result = await generateValuationPdf({
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      mileage: vehicle.mileage,
+      condition: vehicle.condition || 'Good',
+      zipCode: vehicle.zipCode || '90210',
+      estimatedValue: 25000,
+      explanation: 'The vehicle valuation is based on...',
+      features: [],
+      adjustments: [],
+      vin: vehicle.vin,
+      aiCondition: {
+        condition: 'Good',
+        confidenceScore: 85,
+        issuesDetected: ['Minor scratches on rear bumper', 'Small dent on driver door'],
+        aiSummary: 'The vehicle is in generally good condition with some minor cosmetic issues.'
+      },
+      bestPhotoUrl: 'https://example.com/photos/123.jpg',
+      valuationId: '123e4567-e89b-12d3-a456-426614174001'
+    });
 
     // Assert
     expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -124,7 +160,19 @@ describe('PDF Export', () => {
     };
 
     // Act
-    const result = await generateValuationPdf(params);
+    const result = await generateValuationPdf({
+      make: vehicle.make || '',
+      model: vehicle.model || '',
+      year: vehicle.year || 0,
+      mileage: 0,
+      condition: 'Not Specified',
+      zipCode: '',
+      estimatedValue: 32000,
+      explanation: 'Basic explanation',
+      features: [],
+      adjustments: [],
+      vin: 'Unknown'
+    });
 
     // Assert
     expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -160,6 +208,18 @@ describe('PDF Export', () => {
     };
 
     // Act & Assert
-    await expect(generateValuationPdf(params)).rejects.toThrow('PDF generation failed');
+    await expect(generateValuationPdf({
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      mileage: vehicle.mileage,
+      condition: vehicle.condition || 'Good',
+      zipCode: vehicle.zipCode || '90210',
+      estimatedValue: 40000,
+      explanation: 'Standard explanation',
+      features: [],
+      adjustments: [],
+      vin: vehicle.vin
+    })).rejects.toThrow('PDF generation failed');
   });
 });
