@@ -1,14 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { validateVIN, VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
+import { validateVIN } from '@/utils/validation/vin-validation-helpers';
 import { AlertCircle } from 'lucide-react';
+
+// Import our new component parts
+import { VehicleBasicInfoFields } from './components/VehicleBasicInfoFields';
+import { VehicleDetailsFields } from './components/VehicleDetailsFields';
+import { ConditionAndZipFields } from './components/ConditionAndZipFields';
+import { VinInputField } from './components/VinInputField';
 
 // Extend the form schema to include VIN
 const formSchema = z.object({
@@ -28,8 +32,6 @@ interface ManualEntryFormProps {
 }
 
 export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit }) => {
-  const [vinError, setVinError] = useState<string | null>(null);
-  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,26 +45,12 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit }) =>
     }
   });
   
-  // Watch the VIN field for changes
-  const vinValue = form.watch('vin');
-  
-  // Validate VIN whenever it changes
-  useEffect(() => {
-    if (!vinValue || vinValue.trim() === '') {
-      setVinError(null);
-      return;
-    }
-    
-    const { isValid, error } = validateVIN(vinValue);
-    setVinError(isValid ? null : error);
-  }, [vinValue]);
-
   const handleSubmit = (values: FormValues) => {
     // Only check VIN validation if a value is provided
     if (values.vin && values.vin.trim() !== '') {
       const { isValid, error } = validateVIN(values.vin);
       if (!isValid) {
-        setVinError(error);
+        // We don't need to set error state here as it's handled in the VinInputField component
         return;
       }
     }
@@ -80,128 +68,17 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit }) =>
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="make"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Make</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Toyota" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Camry" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., 2019" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="mileage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mileage</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., 50000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="condition"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Condition</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select condition" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {conditionOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="zipCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>ZIP Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., 90210" {...field} maxLength={5} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        <div className="space-y-4">
+          <VehicleBasicInfoFields form={form} />
+          <VehicleDetailsFields form={form} />
+          <ConditionAndZipFields 
+            form={form} 
+            conditionOptions={conditionOptions} 
           />
         </div>
         
-        {/* New VIN field with validation */}
-        <FormField
-          control={form.control}
-          name="vin"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Vehicle Identification Number (VIN)</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter 17-character VIN (optional)" 
-                  {...field} 
-                  maxLength={17} 
-                  className={vinError ? "border-destructive" : ""}
-                />
-              </FormControl>
-              {vinError && (
-                <div className="flex items-center gap-1.5 mt-1.5 text-destructive text-sm">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  <span>{vinError}</span>
-                </div>
-              )}
-              <VinInfoMessage />
-            </FormItem>
-          )}
-        />
+        {/* VIN field with validation */}
+        <VinInputField form={form} />
         
         <Button type="submit" className="w-full">
           Get Valuation
