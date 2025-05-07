@@ -20,14 +20,17 @@ export interface RulesEngineInput {
 }
 
 export interface AdjustmentBreakdown {
-  factor: string;  // Primary key used by newer code
-  impact: number;  // Primary value used by newer code
-  name?: string;   // Legacy field - supported for backward compatibility
-  value?: number;  // Legacy field - supported for backward compatibility
+  // Original fields used in the code base
+  name?: string;   
+  value?: number;  
   description: string;
   percentAdjustment?: number;
   
-  // Adding these fields to support usage elsewhere in the codebase
+  // New fields required by type check
+  factor?: string;  
+  impact?: number;  
+  
+  // Additional fields to support other parts of the codebase
   label?: string;
   amount?: number;
 }

@@ -8,6 +8,11 @@ import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
 import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 
 const LookupPage: React.FC = () => {
+  const handleManualSubmit = (data: any) => {
+    console.log('Manual form data:', data);
+    // Implement submission logic here
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <Card>
@@ -32,7 +37,7 @@ const LookupPage: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="manual">
-              <ManualEntryForm />
+              <ManualEntryForm onSubmit={handleManualSubmit} />
             </TabsContent>
           </Tabs>
         </CardContent>

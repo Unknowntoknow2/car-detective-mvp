@@ -62,7 +62,7 @@ export const EnhancedManualEntrySchema = z.object({
 /**
  * Informational component to explain VIN format
  */
-export const EnhancedVinInfoMessage: React.FC = () => {
+export const VinInfoMessage: React.FC = () => {
   return (
     <div className="text-sm text-gray-500">
       <p>A valid VIN:</p>
