@@ -86,18 +86,10 @@ export async function generatePdf(
   }
   
   // Add vehicle info section
-  yPosition = drawVehicleInfoSection(
-    sectionParams,
-    data,
-    yPosition
-  );
+  yPosition = drawVehicleInfoSection(sectionParams, data, yPosition);
   
   // Add main valuation section
-  yPosition = drawValuationSection(
-    sectionParams,
-    data,
-    yPosition
-  );
+  yPosition = drawValuationSection(sectionParams, data, yPosition);
   
   // If there's a best photo available and photo assessment is enabled
   if (data.bestPhotoUrl && options.includePhotoAssessment) {

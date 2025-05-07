@@ -86,7 +86,7 @@ export async function buildValuationReport(valuationId: string): Promise<Uint8Ar
           make: reportData.make,
           model: reportData.model,
           year: reportData.year,
-          mileage: parseInt(reportData.mileage),
+          mileage: parseInt(reportData.mileage.toString()),
           zipCode: reportData.zipCode,
           condition: reportData.condition,
           basePrice: basePrice,
