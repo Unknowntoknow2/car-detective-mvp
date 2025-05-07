@@ -82,7 +82,7 @@ export function validateVinCheckDigit(vin: string): boolean {
   return vinUpper[8] === expectedCheck;
 }
 
-// Import the VinInfoMessage component from the new location
+// Import the VinInfoMessage component from the proper location
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 
 // Re-export the VinInfoMessage component for backward compatibility
