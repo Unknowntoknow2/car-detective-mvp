@@ -1,0 +1,257 @@
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
+import { CDCard } from '@/components/ui-kit/CDCard';
+import { HeadingL, BodyM } from '@/components/ui-kit/typography';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useValuationLogic } from './logic';
+import Header from './sections/Header';
+import Summary from './sections/Summary';
+import PhotoAnalysis from './sections/PhotoAnalysis';
+import Breakdown from './sections/Breakdown';
+import Explanation from './sections/Explanation';
+import PDFActions from './sections/PDFActions';
+import styles from './styles';
+import { toast } from 'sonner';
+
+interface ValuationResultProps {
+  valuationId?: string;
+  isManualValuation?: boolean;
+  manualValuationData?: any;
+}
+
+export const ValuationResult: React.FC<ValuationResultProps> = ({
+  valuationId,
+  isManualValuation = false,
+  manualValuationData
+}) => {
+  const [isEmailSending, setIsEmailSending] = useState(false);
+  
+  // Fetch valuation data
+  const { 
+    data: valuation, 
+    isLoading, 
+    error 
+  } = useValuationResult(valuationId || '');
+  
+  // Check premium status
+  const { 
+    isPremium, 
+    isLoading: isPremiumLoading, 
+    createCheckoutSession
+  } = usePremiumStatus(valuationId);
+  
+  // Combine manual data with fetched data
+  const valuationData = isManualValuation && manualValuationData
+    ? manualValuationData
+    : valuation;
+  
+  // Use derived valuation logic
+  const {
+    priceRange,
+    marketTrend,
+    recommendation,
+    recommendationText,
+    confidenceLevel,
+    confidenceColor
+  } = useValuationLogic(valuationData);
+  
+  // PDF generation logic
+  const { 
+    isDownloading, 
+    handleDownloadPdf 
+  } = useValuationPdf({
+    valuationData,
+    conditionData: valuationData?.aiCondition || null
+  });
+
+  const handleUpgrade = async () => {
+    if (!valuationId) {
+      toast.error("Unable to process premium upgrade without a valuation ID");
+      return;
+    }
+    
+    try {
+      const result = await createCheckoutSession(valuationId);
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else if (result.alreadyUnlocked) {
+        toast.success("Premium features are already unlocked!");
+        // Refresh the page to show premium content
+        window.location.reload();
+      } else {
+        toast.error(result.error || "Failed to create checkout session");
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+      toast.error("An error occurred while processing your request");
+    }
+  };
+  
+  const handleEmailPdf = async () => {
+    try {
+      setIsEmailSending(true);
+      // This would call an API endpoint to send the PDF via email
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      toast.success("PDF report sent to your email");
+    } catch (error) {
+      toast.error("Failed to send PDF report");
+    } finally {
+      setIsEmailSending(false);
+    }
+  };
+  
+  // Loading state
+  if (isLoading && !isManualValuation) {
+    return (
+      <div className={styles.container}>
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <BodyM>Loading valuation data...</BodyM>
+        </div>
+      </div>
+    );
+  }
+  
+  // Error state
+  if ((error || !valuationData) && !isManualValuation) {
+    return (
+      <div className={styles.container}>
+        <CDCard className="p-6 bg-red-50">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-1" />
+            <div>
+              <HeadingL as="h2" className="text-xl font-bold text-red-700 mb-2">
+                Error Loading Valuation
+              </HeadingL>
+              <BodyM className="text-red-600">
+                {error?.message || "Could not load valuation data. Please try again or contact support."}
+              </BodyM>
+            </div>
+          </div>
+        </CDCard>
+      </div>
+    );
+  }
+  
+  if (!valuationData) {
+    return null;
+  }
+
+  const showPremiumContent = isPremium || isManualValuation;
+  
+  // Extract valuation data
+  const {
+    make = '',
+    model = '',
+    year = 0,
+    mileage = 0,
+    condition = 'Good',
+    estimatedValue = 0,
+    confidenceScore = 75,
+    adjustments = [],
+    explanation = '',
+    fuelType,
+    transmission,
+    bestPhotoUrl,
+    photoScore,
+    aiCondition
+  } = valuationData;
+  
+  // Additional info for badge display
+  const additionalInfo: Record<string, string> = {};
+  if (fuelType) additionalInfo.fuelType = fuelType;
+  if (transmission) additionalInfo.transmission = transmission;
+  
+  return (
+    <AnimatePresence>
+      <div className={styles.container}>
+        {/* Header Section */}
+        <Header
+          make={make}
+          model={model}
+          year={year}
+          mileage={mileage}
+          condition={condition}
+          estimatedValue={estimatedValue}
+          isPremium={showPremiumContent}
+          additionalInfo={additionalInfo}
+        />
+        
+        {/* Summary Section */}
+        <Summary
+          confidenceScore={confidenceScore}
+          priceRange={priceRange}
+          marketTrend={marketTrend}
+          recommendationText={recommendationText}
+        />
+        
+        {/* Main Content */}
+        <div className={styles.grid.container}>
+          {/* Left Column - Photo Analysis */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <PhotoAnalysis
+              photoUrl={bestPhotoUrl}
+              photoScore={photoScore}
+              condition={aiCondition}
+              isPremium={showPremiumContent}
+            />
+          </motion.div>
+          
+          {/* Right Column - Price Breakdown */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <Breakdown
+              basePrice={estimatedValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)}
+              adjustments={adjustments}
+              estimatedValue={estimatedValue}
+            />
+          </motion.div>
+          
+          {/* Full Width - Explanation (GPT) */}
+          <motion.div 
+            className={styles.grid.fullWidth}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
+            <Explanation
+              explanation={explanation}
+              isPremium={showPremiumContent}
+              onUpgrade={handleUpgrade}
+            />
+          </motion.div>
+          
+          {/* Full Width - PDF Actions */}
+          <motion.div 
+            className={styles.grid.fullWidth}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
+            <PDFActions
+              isPremium={showPremiumContent}
+              onDownloadPdf={handleDownloadPdf}
+              onEmailPdf={handleEmailPdf}
+              onUpgrade={handleUpgrade}
+              isDownloading={isDownloading}
+              isEmailSending={isEmailSending}
+            />
+          </motion.div>
+        </div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
+export default ValuationResult;

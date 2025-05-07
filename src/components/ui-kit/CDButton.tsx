@@ -62,6 +62,13 @@ export const CDButton: React.FC<ButtonProps> = ({
     fullWidth ? "w-full" : "",
   ].join(" ");
 
+  // Create motion animation props
+  const buttonMotionProps = {
+    whileHover: isDisabled || isLoading ? undefined : { scale: 1.02 },
+    whileTap: isDisabled || isLoading ? undefined : { scale: 0.98 },
+    ...motionProps
+  };
+
   return (
     <motion.button
       type={type}
@@ -74,8 +81,7 @@ export const CDButton: React.FC<ButtonProps> = ({
       onClick={onClick}
       disabled={isDisabled || isLoading}
       aria-label={ariaLabel}
-      whileHover={isDisabled || isLoading ? {} : { scale: 1.02 }}
-      whileTap={isDisabled || isLoading ? {} : { scale: 0.98 }}
+      {...buttonMotionProps}
       {...props}
     >
       {isLoading && (
