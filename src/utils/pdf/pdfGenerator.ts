@@ -37,6 +37,17 @@ export async function generatePdf(
   const margin = 50;
   const contentWidth = width - margin * 2;
   
+  // Create a unified params object to pass to all section drawing functions
+  const sectionParams: SectionParams = {
+    page,
+    width,
+    height,
+    margin,
+    regularFont,
+    boldFont,
+    contentWidth
+  };
+  
   // Track the vertical position as we add content
   let yPosition = height - margin;
   
@@ -60,17 +71,6 @@ export async function generatePdf(
   });
   
   yPosition -= 70; // Move down after header
-  
-  // Create a unified params object to pass to all section drawing functions
-  const sectionParams: SectionParams = {
-    page,
-    width,
-    height,
-    margin,
-    regularFont,
-    boldFont,
-    contentWidth
-  };
   
   // Add vehicle info section
   yPosition = drawVehicleInfoSection(
@@ -107,21 +107,23 @@ export async function generatePdf(
     };
     
     try {
-      // Call the drawAIConditionSection function with proper parameters and await its result
+      // Update to correctly handle the returned yPosition
       const newYPosition = await drawAIConditionSection(
         conditionParams, 
         aiSectionParams
       );
       
-      // Update yPosition with the returned value
-      yPosition = newYPosition;
+      // Update yPosition safely
+      if (typeof newYPosition === 'number') {
+        yPosition = newYPosition;
+      }
     } catch (error) {
       console.error("Error drawing AI condition section:", error);
       // If there's an error, don't update yPosition
     }
   }
   
-  // Add explanation section with updated parameters
+  // Add explanation section if available
   if (data.explanation) {
     yPosition = drawExplanationSection(
       sectionParams,
@@ -130,11 +132,14 @@ export async function generatePdf(
     );
   }
   
-  // Add footer with updated parameters
+  // Add footer with updated parameters (now supports page numbering)
   if (options.includeFooter) {
     drawFooterSection(
       sectionParams,
-      options.includeTimestamp
+      options.includeTimestamp,
+      1,  // Current page (hardcoded to 1 for now)
+      1,  // Total pages (hardcoded to 1 for now)
+      options.includeBranding  // Use branding option for watermark
     );
   }
   

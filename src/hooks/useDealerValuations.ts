@@ -4,7 +4,7 @@ import { supabase } from '@/utils/supabaseClient';
 import { useUser } from './useUser';
 
 // This is a simplified structure - expand as needed
-interface ValuationWithVehicle {
+export interface ValuationWithVehicle {
   id: string;
   created_at: string;
   estimated_value: number;
@@ -28,7 +28,6 @@ export function useDealerValuations() {
       try {
         setLoading(true);
         
-        // Use the proper Supabase query syntax
         const { data, error } = await supabase
           .from('valuations')
           .select('*')
@@ -37,7 +36,6 @@ export function useDealerValuations() {
         if (error) throw error;
         
         // Optional date filtering example - commented out as it needs proper implementation
-        // To filter by date, you would use something like:
         /*
         const { data, error } = await supabase
           .from('valuations')

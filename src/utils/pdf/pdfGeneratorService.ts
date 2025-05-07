@@ -1,4 +1,3 @@
-
 import { ReportData } from './types';
 import { PDFDocument, rgb, StandardFonts, PDFFont, degrees } from 'pdf-lib';
 import { drawSectionHeading, drawHorizontalLine, initializePdf } from './components/pdfCommon';
@@ -131,9 +130,16 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
     };
     
     try {
-      // Handle async operation correctly
-      currentY = await drawAIConditionSection(conditionParams, aiSectionParams);
-      currentY = currentY - 15;
+      // Handle async operation correctly with proper parameters
+      const newYPosition = await drawAIConditionSection(
+        conditionParams, 
+        aiSectionParams
+      );
+      
+      // Update yPosition only if we got a valid number back
+      if (typeof newYPosition === 'number') {
+        currentY = newYPosition - 15;
+      }
     } catch (error) {
       console.error("Error drawing AI condition section:", error);
       // If there's an error, don't update currentY
