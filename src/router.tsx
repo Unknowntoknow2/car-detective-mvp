@@ -1,4 +1,3 @@
-
 import {
   createBrowserRouter,
   RouterProvider,
@@ -12,6 +11,7 @@ import PremiumSuccessPage from "./pages/PremiumSuccessPage";
 import MyValuationsPage from "./pages/MyValuationsPage";
 import ValuationDetailPage from "./pages/ValuationDetailPage";
 import PremiumValuationPage from "./pages/PremiumValuationPage";
+import DesignSystem from './pages/DesignSystem';
 
 const router = createBrowserRouter([
   {
@@ -41,6 +41,10 @@ const router = createBrowserRouter([
     path: "/premium-success",
     element: <PremiumSuccessPage />,
   },
+  {
+    path: "/design-system",
+    element: <DesignSystem />
+  }
 ]);
 
 export default router;
