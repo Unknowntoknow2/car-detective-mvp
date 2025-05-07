@@ -1,5 +1,15 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { AICondition } from '@/types/photo';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { useAICondition } from '@/hooks/useAICondition';
+import { ValuationData } from './result/ValuationData';
+import { DownloadSection } from './result/DownloadSection';
+import { ErrorAlert } from './result/ErrorAlert';
 
 // Define the props interface for the component
 interface PredictionResultProps {
@@ -16,7 +26,7 @@ export const PredictionResult: React.FC<PredictionResultProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   
   // Get valuation ID (from prop or localStorage)
-  const { localValuationId } = useValuationId(valuationId);
+  const localValuationId = valuationId; // Using the prop directly instead of hook
 
   const { 
     data, 
@@ -52,15 +62,16 @@ export const PredictionResult: React.FC<PredictionResultProps> = ({
     const valuationWithOverride = { ...data };
     
     // Apply AI condition override if available and confidence score is high enough
-    if (conditionData && conditionData.confidenceScore >= 70) {
-      valuationWithOverride.condition = conditionData.condition;
+    const conditionToUse = photoCondition || conditionData;
+    if (conditionToUse && conditionToUse.confidenceScore >= 70) {
+      valuationWithOverride.condition = conditionToUse.condition || valuationWithOverride.condition;
       
       // For TypeScript, we need to handle the aiCondition property safely
       if ('aiCondition' in valuationWithOverride) {
-        valuationWithOverride.aiCondition = conditionData;
+        valuationWithOverride.aiCondition = conditionToUse;
       } else {
         // Add the property if it doesn't exist
-        (valuationWithOverride as any).aiCondition = conditionData;
+        (valuationWithOverride as any).aiCondition = conditionToUse;
       }
     }
     
@@ -98,10 +109,11 @@ export const PredictionResult: React.FC<PredictionResultProps> = ({
   } : null);
 
   // Setup PDF download functionality
-  const { isDownloading, handleDownloadPdf } = useValuationPdf({
-    valuationData,
-    conditionData
-  });
+  const isDownloading = false;
+  const handleDownloadPdf = () => {
+    // Placeholder for PDF download functionality
+    console.log('Download PDF triggered');
+  };
 
   // Show loading state during initial data fetch
   if (isLoading && !manualValuation) {

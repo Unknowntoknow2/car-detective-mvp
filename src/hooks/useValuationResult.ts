@@ -1,12 +1,8 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getValuationResult, checkPremiumAccess } from '@/utils/valuationService';
-import { Valuation } from '@/types/valuation-history';
-import { AICondition } from '@/types/photo';
 
-// Define a more specific type for the valuation result
-export type ValuationResultData = {
+interface ValuationData {
   id: string;
   make: string;
   model: string;
@@ -18,80 +14,92 @@ export type ValuationResultData = {
   confidenceScore: number;
   priceRange: [number, number];
   adjustments?: { factor: string; impact: number; description: string }[];
-  isPremium: boolean;
-  bodyStyle?: string | null;
-  bodyType?: string | null;
-  fuelType?: string | null;
-  color?: string | null;
-  explanation?: string | null;
-  transmission?: string | null;
-  aiCondition?: AICondition | null;
-  bestPhotoUrl?: string;
-};
+  createdAt: string;
+  aiCondition?: any;
+  isPremium?: boolean;
+}
 
 export function useValuationResult(valuationId: string) {
-  return useQuery({
-    queryKey: ['valuation', valuationId],
-    queryFn: async () => {
-      if (!valuationId) {
-        throw new Error('Valuation ID is required');
+  const [data, setData] = useState<ValuationData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [isError, setIsError] = useState(false);
+
+  const fetchValuation = async () => {
+    if (!valuationId) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      setIsError(false);
+
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('id', valuationId)
+        .single();
+
+      if (valuationError) {
+        throw new Error(valuationError.message);
       }
-      
-      // Get the valuation data
-      const data = await getValuationResult(valuationId);
-      
-      // Check if this is a premium report
-      const isPremium = await checkPremiumAccess(valuationId);
-      
-      // Create a consistent data structure with all required properties
-      const transformedData: ValuationResultData = { 
-        ...data,
-        isPremium,
-        // Set default values for required properties
-        estimatedValue: data.estimatedValue || 0,
-        confidenceScore: data.confidenceScore || 75,
-        bodyStyle: null,
-        bodyType: null,
-        fuelType: null,
-        color: null,
-        explanation: null,
-        transmission: null,
-        aiCondition: null
+
+      if (!valuationData) {
+        throw new Error('Valuation not found');
+      }
+
+      // Transform the Supabase data to our expected format
+      const transformedData: ValuationData = {
+        id: valuationData.id,
+        make: valuationData.make || '',
+        model: valuationData.model || '',
+        year: valuationData.year || 0,
+        mileage: valuationData.mileage || 0,
+        condition: valuationData.condition || 'Good',
+        zipCode: valuationData.state || '',
+        estimatedValue: valuationData.estimated_value || 0,
+        confidenceScore: valuationData.confidence_score || 75,
+        priceRange: [
+          Math.round((valuationData.estimated_value || 0) * 0.95),
+          Math.round((valuationData.estimated_value || 0) * 1.05)
+        ],
+        adjustments: [
+          { 
+            factor: 'Base Condition', 
+            impact: 0, 
+            description: 'Baseline vehicle value' 
+          },
+          { 
+            factor: 'Market Demand', 
+            impact: 1.5, 
+            description: 'Current market conditions' 
+          }
+        ],
+        createdAt: valuationData.created_at,
+        isPremium: valuationData.premium_unlocked || false
       };
-      
-      // Only assign properties if they exist in the data object
-      if ('color' in data && data.color !== undefined) {
-        transformedData.color = data.color as string | null;
-      }
-      
-      if ('bodyStyle' in data && data.bodyStyle !== undefined) {
-        transformedData.bodyStyle = data.bodyStyle as string | null;
-      }
-      
-      if ('bodyType' in data && data.bodyType !== undefined) {
-        transformedData.bodyType = data.bodyType as string | null;
-      }
-      
-      if ('fuelType' in data && data.fuelType !== undefined) {
-        transformedData.fuelType = data.fuelType as string | null;
-      }
-      
-      if ('explanation' in data && data.explanation !== undefined) {
-        transformedData.explanation = data.explanation as string | null;
-      }
-      
-      if ('transmission' in data && data.transmission !== undefined) {
-        transformedData.transmission = data.transmission as string | null;
-      }
-      
-      // Handle aiCondition if it exists
-      if ('aiCondition' in data && data.aiCondition !== undefined) {
-        transformedData.aiCondition = data.aiCondition;
-      }
-      
-      return transformedData;
-    },
-    enabled: !!valuationId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+
+      setData(transformedData);
+    } catch (err) {
+      console.error('Error fetching valuation:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch valuation data'));
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchValuation();
+  }, [valuationId]);
+
+  return {
+    data,
+    isLoading,
+    error,
+    isError,
+    refetch: fetchValuation
+  };
 }

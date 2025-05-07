@@ -11,8 +11,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<Photo[]
   }
   
   try {
-    // Use any type to work around TypeScript type checking issues
-    // This is temporary until Supabase types are regenerated
+    // Use type assertion to work around TypeScript issues
     const { data, error } = await supabase
       .from('valuation_photos' as any)
       .select('*')
@@ -22,10 +21,11 @@ export async function fetchValuationPhotos(valuationId: string): Promise<Photo[]
       throw error;
     }
     
-    return data?.map(item => ({
+    // Use type assertion to safely access properties
+    return (data || []).map((item: any) => ({
       id: item.id,
       url: item.photo_url
-    })) || [];
+    }));
     
   } catch (err) {
     console.error('Error fetching valuation photos:', err);
