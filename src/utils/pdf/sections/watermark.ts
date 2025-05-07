@@ -26,7 +26,10 @@ export function applyWatermark(
     font: boldFont,
     color: rgb(0.9, 0.9, 0.9),
     opacity: 0.04,
-    rotate: degrees(-30)
+    rotate: {
+      type: 'degrees',
+      angle: -30
+    }
   });
   
   // Add additional watermarks if the page is large enough
@@ -39,7 +42,10 @@ export function applyWatermark(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.04,
-      rotate: degrees(-30)
+      rotate: {
+        type: 'degrees',
+        angle: -30
+      }
     });
     
     // Bottom watermark
@@ -50,7 +56,10 @@ export function applyWatermark(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.04,
-      rotate: degrees(-30)
+      rotate: {
+        type: 'degrees',
+        angle: -30
+      }
     });
   }
 }
@@ -61,7 +70,10 @@ export function applyWatermark(
  * @returns A properly formatted rotation object
  */
 function degrees(angle: number) {
-  return { type: 'degrees' as const, angle };
+  return { 
+    type: 'degrees' as const, 
+    angle 
+  };
 }
 
 /**
@@ -102,7 +114,10 @@ export function applyWatermarkPattern(
         font: boldFont,
         color: rgb(0.9, 0.9, 0.9),
         opacity: 0.03, // Very subtle
-        rotate: degrees(-30)
+        rotate: {
+          type: 'degrees',
+          angle: -30
+        }
       });
     }
   }

@@ -8,6 +8,7 @@ import { drawCommentarySection } from './sections/commentarySection';
 import { drawAIConditionSection } from './sections/aiConditionSection';
 import { applyWatermark } from './sections/watermark';
 import { drawValuationSummary } from './sections/valuationSummary';
+import { drawFooterSection } from './sections/footerSection';
 
 /**
  * Generates a PDF for the valuation report
