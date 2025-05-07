@@ -1,132 +1,83 @@
 
 import React from 'react';
-import { Button, ButtonProps } from '@/components/ui/button';
-import { motion, MotionProps } from 'framer-motion';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/utils/cn';
 
-// Define our custom variant and size types
-export type CDButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium' | 'primary';
-export type CDButtonSize = 'default' | 'sm' | 'lg' | 'icon' | 'md';
+export type CDButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'link' | 'danger' | 'destructive';
+export type CDButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
-// Redefine the props interface
-export interface CDButtonProps extends Omit<ButtonProps, "variant" | "size" | "asChild"> {
-  variant?: CDButtonVariant;
-  size?: CDButtonSize;
-  className?: string;
-  icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background",
+  {
+    variants: {
+      variant: {
+        primary: "bg-primary text-white hover:bg-primary-dark",
+        secondary: "bg-neutral-lighter text-neutral-darker hover:bg-neutral-light",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        ghost: "bg-transparent hover:bg-accent hover:text-accent-foreground",
+        link: "underline-offset-4 hover:underline text-primary",
+        danger: "bg-red-500 text-white hover:bg-red-600",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      },
+      size: {
+        xs: "h-7 px-2 rounded-md text-xs",
+        sm: "h-9 px-3 rounded-md",
+        md: "h-10 py-2 px-4",
+        lg: "h-11 px-8",
+        xl: "h-12 px-10 text-base"
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  }
+);
+
+export interface CDButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  VariantProps<typeof buttonVariants> {
   loading?: boolean;
-  loadingText?: string;
-  block?: boolean; // Use instead of fullWidth
-  ariaLabel?: string;
-  children: React.ReactNode;
-  motionProps?: MotionProps;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
-  (
-    {
-      variant = 'default',
-      size = 'default',
-      className = '',
-      icon,
-      iconPosition = 'left',
-      loading = false,
-      loadingText = 'Loading...',
-      block = false,
-      ariaLabel,
-      children,
-      motionProps,
-      ...props
-    },
-    ref
-  ) => {
-    const buttonContent = (
-      <>
-        {loading ? (
-          <>
-            <span className="animate-spin mr-2">
-              <svg
-                className="w-4 h-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            </span>
-            {loadingText}
-          </>
-        ) : (
-          <>
-            {icon && iconPosition === 'left' && <span className="mr-2">{icon}</span>}
-            {children}
-            {icon && iconPosition === 'right' && <span className="ml-2">{icon}</span>}
-          </>
-        )}
-      </>
-    );
-
-    const buttonClasses = `
-      ${block ? 'w-full' : ''}
-      ${className}
-      transition-colors duration-200
-      ${loading ? 'opacity-70 cursor-not-allowed' : ''}
-    `;
-
-    // Map our custom variants to shadcn variants
-    const getShadcnVariant = () => {
-      if (variant === 'primary') return 'default';
-      return variant;
-    };
-
-    // If motion props are provided, wrap with motion.div
-    if (motionProps) {
-      return (
-        <motion.div {...motionProps}>
-          <Button
-            ref={ref}
-            className={buttonClasses}
-            disabled={loading || props.disabled}
-            aria-label={ariaLabel}
-            type={props.type || 'button'}
-            variant={getShadcnVariant()}
-            size={size === 'md' ? 'default' : size}
-            {...props}
-          >
-            {buttonContent}
-          </Button>
-        </motion.div>
-      );
-    }
-
-    // Otherwise, use regular Button
+  ({ className, variant, size, loading, leftIcon, rightIcon, children, ...props }, ref) => {
     return (
-      <Button
+      <button
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
-        className={buttonClasses}
         disabled={loading || props.disabled}
-        aria-label={ariaLabel}
-        type={props.type || 'button'}
-        variant={getShadcnVariant()}
-        size={size === 'md' ? 'default' : size}
         {...props}
       >
-        {buttonContent}
-      </Button>
+        {loading && (
+          <svg
+            className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        )}
+        {!loading && leftIcon && <span className="mr-2">{leftIcon}</span>}
+        {children}
+        {rightIcon && <span className="ml-2">{rightIcon}</span>}
+      </button>
     );
   }
 );
 
-CDButton.displayName = 'CDButton';
+CDButton.displayName = "CDButton";

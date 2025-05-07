@@ -1,154 +1,112 @@
 
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
-import { Photo, PhotoScore, AICondition, MAX_FILES } from '@/types/photo';
-import { scorePhotos } from '@/services/photoService';
-import { toast } from 'sonner';
+import { Photo, PhotoScore, AICondition, MAX_FILES, PhotoScoringResult } from '@/types/photo';
+import { analyzePhotos } from '@/services/photo/analyzePhotos';
+import { uploadPhotos as uploadPhotoService } from '@/services/photo/uploadPhotoService';
 
-interface UsePhotoScoringProps {
-  valuationId?: string;
-  onScoreChange?: (score: number, condition?: AICondition) => void;
+export interface UsePhotoScoringOptions {
+  valuationId: string;
 }
 
-export function usePhotoScoring({ valuationId, onScoreChange }: UsePhotoScoringProps = {}) {
+export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoScores, setPhotoScores] = useState<PhotoScore[]>([]);
   const [aiCondition, setAiCondition] = useState<AICondition>({
     condition: null,
-    confidenceScore: 0,
-    issuesDetected: []
+    confidenceScore: 0
   });
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
 
   const handleFileSelect = useCallback((files: File[]) => {
     if (!files.length) return;
-    
-    // Limit to MAX_FILES total
-    if (photos.length + files.length > MAX_FILES) {
-      toast.error(`You can only upload up to ${MAX_FILES} photos.`);
-      return;
-    }
 
-    // Create photo objects from files
     const newPhotos: Photo[] = Array.from(files).map(file => ({
       id: uuidv4(),
+      url: URL.createObjectURL(file),
       name: file.name,
       size: file.size,
       type: file.type,
       file,
       uploaded: false,
       uploading: false
-    })) as Photo[];
+    }));
 
-    setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
-  }, [photos]);
+    setPhotos(prev => {
+      // Don't exceed MAX_FILES
+      const combinedPhotos = [...prev, ...newPhotos].slice(0, MAX_FILES);
+      return combinedPhotos;
+    });
+  }, []);
 
-  const uploadPhotos = async (files: File[]): Promise<Photo[]> => {
-    if (!valuationId) {
-      throw new Error('ValuationId is required to upload photos');
-    }
-
-    const uploadedPhotos: Photo[] = [];
-
-    for (const file of files) {
-      try {
-        const filename = `${valuationId}/${uuidv4()}-${file.name}`;
-        const { data, error } = await supabase.storage
-          .from('vehicle-photos')
-          .upload(filename, file);
-
-        if (error) throw error;
-
-        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
-        
-        uploadedPhotos.push({
-          id: uuidv4(),
-          url,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          uploaded: true
-        });
-      } catch (error: any) {
-        console.error('Error uploading photo:', error);
-      }
-    }
-
-    return uploadedPhotos;
-  };
-
-  const createPhotoScores = async (): Promise<PhotoScore[]> => {
-    if (!valuationId || !photos.length) {
-      return [];
-    }
-
-    try {
-      const photoUrls = photos.map(p => p.url).filter(Boolean);
-      if (!photoUrls.length) return [];
-
-      const result = await scorePhotos(photoUrls, valuationId);
-      
-      if (result.error) {
-        setError(result.error);
-        return [];
-      }
-      
-      if (result.aiCondition) {
-        setAiCondition(result.aiCondition);
-        
-        // Call the onScoreChange callback if provided
-        if (onScoreChange && result.overallScore) {
-          onScoreChange(result.overallScore, result.aiCondition);
-        }
-      }
-      
-      return result.individualScores || [];
-    } catch (error: any) {
-      setError(error.message || 'Failed to score photos');
-      return [];
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!valuationId) {
-      setError('Valuation ID is required for photo upload');
-      return [];
-    }
-
+  const uploadPhotos = async () => {
+    if (!photos.length) return [];
+    
     setIsUploading(true);
     setError('');
     
     try {
-      // Upload photos that have files attached
-      const photosToUpload = photos.filter(p => p.file && !p.uploaded);
-      const filesToUpload = photosToUpload.map(p => p.file).filter(Boolean) as File[];
+      // Mark photos as uploading
+      setPhotos(photos.map(p => ({ ...p, uploading: true })));
       
-      if (filesToUpload.length) {
-        const uploadedPhotos = await uploadPhotos(filesToUpload);
-        setPhotos(prev => [...prev.filter(p => p.uploaded || !p.file), ...uploadedPhotos]);
+      // Upload the photos
+      const uploadedPhotos = await uploadPhotoService(
+        photos.filter(p => !p.uploaded).map(p => p.file as File),
+        valuationId
+      );
+      
+      // Update photos with upload status
+      setPhotos(prevPhotos => 
+        prevPhotos.map(photo => {
+          const uploaded = uploadedPhotos.find(up => up.name === photo.name);
+          if (uploaded) {
+            return {
+              ...photo,
+              uploaded: true,
+              uploading: false,
+              url: uploaded.url
+            };
+          }
+          return photo;
+        })
+      );
+      
+      // Analyze photos after upload
+      const analysis = await analyzePhotos(uploadedPhotos.map(p => p.url), valuationId);
+      
+      setPhotoScores(analysis.individualScores || []);
+      
+      if (analysis.aiCondition) {
+        setAiCondition(analysis.aiCondition);
       }
       
-      // Score all photos
-      const allPhotos = [...photos.filter(p => p.uploaded), ...photosToUpload];
-      if (allPhotos.length > 0) {
-        const scores = await createPhotoScores();
-        setPhotoScores(scores);
-      }
-      
-      return allPhotos;
+      return uploadedPhotos;
     } catch (error: any) {
-      setError(error.message || 'Error uploading photos');
-      console.error('Photo upload error:', error);
-      return [];
+      console.error('Photo upload/analysis error:', error);
+      const errorMessage = error.message || 'Failed to upload or analyze photos';
+      
+      setError(errorMessage);
+      
+      // Mark photos with error
+      setPhotos(photos.map(p => p.uploading ? { ...p, uploading: false, error: errorMessage } : p));
+      
+      throw new Error(errorMessage);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const removePhoto = (id: string) => {
+  const removePhoto = useCallback((id: string) => {
     setPhotos(prev => prev.filter(photo => photo.id !== id));
+  }, []);
+
+  const createPhotoScores = useCallback((): PhotoScore[] => {
+    return photoScores;
+  }, [photoScores]);
+
+  const handleUpload = async () => {
+    return await uploadPhotos();
   };
 
   return {
@@ -160,8 +118,7 @@ export function usePhotoScoring({ valuationId, onScoreChange }: UsePhotoScoringP
     handleFileSelect,
     handleUpload,
     removePhoto,
-    // Expose these for tests
     uploadPhotos,
-    createPhotoScores
+    createPhotoScores,
   };
 }

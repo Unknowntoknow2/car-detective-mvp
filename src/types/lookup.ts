@@ -11,6 +11,7 @@ export interface PlateLookupInfo {
   transmission?: string;
   fuelType?: string;
   bodyType?: string;
+  estimatedValue?: number;
 }
 
 export interface VINLookupResponse {

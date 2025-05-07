@@ -1,6 +1,6 @@
 
 import { renderHook, act } from '@testing-library/react-hooks';
-import { usePhotoScoring, UsePhotoScoringOptions } from './usePhotoScoring';
+import { usePhotoScoring } from './usePhotoScoring';
 import { analyzePhotos } from '@/services/photo/analyzePhotos';
 import { uploadPhotos } from '@/services/photo/uploadPhotoService';
 
@@ -50,7 +50,7 @@ describe('usePhotoScoring', () => {
     expect(result.current.isUploading).toBe(false);
     expect(result.current.error).toBe('');
     expect(typeof result.current.handleFileSelect).toBe('function');
-    expect(typeof result.current.uploadPhotos).toBe('function');
+    expect(typeof result.current.handleUpload).toBe('function');
     expect(typeof result.current.removePhoto).toBe('function');
   });
   
@@ -81,7 +81,7 @@ describe('usePhotoScoring', () => {
     // Start upload
     let uploadPromise;
     await act(async () => {
-      uploadPromise = result.current.uploadPhotos();
+      uploadPromise = result.current.handleUpload();
       expect(result.current.isUploading).toBe(true);
       await waitForNextUpdate();
     });
@@ -95,8 +95,9 @@ describe('usePhotoScoring', () => {
     expect(analyzePhotos).toHaveBeenCalled();
     expect(result.current.isUploading).toBe(false);
     expect(result.current.photos[0].uploaded).toBe(true);
-    expect(result.current.createPhotoScores().length).toBe(2);
-    expect(result.current.createPhotoScores()[0].score).toBe(90);
+    // Now check photoScores directly instead of using createPhotoScores
+    expect(result.current.photoScores.length).toBe(2);
+    expect(result.current.photoScores[0].score).toBe(90);
   });
   
   it('should handle upload errors', async () => {
@@ -113,7 +114,7 @@ describe('usePhotoScoring', () => {
     let caughtError;
     await act(async () => {
       try {
-        const uploadPromise = result.current.uploadPhotos();
+        const uploadPromise = result.current.handleUpload();
         expect(result.current.isUploading).toBe(true);
         await waitForNextUpdate();
         await uploadPromise;
@@ -163,7 +164,7 @@ describe('usePhotoScoring', () => {
     let caughtError;
     await act(async () => {
       try {
-        const uploadPromise = result.current.uploadPhotos();
+        const uploadPromise = result.current.handleUpload();
         expect(result.current.isUploading).toBe(true);
         await waitForNextUpdate();
         await uploadPromise;

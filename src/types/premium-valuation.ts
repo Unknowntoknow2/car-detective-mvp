@@ -1,4 +1,3 @@
-
 export interface FormData {
   // Vehicle identification
   identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
@@ -49,6 +48,13 @@ export interface FormData {
   priceRange?: [number, number];
   valuationId?: string;
   
+  // Photo data
+  bestPhotoUrl?: string;
+  
+  // Additional data
+  explanation?: string;
+  color?: string;
+  
   // Missing properties
   adjustments?: Array<{
     factor: string;
@@ -56,7 +62,6 @@ export interface FormData {
     description?: string;
   }>;
   estimatedValue?: number;
-  explanation?: string;
   aiCondition?: {
     condition: string;
     confidenceScore: number;

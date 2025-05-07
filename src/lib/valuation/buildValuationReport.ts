@@ -1,4 +1,3 @@
-
 import { calculateValuation } from '@/utils/valuation/valuationEngine';
 import { ValuationParams } from '@/utils/valuation/types';
 import { decodeVin } from '@/services/vinService';
@@ -194,11 +193,9 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
       estimatedValue: valuationResult.estimatedValue,
       confidenceScore: valuationResult.confidenceScore,
       adjustments: valuationResult.adjustments.map((adj: AdjustmentBreakdown) => ({
-        name: adj.name,
-        value: adj.value,
-        percentAdjustment: adj.percentAdjustment,
-        description: adj.description || "",
-        factor: adj.name
+        factor: adj.factor || adj.name,
+        impact: adj.impact || adj.value,
+        description: adj.description || ""
       })),
       priceRange: valuationResult.priceRange,
       isPremium: isPremiumUser,

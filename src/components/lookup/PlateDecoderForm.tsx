@@ -49,11 +49,11 @@ export default function PlateDecoderForm({ onManualEntryClick }: PlateDecoderFor
           make: result.make,
           model: result.model,
           year: result.year,
-          mileage: 50000, // Default mileage
+          mileage: result.mileage || 50000, // Default mileage
           user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
           is_vin_lookup: false,
           condition_score: 70,
-          estimated_value: result.estimatedValue || Math.floor(Math.random() * (35000 - 15000) + 15000),
+          estimated_value: result.estimatedValue || 24500,
           confidence_score: 80
         })
         .select()
