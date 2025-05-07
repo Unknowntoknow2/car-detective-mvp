@@ -33,7 +33,7 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
 
       try {
         // Basic query setup
-        let query = supabase.from('valuations').select('*', { count: 'exact' });
+        let query = supabase.from('valuations');
           
         if (dealerId) {
           query = query.eq('dealer_id', dealerId);
@@ -44,12 +44,18 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
           query = query.eq('condition_score', getConditionScoreRange(conditionFilter));
         }
         
+        // Get count first with a separate query
+        const countQuery = query.select('id', { count: 'exact' });
+        const { count, error: countError } = await countQuery;
+        
+        if (countError) throw new Error(countError.message);
+        
         // Add pagination
         const from = (currentPage - 1) * pageSize;
-        query = query.range(from, from + pageSize - 1);
-        
-        // Execute query
-        const { data, error: queryError, count } = await query;
+        // Now do the main query with pagination
+        const { data, error: queryError } = await query
+          .select('*')
+          .range(from, from + pageSize - 1);
 
         if (queryError) {
           throw new Error(queryError.message);
@@ -58,9 +64,6 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         if (data) {
           // Transform data to match our component needs
           const transformedData: ValuationWithCondition[] = data.map(valuation => {
-            // In case JSONB data is stored in another column or needs special handling
-            const aiCondition = getAIConditionFromValuation(valuation);
-            
             return {
               id: valuation.id,
               make: valuation.make || '',
@@ -73,8 +76,8 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
               condition_score: valuation.condition_score || 70,
               created_at: valuation.created_at,
               is_vin_lookup: valuation.is_vin_lookup,
-              aiCondition: aiCondition,
-              fuel_type: '',  // Add fallback values
+              aiCondition: null, // Will be populated if you have photo condition data
+              fuel_type: valuation.fuel_type || '',
               zip_code: valuation.state || '',
               body_type: valuation.body_type || '',
               color: valuation.color || ''
@@ -93,13 +96,6 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
 
     fetchValuations();
   }, [dealerId, currentPage, pageSize, conditionFilter]);
-
-  // Helper function to get AI condition from valuation
-  const getAIConditionFromValuation = (valuation: any) => {
-    // If using photo_condition_scores join, handle it here
-    // This is a simplified version - adjust based on actual data structure
-    return null; // Default value when no condition data is found
-  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

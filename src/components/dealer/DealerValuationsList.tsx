@@ -1,8 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ValuationCard } from '@/components/dealer/ValuationCard';
-import { ConditionFilter } from '@/components/dealer/ConditionFilter';
-import { useDealerValuations, ConditionFilterOption } from '@/hooks/useDealerValuations';
+import { ConditionFilter, ConditionFilterOption } from '@/components/dealer/ConditionFilter';
+import { useDealerValuations } from '@/hooks/useDealerValuations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { PremiumBadge } from '@/components/ui/premium-badge';
@@ -52,7 +52,7 @@ export function DealerValuationsList() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-1">
           <ConditionFilter 
-            selectedFilter={conditionFilter as ConditionFilterOption} 
+            selectedFilter={conditionFilter} 
             onFilterChange={handleConditionFilterChange} 
           />
         </div>

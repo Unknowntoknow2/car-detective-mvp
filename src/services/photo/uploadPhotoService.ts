@@ -113,16 +113,13 @@ export async function uploadAndScorePhotos(
     // Update the valuation with the best photo and score
     if (bestPhoto) {
       // Create update object with the photo information
-      const updateData = {
-        best_photo_url: bestPhoto.url,
-        photo_score: bestPhoto.score,
-        photo_explanation: bestPhoto.explanation
-      };
-      
-      // Update the valuation record with the best photo info
       await supabase
         .from('valuations')
-        .update(updateData)
+        .update({
+          best_photo_url: bestPhoto.url,
+          photo_score: bestPhoto.score,
+          photo_explanation: bestPhoto.explanation
+        })
         .eq('id', valuationId);
     }
     
@@ -209,7 +206,7 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
           .update({
             best_photo_url: remainingPhotos[0].photo_url,
             photo_score: remainingPhotos[0].score,
-            photo_explanation: null
+            photo_explanation: remainingPhotos[0].explanation || null
           })
           .eq('id', valuationId);
       } else {
