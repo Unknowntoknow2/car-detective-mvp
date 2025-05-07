@@ -1,3 +1,4 @@
+
 // Add this to the top of your file if needed
 export interface ReportOptions {
   includeBranding: boolean;
@@ -46,6 +47,8 @@ export interface ReportData {
   photoExplanation?: string;
   narrative?: string;
   valuationId?: string;
+  // Add missing property
+  plate?: string;
 }
 
 export interface SectionParams {

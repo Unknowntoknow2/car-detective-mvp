@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { Valuation, ValuationRowProps } from '../types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ValuationRow } from './ValuationRow';
-import { Loader2, AlertCircle, SearchX } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Valuation, ValuationRowProps } from '../types';
 
 interface ValuationTableProps {
   valuations: Valuation[];
@@ -15,7 +14,7 @@ interface ValuationTableProps {
   onViewStripeStatus: (id: string) => void;
 }
 
-export const ValuationTable: React.FC<ValuationTableProps> = ({
+export function ValuationTable({
   valuations,
   isLoading,
   onViewResult,
@@ -23,66 +22,46 @@ export const ValuationTable: React.FC<ValuationTableProps> = ({
   onGeneratePDF,
   onDownloadPDF,
   onViewStripeStatus
-}) => {
-  // Loading state
+}: ValuationTableProps) {
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-        <span>Loading valuations...</span>
-      </div>
-    );
+    return <div className="text-center py-4">Loading valuations...</div>;
   }
 
-  // No valuations state
-  if (valuations.length === 0) {
+  if (!valuations || valuations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <SearchX className="h-16 w-16 text-neutral-lighter mb-4" />
-        <h3 className="text-lg font-medium text-neutral-dark">No valuations found</h3>
-        <p className="text-neutral-dark mt-1">Try adjusting your filters to see more results</p>
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No valuations found</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full table-auto">
-        <thead>
-          <tr className="bg-neutral-light">
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Date</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Source</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Vehicle</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Condition</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Confidence</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Type</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Value</th>
-            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {valuations.map((valuation, index) => (
-            <motion.tr
+    <div className="border rounded-md">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[180px]">ID</TableHead>
+            <TableHead>Vehicle</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Value</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {valuations.map((valuation) => (
+            <ValuationRow
               key={valuation.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              style={{ display: 'contents' }}
-            >
-              <ValuationRow
-                valuation={valuation}
-                onViewResult={onViewResult}
-                onRerunGPT={onRerunGPT}
-                onGeneratePDF={onGeneratePDF}
-                onDownloadPDF={onDownloadPDF}
-                onViewStripeStatus={onViewStripeStatus}
-              />
-            </motion.tr>
+              valuation={valuation}
+              onViewResult={onViewResult}
+              onRerunGPT={onRerunGPT}
+              onGeneratePDF={onGeneratePDF}
+              onDownloadPDF={onDownloadPDF}
+              onViewStripeStatus={onViewStripeStatus}
+            />
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
-};
-
-export default ValuationTable;
+}

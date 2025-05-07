@@ -1,132 +1,171 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { analyzePhotos } from '@/services/photo/analyzePhotos';
-import { uploadPhotos as uploadPhotoService } from '@/services/photo/uploadPhotoService';
 import { Photo, PhotoScore, PhotoScoringResult, AICondition } from '@/types/photo';
+import { analyzePhotos } from '@/services/photo/analyzePhotos';
+import { uploadPhotos } from '@/services/photo/uploadPhotoService';
+import { generateUniqueId } from '@/utils/helpers';
 
-// Interface used for internal implementation
-interface ScoringResult {
-  score: number;
-  aiCondition: AICondition;
-  individualScores: PhotoScore[];
-  photos?: Photo[];
+export interface UsePhotoScoringOptions {
+  valuationId?: string;
+  onScoreChange?: (score: number) => void;
 }
 
-export function usePhotoScoring(valuationId?: string) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function usePhotoScoring(options: UsePhotoScoringOptions = {}) {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [photoScores, setPhotoScores] = useState<PhotoScore[]>([]);
   const [overallScore, setOverallScore] = useState<number | null>(null);
+  const [bestPhoto, setBestPhoto] = useState<Photo | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>([]);
-
-  // Function to convert uploaded photos to Photo objects
-  const processUploadedPhotos = useCallback((files: File[]): Promise<Photo[]> => {
-    return Promise.all(
-      files.map((file) => {
-        const id = Math.random().toString(36).substring(2, 11);
-        return {
-          id,
-          url: URL.createObjectURL(file),
-          metadata: {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified,
-          },
-          uploading: true
-        };
-      })
-    );
+  
+  // Reset everything
+  const reset = useCallback(() => {
+    setPhotos([]);
+    setPhotoScores([]);
+    setOverallScore(null);
+    setBestPhoto(null);
+    setError(null);
+    setAiCondition(null);
   }, []);
-
-  // Function to upload photos and get scores
-  const uploadPhotos = useCallback(async (files: File[]): Promise<Photo[]> => {
-    setIsLoading(true);
-    setError(null);
+  
+  // Handle file selection
+  const handleFileSelect = useCallback((acceptedFiles: File[]) => {
+    // Create photo objects with local URLs
+    const newPhotos = acceptedFiles.map(file => ({
+      id: generateUniqueId(),
+      url: URL.createObjectURL(file),
+      metadata: { file },
+      uploading: false,
+      uploaded: false
+    }));
     
-    try {
-      // Process files to Photo objects for UI display
-      const processedPhotos = await processUploadedPhotos(files);
-      setPhotos(processedPhotos);
-      
-      // Upload photos to storage
-      const uploadedPhotos = await uploadPhotoService(files, valuationId);
-      
-      // Analyze photos
-      const result = await analyzePhotos(uploadedPhotos.map(p => p.url), valuationId);
-      
-      // Update state with scores
-      setPhotoScores(result.individualScores);
-      setOverallScore(result.score);
-      setAiCondition(result.aiCondition);
-      
-      // Update photos with scores
-      const updatedPhotos = uploadedPhotos.map((photo) => {
-        const matchingScore = result.individualScores.find(
-          (score) => score.url === photo.url
-        );
-        
-        return {
-          ...photo,
-          score: matchingScore?.score || 0,
-          isPrimary: matchingScore?.isPrimary || false,
-        };
-      });
-      
-      setPhotos(updatedPhotos);
-      return updatedPhotos;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to process photos';
-      setError(errorMessage);
-      console.error('Photo scoring error:', err);
-      return [];
-    } finally {
-      setIsLoading(false);
+    setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
+    return newPhotos;
+  }, []);
+  
+  // Upload photos
+  const uploadPhotoFiles = useCallback(async () => {
+    if (photos.length === 0) {
+      setError('No photos to upload');
+      throw new Error('No photos to upload');
     }
-  }, [valuationId, processUploadedPhotos]);
-
-  // Function to score previously uploaded photos
-  const scoreExistingPhotos = useCallback(async (photoUrls: string[]): Promise<ScoringResult> => {
-    setIsLoading(true);
-    setError(null);
     
     try {
-      const result = await analyzePhotos(photoUrls, valuationId);
+      setIsUploading(true);
+      setError(null);
+      
+      // Extract files from photo metadata
+      const files = photos
+        .map(photo => photo.metadata?.file as File)
+        .filter(Boolean);
+      
+      // Mark photos as uploading
+      setPhotos(prevPhotos => 
+        prevPhotos.map(photo => ({ ...photo, uploading: true }))
+      );
+      
+      // Upload files
+      const uploadedPhotos = await uploadPhotos(files);
+      
+      // Update photos with uploaded status
+      setPhotos(prevPhotos => 
+        prevPhotos.map((photo, index) => ({
+          ...photo,
+          uploading: false,
+          uploaded: true,
+          url: uploadedPhotos[index]?.url || photo.url
+        }))
+      );
+      
+      return photos;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload photos');
+      throw err;
+    } finally {
+      setIsUploading(false);
+    }
+  }, [photos]);
+  
+  // Analyze the photos to get scores
+  const scorePhotos = useCallback(async () => {
+    if (photos.length === 0) {
+      setError('No photos to analyze');
+      throw new Error('No photos to analyze');
+    }
+    
+    try {
+      setIsAnalyzing(true);
+      setError(null);
+      
+      // Call the API to analyze photos
+      const result = await analyzePhotos(photos);
+      
+      // Store the results
       setPhotoScores(result.individualScores);
       setOverallScore(result.score);
       setAiCondition(result.aiCondition);
+      
+      // Find the best photo (highest score)
+      const bestScore = result.individualScores.reduce((max, item) => 
+        item.score > max.score ? item : max
+      , { url: '', score: 0, isPrimary: false });
+      
+      // Find the corresponding photo
+      const best = photos.find(p => p.url === bestScore.url) || null;
+      setBestPhoto(best);
+      
+      // Call the callback if provided
+      if (options.onScoreChange) {
+        options.onScoreChange(result.score);
+      }
       
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to score photos';
-      setError(errorMessage);
-      console.error('Photo scoring error:', err);
-      return {
-        score: 0,
-        aiCondition: {
-          condition: null,
-          confidenceScore: 0,
-          issuesDetected: ['Failed to process photos']
-        },
-        individualScores: []
-      };
+      setError(err instanceof Error ? err.message : 'Failed to analyze photos');
+      throw err;
     } finally {
-      setIsLoading(false);
+      setIsAnalyzing(false);
     }
-  }, [valuationId]);
-
-  // Prepare and return the result object conforming to PhotoScoringResult interface
+  }, [photos, options.onScoreChange]);
+  
+  // Handle both uploading and scoring in one function
+  const processPhotos = useCallback(async () => {
+    try {
+      await uploadPhotoFiles();
+      return await scorePhotos();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to process photos');
+      throw err;
+    }
+  }, [uploadPhotoFiles, scorePhotos]);
+  
+  // Create a result object
   const result: PhotoScoringResult = {
     overallScore: overallScore || 0,
     individualScores: photoScores,
-    aiCondition: aiCondition,
-    photos: photos,
-    photoScore: overallScore,
-    error: error,
-    uploadPhotos: uploadPhotos as unknown as (files: File[]) => Promise<Photo[]>
+    aiCondition,
+    // Add these properties to match what's used in tests
+    error: error || undefined,
+    photos,
+    photoScore: overallScore || undefined,
+    uploadPhotos: async (files: File[]) => {
+      handleFileSelect(files);
+      return uploadPhotoFiles();
+    }
   };
-
-  return { ...result, isLoading, scoreExistingPhotos };
+  
+  return {
+    ...result,
+    reset,
+    isUploading,
+    isAnalyzing,
+    isLoading: isUploading || isAnalyzing,
+    bestPhoto,
+    handleFileSelect,
+    uploadPhotos: uploadPhotoFiles,
+    scorePhotos,
+    processPhotos
+  };
 }

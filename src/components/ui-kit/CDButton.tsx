@@ -2,24 +2,25 @@ import React from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { motion, MotionProps } from 'framer-motion';
 
-export interface CDButtonProps extends Omit<ButtonProps, 'asChild'> {
-  variant?: 'outline' | 'primary' | 'secondary' | 'ghost' | 'danger';
+// Redefine the variant to match what Button accepts
+export interface CDButtonProps extends Omit<ButtonProps, 'asChild' | 'variant'> {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
   loading?: boolean;
   loadingText?: string;
-  block?: boolean;
+  block?: boolean; // Use instead of fullWidth
   ariaLabel?: string;
   children: React.ReactNode;
-  motionProps?: Partial<MotionProps>;
+  motionProps?: Omit<MotionProps, keyof React.HTMLAttributes<HTMLButtonElement>>;
 }
 
 export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
   (
     {
-      variant = 'primary',
+      variant = 'default',
       size = 'md',
       className = '',
       icon,
@@ -34,23 +35,6 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
     },
     ref
   ) => {
-    const getVariantClass = () => {
-      switch (variant) {
-        case 'outline':
-          return 'bg-white text-primary border-primary hover:bg-primary/5';
-        case 'primary':
-          return 'bg-primary text-white hover:bg-primary-dark';
-        case 'secondary':
-          return 'bg-secondary text-white hover:bg-secondary/90';
-        case 'danger':
-          return 'bg-red-500 text-white hover:bg-red-600';
-        case 'ghost':
-          return 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900';
-        default:
-          return 'bg-primary text-white hover:bg-primary-dark';
-      }
-    };
-
     const getSizeClass = () => {
       switch (size) {
         case 'sm':
@@ -103,33 +87,29 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
     );
 
     const buttonClasses = `
-      ${getVariantClass()}
       ${getSizeClass()}
       ${block ? 'w-full' : ''}
       ${className}
       transition-colors duration-200
-      rounded focus:outline-none
-      inline-flex items-center justify-center
       ${loading ? 'opacity-70 cursor-not-allowed' : ''}
     `;
 
-    // If motion props are provided, wrap with motion.button
+    // If motion props are provided, wrap with motion.button - but don't use for animation
     if (motionProps) {
-      // Type assertion to satisfy TypeScript
-      const safeMotionProps = motionProps as Omit<MotionProps, 'children'>;
-      
       return (
-        <motion.button
-          ref={ref}
-          className={buttonClasses}
-          disabled={loading || props.disabled}
-          aria-label={ariaLabel}
-          type={props.type || 'button'}
-          {...props}
-          {...safeMotionProps}
-        >
-          {buttonContent}
-        </motion.button>
+        <motion.div {...motionProps}>
+          <Button
+            ref={ref}
+            className={buttonClasses}
+            disabled={loading || props.disabled}
+            aria-label={ariaLabel}
+            type={props.type || 'button'}
+            variant={variant}
+            {...props}
+          >
+            {buttonContent}
+          </Button>
+        </motion.div>
       );
     }
 
@@ -141,6 +121,7 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
         disabled={loading || props.disabled}
         aria-label={ariaLabel}
         type={props.type || 'button'}
+        variant={variant}
         {...props}
       >
         {buttonContent}

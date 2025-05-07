@@ -1,76 +1,57 @@
 
-// Format currency values
-export function formatCurrency(value: number, locale = 'en-US', currency = 'USD'): string {
-  return new Intl.NumberFormat(locale, {
+/**
+ * Format currency values
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(amount);
 }
 
-// Format dates
-export function formatDate(dateString: string, format: 'short' | 'medium' | 'long' = 'medium'): string {
-  const date = new Date(dateString);
+/**
+ * Formats a relative time (e.g., "2 hours ago", "5 days ago")
+ */
+export function formatRelativeTime(date: Date | string | number): string {
+  const now = new Date();
+  const past = new Date(date);
+  const diffMs = now.getTime() - past.getTime();
   
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: format === 'short' ? 'short' : 'long',
-    day: 'numeric',
-    hour: format !== 'long' ? undefined : '2-digit',
-    minute: format !== 'long' ? undefined : '2-digit'
-  };
+  // Convert to seconds
+  const diffSec = Math.floor(diffMs / 1000);
   
-  return new Intl.DateTimeFormat('en-US', options).format(date);
-}
-
-// Format percentage values
-export function formatPercentage(value: number, decimals = 0): string {
-  return `${value.toFixed(decimals)}%`;
-}
-
-// Format numbers with commas
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat().format(value);
-}
-
-// Format file size
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// Format vehicle condition labels
-export function formatCondition(condition: string): string {
-  const conditionMap: Record<string, string> = {
-    'excellent': 'Excellent',
-    'good': 'Good',
-    'fair': 'Fair',
-    'poor': 'Poor'
-  };
-  
-  return conditionMap[condition.toLowerCase()] || condition;
-}
-
-// Format phone numbers
-export function formatPhoneNumber(phoneNumber: string): string {
-  const cleaned = ('' + phoneNumber).replace(/\D/g, '');
-  
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-  } else if (cleaned.length === 11 && cleaned[0] === '1') {
-    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 11)}`;
+  // Less than a minute
+  if (diffSec < 60) {
+    return 'just now';
   }
   
-  return phoneNumber;
-}
-
-// Format VIN with space every 5 characters
-export function formatVIN(vin: string): string {
-  return vin.replace(/(.{5})/g, '$1 ').trim();
+  // Minutes
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) {
+    return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+  }
+  
+  // Hours
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) {
+    return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+  }
+  
+  // Days
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) {
+    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+  }
+  
+  // Months
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) {
+    return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`;
+  }
+  
+  // Years
+  const diffYears = Math.floor(diffMonths / 12);
+  return `${diffYears} ${diffYears === 1 ? 'year' : 'years'} ago`;
 }

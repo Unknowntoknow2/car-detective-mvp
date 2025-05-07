@@ -1,168 +1,138 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useState, useCallback } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { 
-  Upload, 
-  X, 
-  Image, 
-  Loader, 
-  Check, 
-  Trash2 
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
+import { PhotoUploadList } from './PhotoUploadList';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
-import { PhotoGrid } from './PhotoGrid';
-import { PhotoUploadDropzone } from './PhotoUploadDropzone';
-import { PhotoPreview } from './PhotoPreview';
-import { Photo } from '@/types/photo';
+import { PhotoScore, AICondition } from '@/types/photo';
+import { MAX_FILES, MIN_FILES } from '@/types/photo';
 
 interface PhotoUploaderProps {
   valuationId: string;
-  onScoreUpdate?: (score: number, bestPhotoUrl?: string) => void;
-  maxPhotos?: number;
-  minRequired?: number;
+  onScoreUpdate?: (score: number, bestPhoto?: string) => void;
   isPremium?: boolean;
 }
 
-export function PhotoUploader({
+export function PhotoUploader({ 
   valuationId,
   onScoreUpdate,
-  maxPhotos = 5,
-  minRequired = 3,
   isPremium = false
 }: PhotoUploaderProps) {
-  const { toast } = useToast();
+  const [scoringComplete, setScoringComplete] = useState(false);
+  
   const { 
     photos, 
-    uploadPhotos, 
-    deletePhoto, 
-    isUploading, 
-    progress, 
-    error, 
-    photoScores,
-    bestPhoto,
-    isLoading
-  } = usePhotoUpload(valuationId);
-
-  // Effect to call the parent onScoreUpdate when scores or best photo changes
-  useEffect(() => {
-    if (photoScores.length > 0 && onScoreUpdate) {
-      // Calculate average score
-      const avgScore = photoScores.reduce((sum, photo) => sum + photo.score, 0) / photoScores.length;
-      onScoreUpdate(avgScore, bestPhoto?.url);
+    isUploading,
+    error,
+    handleFileSelect,
+    uploadPhotos,
+    removePhoto,
+    addExplanation,
+    createPhotoScores
+  } = usePhotoUpload({
+    valuationId
+  });
+  
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    handleFileSelect(acceptedFiles);
+  }, [handleFileSelect]);
+  
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.webp']
+    },
+    maxFiles: MAX_FILES,
+    maxSize: 10 * 1024 * 1024 // 10MB
+  });
+  
+  const handleAnalyzePhotos = async () => {
+    await uploadPhotos();
+    const photoScores = createPhotoScores();
+    
+    // Find best photo (highest score)
+    let bestScore = 0;
+    let bestPhotoUrl = '';
+    
+    photoScores.forEach(score => {
+      if (score.score > bestScore) {
+        bestScore = score.score;
+        bestPhotoUrl = score.url;
+      }
+    });
+    
+    // Call parent's callback with the score
+    if (onScoreUpdate) {
+      onScoreUpdate(
+        photoScores.reduce((sum, item) => sum + item.score, 0) / photoScores.length,
+        bestPhotoUrl
+      );
     }
-  }, [photoScores, bestPhoto, onScoreUpdate]);
-
-  const handleFilesSelected = async (files: File[]) => {
-    try {
-      await uploadPhotos(files);
-      toast({
-        title: "Photos uploaded successfully",
-        description: `${files.length} photo${files.length > 1 ? 's' : ''} analyzed by AI`,
-      });
-    } catch (err) {
-      toast({
-        title: "Upload failed",
-        description: err instanceof Error ? err.message : "Could not upload photos",
-        variant: "destructive"
-      });
-    }
+    
+    setScoringComplete(true);
   };
-
-  const handleDeletePhoto = async (photo: Photo) => {
-    try {
-      await deletePhoto(photo);
-      toast({
-        title: "Photo deleted",
-        description: "The photo has been removed",
-      });
-    } catch (err) {
-      toast({
-        title: "Deletion failed",
-        description: err instanceof Error ? err.message : "Could not delete photo",
-        variant: "destructive"
-      });
-    }
-  };
-
+  
   return (
-    <Card className="p-4 md:p-6">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <Upload className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium">Vehicle Photos</h3>
-        </div>
-        <Badge variant={isPremium ? "default" : "outline"} className={isPremium ? "bg-gradient-to-r from-primary to-indigo-600" : ""}>
-          {isPremium ? "Premium" : "Standard"}
-        </Badge>
-      </div>
-      
-      <p className="text-sm text-muted-foreground mb-4">
-        Upload {minRequired}-{maxPhotos} photos of your vehicle. Our AI will analyze them to assess your vehicle's condition.
-        {isPremium && " Premium analysis provides detailed condition reports and value adjustments."}
-      </p>
-
-      {/* Show dropzone if under max photos or no photos */}
-      {!isLoading && photos.length < maxPhotos && (
-        <PhotoUploadDropzone 
-          onFilesSelect={handleFilesSelected}
-          isLoading={isUploading}
-          currentFileCount={photos.length}
-          additionalMode={photos.length > 0}
-          minRequired={minRequired}
-        />
-      )}
-
-      {/* Upload progress */}
-      {isUploading && (
-        <div className="mt-4 space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Uploading & Analyzing...</span>
-            <span className="text-sm font-medium">{progress}%</span>
+    <div className="space-y-4">
+      {!scoringComplete && (
+        <>
+          <div 
+            {...getRootProps()} 
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+              ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary/50'}
+            `}
+          >
+            <input {...getInputProps()} />
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <Upload className="h-8 w-8 text-gray-400" />
+              <p className="text-sm font-medium">
+                Drag & drop your vehicle photos here
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Or click to browse (max {MAX_FILES} photos, 10MB each)
+              </p>
+            </div>
           </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      )}
-
-      {/* Error message */}
-      {error && (
-        <div className="mt-4 p-3 bg-destructive/10 border border-destructive rounded-md text-sm text-destructive">
-          {error}
-        </div>
-      )}
-
-      {/* Loading state */}
-      {isLoading && !photos.length && (
-        <div className="flex justify-center items-center p-8">
-          <Loader className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
-
-      {/* Photo grid with previews */}
-      {photos.length > 0 && (
-        <div className="mt-6">
-          <h4 className="text-sm font-medium mb-3">
-            Uploaded Photos ({photos.length}/{maxPhotos})
-          </h4>
-          <PhotoGrid
-            photos={photos}
-            photoScores={photoScores}
-            bestPhotoId={bestPhoto?.id}
-            onDelete={handleDeletePhoto}
-            isUploading={isUploading}
-          />
-        </div>
+          
+          {photos.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <PhotoUploadList photos={photos} onRemove={removePhoto} />
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    onClick={handleAnalyzePhotos}
+                    disabled={isUploading || photos.length < MIN_FILES}
+                  >
+                    {isUploading ? 'Uploading...' : 'Analyze Photos'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {error && (
+            <div className="flex items-center space-x-2 text-red-600 text-sm">
+              <AlertCircle className="h-4 w-4" />
+              <p>{error}</p>
+            </div>
+          )}
+        </>
       )}
       
-      {/* Tips for better photos */}
-      {photos.length > 0 && photos.length < minRequired && (
-        <p className="text-xs text-amber-600 mt-4">
-          *Adding at least {minRequired} photos is recommended for accurate condition assessment
-        </p>
+      {scoringComplete && (
+        <Card className="bg-slate-50 border border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <ImageIcon className="h-5 w-5 text-green-600" />
+              <p className="text-sm font-medium text-green-700">
+                Photo analysis complete! {isPremium ? 'Premium condition assessment included.' : ''}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
-    </Card>
+    </div>
   );
 }

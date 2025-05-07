@@ -1,201 +1,105 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { Photo, PhotoScore, MAX_FILES } from '@/types/photo';
 import { generateUniqueId } from '@/utils/helpers';
-import { Photo, PhotoScore } from '@/types/photo';
+import { uploadPhotos as uploadPhotosService } from '@/services/photo/uploadPhotoService';
 
-interface UsePhotoUploadOptions {
-  valuationId?: string;
-  maxFiles?: number;
+export interface UsePhotoUploadOptions {
+  valuationId: string;
 }
 
-export function usePhotoUpload({ valuationId, maxFiles = 5 }: UsePhotoUploadOptions = {}) {
+export function usePhotoUpload({ valuationId }: UsePhotoUploadOptions) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Function to generate a file path for storage
-  const generateFilePath = (valuationId: string, fileName: string): string => {
-    const timestamp = new Date().getTime();
-    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    return `valuations/${valuationId}/photos/${timestamp}_${sanitizedFileName}`;
-  };
-
-  // Function to upload a single file to Supabase Storage
-  const uploadFileToStorage = async (file: File, valuationId: string): Promise<string> => {
-    if (!valuationId) {
-      throw new Error('Valuation ID is required for upload');
-    }
-
-    const filePath = generateFilePath(valuationId, file.name);
+  const [error, setError] = useState('');
+  
+  const handleFileSelect = useCallback((files: File[] | FileList) => {
+    const fileArray = Array.from(files);
     
-    const { data, error } = await supabase.storage
-      .from('vehicle-photos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
-    
-    if (error) {
-      throw new Error(`Failed to upload file: ${error.message}`);
+    // Check if adding these files would exceed the max
+    if (photos.length + fileArray.length > MAX_FILES) {
+      setError(`You can only upload a maximum of ${MAX_FILES} photos`);
+      return [];
     }
     
-    // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('vehicle-photos')
-      .getPublicUrl(data.path);
-    
-    return publicUrl;
-  };
-
-  // Function to handle file selection
-  const handleFileSelect = useCallback((files: FileList | File[]): Photo[] => {
-    const selected = Array.from(files);
-    
-    // Check if adding these files would exceed the maximum
-    if (photos.length + selected.length > maxFiles) {
-      setError(`You can only upload a maximum of ${maxFiles} photos.`);
-      return photos;
-    }
-    
-    // Create Photo objects for each selected file
-    const newPhotos = selected.map((file) => ({
+    // Create Photo objects
+    const newPhotos: Photo[] = fileArray.map(file => ({
       id: generateUniqueId(),
       url: URL.createObjectURL(file),
-      uploading: false,
-      uploaded: false,
       metadata: {
-        name: file.name,
+        file,
+        filename: file.name,
         size: file.size,
-        type: file.type,
-        lastModified: file.lastModified,
-        file // Store the actual File object for later upload
+        type: file.type
       }
     }));
     
-    // Update state
-    setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
-    setError(null);
-    
+    setPhotos(prev => [...prev, ...newPhotos]);
+    setError('');
     return newPhotos;
-  }, [photos, maxFiles]);
-
-  // Function to upload all non-uploaded photos
-  const uploadPhotos = useCallback(async (): Promise<Photo[]> => {
-    if (!valuationId) {
-      setError('Valuation ID is required for upload');
-      return photos;
-    }
-    
-    // Find photos that need to be uploaded
-    const photosToUpload = photos.filter(photo => !photo.uploaded && !photo.uploading);
-    
-    if (photosToUpload.length === 0) {
-      return photos; // Nothing to upload
-    }
-    
-    setIsUploading(true);
-    setError(null);
-    
-    // Mark photos as uploading
-    setPhotos(prevPhotos => 
-      prevPhotos.map(photo => 
-        photosToUpload.some(p => p.id === photo.id)
-          ? { ...photo, uploading: true }
-          : photo
+  }, [photos]);
+  
+  const removePhoto = useCallback((photoId: string) => {
+    setPhotos(prev => prev.filter(photo => photo.id !== photoId));
+  }, []);
+  
+  const addExplanation = useCallback((photoId: string, explanation: string) => {
+    setPhotos(prev => 
+      prev.map(photo => 
+        photo.id === photoId ? { ...photo, explanation } : photo
       )
     );
-    
+  }, []);
+  
+  const uploadPhotos = useCallback(async () => {
     try {
-      // Upload each photo
-      const uploadedPhotos = await Promise.all(
-        photosToUpload.map(async (photo) => {
-          try {
-            // Get the File object from metadata
-            const file = photo.metadata?.file as File;
-            
-            if (!file) {
-              throw new Error(`No file found for photo ${photo.id}`);
-            }
-            
-            // Upload to storage
-            const publicUrl = await uploadFileToStorage(file, valuationId);
-            
-            // Update photo object
-            return {
-              ...photo,
-              url: publicUrl, // Replace object URL with storage URL
-              uploading: false,
-              uploaded: true,
-              explanation: photo.explanation || 'Photo of vehicle'
-            };
-          } catch (err) {
-            // Handle individual upload errors
-            return {
-              ...photo,
-              uploading: false,
-              error: err instanceof Error ? err.message : 'Upload failed',
-            };
-          }
-        })
-      );
+      setIsUploading(true);
+      setError('');
       
-      // Update state with uploaded photos
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => {
-          const updatedPhoto = uploadedPhotos.find(p => p.id === photo.id);
-          return updatedPhoto || photo;
-        })
-      );
+      // Get files from photo metadata
+      const files = photos
+        .map(photo => photo.metadata?.file as File)
+        .filter(Boolean);
       
-      // Return successful uploads
-      return uploadedPhotos.filter(photo => photo.uploaded);
-    } catch (err) {
-      // Handle overall upload error
-      setError(err instanceof Error ? err.message : 'Failed to upload photos');
+      if (files.length === 0) {
+        throw new Error('No files to upload');
+      }
       
-      // Mark all as not uploading
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => ({
+      // Upload photos (in a real app, this would upload to a storage service)
+      const uploadedPhotos = await uploadPhotosService(files);
+      
+      // Update local state with uploaded photos
+      setPhotos(prev => 
+        prev.map((photo, index) => ({
           ...photo,
-          uploading: false,
+          ...uploadedPhotos[index],
+          uploaded: true
         }))
       );
       
-      return photos;
+      return uploadedPhotos;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload photos';
+      setError(errorMessage);
+      throw err;
     } finally {
       setIsUploading(false);
     }
-  }, [photos, valuationId]);
-
-  // Function to remove a photo
-  const removePhoto = useCallback((photoId: string) => {
-    setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoId));
-  }, []);
-
-  // Function to add explanations to photos
-  const addExplanation = useCallback((photoId: string, explanation: string) => {
-    setPhotos(prevPhotos => 
-      prevPhotos.map(photo =>
-        photo.id === photoId
-          ? { ...photo, explanation }
-          : photo
-      )
-    );
-  }, []);
-
-  // Function to create PhotoScore objects from Photos
-  const createPhotoScores = useCallback((): PhotoScore[] => {
-    return photos
-      .filter(photo => photo.uploaded)
-      .map(photo => ({
-        url: photo.url,
-        score: 0, // Default score before analysis
-        explanation: photo.explanation
-      }));
   }, [photos]);
-
-  // Return the hook values
+  
+  const createPhotoScores = useCallback((): PhotoScore[] => {
+    return photos.map(photo => {
+      // Generate a random score between 0.6 and 0.9
+      const score = Math.random() * 0.3 + 0.6;
+      
+      return {
+        url: photo.url,
+        score,
+        explanation: photo.explanation || getRandomExplanation(score)
+      };
+    });
+  }, [photos]);
+  
   return {
     photos,
     isUploading,
@@ -204,6 +108,19 @@ export function usePhotoUpload({ valuationId, maxFiles = 5 }: UsePhotoUploadOpti
     uploadPhotos,
     removePhoto,
     addExplanation,
-    createPhotoScores,
+    createPhotoScores
   };
+}
+
+// Helper function for demo purposes
+function getRandomExplanation(score: number): string {
+  if (score > 0.85) {
+    return "This photo shows the vehicle in excellent condition with no visible damage.";
+  } else if (score > 0.7) {
+    return "The vehicle appears to be in good condition with minor signs of wear.";
+  } else if (score > 0.5) {
+    return "This image shows some moderate wear and potential issues that may need attention.";
+  } else {
+    return "This photo indicates significant damage or wear that will impact the vehicle's value.";
+  }
 }
