@@ -85,7 +85,7 @@ describe('Photo Scoring Service', () => {
 
   describe('fetchValuationPhotos', () => {
     it('should return photos, scores and AI condition when available', async () => {
-      // We need to create a mock implementation that returns a PhotoScoringResult instead of Photo[]
+      // We need to create a mock implementation that returns a PhotoScoringResult
       const mockPhotoScoringResult: PhotoScoringResult = {
         photos: [
           { id: 'photo1', url: 'url1' },

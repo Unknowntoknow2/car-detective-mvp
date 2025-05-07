@@ -13,12 +13,10 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useValuationContext } from '@/hooks/useValuationContext';
-import { supabase } from '@/integrations/supabase/client';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { PhotoGrid } from './PhotoGrid';
 import { PhotoUploadDropzone } from './PhotoUploadDropzone';
 import { PhotoPreview } from './PhotoPreview';
-import { usePhotoUpload } from './usePhotoUpload';
 import { Photo } from '@/types/photo';
 
 interface PhotoUploaderProps {
@@ -45,7 +43,8 @@ export function PhotoUploader({
     progress, 
     error, 
     photoScores,
-    bestPhoto
+    bestPhoto,
+    isLoading
   } = usePhotoUpload(valuationId);
 
   // Effect to call the parent onScoreUpdate when scores or best photo changes
@@ -60,6 +59,10 @@ export function PhotoUploader({
   const handleFilesSelected = async (files: File[]) => {
     try {
       await uploadPhotos(files);
+      toast({
+        title: "Photos uploaded successfully",
+        description: `${files.length} photo${files.length > 1 ? 's' : ''} analyzed by AI`,
+      });
     } catch (err) {
       toast({
         title: "Upload failed",
@@ -103,7 +106,7 @@ export function PhotoUploader({
       </p>
 
       {/* Show dropzone if under max photos or no photos */}
-      {photos.length < maxPhotos && (
+      {!isLoading && photos.length < maxPhotos && (
         <PhotoUploadDropzone 
           onFilesSelect={handleFilesSelected}
           isLoading={isUploading}
@@ -128,6 +131,13 @@ export function PhotoUploader({
       {error && (
         <div className="mt-4 p-3 bg-destructive/10 border border-destructive rounded-md text-sm text-destructive">
           {error}
+        </div>
+      )}
+
+      {/* Loading state */}
+      {isLoading && !photos.length && (
+        <div className="flex justify-center items-center p-8">
+          <Loader className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
 

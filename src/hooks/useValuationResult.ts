@@ -24,6 +24,8 @@ interface ValuationData {
   fuelType?: string;
   explanation?: string;
   transmission?: string;
+  bestPhotoUrl?: string;
+  photoScore?: number;
 }
 
 export function useValuationResult(valuationId: string) {
@@ -97,7 +99,9 @@ export function useValuationResult(valuationId: string) {
         bodyType: valuationData.body_type || '',
         fuelType: valuationData.fuel_type || '',
         explanation: valuationData.explanation || '',
-        transmission: valuationData.transmission || ''
+        transmission: valuationData.transmission || '',
+        bestPhotoUrl: valuationData.best_photo_url || null,
+        photoScore: valuationData.photo_score || null
       };
 
       setData(transformedData);

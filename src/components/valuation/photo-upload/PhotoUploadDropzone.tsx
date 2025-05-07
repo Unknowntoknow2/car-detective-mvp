@@ -1,204 +1,170 @@
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import { UploadCloud, ImagePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Plus, Image } from 'lucide-react';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { MIN_FILES, MAX_FILES } from '@/types/photo';
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
-const TOTAL_MAX_SIZE = 15 * 1024 * 1024; // 15MB total
-const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
-
-const fileSchema = z.object({
-  name: z.string(),
-  size: z.number().max(MAX_FILE_SIZE, 'File size must be less than 5MB'),
-  type: z.enum(['image/jpeg', 'image/png', 'image/jpg'], {
-    message: 'Only JPEG and PNG images are accepted'
-  }),
-});
+import { Input } from '@/components/ui/input';
+import { MAX_FILES } from '@/types/photo';
 
 interface PhotoUploadDropzoneProps {
-  onFilesSelect: (files: File[]) => Promise<void>;
+  onFilesSelect: (files: File[]) => void;
   isLoading: boolean;
   currentFileCount: number;
   additionalMode?: boolean;
   minRequired?: number;
 }
 
-export function PhotoUploadDropzone({ 
-  onFilesSelect, 
-  isLoading, 
+export function PhotoUploadDropzone({
+  onFilesSelect,
+  isLoading,
   currentFileCount,
   additionalMode = false,
-  minRequired
+  minRequired = 3
 }: PhotoUploadDropzoneProps) {
-  const [isDragging, setIsDragging] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const remainingFiles = MAX_FILES - currentFileCount;
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  
+  const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    e.stopPropagation();
+    
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
   };
   
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-  
-  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(false);
+    e.stopPropagation();
+    setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      await handleFileSelection(Array.from(e.dataTransfer.files));
+      const files = Array.from(e.dataTransfer.files)
+        .filter(file => file.type.startsWith('image/'))
+        .slice(0, remainingFiles);
+        
+      if (files.length > 0) {
+        onFilesSelect(files);
+      }
     }
   };
   
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      await handleFileSelection(Array.from(e.target.files));
+      const files = Array.from(e.target.files)
+        .filter(file => file.type.startsWith('image/'))
+        .slice(0, remainingFiles);
+        
+      if (files.length > 0) {
+        onFilesSelect(files);
+      }
+    }
+    
+    // Reset input value to allow selecting the same files again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
   
-  const handleFileSelection = async (files: File[]) => {
-    try {
-      if (files.length + currentFileCount > MAX_FILES) {
-        toast.error(`You can only upload up to ${MAX_FILES} images in total. ${MAX_FILES - currentFileCount} remaining.`);
-        return;
-      }
-      
-      if (minRequired && files.length < minRequired && currentFileCount === 0) {
-        toast.warning(`Please select at least ${minRequired} photos for accurate analysis.`);
-      }
-      
-      const totalSize = files.reduce((acc, file) => acc + file.size, 0);
-      if (totalSize > TOTAL_MAX_SIZE) {
-        toast.error(`Total file size exceeds 15MB limit.`);
-        return;
-      }
-      
-      // Validate each file
-      const validFiles: File[] = [];
-      const errors: string[] = [];
-      
-      for (const file of files) {
-        try {
-          fileSchema.parse(file);
-          validFiles.push(file);
-        } catch (err) {
-          if (err instanceof z.ZodError) {
-            errors.push(`${file.name}: ${err.errors[0].message}`);
-          }
-        }
-      }
-      
-      if (errors.length > 0) {
-        errors.forEach(error => toast.error(error));
-      }
-      
-      if (validFiles.length > 0) {
-        await onFilesSelect(validFiles);
-      }
-    } catch (err) {
-      toast.error('Failed to process images');
-      console.error('File upload error:', err);
-    }
-  };
-  
-  const triggerFileInput = () => {
+  const openFileDialog = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
-
-  if (MAX_FILES - currentFileCount <= 0) {
-    return null;
-  }
-
-  // For additional photo mode (when some photos are already uploaded)
+  
+  // Compact version used when photos already exist
   if (additionalMode) {
     return (
-      <div className="mt-4">
-        <Button 
-          variant="outline" 
-          onClick={triggerFileInput}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 border-dashed h-14"
+      <div className="mb-6">
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2"
+          onClick={openFileDialog}
+          disabled={isLoading || remainingFiles <= 0}
         >
-          <Plus className="h-4 w-4" />
-          <span>Add more photos ({remainingFiles} remaining)</span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png"
-            className="hidden"
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <ImagePlus className="h-4 w-4" />
+              Add More Photos ({remainingFiles} remaining)
+            </>
+          )}
+          <Input 
             ref={fileInputRef}
+            type="file" 
+            accept="image/*" 
+            multiple 
+            className="hidden"
             onChange={handleFileInputChange}
             disabled={isLoading}
-            multiple
           />
         </Button>
       </div>
     );
   }
-
-  // Initial upload mode (no photos uploaded yet)
+  
+  // Full dropzone when no photos exist yet
   return (
     <div
       className={`border-2 ${
-        isDragging ? 'border-primary' : 'border-dashed border-gray-300'
-      } rounded-lg p-6 text-center transition-all ${
-        isLoading ? 'opacity-50 pointer-events-none' : ''
+        dragActive ? 'border-primary' : 'border-dashed border-gray-300'
+      } rounded-lg p-8 text-center transition-colors ${
+        isLoading ? 'opacity-70 pointer-events-none' : ''
       }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
       onDrop={handleDrop}
     >
-      <input
-        type="file"
-        accept="image/jpeg,image/png"
-        className="hidden"
-        ref={fileInputRef}
-        onChange={handleFileInputChange}
-        disabled={isLoading}
-        multiple
-      />
-      
-      <div className="flex flex-col items-center justify-center space-y-3">
-        <div className="p-3 bg-primary/10 rounded-full">
-          {minRequired ? (
-            <Camera className="h-6 w-6 text-primary" />
-          ) : (
-            <Upload className="h-6 w-6 text-primary" />
-          )}
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div className="bg-primary/10 p-4 rounded-full">
+          <UploadCloud className="h-8 w-8 text-primary" />
         </div>
-        <div>
+        
+        <div className="space-y-1">
           <p className="text-sm font-medium">
-            {currentFileCount === 0 
-              ? minRequired
-                ? `Upload ${minRequired}-${MAX_FILES} photos of your vehicle exterior & interior`
-                : `Upload ${MIN_FILES}-${MAX_FILES} photos of your vehicle for better analysis`
-              : `Add up to ${remainingFiles} more photos`}
+            Drop your vehicle photos here
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            JPEG or PNG, max 5MB each (15MB total)
+          <p className="text-xs text-muted-foreground">
+            Upload up to {remainingFiles} photos (JPG, PNG, WebP)
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {minRequired && currentFileCount < minRequired && 
+              `We recommend at least ${minRequired} photos for accurate condition assessment`}
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={triggerFileInput}
-          disabled={isLoading}
-          className="gap-1"
+        
+        <Button
+          variant="secondary"
+          onClick={openFileDialog}
+          disabled={isLoading || remainingFiles <= 0}
+          className="relative"
         >
-          <Image className="h-4 w-4 mr-1" />
-          Select Photos
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Select Photos'
+          )}
+          <Input 
+            ref={fileInputRef}
+            type="file" 
+            accept="image/*" 
+            multiple 
+            className="hidden"
+            onChange={handleFileInputChange}
+            disabled={isLoading}
+          />
         </Button>
-        {minRequired && (
-          <p className="text-xs text-amber-600">
-            *Required for accurate condition assessment
-          </p>
-        )}
       </div>
     </div>
   );

@@ -1,49 +1,51 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { Download, Car, FileQuestion } from 'lucide-react';
+import { Download, Mail, Share } from 'lucide-react';
 
 interface ActionButtonsProps {
   onDownload: () => void;
   isDownloading: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   valuationId?: string;
 }
 
 export const ActionButtons: React.FC<ActionButtonsProps> = ({
   onDownload,
   isDownloading,
-  disabled,
+  disabled = false,
   valuationId
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-2 mt-6">
+    <div className="mt-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
       <Button 
-        variant="outline" 
         onClick={onDownload} 
-        disabled={disabled || isDownloading}
-        className="flex-1"
+        disabled={isDownloading || disabled} 
+        className="flex items-center justify-center"
       >
-        <Download className="h-4 w-4 mr-2" />
-        {isDownloading ? 'Downloading...' : 'Download PDF'}
+        <Download className="mr-2 h-4 w-4" />
+        {isDownloading ? 'Preparing PDF...' : 'Download Report'}
       </Button>
       
+      <Button 
+        variant="outline" 
+        className="flex items-center justify-center"
+        disabled={disabled}
+      >
+        <Mail className="mr-2 h-4 w-4" />
+        Email Report
+      </Button>
+
       {valuationId && (
-        <Link to={`/offers?valuationId=${valuationId}`} className="flex-1">
-          <Button className="w-full" variant="default">
-            <Car className="h-4 w-4 mr-2" />
-            View Dealer Offers
-          </Button>
-        </Link>
-      )}
-      
-      <Link to="/premium" className="flex-1">
-        <Button variant="secondary" className="w-full">
-          <FileQuestion className="h-4 w-4 mr-2" />
-          Premium Report
+        <Button 
+          variant="outline" 
+          className="flex items-center justify-center"
+          disabled={disabled}
+        >
+          <Share className="mr-2 h-4 w-4" />
+          Share
         </Button>
-      </Link>
+      )}
     </div>
   );
 };

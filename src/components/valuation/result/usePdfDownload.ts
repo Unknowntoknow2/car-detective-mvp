@@ -1,9 +1,10 @@
 
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+import { generateValuationPdf } from '@/utils/generateValuationPdf';
+import { AICondition } from '@/types/photo';
 
-interface UsePdfDownloadProps {
+interface PdfDownloadParams {
   valuationId?: string;
   make: string;
   model: string;
@@ -12,72 +13,61 @@ interface UsePdfDownloadProps {
   condition: string;
   location: string;
   valuation: number;
-  explanation: string;
+  explanation?: string;
   confidenceScore?: number;
-  conditionData?: any;
-  adjustments?: any[];
+  conditionData?: AICondition | null;
+  adjustments?: { factor: string; impact: number; description: string }[];
+  bestPhotoUrl?: string;
 }
 
-export const usePdfDownload = ({
-  valuationId,
-  make,
-  model,
-  year,
-  mileage,
-  condition,
-  location,
-  valuation,
-  explanation,
-  confidenceScore = 80,
-  conditionData,
-  adjustments = []
-}: UsePdfDownloadProps) => {
-  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+export function usePdfDownload(params: PdfDownloadParams) {
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
     try {
-      // Prepare the vehicle information and valuation data
-      const vehicleInfo = {
-        vin: valuationId || 'MANUAL-ENTRY',
-        make,
-        model,
-        year,
-        mileage,
-        transmission: 'Unknown', // Default value
-        condition,
-        zipCode: location
+      // Format data for PDF generation
+      const vehicle: DecodedVehicleInfo = {
+        make: params.make,
+        model: params.model,
+        year: params.year,
+        mileage: params.mileage,
+        condition: params.condition,
+        zipCode: params.location,
+        vin: '',
       };
 
-      // Prepare valuation data for PDF generation
-      const valuationData = {
-        estimatedValue: valuation,
-        mileage: mileage.toString(),
-        condition,
-        zipCode: location,
-        confidenceScore,
-        adjustments,
-        fuelType: 'Not Specified',
-        explanation,
-        aiCondition: conditionData
-      };
+      // Generate the PDF
+      const pdfBytes = await generateValuationPdf({
+        vehicle,
+        valuation: params.valuation,
+        explanation: params.explanation || 'No detailed explanation available.',
+        valuationId: params.valuationId,
+        aiCondition: params.conditionData,
+        bestPhotoUrl: params.bestPhotoUrl
+      });
 
-      // Convert to report data format
-      const reportData = convertVehicleInfoToReportData(vehicleInfo, valuationData);
-      
-      // Generate and download the PDF
-      await downloadPdf(reportData);
-      toast.success("PDF report downloaded successfully");
+      // Create a blob from the PDF data
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+
+      // Create a link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${params.year}-${params.make}-${params.model}-valuation.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the URL
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF report");
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsDownloading(false);
     }
   };
 
-  return {
-    isDownloading,
-    handleDownloadPdf
-  };
-};
+  return { isDownloading, handleDownloadPdf };
+}

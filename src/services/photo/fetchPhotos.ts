@@ -13,7 +13,7 @@ export async function fetchValuationPhotos(valuationId: string): Promise<Photo[]
   try {
     // Use type assertion to work around TypeScript issues with the table name
     const { data, error } = await supabase
-      .from('valuation_photos' as any)
+      .from('valuation_photos')
       .select('*')
       .eq('valuation_id', valuationId);
       
@@ -24,7 +24,8 @@ export async function fetchValuationPhotos(valuationId: string): Promise<Photo[]
     // Use type assertion to safely access properties
     return (data || []).map((item: any) => ({
       id: item.id,
-      url: item.photo_url
+      url: item.photo_url,
+      thumbnail: item.photo_url, // Use same URL for thumbnail
     }));
     
   } catch (err) {

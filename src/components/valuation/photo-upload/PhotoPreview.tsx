@@ -1,84 +1,65 @@
 
 import React from 'react';
-import { Photo, PhotoScore } from '@/types/photo';
 import { Card } from '@/components/ui/card';
+import { Photo } from '@/types/photo';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Trash2, Check, Loader } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Star } from 'lucide-react';
 
 interface PhotoPreviewProps {
   photo: Photo;
   score?: number;
   isBestPhoto?: boolean;
-  onDelete: (photo: Photo) => void;
-  isLoading?: boolean;
+  showScoreBadge?: boolean;
 }
 
 export function PhotoPreview({
   photo,
   score,
   isBestPhoto = false,
-  onDelete,
-  isLoading = false
+  showScoreBadge = true
 }: PhotoPreviewProps) {
-  // Helper to get color class based on score
-  const getScoreColor = (score: number): string => {
-    if (score >= 0.8) return "bg-green-500 text-white";
-    if (score >= 0.6) return "bg-yellow-500 text-white";
-    return "bg-red-500 text-white";
+  // Helper to format score as percentage
+  const formatScore = (score?: number): string => {
+    if (score === undefined) return 'N/A';
+    return `${Math.round(score * 100)}/100`;
   };
-
+  
+  // Helper to get conditional class based on score
+  const getScoreClass = (score?: number): string => {
+    if (score === undefined) return 'bg-gray-500';
+    if (score >= 0.85) return 'bg-green-500';
+    if (score >= 0.7) return 'bg-blue-500';
+    if (score >= 0.5) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+  
   return (
-    <Card className={cn(
-      "relative overflow-hidden aspect-square group",
-      isBestPhoto ? "border-primary border-2" : ""
-    )}>
-      <img 
-        src={photo.url}
-        alt="Vehicle photo"
-        className="w-full h-full object-cover"
-        loading="lazy"
-      />
+    <Card className="relative overflow-hidden border">
+      <div className="aspect-square">
+        <img 
+          src={photo.url} 
+          alt="Vehicle photo" 
+          className="w-full h-full object-cover"
+        />
+      </div>
       
+      {/* Best photo indicator */}
       {isBestPhoto && (
         <div className="absolute top-2 left-2">
-          <Badge className="bg-primary">Best Photo</Badge>
+          <Badge className="bg-primary flex items-center gap-1">
+            <Star className="h-3 w-3 fill-white" />
+            <span>Best Photo</span>
+          </Badge>
         </div>
       )}
-
-      {/* Delete button */}
-      <Button
-        variant="destructive"
-        size="icon"
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => onDelete(photo)}
-        disabled={isLoading}
-        aria-label="Delete photo"
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
       
-      {/* Score indicator */}
-      {score !== undefined ? (
-        <div className={cn(
-          "absolute bottom-0 left-0 right-0 py-1 px-2",
-          getScoreColor(score)
-        )}>
-          <div className="flex justify-between items-center text-xs">
-            <span>{isBestPhoto ? "Best Quality" : "Quality"}</span>
-            <div className="flex items-center gap-1">
-              <Check className="h-3 w-3" />
-              {Math.round(score * 100)}%
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white py-1 px-2">
-          <div className="flex items-center justify-center text-xs gap-1">
-            <Loader className="h-3 w-3 animate-spin" />
-            <span>Analyzing...</span>
-          </div>
+      {/* Score badge */}
+      {showScoreBadge && score !== undefined && (
+        <div className="absolute bottom-0 left-0 right-0 p-2">
+          <Badge className={`${getScoreClass(score)} w-full justify-between`}>
+            <span>AI Score</span>
+            <span>{formatScore(score)}</span>
+          </Badge>
         </div>
       )}
     </Card>
