@@ -3,7 +3,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { VINLookupForm } from '@/components/lookup/vin/VINLookupForm';
+import { VINLookupForm } from '@/components/lookup/vin/VinLookupForm'; // Fix case to match actual file
 import { PlateLookupForm } from '@/components/lookup/plate/PlateLookupForm';
 import { ManualEntryForm } from '@/components/lookup/manual/ManualEntryForm';
 import { PhotoLookupForm } from '@/components/lookup/photo/PhotoLookupForm';

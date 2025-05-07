@@ -1,19 +1,16 @@
 
-export interface NicbRecord {
-  status: string;
-  vin: string;
-  make: string;
-  model: string;
-  year: string;
-  statusDate: string;
-  // Add more fields as needed based on actual API response
-}
-
+// Define the NicbData type for the NICB VIN check
 export interface NicbData {
-  records: NicbRecord[];
-  // Add more fields as needed based on actual API response
+  vin: string;
+  is_stolen: boolean;
+  is_recovered: boolean;
+  has_title_issues: boolean;
+  theft_date?: string;
+  recovery_date?: string;
+  last_checked?: string;
 }
 
+// Define the response types for the NICB API
 export interface NicbResponse {
   data: NicbData;
   source: 'api' | 'cache';

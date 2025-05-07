@@ -2,17 +2,13 @@
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
 
-/**
- * Displays a helpful tip about where to locate a vehicle's VIN.
- */
-export function VinInfoMessage() {
+export const VinInfoMessage: React.FC = () => {
   return (
-    <div className="flex items-start gap-2 text-xs text-slate-500">
-      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+    <div className="text-xs text-slate-500 flex items-start gap-2">
+      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
       <p>
-        Find your 17-character VIN on your vehicle registration, insurance card,
-        or on the driver's side dashboard near the windshield.
+        Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.
       </p>
     </div>
   );
-}
+};

@@ -9,23 +9,29 @@ export interface UseNicbVinCheckResult {
   error: string | null;
   source: 'api' | 'cache' | null;
   fetchedAt: string | null;
+  checkVin: (vin: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
-export function useNicbVinCheck(vin: string): UseNicbVinCheckResult {
+export function useNicbVinCheck(): UseNicbVinCheckResult {
   const [data, setData] = useState<NicbData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<'api' | 'cache' | null>(null);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
+  const [currentVin, setCurrentVin] = useState<string>('');
 
-  const fetchData = async () => {
-    // Don't fetch if VIN is invalid
+  const checkVin = async (vin: string) => {
     if (!vin || vin.length !== 17) {
       setError('Invalid VIN. Must be a 17-character string.');
       return;
     }
 
+    setCurrentVin(vin);
+    await fetchData(vin);
+  };
+
+  const fetchData = async (vin: string) => {
     setLoading(true);
     setError(null);
 
@@ -37,8 +43,8 @@ export function useNicbVinCheck(vin: string): UseNicbVinCheckResult {
         }
       );
 
-      if (responseError || 'error' in (responseData || {})) {
-        const errorMessage = 'error' in (responseData || {}) 
+      if (responseError || (responseData && 'error' in responseData)) {
+        const errorMessage = responseData && 'error' in responseData 
           ? (responseData as NicbError).error 
           : responseError?.message || 'Unknown error';
         
@@ -46,7 +52,7 @@ export function useNicbVinCheck(vin: string): UseNicbVinCheckResult {
         setData(null);
         setSource(null);
         setFetchedAt(null);
-      } else {
+      } else if (responseData) {
         const nicbResponse = responseData as NicbResponse;
         setData(nicbResponse.data);
         setSource(nicbResponse.source);
@@ -63,25 +69,19 @@ export function useNicbVinCheck(vin: string): UseNicbVinCheckResult {
     }
   };
 
-  // Fetch data when VIN changes
-  useEffect(() => {
-    if (vin) {
-      fetchData();
-    } else {
-      setData(null);
-      setError(null);
-      setSource(null);
-      setFetchedAt(null);
+  const refresh = async () => {
+    if (currentVin) {
+      await fetchData(currentVin);
     }
-  }, [vin]);
+  };
 
-  // Return the hook result
   return {
     data,
     loading,
     error,
     source,
     fetchedAt,
-    refresh: fetchData
+    checkVin,
+    refresh
   };
 }

@@ -1,16 +1,18 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const SettingsPage: React.FC = () => {
-  const auth = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       // Use optional chaining to handle potential missing signOut method
-      await auth?.signOut?.();
+      await signOut?.();
       navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
