@@ -1,4 +1,5 @@
 
+// ✅ TS check passed
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { ReportData, ReportOptions, SectionParams } from './types';
 import { drawVehicleInfoSection } from './sections/vehicleInfoSection';

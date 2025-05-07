@@ -1,185 +1,338 @@
-
-import { ReportData } from './types';
-import { PDFDocument, rgb, StandardFonts, PDFFont } from 'pdf-lib';
-import { drawSectionHeading, drawHorizontalLine, initializePdf } from './components/pdfCommon';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { ReportData, SectionParams } from './types';
 import { drawVehicleInfoSection } from './sections/vehicleInfoSection';
 import { drawValuationSection } from './sections/valuationSection';
-import { drawCommentarySection } from './sections/commentarySection';
-import { drawAIConditionSection } from './sections/aiConditionSection';
-import { applyWatermark } from './sections/watermark';
-import { drawValuationSummary } from './sections/valuationSummary';
+import { drawExplanationSection } from './sections/explanationSection';
 import { drawFooterSection } from './sections/footerSection';
+import { applyWatermark } from './sections/watermark';
 
 /**
- * Generates a PDF for the valuation report
- * @param reportData The data to include in the PDF
- * @returns The PDF as a Uint8Array
+ * Generates a PDF report for a vehicle valuation
+ * @param data The report data to include
+ * @param options Options for PDF generation
+ * @returns Promise resolving to PDF document as Uint8Array
  */
-export async function generateValuationPdf(reportData: ReportData): Promise<Uint8Array> {
-  console.log('Generating PDF with data:', reportData);
+export async function generatePdfReport(
+  data: ReportData,
+  options: {
+    includeBranding?: boolean;
+    includeTimestamp?: boolean;
+    includePageNumbers?: boolean;
+    pageNumber?: number;
+    totalPages?: number;
+  } = {}
+): Promise<Uint8Array> {
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
   
-  // Initialize PDF document and resources
-  const { pdfDoc, page, fonts, constants } = await initializePdf();
-  const { regular, bold } = fonts;
-  const { margin, width, height } = constants;
+  // Add a page to the document (Letter size)
+  const page = pdfDoc.addPage([612, 792]);
+  const { width, height } = page.getSize();
   
-  // Create section params for use with watermark and other sections
-  const sectionParams = {
+  // Embed fonts
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  // Set drawing parameters
+  const margin = 50;
+  const contentWidth = width - margin * 2;
+  
+  // Create section params object
+  const sectionParams: SectionParams = {
     page,
     width,
     height,
     margin,
-    regularFont: regular,
-    boldFont: bold,
-    contentWidth: width - margin * 2
+    regularFont,
+    boldFont,
+    contentWidth
   };
   
-  // Apply watermark if it's a premium report
-  if (reportData.isPremium) {
+  // Apply watermark if premium
+  if (data.isPremium && options.includeBranding !== false) {
     applyWatermark(sectionParams, "Car Detective™ • Premium Report");
   }
   
-  // Set up current Y position tracker (starts from top)
-  let currentY = height - margin;
+  // Track vertical position
+  let yPosition = height - margin;
   
-  // Draw header with logo and title
+  // Draw header
   page.drawRectangle({
-    x: 0,
-    y: height - 100,
-    width: width,
-    height: 100,
-    color: rgb(0.15, 0.15, 0.3),
-  });
-  
-  // Draw logo text (in lieu of an actual image)
-  page.drawText('CAR DETECTIVE', {
     x: margin,
-    y: height - 50,
-    size: 24,
-    font: bold,
-    color: rgb(1, 1, 1)
+    y: height - margin - 50,
+    width: contentWidth,
+    height: 50,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
   });
   
-  // Draw report title
-  page.drawText('VEHICLE VALUATION REPORT', {
-    x: margin,
-    y: height - 75,
-    size: 16,
-    font: bold,
-    color: rgb(1, 1, 1)
+  page.drawText("Vehicle Valuation Report", {
+    x: margin + 10,
+    y: height - margin - 30,
+    size: 18,
+    font: boldFont
   });
   
-  // Add premium badge if it's a premium report
-  if (reportData.isPremium) {
-    const badgeWidth = 150;
-    const badgeHeight = 30;
-    const badgeX = width - badgeWidth - margin;
-    const badgeY = height - 60;
-    
-    // Draw premium badge background
-    page.drawRectangle({
-      x: badgeX,
-      y: badgeY,
-      width: badgeWidth,
-      height: badgeHeight,
-      color: rgb(0.54, 0.27, 0.9),
-      borderColor: rgb(1, 1, 1),
-      borderWidth: 1,
-      opacity: 0.9,
-      borderOpacity: 0.8,
-    });
-    
-    // Draw premium badge text
-    page.drawText('🔒 PREMIUM REPORT', {
-      x: badgeX + 15,
-      y: badgeY + 10,
-      size: 12,
-      font: bold,
-      color: rgb(1, 1, 1)
-    });
+  yPosition -= 70;
+  
+  // Draw vehicle info section
+  yPosition = drawVehicleInfoSection(sectionParams, data, yPosition);
+  
+  // Draw valuation section
+  yPosition = drawValuationSection(sectionParams, data, yPosition);
+  
+  // Draw explanation if available
+  if (data.explanation) {
+    yPosition = drawExplanationSection(sectionParams, data.explanation, yPosition);
   }
   
-  // Start main content below header
-  currentY = height - 120;
-  
-  // If we have a narrative summary, add it first
-  if (reportData.narrative) {
-    currentY = drawValuationSummary(sectionParams, reportData.narrative, currentY);
-    currentY = currentY - 15;
-  }
-  
-  // Vehicle Information Section
-  currentY = drawVehicleInfoSection(
-    sectionParams, 
-    reportData, 
-    currentY
-  );
-  currentY = currentY - 15;
-  
-  // Valuation Section
-  currentY = drawValuationSection(
-    sectionParams, 
-    reportData, 
-    currentY
-  );
-  currentY = currentY - 20;
-  
-  // AI Condition Section (if available)
-  if (reportData.aiCondition) {
-    const conditionParams = {
-      aiCondition: reportData.aiCondition,
-      bestPhotoUrl: reportData.bestPhotoUrl,
-      photoExplanation: reportData.photoExplanation
-    };
-    
-    const aiSectionParams = {
-      page,
-      yPosition: currentY,
-      margin,
-      width,
-      fonts: { 
-        regular, 
-        bold, 
-        italic: regular // Fallback when italic not available
-      }
-    };
-    
-    try {
-      // Handle async operation correctly with proper parameters
-      const newYPosition = await drawAIConditionSection(
-        conditionParams, 
-        aiSectionParams
-      );
-      
-      // Update yPosition only if we got a valid number back
-      if (typeof newYPosition === 'number') {
-        currentY = newYPosition - 15;
-      }
-    } catch (error) {
-      console.error("Error drawing AI condition section:", error);
-      // If there's an error, don't update currentY
-    }
-  }
-  
-  // GPT Commentary Section (if available)
-  if (reportData.explanation) {
-    currentY = drawCommentarySection(
-      sectionParams,
-      reportData.explanation,
-      currentY
-    );
-    currentY = currentY - 15;
-  }
-  
-  // Draw footer with updated parameters
+  // Draw footer
   drawFooterSection(
     sectionParams,
-    true, // includeTimestamp
-    1,    // pageNumber
-    1,    // totalPages
-    reportData.isPremium // includeWatermark based on premium status
+    options.includeTimestamp !== false, // includeTimestamp
+    options.pageNumber || 1,            // pageNumber
+    options.totalPages || 1,            // totalPages
+    options.includeBranding || false    // includeWatermark
   );
   
-  // Generate PDF bytes
+  // Generate and return PDF bytes
+  return await pdfDoc.save();
+}
+
+/**
+ * Generates a multi-page PDF report for a vehicle valuation
+ * @param data The report data to include
+ * @param options Options for PDF generation
+ * @returns Promise resolving to PDF document as Uint8Array
+ */
+export async function generateMultiPagePdfReport(
+  data: ReportData,
+  options: {
+    includeBranding?: boolean;
+    includeTimestamp?: boolean;
+    includePageNumbers?: boolean;
+  } = {}
+): Promise<Uint8Array> {
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
+  
+  // Add first page (main valuation)
+  const page1 = pdfDoc.addPage([612, 792]);
+  const { width, height } = page1.getSize();
+  
+  // Embed fonts
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  // Set drawing parameters
+  const margin = 50;
+  const contentWidth = width - margin * 2;
+  
+  // Create section params object for first page
+  const sectionParams1: SectionParams = {
+    page: page1,
+    width,
+    height,
+    margin,
+    regularFont,
+    boldFont,
+    contentWidth
+  };
+  
+  // Apply watermark if premium
+  if (data.isPremium && options.includeBranding !== false) {
+    applyWatermark(sectionParams1, "Car Detective™ • Premium Report");
+  }
+  
+  // Track vertical position
+  let yPosition = height - margin;
+  
+  // Draw header
+  page1.drawRectangle({
+    x: margin,
+    y: height - margin - 50,
+    width: contentWidth,
+    height: 50,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page1.drawText("Vehicle Valuation Report", {
+    x: margin + 10,
+    y: height - margin - 30,
+    size: 18,
+    font: boldFont
+  });
+  
+  yPosition -= 70;
+  
+  // Draw vehicle info section
+  yPosition = drawVehicleInfoSection(sectionParams1, data, yPosition);
+  
+  // Draw valuation section
+  yPosition = drawValuationSection(sectionParams1, data, yPosition);
+  
+  // Draw footer on first page
+  drawFooterSection(
+    sectionParams1,
+    options.includeTimestamp !== false, // includeTimestamp
+    1,                                  // pageNumber
+    2,                                  // totalPages
+    options.includeBranding || false    // includeWatermark
+  );
+  
+  // Add second page (explanation and details)
+  const page2 = pdfDoc.addPage([612, 792]);
+  
+  // Create section params object for second page
+  const sectionParams2: SectionParams = {
+    page: page2,
+    width,
+    height,
+    margin,
+    regularFont,
+    boldFont,
+    contentWidth
+  };
+  
+  // Apply watermark if premium
+  if (data.isPremium && options.includeBranding !== false) {
+    applyWatermark(sectionParams2, "Car Detective™ • Premium Report");
+  }
+  
+  // Reset vertical position for second page
+  yPosition = height - margin;
+  
+  // Draw header on second page
+  page2.drawRectangle({
+    x: margin,
+    y: height - margin - 50,
+    width: contentWidth,
+    height: 50,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page2.drawText("Valuation Details", {
+    x: margin + 10,
+    y: height - margin - 30,
+    size: 18,
+    font: boldFont
+  });
+  
+  yPosition -= 70;
+  
+  // Draw explanation if available
+  if (data.explanation) {
+    yPosition = drawExplanationSection(sectionParams2, data.explanation, yPosition);
+  }
+  
+  // Draw footer on second page
+  drawFooterSection(
+    sectionParams2,
+    options.includeTimestamp !== false, // includeTimestamp
+    2,                                  // pageNumber
+    2,                                  // totalPages
+    options.includeBranding || false    // includeWatermark
+  );
+  
+  // Generate and return PDF bytes
+  return await pdfDoc.save();
+}
+
+/**
+ * Generates a PDF report with custom options
+ * @param data The report data to include
+ * @param options Options for PDF generation
+ * @returns Promise resolving to PDF document as Uint8Array
+ */
+export async function generateCustomPdfReport(
+  data: ReportData,
+  options: {
+    includeBranding?: boolean;
+    includeTimestamp?: boolean;
+    includePageNumbers?: boolean;
+    includeExplanation?: boolean;
+    includeAdjustments?: boolean;
+  } = {}
+): Promise<Uint8Array> {
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
+  
+  // Add a page to the document
+  const page = pdfDoc.addPage([612, 792]);
+  const { width, height } = page.getSize();
+  
+  // Embed fonts
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  // Set drawing parameters
+  const margin = 50;
+  const contentWidth = width - margin * 2;
+  
+  // Create section params object
+  const sectionParams: SectionParams = {
+    page,
+    width,
+    height,
+    margin,
+    regularFont,
+    boldFont,
+    contentWidth
+  };
+  
+  // Apply watermark if premium and branding is included
+  if (data.isPremium && options.includeBranding !== false) {
+    applyWatermark(sectionParams, "Car Detective™ • Premium Report");
+  }
+  
+  // Track vertical position
+  let yPosition = height - margin;
+  
+  // Draw header
+  page.drawRectangle({
+    x: margin,
+    y: height - margin - 50,
+    width: contentWidth,
+    height: 50,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText("Vehicle Valuation Report", {
+    x: margin + 10,
+    y: height - margin - 30,
+    size: 18,
+    font: boldFont
+  });
+  
+  yPosition -= 70;
+  
+  // Draw vehicle info section
+  yPosition = drawVehicleInfoSection(sectionParams, data, yPosition);
+  
+  // Draw valuation section
+  yPosition = drawValuationSection(sectionParams, data, yPosition);
+  
+  // Draw explanation if available and included in options
+  if (data.explanation && options.includeExplanation !== false) {
+    yPosition = drawExplanationSection(sectionParams, data.explanation, yPosition);
+  }
+  
+  // Draw footer
+  drawFooterSection(
+    sectionParams,
+    options.includeTimestamp !== false, // includeTimestamp
+    1,                                  // pageNumber
+    1,                                  // totalPages
+    options.includeBranding || false    // includeWatermark
+  );
+  
+  // Generate and return PDF bytes
   return await pdfDoc.save();
 }

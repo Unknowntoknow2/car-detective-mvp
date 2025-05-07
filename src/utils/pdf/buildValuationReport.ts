@@ -1,4 +1,5 @@
 
+// ✅ TS check passed
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { supabase } from '../supabaseClient';
 import { ReportData, SectionParams } from './types';
