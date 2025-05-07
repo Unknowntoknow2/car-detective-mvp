@@ -123,7 +123,7 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         model: valuationData.model,
         year: valuationData.year,
         mileage: valuationData.mileage,
-        transmission: valuationData.transmission || 'Not Specified',
+        transmission: 'transmission' in valuationData ? valuationData.transmission || 'Not Specified' : 'Not Specified',
         condition: valuationData.condition,
         zipCode: valuationData.zipCode
       };
@@ -136,9 +136,9 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         zipCode: valuationData.zipCode,
         confidenceScore: valuationData.confidenceScore || 75,
         adjustments: valuationData.adjustments || [],
-        fuelType: valuationData.fuelType || 'Not Specified',
-        explanation: valuationData.explanation || 'Detailed valuation report for your vehicle', 
-        aiCondition: conditionData || (('aiCondition' in valuationData) ? valuationData.aiCondition : null)
+        fuelType: 'fuelType' in valuationData ? valuationData.fuelType || 'Not Specified' : 'Not Specified',
+        explanation: 'explanation' in valuationData ? valuationData.explanation || 'Detailed valuation report for your vehicle' : 'Detailed valuation report for your vehicle',
+        aiCondition: conditionData || ('aiCondition' in valuationData ? valuationData.aiCondition : null)
       };
 
       // Convert to report data format
@@ -214,7 +214,7 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
   const hasAiCondition = conditionData || ('aiCondition' in valuationData && valuationData.aiCondition);
   const isAIVerified = !!(hasAiCondition && 
     ((conditionData?.confidenceScore >= 70) || 
-     (valuationData.aiCondition?.confidenceScore >= 70)));
+     (valuationData.aiCondition && 'confidenceScore' in valuationData.aiCondition && valuationData.aiCondition.confidenceScore >= 70)));
 
   return (
     <div className="space-y-6">
@@ -224,7 +224,7 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         priceRange={priceRange}
         adjustments={valuationData.adjustments}
         aiVerified={isAIVerified}
-        aiCondition={conditionData || (('aiCondition' in valuationData) ? valuationData.aiCondition : null)}
+        aiCondition={conditionData || ('aiCondition' in valuationData ? valuationData.aiCondition : null)}
       />
       
       <div className="mt-6">

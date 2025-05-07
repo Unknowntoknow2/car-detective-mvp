@@ -75,27 +75,27 @@ export function useValuationResult(valuationId: string) {
       
       // Only assign properties if they exist in the data object
       if ('color' in data && data.color !== undefined) {
-        transformedData.color = data.color;
+        transformedData.color = data.color as string | null;
       }
       
       if ('bodyStyle' in data && data.bodyStyle !== undefined) {
-        transformedData.bodyStyle = data.bodyStyle;
+        transformedData.bodyStyle = data.bodyStyle as string | null;
       }
       
       if ('bodyType' in data && data.bodyType !== undefined) {
-        transformedData.bodyType = data.bodyType;
+        transformedData.bodyType = data.bodyType as string | null;
       }
       
       if ('fuelType' in data && data.fuelType !== undefined) {
-        transformedData.fuelType = data.fuelType;
+        transformedData.fuelType = data.fuelType as string | null;
       }
       
       if ('explanation' in data && data.explanation !== undefined) {
-        transformedData.explanation = data.explanation;
+        transformedData.explanation = data.explanation as string | null;
       }
       
       if ('transmission' in data && data.transmission !== undefined) {
-        transformedData.transmission = data.transmission;
+        transformedData.transmission = data.transmission as string | null;
       }
       
       // Handle aiCondition if it exists
