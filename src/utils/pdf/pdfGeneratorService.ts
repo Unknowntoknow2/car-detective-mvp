@@ -1,4 +1,3 @@
-
 import { ReportData } from './types';
 import { PDFDocument, rgb, StandardFonts, PDFFont, degrees } from 'pdf-lib';
 import { drawSectionHeading, drawHorizontalLine, initializePdf } from './components/pdfCommon';

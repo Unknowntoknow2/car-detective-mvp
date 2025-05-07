@@ -1,114 +1,96 @@
-
-import { PDFPage, rgb } from 'pdf-lib';
-import { ReportData } from '../types';
-import { PdfFonts, PdfConstants, drawSectionHeading } from '../components/pdfCommon';
+import { PDFPage, PDFFont, rgb } from 'pdf-lib';
+import { ReportData, SectionParams } from '../types';
+import { formatCurrency } from '@/utils/formatters';
 
 /**
- * Draw valuation section on the PDF
- * Returns the new Y position after drawing the section
+ * Draws the valuation section of the PDF
+ * @param params Section parameters for the PDF
+ * @param data The vehicle and valuation data
+ * @param yPosition The Y position to start drawing the section
+ * @returns The new Y position after drawing the section
  */
 export function drawValuationSection(
-  page: PDFPage,
+  params: SectionParams,
   data: ReportData,
-  yPos: number,
-  fonts: PdfFonts,
-  constants: PdfConstants
+  yPosition: number
 ): number {
-  const { margin, width, headingFontSize } = constants;
-  const { regular, bold } = fonts;
+  const { page, margin, width, regularFont, boldFont, contentWidth } = params;
+  let currentY = yPosition;
   
-  let currentY = yPos;
-  
-  // Draw section header
-  currentY = drawSectionHeading(
-    page, 
-    'Valuation Result', 
-    margin, 
-    currentY, 
-    headingFontSize, 
-    bold,
-    rgb(0.1, 0.6, 0.1)
-  );
-  
-  // Draw valuation box
-  const boxHeight = 100;
-  page.drawRectangle({
+  // Section heading
+  page.drawText('Valuation Details', {
     x: margin,
-    y: currentY - boxHeight,
-    width: width - (margin * 2),
-    height: boxHeight,
-    color: rgb(0.95, 1, 0.95),
-    borderColor: rgb(0.1, 0.6, 0.1),
-    borderWidth: 2,
-  });
-  
-  // Format the value as currency
-  const formattedValue = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(data.estimatedValue);
-  
-  // Draw estimated value
-  page.drawText('Estimated Value:', {
-    x: margin + 20,
-    y: currentY - 30,
-    size: 14,
-    font: bold,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-  
-  // Draw the price in large font
-  page.drawText(formattedValue, {
-    x: margin + 20,
-    y: currentY - 60,
-    size: 28,
-    font: bold,
-    color: rgb(0.1, 0.6, 0.1)
-  });
-  
-  // Draw confidence score if available
-  if (data.confidenceScore) {
-    page.drawText(`Confidence Score: ${data.confidenceScore}%`, {
-      x: margin + 20,
-      y: currentY - 85,
-      size: 12,
-      font: regular,
-      color: rgb(0.4, 0.4, 0.4)
-    });
-  }
-  
-  // Show condition - prioritize AI condition if available
-  const conditionText = data.aiCondition?.condition || data.condition || 'Not Specified';
-  const conditionSource = data.aiCondition ? 'AI-Verified' : 'Owner-Reported';
-  
-  page.drawText(`Vehicle Condition (${conditionSource}):`, {
-    x: width - margin - 200,
-    y: currentY - 30,
-    size: 12,
-    font: bold,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-  
-  page.drawText(conditionText, {
-    x: width - margin - 200,
-    y: currentY - 50,
+    y: currentY,
     size: 16,
-    font: bold,
-    color: rgb(0.1, 0.6, 0.1)
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1)
   });
   
-  // If AI condition is available, show confidence
-  if (data.aiCondition?.confidenceScore) {
-    page.drawText(`AI Confidence: ${Math.round(data.aiCondition.confidenceScore)}%`, {
-      x: width - margin - 200,
-      y: currentY - 70,
-      size: 10,
-      font: regular,
-      color: rgb(0.4, 0.4, 0.4)
-    });
+  currentY -= 25;
+  
+  // Draw valuation details
+  page.drawText(`Estimated Value: ${formatCurrency(data.estimatedValue)}`, {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: regularFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+  
+  currentY -= 20;
+  
+  page.drawText(`Condition: ${data.condition}`, {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: regularFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+  
+  currentY -= 20;
+  
+  page.drawText(`Mileage: ${data.mileage.toLocaleString()} miles`, {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: regularFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+
+  // Draw the estimated value text
+  // page.drawText(`Estimated Value: ${formatCurrency(data.estimatedValue)}`, {
+  //   x: margin,
+  //   y: currentY,
+  //   size: 18,
+  //   font: boldFont,
+  //   color: rgb(0, 0.5, 0)
+  // });
+
+  let currentY = yPosition - 120; // After value display
+
+  // Add adjustments section if available
+  if (data.adjustments && data.adjustments.length > 0) {
+    // Import the renderAdjustmentTable function
+    const { renderAdjustmentTable } = require('./adjustmentTable');
+    
+    // Get the base price (can be derived from the final value minus adjustments)
+    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+    const basePrice = data.estimatedValue - totalAdjustment;
+    
+    // Render the adjustment table and get the new Y position
+    currentY = renderAdjustmentTable(params, basePrice, data.adjustments, currentY);
   }
   
-  // Return the updated y position
-  return currentY - boxHeight - 10;
+  currentY -= 20;
+  
+  // Confidence score section
+  page.drawText(`Confidence Score: ${data.confidenceScore}%`, {
+    x: margin,
+    y: currentY,
+    size: 10,
+    font: regularFont,
+    color: rgb(0.5, 0.5, 0.5)
+  });
+  
+  return currentY;
 }

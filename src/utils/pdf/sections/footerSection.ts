@@ -91,7 +91,7 @@ export function drawFooterSection(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.08,
-      rotate: { angle: -30 } // Fixed: Removed the type property
+      rotate: { angle: -30 }
     });
   }
 }

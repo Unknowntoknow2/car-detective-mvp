@@ -13,7 +13,7 @@ export interface ValuationWithVehicle {
   year: number;
   mileage: number;
   condition: string;
-  confidence_score?: number;
+  confidence_score: number; // Made non-optional to match ValuationWithCondition
   condition_score?: number;
   is_vin_lookup?: boolean;
   aiCondition?: {
