@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { PredictionResult } from '@/components/valuation/PredictionResult';
+import { PhotoUploadAndScore } from '@/components/valuation/PhotoUploadAndScore';
+import { AICondition } from '@/types/photo';
 
 interface ValuationTabContentProps {
   valuationId?: string;
@@ -13,12 +15,31 @@ export const ValuationTabContent: React.FC<ValuationTabContentProps> = ({
   valuationId, 
   manualData 
 }) => {
+  const [photoScore, setPhotoScore] = useState<number | null>(null);
+  const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
+  
+  const handlePhotoScoreChange = (score: number, condition?: AICondition) => {
+    setPhotoScore(score);
+    if (condition) {
+      setAiCondition(condition);
+    }
+  };
+  
   if (valuationId) {
     return (
-      <PredictionResult 
-        valuationId={valuationId} 
-        manualValuation={manualData}
-      />
+      <div className="space-y-8">
+        <PredictionResult 
+          valuationId={valuationId} 
+          manualValuation={manualData}
+          photoCondition={aiCondition}
+        />
+        
+        <PhotoUploadAndScore 
+          valuationId={valuationId}
+          onScoreChange={handlePhotoScoreChange}
+          isPremium={true}
+        />
+      </div>
     );
   } else if (manualData) {
     return (
