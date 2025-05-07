@@ -40,6 +40,10 @@ export const VinInputField: React.FC<VinInputFieldProps> = ({ form }) => {
               {...field} 
               maxLength={17} 
               className={vinError ? "border-destructive" : ""}
+              onChange={(e) => {
+                // Convert to uppercase for better user experience
+                field.onChange(e.target.value.toUpperCase());
+              }}
             />
           </FormControl>
           {vinError && (
