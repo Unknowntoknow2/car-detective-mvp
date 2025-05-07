@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { PremiumBadge } from '@/components/ui/premium-badge';
 import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
+import { ValuationWithCondition } from '@/types/dealer';
 
 export function DealerValuationsList() {
   // Use the hook without parameters to get current user's valuations
@@ -82,7 +83,8 @@ export function DealerValuationsList() {
                   {valuations.map((valuation) => (
                     <ValuationCard
                       key={valuation.id}
-                      valuation={valuation}
+                      valuation={valuation as ValuationWithCondition}
+                      aiCondition={valuation.aiCondition}
                       onDownload={() => handleDownloadReport(valuation)}
                     />
                   ))}

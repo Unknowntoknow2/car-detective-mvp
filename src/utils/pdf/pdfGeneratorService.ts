@@ -1,3 +1,4 @@
+
 import { ReportData } from './types';
 import { PDFDocument, rgb, StandardFonts, PDFFont, degrees } from 'pdf-lib';
 import { drawSectionHeading, drawHorizontalLine, initializePdf } from './components/pdfCommon';
@@ -101,21 +102,17 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   
   // Vehicle Information Section
   currentY = await drawVehicleInfoSection(
-    page, 
+    sectionParams, 
     reportData, 
-    currentY, 
-    fonts, 
-    constants
+    currentY
   );
   currentY = currentY - 15;
   
   // Valuation Section
   currentY = await drawValuationSection(
-    page, 
+    sectionParams, 
     reportData, 
-    currentY, 
-    fonts, 
-    constants
+    currentY
   );
   currentY = currentY - 20;
   
@@ -159,16 +156,14 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   // GPT Commentary Section (if available)
   if (reportData.explanation) {
     currentY = await drawCommentarySection(
-      page,
+      sectionParams,
       reportData.explanation,
-      currentY,
-      fonts,
-      constants
+      currentY
     );
     currentY = currentY - 15;
   }
   
-  // Draw watermark diagonally across the page (using the old method, consider replacing with new applyWatermark)
+  // Draw watermark diagonally across the page
   const watermarkFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
   page.drawText('Car Detective Valuation Report', {
     x: 150,

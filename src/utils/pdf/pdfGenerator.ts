@@ -102,18 +102,20 @@ export async function generatePdf(
     
     try {
       // Update to correctly handle the returned yPosition
+      const aiSectionParams = {
+        page,
+        yPosition,
+        margin,
+        width,
+        fonts: { 
+          regular: regularFont, 
+          bold: boldFont
+        }
+      };
+      
       const newYPosition = await drawAIConditionSection(
         conditionParams, 
-        {
-          page,
-          yPosition,
-          margin,
-          width,
-          fonts: { 
-            regular: regularFont, 
-            bold: boldFont
-          }
-        }
+        aiSectionParams
       );
       
       // Update yPosition safely

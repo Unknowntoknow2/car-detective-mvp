@@ -3,6 +3,15 @@ import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
 /**
+ * Helper function to create a proper rotation object
+ * @param angle The angle in degrees
+ * @returns A properly formatted rotation object
+ */
+function degrees(angle: number) {
+  return { type: 'degrees', angle };
+}
+
+/**
  * Draws the footer section of the PDF
  * @param params The section parameters
  * @param includeTimestamp Whether to include the timestamp
@@ -91,7 +100,7 @@ export function drawFooterSection(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.08,
-      rotate: { angle: -30 }
+      rotate: degrees(-30)
     });
   }
 }

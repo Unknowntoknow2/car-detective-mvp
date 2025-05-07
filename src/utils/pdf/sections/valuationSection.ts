@@ -1,3 +1,4 @@
+
 import { PDFPage, PDFFont, rgb } from 'pdf-lib';
 import { ReportData, SectionParams } from '../types';
 import { formatCurrency } from '@/utils/formatters';
@@ -57,16 +58,8 @@ export function drawValuationSection(
     color: rgb(0.3, 0.3, 0.3)
   });
 
-  // Draw the estimated value text
-  // page.drawText(`Estimated Value: ${formatCurrency(data.estimatedValue)}`, {
-  //   x: margin,
-  //   y: currentY,
-  //   size: 18,
-  //   font: boldFont,
-  //   color: rgb(0, 0.5, 0)
-  // });
-
-  let currentY = yPosition - 120; // After value display
+  // Move down after basic details
+  currentY -= 30;
 
   // Add adjustments section if available
   if (data.adjustments && data.adjustments.length > 0) {

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import { useUser } from './useUser';
+import { ValuationWithCondition } from '@/types/dealer';
 
 // This is a simplified structure - expand as needed
 export interface ValuationWithVehicle {
@@ -13,8 +14,8 @@ export interface ValuationWithVehicle {
   year: number;
   mileage: number;
   condition: string;
-  confidence_score: number; // Made non-optional to match ValuationWithCondition
-  condition_score?: number;
+  confidence_score: number;
+  condition_score?: number; // Made optional to match ValuationWithCondition
   is_vin_lookup?: boolean;
   aiCondition?: {
     condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
