@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { validateVIN, VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
-import ErrorMessage from '@/components/ui/ErrorMessage';
 import { AlertCircle } from 'lucide-react';
 
 // Extend the form schema to include VIN
