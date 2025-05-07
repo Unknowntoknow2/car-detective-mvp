@@ -96,7 +96,8 @@ export function convertVehicleInfoToReportData(
     aiSummary: valuationData.aiCondition.aiSummary || ''
   } : null;
 
-  return {
+  // Create the report data object
+  const reportData: ReportData = {
     vin: vehicleInfo.vin,
     make: vehicleInfo.make,
     model: vehicleInfo.model,
@@ -115,10 +116,15 @@ export function convertVehicleInfoToReportData(
     fuelType: valuationData.fuelType || vehicleInfo.fuelType || 'Not Specified',
     explanation: valuationData.explanation || '',
     isPremium: valuationData.isPremium || false,
-    adjustments: valuationData.adjustments || [],
-    aiCondition,
     bestPhotoUrl: valuationData.bestPhotoUrl
   };
+
+  // Add adjustments if provided
+  if (valuationData.adjustments && valuationData.adjustments.length > 0) {
+    reportData.adjustments = valuationData.adjustments;
+  }
+
+  return reportData;
 }
 
 export { generatePdf };

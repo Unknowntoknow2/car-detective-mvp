@@ -50,12 +50,16 @@ export function convertVehicleInfoToReportData(
       aiSummary: options.aiCondition.aiSummary || ''
     } : null,
     bestPhotoUrl: options.bestPhotoUrl,
-    photoExplanation: options.photoExplanation,
-    priceRange: [
-      Math.round((options.estimatedValue || 0) * 0.95),
-      Math.round((options.estimatedValue || 0) * 1.05)
-    ]
+    photoExplanation: options.photoExplanation
   };
+
+  // Add price range
+  if (options.estimatedValue) {
+    reportData.priceRange = [
+      Math.round(options.estimatedValue * 0.95),
+      Math.round(options.estimatedValue * 1.05)
+    ];
+  }
 
   // Add adjustments if provided
   if (options.adjustments && options.adjustments.length > 0) {

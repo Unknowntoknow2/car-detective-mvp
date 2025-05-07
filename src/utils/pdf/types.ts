@@ -24,6 +24,8 @@ export interface ReportData {
   bestPhotoUrl?: string;
   photoScore?: number;
   photoExplanation?: string;
+  adjustments?: Array<{ factor: string, impact: number, description: string }>;
+  priceRange?: [number, number];
   aiCondition?: {
     condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
     confidenceScore: number;

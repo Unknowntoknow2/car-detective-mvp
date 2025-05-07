@@ -90,8 +90,6 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
     constants
   };
   
-  // Add discrete sections
-  
   // Vehicle Information Section
   currentY = await drawVehicleInfoSection(
     page, 
@@ -132,9 +130,14 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
       }
     };
     
-    // Handle async operation correctly
-    currentY = await drawAIConditionSection(conditionParams, aiSectionParams);
-    currentY = currentY - 15;
+    try {
+      // Handle async operation correctly
+      currentY = await drawAIConditionSection(conditionParams, aiSectionParams);
+      currentY = currentY - 15;
+    } catch (error) {
+      console.error("Error drawing AI condition section:", error);
+      // If there's an error, don't update currentY
+    }
   }
   
   // GPT Commentary Section (if available)

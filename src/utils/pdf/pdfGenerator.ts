@@ -95,30 +95,40 @@ export async function generatePdf(
     };
     
     // Use updated parameter structure
-    const updatedYPosition = await drawAIConditionSection(
-      conditionParams, 
-      {
-        page,
-        yPosition,
-        margin,
-        width,
-        fonts: { 
-          regular: regularFont, 
-          bold: boldFont
-        }
+    const aiSectionParams = {
+      page,
+      yPosition,
+      margin,
+      width,
+      fonts: { 
+        regular: regularFont, 
+        bold: boldFont
       }
-    );
+    };
     
-    // Handle async operation correctly
-    yPosition = updatedYPosition;
+    try {
+      // Call the drawAIConditionSection function with proper parameters and await its result
+      const newYPosition = await drawAIConditionSection(
+        conditionParams, 
+        aiSectionParams
+      );
+      
+      // Update yPosition with the returned value
+      yPosition = newYPosition;
+    } catch (error) {
+      console.error("Error drawing AI condition section:", error);
+      // If there's an error, don't update yPosition
+    }
   }
   
   // Add explanation section with updated parameters
-  yPosition = drawExplanationSection(
-    sectionParams,
-    data.explanation || "No explanation available",
-    yPosition
-  );
+  if (data.explanation) {
+    yPosition = drawExplanationSection(
+      sectionParams,
+      data.explanation,
+      yPosition
+    );
+  }
   
   // Add footer with updated parameters
   if (options.includeFooter) {
