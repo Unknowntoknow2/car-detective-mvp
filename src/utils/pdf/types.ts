@@ -17,13 +17,22 @@ export interface ReportData {
   isPremium: boolean;
   valuationId?: string;
   aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
     confidenceScore: number;
-    issuesDetected: string[];
-    aiSummary: string;
+    issuesDetected?: string[];
+    aiSummary?: string;
   } | null;
   bestPhotoUrl?: string;
   photoExplanation?: string;
+  transmission?: string;
+  priceRange?: [number, number];
+  plate?: string;
+  state?: string;
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
 }
 
 export interface ReportOptions {
@@ -33,3 +42,5 @@ export interface ReportOptions {
   includeTimestamp?: boolean;
   includePhotoAssessment?: boolean;
 }
+
+export type ValuationReportOptions = ReportOptions;

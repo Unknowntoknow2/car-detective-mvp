@@ -109,6 +109,33 @@ serve(async (req) => {
       throw new Error(`Failed to store photo score: ${error.message}`);
     }
 
+    // Update the valuation with the best photo and explanation in the data JSONB field
+    if (isBestPhoto) {
+      // First get the current data
+      const { data: valuationData, error: valuationError } = await adminClient
+        .from('valuations')
+        .select('data')
+        .eq('id', valuationId)
+        .single();
+      
+      if (!valuationError) {
+        const currentData = valuationData?.data || {};
+        
+        // Update the data JSONB field
+        await adminClient
+          .from('valuations')
+          .update({
+            data: {
+              ...currentData,
+              best_photo_url: publicUrl,
+              photo_score: score,
+              photo_explanation: explanation
+            }
+          })
+          .eq('id', valuationId);
+      }
+    }
+
     // Return the score, image URL and explanation
     return new Response(
       JSON.stringify({ 

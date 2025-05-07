@@ -31,7 +31,7 @@ export async function generateValuationPdf(params: {
     model: params.vehicle.model,
     year: params.vehicle.year,
     mileage: params.vehicle.mileage?.toString() || '0',
-    condition: params.vehicle.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor' || 'Good',
+    condition: (params.vehicle.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor') || 'Good',
     zipCode: params.vehicle.zipCode || '',
     estimatedValue: params.valuation,
     confidenceScore: 85, // Default value

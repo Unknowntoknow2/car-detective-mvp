@@ -1,101 +1,114 @@
-
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, PDFPage, PDFFont, rgb } from 'pdf-lib';
 import { ReportData } from '../types';
-import { drawTextPair } from '../helpers/pdfHelpers';
-import { drawAIConditionSection } from '../sections/aiConditionSection';
-import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
-import { drawExplanationSection } from '../sections/explanationSection';
 
-export async function generateBasicReport(reportData: ReportData): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage();
-  const { width, height } = page.getSize();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+interface BasicReportGeneratorProps {
+  pdfDoc: PDFDocument;
+  page: PDFPage;
+  width: number;
+  height: number;
+  margin: number;
+  regularFont: PDFFont;
+  boldFont: PDFFont;
+  reportData: ReportData;
+}
 
-  const primaryColor = rgb(0.12, 0.46, 0.70);
-  const margin = 50;
-  let yPosition = height - margin;
+/**
+ * Generates a basic PDF report with key valuation details
+ */
+export async function generateBasicReport(props: BasicReportGeneratorProps): Promise<void> {
+  const { pdfDoc, page, width, height, margin, regularFont, boldFont, reportData } = props;
+  let currentY = height - margin;
 
-  // Add premium indicator
-  if (reportData.isPremium) {
-    page.drawText('PREMIUM REPORT', {
-      x: width - 150,
-      y: height - margin,
-      size: 12,
-      font: boldFont,
-      color: rgb(0.8, 0.2, 0.2),
-    });
-  }
-
-  // Draw title
+  // Add header
   page.drawText('Vehicle Valuation Report', {
     x: margin,
-    y: height - margin,
-    size: 24,
+    y: currentY,
+    size: 18,
     font: boldFont,
-    color: primaryColor,
+    color: rgb(0.1, 0.1, 0.1)
   });
+  currentY -= 20;
 
-  yPosition -= 50;
+  // Add vehicle details
+  page.drawText(`Vehicle: ${reportData.year} ${reportData.make} ${reportData.model}`, {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: regularFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+  currentY -= 15;
 
-  // Draw vehicle information section
-  yPosition = drawVehicleInfoSection(
-    page, 
-    reportData, 
-    yPosition, 
-    { regular: font, bold: boldFont }, 
-    { 
-      margin, 
-      width, 
-      height,
-      titleFontSize: 24,
-      headingFontSize: 16,
-      normalFontSize: 12,
-      smallFontSize: 10
+  page.drawText(`VIN: ${reportData.vin}`, {
+    x: margin,
+    y: currentY,
+    size: 10,
+    font: regularFont,
+    color: rgb(0.5, 0.5, 0.5)
+  });
+  currentY -= 15;
+
+  // Add valuation details
+  page.drawText(`Estimated Value: $${reportData.estimatedValue}`, {
+    x: margin,
+    y: currentY,
+    size: 14,
+    font: boldFont,
+    color: rgb(0.2, 0.7, 0.2)
+  });
+  currentY -= 20;
+
+  // Add explanation
+  const explanationLines = wrapText(reportData.explanation, regularFont, 10, width - margin * 2);
+  page.drawText('Explanation:', {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: boldFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+  currentY -= 15;
+
+  for (const line of explanationLines) {
+    page.drawText(line, {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    currentY -= 12;
+  }
+}
+
+/**
+ * Wraps text to fit within a given width
+ */
+function wrapText(
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  maxWidth: number
+): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const width = font.widthOfTextAtSize(testLine, fontSize);
+
+    if (width <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
     }
-  );
-  
-  // Add AI Condition Assessment section if available
-  if (reportData.aiCondition) {
-    yPosition -= 20;
-    
-    yPosition = drawAIConditionSection(
-      reportData.aiCondition,
-      {
-        page,
-        yPosition,
-        margin,
-        width,
-        fonts: {
-          regular: font,
-          bold: boldFont,
-          italic: italicFont
-        }
-      }
-    );
   }
 
-  // Add explanation if available
-  yPosition = drawExplanationSection(
-    reportData.explanation,
-    page,
-    yPosition,
-    margin,
-    { regular: font, bold: boldFont },
-    primaryColor
-  );
+  if (currentLine) {
+    lines.push(currentLine);
+  }
 
-  // Add disclaimer
-  yPosition -= 30;
-  page.drawText('Disclaimer: This valuation is for informational purposes only.', {
-    x: margin,
-    y: yPosition,
-    size: 10,
-    font,
-    color: rgb(0.6, 0.6, 0.6),
-  });
-
-  return pdfDoc.save();
+  return lines;
 }

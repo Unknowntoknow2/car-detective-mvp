@@ -1,124 +1,86 @@
-
 import { useState, useEffect } from 'react';
-import { getListingsWithCondition, getListingsCount, ConditionFilterOption } from '@/utils/getListingsWithCondition';
-import { downloadPdf } from '@/utils/pdf';
-import { toast } from 'sonner';
-import { ValuationWithCondition } from '@/types/dealer';
-import { convertVehicleInfoToReportData } from '@/utils/pdf/index';
+import { supabase } from '@/integrations/supabase/client';
+import { ReportData } from '@/utils/pdf/types';
 
-// Define a type for AIConditionData to prevent conflicts
-type AIConditionData = {
+interface Valuation {
+  id: string;
+  created_at: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
   condition: string;
-  confidenceScore: number;
-  issuesDetected?: string[];
-  aiSummary?: string;
-};
-
-// Add a type definition for ValuationWithCondition that includes explanation
-declare module '@/types/dealer' {
-  interface ValuationWithCondition {
-    explanation?: string;
-    // Add other potentially missing fields
-    vin?: string;
-    make: string;
-    model: string;
-    year: number;
-    mileage?: number;
-    condition?: string;
-    estimated_value: number;
-    confidence_score: number;
-    color?: string;
-    body_type?: string;
-    fuel_type?: string;
-    zip_code?: string;
-    aiCondition?: AIConditionData;
-  }
+  estimated_value: number;
+  data: any; // JSONB data
 }
 
-export function useDealerValuations() {
-  const [valuations, setValuations] = useState<ValuationWithCondition[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [conditionFilter, setConditionFilter] = useState<ConditionFilterOption>('all');
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+interface UseDealerValuationsResult {
+  valuations: ReportData[];
+  loading: boolean;
+  error: Error | null;
+}
 
-  const fetchValuations = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const [valuesData, count] = await Promise.all([
-        getListingsWithCondition(conditionFilter, pageSize, currentPage),
-        getListingsCount(conditionFilter)
-      ]);
-      
-      setValuations(valuesData);
-      setTotalCount(count);
-    } catch (err) {
-      console.error('Error fetching dealer valuations:', err);
-      setError('Failed to load vehicle valuations');
-      toast.error('Failed to load vehicle valuations');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+export function useDealerValuations(dealerId: string): UseDealerValuationsResult {
+  const [valuations, setValuations] = useState<ReportData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    const fetchValuations = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data, error } = await supabase
+          .from<Valuation>('valuations')
+          .select('*')
+          .eq('dealer_id', dealerId);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data) {
+          const reportData: ReportData[] = data.map(valuation => ({
+            vin: valuation.data?.vin || 'Unknown',
+            make: valuation.make,
+            model: valuation.model,
+            year: valuation.year,
+            mileage: valuation.mileage.toString(),
+            condition: (valuation.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor'),
+            zipCode: valuation.data?.zipCode || '',
+            estimatedValue: valuation.estimated_value,
+            confidenceScore: valuation.data?.confidence_score || 75,
+            color: valuation.data?.color || 'Not Specified',
+            bodyStyle: valuation.data?.bodyStyle || 'Not Specified',
+            bodyType: valuation.data?.bodyType || 'Not Specified',
+            fuelType: valuation.data?.fuelType || 'Not Specified',
+            explanation: valuation.data?.explanation || 'No explanation available.',
+            isPremium: valuation.data?.isPremium || false,
+            valuationId: valuation.id,
+            aiCondition: valuation.data?.aiCondition || null,
+            bestPhotoUrl: valuation.data?.bestPhotoUrl || null,
+            photoExplanation: valuation.data?.photoExplanation || null,
+            transmission: valuation.data?.transmission || 'Not Specified',
+            priceRange: valuation.data?.priceRange || [
+              Math.round(valuation.estimated_value * 0.95),
+              Math.round(valuation.estimated_value * 1.05)
+            ],
+            plate: valuation.data?.plate || 'Not Specified',
+            state: valuation.data?.state || 'Not Specified',
+            adjustments: valuation.data?.adjustments || []
+          }));
+          setValuations(reportData);
+        }
+      } catch (err: any) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchValuations();
-  }, [conditionFilter, currentPage, pageSize]);
+  }, [dealerId]);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleConditionFilterChange = (filter: ConditionFilterOption) => {
-    setConditionFilter(filter);
-    setCurrentPage(1); // Reset to first page when filter changes
-  };
-
-  const handleDownloadReport = async (valuation: ValuationWithCondition) => {
-    try {
-      toast.success('Generating PDF report...');
-      
-      // Convert the ValuationWithCondition to the ReportData format expected by downloadPdf
-      const reportData = {
-        vin: valuation.vin || 'Unknown',
-        make: valuation.make,
-        model: valuation.model,
-        year: valuation.year,
-        mileage: valuation.mileage?.toString() || '0',
-        condition: valuation.aiCondition?.condition || valuation.condition || 'Not Specified',
-        zipCode: valuation.zip_code || '',
-        estimatedValue: valuation.estimated_value,
-        confidenceScore: valuation.aiCondition?.confidenceScore || valuation.confidence_score,
-        color: valuation.color || 'Unknown',
-        bodyStyle: valuation.body_type || 'Unknown',
-        bodyType: valuation.body_type || 'Unknown',
-        fuelType: valuation.fuel_type || '',
-        explanation: valuation.explanation || 'No additional information available for this vehicle.',
-        isPremium: false
-      };
-      
-      await downloadPdf(reportData);
-    } catch (err) {
-      console.error('Error downloading report:', err);
-      toast.error('Failed to download report');
-    }
-  };
-
-  return {
-    valuations,
-    isLoading,
-    error,
-    totalCount,
-    currentPage,
-    pageSize,
-    conditionFilter,
-    handlePageChange,
-    handleConditionFilterChange,
-    handleDownloadReport,
-    refreshValuations: fetchValuations
-  };
+  return { valuations, loading, error };
 }

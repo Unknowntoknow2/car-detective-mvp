@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, PhotoScore } from '@/types/photo';
 
@@ -179,8 +178,12 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
       // Continue anyway as the database record is gone
     }
     
-    // If this was the best photo, update the valuation with new best photo
-    if (photoData.is_primary) {
+    // Fix the is_primary property check with proper fallback
+    const isPrimaryPhoto = photoData.is_primary || 
+                           photoData.metadata?.isPrimary || 
+                           false;
+                           
+    if (isPrimaryPhoto) {
       // Find the new best photo
       const { data: remainingPhotos, error: remainingError } = await supabase
         .from('valuation_photos')
@@ -210,6 +213,11 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
           .eq('id', valuationId);
       }
     }
+    
+    // Fix explanation property access by using null coalescence
+    const photoExplanation = photoData.explanation || 
+                             photoData.metadata?.explanation || 
+                             null;
   } catch (err) {
     console.error('Error in deletePhoto:', err);
     throw err;

@@ -1,194 +1,113 @@
 
-import { AICondition } from '@/types/photo';
-import { PDFPage, PDFFont, rgb } from 'pdf-lib';
-import { drawSectionHeading, drawHorizontalLine } from '../components/pdfCommon';
+import { PDFDocument, PDFPage, PDFFont, rgb } from 'pdf-lib';
+import { ReportData } from '../types';
 
-interface AIConditionSectionParams {
-  page: PDFPage;
+interface AIConditionSectionProps {
   yPosition: number;
-  margin: number;
   width: number;
-  fonts: {
-    regular: PDFFont;
-    bold: PDFFont;
-    italic: PDFFont;
-  };
+  margin: number;
+  regularFont: PDFFont;
+  boldFont: PDFFont;
+  data: ReportData;
 }
 
+/**
+ * Draws the AI condition assessment section with photo in the PDF
+ * @returns The new vertical position after drawing the section
+ */
 export async function drawAIConditionSection(
-  aiCondition: AICondition,
-  params: AIConditionSectionParams
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  props: AIConditionSectionProps
 ): Promise<number> {
-  const { page, yPosition, margin, width, fonts } = params;
-  const { regular, bold, italic } = fonts;
-  
-  // Start position
+  const { yPosition, width, margin, regularFont, boldFont, data } = props;
   let currentY = yPosition;
   
-  // Section heading
-  currentY = drawSectionHeading(
-    page,
-    'AI Condition Assessment',
-    currentY,
-    margin,
-    fonts.bold,
-    16
-  );
-  currentY -= 15;
-  
-  // Condition score
-  const conditionText = aiCondition.condition || 'Unknown';
-  page.drawText('Vehicle Condition:', {
+  // Section title
+  page.drawText('AI Photo Assessment', {
     x: margin,
     y: currentY,
-    size: 11,
-    font: bold,
-    color: rgb(0.2, 0.2, 0.2)
-  });
-  
-  // Determine text color based on condition
-  let conditionColor = rgb(0.2, 0.2, 0.2); // Default color
-  
-  switch (aiCondition.condition) {
-    case 'Excellent':
-      conditionColor = rgb(0.1, 0.6, 0.1); // Green
-      break;
-    case 'Good':
-      conditionColor = rgb(0.1, 0.4, 0.7); // Blue
-      break;
-    case 'Fair':
-      conditionColor = rgb(0.9, 0.6, 0.1); // Orange/Amber
-      break;
-    case 'Poor':
-      conditionColor = rgb(0.8, 0.2, 0.2); // Red
-      break;
-  }
-  
-  // Draw the condition text
-  page.drawText(conditionText, {
-    x: margin + 120,
-    y: currentY,
-    size: 11,
-    font: bold,
-    color: conditionColor
+    size: 14,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1)
   });
   
   currentY -= 20;
   
-  // Confidence score
-  page.drawText('Confidence Score:', {
-    x: margin,
-    y: currentY,
-    size: 11,
-    font: regular,
-    color: rgb(0.2, 0.2, 0.2)
-  });
-  
-  page.drawText(`${aiCondition.confidenceScore}%`, {
-    x: margin + 120,
-    y: currentY,
-    size: 11,
-    font: regular,
-    color: rgb(0.2, 0.2, 0.2)
-  });
-  
-  currentY -= 30;
-  
-  // AI Summary
-  if (aiCondition.aiSummary) {
-    page.drawText('Assessment Summary:', {
+  // If there's a photo explanation, add it
+  if (data.photoExplanation) {
+    const explanationLines = wrapText(
+      data.photoExplanation,
+      regularFont,
+      10,
+      width - margin * 2
+    );
+    
+    page.drawText('AI Observation:', {
       x: margin,
       y: currentY,
-      size: 11,
-      font: bold,
-      color: rgb(0.2, 0.2, 0.2)
+      size: 10,
+      font: boldFont,
+      color: rgb(0.3, 0.3, 0.3)
     });
     
-    currentY -= 20;
+    currentY -= 15;
     
-    // Draw the summary text - word wrapping would need to be implemented
-    const maxWidth = width - (margin * 2);
-    const words = aiCondition.aiSummary.split(' ');
-    let line = '';
-    const lineHeight = 15;
-    
-    for (const word of words) {
-      const testLine = line + (line ? ' ' : '') + word;
-      const textWidth = regular.widthOfTextAtSize(testLine, 10);
-      
-      if (textWidth > maxWidth && line) {
-        page.drawText(line, {
-          x: margin,
-          y: currentY,
-          size: 10,
-          font: regular,
-          color: rgb(0.3, 0.3, 0.3)
-        });
-        
-        line = word;
-        currentY -= lineHeight;
-      } else {
-        line = testLine;
-      }
-    }
-    
-    // Draw the last line
-    if (line) {
+    for (const line of explanationLines) {
       page.drawText(line, {
         x: margin,
         y: currentY,
         size: 10,
-        font: regular,
+        font: regularFont,
         color: rgb(0.3, 0.3, 0.3)
       });
-      
-      currentY -= lineHeight;
+      currentY -= 12;
     }
-    
-    currentY -= 15;
   }
   
-  // Issues detected
-  if (aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0) {
-    page.drawText('Issues Detected:', {
-      x: margin,
-      y: currentY,
-      size: 11,
-      font: bold,
-      color: rgb(0.2, 0.2, 0.2)
-    });
+  currentY -= 15;
+  
+  // Add a line to separate this section
+  page.drawLine({
+    start: { x: margin, y: currentY },
+    end: { x: width - margin, y: currentY },
+    thickness: 1,
+    color: rgb(0.8, 0.8, 0.8)
+  });
+  
+  currentY -= 15;
+  
+  return currentY;
+}
+
+/**
+ * Wraps text to fit within a given width
+ */
+function wrapText(
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  maxWidth: number
+): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const width = font.widthOfTextAtSize(testLine, fontSize);
     
-    currentY -= 20;
-    
-    // Draw each issue as a bullet point
-    for (const issue of aiCondition.issuesDetected) {
-      // Draw bullet
-      page.drawText('•', {
-        x: margin,
-        y: currentY,
-        size: 10,
-        font: regular,
-        color: rgb(0.8, 0.4, 0.1)
-      });
-      
-      // Draw issue text
-      page.drawText(issue, {
-        x: margin + 15,
-        y: currentY,
-        size: 10,
-        font: regular,
-        color: rgb(0.3, 0.3, 0.3)
-      });
-      
-      currentY -= 15;
+    if (width <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
     }
-    
-    currentY -= 10;
   }
   
-  // Draw a line at the bottom of the section
-  drawHorizontalLine(page, margin, width - margin, currentY);
+  if (currentLine) {
+    lines.push(currentLine);
+  }
   
-  // Return the new Y position
-  return currentY - 10;
+  return lines;
 }

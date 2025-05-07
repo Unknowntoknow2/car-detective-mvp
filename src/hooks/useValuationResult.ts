@@ -60,6 +60,9 @@ export function useValuationResult(valuationId: string) {
         throw new Error('Valuation not found');
       }
 
+      // Extract data from JSONB field or use defaults
+      const jsonData = valuationData.data || {};
+
       // Transform the Supabase data to our expected format
       const transformedData: ValuationData = {
         id: valuationData.id,
@@ -67,8 +70,9 @@ export function useValuationResult(valuationId: string) {
         model: valuationData.model || '',
         year: valuationData.year || 0,
         mileage: valuationData.mileage || 0,
-        // Use condition_score as a fallback if condition doesn't exist
-        condition: valuationData.condition || (valuationData.condition_score ? 
+        // Use condition from data JSONB field if available, otherwise derive from condition_score
+        condition: jsonData.condition || valuationData.condition || 
+                  (valuationData.condition_score ? 
                     (valuationData.condition_score >= 90 ? 'Excellent' : 
                      valuationData.condition_score >= 75 ? 'Good' : 
                      valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
@@ -80,7 +84,7 @@ export function useValuationResult(valuationId: string) {
           Math.round((valuationData.estimated_value || 0) * 0.95),
           Math.round((valuationData.estimated_value || 0) * 1.05)
         ],
-        adjustments: [
+        adjustments: jsonData.adjustments || [
           { 
             factor: 'Base Condition', 
             impact: 0, 
@@ -94,16 +98,18 @@ export function useValuationResult(valuationId: string) {
         ],
         createdAt: valuationData.created_at,
         isPremium: valuationData.premium_unlocked || false,
-        // Add additional properties with proper fallbacks
-        color: valuationData.color || '',
-        bodyStyle: valuationData.body_style || '',
-        bodyType: valuationData.body_type || '',
-        fuelType: valuationData.fuel_type || '',
-        explanation: valuationData.explanation || '',
-        transmission: valuationData.transmission || '',
-        bestPhotoUrl: valuationData.best_photo_url || null,
-        photoScore: valuationData.photo_score || null,
-        photoExplanation: valuationData.photo_explanation || null
+        
+        // Extract additional properties from JSONB data field with proper fallbacks
+        color: valuationData.color || jsonData.color || '',
+        bodyStyle: valuationData.body_style || jsonData.body_style || '',
+        bodyType: valuationData.body_type || jsonData.body_type || '',
+        fuelType: jsonData.fuel_type || '',
+        explanation: jsonData.explanation || '',
+        transmission: jsonData.transmission || '',
+        bestPhotoUrl: jsonData.best_photo_url || null,
+        photoScore: jsonData.photo_score || null,
+        photoExplanation: jsonData.photo_explanation || null,
+        aiCondition: jsonData.ai_condition || null
       };
 
       setData(transformedData);

@@ -1,77 +1,66 @@
 
-import { PlateLookupInfo } from '@/types/lookup';
-import type { DecodedVehicleInfo } from '@/types/vehicle';
-import { ReportData, ValuationReportOptions } from './types';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+import { AICondition } from '@/types/photo';
+import { ReportData, ReportOptions } from './types';
 
+/**
+ * Converts vehicle information to PDF report data format
+ */
 export function convertVehicleInfoToReportData(
-  vehicle: Partial<DecodedVehicleInfo | PlateLookupInfo>, 
-  valuationData?: ValuationReportOptions
+  vehicle: DecodedVehicleInfo,
+  options: {
+    mileage?: number;
+    estimatedValue?: number;
+    condition?: string;
+    zipCode?: string;
+    confidenceScore?: number;
+    adjustments?: {
+      factor: string;
+      impact: number;
+      description: string;
+    }[];
+    aiCondition?: AICondition | null;
+    isPremium?: boolean;
+    bestPhotoUrl?: string;
+    photoExplanation?: string;
+  } = {}
 ): ReportData {
-  const defaultData = {
-    mileage: "Unknown",
-    estimatedValue: 0,
-    confidenceScore: 0,
-    condition: "Not Specified",
-    fuelType: "Not Specified",
-    zipCode: "Not Available",
-    adjustments: [],
-    explanation: "No additional information available for this vehicle."
+  // Extract values with fallbacks
+  const reportData: ReportData = {
+    vin: vehicle.vin || 'Unknown',
+    make: vehicle.make || '',
+    model: vehicle.model || '',
+    year: vehicle.year || 0,
+    mileage: options.mileage?.toString() || vehicle.mileage?.toString() || '0',
+    condition: (options.condition || vehicle.condition || 'Good') as 'Excellent' | 'Good' | 'Fair' | 'Poor',
+    zipCode: options.zipCode || vehicle.zipCode || '',
+    estimatedValue: options.estimatedValue || 0,
+    confidenceScore: options.confidenceScore || 85,
+    color: vehicle.color || 'Not Specified',
+    bodyStyle: vehicle.bodyType || 'Not Specified',
+    bodyType: vehicle.bodyType || 'Not Specified',
+    fuelType: vehicle.fuelType || 'Not Specified',
+    explanation: 'Generated using AI-powered market data analysis',
+    isPremium: options.isPremium || false,
+    transmission: vehicle.transmission || 'Not Specified',
+    aiCondition: options.aiCondition ? {
+      condition: options.aiCondition.condition || 'Good',
+      confidenceScore: options.aiCondition.confidenceScore || 80,
+      issuesDetected: options.aiCondition.issuesDetected || [],
+      aiSummary: options.aiCondition.aiSummary || ''
+    } : null,
+    bestPhotoUrl: options.bestPhotoUrl,
+    photoExplanation: options.photoExplanation,
+    priceRange: [
+      Math.round((options.estimatedValue || 0) * 0.95),
+      Math.round((options.estimatedValue || 0) * 1.05)
+    ]
   };
 
-  const mergedData = { ...defaultData, ...valuationData };
-
-  const baseReportData: ReportData = {
-    vin: 'Unknown',
-    make: vehicle.make || 'Unknown',
-    model: vehicle.model || 'Unknown',
-    year: typeof vehicle.year === 'string' ? parseInt(vehicle.year, 10) : (vehicle.year || 0),
-    mileage: mergedData.mileage?.toString() || "Unknown",
-    estimatedValue: typeof mergedData.estimatedValue === 'number' ? mergedData.estimatedValue : 0,
-    condition: mergedData.condition || "Not Specified",
-    fuelType: mergedData.fuelType || "Not Specified",
-    zipCode: mergedData.zipCode || "Not Available",
-    confidenceScore: mergedData.confidenceScore || 0,
-    adjustments: mergedData.adjustments || [],
-    color: 'Not Specified',
-    bodyStyle: 'Not Specified',
-    bodyType: 'Not Specified',
-    explanation: mergedData.explanation || defaultData.explanation,
-    isPremium: !!mergedData.isPremium,
-    aiCondition: mergedData.aiCondition || null
-  };
-
-  if ('vin' in vehicle && vehicle.vin) {
-    baseReportData.vin = vehicle.vin;
+  // Add adjustments if provided
+  if (options.adjustments && options.adjustments.length > 0) {
+    reportData.adjustments = options.adjustments;
   }
 
-  if ('plate' in vehicle && vehicle.plate) {
-    baseReportData.plate = vehicle.plate;
-  }
-
-  if ('state' in vehicle && vehicle.state) {
-    baseReportData.state = vehicle.state;
-  }
-
-  if ('color' in vehicle && vehicle.color) {
-    baseReportData.color = vehicle.color;
-  }
-
-  if ('transmission' in vehicle && vehicle.transmission) {
-    baseReportData.transmission = vehicle.transmission;
-  }
-
-  if ('bodyType' in vehicle && vehicle.bodyType) {
-    baseReportData.bodyStyle = vehicle.bodyType; // Set bodyStyle
-    baseReportData.bodyType = vehicle.bodyType; // Keep bodyType for backward compatibility
-  }
-
-  if (mergedData.bestPhotoUrl) {
-    baseReportData.bestPhotoUrl = mergedData.bestPhotoUrl;
-  }
-
-  return baseReportData;
+  return reportData;
 }
-
-export default {
-  convertVehicleInfoToReportData
-};

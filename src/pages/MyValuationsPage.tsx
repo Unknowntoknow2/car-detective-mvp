@@ -68,7 +68,7 @@ export default function MyValuationsPage() {
       plate: valuation.plate || '',
       state: valuation.state || '',
       mileage: valuation.mileage?.toString() || '0',
-      condition: valuation.condition || 'Not Specified',
+      condition: (valuation.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor') || 'Good',
       zipCode: valuation.state || 'Not Available',
       estimatedValue: valuation.estimated_value || valuation.valuation || 0,
       confidenceScore: valuation.confidence_score || 0,
