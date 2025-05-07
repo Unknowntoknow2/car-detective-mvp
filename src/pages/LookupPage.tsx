@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { VinLookupForm } from '@/components/lookup/vin/VinLookupForm';
-import { PlateDecoderForm } from '@/components/lookup/PlateDecoderForm';
-import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
+import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 
 const LookupPage: React.FC = () => {
   return (

@@ -13,8 +13,10 @@ export class AccidentCalculator implements AdjustmentCalculator {
     const adjustment = input.basePrice * rule.percent;
     
     return {
-      name: 'Accident History',
-      value: Math.round(adjustment),
+      factor: 'Accident History',
+      impact: Math.round(adjustment),
+      name: 'Accident History', // For backward compatibility
+      value: Math.round(adjustment), // For backward compatibility
       description: `Vehicle has ${input.accidentCount} reported accident${input.accidentCount > 1 ? 's' : ''}`,
       percentAdjustment: rule.percent
     };

@@ -1,10 +1,11 @@
+
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
 import { ValuationAuditTrail } from './ValuationAuditTrail';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ValuationHeader, NextStepsCard } from './valuation-complete';
 import { calculateFinalValuation } from '@/utils/valuationEngine';
@@ -48,7 +49,8 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   useEffect(() => {
     const loadPhotoAssessment = async () => {
       try {
-        const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId);
+        // Pass an empty object as the second parameter
+        const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId, {});
         
         if (aiCondition) {
           setAiCondition(aiCondition);

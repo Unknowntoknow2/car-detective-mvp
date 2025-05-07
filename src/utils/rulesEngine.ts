@@ -1,5 +1,6 @@
 
-import { RulesEngine as RulesEngineImplementation, AdjustmentBreakdown } from './rules/RulesEngine';
+import { RulesEngine as RulesEngineImplementation } from './rules/RulesEngine';
+import { AdjustmentBreakdown } from './rules/types';
 
 // Create and export an instance of the rules engine
 export const RulesEngine = RulesEngineImplementation;

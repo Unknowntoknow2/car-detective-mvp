@@ -25,10 +25,10 @@ export function convertNewAdjustmentsToLegacyFormat(
   }[]
 ): AdjustmentBreakdown[] {
   return adjustments.map(adj => ({
-    name: adj.factor,
     factor: adj.factor,
     impact: adj.impact,
-    value: adj.impact,
+    name: adj.factor, // Include legacy field
+    value: adj.impact, // Include legacy field
     description: adj.description || `Adjustment based on ${adj.factor}`,
     percentAdjustment: adj.impact
   }));
@@ -42,8 +42,8 @@ export function convertLegacyAdjustmentsToNewFormat(
   description: string;
 }[] {
   return adjustments.map(adj => ({
-    factor: adj.name,
-    impact: adj.percentAdjustment,
+    factor: adj.factor || adj.name || '',
+    impact: adj.impact || adj.value || 0,
     description: adj.description
   }));
 }

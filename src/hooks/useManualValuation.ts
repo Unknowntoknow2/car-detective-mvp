@@ -1,7 +1,8 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { calculateFinalValuation } from '@/utils/valuationEngine';
-import type { AdjustmentBreakdown } from '@/utils/rulesEngine';
+import type { AdjustmentBreakdown } from '@/utils/rules/types';
 
 export type ManualVehicleInfo = {
   make: string;
@@ -30,6 +31,7 @@ export function useManualValuation() {
     setError(null);
     
     try {
+      // Pass an empty object as the second parameter for options
       const result = await calculateFinalValuation({
         make: data.make,
         model: data.model,
@@ -40,7 +42,7 @@ export function useManualValuation() {
         trim: data.trim,
         accidentCount: data.accidentCount,
         premiumFeatures: data.premiumFeatures
-      });
+      }, {});
       
       const valuationResult: ManualVehicleInfo = {
         ...data,

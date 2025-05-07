@@ -48,6 +48,8 @@ export class RulesEngine {
             auditTrail.push({
               factor: rule.name,
               impact: consequence.impact,
+              name: rule.name, // For backward compatibility
+              value: consequence.impact, // For backward compatibility
               description: rule.description || ''
             });
           }
@@ -64,4 +66,5 @@ export class RulesEngine {
   }
 }
 
-export { AdjustmentBreakdown };
+// Use 'export type' for re-exporting types to avoid isolatedModules error
+export type { AdjustmentBreakdown };
