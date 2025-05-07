@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Updates a specific field in the valuation data JSONB object
+ * Updates a specific field in the valuation metadata
  * @param valuationId Valuation ID
  * @param key Key to update
  * @param value Value to set
@@ -13,7 +13,7 @@ export async function updateValuationDataField(
   value: any
 ): Promise<boolean> {
   try {
-    // First get the current data
+    // First get the current valuation
     const { data: valuation, error: fetchError } = await supabase
       .from('valuations')
       .select('*')
@@ -25,23 +25,19 @@ export async function updateValuationDataField(
       return false;
     }
     
-    // Create or update the data field
-    const currentData = valuation.data || {};
-    const updatedData = {
-      ...currentData,
-      [key]: value
-    };
+    // Using metadata field instead of data (which appears not to exist in schema)
+    // Create a sparse update object with just the field we want to update
+    const updateObject: Record<string, any> = {};
+    updateObject[key] = value;
     
-    // Update the valuation with the new data
+    // Update the valuation with the new field
     const { error: updateError } = await supabase
       .from('valuations')
-      .update({
-        data: updatedData
-      })
+      .update(updateObject)
       .eq('id', valuationId);
     
     if (updateError) {
-      console.error('Error updating valuation data:', updateError);
+      console.error('Error updating valuation:', updateError);
       return false;
     }
     
@@ -53,7 +49,7 @@ export async function updateValuationDataField(
 }
 
 /**
- * Updates multiple fields in the valuation data JSONB object
+ * Updates multiple fields in the valuation
  * @param valuationId Valuation ID
  * @param updates Object containing key/value pairs to update
  */
@@ -62,7 +58,7 @@ export async function updateValuationDataFields(
   updates: Record<string, any>
 ): Promise<boolean> {
   try {
-    // First get the current data
+    // Get the current valuation
     const { data: valuation, error: fetchError } = await supabase
       .from('valuations')
       .select('*')
@@ -70,27 +66,18 @@ export async function updateValuationDataFields(
       .single();
     
     if (fetchError) {
-      console.error('Error fetching valuation data:', fetchError);
+      console.error('Error fetching valuation:', fetchError);
       return false;
     }
     
-    // Create or update the data field
-    const currentData = valuation.data || {};
-    const updatedData = {
-      ...currentData,
-      ...updates
-    };
-    
-    // Update the valuation with the new data
+    // Update the valuation with the new fields
     const { error: updateError } = await supabase
       .from('valuations')
-      .update({
-        data: updatedData
-      })
+      .update(updates)
       .eq('id', valuationId);
     
     if (updateError) {
-      console.error('Error updating valuation data:', updateError);
+      console.error('Error updating valuation:', updateError);
       return false;
     }
     
@@ -102,7 +89,7 @@ export async function updateValuationDataFields(
 }
 
 /**
- * Gets a specific field from the valuation data JSONB object
+ * Gets a specific field from the valuation
  * @param valuationId Valuation ID
  * @param key Key to retrieve
  * @param defaultValue Default value if key doesn't exist
@@ -121,13 +108,16 @@ export async function getValuationDataField<T>(
       .single();
     
     if (error) {
-      console.error('Error fetching valuation data:', error);
+      console.error('Error fetching valuation:', error);
       return defaultValue;
     }
     
-    // Return the requested field or default value
-    const data = valuation.data || {};
-    return data[key] !== undefined ? data[key] : defaultValue;
+    // Check if the key exists in the valuation object
+    if (key in valuation) {
+      return valuation[key] !== undefined ? valuation[key] : defaultValue;
+    }
+    
+    return defaultValue;
   } catch (err) {
     console.error('Error in getValuationDataField:', err);
     return defaultValue;

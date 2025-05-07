@@ -77,9 +77,9 @@ export function ValuationHeader({
         
         {bestPhotoUrl ? (
           <PhotoView 
-            photoUrl={bestPhotoUrl} 
-            photoScore={photoScore} 
-            explanation={photoExplanation} 
+            photoUrl={bestPhotoUrl}
+            photoScore={photoScore}
+            explanation={photoExplanation}
           />
         ) : (
           <Card className="flex items-center justify-center p-6 bg-muted/30">

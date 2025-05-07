@@ -112,27 +112,17 @@ export async function uploadAndScorePhotos(
     
     // Update the valuation with the best photo and score
     if (bestPhoto) {
-      // Use JSON data field to store photo information
-      const { data: currentData, error: getError } = await supabase
-        .from('valuations')
-        .select('data')
-        .eq('id', valuationId)
-        .single();
-      
-      // Prepare the new data object
-      const updatedData = {
-        ...((currentData && currentData.data) || {}),
+      // Create update object with the photo information
+      const updateData = {
         best_photo_url: bestPhoto.url,
         photo_score: bestPhoto.score,
         photo_explanation: bestPhoto.explanation
       };
       
-      // Update the valuation record
+      // Update the valuation record with the best photo info
       await supabase
         .from('valuations')
-        .update({
-          data: updatedData
-        })
+        .update(updateData)
         .eq('id', valuationId);
     }
     
@@ -193,10 +183,16 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
       // Continue anyway as the database record is gone
     }
     
-    // Determine if this was the primary photo
-    const isPrimaryPhoto = false; // Default to false since property doesn't exist
+    // Check if this is the primary photo by fetching the valuation
+    const { data: valuation } = await supabase
+      .from('valuations')
+      .select('best_photo_url')
+      .eq('id', valuationId)
+      .single();
     
-    // Get current valuation data
+    const isPrimaryPhoto = valuation?.best_photo_url === photoData.photo_url;
+    
+    // If this was the primary photo, find a new best photo
     if (isPrimaryPhoto) {
       // Find the new best photo
       const { data: remainingPhotos, error: remainingError } = await supabase
@@ -207,49 +203,23 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
         .limit(1);
         
       if (!remainingError && remainingPhotos && remainingPhotos.length > 0) {
-        // Get current data
-        const { data: currentData } = await supabase
-          .from('valuations')
-          .select('data')
-          .eq('id', valuationId)
-          .single();
-          
         // Update the valuation with the new best photo
-        const updatedData = {
-          ...((currentData && currentData.data) || {}),
-          best_photo_url: remainingPhotos[0].photo_url,
-          photo_score: remainingPhotos[0].score,
-          photo_explanation: null
-        };
-        
         await supabase
           .from('valuations')
           .update({
-            data: updatedData
+            best_photo_url: remainingPhotos[0].photo_url,
+            photo_score: remainingPhotos[0].score,
+            photo_explanation: null
           })
           .eq('id', valuationId);
       } else {
         // No photos left, clear the best photo
-        const { data: currentData } = await supabase
-          .from('valuations')
-          .select('data')
-          .eq('id', valuationId)
-          .single();
-          
-        // Update to remove photo data
-        const updatedData = {
-          ...((currentData && currentData.data) || {})
-        };
-        
-        // Remove photo-related fields
-        delete updatedData.best_photo_url;
-        delete updatedData.photo_score;
-        delete updatedData.photo_explanation;
-        
         await supabase
           .from('valuations')
           .update({
-            data: updatedData
+            best_photo_url: null,
+            photo_score: null,
+            photo_explanation: null
           })
           .eq('id', valuationId);
       }

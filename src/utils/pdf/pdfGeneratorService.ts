@@ -86,54 +86,59 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   // Add discrete sections
   
   // Vehicle Information Section
-  const vehicleInfoY = await drawVehicleInfoSection(
+  currentY = await drawVehicleInfoSection(
     page, 
     reportData, 
     currentY, 
     fonts, 
     constants
   );
-  currentY = vehicleInfoY - 15;
+  currentY = currentY - 15;
   
   // Valuation Section
-  const valuationY = await drawValuationSection(
+  currentY = await drawValuationSection(
     page, 
     reportData, 
     currentY, 
     fonts, 
     constants
   );
-  currentY = valuationY - 20;
+  currentY = currentY - 20;
   
   // AI Condition Section (if available)
   if (reportData.aiCondition) {
-    const aiConditionY = await drawAIConditionSection(
-      reportData.aiCondition,
-      {
-        page,
-        yPosition: currentY,
-        margin,
-        width,
-        fonts: { 
-          regular, 
-          bold, 
-          italic: regular // Fallback when italic not available
-        }
+    const conditionParams = {
+      aiCondition: reportData.aiCondition,
+      bestPhotoUrl: reportData.bestPhotoUrl,
+      photoExplanation: reportData.photoExplanation
+    };
+    
+    const sectionParams = {
+      page,
+      yPosition: currentY,
+      margin,
+      width,
+      fonts: { 
+        regular, 
+        bold, 
+        italic: regular // Fallback when italic not available
       }
-    );
-    currentY = aiConditionY - 15;
+    };
+    
+    currentY = await drawAIConditionSection(conditionParams, sectionParams);
+    currentY = currentY - 15;
   }
   
   // GPT Commentary Section (if available)
   if (reportData.explanation) {
-    const commentaryY = await drawCommentarySection(
+    currentY = await drawCommentarySection(
       page,
       reportData.explanation,
       currentY,
       fonts,
       constants
     );
-    currentY = commentaryY - 15;
+    currentY = currentY - 15;
   }
   
   // Draw watermark diagonally across the page

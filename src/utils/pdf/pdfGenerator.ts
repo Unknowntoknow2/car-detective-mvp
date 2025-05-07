@@ -25,7 +25,7 @@ export async function generatePdf(
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
   
-  // Add a page to the document
+  // Add a page to the document (Letter size in points: 8.5 x 11 inches)
   const page = pdfDoc.addPage([612, 792]); // Letter size in points
   const { width, height } = page.getSize();
   
@@ -83,11 +83,13 @@ export async function generatePdf(
   
   // If there's a best photo available and photo assessment is enabled
   if (data.bestPhotoUrl && options.includePhotoAssessment) {
-    yPosition = drawAIConditionSection({
+    const conditionParams = {
       aiCondition: data.aiCondition,
       bestPhotoUrl: data.bestPhotoUrl,
       photoExplanation: data.photoExplanation
-    }, {
+    };
+    
+    const sectionParams = {
       page,
       yPosition,
       margin,
@@ -96,7 +98,9 @@ export async function generatePdf(
         regular: regularFont, 
         bold: boldFont
       }
-    });
+    };
+    
+    yPosition = drawAIConditionSection(conditionParams, sectionParams);
   }
   
   // Add explanation section

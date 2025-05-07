@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
-export type ConditionFilterOption = 'excellent' | 'good-or-better' | 'manual-only' | 'all';
+// Make sure this exactly matches the type in useDealerValuations.ts
+export type ConditionFilterOption = 'excellent' | 'good' | 'fair' | 'poor' | 'all';
 
 interface ConditionFilterProps {
   selectedFilter: ConditionFilterOption;
@@ -30,23 +31,34 @@ export function ConditionFilter({ selectedFilter, onFilterChange }: ConditionFil
           
           <div className="flex items-center space-x-2">
             <Checkbox 
-              id="good-or-better" 
-              checked={selectedFilter === 'good-or-better'}
-              onCheckedChange={() => onFilterChange('good-or-better')}
+              id="good" 
+              checked={selectedFilter === 'good'}
+              onCheckedChange={() => onFilterChange('good')}
             />
-            <Label htmlFor="good-or-better" className="cursor-pointer">
-              AI Verified: Good or Better
+            <Label htmlFor="good" className="cursor-pointer">
+              AI Verified: Good
             </Label>
           </div>
           
           <div className="flex items-center space-x-2">
             <Checkbox 
-              id="manual-only" 
-              checked={selectedFilter === 'manual-only'}
-              onCheckedChange={() => onFilterChange('manual-only')}
+              id="fair" 
+              checked={selectedFilter === 'fair'}
+              onCheckedChange={() => onFilterChange('fair')}
             />
-            <Label htmlFor="manual-only" className="cursor-pointer">
-              Manual Condition Only
+            <Label htmlFor="fair" className="cursor-pointer">
+              AI Verified: Fair
+            </Label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="poor" 
+              checked={selectedFilter === 'poor'}
+              onCheckedChange={() => onFilterChange('poor')}
+            />
+            <Label htmlFor="poor" className="cursor-pointer">
+              AI Verified: Poor
             </Label>
           </div>
           
