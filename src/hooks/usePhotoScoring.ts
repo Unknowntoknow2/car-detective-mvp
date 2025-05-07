@@ -51,10 +51,8 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       setPhotos(photos.map(p => ({ ...p, uploading: true })));
       
       // Upload the photos
-      const uploadedPhotos = await uploadPhotoService(
-        photos.filter(p => !p.uploaded).map(p => p.file as File),
-        valuationId
-      );
+      const filesToUpload = photos.filter(p => !p.uploaded).map(p => p.file as File);
+      const uploadedPhotos = await uploadPhotoService(filesToUpload, valuationId);
       
       // Update photos with upload status
       setPhotos(prevPhotos => 

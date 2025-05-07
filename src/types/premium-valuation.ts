@@ -1,3 +1,4 @@
+
 export interface FormData {
   // Vehicle identification
   identifierType?: 'vin' | 'plate' | 'manual' | 'photo';

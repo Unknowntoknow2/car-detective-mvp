@@ -12,6 +12,8 @@ export interface PlateLookupInfo {
   fuelType?: string;
   bodyType?: string;
   estimatedValue?: number;
+  zipCode?: string;
+  condition?: string;
 }
 
 export interface VINLookupResponse {
