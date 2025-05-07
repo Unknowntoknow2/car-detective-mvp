@@ -1,6 +1,6 @@
 
 import { generatePdf } from './pdfGenerator';
-import { ReportData } from './types';
+import { ReportData, ReportOptions } from './types';
 
 /**
  * Downloads a PDF report
@@ -9,8 +9,16 @@ import { ReportData } from './types';
  */
 export async function downloadPdf(data: ReportData): Promise<void> {
   try {
-    // Generate PDF
-    const pdfBytes = await generatePdf(data);
+    // Generate PDF with default options
+    const options: ReportOptions = {
+      includeBranding: true,
+      includeAIScore: true,
+      includeFooter: true,
+      includeTimestamp: true,
+      includePhotoAssessment: true
+    };
+    
+    const pdfBytes = await generatePdf(data, 'valuation-report', '', options);
     
     // Create a blob from the PDF bytes
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -128,4 +136,4 @@ export function convertVehicleInfoToReportData(
 }
 
 export { generatePdf };
-export type { ReportData };
+export type { ReportData, ReportOptions };

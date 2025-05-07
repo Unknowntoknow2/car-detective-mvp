@@ -1,3 +1,4 @@
+
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { AICondition } from '@/types/photo';
 import { ReportData, ReportOptions } from './types';
@@ -42,12 +43,6 @@ export function convertVehicleInfoToReportData(
     explanation: 'Generated using AI-powered market data analysis',
     isPremium: options.isPremium || false,
     transmission: vehicle.transmission || 'Not Specified',
-    aiCondition: options.aiCondition ? {
-      condition: options.aiCondition.condition as "Excellent" | "Good" | "Fair" | "Poor",
-      confidenceScore: options.aiCondition.confidenceScore || 80,
-      issuesDetected: options.aiCondition.issuesDetected || [],
-      aiSummary: options.aiCondition.aiSummary || ''
-    } : null,
     bestPhotoUrl: options.bestPhotoUrl,
     photoExplanation: options.photoExplanation
   };
@@ -63,6 +58,31 @@ export function convertVehicleInfoToReportData(
   // Add adjustments if provided
   if (options.adjustments && options.adjustments.length > 0) {
     reportData.adjustments = options.adjustments;
+  }
+
+  // Handle aiCondition correctly
+  if (options.aiCondition) {
+    // Make sure condition is one of the allowed values
+    let condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    
+    if (options.aiCondition.condition === 'Excellent' || 
+        options.aiCondition.condition === 'Good' || 
+        options.aiCondition.condition === 'Fair' || 
+        options.aiCondition.condition === 'Poor') {
+      condition = options.aiCondition.condition;
+    } else {
+      // Default to Good if not one of the expected values
+      condition = 'Good';
+    }
+    
+    reportData.aiCondition = {
+      condition,
+      confidenceScore: options.aiCondition.confidenceScore || 80,
+      issuesDetected: options.aiCondition.issuesDetected || [],
+      aiSummary: options.aiCondition.aiSummary || ''
+    };
+  } else {
+    reportData.aiCondition = null;
   }
 
   return reportData;

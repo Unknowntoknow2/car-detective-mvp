@@ -1,143 +1,150 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Eye, Edit, Download, Trash2 } from 'lucide-react';
+import { Trash2, Eye, Database, FileText, CreditCard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { CDButton } from '@/components/ui-kit/CDButton';
-import { ValuationResultProps } from '@/types/valuation-result';
-import { useAuth } from '@/contexts/AuthContext';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface ValuationRowProps {
-  valuation: ValuationResultProps;
-  onEdit: (valuation: ValuationResultProps) => void;
-  onDelete: (valuationId: string | undefined) => void;
+// Define this function earlier
+const getConditionLabel = (condition: string | undefined) => {
+  if (!condition) return 'Unknown';
+  return condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
+};
+
+export interface ValuationRowProps {
+  valuation: Valuation;
+  onViewResult: (id: string) => void;
+  onRerunGPT: (id: string) => void;
+  onGeneratePDF: (id: string) => void;
+  onDownloadPDF: (id: string) => void;
+  onViewStripeStatus: (id: string) => void;
 }
 
-export const ValuationRow: React.FC<ValuationRowProps> = ({ valuation, onEdit, onDelete }) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const { user } = useAuth();
-  const isQAUser = user?.email === 'qa@example.com';
+export interface Valuation {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zip_code: string;
+  estimated_value: number;
+  confidence_score: number;
+  status: 'pending' | 'completed' | 'error';
+  error_message?: string;
+  is_premium: boolean;
+  paid_at?: string;
+  stripe_session_id?: string;
+}
 
-  const handleViewDetails = () => {
-    // Implement view details logic
-    console.log('View details clicked', valuation.valuationId);
-  };
+export function ValuationRow({
+  valuation,
+  onViewResult,
+  onRerunGPT,
+  onGeneratePDF,
+  onDownloadPDF,
+  onViewStripeStatus
+}: ValuationRowProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleEditClick = () => {
-    onEdit(valuation);
-  };
-
-  const handleDownloadPdf = () => {
-    // Implement download PDF logic
-    console.log('Download PDF clicked', valuation.valuationId);
-  };
-
-  const handleDeleteClick = () => {
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    onDelete(valuation.valuationId);
-    setIsDeleteDialogOpen(false);
-  };
-
-  const cancelDelete = () => {
-    setIsDeleteDialogOpen(false);
-  };
-
-  // Format the date
-  const formattedDate = valuation.valuationId ? format(new Date(valuation.valuationId), 'MMM dd, yyyy HH:mm') : 'N/A';
-
-  // Fix the buttons that are missing children prop
-  const ActionButtons = () => {
-    return (
-      <div className="flex items-center space-x-2">
-        <CDButton
-          variant="ghost"
-          size="sm"
-          icon={<Eye className="h-4 w-4" />}
-          onClick={handleViewDetails}
-          ariaLabel="View details"
-        >
-          View
-        </CDButton>
-        
-        <CDButton
-          variant="ghost"
-          size="sm"
-          icon={<Edit className="h-4 w-4" />}
-          onClick={handleEditClick}
-          ariaLabel="Edit valuation"
-        >
-          Edit
-        </CDButton>
-        
-        <CDButton
-          variant="ghost"
-          size="sm"
-          icon={<Download className="h-4 w-4" />}
-          onClick={handleDownloadPdf}
-          ariaLabel="Download PDF"
-        >
-          PDF
-        </CDButton>
-        
-        {isQAUser && (
-          <CDButton
-            variant="ghost"
-            size="sm"
-            icon={<Trash2 className="h-4 w-4 text-error" />}
-            onClick={handleDeleteClick}
-            ariaLabel="Delete valuation"
-          >
-            Delete
-          </CDButton>
-        )}
-      </div>
-    );
+  const handleDelete = async () => {
+    // Here you would typically call an API to delete the valuation
+    // For now, let's just close the dialog
+    setShowDeleteDialog(false);
   };
 
   return (
-    <tr key={valuation.valuationId}>
-      <td className="py-2">{valuation.valuationId}</td>
-      <td className="py-2">{valuation.make}</td>
-      <td className="py-2">{valuation.model}</td>
-      <td className="py-2">{valuation.year}</td>
-      <td className="py-2">{valuation.mileage}</td>
-      <td className="py-2">{valuation.condition}</td>
-      <td className="py-2">${valuation.valuation}</td>
-      <td className="py-2">{formattedDate}</td>
-      <td className="py-2">
-        <ActionButtons />
+    <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+      <td className="py-3 px-4">
+        {format(new Date(valuation.created_at), 'MMM dd, yyyy HH:mm')}
       </td>
-      {/* Delete confirmation dialog */}
-      {isDeleteDialogOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Delete Valuation</h3>
-              <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete this valuation? This action cannot be undone.
-                </p>
-              </div>
-              <div className="items-center px-4 py-3">
-                <button
-                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-                  onClick={confirmDelete}
-                >
-                  Delete
-                </button>
-                <button
-                  className="px-4 py-2 bg-gray-200 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 mt-2"
-                  onClick={cancelDelete}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+      <td className="py-3 px-4">{valuation.vin}</td>
+      <td className="py-3 px-4">
+        {valuation.year} {valuation.make} {valuation.model}
+      </td>
+      <td className="py-3 px-4">{valuation.mileage}</td>
+      <td className="py-3 px-4">{getConditionLabel(valuation.condition)}</td>
+      <td className="py-3 px-4">{valuation.zip_code}</td>
+      <td className="py-3 px-4">{valuation.estimated_value}</td>
+      <td className="py-3 px-4">
+        {valuation.status === 'completed' ? (
+          <Badge variant="outline">Completed</Badge>
+        ) : valuation.status === 'pending' ? (
+          <Badge>Pending</Badge>
+        ) : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="destructive">Error</Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{valuation.error_message || 'Unknown error'}</p>
+              </TooltipContent>
+            </Tooltip>
+        )}
+      </td>
+
+      <td className="py-3 px-4 text-right">
+        <div className="flex justify-end items-center space-x-2">
+          <CDButton
+            variant="ghost"
+            size="sm"
+            icon={<Eye className="h-4 w-4" />}
+            onClick={() => onViewResult(valuation.id)}
+            ariaLabel="View valuation"
+          >
+            View
+          </CDButton>
+          
+          <CDButton
+            variant="ghost"
+            size="sm"
+            icon={<Database className="h-4 w-4" />}
+            onClick={() => onRerunGPT(valuation.id)}
+            ariaLabel="Rerun GPT"
+          >
+            Rerun
+          </CDButton>
+          
+          <CDButton
+            variant="ghost"
+            size="sm"
+            icon={<FileText className="h-4 w-4" />}
+            onClick={() => onGeneratePDF(valuation.id)}
+            ariaLabel="Generate PDF"
+          >
+            PDF
+          </CDButton>
+          
+          {valuation.is_premium && valuation.paid_at && (
+            <CDButton
+              variant="ghost"
+              size="sm"
+              icon={<CreditCard className="h-4 w-4" />}
+              onClick={() => onViewStripeStatus(valuation.id)}
+              ariaLabel="View Payment"
+            >
+              Payment
+            </CDButton>
+          )}
         </div>
-      )}
+      </td>
     </tr>
   );
-};
+}

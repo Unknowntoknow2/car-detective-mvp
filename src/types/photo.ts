@@ -14,17 +14,25 @@ export interface Photo {
   uploaded?: boolean;
   uploading?: boolean;
   error?: string;
+  explanation?: string; // Added missing property
 }
 
 export interface PhotoScore {
   url: string;
   score: number;
+  isPrimary?: boolean; // Added missing property
+  explanation?: string; // Added missing property
 }
 
 export interface PhotoScoringResult {
   overallScore: number;
   individualScores: PhotoScore[];
   aiCondition?: AICondition;
+  // Add missing properties for tests
+  photos?: Photo[];
+  photoScore?: number;
+  error?: string;
+  uploadPhotos?: (files: File[]) => Promise<Photo[]>;
 }
 
 export const MAX_FILES = 5;

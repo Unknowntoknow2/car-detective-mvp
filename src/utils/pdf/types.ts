@@ -1,40 +1,4 @@
-
-import { PDFPage, PDFFont } from 'pdf-lib';
-
-export interface ReportData {
-  vin?: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: string | number;
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-  zipCode: string;
-  estimatedValue: number;
-  confidenceScore: number;
-  valuationId?: string;
-  color?: string;
-  bodyStyle?: string;
-  bodyType?: string;
-  fuelType?: string;
-  explanation?: string;
-  isPremium?: boolean;
-  transmission?: string;
-  plate?: string;
-  state?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  photoExplanation?: string;
-  adjustments?: Array<{ factor: string, impact: number, description?: string }>;
-  priceRange?: [number, number];
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
-  narrative?: string;
-}
-
+// Add this to the top of your file if needed
 export interface ReportOptions {
   includeBranding: boolean;
   includeAIScore: boolean;
@@ -43,35 +7,45 @@ export interface ReportOptions {
   includePhotoAssessment: boolean;
 }
 
-export interface SectionParams {
-  page: PDFPage;
-  width: number;
-  height: number;
-  margin: number;
-  regularFont: PDFFont;
-  boldFont: PDFFont;
-  contentWidth?: number;
-}
-
-export interface AIConditionParams {
-  aiCondition: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+// If needed, make sure the rest of your existing type definitions remain
+export interface ReportData {
+  // Keep existing properties
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: string;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  zipCode: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  color: string;
+  bodyStyle: string;
+  bodyType: string;
+  fuelType: string;
+  explanation: string;
+  isPremium: boolean;
+  transmission?: string;
+  priceRange?: [number, number];
+  adjustments?: Array<{ factor: string; impact: number; description: string }>;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
     confidenceScore: number;
     issuesDetected?: string[];
     aiSummary?: string;
   } | null;
   bestPhotoUrl?: string;
   photoExplanation?: string;
+  narrative?: string;
+  valuationId?: string;
 }
 
-export interface AIConditionSectionParams {
-  page: PDFPage;
-  yPosition: number;
-  margin: number;
+export interface SectionParams {
+  page: any; // PDFPage
   width: number;
-  fonts: {
-    regular: PDFFont;
-    bold: PDFFont;
-    italic?: PDFFont;
-  };
+  height: number;
+  margin: number;
+  regularFont: any; // PDFFont
+  boldFont: any; // PDFFont
+  contentWidth: number;
 }
