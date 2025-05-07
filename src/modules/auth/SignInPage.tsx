@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -17,7 +16,7 @@ const formSchema = z.object({
   password: z.string().min(1, { message: 'Password is required' })
 });
 
-export function SignInPage() {
+export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   

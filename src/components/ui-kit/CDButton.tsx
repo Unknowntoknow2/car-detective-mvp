@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { motion, MotionProps } from 'framer-motion';
 
 // Define our custom variant and size types
-type CDButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium';
-type CDButtonSize = 'default' | 'sm' | 'lg' | 'icon';
+export type CDButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium' | 'primary';
+export type CDButtonSize = 'default' | 'sm' | 'lg' | 'icon' | 'md';
 
 // Redefine the props interface
-export interface CDButtonProps extends Omit<ButtonProps, 'asChild' | 'variant' | 'size'> {
+export interface CDButtonProps extends Omit<ButtonProps, "variant" | "size" | "asChild"> {
   variant?: CDButtonVariant;
   size?: CDButtonSize;
   className?: string;
@@ -84,6 +85,12 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
       ${loading ? 'opacity-70 cursor-not-allowed' : ''}
     `;
 
+    // Map our custom variants to shadcn variants
+    const getShadcnVariant = () => {
+      if (variant === 'primary') return 'default';
+      return variant;
+    };
+
     // If motion props are provided, wrap with motion.div
     if (motionProps) {
       return (
@@ -94,8 +101,8 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
             disabled={loading || props.disabled}
             aria-label={ariaLabel}
             type={props.type || 'button'}
-            variant={variant}
-            size={size}
+            variant={getShadcnVariant()}
+            size={size === 'md' ? 'default' : size}
             {...props}
           >
             {buttonContent}
@@ -112,8 +119,8 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
         disabled={loading || props.disabled}
         aria-label={ariaLabel}
         type={props.type || 'button'}
-        variant={variant}
-        size={size}
+        variant={getShadcnVariant()}
+        size={size === 'md' ? 'default' : size}
         {...props}
       >
         {buttonContent}

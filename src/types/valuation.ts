@@ -1,3 +1,4 @@
+
 export interface ValuationResult {
   id: string;
   make: string;
@@ -24,6 +25,11 @@ export interface ValuationResult {
     issuesDetected?: string[];
     summary?: string;
   } | null;
+  priceRange?: [number, number];
+  isPremium?: boolean;
+  pdfUrl?: string;
+  gptExplanation?: string;
+  vin?: string;
 }
 
 export interface ValuationResultProps {
@@ -69,4 +75,5 @@ export interface AdjustmentBreakdown {
   value: number;
   description: string;
   percentAdjustment: number;
+  factor?: string;
 }

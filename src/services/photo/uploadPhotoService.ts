@@ -1,46 +1,54 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { Photo } from '@/types/photo';
-import { generateUniqueId } from '@/utils/helpers';
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Uploads photos to the server
- */
-export async function uploadPhotos(files: File[]): Promise<Photo[]> {
-  // This is a mock implementation for now
-  // In a real app, this would upload to a storage service
+export async function uploadPhotos(photos: Photo[], valuationId: string): Promise<Photo[]> {
+  const uploadPromises = photos.map(async (photo) => {
+    if (!photo.url && !photo.uploading && !photo.error) {
+      try {
+        // Create a URL from the Blob/File
+        const photoFile = await fetch(URL.createObjectURL(photo as unknown as Blob)).then(r => r.blob());
+        
+        // Prepare the file path
+        const fileExt = photo.name?.split('.').pop() || 'jpg';
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `${valuationId}/${fileName}`;
+        
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(filePath, photoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('vehicle-photos')
+          .getPublicUrl(filePath);
+        
+        return {
+          ...photo,
+          url: urlData.publicUrl,
+          uploaded: true,
+          uploading: false
+        };
+      } catch (error) {
+        console.error(`Error uploading photo ${photo.id}:`, error);
+        return {
+          ...photo,
+          error: (error as Error).message || 'Upload failed',
+          uploading: false
+        };
+      }
+    }
+    return photo;
+  });
   
-  // Validate files
-  if (!files || files.length === 0) {
-    throw new Error('No files provided for upload');
-  }
-  
-  const photos: Photo[] = [];
-  
-  // Process each file
-  for (const file of files) {
-    // Create a mock photo object
-    const photo: Photo = {
-      id: generateUniqueId(),
-      url: URL.createObjectURL(file),
-      metadata: {
-        filename: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
-      },
-      uploaded: false,
-      uploading: true
-    };
-    
-    photos.push(photo);
-    
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Mark as uploaded
-    photo.uploaded = true;
-    photo.uploading = false;
-  }
-  
-  return photos;
+  return Promise.all(uploadPromises);
 }

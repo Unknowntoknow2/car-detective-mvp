@@ -7,7 +7,6 @@ import { downloadPdf } from '@/utils/pdf';
 import { decodeVin } from '@/services/vinService';
 import { lookupPlate } from '@/services/plateService';
 import { generateUniqueId } from '@/utils/helpers';
-import { toast } from 'sonner';
 
 /**
  * Core function to build a complete vehicle valuation report
@@ -45,7 +44,7 @@ export async function buildValuationReport(input: ValuationInput): Promise<Valua
       ...vehicleData,
       basePrice,
       aiConditionData: photoAnalysisResult,
-      zip: input.zipCode,
+      zipCode: input.zipCode,
       accidentCount: input.accidentCount || 0,
       premiumFeatures: input.features,
       mpg: input.mpg
@@ -74,12 +73,13 @@ export async function buildValuationReport(input: ValuationInput): Promise<Valua
         condition: vehicleData.condition || 'Good',
         zipCode: input.zipCode || '',
         estimatedValue: valuationResult.estimatedValue,
-        priceRange: valuationResult.priceRange,
+        priceRange: valuationResult.priceRange as [number, number],
         confidenceScore: valuationResult.confidenceScore,
-        adjustments: valuationResult.adjustments,
+        adjustments: valuationResult.adjustments as AdjustmentBreakdown[],
         aiCondition: photoAnalysisResult,
         bestPhotoUrl,
-        explanation: gptExplanation
+        explanation: gptExplanation,
+        features: input.features || []
       }, input.valuationId || processId);
     }
     
@@ -97,7 +97,7 @@ export async function buildValuationReport(input: ValuationInput): Promise<Valua
       valuationId: input.valuationId || processId,
       photoScore: photoAnalysisResult?.confidenceScore,
       bestPhotoUrl,
-      gptExplanation,
+      explanation: gptExplanation,
       isPremium: premiumStatus.hasPremiumAccess,
       pdfUrl
     }, log);
@@ -116,14 +116,16 @@ export async function buildValuationReport(input: ValuationInput): Promise<Valua
       zipCode: input.zipCode || '',
       estimatedValue: valuationResult.estimatedValue,
       confidenceScore: valuationResult.confidenceScore,
-      priceRange: valuationResult.priceRange,
       adjustments: valuationResult.adjustments,
+      explanation: gptExplanation,
       photoScore: photoAnalysisResult?.confidenceScore,
       bestPhotoUrl,
-      gptExplanation,
+      aiCondition: photoAnalysisResult,
+      priceRange: valuationResult.priceRange as [number, number],
       isPremium: premiumStatus.hasPremiumAccess,
       pdfUrl,
-      createdAt: new Date().toISOString()
+      fuelType: vehicleData.fuelType,
+      transmission: vehicleData.transmission
     };
   } catch (error) {
     console.error('Error in buildValuationReport:', error);
@@ -187,7 +189,7 @@ async function normalizeAndDecodeInput(input: ValuationInput, log: (message: str
         make: decodedData.make,
         model: decodedData.model,
         year: decodedData.year,
-        mileage: decodedData.mileage || input.mileage,
+        mileage: input.mileage, // Use input mileage instead of plate data
         condition: input.condition
       };
     }
@@ -305,47 +307,49 @@ async function processPhotos(photos: File[], valuationId: string, log: (message:
     
     // Call the score-image function to upload and analyze photos
     const { data, error } = await supabase.functions.invoke('score-image', {
-      body: { 
-        photos,
-        valuationId
+      body: {
+        valuationId,
+        photos: photos.length
       }
     });
     
     if (error) {
-      log('Error in photo processing', { error });
-      throw new Error(`Photo analysis failed: ${error.message}`);
-    }
-    
-    if (!data || !data.scores || !data.aiCondition) {
-      log('Photo processing returned incomplete data');
-      return { aiCondition: null, bestPhotoUrl: null };
+      log('Error processing photos', { error });
+      return {
+        aiCondition: null,
+        bestPhotoUrl: null
+      };
     }
     
     // Find best photo (highest score)
-    const photoScores = data.scores as PhotoScore[];
     let bestScore = 0;
     let bestPhotoUrl = null;
     
-    photoScores.forEach(score => {
-      if (score.score > bestScore) {
-        bestScore = score.score;
-        bestPhotoUrl = score.url;
-      }
-    });
+    if (data.scores && Array.isArray(data.scores)) {
+      data.scores.forEach((score: PhotoScore) => {
+        if (score.score > bestScore) {
+          bestScore = score.score;
+          bestPhotoUrl = score.url;
+        }
+      });
+    }
     
-    log('Photo processing complete', { 
-      condition: data.aiCondition.condition,
-      score: data.aiCondition.confidenceScore,
-      bestPhotoUrl
+    log('Photo processing completed', { 
+      bestScore, 
+      bestPhotoUrl: bestPhotoUrl ? '...exists' : null,
+      aiCondition: data.aiCondition ? data.aiCondition.condition : null
     });
     
     return {
-      aiCondition: data.aiCondition,
+      aiCondition: data.aiCondition || null,
       bestPhotoUrl
     };
   } catch (error) {
-    log('Error processing photos', { error: error instanceof Error ? error.message : 'Unknown error' });
-    return { aiCondition: null, bestPhotoUrl: null };
+    log('Error in processPhotos', { error: error instanceof Error ? error.message : 'Unknown error' });
+    return {
+      aiCondition: null,
+      bestPhotoUrl: null
+    };
   }
 }
 
@@ -356,89 +360,109 @@ async function calculateFinalPrice(params: {
   make: string;
   model: string;
   year: number;
+  basePrice: number;
   mileage?: number;
   condition?: string;
-  basePrice: number;
-  zip?: string;
-  trim?: string;
+  zipCode?: string;
+  aiConditionData?: AICondition | null;
   accidentCount?: number;
   premiumFeatures?: string[];
   mpg?: number | null;
-  aiConditionData?: AICondition | null;
-}, log: (message: string, data?: any) => void) {
+}, log: (message: string, data?: any) => void): Promise<{
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  adjustments: { factor: string; impact: number; description?: string; }[];
+}> {
+  log('Calculating final price', { 
+    basePrice: params.basePrice,
+    mileage: params.mileage,
+    condition: params.condition
+  });
+  
   try {
-    log('Calculating final price', { 
-      basePrice: params.basePrice, 
-      condition: params.condition,
-      mileage: params.mileage
-    });
-    
-    // Use the valuation engine to calculate the final price
+    // Call the valuation engine
     const result = await calculateValuation({
       make: params.make,
       model: params.model,
       year: params.year,
-      mileage: params.mileage || 0,
-      condition: params.condition || 'Good',
-      zip: params.zip,
-      trim: params.trim,
+      mileage: params.mileage,
+      condition: params.condition,
+      zipCode: params.zipCode,
       accidentCount: params.accidentCount,
-      premiumFeatures: params.premiumFeatures,
+      features: params.premiumFeatures,
       mpg: params.mpg,
-      aiConditionData: params.aiConditionData
-    });
+      aiCondition: params.aiConditionData?.condition
+    }, (message) => log(`Valuation Engine: ${message}`));
     
-    log('Valuation calculation complete', { 
+    // Format the adjustments to match the expected output
+    const adjustments = result.adjustments.map(adj => ({
+      factor: adj.name,
+      impact: adj.value,
+      description: adj.description
+    }));
+    
+    log('Final price calculated', { 
       estimatedValue: result.estimatedValue,
       confidenceScore: result.confidenceScore,
-      adjustmentCount: result.adjustments.length
+      adjustmentsCount: adjustments.length
     });
     
-    return result;
+    return {
+      estimatedValue: result.estimatedValue,
+      confidenceScore: result.confidenceScore,
+      priceRange: result.priceRange as [number, number],
+      adjustments
+    };
   } catch (error) {
     log('Error in calculateFinalPrice', { error: error instanceof Error ? error.message : 'Unknown error' });
     
-    // Fallback calculation if the main engine fails
+    // Fallback calculation in case the engine fails
     const basePrice = params.basePrice;
-    const depreciation = (params.mileage || 0) > 100000 ? 0.6 : 0.8;
-    const estimatedValue = Math.round(basePrice * depreciation);
+    const mileageAdjustment = params.mileage ? -Math.round(params.mileage / 10000) * 500 : 0;
+    const conditionAdjustment = params.condition === 'Excellent' ? 1000 : 
+                               params.condition === 'Good' ? 0 : 
+                               params.condition === 'Fair' ? -1000 : -2000;
+    
+    const estimatedValue = basePrice + mileageAdjustment + conditionAdjustment;
+    const priceRange: [number, number] = [
+      Math.round(estimatedValue * 0.95),
+      Math.round(estimatedValue * 1.05)
+    ];
     
     return {
       estimatedValue,
-      basePrice,
-      adjustments: [],
-      priceRange: [Math.round(estimatedValue * 0.9), Math.round(estimatedValue * 1.1)],
-      confidenceScore: 60
+      confidenceScore: 60, // Lower confidence for fallback calculation
+      priceRange,
+      adjustments: [
+        { factor: 'Mileage', impact: mileageAdjustment },
+        { factor: 'Condition', impact: conditionAdjustment }
+      ]
     };
   }
 }
 
 /**
- * Generate explanation with GPT
+ * Generate explanation using GPT
  */
 async function generateExplanation(
-  vehicleData: { make: string; model: string; year: number; mileage?: number; condition?: string },
-  valuationResult: { estimatedValue: number; adjustments: AdjustmentBreakdown[] },
-  photoAnalysis: AICondition | null,
+  vehicleData: { make: string; model: string; year: number; trim?: string; condition?: string; mileage?: number; },
+  valuationResult: { estimatedValue: number; adjustments: { factor: string; impact: number; description?: string; }[]; },
+  aiCondition: AICondition | null,
   log: (message: string, data?: any) => void
 ): Promise<string | null> {
+  log('Generating explanation', { 
+    vehicle: `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`,
+    estimatedValue: valuationResult.estimatedValue
+  });
+  
   try {
-    log('Generating explanation with GPT');
-    
     const { data, error } = await supabase.functions.invoke('generate-explanation', {
       body: {
-        vehicle: {
-          make: vehicleData.make,
-          model: vehicleData.model,
-          year: vehicleData.year,
-          mileage: vehicleData.mileage,
-          condition: vehicleData.condition
-        },
-        valuation: {
-          estimatedValue: valuationResult.estimatedValue,
-          adjustments: valuationResult.adjustments
-        },
-        photoAnalysis: photoAnalysis || undefined
+        vehicle: vehicleData,
+        valuation: valuationResult.estimatedValue,
+        adjustments: valuationResult.adjustments,
+        aiCondition
       }
     });
     
@@ -447,7 +471,7 @@ async function generateExplanation(
       return null;
     }
     
-    log('Explanation generated successfully');
+    log('Explanation generated', { length: data.explanation?.length || 0 });
     return data.explanation || null;
   } catch (error) {
     log('Error in generateExplanation', { error: error instanceof Error ? error.message : 'Unknown error' });
@@ -462,40 +486,28 @@ async function verifyPremiumAccess(userId?: string, valuationId?: string, log?: 
   hasPremiumAccess: boolean;
   reason?: string;
 }> {
-  if (!userId || !valuationId) {
-    if (log) log('No user ID or valuation ID provided, premium access denied');
-    return { hasPremiumAccess: false, reason: 'No user ID or valuation ID provided' };
+  if (log) log('Verifying premium access', { userId, valuationId });
+  
+  if (!userId) {
+    if (log) log('No user ID provided, assuming no premium access');
+    return { hasPremiumAccess: false, reason: 'No user ID provided' };
   }
   
   try {
-    if (log) log('Verifying premium access', { userId, valuationId });
-    
-    // Call the verify-payment function
     const { data, error } = await supabase.functions.invoke('verify-payment', {
-      body: {
-        userId,
-        valuationId
-      }
+      body: { userId, valuationId }
     });
     
     if (error) {
-      if (log) log('Error verifying payment', { error });
-      return { hasPremiumAccess: false, reason: `Payment verification error: ${error.message}` };
+      if (log) log('Error verifying premium access', { error });
+      return { hasPremiumAccess: false, reason: error.message };
     }
     
-    if (!data) {
-      if (log) log('No data returned from payment verification');
-      return { hasPremiumAccess: false, reason: 'Payment verification returned no data' };
-    }
-    
-    if (log) log('Premium access verification complete', { hasPremiumAccess: data.hasPremiumAccess });
-    return {
-      hasPremiumAccess: data.hasPremiumAccess,
-      reason: data.reason
-    };
+    if (log) log('Premium access verified', { hasPremiumAccess: data.hasPremiumAccess });
+    return { hasPremiumAccess: data.hasPremiumAccess || false, reason: data.reason };
   } catch (error) {
     if (log) log('Error in verifyPremiumAccess', { error: error instanceof Error ? error.message : 'Unknown error' });
-    return { hasPremiumAccess: false, reason: 'Payment verification failed' };
+    return { hasPremiumAccess: false, reason: 'Error verifying premium access' };
   }
 }
 
@@ -514,48 +526,23 @@ async function generatePdfReport(reportData: {
   priceRange: [number, number];
   confidenceScore: number;
   adjustments: AdjustmentBreakdown[];
-  aiCondition?: AICondition | null;
+  aiCondition?: AICondition;
   bestPhotoUrl?: string | null;
   explanation?: string | null;
+  features?: string[];
 }, valuationId: string): Promise<string | null> {
   try {
-    // Generate filename
-    const fileName = `valuation-${reportData.make}-${reportData.model}-${valuationId}.pdf`;
-    
-    // Use the PDF generator to create the report
+    // Generate PDF
     await downloadPdf({
-      reportData: {
-        vin: reportData.vin,
-        make: reportData.make,
-        model: reportData.model,
-        year: reportData.year,
-        mileage: reportData.mileage,
-        condition: reportData.condition,
-        zipCode: reportData.zipCode,
-        estimatedValue: reportData.estimatedValue,
-        priceRange: reportData.priceRange,
-        confidenceScore: reportData.confidenceScore,
-        adjustments: reportData.adjustments,
-        aiCondition: reportData.aiCondition || undefined,
-        aiSummary: reportData.aiCondition?.aiSummary,
-        bestPhotoUrl: reportData.bestPhotoUrl || undefined,
-        explanation: reportData.explanation || undefined
-      },
-      fileName,
-      options: {
-        includeBranding: true,
-        includeAIScore: Boolean(reportData.aiCondition),
-        includeFooter: true,
-        includeTimestamp: true,
-        includePhotoAssessment: Boolean(reportData.bestPhotoUrl && reportData.aiCondition)
-      }
+      ...reportData,
+      valuationId
     });
     
-    // In a real implementation, we would upload the PDF to Supabase storage
-    // and return the URL, but for now we'll just return a placeholder
-    return `https://storage.googleapis.com/car-detective-valuations/${fileName}`;
+    // In a real implementation, we would upload the PDF to storage
+    // and return the URL, but for now we just return a dummy URL
+    return `https://storage.example.com/pdf/valuation-${reportData.make}-${reportData.model}-${valuationId}.pdf`;
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error generating PDF report:', error);
     return null;
   }
 }
@@ -564,37 +551,34 @@ async function generatePdfReport(reportData: {
  * Trigger dealer notifications
  */
 async function triggerDealerNotifications(
-  vehicleData: { make: string; model: string; year: number; vin?: string },
-  valuationResult: { estimatedValue: number },
+  vehicleData: { make: string; model: string; year: number; },
+  valuationResult: { estimatedValue: number; },
   userId?: string,
   valuationId?: string
-): Promise<boolean> {
-  if (!userId || !valuationId) {
-    return false;
-  }
-  
+): Promise<void> {
   try {
-    // Insert dealer lead record
-    const { error } = await supabase
-      .from('dealer_leads')
-      .insert({
-        user_id: userId,
-        valuation_id: valuationId,
-        status: 'open'
-      });
-    
-    if (error) {
-      console.error('Error creating dealer lead:', error);
-      return false;
+    if (!userId || !valuationId) {
+      console.log('Skipping dealer notification, missing userId or valuationId');
+      return;
     }
     
-    // In a real implementation, we would also send notifications
-    // to dealers via email, SMS, or push notifications
+    // Call dealer notification service or function
+    await supabase.functions.invoke('notify-dealers', {
+      body: {
+        userId,
+        valuationId,
+        vehicle: {
+          make: vehicleData.make,
+          model: vehicleData.model,
+          year: vehicleData.year,
+          estimatedValue: valuationResult.estimatedValue
+        }
+      }
+    });
     
-    return true;
+    console.log('Dealer notification triggered', { valuationId });
   } catch (error) {
     console.error('Error triggering dealer notifications:', error);
-    return false;
   }
 }
 
@@ -602,110 +586,54 @@ async function triggerDealerNotifications(
  * Save valuation result to database
  */
 async function saveValuationResult(result: {
-  userId?: string;
-  valuationId: string;
   make: string;
   model: string;
   year: number;
   mileage?: number;
   condition?: string;
-  vin?: string;
   estimatedValue: number;
-  confidenceScore: number;
+  adjustments: { factor: string; impact: number; description?: string; }[];
+  userId?: string;
+  valuationId: string;
   photoScore?: number;
   bestPhotoUrl?: string | null;
-  gptExplanation?: string | null;
-  isPremium: boolean;
+  explanation?: string | null;
+  isPremium?: boolean;
   pdfUrl?: string | null;
 }, log: (message: string, data?: any) => void): Promise<string> {
+  log('Saving valuation result', { valuationId: result.valuationId });
+  
   try {
-    log('Saving valuation result', { valuationId: result.valuationId });
-    
-    const valuationData = {
-      id: result.valuationId,
-      user_id: result.userId,
-      make: result.make,
-      model: result.model,
-      year: result.year,
-      mileage: result.mileage || 0,
-      condition_score: result.photoScore || null,
-      vin: result.vin || null,
-      estimated_value: result.estimatedValue,
-      confidence_score: result.confidenceScore,
-      premium_unlocked: result.isPremium
-    };
-    
-    // Insert or update valuation record
+    // Upsert to valuations table
     const { error } = await supabase
       .from('valuations')
-      .upsert(valuationData, { onConflict: 'id' });
+      .upsert({
+        id: result.valuationId,
+        user_id: result.userId,
+        make: result.make,
+        model: result.model,
+        year: result.year,
+        mileage: result.mileage,
+        condition: result.condition,
+        estimated_value: result.estimatedValue,
+        photo_score: result.photoScore,
+        best_photo_url: result.bestPhotoUrl,
+        explanation: result.explanation,
+        is_premium: result.isPremium,
+        pdf_url: result.pdfUrl,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     
     if (error) {
-      log('Error saving valuation', { error });
-      throw new Error(`Database error: ${error.message}`);
+      log('Error saving valuation result', { error });
+      throw error;
     }
     
-    // If we have a photo, save it as well
-    if (result.bestPhotoUrl) {
-      await supabase
-        .from('valuation_photos')
-        .upsert({
-          valuation_id: result.valuationId,
-          photo_url: result.bestPhotoUrl,
-          score: result.photoScore || 0,
-          uploaded_at: new Date().toISOString()
-        }, { onConflict: 'valuation_id, photo_url' });
-    }
-    
-    // If there's a GPT explanation, save it to the chat system
-    if (result.gptExplanation) {
-      // Create a chat session if it doesn't exist
-      const { data: sessionData } = await supabase
-        .from('chat_sessions')
-        .select('id')
-        .eq('valuation_id', result.valuationId)
-        .maybeSingle();
-      
-      const sessionId = sessionData?.id || undefined;
-      
-      if (!sessionId) {
-        // Create a new chat session
-        const { data: newSessionData, error: sessionError } = await supabase
-          .from('chat_sessions')
-          .insert({
-            valuation_id: result.valuationId,
-            user_id: result.userId
-          })
-          .select('id')
-          .single();
-        
-        if (!sessionError && newSessionData) {
-          // Add the explanation as a message
-          await supabase
-            .from('chat_messages')
-            .insert({
-              session_id: newSessionData.id,
-              role: 'assistant',
-              content: result.gptExplanation
-            });
-        }
-      } else {
-        // Add the explanation to the existing session
-        await supabase
-          .from('chat_messages')
-          .insert({
-            session_id: sessionId,
-            role: 'assistant',
-            content: result.gptExplanation
-          });
-      }
-    }
-    
-    log('Valuation saved successfully', { valuationId: result.valuationId });
+    log('Valuation result saved', { valuationId: result.valuationId });
     return result.valuationId;
   } catch (error) {
     log('Error in saveValuationResult', { error: error instanceof Error ? error.message : 'Unknown error' });
-    // Even if saving fails, return the ID so the client can still display the result
-    return result.valuationId;
+    return result.valuationId; // Return the ID anyway for fault tolerance
   }
 }

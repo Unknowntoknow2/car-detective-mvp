@@ -1,47 +1,31 @@
 
+import { v4 as uuidv4 } from 'uuid';
+
 /**
- * Generates a unique ID string
- * @returns A random string ID
+ * Generate a unique ID
+ * @returns A unique ID string
  */
 export function generateUniqueId(): string {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return uuidv4();
 }
 
 /**
- * Formats a number as currency
- * @param amount The amount to format
- * @returns Formatted currency string
+ * Truncate a string to a specified length
+ * @param str The string to truncate
+ * @param maxLength The maximum length
+ * @returns The truncated string with ellipsis if needed
  */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
+export function truncateString(str: string, maxLength: number): string {
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength) + '...';
 }
 
 /**
- * Calculates the difference in days between two dates
- * @param date1 First date
- * @param date2 Second date (defaults to current date)
- * @returns Number of days between dates
+ * Capitalize the first letter of a string
+ * @param str The string to capitalize
+ * @returns The capitalized string
  */
-export function daysBetween(date1: Date, date2: Date = new Date()): number {
-  const oneDay = 24 * 60 * 60 * 1000; // hours * minutes * seconds * milliseconds
-  const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  return Math.round(diffTime / oneDay);
-}
-
-/**
- * Truncates a string to a specified length
- * @param str String to truncate
- * @param maxLength Maximum length
- * @param suffix Suffix to add
- * @returns Truncated string
- */
-export function truncateString(str: string, maxLength: number, suffix: string = '...'): string {
-  if (!str || str.length <= maxLength) return str;
-  return str.substring(0, maxLength) + suffix;
+export function capitalizeFirstLetter(str: string): string {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

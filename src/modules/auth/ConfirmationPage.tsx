@@ -50,3 +50,5 @@ export const ConfirmationPage: React.FC<ConfirmationPageProps> = ({
     </div>
   );
 };
+
+export default ConfirmationPage;

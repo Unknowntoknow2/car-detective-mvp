@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -138,3 +137,5 @@ export function MagicLinkPage() {
     </div>
   );
 }
+
+export default MagicLinkPage;

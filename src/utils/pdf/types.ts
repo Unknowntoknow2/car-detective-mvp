@@ -1,9 +1,9 @@
 
-import { AdjustmentBreakdown } from '../valuation/types';
+import { AdjustmentBreakdown } from '@/types/valuation';
 import { AICondition } from '@/types/photo';
 
 export interface ReportData {
-  vin: string;
+  vin?: string;
   make: string;
   model: string;
   year: number;
@@ -19,6 +19,9 @@ export interface ReportData {
   bestPhotoUrl?: string;
   explanation?: string;
   features?: string[];
+  valuationId?: string;
+  plate?: string;
+  state?: string;
 }
 
 export interface ReportOptions {

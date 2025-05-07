@@ -34,10 +34,10 @@ describe('CDButton', () => {
   });
 
   it('renders loading and disabled states correctly', () => {
-    const { rerender } = render(<CDButton isLoading>Loading</CDButton>);
+    const { rerender } = render(<CDButton loading>Loading</CDButton>);
     expect(screen.getByRole('button')).toBeDisabled();
     
-    rerender(<CDButton isDisabled>Disabled</CDButton>);
+    rerender(<CDButton disabled>Disabled</CDButton>);
     expect(screen.getByRole('button')).toBeDisabled();
   });
 });

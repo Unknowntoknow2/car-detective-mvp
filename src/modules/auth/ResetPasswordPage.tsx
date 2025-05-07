@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -246,3 +245,5 @@ export function ResetPasswordPage() {
     </div>
   );
 }
+
+export default ResetPasswordPage;

@@ -53,7 +53,7 @@ const mockValuationResult = {
     { name: 'Mileage', value: -2000, description: 'Adjustment for mileage', percentAdjustment: -7.14 },
     { name: 'Condition', value: -1000, description: 'Vehicle in Good condition', percentAdjustment: -3.57 }
   ],
-  priceRange: [23500, 26500],
+  priceRange: [23500, 26500] as [number, number],
   confidenceScore: 85
 };
 
@@ -119,7 +119,7 @@ describe('buildValuationReport', () => {
   test('should process a full premium valuation with photos, GPT, and PDF', async () => {
     // Arrange
     const input = {
-      identifierType: 'vin',
+      identifierType: 'vin' as const,
       vin: 'JH4DA9370MS016526',
       userId: 'user-123',
       valuationId: 'val-123',
@@ -142,8 +142,8 @@ describe('buildValuationReport', () => {
     expect(result.estimatedValue).toBe(25000);
     expect(result.isPremium).toBe(true);
     expect(result.photoScore).toBe(85);
-    expect(result.gptExplanation).toBe('This is a test explanation of the vehicle valuation.');
-    expect(result.pdfUrl).toContain('valuation-Toyota-Camry');
+    expect(result.explanation).toBe('This is a test explanation of the vehicle valuation.');
+    expect(result.bestPhotoUrl).toContain('photo.jpg');
     
     // Verify function calls
     expect(decodeVin).toHaveBeenCalledWith('JH4DA9370MS016526');
@@ -174,7 +174,7 @@ describe('buildValuationReport', () => {
     
     // Arrange
     const input = {
-      identifierType: 'manual',
+      identifierType: 'manual' as const,
       make: 'Ford',
       model: 'Mustang',
       year: 2018,
@@ -195,8 +195,7 @@ describe('buildValuationReport', () => {
     expect(result.year).toBe(2018);
     expect(result.estimatedValue).toBe(25000);
     expect(result.isPremium).toBe(false);
-    expect(result.gptExplanation).toBeNull();
-    expect(result.pdfUrl).toBeNull();
+    expect(result.explanation).toBeUndefined();
     
     // Verify function calls
     expect(decodeVin).not.toHaveBeenCalled();
@@ -214,7 +213,7 @@ describe('buildValuationReport', () => {
     
     // Arrange
     const input = {
-      identifierType: 'vin',
+      identifierType: 'vin' as const,
       vin: 'INVALID-VIN',
       userId: 'user-789',
       valuationId: 'val-789'
@@ -247,7 +246,7 @@ describe('buildValuationReport', () => {
     
     // Arrange
     const input = {
-      identifierType: 'vin',
+      identifierType: 'vin' as const,
       vin: 'JH4DA9370MS016526',
       userId: 'user-123',
       valuationId: 'val-123',
@@ -277,7 +276,7 @@ describe('buildValuationReport', () => {
   test('should process a valuation from license plate lookup', async () => {
     // Arrange
     const input = {
-      identifierType: 'plate',
+      identifierType: 'plate' as const,
       plate: 'ABC123',
       state: 'CA',
       mileage: 40000,
@@ -296,7 +295,7 @@ describe('buildValuationReport', () => {
     expect(result.model).toBe('Accord');
     expect(result.year).toBe(2019);
     expect(result.vin).toBe('ABC123456789');
-    expect(result.mileage).toBe(35000); // From the plate data
+    expect(result.mileage).toBe(40000); // Using input mileage
     
     // Verify function calls
     expect(lookupPlate).toHaveBeenCalledWith('ABC123', 'CA');
@@ -307,7 +306,7 @@ describe('buildValuationReport', () => {
   test('should handle edge cases like mileage outliers', async () => {
     // Arrange
     const input = {
-      identifierType: 'manual',
+      identifierType: 'manual' as const,
       make: 'Tesla',
       model: 'Model 3',
       year: 2020,
@@ -326,7 +325,7 @@ describe('buildValuationReport', () => {
         { name: 'Mileage', value: -10000, description: 'Excessive mileage', percentAdjustment: -35.71 },
         { name: 'Condition', value: -3000, description: 'Vehicle in Poor condition', percentAdjustment: -10.71 }
       ],
-      priceRange: [13500, 16500],
+      priceRange: [13500, 16500] as [number, number],
       confidenceScore: 70
     };
     

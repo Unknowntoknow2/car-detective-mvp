@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Photo } from '@/types/photo';
-import { Trash2, ImageIcon, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Trash2, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 interface PhotoUploadListProps {
   photos: Photo[];
@@ -16,49 +17,62 @@ export function PhotoUploadList({ photos, onRemove }: PhotoUploadListProps) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">Selected Photos</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <h3 className="text-sm font-medium">Uploaded Photos ({photos.length})</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {photos.map((photo) => (
-          <div
-            key={photo.id}
-            className="relative group border rounded-md overflow-hidden aspect-square"
-          >
-            {photo.url ? (
-              <img 
-                src={photo.url} 
-                alt="Vehicle" 
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full bg-gray-100">
-                <ImageIcon className="h-8 w-8 text-gray-400" />
+          <Card key={photo.id} className="overflow-hidden">
+            <div className="relative aspect-[4/3] bg-slate-100">
+              {photo.url ? (
+                <img
+                  src={photo.url}
+                  alt="Vehicle"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  {photo.uploading ? (
+                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-200" />
+                  )}
+                </div>
+              )}
+              <Button
+                size="icon"
+                variant="destructive"
+                className="absolute top-1 right-1 h-7 w-7 opacity-90"
+                onClick={() => onRemove(photo.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              {photo.error && (
+                <div className="absolute bottom-0 inset-x-0 bg-red-500 text-white text-xs p-1">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    <span className="truncate">{photo.error}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <CardContent className="p-2">
+              <div className="flex items-center justify-between">
+                <div className="text-xs truncate">
+                  {photo.uploading && (
+                    <span className="text-slate-500">Uploading...</span>
+                  )}
+                  {photo.uploaded && (
+                    <span className="text-green-600 flex items-center">
+                      <Check className="h-3 w-3 mr-1" />
+                      Uploaded
+                    </span>
+                  )}
+                  {photo.error && (
+                    <span className="text-red-500">Failed</span>
+                  )}
+                </div>
               </div>
-            )}
-            
-            {/* Status indicator */}
-            {photo.uploading && (
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                <Loader2 className="h-6 w-6 text-white animate-spin" />
-              </div>
-            )}
-            
-            {photo.error && (
-              <div className="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-xs p-1">
-                Error uploading
-              </div>
-            )}
-            
-            {/* Remove button */}
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => onRemove(photo.id)}
-            >
-              <Trash2 className="h-3 w-3" />
-              <span className="sr-only">Remove</span>
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

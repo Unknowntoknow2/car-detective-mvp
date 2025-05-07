@@ -1,61 +1,85 @@
 
 import { useState } from 'react';
-import { downloadPdf } from '@/utils/pdf';
+import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { toast } from 'sonner';
-import { ReportData } from '@/utils/pdf/types';
+import { ReportData, ReportOptions } from '@/utils/pdf/types';
+import { ValuationResult } from '@/types/valuation';
 
-interface UsePdfDownloadProps {
-  reportData: ReportData;
-  fileName?: string;
-}
-
-/**
- * Hook for downloading PDF reports
- */
-export function usePdfDownload({ reportData, fileName = 'vehicle-valuation' }: UsePdfDownloadProps) {
+export function usePdfDownload() {
   const [isDownloading, setIsDownloading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const downloadReport = async () => {
+  const downloadValuationPdf = async (
+    valuation: ValuationResult, 
+    options: Partial<ReportOptions> = {}
+  ) => {
     try {
       setIsDownloading(true);
-      setError(null);
       
-      // Validate report data
-      if (!reportData || !reportData.vin || !reportData.make) {
-        throw new Error('Invalid report data');
-      }
+      // Convert ValuationResult to ReportData
+      const reportData: ReportData = {
+        vin: valuation.vin,
+        make: valuation.make,
+        model: valuation.model,
+        year: valuation.year,
+        mileage: valuation.mileage,
+        condition: valuation.condition,
+        zipCode: valuation.zipCode,
+        estimatedValue: valuation.estimatedValue,
+        priceRange: valuation.priceRange || [
+          Math.round(valuation.estimatedValue * 0.95),
+          Math.round(valuation.estimatedValue * 1.05)
+        ],
+        confidenceScore: valuation.confidenceScore || 80,
+        adjustments: valuation.adjustments?.map(adj => ({
+          name: adj.factor,
+          value: adj.impact,
+          description: adj.description || '',
+          percentAdjustment: Math.round((adj.impact / valuation.estimatedValue) * 100 * 100) / 100
+        })) || [],
+        aiCondition: valuation.aiCondition || undefined,
+        bestPhotoUrl: valuation.bestPhotoUrl,
+        explanation: valuation.explanation,
+        features: [],
+        valuationId: valuation.id
+      };
       
-      // Generate filename
-      const finalFileName = `${fileName}-${reportData.make}-${reportData.model}-${new Date().getTime()}.pdf`;
-      
-      // Download the PDF
-      await downloadPdf({
-        reportData,
-        fileName: finalFileName,
-        options: {
-          includeBranding: true,
-          includeAIScore: true,
-          includeFooter: true,
-          includeTimestamp: true,
-          includePhotoAssessment: Boolean(reportData.aiCondition)
-        }
+      const pdf = await generateValuationPdf(reportData, {
+        isPremium: valuation.isPremium,
+        ...options
       });
       
-      toast.success('PDF report downloaded successfully');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to download PDF';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error('PDF download error:', err);
+      // Create a blob from the PDF Uint8Array
+      const blob = new Blob([pdf], { type: 'application/pdf' });
+      
+      // Create URL for the blob
+      const url = URL.createObjectURL(blob);
+      
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `valuation-${valuation.make}-${valuation.model}-${valuation.year}.pdf`;
+      
+      // Append link to the body
+      document.body.appendChild(link);
+      
+      // Trigger download
+      link.click();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error('Failed to download PDF. Please try again.');
     } finally {
       setIsDownloading(false);
     }
   };
 
   return {
-    downloadReport,
-    isDownloading,
-    error
+    downloadValuationPdf,
+    isDownloading
   };
 }
