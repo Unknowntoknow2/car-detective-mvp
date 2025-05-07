@@ -2,11 +2,10 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Updates a single field in the data JSONB column for a valuation
- * @param valuationId The ID of the valuation to update
- * @param key The key in the data JSONB object
- * @param value The value to set for the key
- * @returns Promise resolving to the update result
+ * Updates a specific field in the valuation data JSONB object
+ * @param valuationId Valuation ID
+ * @param key Key to update
+ * @param value Value to set
  */
 export async function updateValuationDataField(
   valuationId: string,
@@ -14,20 +13,20 @@ export async function updateValuationDataField(
   value: any
 ): Promise<boolean> {
   try {
-    // First get the current data object
+    // First get the current data
     const { data: valuation, error: fetchError } = await supabase
       .from('valuations')
-      .select('data')
+      .select('*')
       .eq('id', valuationId)
       .single();
-      
+    
     if (fetchError) {
       console.error('Error fetching valuation data:', fetchError);
       return false;
     }
     
-    // Create a new data object with the updated field
-    const currentData = valuation?.data || {};
+    // Create or update the data field
+    const currentData = valuation.data || {};
     const updatedData = {
       ...currentData,
       [key]: value
@@ -36,9 +35,11 @@ export async function updateValuationDataField(
     // Update the valuation with the new data
     const { error: updateError } = await supabase
       .from('valuations')
-      .update({ data: updatedData })
+      .update({
+        data: updatedData
+      })
       .eq('id', valuationId);
-      
+    
     if (updateError) {
       console.error('Error updating valuation data:', updateError);
       return false;
@@ -46,47 +47,48 @@ export async function updateValuationDataField(
     
     return true;
   } catch (err) {
-    console.error('Exception in updateValuationDataField:', err);
+    console.error('Error in updateValuationDataField:', err);
     return false;
   }
 }
 
 /**
- * Updates multiple fields in the data JSONB column for a valuation
- * @param valuationId The ID of the valuation to update
- * @param fields Object with key-value pairs to update in the data JSONB
- * @returns Promise resolving to the update result
+ * Updates multiple fields in the valuation data JSONB object
+ * @param valuationId Valuation ID
+ * @param updates Object containing key/value pairs to update
  */
 export async function updateValuationDataFields(
   valuationId: string,
-  fields: Record<string, any>
+  updates: Record<string, any>
 ): Promise<boolean> {
   try {
-    // First get the current data object
+    // First get the current data
     const { data: valuation, error: fetchError } = await supabase
       .from('valuations')
-      .select('data')
+      .select('*')
       .eq('id', valuationId)
       .single();
-      
+    
     if (fetchError) {
       console.error('Error fetching valuation data:', fetchError);
       return false;
     }
     
-    // Create a new data object with the updated fields
-    const currentData = valuation?.data || {};
+    // Create or update the data field
+    const currentData = valuation.data || {};
     const updatedData = {
       ...currentData,
-      ...fields
+      ...updates
     };
     
     // Update the valuation with the new data
     const { error: updateError } = await supabase
       .from('valuations')
-      .update({ data: updatedData })
+      .update({
+        data: updatedData
+      })
       .eq('id', valuationId);
-      
+    
     if (updateError) {
       console.error('Error updating valuation data:', updateError);
       return false;
@@ -94,7 +96,40 @@ export async function updateValuationDataFields(
     
     return true;
   } catch (err) {
-    console.error('Exception in updateValuationDataFields:', err);
+    console.error('Error in updateValuationDataFields:', err);
     return false;
+  }
+}
+
+/**
+ * Gets a specific field from the valuation data JSONB object
+ * @param valuationId Valuation ID
+ * @param key Key to retrieve
+ * @param defaultValue Default value if key doesn't exist
+ */
+export async function getValuationDataField<T>(
+  valuationId: string,
+  key: string,
+  defaultValue: T
+): Promise<T> {
+  try {
+    // Get the valuation data
+    const { data: valuation, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('id', valuationId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching valuation data:', error);
+      return defaultValue;
+    }
+    
+    // Return the requested field or default value
+    const data = valuation.data || {};
+    return data[key] !== undefined ? data[key] : defaultValue;
+  } catch (err) {
+    console.error('Error in getValuationDataField:', err);
+    return defaultValue;
   }
 }

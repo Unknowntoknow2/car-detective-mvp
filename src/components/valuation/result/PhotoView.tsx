@@ -12,11 +12,12 @@ import {
 
 interface PhotoViewProps {
   photoUrl: string;
+  photoScore?: number;
   explanation?: string;
   condition?: AICondition;
 }
 
-export default function PhotoView({ photoUrl, explanation, condition }: PhotoViewProps) {
+export default function PhotoView({ photoUrl, photoScore, explanation, condition }: PhotoViewProps) {
   if (!photoUrl) return null;
   
   return (

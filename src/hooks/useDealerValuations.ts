@@ -1,19 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ReportData } from '@/utils/pdf/types';
 import { ValuationWithCondition } from '@/types/dealer';
 
-interface Valuation {
-  id: string;
-  created_at: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  estimated_value: number;
-  data: any; // JSONB data
-}
+export type ConditionFilterOption = 'all' | 'excellent' | 'good' | 'fair' | 'poor';
 
 interface UseDealerValuationsResult {
   valuations: ValuationWithCondition[];
@@ -22,10 +11,10 @@ interface UseDealerValuationsResult {
   totalCount: number;
   currentPage: number;
   pageSize: number;
-  conditionFilter: string;
+  conditionFilter: ConditionFilterOption;
   handlePageChange: (page: number) => void;
-  handleConditionFilterChange: (condition: string) => void;
-  handleDownloadReport: (valuationId: string) => void;
+  handleConditionFilterChange: (condition: ConditionFilterOption) => void;
+  handleDownloadReport: (valuation: ValuationWithCondition) => void;
 }
 
 export function useDealerValuations(dealerId: string): UseDealerValuationsResult {
@@ -35,7 +24,7 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
-  const [conditionFilter, setConditionFilter] = useState('all');
+  const [conditionFilter, setConditionFilter] = useState<ConditionFilterOption>('all');
 
   useEffect(() => {
     const fetchValuations = async () => {
@@ -52,7 +41,7 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         }
         
         if (conditionFilter !== 'all') {
-          query = query.eq('condition', conditionFilter);
+          query = query.eq('condition_score', getConditionScoreRange(conditionFilter));
         }
         
         // Add pagination
@@ -66,26 +55,33 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         }
 
         if (data) {
-          const transformedData: ValuationWithCondition[] = data.map(valuation => ({
-            id: valuation.id,
-            make: valuation.make,
-            model: valuation.model,
-            year: valuation.year,
-            mileage: valuation.mileage,
-            condition: valuation.condition,
-            estimated_value: valuation.estimated_value,
-            confidence_score: valuation.confidence_score || 75,
-            condition_score: valuation.condition_score || 70,
-            created_at: valuation.created_at,
-            is_vin_lookup: valuation.is_vin_lookup,
-            // Extract AI condition from data JSONB if available
-            aiCondition: valuation.data?.ai_condition || null,
-            // Other fields from data
-            fuel_type: valuation.data?.fuel_type,
-            zip_code: valuation.data?.zipCode || valuation.state,
-            body_type: valuation.data?.bodyType || valuation.body_type,
-            color: valuation.data?.color || valuation.color
-          }));
+          const transformedData: ValuationWithCondition[] = data.map(valuation => {
+            // Extract data from JSON field if available
+            const jsonData = valuation.data || {};
+            
+            return {
+              id: valuation.id,
+              make: valuation.make || '',
+              model: valuation.model || '',
+              year: valuation.year || 0,
+              mileage: valuation.mileage || 0,
+              // Use condition_score to determine condition if not explicitly set
+              condition: determineConditionFromScore(valuation.condition_score),
+              estimated_value: valuation.estimated_value || 0,
+              confidence_score: valuation.confidence_score || 75,
+              condition_score: valuation.condition_score || 70,
+              created_at: valuation.created_at,
+              is_vin_lookup: valuation.is_vin_lookup,
+              // Extract AI condition from data JSONB if available
+              aiCondition: jsonData.ai_condition || null,
+              // Other fields from data
+              fuel_type: jsonData.fuel_type,
+              zip_code: valuation.state || '',
+              body_type: valuation.body_type || jsonData.bodyType || '',
+              color: valuation.color || jsonData.color || ''
+            };
+          });
+          
           setValuations(transformedData);
           setTotalCount(count || data.length);
         }
@@ -103,15 +99,35 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
     setCurrentPage(page);
   };
 
-  const handleConditionFilterChange = (condition: string) => {
+  const handleConditionFilterChange = (condition: ConditionFilterOption) => {
     setConditionFilter(condition);
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
-  const handleDownloadReport = (valuationId: string) => {
+  const handleDownloadReport = (valuation: ValuationWithCondition) => {
     // Implementation for downloading report
-    console.log(`Downloading report for valuation: ${valuationId}`);
+    console.log(`Downloading report for valuation: ${valuation.id}`);
     // Add actual download implementation here
+  };
+
+  // Helper function to convert condition score to readable condition
+  const determineConditionFromScore = (score?: number): string => {
+    if (!score) return 'Unknown';
+    if (score >= 90) return 'Excellent';
+    if (score >= 75) return 'Good';
+    if (score >= 60) return 'Fair';
+    return 'Poor';
+  };
+
+  // Helper function to get condition score range for filtering
+  const getConditionScoreRange = (condition: string): number => {
+    switch (condition) {
+      case 'excellent': return 90;
+      case 'good': return 75;
+      case 'fair': return 60;
+      case 'poor': return 0;
+      default: return 0;
+    }
   };
 
   return { 

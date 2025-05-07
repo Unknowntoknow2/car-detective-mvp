@@ -70,13 +70,12 @@ export function useValuationResult(valuationId: string) {
         model: valuationData.model || '',
         year: valuationData.year || 0,
         mileage: valuationData.mileage || 0,
-        // Use condition from data JSONB field if available, otherwise derive from condition_score
-        condition: jsonData.condition || valuationData.condition || 
-                  (valuationData.condition_score ? 
+        // Use condition from database directly or derive it from condition_score
+        condition: valuationData.condition_score ? 
                     (valuationData.condition_score >= 90 ? 'Excellent' : 
                      valuationData.condition_score >= 75 ? 'Good' : 
                      valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
-                    'Good'),
+                    'Good',
         zipCode: valuationData.state || '',
         estimatedValue: valuationData.estimated_value || 0,
         confidenceScore: valuationData.confidence_score || 75,
@@ -99,7 +98,7 @@ export function useValuationResult(valuationId: string) {
         createdAt: valuationData.created_at,
         isPremium: valuationData.premium_unlocked || false,
         
-        // Extract additional properties from JSONB data field with proper fallbacks
+        // Extract additional properties from valuation and JSONB data field with proper fallbacks
         color: valuationData.color || jsonData.color || '',
         bodyStyle: valuationData.body_style || jsonData.body_style || '',
         bodyType: valuationData.body_type || jsonData.body_type || '',

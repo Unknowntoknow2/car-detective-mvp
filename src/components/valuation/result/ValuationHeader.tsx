@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PhotoView from './PhotoView';
 import { Share, Download } from 'lucide-react';
@@ -77,7 +78,7 @@ export function ValuationHeader({
         {bestPhotoUrl ? (
           <PhotoView 
             photoUrl={bestPhotoUrl} 
-            score={photoScore} 
+            photoScore={photoScore} 
             explanation={photoExplanation} 
           />
         ) : (
