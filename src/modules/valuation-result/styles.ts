@@ -1,160 +1,140 @@
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
-// Define styles for various components in the valuation result page
 const styles = {
-  // Main container 
+  // Container styles
   container: cn(
-    "w-full max-w-6xl mx-auto px-4 sm:px-6 py-8"
+    "max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6"
   ),
   
-  // Grid layout for desktop
+  // Premium badge
+  premiumBadge: cn(
+    "inline-flex items-center px-2.5 py-0.5 rounded-full",
+    "text-xs font-medium bg-primary-light text-primary",
+    "hover:bg-primary-dark/10 transition-colors"
+  ),
+  
+  // Header section
+  header: {
+    container: cn(
+      "bg-white rounded-xl shadow-sm p-4 sm:p-6",
+      "border border-neutral-light mb-6",
+      "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+    ),
+    vehicleInfo: cn(
+      "flex-1"
+    ),
+    vehicleName: cn(
+      "text-2xl sm:text-3xl font-semibold mb-2 flex flex-wrap items-center gap-2"
+    ),
+    vehicleDetails: cn(
+      "flex flex-wrap gap-2"
+    ),
+    price: cn(
+      "text-2xl sm:text-3xl font-bold"
+    ),
+  },
+  
+  // Grid layout
   grid: {
     container: cn(
       "grid grid-cols-1 md:grid-cols-2 gap-6"
     ),
     fullWidth: cn(
       "col-span-1 md:col-span-2"
-    )
+    ),
   },
   
-  // Section styles
-  section: {
-    card: cn(
-      "bg-white rounded-lg shadow-sm border border-neutral-100 p-6"
-    ),
-    heading: cn(
-      "text-xl font-medium text-gray-900 mb-4"
-    ),
-    subheading: cn(
-      "text-sm font-medium text-gray-500 mb-2"
-    )
-  },
-  
-  // Header section
-  header: {
+  // Summary section
+  summary: {
     container: cn(
-      "flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"
+      "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
     ),
-    vehicleInfo: cn(
-      "flex flex-col"
+    itemContainer: cn(
+      "p-3 sm:p-4 bg-neutral-lighter rounded-lg"
     ),
-    price: cn(
-      "text-3xl font-bold text-primary"
-    ),
-    vehicleName: cn(
-      "text-2xl font-bold text-gray-900"
-    ),
-    vehicleDetails: cn(
-      "flex flex-wrap gap-2 mt-2"
-    )
   },
   
-  // Score section
-  score: {
-    container: cn(
-      "flex flex-col sm:flex-row items-center justify-between gap-4 mb-6"
-    ),
-    scoreItem: cn(
-      "flex flex-col items-center text-center p-3"
-    ),
-    confidenceCircle: cn(
-      "w-20 h-20 rounded-full border-4 flex items-center justify-center mb-2 text-xl font-bold"
-    ),
-    priceRange: cn(
-      "flex items-center gap-2 text-sm text-gray-600"
-    )
-  },
-  
-  // Photo section
+  // Photo analysis
   photo: {
     container: cn(
-      "relative rounded-lg overflow-hidden"
+      "relative"
     ),
     image: cn(
-      "w-full h-auto rounded-lg"
-    ),
-    scoreOverlay: cn(
-      "absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium"
+      "rounded-lg overflow-hidden w-full aspect-video"
     ),
     noPhoto: cn(
-      "flex flex-col items-center justify-center bg-gray-100 rounded-lg p-8 text-center h-64"
-    )
+      "bg-white rounded-xl shadow-sm p-6",
+      "border border-neutral-light",
+      "flex flex-col items-center justify-center text-center",
+      "min-h-[240px]"
+    ),
+    scoreContainer: cn(
+      "flex items-center justify-between mb-2"
+    ),
+    scoreBadge: cn(
+      "px-2.5 py-0.5 rounded-full text-xs font-medium"
+    ),
   },
   
   // Breakdown section
   breakdown: {
     container: cn(
-      "space-y-4"
+      "space-y-3"
     ),
     row: cn(
-      "flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+      "flex justify-between items-center py-2"
     ),
     factor: cn(
-      "text-gray-700"
+      "text-neutral-darker"
     ),
     impact: cn(
       "font-medium"
     ),
     positive: cn(
-      "text-green-600"
+      "text-success-dark"
     ),
     negative: cn(
-      "text-red-600"
+      "text-error-dark"
     ),
     neutral: cn(
-      "text-gray-700"
-    )
+      "text-neutral-darker"
+    ),
   },
   
   // Explanation section
   explanation: {
     container: cn(
-      "relative"
+      "relative min-h-[180px]"
     ),
     text: cn(
-      "text-gray-700 leading-relaxed"
+      "text-neutral-darker"
     ),
     premium: {
       blur: cn(
-        "absolute inset-0 backdrop-blur-sm flex items-center justify-center"
+        "absolute inset-0",
+        "flex items-center justify-center",
+        "bg-white/80 backdrop-blur-sm"
       ),
       button: cn(
-        "bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition"
-      )
-    }
+        "shadow-md"
+      ),
+    },
   },
   
-  // Actions section
-  actions: {
-    container: cn(
-      "flex flex-col sm:flex-row gap-4 mt-6"
+  // Mobile-specific classes
+  mobile: {
+    actionBar: cn(
+      "fixed bottom-0 left-0 right-0 bg-white py-3 px-4 border-t border-neutral-light",
+      "flex items-center justify-between shadow-md z-20",
+      "sm:relative sm:py-0 sm:px-0 sm:border-0 sm:shadow-none sm:z-auto sm:bg-transparent",
+      "safe-area-inset"
     ),
-    primaryButton: cn(
-      "flex-1"
+    fab: cn(
+      "fixed bottom-4 right-4 shadow-lg rounded-full z-20",
+      "md:hidden"
     ),
-    secondaryButton: cn(
-      "flex-1"
-    )
   },
-  
-  // Premium badge
-  premiumBadge: cn(
-    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-2"
-  ),
-  
-  // Animation classes
-  animation: {
-    fadeIn: cn(
-      "animate-fade-in"
-    ),
-    slideIn: cn(
-      "animate-slide-in-right"
-    ),
-    pulse: cn(
-      "animate-pulse"
-    )
-  }
 };
 
 export default styles;

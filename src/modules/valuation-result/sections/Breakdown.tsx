@@ -6,6 +6,7 @@ import { HeadingL, BodyM, BodyS } from '@/components/ui-kit/typography';
 import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import styles from '../styles';
 import { formatCurrency } from '../logic';
+import { cn } from '@/lib/utils';
 
 interface Adjustment {
   factor: string;

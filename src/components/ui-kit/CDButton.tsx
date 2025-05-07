@@ -1,8 +1,7 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { BodyS } from "./typography";
+import { motion, MotionProps } from "framer-motion";
 
 export type ButtonProps = {
   children: React.ReactNode;
@@ -17,7 +16,7 @@ export type ButtonProps = {
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   type?: "button" | "submit" | "reset";
   ariaLabel?: string;
-  motionProps?: Record<string, any>;
+  motionProps?: MotionProps;
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "disabled">;
 
 export const CDButton: React.FC<ButtonProps> = ({
@@ -63,7 +62,7 @@ export const CDButton: React.FC<ButtonProps> = ({
   ].join(" ");
 
   // Create motion animation props
-  const buttonMotionProps = {
+  const buttonMotionProps: MotionProps = {
     whileHover: isDisabled || isLoading ? undefined : { scale: 1.02 },
     whileTap: isDisabled || isLoading ? undefined : { scale: 0.98 },
     ...motionProps

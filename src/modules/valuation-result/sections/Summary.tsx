@@ -1,23 +1,18 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { CDCard, CDCardBody } from '@/components/ui-kit/CDCard';
 import { CDTooltip } from '@/components/ui-kit/CDTooltip';
-import { CDBadge } from '@/components/ui-kit/CDBadge';
 import { BodyM, BodyS } from '@/components/ui-kit/typography';
-import { InfoIcon, ArrowUp, ArrowDown, ArrowRight } from 'lucide-react';
+import { Info, TrendingUp, TrendingDown, Check } from 'lucide-react';
 import styles from '../styles';
-import { 
-  formatCurrency, 
-  PriceRange, 
-  MarketTrend, 
-  getConfidenceLevel, 
-  getConfidenceColor 
-} from '../logic';
+import { formatCurrency } from '../logic';
+import { cn } from '@/lib/utils';
 
 interface SummaryProps {
   confidenceScore: number;
-  priceRange: PriceRange;
-  marketTrend: MarketTrend;
+  priceRange: { low: number; high: number };
+  marketTrend: 'up' | 'down' | 'stable';
   recommendationText: string;
 }
 
@@ -27,104 +22,135 @@ export const Summary: React.FC<SummaryProps> = ({
   marketTrend,
   recommendationText
 }) => {
-  const confidenceLevel = getConfidenceLevel(confidenceScore);
-  const confidenceColorClass = getConfidenceColor(confidenceScore);
-  
-  const getTrendIcon = () => {
-    switch(marketTrend) {
-      case 'rising':
-        return <ArrowUp className="h-4 w-4 text-green-500" />;
-      case 'falling':
-        return <ArrowDown className="h-4 w-4 text-red-500" />;
-      default:
-        return <ArrowRight className="h-4 w-4 text-gray-500" />;
-    }
+  // Get confidence color
+  const getConfidenceColor = () => {
+    if (confidenceScore >= 85) return 'text-success-dark';
+    if (confidenceScore >= 70) return 'text-primary';
+    return 'text-warning-dark';
   };
   
-  const getTrendLabel = () => {
-    switch(marketTrend) {
-      case 'rising':
-        return 'Rising Market';
-      case 'falling':
-        return 'Falling Market';
-      default:
-        return 'Stable Market';
-    }
+  // Get confidence level text
+  const getConfidenceLevel = () => {
+    if (confidenceScore >= 85) return 'High';
+    if (confidenceScore >= 70) return 'Medium';
+    return 'Low';
   };
   
-  const getTrendColor = () => {
-    switch(marketTrend) {
-      case 'rising':
-        return 'success';
-      case 'falling':
-        return 'error';
-      default:
-        return 'neutral';
-    }
-  };
-  
-  return (
-    <motion.div 
-      className={styles.score.container}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.3, duration: 0.5 }}
-    >
-      <div className="flex items-center gap-8">
-        {/* Confidence Score */}
-        <div className={styles.score.scoreItem}>
-          <motion.div 
-            className={cn(styles.score.confidenceCircle, confidenceColorClass)}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5, type: 'spring' }}
-          >
-            {confidenceScore}%
-          </motion.div>
-          <BodyS className="flex items-center gap-1.5">
-            Confidence: {confidenceLevel}
-            <CDTooltip 
-              content={
-                <div className="max-w-xs">
-                  <p>Our confidence score reflects the precision of our valuation based on available data.</p>
-                  <p className="mt-1.5">Higher confidence indicates more reliable pricing data and detailed vehicle information.</p>
-                </div>
-              }
-            >
-              <InfoIcon className="h-4 w-4 text-gray-400 cursor-help" />
-            </CDTooltip>
-          </BodyS>
-        </div>
-        
-        {/* Price Range */}
-        <div className="flex flex-col">
-          <BodyS className="text-gray-500 mb-1">Price Range</BodyS>
-          <BodyM className="font-semibold">
-            {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
-          </BodyM>
-          <div className="mt-2 flex items-center gap-2">
-            <CDBadge
-              variant={getTrendColor() as any}
-              size="sm"
-              icon={getTrendIcon()}
-            >
-              {getTrendLabel()}
-            </CDBadge>
-          </div>
-        </div>
-      </div>
+  // Get market trend icon
+  const TrendIcon = marketTrend === 'up' 
+    ? TrendingUp 
+    : marketTrend === 'down' 
+      ? TrendingDown 
+      : Check;
       
-      {/* Recommendation */}
-      <motion.div 
-        className="bg-gray-50 p-3 rounded-lg mt-4 sm:mt-0 w-full sm:w-auto"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.4 }}
-      >
-        <BodyS className="text-gray-500 mb-1">Recommendation</BodyS>
-        <BodyM>{recommendationText}</BodyM>
-      </motion.div>
-    </motion.div>
+  // Get market trend text
+  const getTrendText = () => {
+    if (marketTrend === 'up') return 'Trending Up';
+    if (marketTrend === 'down') return 'Trending Down';
+    return 'Stable';
+  };
+  
+  // Get market trend color
+  const getTrendColor = () => {
+    if (marketTrend === 'up') return 'text-success-dark';
+    if (marketTrend === 'down') return 'text-error-dark';
+    return 'text-neutral-darker';
+  };
+
+  return (
+    <CDCard className="mb-6">
+      <CDCardBody>
+        <div className={styles.summary.container}>
+          {/* Confidence Score */}
+          <motion.div 
+            className={styles.summary.itemContainer}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center mb-1.5">
+              <BodyS className="text-neutral-dark mr-1.5">Confidence Score</BodyS>
+              <CDTooltip 
+                content="Our system's confidence in the accuracy of this valuation based on available data"
+              >
+                <Info className="h-3.5 w-3.5 text-neutral-dark" />
+              </CDTooltip>
+            </div>
+            
+            <div className="flex items-center">
+              <BodyM className={cn("font-semibold mr-2", getConfidenceColor())}>
+                {confidenceScore}%
+              </BodyM>
+              <span className={cn("text-xs px-2 py-0.5 rounded-full", 
+                confidenceScore >= 85 ? "bg-success-light text-success-dark" :
+                confidenceScore >= 70 ? "bg-primary-light text-primary" :
+                "bg-warning-light text-warning-dark"
+              )}>
+                {getConfidenceLevel()}
+              </span>
+            </div>
+          </motion.div>
+          
+          {/* Price Range */}
+          <motion.div 
+            className={styles.summary.itemContainer}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+          >
+            <div className="flex items-center mb-1.5">
+              <BodyS className="text-neutral-dark mr-1.5">Price Range</BodyS>
+              <CDTooltip 
+                content="The estimated range your vehicle could sell for in the current market"
+              >
+                <Info className="h-3.5 w-3.5 text-neutral-dark" />
+              </CDTooltip>
+            </div>
+            
+            <BodyM className="font-semibold">
+              {formatCurrency(priceRange.low)} – {formatCurrency(priceRange.high)}
+            </BodyM>
+          </motion.div>
+          
+          {/* Market Trend */}
+          <motion.div 
+            className={styles.summary.itemContainer}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
+            <div className="flex items-center mb-1.5">
+              <BodyS className="text-neutral-dark mr-1.5">Market Trend</BodyS>
+              <CDTooltip 
+                content="Current market direction for vehicles matching this make, model, and year"
+              >
+                <Info className="h-3.5 w-3.5 text-neutral-dark" />
+              </CDTooltip>
+            </div>
+            
+            <div className="flex items-center">
+              <TrendIcon className={cn("h-4 w-4 mr-1.5", getTrendColor())} />
+              <BodyM className={cn("font-semibold", getTrendColor())}>
+                {getTrendText()}
+              </BodyM>
+            </div>
+          </motion.div>
+          
+          {/* Recommendation */}
+          <motion.div 
+            className={styles.summary.itemContainer}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            <BodyS className="text-neutral-dark mb-1.5">Recommendation</BodyS>
+            <BodyM className="font-semibold text-neutral-darkest">
+              {recommendationText}
+            </BodyM>
+          </motion.div>
+        </div>
+      </CDCardBody>
+    </CDCard>
   );
 };
 

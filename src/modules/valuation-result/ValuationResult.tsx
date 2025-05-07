@@ -14,6 +14,7 @@ import PhotoAnalysis from './sections/PhotoAnalysis';
 import Breakdown from './sections/Breakdown';
 import Explanation from './sections/Explanation';
 import PDFActions from './sections/PDFActions';
+import MobileLayout from './MobileLayout';
 import styles from './styles';
 import { toast } from 'sonner';
 
@@ -167,90 +168,100 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   if (transmission) additionalInfo.transmission = transmission;
   
   return (
-    <AnimatePresence>
-      <div className={styles.container}>
-        {/* Header Section */}
-        <Header
-          make={make}
-          model={model}
-          year={year}
-          mileage={mileage}
-          condition={condition}
-          estimatedValue={estimatedValue}
-          isPremium={showPremiumContent}
-          additionalInfo={additionalInfo}
-        />
-        
-        {/* Summary Section */}
-        <Summary
-          confidenceScore={confidenceScore}
-          priceRange={priceRange}
-          marketTrend={marketTrend}
-          recommendationText={recommendationText}
-        />
-        
-        {/* Main Content */}
-        <div className={styles.grid.container}>
-          {/* Left Column - Photo Analysis */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <PhotoAnalysis
-              photoUrl={bestPhotoUrl}
-              photoScore={photoScore}
-              condition={aiCondition}
-              isPremium={showPremiumContent}
-            />
-          </motion.div>
+    <MobileLayout
+      isPremium={showPremiumContent}
+      isLoading={isLoading}
+      onUpgrade={handleUpgrade}
+      onDownloadPdf={handleDownloadPdf}
+      estimatedValue={estimatedValue}
+      isDownloading={isDownloading}
+    >
+      <AnimatePresence>
+        <div className={styles.container}>
+          {/* Header Section */}
+          <Header
+            make={make}
+            model={model}
+            year={year}
+            mileage={mileage}
+            condition={condition}
+            estimatedValue={estimatedValue}
+            isPremium={showPremiumContent}
+            additionalInfo={additionalInfo}
+          />
           
-          {/* Right Column - Price Breakdown */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <Breakdown
-              basePrice={estimatedValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)}
-              adjustments={adjustments}
-              estimatedValue={estimatedValue}
-            />
-          </motion.div>
+          {/* Summary Section */}
+          <Summary
+            confidenceScore={confidenceScore}
+            priceRange={priceRange}
+            marketTrend={marketTrend}
+            recommendationText={recommendationText}
+          />
           
-          {/* Full Width - Explanation (GPT) */}
-          <motion.div 
-            className={styles.grid.fullWidth}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-          >
-            <Explanation
-              explanation={explanation}
-              isPremium={showPremiumContent}
-              onUpgrade={handleUpgrade}
-            />
-          </motion.div>
-          
-          {/* Full Width - PDF Actions */}
-          <motion.div 
-            className={styles.grid.fullWidth}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
-          >
-            <PDFActions
-              isPremium={showPremiumContent}
-              onDownloadPdf={handleDownloadPdf}
-              onEmailPdf={handleEmailPdf}
-              onUpgrade={handleUpgrade}
-              isDownloading={isDownloading}
-              isEmailSending={isEmailSending}
-            />
-          </motion.div>
+          {/* Main Content */}
+          <div className={styles.grid.container}>
+            {/* Left Column - Photo Analysis */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <PhotoAnalysis
+                photoUrl={bestPhotoUrl}
+                photoScore={photoScore}
+                condition={aiCondition}
+                isPremium={showPremiumContent}
+                onUpgrade={handleUpgrade}
+              />
+            </motion.div>
+            
+            {/* Right Column - Price Breakdown */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              <Breakdown
+                basePrice={estimatedValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)}
+                adjustments={adjustments}
+                estimatedValue={estimatedValue}
+              />
+            </motion.div>
+            
+            {/* Full Width - Explanation (GPT) */}
+            <motion.div 
+              className={styles.grid.fullWidth}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
+              <Explanation
+                explanation={explanation}
+                isPremium={showPremiumContent}
+                onUpgrade={handleUpgrade}
+              />
+            </motion.div>
+            
+            {/* Full Width - PDF Actions */}
+            <motion.div 
+              className={styles.grid.fullWidth + " mb-20 sm:mb-0"} // Add bottom margin on mobile for action bar
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
+              <PDFActions
+                isPremium={showPremiumContent}
+                onDownloadPdf={handleDownloadPdf}
+                onEmailPdf={handleEmailPdf}
+                onUpgrade={handleUpgrade}
+                isDownloading={isDownloading}
+                isEmailSending={isEmailSending}
+              />
+            </motion.div>
+          </div>
         </div>
-      </div>
-    </AnimatePresence>
+      </AnimatePresence>
+    </MobileLayout>
   );
 };
 
