@@ -45,3 +45,11 @@ export const validateVin = (vin: string): { valid: boolean; message?: string } =
 
   return { valid: true };
 };
+
+/**
+ * Simple function to check if a VIN is valid
+ */
+export const isValidVIN = (vin: string): boolean => {
+  const result = validateVin(vin);
+  return result.valid;
+};
