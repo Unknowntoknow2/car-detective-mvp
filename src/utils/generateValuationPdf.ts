@@ -2,6 +2,7 @@
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { generatePdf } from './pdf/pdfGenerator';
 import { ReportData } from './pdf/types';
+import { generateValuationNarrative } from './pdf/sections/valuationSummary';
 
 interface PdfDownloadParams {
   vehicle: DecodedVehicleInfo;
@@ -18,6 +19,7 @@ interface PdfDownloadParams {
   } | null;
   bestPhotoUrl?: string;
   photoExplanation?: string;
+  adjustments?: Array<{ factor: string; impact: number; description?: string }>;
 }
 
 /**
@@ -51,8 +53,39 @@ export async function generateValuationPdf(params: PdfDownloadParams): Promise<U
       aiSummary: params.aiCondition.aiSummary || ''
     } : null,
     bestPhotoUrl: params.bestPhotoUrl,
-    photoExplanation: params.photoExplanation
+    photoExplanation: params.photoExplanation,
+    adjustments: params.adjustments || []
   };
+  
+  // Generate the valuation narrative if not provided
+  if (!reportData.narrative) {
+    try {
+      // Calculate base price
+      const basePrice = params.adjustments && params.adjustments.length > 0 
+        ? params.valuation - params.adjustments.reduce((sum, adj) => sum + adj.impact, 0)
+        : params.valuation;
+        
+      const narrative = await generateValuationNarrative({
+        make: params.vehicle.make,
+        model: params.vehicle.model,
+        year: params.vehicle.year,
+        mileage: params.vehicle.mileage || 0,
+        zipCode: params.vehicle.zipCode || '',
+        condition: params.vehicle.condition || 'Good',
+        basePrice: basePrice,
+        adjustedPrice: params.valuation,
+        confidenceScore: params.aiCondition?.confidenceScore || 85,
+        photoExplanation: params.photoExplanation,
+        fuelType: params.vehicle.fuelType,
+        transmission: params.vehicle.transmission
+      });
+      
+      reportData.narrative = narrative;
+    } catch (error) {
+      console.error("Error generating narrative:", error);
+      // Continue without narrative if generation fails
+    }
+  }
   
   return generatePdf(reportData);
 }

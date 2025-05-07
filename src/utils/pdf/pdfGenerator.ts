@@ -7,6 +7,7 @@ import { drawExplanationSection } from './sections/explanationSection';
 import { drawFooterSection } from './sections/footerSection';
 import { drawAIConditionSection } from './sections/aiConditionSection';
 import { applyWatermark } from './sections/watermark';
+import { drawValuationSummary } from './sections/valuationSummary';
 
 /**
  * Generates a PDF report based on the provided data
@@ -77,6 +78,12 @@ export async function generatePdf(
   });
   
   yPosition -= 70; // Move down after header
+  
+  // Add valuation summary if available
+  if (data.narrative) {
+    yPosition = drawValuationSummary(sectionParams, data.narrative, yPosition);
+    yPosition -= 20; // Add space after summary
+  }
   
   // Add vehicle info section
   yPosition = drawVehicleInfoSection(

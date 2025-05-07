@@ -8,7 +8,7 @@ import { SectionParams } from '../types';
  * @returns A properly formatted rotation object
  */
 function degrees(angle: number) {
-  return { type: 'degrees', angle };
+  return { type: 'degrees' as const, angle };
 }
 
 /**

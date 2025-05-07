@@ -32,6 +32,7 @@ export interface ReportData {
     issuesDetected?: string[];
     aiSummary?: string;
   } | null;
+  narrative?: string;
 }
 
 export interface ReportOptions {

@@ -61,7 +61,7 @@ export function applyWatermark(
  * @returns A properly formatted rotation object
  */
 function degrees(angle: number) {
-  return { type: 'degrees', angle };
+  return { type: 'degrees' as const, angle };
 }
 
 /**

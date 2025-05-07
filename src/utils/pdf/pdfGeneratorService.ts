@@ -1,12 +1,13 @@
 
 import { ReportData } from './types';
-import { PDFDocument, rgb, StandardFonts, PDFFont, degrees } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, PDFFont } from 'pdf-lib';
 import { drawSectionHeading, drawHorizontalLine, initializePdf } from './components/pdfCommon';
 import { drawVehicleInfoSection } from './sections/vehicleInfoSection';
 import { drawValuationSection } from './sections/valuationSection';
 import { drawCommentarySection } from './sections/commentarySection';
 import { drawAIConditionSection } from './sections/aiConditionSection';
 import { applyWatermark } from './sections/watermark';
+import { drawValuationSummary } from './sections/valuationSummary';
 
 /**
  * Generates a PDF for the valuation report
@@ -100,8 +101,14 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   // Start main content below header
   currentY = height - 120;
   
+  // If we have a narrative summary, add it first
+  if (reportData.narrative) {
+    currentY = drawValuationSummary(sectionParams, reportData.narrative, currentY);
+    currentY = currentY - 15;
+  }
+  
   // Vehicle Information Section
-  currentY = await drawVehicleInfoSection(
+  currentY = drawVehicleInfoSection(
     sectionParams, 
     reportData, 
     currentY
@@ -109,7 +116,7 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   currentY = currentY - 15;
   
   // Valuation Section
-  currentY = await drawValuationSection(
+  currentY = drawValuationSection(
     sectionParams, 
     reportData, 
     currentY
@@ -155,7 +162,7 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   
   // GPT Commentary Section (if available)
   if (reportData.explanation) {
-    currentY = await drawCommentarySection(
+    currentY = drawCommentarySection(
       sectionParams,
       reportData.explanation,
       currentY
@@ -163,57 +170,14 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
     currentY = currentY - 15;
   }
   
-  // Draw watermark diagonally across the page
-  const watermarkFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
-  page.drawText('Car Detective Valuation Report', {
-    x: 150,
-    y: 300,
-    size: 60,
-    font: watermarkFont,
-    color: rgb(0.85, 0.85, 0.85), // Light gray
-    opacity: 0.3,
-    rotate: degrees(-45),
-  });
-  
-  // Add footer with page number, date and disclaimer
-  const footerY = 30;
-  
-  // Draw footer line
-  drawHorizontalLine(page, margin, width - margin, footerY + 20);
-  
-  // Draw footer text
-  const today = new Date();
-  const dateString = today.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-  
-  page.drawText(`Generated on ${dateString} • Car Detective LLC • Page 1 of 1`, {
-    x: margin,
-    y: footerY,
-    size: 8,
-    font: regular,
-    color: rgb(0.4, 0.4, 0.4)
-  });
-  
-  // Draw QR code placeholder for verification (would be replaced with actual QR in production)
-  page.drawRectangle({
-    x: width - margin - 50,
-    y: footerY - 10,
-    width: 50,
-    height: 50,
-    borderColor: rgb(0.7, 0.7, 0.7),
-    borderWidth: 1,
-  });
-  
-  page.drawText('QR', {
-    x: width - margin - 35,
-    y: footerY + 10,
-    size: 16,
-    font: bold,
-    color: rgb(0.7, 0.7, 0.7)
-  });
+  // Draw footer with updated parameters
+  drawFooterSection(
+    sectionParams,
+    true, // includeTimestamp
+    1,    // pageNumber
+    1,    // totalPages
+    reportData.isPremium // includeWatermark based on premium status
+  );
   
   // Generate PDF bytes
   return await pdfDoc.save();
