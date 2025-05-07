@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getValuationResult, checkPremiumAccess } from '@/utils/valuationService';
 import { Valuation } from '@/types/valuation-history';
+import { AICondition } from '@/types/photo';
 
 // Define a more specific type for the valuation result
-type ValuationResultData = {
+export type ValuationResultData = {
   id: string;
   make: string;
   model: string;
@@ -24,12 +25,7 @@ type ValuationResultData = {
   color?: string | null;
   explanation?: string | null;
   transmission?: string | null;
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
+  aiCondition?: AICondition | null;
   bestPhotoUrl?: string;
 };
 
@@ -52,8 +48,8 @@ export function useValuationResult(valuationId: string) {
         ...data,
         isPremium,
         // Set default values for required properties
-        estimatedValue: 0,
-        confidenceScore: 75,
+        estimatedValue: data.estimatedValue || 0,
+        confidenceScore: data.confidenceScore || 75,
         bodyStyle: null,
         bodyType: null,
         fuelType: null,
@@ -62,16 +58,6 @@ export function useValuationResult(valuationId: string) {
         transmission: null,
         aiCondition: null
       };
-      
-      // Handle estimatedValue (camelCase)
-      if (data.estimatedValue !== undefined) {
-        transformedData.estimatedValue = data.estimatedValue;
-      }
-      
-      // Handle confidenceScore (camelCase)
-      if (data.confidenceScore !== undefined) {
-        transformedData.confidenceScore = data.confidenceScore;
-      }
       
       // Only assign properties if they exist in the data object
       if ('color' in data && data.color !== undefined) {

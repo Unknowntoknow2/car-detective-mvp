@@ -5,15 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ValuationResults } from '@/components/premium/common/ValuationResults';
-import { PremiumDownloadButton } from '@/components/premium/PremiumDownloadButton';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
-import { toast } from 'sonner';
 import { useAICondition } from '@/hooks/useAICondition';
-import { supabase } from '@/integrations/supabase/client';
 import { useValuationId } from './result/useValuationId';
 import { LoadingState } from './result/LoadingState';
 import { ErrorAlert } from './result/ErrorAlert';
+import { ValuationData } from './result/ValuationData';
+import { DownloadSection } from './result/DownloadSection';
+import { useValuationPdf } from './result/useValuationPdf';
 
 interface PredictionResultProps {
   valuationId: string;
@@ -29,7 +27,6 @@ interface PredictionResultProps {
 }
 
 export function PredictionResult({ valuationId, manualValuation }: PredictionResultProps) {
-  const [isDownloading, setIsDownloading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   
   // Get valuation ID (from prop or localStorage)
@@ -71,11 +68,14 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
     // Apply AI condition override if available and confidence score is high enough
     if (conditionData && conditionData.confidenceScore >= 70) {
       valuationWithOverride.condition = conditionData.condition;
-      valuationWithOverride.aiCondition = conditionData;
       
-      // Recalculate the estimated value if needed
-      // Note: In a full implementation, you would call your valuation engine here
-      // For now, we'll just use the existing estimated value
+      // For TypeScript, we need to handle the aiCondition property safely
+      if ('aiCondition' in valuationWithOverride) {
+        valuationWithOverride.aiCondition = conditionData;
+      } else {
+        // Add the property if it doesn't exist
+        (valuationWithOverride as any).aiCondition = conditionData;
+      }
     }
     
     return valuationWithOverride;
@@ -111,49 +111,11 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
     createdAt: new Date().toISOString()
   } : null);
 
-  const handleDownloadPdf = async () => {
-    if (!valuationData) return;
-    
-    setIsDownloading(true);
-    try {
-      // Prepare the vehicle information and valuation data
-      const vehicleInfo = {
-        vin: valuationData.id || 'VALUATION-ID',
-        make: valuationData.make,
-        model: valuationData.model,
-        year: valuationData.year,
-        mileage: valuationData.mileage,
-        transmission: 'transmission' in valuationData ? valuationData.transmission || 'Not Specified' : 'Not Specified',
-        condition: valuationData.condition,
-        zipCode: valuationData.zipCode
-      };
-
-      // Prepare valuation data for PDF generation
-      const valuationReportData = {
-        estimatedValue: valuationData.estimatedValue,
-        mileage: valuationData.mileage.toString(),
-        condition: valuationData.condition,
-        zipCode: valuationData.zipCode,
-        confidenceScore: valuationData.confidenceScore || 75,
-        adjustments: valuationData.adjustments || [],
-        fuelType: 'fuelType' in valuationData ? valuationData.fuelType || 'Not Specified' : 'Not Specified',
-        explanation: 'explanation' in valuationData ? valuationData.explanation || 'Detailed valuation report for your vehicle' : 'Detailed valuation report for your vehicle',
-        aiCondition: conditionData || ('aiCondition' in valuationData ? valuationData.aiCondition : null)
-      };
-
-      // Convert to report data format
-      const reportData = convertVehicleInfoToReportData(vehicleInfo, valuationReportData);
-      
-      // Generate and download the PDF
-      await downloadPdf(reportData);
-      toast.success("PDF report downloaded successfully");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF report");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+  // Setup PDF download functionality
+  const { isDownloading, handleDownloadPdf } = useValuationPdf({
+    valuationData,
+    conditionData
+  });
 
   // Show loading state during initial data fetch
   if (isLoading && !manualValuation) {
@@ -211,30 +173,30 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
       ];
 
   // Determine if the AI condition was used
-  const hasAiCondition = conditionData || ('aiCondition' in valuationData && valuationData.aiCondition);
+  const hasAiCondition = conditionData || ('aiCondition' in valuationData);
   const isAIVerified = !!(hasAiCondition && 
     ((conditionData?.confidenceScore >= 70) || 
-     (valuationData.aiCondition && 'confidenceScore' in valuationData.aiCondition && valuationData.aiCondition.confidenceScore >= 70)));
+     ('aiCondition' in valuationData && 
+      valuationData.aiCondition && 
+      'confidenceScore' in valuationData.aiCondition && 
+      valuationData.aiCondition.confidenceScore >= 70)));
 
   return (
     <div className="space-y-6">
-      <ValuationResults
+      <ValuationData
         estimatedValue={valuationData.estimatedValue}
         confidenceScore={valuationData.confidenceScore || 75}
         priceRange={priceRange}
         adjustments={valuationData.adjustments}
-        aiVerified={isAIVerified}
-        aiCondition={conditionData || ('aiCondition' in valuationData ? valuationData.aiCondition : null)}
+        isAIVerified={isAIVerified}
+        conditionData={conditionData || ('aiCondition' in valuationData ? valuationData.aiCondition : null)}
       />
       
-      <div className="mt-6">
-        <PremiumDownloadButton 
-          valuationId={localValuationId}
-          onDownload={handleDownloadPdf}
-          className="w-full"
-          isDownloading={isDownloading}
-        />
-      </div>
+      <DownloadSection 
+        valuationId={localValuationId || ''}
+        onDownload={handleDownloadPdf}
+        isDownloading={isDownloading}
+      />
     </div>
   );
 }
