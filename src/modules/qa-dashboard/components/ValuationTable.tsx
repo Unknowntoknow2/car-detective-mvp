@@ -1,125 +1,87 @@
 
 import React from 'react';
+import { Valuation } from '../types';
+import { ValuationRow } from './ValuationRow';
+import { Loader2, AlertCircle, SearchX } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { CDTable } from '@/components/ui-kit/CDTable';
-import ValuationRow, { ValuationRowData } from './ValuationRow';
-import styles from '../styles';
-import { EmptyStateAnimation } from '@/components/animations/EmptyStateAnimation';
-import { FileX } from 'lucide-react';
 
 interface ValuationTableProps {
-  valuations: ValuationRowData[];
+  valuations: Valuation[];
   isLoading: boolean;
-  onRefresh: () => void;
+  onViewResult: (id: string) => void;
+  onRerunGPT: (id: string) => void;
+  onGeneratePDF: (id: string) => void;
+  onDownloadPDF: (id: string) => void;
+  onViewStripeStatus: (id: string) => void;
 }
 
-export const ValuationTable: React.FC<ValuationTableProps> = ({ 
-  valuations, 
+export const ValuationTable: React.FC<ValuationTableProps> = ({
+  valuations,
   isLoading,
-  onRefresh
+  onViewResult,
+  onRerunGPT,
+  onGeneratePDF,
+  onDownloadPDF,
+  onViewStripeStatus
 }) => {
-  const columns = [
-    { header: 'Date', accessor: 'created_at' },
-    { header: 'Source', accessor: 'source' },
-    { header: 'Vehicle', accessor: 'vehicle' },
-    { header: 'Confidence', accessor: 'confidence_score' },
-    { header: 'Type', accessor: 'premium_unlocked' },
-    { header: 'Valuation', accessor: 'estimated_value' },
-    { header: 'Actions', accessor: 'actions' }
-  ];
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
+        <span>Loading valuations...</span>
+      </div>
+    );
+  }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const rowVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.3,
-        ease: "easeOut"
-      }
-    }
-  };
-
-  const renderEmptyState = () => (
-    <EmptyStateAnimation
-      title="No valuations found"
-      description="Try adjusting your filters or adding new valuations."
-      icon={<FileX size={40} />}
-      ctaText="Refresh Data"
-      onCtaClick={onRefresh}
-      className="py-12"
-    />
-  );
+  // No valuations state
+  if (valuations.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <SearchX className="h-16 w-16 text-neutral-lighter mb-4" />
+        <h3 className="text-lg font-medium text-neutral-dark">No valuations found</h3>
+        <p className="text-neutral-dark mt-1">Try adjusting your filters to see more results</p>
+      </div>
+    );
+  }
 
   return (
-    <motion.div 
-      className={styles.tableContainer}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <table className="min-w-full divide-y divide-neutral-light">
-        <thead className="bg-neutral-lighter">
-          <tr>
-            {columns.map((column) => (
-              <th 
-                key={column.accessor} 
-                className="px-4 py-3 text-left text-xs font-medium text-neutral-dark uppercase tracking-wider"
-              >
-                {column.header}
-              </th>
-            ))}
+    <div className="overflow-x-auto">
+      <table className="w-full table-auto">
+        <thead>
+          <tr className="bg-neutral-light">
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Date</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Source</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Vehicle</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Condition</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Confidence</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Type</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Value</th>
+            <th className="py-3 px-4 text-left text-sm font-medium text-neutral-darkest">Actions</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-neutral-light">
-          {isLoading ? (
-            Array(5).fill(0).map((_, idx) => (
-              <motion.tr 
-                key={idx} 
-                className="animate-pulse"
-                variants={rowVariants}
-              >
-                <td colSpan={columns.length} className="py-4 px-4">
-                  <div className="h-6 bg-neutral-lighter rounded w-3/4"></div>
-                </td>
-              </motion.tr>
-            ))
-          ) : valuations.length > 0 ? (
-            valuations.map((valuation, index) => (
-              <motion.tr 
-                key={valuation.id}
-                variants={rowVariants}
-                custom={index}
-              >
-                <td colSpan={columns.length} className="p-0">
-                  <ValuationRow 
-                    valuation={valuation}
-                    onRefresh={onRefresh}
-                  />
-                </td>
-              </motion.tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={columns.length}>
-                {renderEmptyState()}
-              </td>
-            </tr>
-          )}
+        <tbody>
+          {valuations.map((valuation, index) => (
+            <motion.tr
+              key={valuation.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              style={{ display: 'contents' }}
+            >
+              <ValuationRow
+                valuation={valuation}
+                onViewResult={onViewResult}
+                onRerunGPT={onRerunGPT}
+                onGeneratePDF={onGeneratePDF}
+                onDownloadPDF={onDownloadPDF}
+                onViewStripeStatus={onViewStripeStatus}
+              />
+            </motion.tr>
+          ))}
         </tbody>
       </table>
-    </motion.div>
+    </div>
   );
 };
 

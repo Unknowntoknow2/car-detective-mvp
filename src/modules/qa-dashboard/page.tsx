@@ -1,271 +1,410 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Filter, RefreshCw } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/utils/supabaseClient';
 import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CDButton } from '@/components/ui-kit/CDButton';
-import { BodyS, HeadingL, HeadingM } from '@/components/ui-kit/typography';
-import ValuationTable from './components/ValuationTable';
-import { supabase } from '@/integrations/supabase/client';
-import { useAdminRole } from '@/hooks/useAdminRole';
-import { toast } from 'sonner';
+import { Slider } from '@/components/ui/slider';
+import { ProgressRing } from '@/components/animations/ProgressRing';
+import { ValuationTable } from './components/ValuationTable';
 import styles from './styles';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-export function QADashboardPage() {
+// QA Dashboard page component
+const QADashboardPage = () => {
   const navigate = useNavigate();
-  const { isAdmin, isCheckingRole } = useAdminRole();
-  const [valuations, setValuations] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [healthStats, setHealthStats] = useState({
-    gptExplanationRate: 0,
-    photoScoringRate: 0,
-    pdfSuccessRate: 0,
-    paymentMatchRate: 0,
-    totalValuations: 0
-  });
-  
-  const [filters, setFilters] = useState({
-    dateRange: '30', // days
-    sourceType: 'all',
-    premiumStatus: 'all',
-    minConfidence: 0,
-  });
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [dateRange, setDateRange] = useState('7days');
+  const [sourceType, setSourceType] = useState('all');
+  const [premiumFilter, setPremiumFilter] = useState('all');
+  const [confidenceRange, setConfidenceRange] = useState([0, 100]);
 
-  // Check if user is authorized
+  // Check authorization
   useEffect(() => {
-    if (!isCheckingRole && !isAdmin) {
-      toast.error('You do not have permission to access this page');
-      navigate('/');
-    }
-  }, [isAdmin, isCheckingRole, navigate]);
-
-  // Fetch valuations data
-  useEffect(() => {
-    if (isAdmin) {
-      fetchValuations();
-    }
-  }, [isAdmin, filters]);
-
-  const fetchValuations = async () => {
-    try {
-      setIsLoading(true);
+    const checkAuthorization = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Calculate date range
-      const daysAgo = parseInt(filters.dateRange) || 30;
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - daysAgo);
+      if (!user) {
+        setIsAuthorized(false);
+        return;
+      }
       
-      // Build the query
+      // For now, we'll use a simple check based on email
+      // In production, this should check Supabase RLS policies
+      const isAdmin = user.email === 'admin@cardetective.ai';
+      setIsAuthorized(isAdmin);
+      
+      if (!isAdmin) {
+        toast.error('You are not authorized to access this page');
+        navigate('/');
+      }
+    };
+    
+    checkAuthorization();
+  }, [navigate]);
+
+  // Calculate date filter
+  const getDateFilter = () => {
+    const now = new Date();
+    
+    switch(dateRange) {
+      case '24hours':
+        const yesterday = new Date(now);
+        yesterday.setHours(now.getHours() - 24);
+        return yesterday.toISOString();
+      case '7days':
+        const lastWeek = new Date(now);
+        lastWeek.setDate(now.getDate() - 7);
+        return lastWeek.toISOString();
+      case '30days':
+        const lastMonth = new Date(now);
+        lastMonth.setDate(now.getDate() - 30);
+        return lastMonth.toISOString();
+      default:
+        return null;
+    }
+  };
+
+  // Fetch health metrics
+  const { data: healthMetrics, isLoading: isLoadingMetrics } = useQuery({
+    queryKey: ['health-metrics'],
+    queryFn: async () => {
+      // GPT explanations count
+      const { data: gptExplanations, error: gptError } = await supabase
+        .from('valuations')
+        .select('count')
+        .not('explanation', 'is', null);
+      
+      // Total valuations
+      const { data: totalValuations, error: totalError } = await supabase
+        .from('valuations')
+        .select('count');
+      
+      // Photo scoring count
+      const { data: photoScoring, error: photoError } = await supabase
+        .from('valuation_photos')
+        .select('count')
+        .not('score', 'is', null);
+      
+      // PDF generation success
+      const { data: pdfSuccess, error: pdfError } = await supabase
+        .from('pdf_exports')
+        .select('count')
+        .eq('status', 'success');
+      
+      const { data: totalPdfs, error: totalPdfsError } = await supabase
+        .from('pdf_exports')
+        .select('count');
+      
+      // Premium upgrades
+      const { data: premiumPayments, error: paymentsError } = await supabase
+        .from('stripe_payments')
+        .select('count')
+        .eq('status', 'success');
+      
+      const { data: premiumValuations, error: premiumError } = await supabase
+        .from('valuations')
+        .select('count')
+        .eq('is_premium', true);
+      
+      return {
+        gptExplanationRate: totalValuations?.[0]?.count > 0 
+          ? (gptExplanations?.[0]?.count / totalValuations[0].count) * 100 
+          : 0,
+        photoScoringRate: totalValuations?.[0]?.count > 0 
+          ? (photoScoring?.[0]?.count / totalValuations[0].count) * 100 
+          : 0,
+        pdfSuccessRate: totalPdfs?.[0]?.count > 0 
+          ? (pdfSuccess?.[0]?.count / totalPdfs[0].count) * 100 
+          : 0,
+        paymentMatchRate: premiumValuations?.[0]?.count > 0 
+          ? (premiumPayments?.[0]?.count / premiumValuations[0].count) * 100 
+          : 0
+      };
+    }
+  });
+
+  // Fetch valuations
+  const { data: valuations, isLoading: isLoadingValuations } = useQuery({
+    queryKey: ['qa-valuations', dateRange, sourceType, premiumFilter, confidenceRange],
+    queryFn: async () => {
       let query = supabase
         .from('valuations')
-        .select(`
-          *,
-          valuation_photos(count),
-          orders(count)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
       
-      // Apply filters
-      if (filters.sourceType === 'vin') {
-        query = query.not('vin', 'is', null);
-      } else if (filters.sourceType === 'plate') {
-        query = query.not('plate', 'is', null).is('vin', null);
-      } else if (filters.sourceType === 'manual') {
-        query = query.is('vin', null).is('plate', null);
+      // Apply date filter
+      const dateFilter = getDateFilter();
+      if (dateFilter) {
+        query = query.gt('created_at', dateFilter);
       }
       
-      if (filters.premiumStatus === 'premium') {
-        query = query.eq('premium_unlocked', true);
-      } else if (filters.premiumStatus === 'free') {
-        query = query.eq('premium_unlocked', false);
+      // Apply source type filter
+      if (sourceType !== 'all') {
+        query = query.eq('source_type', sourceType);
       }
       
-      if (filters.minConfidence > 0) {
-        query = query.gte('confidence_score', filters.minConfidence);
+      // Apply premium filter
+      if (premiumFilter === 'premium') {
+        query = query.eq('is_premium', true);
+      } else if (premiumFilter === 'free') {
+        query = query.eq('is_premium', false);
       }
       
-      // Execute the query
+      // Apply confidence range filter
+      query = query
+        .gte('confidence_score', confidenceRange[0])
+        .lte('confidence_score', confidenceRange[1]);
+      
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching valuations:', error);
+        throw new Error(error.message);
+      }
       
-      // Transform the data
-      const transformedData = data.map(item => ({
-        ...item,
-        has_gpt_explanation: true, // This would be pulled from a real column if available
-        has_photo_score: item.valuation_photos?.count > 0,
-        has_pdf_export: true, // This would be pulled from a real column if available
-      }));
-      
-      setValuations(transformedData);
-      
-      // Calculate health stats
-      const totalCount = transformedData.length;
-      const gptCount = transformedData.filter(v => v.has_gpt_explanation).length;
-      const photoCount = transformedData.filter(v => v.has_photo_score).length;
-      const pdfCount = transformedData.filter(v => v.has_pdf_export).length;
-      const paymentCount = transformedData.filter(v => v.premium_unlocked && v.orders?.count > 0).length;
-      const premiumCount = transformedData.filter(v => v.premium_unlocked).length;
-      
-      setHealthStats({
-        gptExplanationRate: totalCount > 0 ? (gptCount / totalCount) * 100 : 0,
-        photoScoringRate: totalCount > 0 ? (photoCount / totalCount) * 100 : 0,
-        pdfSuccessRate: totalCount > 0 ? (pdfCount / totalCount) * 100 : 0,
-        paymentMatchRate: premiumCount > 0 ? (paymentCount / premiumCount) * 100 : 0,
-        totalValuations: totalCount
-      });
-    } catch (error) {
-      console.error('Error fetching valuations:', error);
-      toast.error('Failed to fetch valuation data');
-    } finally {
-      setIsLoading(false);
+      return data;
     }
+  });
+
+  // Action handlers
+  const handleViewResult = (id: string) => {
+    window.open(`/valuation/${id}`, '_blank');
+  };
+  
+  const handleRerunGPT = async (id: string) => {
+    toast.success(`Requested rerun of GPT for valuation ${id}`);
+    // This would trigger a cloud function or backend process to rerun the GPT explanation
+  };
+  
+  const handleGeneratePDF = async (id: string) => {
+    toast.success(`Requested PDF generation for valuation ${id}`);
+    // This would trigger PDF generation
+  };
+  
+  const handleDownloadPDF = async (id: string) => {
+    toast.success(`Downloading PDF for valuation ${id}`);
+    // This would fetch and download the PDF
+  };
+  
+  const handleViewStripeStatus = (id: string) => {
+    toast.success(`Viewing Stripe status for valuation ${id}`);
+    // This would show Stripe payment details
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const renderStatCard = (title, percentage, color = "primary") => (
-    <div className={styles.stats.card}>
-      <BodyS className={styles.stats.title}>{title}</BodyS>
-      <div className={styles.stats.value}>{percentage.toFixed(1)}%</div>
-      <div className={styles.stats.progressContainer}>
-        <div 
-          className={styles.stats.progressBar(percentage, color)}
-          style={{ width: `${Math.max(percentage, 3)}%` }} 
-        />
+  // Loading state
+  if (isAuthorized === null) {
+    return (
+      <div className={styles.container}>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Checking authorization...</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
-  // If still checking admin role or not an admin, show loading
-  if (isCheckingRole || !isAdmin) {
-    return <div className="p-8 text-center">Checking access...</div>;
+  // Not authorized state
+  if (isAuthorized === false) {
+    return (
+      <div className={styles.container}>
+        <CDCard>
+          <CDCardBody>
+            <div className="flex items-center text-error">
+              <AlertCircle className="h-8 w-8 mr-2" />
+              <div>
+                <h2 className="text-xl font-bold">Not Authorized</h2>
+                <p>You do not have permission to access this page.</p>
+              </div>
+            </div>
+          </CDCardBody>
+        </CDCard>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={styles.header}
-      >
+      <header className={styles.header}>
         <div>
-          <HeadingL as="h1">QA Dashboard</HeadingL>
-          <BodyS className="text-neutral-dark">
-            System health check and valuation diagnostics ({healthStats.totalValuations} valuations)
-          </BodyS>
+          <h1 className="text-2xl font-bold">QA Dashboard</h1>
+          <p className="text-neutral-dark">Monitor and validate all system-critical flows</p>
         </div>
-        <CDButton 
-          variant="outline" 
-          icon={<RefreshCw className="h-4 w-4" />}
-          onClick={fetchValuations}
-          isLoading={isLoading}
-        >
-          Refresh Data
-        </CDButton>
-      </motion.div>
-
-      <motion.div 
-        className={styles.healthGrid}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        {renderStatCard("GPT Explanation Rate", healthStats.gptExplanationRate, healthStats.gptExplanationRate > 90 ? "success" : "warning")}
-        {renderStatCard("Photo Scoring Rate", healthStats.photoScoringRate, healthStats.photoScoringRate > 80 ? "success" : "warning")}
-        {renderStatCard("PDF Success Rate", healthStats.pdfSuccessRate, healthStats.pdfSuccessRate > 95 ? "success" : "error")}
-        {renderStatCard("Payment Match Rate", healthStats.paymentMatchRate, healthStats.paymentMatchRate > 90 ? "success" : "error")}
-      </motion.div>
-
-      <motion.div 
-        className={styles.filterBar}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex items-center gap-2">
-          <Filter className="h-5 w-5 text-neutral-dark" />
-          <HeadingM className="text-base">Filters</HeadingM>
+        <div className="flex gap-2">
+          <CDButton
+            variant="outline"
+            onClick={() => navigate('/')}
+          >
+            Exit
+          </CDButton>
         </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-          <div className={styles.filterGroup}>
-            <label className="text-sm font-medium text-neutral-dark">Date Range</label>
-            <select 
-              className="rounded-md border border-neutral-light px-3 py-1 text-sm"
-              value={filters.dateRange}
-              onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-            >
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-              <option value="365">Last year</option>
-            </select>
-          </div>
-          
-          <div className={styles.filterGroup}>
-            <label className="text-sm font-medium text-neutral-dark">Source Type</label>
-            <select 
-              className="rounded-md border border-neutral-light px-3 py-1 text-sm"
-              value={filters.sourceType}
-              onChange={(e) => handleFilterChange('sourceType', e.target.value)}
-            >
-              <option value="all">All Sources</option>
-              <option value="vin">VIN Only</option>
-              <option value="plate">Plate Only</option>
-              <option value="manual">Manual Only</option>
-            </select>
-          </div>
-          
-          <div className={styles.filterGroup}>
-            <label className="text-sm font-medium text-neutral-dark">Premium Status</label>
-            <select 
-              className="rounded-md border border-neutral-light px-3 py-1 text-sm"
-              value={filters.premiumStatus}
-              onChange={(e) => handleFilterChange('premiumStatus', e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="premium">Premium Only</option>
-              <option value="free">Free Only</option>
-            </select>
-          </div>
-          
-          <div className={styles.filterGroup}>
-            <label className="text-sm font-medium text-neutral-dark">Min Confidence</label>
-            <select 
-              className="rounded-md border border-neutral-light px-3 py-1 text-sm"
-              value={filters.minConfidence}
-              onChange={(e) => handleFilterChange('minConfidence', e.target.value)}
-            >
-              <option value="0">Any Confidence</option>
-              <option value="50">50% or higher</option>
-              <option value="70">70% or higher</option>
-              <option value="90">90% or higher</option>
-            </select>
-          </div>
-        </div>
-      </motion.div>
+      </header>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <ValuationTable 
-          valuations={valuations}
-          isLoading={isLoading}
-          onRefresh={fetchValuations}
+      {/* Health metrics grid */}
+      <div className={styles.healthGrid}>
+        <CDCard className={styles.stats.card}>
+          <div className={styles.stats.title}>GPT Explanations</div>
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              value={isLoadingMetrics ? 0 : healthMetrics?.gptExplanationRate || 0}
+              size={70}
+              strokeWidth={6}
+              color="#3B82F6"
+              duration={1}
+            >
+              <span className="text-lg font-bold">
+                {isLoadingMetrics ? '-' : `${Math.round(healthMetrics?.gptExplanationRate || 0)}%`}
+              </span>
+            </ProgressRing>
+            <div className="text-sm">
+              <div className="font-medium">Target: 100%</div>
+              <div className="text-neutral-dark">All valuations have GPT explanations</div>
+            </div>
+          </div>
+        </CDCard>
+
+        <CDCard className={styles.stats.card}>
+          <div className={styles.stats.title}>Photo Scoring</div>
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              value={isLoadingMetrics ? 0 : healthMetrics?.photoScoringRate || 0}
+              size={70}
+              strokeWidth={6}
+              color="#10B981"
+              duration={1.2}
+            >
+              <span className="text-lg font-bold">
+                {isLoadingMetrics ? '-' : `${Math.round(healthMetrics?.photoScoringRate || 0)}%`}
+              </span>
+            </ProgressRing>
+            <div className="text-sm">
+              <div className="font-medium">Target: 80%+</div>
+              <div className="text-neutral-dark">Photos have AI scoring</div>
+            </div>
+          </div>
+        </CDCard>
+
+        <CDCard className={styles.stats.card}>
+          <div className={styles.stats.title}>PDF Success Rate</div>
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              value={isLoadingMetrics ? 0 : healthMetrics?.pdfSuccessRate || 0}
+              size={70}
+              strokeWidth={6}
+              color="#F59E0B"
+              duration={1.4}
+            >
+              <span className="text-lg font-bold">
+                {isLoadingMetrics ? '-' : `${Math.round(healthMetrics?.pdfSuccessRate || 0)}%`}
+              </span>
+            </ProgressRing>
+            <div className="text-sm">
+              <div className="font-medium">Target: 95%+</div>
+              <div className="text-neutral-dark">PDF generation success</div>
+            </div>
+          </div>
+        </CDCard>
+
+        <CDCard className={styles.stats.card}>
+          <div className={styles.stats.title}>Payment Match</div>
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              value={isLoadingMetrics ? 0 : healthMetrics?.paymentMatchRate || 0}
+              size={70}
+              strokeWidth={6}
+              color="#6366F1"
+              duration={1.6}
+            >
+              <span className="text-lg font-bold">
+                {isLoadingMetrics ? '-' : `${Math.round(healthMetrics?.paymentMatchRate || 0)}%`}
+              </span>
+            </ProgressRing>
+            <div className="text-sm">
+              <div className="font-medium">Target: 100%</div>
+              <div className="text-neutral-dark">Premium access payment matches</div>
+            </div>
+          </div>
+        </CDCard>
+      </div>
+
+      {/* Filter bar */}
+      <div className={styles.filterBar}>
+        <div className={styles.filterGroup}>
+          <label className="text-sm font-medium">Date Range</label>
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="24hours">Last 24 Hours</SelectItem>
+              <SelectItem value="7days">Last 7 Days</SelectItem>
+              <SelectItem value="30days">Last 30 Days</SelectItem>
+              <SelectItem value="all">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label className="text-sm font-medium">Source Type</label>
+          <Select value={sourceType} onValueChange={setSourceType}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sources</SelectItem>
+              <SelectItem value="vin">VIN Only</SelectItem>
+              <SelectItem value="plate">Plate Only</SelectItem>
+              <SelectItem value="manual">Manual Only</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <label className="text-sm font-medium">Premium Status</label>
+          <Select value={premiumFilter} onValueChange={setPremiumFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Valuations</SelectItem>
+              <SelectItem value="premium">Premium Only</SelectItem>
+              <SelectItem value="free">Free Only</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-full sm:w-auto flex-1">
+          <label className="text-sm font-medium block mb-2">Confidence Score: {confidenceRange[0]}% - {confidenceRange[1]}%</label>
+          <Slider 
+            value={confidenceRange}
+            min={0}
+            max={100}
+            step={5}
+            onValueChange={setConfidenceRange}
+            className="w-full"
+          />
+        </div>
+      </div>
+
+      {/* Valuations table */}
+      <div className={styles.tableContainer}>
+        <ValuationTable
+          valuations={valuations || []}
+          isLoading={isLoadingValuations}
+          onViewResult={handleViewResult}
+          onRerunGPT={handleRerunGPT}
+          onGeneratePDF={handleGeneratePDF}
+          onDownloadPDF={handleDownloadPDF}
+          onViewStripeStatus={handleViewStripeStatus}
         />
-      </motion.div>
+      </div>
     </div>
   );
-}
+};
 
 export default QADashboardPage;

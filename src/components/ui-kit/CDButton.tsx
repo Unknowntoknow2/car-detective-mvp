@@ -68,6 +68,9 @@ export const CDButton: React.FC<ButtonProps> = ({
     ...motionProps
   };
 
+  // Separate HTML button props from motion props to fix type error
+  const { className: _, ...htmlButtonProps } = props;
+
   return (
     <motion.button
       type={type}
@@ -81,7 +84,7 @@ export const CDButton: React.FC<ButtonProps> = ({
       disabled={isDisabled || isLoading}
       aria-label={ariaLabel}
       {...buttonMotionProps}
-      {...props}
+      {...htmlButtonProps}
     >
       {isLoading && (
         <span className="absolute inset-0 flex items-center justify-center">

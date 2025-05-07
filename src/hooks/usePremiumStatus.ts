@@ -1,106 +1,103 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
+import { supabase } from '@/utils/supabaseClient';
 import { toast } from 'sonner';
-import { formatStripeError } from '@/utils/stripe-error-handling';
-import { checkPremiumAccess } from '@/utils/premiumService';
+
+interface PremiumResponse {
+  success: boolean;
+  url?: string;
+  error?: string;
+  alreadyUnlocked?: boolean;
+}
 
 export function usePremiumStatus(valuationId?: string) {
-  const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    if (!valuationId || !user) {
-      setIsPremium(false);
-      setIsLoading(false);
-      return;
-    }
-
-    async function checkPremiumStatus() {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // Use the checkPremiumAccess function that now uses the RPC function
-        const hasPremiumAccess = await checkPremiumAccess(valuationId);
-        setIsPremium(hasPremiumAccess);
-      } catch (err) {
-        console.error('Error checking premium access:', err);
-        setError(err instanceof Error ? err : new Error('Failed to check premium status'));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    checkPremiumStatus();
-    
-    // Check URL for successful payment
-    const url = new URL(window.location.href);
-    if (url.searchParams.get('session_id')) {
-      toast.info("Verifying payment...");
-    }
-  }, [valuationId, user]);
-
-  // Function to create a checkout session with improved error handling
-  const createCheckoutSession = async (valuationId: string): Promise<{ success: boolean; url?: string; error?: string }> => {
+  
+  // Function to check premium status
+  const checkPremiumStatus = async (id: string) => {
+    setIsLoading(true);
     try {
-      if (!user) {
-        toast.error('You must be logged in to unlock premium features');
-        return { success: false, error: 'Authentication required' };
-      }
-
-      if (!valuationId) {
-        toast.error('Valuation ID is required');
-        return { success: false, error: 'Missing valuation ID' };
-      }
-
-      toast.info('Preparing checkout...', { id: 'checkout-preparation' });
-      
-      // First, check if already unlocked to avoid unnecessary checkout
-      const hasPremiumAccess = await checkPremiumAccess(valuationId);
-      if (hasPremiumAccess) {
-        toast.success('Premium features are already unlocked!');
-        return { success: true };
-      }
-      
-      // Call the Edge Function to create a checkout session
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { valuationId }
-      });
-      
-      toast.dismiss('checkout-preparation');
-      
+      const { data, error } = await supabase
+        .from('valuations')
+        .select('is_premium')
+        .eq('id', id)
+        .single();
+        
       if (error) {
-        console.error('Edge function error:', error);
-        const formattedError = formatStripeError(error);
-        toast.error(formattedError);
-        return { success: false, error: formattedError };
+        console.error('Error checking premium status:', error);
+        setIsPremium(false);
+      } else {
+        setIsPremium(data.is_premium || false);
       }
-      
-      // If already unlocked, return success
-      if (data?.already_unlocked) {
-        toast.success('Premium features are already unlocked!');
-        return { success: true };
-      }
-      
-      // Check that we have a URL
-      if (!data?.url) {
-        const errorMsg = 'No checkout URL returned from server';
-        toast.error(errorMsg);
-        return { success: false, error: errorMsg };
-      }
-      
-      return { success: true, url: data.url };
     } catch (error) {
-      console.error('Checkout error:', error);
-      const formattedError = formatStripeError(error);
-      toast.error(formattedError);
-      return { success: false, error: formattedError };
+      console.error('Error in premium status check:', error);
+      setIsPremium(false);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  return { isPremium, isLoading, error, createCheckoutSession };
+  
+  // Function to create a Stripe checkout session
+  const createCheckoutSession = async (id: string): Promise<PremiumResponse> => {
+    try {
+      // First check if it's already unlocked
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .select('is_premium')
+        .eq('id', id)
+        .single();
+        
+      if (valuationError) {
+        console.error('Error checking valuation:', valuationError);
+        return { 
+          success: false, 
+          error: 'Could not verify valuation status' 
+        };
+      }
+      
+      if (valuationData.is_premium) {
+        return { 
+          success: true,
+          alreadyUnlocked: true
+        };
+      }
+      
+      // Create checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { valuationId: id }
+      });
+      
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        return { 
+          success: false, 
+          error: 'Failed to create checkout session' 
+        };
+      }
+      
+      return { 
+        success: true, 
+        url: data.url 
+      };
+    } catch (error) {
+      console.error('Error in checkout session creation:', error);
+      return { 
+        success: false, 
+        error: 'An unexpected error occurred' 
+      };
+    }
+  };
+  
+  // Initialize premium check if valuationId is provided
+  if (valuationId && isLoading) {
+    checkPremiumStatus(valuationId);
+  }
+  
+  return {
+    isPremium,
+    isLoading,
+    checkPremiumStatus,
+    createCheckoutSession
+  };
 }

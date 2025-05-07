@@ -136,7 +136,7 @@ export const PhotoAnalysis: React.FC<PhotoAnalysisProps> = ({
               )}
               
               {/* Summary - for premium users */}
-              {isPremium && condition.summary && (
+              {isPremium && condition.aiSummary && (
                 <motion.div
                   className="pt-2"
                   initial={{ opacity: 0 }}
@@ -145,7 +145,7 @@ export const PhotoAnalysis: React.FC<PhotoAnalysisProps> = ({
                 >
                   <BodyS className="text-gray-500 font-medium">AI Summary:</BodyS>
                   <BodyM className="text-gray-600 mt-1">
-                    {condition.summary}
+                    {condition.aiSummary}
                   </BodyM>
                 </motion.div>
               )}

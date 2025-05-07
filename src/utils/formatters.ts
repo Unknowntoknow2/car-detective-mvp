@@ -1,84 +1,76 @@
 
-/**
- * Formats a number as currency
- * @param amount The amount to format
- * @param currency The currency code (default: USD)
- * @param minimumFractionDigits Minimum number of decimal places
- * @param maximumFractionDigits Maximum number of decimal places
- * @returns A formatted currency string
- */
-export function formatCurrency(
-  amount: number,
-  currency = 'USD',
-  minimumFractionDigits = 0,
-  maximumFractionDigits = 0
-): string {
-  return new Intl.NumberFormat('en-US', {
+// Format currency values
+export function formatCurrency(value: number, locale = 'en-US', currency = 'USD'): string {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
-    minimumFractionDigits,
-    maximumFractionDigits
-  }).format(amount);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 }
 
-/**
- * Format a date string or Date object to a human-readable format
- * @param date Date to format
- * @param options Options for date formatting
- * @returns A formatted date string
- */
-export function formatDate(
-  date: string | Date,
-  options: Intl.DateTimeFormatOptions = { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  }
-): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', options).format(dateObj);
+// Format dates
+export function formatDate(dateString: string, format: 'short' | 'medium' | 'long' = 'medium'): string {
+  const date = new Date(dateString);
+  
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: format === 'short' ? 'short' : 'long',
+    day: 'numeric',
+    hour: format !== 'long' ? undefined : '2-digit',
+    minute: format !== 'long' ? undefined : '2-digit'
+  };
+  
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 }
 
-/**
- * Formats a date relative to the current time (e.g., "5 minutes ago")
- * @param date The date to format
- * @returns A string representing the relative time
- */
-export function formatRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const targetDate = typeof date === 'string' ? new Date(date) : date;
+// Format percentage values
+export function formatPercentage(value: number, decimals = 0): string {
+  return `${value.toFixed(decimals)}%`;
+}
+
+// Format numbers with commas
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat().format(value);
+}
+
+// Format file size
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
   
-  // Calculate the time difference in milliseconds
-  const timeDiff = now.getTime() - targetDate.getTime();
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  // Define time units in milliseconds
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  const week = 7 * day;
-  const month = 30 * day;
-  const year = 365 * day;
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Format vehicle condition labels
+export function formatCondition(condition: string): string {
+  const conditionMap: Record<string, string> = {
+    'excellent': 'Excellent',
+    'good': 'Good',
+    'fair': 'Fair',
+    'poor': 'Poor'
+  };
   
-  // Determine the appropriate unit and value
-  if (timeDiff < minute) {
-    return 'just now';
-  } else if (timeDiff < hour) {
-    const minutes = Math.floor(timeDiff / minute);
-    return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
-  } else if (timeDiff < day) {
-    const hours = Math.floor(timeDiff / hour);
-    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-  } else if (timeDiff < week) {
-    const days = Math.floor(timeDiff / day);
-    return `${days} day${days === 1 ? '' : 's'} ago`;
-  } else if (timeDiff < month) {
-    const weeks = Math.floor(timeDiff / week);
-    return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
-  } else if (timeDiff < year) {
-    const months = Math.floor(timeDiff / month);
-    return `${months} month${months === 1 ? '' : 's'} ago`;
-  } else {
-    const years = Math.floor(timeDiff / year);
-    return `${years} year${years === 1 ? '' : 's'} ago`;
+  return conditionMap[condition.toLowerCase()] || condition;
+}
+
+// Format phone numbers
+export function formatPhoneNumber(phoneNumber: string): string {
+  const cleaned = ('' + phoneNumber).replace(/\D/g, '');
+  
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+  } else if (cleaned.length === 11 && cleaned[0] === '1') {
+    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 11)}`;
   }
+  
+  return phoneNumber;
+}
+
+// Format VIN with space every 5 characters
+export function formatVIN(vin: string): string {
+  return vin.replace(/(.{5})/g, '$1 ').trim();
 }
