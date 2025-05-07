@@ -1,244 +1,248 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { CDInput } from '@/components/ui-kit/CDInput';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { CDButton } from '@/components/ui-kit/CDButton';
-import { AuthLayout } from './AuthLayout';
-import { useAuth } from './AuthContext';
+import { toast } from 'sonner';
+import { ArrowRight, Mail, KeyRound } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-type ForgotPasswordFormData = {
-  email: string;
-};
+const formSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' })
+});
 
-type UpdatePasswordFormData = {
-  password: string;
-  confirmPassword: string;
-};
+const resetFormSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters long' })
+      .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+      .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+      .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
+    confirmPassword: z.string()
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords must match',
+    path: ['confirmPassword']
+  });
 
-const ResetPasswordPage: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const { resetPassword, updatePassword, isLoading, error } = useAuth();
-  const location = useLocation();
+export function ResetPasswordPage() {
+  const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
+  const navigate = useNavigate();
   
-  // Check if we're in update password mode (after clicking the reset link from email)
-  const isUpdateMode = location.hash.includes('#access_token=');
+  useEffect(() => {
+    // Check if we're in reset mode (with token)
+    const token = searchParams.get('token');
+    if (token) {
+      setIsResetMode(true);
+    }
+  }, [searchParams]);
   
-  // Form for requesting a password reset
-  const forgotPasswordForm = useForm<ForgotPasswordFormData>();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: ''
+    }
+  });
   
-  // Form for setting a new password
-  const updatePasswordForm = useForm<UpdatePasswordFormData>();
+  const resetForm = useForm<z.infer<typeof resetFormSchema>>({
+    resolver: zodResolver(resetFormSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: ''
+    }
+  });
   
-  const password = updatePasswordForm.watch('password');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setIsSuccess(true);
+      toast.success('Password reset link sent! Please check your email');
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      toast.error(error.message || 'Failed to send reset link');
+    } finally {
+      setIsLoading(false);
+    }
+  }
   
-  const handleForgotPassword = async (data: ForgotPasswordFormData) => {
-    await resetPassword(data.email);
-    setIsSubmitted(true);
+  async function onResetSubmit(values: z.infer<typeof resetFormSchema>) {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: values.password
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success('Password updated successfully!');
+      navigate('/auth/login');
+    } catch (error: any) {
+      console.error('Password update error:', error);
+      toast.error(error.message || 'Failed to update password');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
+  const handleGoBack = () => {
+    navigate('/auth/login');
   };
   
-  const handleUpdatePassword = async (data: UpdatePasswordFormData) => {
-    await updatePassword(data.password);
-  };
-
-  if (isSubmitted) {
-    return (
-      <AuthLayout 
-        title="Check your email"
-        subtitle="Password reset instructions sent"
-        quote="Keeping your account secure is part of our commitment to you."
-      >
-        <motion.div
-          className="text-center space-y-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="mx-auto bg-primary/10 w-24 h-24 rounded-full flex items-center justify-center">
-            <Mail className="h-12 w-12 text-primary" />
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-muted-foreground">
-              We've sent password reset instructions to your email.
-              Click the link in the email to reset your password.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              The link will expire in 10 minutes.
-            </p>
-          </div>
-          
-          <div className="pt-4">
-            <Link to="/auth/signin">
-              <CDButton variant="outline" fullWidth>
-                Back to sign in
-              </CDButton>
-            </Link>
-          </div>
-        </motion.div>
-      </AuthLayout>
-    );
-  }
-
-  if (isUpdateMode) {
-    return (
-      <AuthLayout
-        title="Set new password"
-        subtitle="Enter your new password"
-        quote="A strong password is the foundation of a secure account."
-      >
-        <form onSubmit={updatePasswordForm.handleSubmit(handleUpdatePassword)} className="space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <CDInput
-              label="New Password"
-              icon={<Lock className="h-4 w-4" />}
-              trailingIcon={showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              onTrailingIconClick={() => setShowPassword(!showPassword)}
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              error={!!updatePasswordForm.formState.errors.password}
-              errorMessage={updatePasswordForm.formState.errors.password?.message}
-              {...updatePasswordForm.register('password', { 
-                required: 'Password is required',
-                minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters'
-                }
-              })}
-            />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <CDInput
-              label="Confirm Password"
-              icon={<Lock className="h-4 w-4" />}
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              error={!!updatePasswordForm.formState.errors.confirmPassword}
-              errorMessage={updatePasswordForm.formState.errors.confirmPassword?.message}
-              {...updatePasswordForm.register('confirmPassword', { 
-                required: 'Please confirm your password',
-                validate: value => value === password || 'Passwords do not match'
-              })}
-            />
-          </motion.div>
-  
-          {error && (
-            <motion.div
-              className="bg-destructive/10 text-destructive p-3 rounded-md text-sm"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              {error}
-            </motion.div>
-          )}
-  
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <CDButton
-              fullWidth
-              type="submit"
-              isLoading={isLoading}
-              icon={!isLoading && <Check className="h-4 w-4" />}
-              iconPosition="right"
-            >
-              Update password
-            </CDButton>
-          </motion.div>
-        </form>
-      </AuthLayout>
-    );
-  }
-
   return (
-    <AuthLayout 
-      title="Forgot password"
-      subtitle="Enter your email to reset your password"
-      quote="Everyone forgets sometimes. We've got you covered."
-    >
-      <form onSubmit={forgotPasswordForm.handleSubmit(handleForgotPassword)} className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <CDInput
-            label="Email"
-            icon={<Mail className="h-4 w-4" />}
-            placeholder="your@email.com"
-            error={!!forgotPasswordForm.formState.errors.email}
-            errorMessage={forgotPasswordForm.formState.errors.email?.message}
-            {...forgotPasswordForm.register('email', { 
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address'
-              }
-            })}
-          />
-        </motion.div>
-
-        {error && (
-          <motion.div
-            className="bg-destructive/10 text-destructive p-3 rounded-md text-sm"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            {error}
-          </motion.div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <CDButton
-            fullWidth
-            type="submit"
-            isLoading={isLoading}
-            icon={!isLoading && <Mail className="h-4 w-4" />}
-            iconPosition="right"
-          >
-            Send reset link
-          </CDButton>
-        </motion.div>
-
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <p className="text-sm text-muted-foreground">
-            Remember your password?{' '}
-            <Link 
-              to="/auth/signin"
-              className="font-medium text-primary hover:underline"
-            >
-              Sign in
-            </Link>
-          </p>
-        </motion.div>
-      </form>
-    </AuthLayout>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-slate-50">
+      <Card className="w-full max-w-md shadow-sm">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">
+            {isResetMode ? 'Create New Password' : 'Reset Password'}
+          </CardTitle>
+          <CardDescription>
+            {isResetMode
+              ? 'Enter your new password below'
+              : 'Enter your email to receive a password reset link'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isResetMode ? (
+            <Form {...resetForm}>
+              <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
+                <FormField
+                  control={resetForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your new password"
+                          autoComplete="new-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={resetForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Confirm your new password"
+                          autoComplete="new-password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <CDButton
+                  block={true}
+                  type="submit"
+                  loading={isLoading}
+                  icon={<ArrowRight className="h-4 w-4" />}
+                  iconPosition="right"
+                >
+                  Update Password
+                </CDButton>
+              </form>
+            </Form>
+          ) : !isSuccess ? (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="your.email@example.com"
+                          autoComplete="email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-center">
+                  <CDButton 
+                    variant="outline" 
+                    block={true}
+                    onClick={handleGoBack}
+                  >
+                    Back to Login
+                  </CDButton>
+                </div>
+                
+                <CDButton
+                  block={true}
+                  type="submit"
+                  loading={isLoading}
+                  icon={<ArrowRight className="h-4 w-4" />}
+                  iconPosition="right"
+                >
+                  Send Reset Link
+                </CDButton>
+              </form>
+            </Form>
+          ) : (
+            <div className="text-center py-6 space-y-4">
+              <Mail className="h-12 w-12 text-primary mx-auto" />
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium">Check Your Email</h3>
+                <p className="text-sm text-muted-foreground">
+                  We've sent a password reset link to
+                  <span className="font-medium"> {form.getValues().email}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Click the link in the email to reset your password
+                </p>
+              </div>
+              <div className="pt-4">
+                <CDButton
+                  variant="outline"
+                  block={true}
+                  onClick={() => setIsSuccess(false)}
+                >
+                  Try Again
+                </CDButton>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
-};
-
-export default ResetPasswordPage;
+}

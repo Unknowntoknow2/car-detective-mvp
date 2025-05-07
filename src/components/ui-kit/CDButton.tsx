@@ -2,10 +2,14 @@ import React from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { motion, MotionProps } from 'framer-motion';
 
-// Redefine the variant to match what Button accepts
-export interface CDButtonProps extends Omit<ButtonProps, 'asChild' | 'variant'> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium';
-  size?: 'sm' | 'md' | 'lg';
+// Define our custom variant and size types
+type CDButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium';
+type CDButtonSize = 'default' | 'sm' | 'lg' | 'icon';
+
+// Redefine the props interface
+export interface CDButtonProps extends Omit<ButtonProps, 'asChild' | 'variant' | 'size'> {
+  variant?: CDButtonVariant;
+  size?: CDButtonSize;
   className?: string;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
@@ -14,14 +18,14 @@ export interface CDButtonProps extends Omit<ButtonProps, 'asChild' | 'variant'> 
   block?: boolean; // Use instead of fullWidth
   ariaLabel?: string;
   children: React.ReactNode;
-  motionProps?: Omit<MotionProps, keyof React.HTMLAttributes<HTMLButtonElement>>;
+  motionProps?: MotionProps;
 }
 
 export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
   (
     {
       variant = 'default',
-      size = 'md',
+      size = 'default',
       className = '',
       icon,
       iconPosition = 'left',
@@ -35,19 +39,6 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
     },
     ref
   ) => {
-    const getSizeClass = () => {
-      switch (size) {
-        case 'sm':
-          return 'px-3 py-1 text-xs';
-        case 'md':
-          return 'px-4 py-2 text-sm';
-        case 'lg':
-          return 'px-6 py-3 text-base';
-        default:
-          return 'px-4 py-2 text-sm';
-      }
-    };
-
     const buttonContent = (
       <>
         {loading ? (
@@ -87,14 +78,13 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
     );
 
     const buttonClasses = `
-      ${getSizeClass()}
       ${block ? 'w-full' : ''}
       ${className}
       transition-colors duration-200
       ${loading ? 'opacity-70 cursor-not-allowed' : ''}
     `;
 
-    // If motion props are provided, wrap with motion.button - but don't use for animation
+    // If motion props are provided, wrap with motion.div
     if (motionProps) {
       return (
         <motion.div {...motionProps}>
@@ -105,6 +95,7 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
             aria-label={ariaLabel}
             type={props.type || 'button'}
             variant={variant}
+            size={size}
             {...props}
           >
             {buttonContent}
@@ -122,6 +113,7 @@ export const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
         aria-label={ariaLabel}
         type={props.type || 'button'}
         variant={variant}
+        size={size}
         {...props}
       >
         {buttonContent}

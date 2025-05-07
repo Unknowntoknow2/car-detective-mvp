@@ -1,162 +1,204 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { CDInput } from '@/components/ui-kit/CDInput';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { CDButton } from '@/components/ui-kit/CDButton';
-import { AuthLayout } from './AuthLayout';
-import { useAuth } from './AuthContext';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
+import { ArrowRight } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-type SignUpFormData = {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  phone?: string;
-};
+const formSchema = z
+  .object({
+    email: z.string().email({ message: 'Please enter a valid email address' }),
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters long' })
+      .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+      .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+      .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
+    confirmPassword: z.string(),
+    termsAccepted: z.boolean().refine((val) => val === true, {
+      message: 'You must accept the terms and conditions'
+    })
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords must match',
+    path: ['confirmPassword']
+  });
 
-const SignUpPage: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { signUp, isLoading, error } = useAuth();
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<SignUpFormData>();
+export function SignUpPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   
-  const password = watch('password');
-
-  const onSubmit = async (data: SignUpFormData) => {
-    await signUp(data.email, data.password, data.phone);
-  };
-
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      termsAccepted: false
+    }
+  });
+  
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success('Sign up successful! Please check your email to confirm your account');
+      navigate('/auth/confirmation');
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      toast.error(error.message || 'Failed to sign up');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
   return (
-    <AuthLayout 
-      title="Create an account"
-      subtitle="Enter your details to get started"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <CDInput
-            label="Email"
-            icon={<Mail className="h-4 w-4" />}
-            placeholder="your@email.com"
-            error={!!errors.email}
-            errorMessage={errors.email?.message}
-            {...register('email', { 
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address'
-              }
-            })}
-          />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          <CDInput
-            label="Password"
-            icon={<Lock className="h-4 w-4" />}
-            trailingIcon={showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            onTrailingIconClick={() => setShowPassword(!showPassword)}
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
-            error={!!errors.password}
-            errorMessage={errors.password?.message}
-            {...register('password', { 
-              required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters'
-              }
-            })}
-          />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <CDInput
-            label="Confirm Password"
-            icon={<Lock className="h-4 w-4" />}
-            type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
-            error={!!errors.confirmPassword}
-            errorMessage={errors.confirmPassword?.message}
-            {...register('confirmPassword', { 
-              required: 'Please confirm your password',
-              validate: value => value === password || 'Passwords do not match'
-            })}
-          />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
-          <CDInput
-            label="Phone (Optional)"
-            icon={<User className="h-4 w-4" />}
-            placeholder="(555) 123-4567"
-            helperText="For account recovery and 2FA"
-            {...register('phone')}
-          />
-        </motion.div>
-
-        {error && (
-          <motion.div
-            className="bg-destructive/10 text-destructive p-3 rounded-md text-sm"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            {error}
-          </motion.div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
-          <CDButton
-            fullWidth
-            type="submit"
-            isLoading={isLoading}
-            icon={!isLoading && <Check className="h-4 w-4" />}
-            iconPosition="right"
-          >
-            Create account
-          </CDButton>
-        </motion.div>
-
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-        >
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-slate-50">
+      <Card className="w-full max-w-md shadow-sm">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Create an Account</CardTitle>
+          <CardDescription>
+            Enter your details to create a new account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="your.email@example.com" 
+                        {...field} 
+                        autoComplete="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Create a strong password" 
+                        {...field} 
+                        autoComplete="new-password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Confirm your password" 
+                        {...field} 
+                        autoComplete="new-password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="termsAccepted"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4 border">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        I accept the{' '}
+                        <a
+                          href="/terms"
+                          className="text-primary hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Terms of Service
+                        </a>{' '}
+                        and{' '}
+                        <a
+                          href="/privacy"
+                          className="text-primary hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Privacy Policy
+                        </a>
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <CDButton
+                block={true}
+                type="submit"
+                loading={isLoading}
+                icon={<ArrowRight className="h-4 w-4" />}
+                iconPosition="right"
+              >
+                Create Account
+              </CDButton>
+            </form>
+          </Form>
+        </CardContent>
+        <CardFooter className="flex justify-center border-t p-4">
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link 
-              to="/auth/signin"
-              className="font-medium text-primary hover:underline"
-            >
+            <a href="/auth/login" className="text-primary hover:underline">
               Sign in
-            </Link>
+            </a>
           </p>
-        </motion.div>
-      </form>
-    </AuthLayout>
+        </CardFooter>
+      </Card>
+    </div>
   );
-};
-
-export default SignUpPage;
+}

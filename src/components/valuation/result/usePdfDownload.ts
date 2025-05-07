@@ -1,73 +1,61 @@
 
 import { useState } from 'react';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { generateValuationPdf } from '@/utils/generateValuationPdf';
-import { AICondition } from '@/types/photo';
+import { downloadPdf } from '@/utils/pdf';
+import { toast } from 'sonner';
+import { ReportData } from '@/utils/pdf/types';
 
-interface PdfDownloadParams {
-  valuationId?: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  location: string;
-  valuation: number;
-  explanation?: string;
-  confidenceScore?: number;
-  conditionData?: AICondition | null;
-  adjustments?: { factor: string; impact: number; description: string }[];
-  bestPhotoUrl?: string;
+interface UsePdfDownloadProps {
+  reportData: ReportData;
+  fileName?: string;
 }
 
-export function usePdfDownload(params: PdfDownloadParams) {
+/**
+ * Hook for downloading PDF reports
+ */
+export function usePdfDownload({ reportData, fileName = 'vehicle-valuation' }: UsePdfDownloadProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDownloadPdf = async () => {
-    setIsDownloading(true);
+  const downloadReport = async () => {
     try {
-      // Format data for PDF generation
-      const vehicle: DecodedVehicleInfo = {
-        make: params.make,
-        model: params.model,
-        year: params.year,
-        mileage: params.mileage,
-        condition: params.condition,
-        zipCode: params.location,
-        vin: '',
-      };
-
-      // Generate the PDF
-      const pdfBytes = await generateValuationPdf({
-        vehicle,
-        valuation: params.valuation,
-        explanation: params.explanation || 'No detailed explanation available.',
-        valuationId: params.valuationId,
-        aiCondition: params.conditionData,
-        bestPhotoUrl: params.bestPhotoUrl
+      setIsDownloading(true);
+      setError(null);
+      
+      // Validate report data
+      if (!reportData || !reportData.vin || !reportData.make) {
+        throw new Error('Invalid report data');
+      }
+      
+      // Generate filename
+      const finalFileName = `${fileName}-${reportData.make}-${reportData.model}-${new Date().getTime()}.pdf`;
+      
+      // Download the PDF
+      await downloadPdf({
+        reportData,
+        fileName: finalFileName,
+        options: {
+          includeBranding: true,
+          includeAIScore: true,
+          includeFooter: true,
+          includeTimestamp: true,
+          includePhotoAssessment: Boolean(reportData.aiCondition)
+        }
       });
-
-      // Create a blob from the PDF data
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-
-      // Create a link and trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${params.year}-${params.make}-${params.model}-valuation.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Clean up the URL
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      
+      toast.success('PDF report downloaded successfully');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to download PDF';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error('PDF download error:', err);
     } finally {
       setIsDownloading(false);
     }
   };
 
-  return { isDownloading, handleDownloadPdf };
+  return {
+    downloadReport,
+    isDownloading,
+    error
+  };
 }

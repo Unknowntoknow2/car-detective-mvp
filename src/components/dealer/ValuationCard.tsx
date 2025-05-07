@@ -1,11 +1,10 @@
 
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, formatDate } from '@/utils/formatters';
 import { ConditionBadge } from '@/components/ui/condition-badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ValuationWithCondition } from '@/types/dealer';
 import { Download, ExternalLink } from 'lucide-react';
-import { formatDate } from '@/utils/formatters';
 
 interface ValuationCardProps {
   valuation: ValuationWithCondition;

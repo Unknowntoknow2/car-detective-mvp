@@ -55,3 +55,14 @@ export function formatRelativeTime(date: Date | string | number): string {
   const diffYears = Math.floor(diffMonths / 12);
   return `${diffYears} ${diffYears === 1 ? 'year' : 'years'} ago`;
 }
+
+/**
+ * Format a date to a readable string
+ */
+export function formatDate(date: Date | string | number): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}

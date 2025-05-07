@@ -1,48 +1,52 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CDButton } from '@/components/ui-kit/CDButton';
-import { AuthLayout } from './AuthLayout';
+import { CheckCircle } from 'lucide-react';
 
-const ConfirmationPage: React.FC = () => {
+interface ConfirmationPageProps {
+  title: string;
+  message: string;
+  buttonText: string;
+  buttonHref: string;
+  icon?: React.ReactNode;
+}
+
+export const ConfirmationPage: React.FC<ConfirmationPageProps> = ({
+  title,
+  message,
+  buttonText,
+  buttonHref,
+  icon = <CheckCircle className="h-12 w-12 text-green-500" />
+}) => {
+  const navigate = useNavigate();
+  const handleContinue = () => {
+    navigate(buttonHref);
+  };
+
   return (
-    <AuthLayout 
-      title="Check your email"
-      subtitle="Confirm your email address"
-      quote="One more step to accurate valuations and trusted insights."
-    >
-      <motion.div
-        className="text-center space-y-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="mx-auto bg-primary/10 w-24 h-24 rounded-full flex items-center justify-center">
-          <Mail className="h-12 w-12 text-primary" />
-        </div>
-        
-        <div className="space-y-2">
-          <p className="text-muted-foreground">
-            We've sent a confirmation link to your email address.
-            Click the link to verify your account.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            If you don't see the email, check your spam folder.
-          </p>
-        </div>
-        
-        <div className="pt-4">
-          <Link to="/auth/signin">
-            <CDButton variant="outline" fullWidth>
-              Back to sign in
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-slate-50">
+      <Card className="w-full max-w-md shadow-sm">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4">
+            {icon}
+          </div>
+          <CardTitle className="text-xl">{title}</CardTitle>
+          <CardDescription>{message}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center mt-2">
+            <CDButton 
+              variant="outline" 
+              block={true} 
+              onClick={handleContinue}
+            >
+              {buttonText}
             </CDButton>
-          </Link>
-        </div>
-      </motion.div>
-    </AuthLayout>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
-
-export default ConfirmationPage;
