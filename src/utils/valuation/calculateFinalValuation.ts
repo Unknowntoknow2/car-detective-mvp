@@ -2,7 +2,7 @@
 import { RulesEngineInput, AdjustmentBreakdown } from '../rules/types';
 import { AICondition } from '@/types/photo';
 import rulesEngine from '../rulesEngine';
-import { calculateDemandAdjustment } from '../adjustments/demandAdjustments';
+import { getPhotoScoreAdjustmentDescription } from '../rules/descriptions';
 
 export interface ValuationInput {
   make: string;
@@ -18,14 +18,7 @@ export interface ValuationInput {
   accidentCount?: number;
   color?: string;
   premiumFeatures?: boolean;
-}
-
-export interface ValuationOutput {
-  estimatedValue: number;
-  basePrice: number;
-  adjustments: AdjustmentBreakdown[];
-  confidenceScore: number;
-  priceRange: [number, number];
+  photoScore?: number;
 }
 
 export interface FinalValuationResult {
@@ -63,11 +56,25 @@ export async function calculateFinalValuation(
     features: input.features,
     premiumFeatures: input.premiumFeatures,
     // Add AI condition override if present
-    aiConditionOverride: aiCondition
+    aiConditionOverride: aiCondition,
+    photoScore: input.photoScore
   };
   
   // Calculate adjustments using rules engine
   const adjustments = await rulesEngine.calculateAdjustments(rulesInput);
+  
+  // Add photo score adjustment if available
+  if (input.photoScore !== undefined && input.photoScore > 0) {
+    const photoAdjustment = calculatePhotoScoreAdjustment(input.photoScore, basePrice);
+    const photoImpactPercent = (photoAdjustment / basePrice) * 100;
+    
+    adjustments.push({
+      name: 'Photo Condition',
+      value: photoAdjustment,
+      description: getPhotoScoreAdjustmentDescription(input.photoScore, photoImpactPercent, photoAdjustment),
+      percentAdjustment: photoImpactPercent
+    });
+  }
   
   // Calculate total adjustment
   const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
@@ -91,6 +98,25 @@ export async function calculateFinalValuation(
     aiSummary: aiCondition?.aiSummary,
     conditionSource: aiCondition ? 'AI' : 'User' 
   };
+}
+
+/**
+ * Calculate adjustment based on photo score
+ */
+function calculatePhotoScoreAdjustment(photoScore: number, basePrice: number): number {
+  if (photoScore >= 0.9) {
+    // Excellent condition photos get a bonus
+    return basePrice * 0.05;
+  } else if (photoScore >= 0.7) {
+    // Good condition photos get no adjustment
+    return 0;
+  } else if (photoScore >= 0.5) {
+    // Fair condition photos get a small penalty
+    return basePrice * -0.03;
+  } else {
+    // Poor condition photos get a larger penalty
+    return basePrice * -0.08;
+  }
 }
 
 /**

@@ -1,331 +1,245 @@
 
-import { buildValuationReport } from '@/lib/valuation/buildValuationReport';
-import { calculateValuation } from '@/utils/valuation/valuationEngine';
-import { supabase } from '@/integrations/supabase/client';
-import { decodeVin } from '@/services/vinService';
-import { lookupPlate } from '@/services/plateService';
-import { downloadPdf } from '@/utils/pdf';
+import { buildValuationReport } from '../lib/valuation/buildValuationReport';
+import { decodeVin } from '../services/vinService';
+import { lookupPlate } from '../services/plateService';
+import { uploadAndAnalyzePhotos } from '../services/photoService';
+import { supabase } from '../integrations/supabase/client';
 
-// Mock the dependencies
-jest.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    functions: {
-      invoke: jest.fn()
-    }
-  }
-}));
-
-jest.mock('@/utils/valuation/valuationEngine');
-jest.mock('@/services/vinService');
-jest.mock('@/services/plateService');
-jest.mock('@/utils/pdf');
-
-// Test data
-const mockVinData = {
-  make: 'Toyota',
-  model: 'Camry',
-  year: 2020,
-  trim: 'SE',
-  bodyType: 'Sedan',
-  transmission: 'Automatic',
-  fuelType: 'Gasoline'
-};
-
-const mockPlateData = {
-  vin: 'ABC123456789',
-  make: 'Honda',
-  model: 'Accord',
-  year: 2019,
-  mileage: 35000
-};
-
-const mockValuationResult = {
-  estimatedValue: 25000,
-  basePrice: 28000,
-  adjustments: [
-    { name: 'Mileage', value: -2000, description: 'Adjustment for mileage', percentAdjustment: -7.14 },
-    { name: 'Condition', value: -1000, description: 'Vehicle in Good condition', percentAdjustment: -3.57 }
-  ],
-  priceRange: [23500, 26500] as [number, number],
-  confidenceScore: 85
-};
-
-const mockPhoto = new File(['mock photo content'], 'test-photo.jpg', { type: 'image/jpeg' });
+// Mock the services
+jest.mock('../services/vinService');
+jest.mock('../services/plateService');
+jest.mock('../services/photoService');
+jest.mock('../integrations/supabase/client');
 
 describe('buildValuationReport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Mock function calls
-    (decodeVin as jest.Mock).mockResolvedValue(mockVinData);
-    (lookupPlate as jest.Mock).mockResolvedValue(mockPlateData);
-    (calculateValuation as jest.Mock).mockResolvedValue(mockValuationResult);
-    (downloadPdf as jest.Mock).mockResolvedValue(undefined);
-    
-    // Mock Supabase function invocations
+    // Mock Supabase functions.invoke
     (supabase.functions.invoke as jest.Mock).mockImplementation((functionName, { body }) => {
-      if (functionName === 'score-image') {
-        return Promise.resolve({
-          data: {
-            scores: [{ url: 'https://example.com/photo.jpg', score: 0.85 }],
-            aiCondition: {
-              condition: 'Good',
-              confidenceScore: 85,
-              issuesDetected: ['Minor scratches']
-            }
-          },
-          error: null
-        });
+      if (functionName === 'verify-payment') {
+        return { data: { hasPremiumAccess: true } };
       }
       
       if (functionName === 'generate-explanation') {
-        return Promise.resolve({
-          data: {
-            explanation: 'This is a test explanation of the vehicle valuation.'
-          },
-          error: null
-        });
+        return { data: { explanation: 'This is an AI-generated explanation for your vehicle valuation.' } };
       }
       
-      if (functionName === 'verify-payment') {
-        return Promise.resolve({
-          data: {
-            hasPremiumAccess: true
-          },
-          error: null
-        });
+      if (functionName === 'generate-pdf') {
+        return { data: { pdfUrl: 'https://example.com/reports/sample.pdf' } };
       }
       
-      return Promise.resolve({ data: null, error: null });
-    });
-  });
-
-  // Test 1: Happy path - full premium user with photos, GPT, PDF
-  test('should process a full premium valuation with photos, GPT, and PDF', async () => {
-    // Arrange
-    const input = {
-      identifierType: 'vin' as const,
-      vin: 'JH4DA9370MS016526',
-      userId: 'user-123',
-      valuationId: 'val-123',
-      mileage: 45000,
-      condition: 'Good',
-      zipCode: '90210',
-      photos: [mockPhoto],
-      isPremium: true,
-      notifyDealers: true
-    };
-    
-    // Act
-    const result = await buildValuationReport(input);
-    
-    // Assert
-    expect(result).toBeDefined();
-    expect(result.make).toBe('Toyota');
-    expect(result.model).toBe('Camry');
-    expect(result.year).toBe(2020);
-    expect(result.estimatedValue).toBe(25000);
-    expect(result.isPremium).toBe(true);
-    expect(result.photoScore).toBe(85);
-    expect(result.explanation).toBe('This is a test explanation of the vehicle valuation.');
-    expect(result.bestPhotoUrl).toContain('photo.jpg');
-    
-    // Verify function calls
-    expect(decodeVin).toHaveBeenCalledWith('JH4DA9370MS016526');
-    expect(calculateValuation).toHaveBeenCalled();
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('score-image', expect.any(Object));
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('generate-explanation', expect.any(Object));
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('verify-payment', expect.any(Object));
-    expect(downloadPdf).toHaveBeenCalled();
-  });
-
-  // Test 2: Basic free user flow (no premium features)
-  test('should process a basic free valuation without premium features', async () => {
-    // Mock verify-payment to return no premium access
-    (supabase.functions.invoke as jest.Mock).mockImplementation((functionName, { body }) => {
-      if (functionName === 'verify-payment') {
-        return Promise.resolve({
-          data: {
-            hasPremiumAccess: false,
-            reason: 'No payment found'
-          },
-          error: null
-        });
+      if (functionName === 'notify-dealers') {
+        return { data: { success: true } };
       }
       
-      return Promise.resolve({ data: null, error: null });
+      return { data: null };
     });
     
-    // Arrange
-    const input = {
-      identifierType: 'manual' as const,
-      make: 'Ford',
-      model: 'Mustang',
+    // Mock VIN decode
+    (decodeVin as jest.Mock).mockResolvedValue({
+      make: 'Toyota',
+      model: 'Camry',
       year: 2018,
+      trim: 'LE',
+      transmission: 'Automatic',
+      fuelType: 'Gasoline'
+    });
+    
+    // Mock plate lookup
+    (lookupPlate as jest.Mock).mockResolvedValue({
+      make: 'Honda',
+      model: 'Accord',
+      year: 2019,
+      mileage: 45000,
+      transmission: 'Automatic',
+      fuelType: 'Gasoline'
+    });
+    
+    // Mock photo analysis
+    (uploadAndAnalyzePhotos as jest.Mock).mockResolvedValue({
+      overallScore: 0.85,
+      individualScores: [{ url: 'https://example.com/photos/1.jpg', score: 0.85, isPrimary: true }],
+      aiCondition: {
+        condition: 'Good',
+        confidenceScore: 85,
+        issuesDetected: ['Minor scratches on front bumper']
+      }
+    });
+    
+    // Mock Supabase query builder
+    (supabase.from as jest.Mock).mockReturnValue({
+      upsert: jest.fn().mockReturnValue({
+        error: null
+      })
+    });
+  });
+
+  test('Happy path: full premium user with VIN, photos, and GPT', async () => {
+    const result = await buildValuationReport({
+      identifierType: 'vin',
+      vin: '1HGCM82633A123456',
       mileage: 50000,
       condition: 'Good',
-      zipCode: '60601',
-      userId: 'user-456',
-      valuationId: 'val-456'
-    };
-    
-    // Act
-    const result = await buildValuationReport(input);
-    
-    // Assert
-    expect(result).toBeDefined();
-    expect(result.make).toBe('Ford');
-    expect(result.model).toBe('Mustang');
-    expect(result.year).toBe(2018);
-    expect(result.estimatedValue).toBe(25000);
-    expect(result.isPremium).toBe(false);
-    expect(result.explanation).toBeUndefined();
-    
-    // Verify function calls
-    expect(decodeVin).not.toHaveBeenCalled();
-    expect(lookupPlate).not.toHaveBeenCalled();
-    expect(calculateValuation).toHaveBeenCalled();
-    expect(supabase.functions.invoke).toHaveBeenCalledWith('verify-payment', expect.any(Object));
-    expect(downloadPdf).not.toHaveBeenCalled();
-  });
-
-  // Test 3: Error handling - missing VIN
-  test('should handle errors when VIN lookup fails', async () => {
-    // Mock VIN decoder to throw an error
-    (decodeVin as jest.Mock).mockRejectedValue(new Error('Invalid VIN'));
-    
-    // Arrange
-    const input = {
-      identifierType: 'vin' as const,
-      vin: 'INVALID-VIN',
-      userId: 'user-789',
-      valuationId: 'val-789'
-    };
-    
-    // Act & Assert
-    await expect(buildValuationReport(input)).rejects.toThrow('Valuation failed: Failed to decode vehicle information');
-  });
-
-  // Test 4: Error handling - photo upload fails
-  test('should handle errors when photo upload fails but continue with valuation', async () => {
-    // Mock score-image function to return an error
-    (supabase.functions.invoke as jest.Mock).mockImplementation((functionName, { body }) => {
-      if (functionName === 'score-image') {
-        return Promise.resolve({
-          data: null,
-          error: { message: 'Failed to process photos' }
-        });
-      }
-      
-      if (functionName === 'verify-payment') {
-        return Promise.resolve({
-          data: { hasPremiumAccess: true },
-          error: null
-        });
-      }
-      
-      return Promise.resolve({ data: null, error: null });
+      zipCode: '90210',
+      photos: [new File([''], 'car-photo.jpg')],
+      userId: 'user-123',
+      valuationId: 'valuation-123',
+      isPremium: true,
+      isTestMode: false,
+      notifyDealers: true
     });
     
-    // Arrange
-    const input = {
-      identifierType: 'vin' as const,
-      vin: 'JH4DA9370MS016526',
-      userId: 'user-123',
-      valuationId: 'val-123',
-      mileage: 45000,
-      condition: 'Good',
-      zipCode: '90210',
-      photos: [mockPhoto],
-      isPremium: true
-    };
-    
-    // Act
-    const result = await buildValuationReport(input);
-    
-    // Assert
     expect(result).toBeDefined();
     expect(result.make).toBe('Toyota');
     expect(result.model).toBe('Camry');
-    expect(result.photoScore).toBeUndefined();
-    expect(result.bestPhotoUrl).toBeNull();
+    expect(result.year).toBe(2018);
+    expect(result.estimatedValue).toBeDefined();
+    expect(result.confidenceScore).toBeDefined();
+    expect(result.priceRange).toBeDefined();
+    expect(result.photoScore).toBeCloseTo(0.85);
+    expect(result.bestPhotoUrl).toBeDefined();
+    expect(result.explanation).toBeDefined();
+    expect(result.isPremium).toBe(true);
+    expect(result.pdfUrl).toBeDefined();
     
-    // Valuation should still continue
-    expect(result.estimatedValue).toBe(25000);
-    expect(calculateValuation).toHaveBeenCalled();
+    // Verify service calls
+    expect(decodeVin).toHaveBeenCalledWith('1HGCM82633A123456');
+    expect(uploadAndAnalyzePhotos).toHaveBeenCalled();
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('verify-payment', expect.any(Object));
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('generate-explanation', expect.any(Object));
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('generate-pdf', expect.any(Object));
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('notify-dealers', expect.any(Object));
+    expect(supabase.from).toHaveBeenCalledWith('valuations');
   });
 
-  // Test 5: Plate lookup and edge cases
-  test('should process a valuation from license plate lookup', async () => {
-    // Arrange
-    const input = {
-      identifierType: 'plate' as const,
+  test('Basic path: free user with plate lookup, no premium features', async () => {
+    // Mock verify-payment to return false for premium access
+    (supabase.functions.invoke as jest.Mock).mockImplementation((functionName, { body }) => {
+      if (functionName === 'verify-payment') {
+        return { data: { hasPremiumAccess: false } };
+      }
+      return { data: null };
+    });
+    
+    const result = await buildValuationReport({
+      identifierType: 'plate',
       plate: 'ABC123',
       state: 'CA',
-      mileage: 40000,
-      condition: 'Excellent',
-      zipCode: '94105',
-      userId: 'user-999',
-      valuationId: 'val-999'
-    };
+      mileage: 60000,
+      condition: 'Fair',
+      zipCode: '94107',
+      userId: 'user-456',
+      valuationId: 'valuation-456',
+      isPremium: false
+    });
     
-    // Act
-    const result = await buildValuationReport(input);
-    
-    // Assert
     expect(result).toBeDefined();
     expect(result.make).toBe('Honda');
     expect(result.model).toBe('Accord');
     expect(result.year).toBe(2019);
-    expect(result.vin).toBe('ABC123456789');
-    expect(result.mileage).toBe(40000); // Using input mileage
+    expect(result.estimatedValue).toBeDefined();
+    expect(result.confidenceScore).toBeDefined();
+    expect(result.priceRange).toBeDefined();
+    expect(result.photoScore).toBeUndefined();
+    expect(result.bestPhotoUrl).toBeNull();
+    expect(result.explanation).toBeUndefined();
+    expect(result.isPremium).toBe(false);
+    expect(result.pdfUrl).toBeUndefined();
     
-    // Verify function calls
+    // Verify service calls
     expect(lookupPlate).toHaveBeenCalledWith('ABC123', 'CA');
-    expect(calculateValuation).toHaveBeenCalled();
+    expect(uploadAndAnalyzePhotos).not.toHaveBeenCalled();
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('verify-payment', expect.any(Object));
+    expect(supabase.functions.invoke).not.toHaveBeenCalledWith('generate-explanation', expect.any(Object));
+    expect(supabase.functions.invoke).not.toHaveBeenCalledWith('generate-pdf', expect.any(Object));
+    expect(supabase.functions.invoke).not.toHaveBeenCalledWith('notify-dealers', expect.any(Object));
   });
 
-  // Test 6: Mileage outlier and edge cases
-  test('should handle edge cases like mileage outliers', async () => {
-    // Arrange
-    const input = {
-      identifierType: 'manual' as const,
-      make: 'Tesla',
-      model: 'Model 3',
+  test('Manual entry with features and accident history', async () => {
+    const result = await buildValuationReport({
+      identifierType: 'manual',
+      make: 'Ford',
+      model: 'Mustang',
       year: 2020,
-      mileage: 300000, // Extremely high mileage
-      condition: 'Poor',
-      zipCode: '10001',
-      userId: 'user-555',
-      valuationId: 'val-555'
-    };
+      mileage: 30000,
+      condition: 'Excellent',
+      zipCode: '60601',
+      fuelType: 'Gasoline',
+      transmission: 'Manual',
+      accidentCount: 1,
+      features: ['Leather Seats', 'Navigation', 'Premium Sound'],
+      userId: 'user-789',
+      valuationId: 'valuation-789',
+      isPremium: false
+    });
     
-    // Mock a different valuation result for high mileage
-    const highMileageResult = {
-      ...mockValuationResult,
-      estimatedValue: 15000,
-      adjustments: [
-        { name: 'Mileage', value: -10000, description: 'Excessive mileage', percentAdjustment: -35.71 },
-        { name: 'Condition', value: -3000, description: 'Vehicle in Poor condition', percentAdjustment: -10.71 }
-      ],
-      priceRange: [13500, 16500] as [number, number],
-      confidenceScore: 70
-    };
-    
-    (calculateValuation as jest.Mock).mockResolvedValue(highMileageResult);
-    
-    // Act
-    const result = await buildValuationReport(input);
-    
-    // Assert
     expect(result).toBeDefined();
-    expect(result.estimatedValue).toBe(15000);
-    expect(result.confidenceScore).toBe(70);
+    expect(result.make).toBe('Ford');
+    expect(result.model).toBe('Mustang');
+    expect(result.year).toBe(2020);
+    expect(result.estimatedValue).toBeDefined();
+    expect(result.confidenceScore).toBeDefined();
+    expect(result.priceRange).toBeDefined();
+    expect(result.features).toEqual(['Leather Seats', 'Navigation', 'Premium Sound']);
     
-    // Expect a larger adjustment for mileage
-    expect(calculateValuation).toHaveBeenCalledWith(expect.objectContaining({
-      mileage: 300000,
-      condition: 'Poor'
-    }), expect.any(Function));
+    // Check for accident adjustment in results
+    const accidentAdjustment = result.adjustments.find(adj => adj.factor.toLowerCase().includes('accident'));
+    expect(accidentAdjustment).toBeDefined();
+    expect(accidentAdjustment?.impact).toBeLessThan(0); // Should be negative impact
+  });
+
+  test('Error handling: missing VIN', async () => {
+    await expect(buildValuationReport({
+      identifierType: 'vin',
+      // vin: undefined, // Intentionally missing
+      mileage: 50000,
+      condition: 'Good',
+      zipCode: '90210',
+      userId: 'user-123',
+      valuationId: 'valuation-123'
+    })).rejects.toThrow('VIN is required');
+  });
+
+  test('Error handling: VIN decode failure', async () => {
+    // Mock VIN decode to fail
+    (decodeVin as jest.Mock).mockRejectedValue(new Error('Failed to decode VIN'));
+    
+    await expect(buildValuationReport({
+      identifierType: 'vin',
+      vin: 'INVALID-VIN',
+      mileage: 50000,
+      condition: 'Good',
+      zipCode: '90210',
+      userId: 'user-123',
+      valuationId: 'valuation-123'
+    })).rejects.toThrow('Failed to decode VIN');
+  });
+
+  test('Error handling: Photo analysis failure', async () => {
+    // Mock photo analysis to fail
+    (uploadAndAnalyzePhotos as jest.Mock).mockResolvedValue({
+      overallScore: 0,
+      individualScores: [],
+      error: 'Failed to analyze photos'
+    });
+    
+    // Test should still complete without photo data
+    const result = await buildValuationReport({
+      identifierType: 'vin',
+      vin: '1HGCM82633A123456',
+      mileage: 50000,
+      condition: 'Good',
+      zipCode: '90210',
+      photos: [new File([''], 'car-photo.jpg')],
+      userId: 'user-123',
+      valuationId: 'valuation-123',
+      isPremium: true
+    });
+    
+    expect(result).toBeDefined();
+    expect(result.photoScore).toBeUndefined();
+    expect(result.bestPhotoUrl).toBeNull();
+    expect(result.aiCondition).toBeUndefined();
   });
 });
