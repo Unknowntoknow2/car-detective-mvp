@@ -9,6 +9,12 @@ export interface Rule {
 
 export interface RulesEngineInput {
   [key: string]: any;
+  make: string;
+  model: string;
+  year: number;
+  condition: string;
+  mileage: number;
+  zipCode?: string;
 }
 
 // Updated AdjustmentBreakdown to have both naming conventions to support existing code
