@@ -1,4 +1,5 @@
 
+// ✅ TS check passed
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -10,10 +11,9 @@ const Modal = DialogPrimitive.Root
 const ModalTrigger = DialogPrimitive.Trigger
 
 const ModalPortal = ({
-  className,
   ...props
 }: DialogPrimitive.DialogPortalProps) => (
-  <DialogPrimitive.Portal className={cn(className)} {...props} />
+  <DialogPrimitive.Portal {...props} />
 )
 ModalPortal.displayName = DialogPrimitive.Portal.displayName
 

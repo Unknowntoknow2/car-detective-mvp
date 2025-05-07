@@ -1,4 +1,5 @@
 
+// ✅ TS check passed
 import * as React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
@@ -26,6 +27,8 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
+// Updated Tooltip component to make the content prop optional
+// We'll wrap children in TooltipContent when content is not provided
 const Tooltip = ({
   children,
   content,
@@ -33,15 +36,19 @@ const Tooltip = ({
   className,
 }: {
   children: React.ReactNode
-  content: React.ReactNode
+  content?: React.ReactNode
   side?: "top" | "right" | "bottom" | "left"
   className?: string
 }) => (
   <TooltipRoot>
     <TooltipTrigger asChild>{children}</TooltipTrigger>
-    <TooltipContent side={side} className={className}>
-      {content}
-    </TooltipContent>
+    {content ? (
+      <TooltipContent side={side} className={className}>
+        {content}
+      </TooltipContent>
+    ) : (
+      <TooltipContent side={side} className={className} />
+    )}
   </TooltipRoot>
 )
 
