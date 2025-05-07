@@ -1,0 +1,15 @@
+
+<svg width="240" height="200" viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M70 50H170L190 70V150C190 152.761 187.761 155 185 155H70C67.2386 155 65 152.761 65 150V55C65 52.2386 67.2386 50 70 50Z" fill="#F0F3F9"/>
+  <path d="M170 50V65C170 67.7614 172.239 70 175 70H190L170 50Z" fill="#E2E8F0"/>
+  <path d="M170 50H70C67.2386 50 65 52.2386 65 55V150C65 152.761 67.2386 155 70 155H185C187.761 155 190 152.761 190 150V70M170 50V65C170 67.7614 172.239 70 175 70H190M170 50L190 70" stroke="#CAD5E0" stroke-width="2"/>
+  <rect x="85" y="85" width="85" height="7" rx="2" fill="#E2E8F0"/>
+  <rect x="85" y="100" width="85" height="7" rx="2" fill="#E2E8F0"/>
+  <rect x="85" y="115" width="50" height="7" rx="2" fill="#E2E8F0"/>
+  <rect x="85" y="130" width="85" height="7" rx="2" fill="#E2E8F0"/>
+  <circle cx="127.5" cy="60.5" r="18.5" fill="#C4F1F9"/>
+  <path d="M121.5 60.5L125.5 64.5L133.5 56.5" stroke="#2B6CB0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="172.5" cy="114.5" r="30" fill="#EDF2F7" stroke="#ED8936" stroke-width="2" stroke-dasharray="4 4"/>
+  <path d="M165 107L180 122" stroke="#ED8936" stroke-width="3" stroke-linecap="round"/>
+  <path d="M180 107L165 122" stroke="#ED8936" stroke-width="3" stroke-linecap="round"/>
+</svg>

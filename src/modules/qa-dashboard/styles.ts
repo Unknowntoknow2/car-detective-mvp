@@ -12,8 +12,7 @@ const styles = {
     "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
   ),
   filterBar: cn(
-    "flex flex-col md:flex-row items-start md:items-center gap-4 mb-6 
-     bg-white p-4 rounded-lg border border-neutral-light"
+    "flex flex-col md:flex-row items-start md:items-center gap-4 mb-6 bg-white p-4 rounded-lg border border-neutral-light"
   ),
   tableContainer: cn(
     "bg-white rounded-lg border border-neutral-light shadow-sm overflow-x-auto"

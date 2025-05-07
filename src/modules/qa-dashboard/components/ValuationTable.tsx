@@ -1,8 +1,11 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { CDTable } from '@/components/ui-kit/CDTable';
 import ValuationRow, { ValuationRowData } from './ValuationRow';
 import styles from '../styles';
+import { EmptyStateAnimation } from '@/components/animations/EmptyStateAnimation';
+import { FileX } from 'lucide-react';
 
 interface ValuationTableProps {
   valuations: ValuationRowData[];
@@ -25,15 +28,47 @@ export const ValuationTable: React.FC<ValuationTableProps> = ({
     { header: 'Actions', accessor: 'actions' }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    }
+  };
+
   const renderEmptyState = () => (
-    <div className={styles.emptyState}>
-      <p className="text-lg font-medium mb-2">No valuations found</p>
-      <p className="text-sm text-neutral-dark">Try adjusting your filters or adding new valuations.</p>
-    </div>
+    <EmptyStateAnimation
+      title="No valuations found"
+      description="Try adjusting your filters or adding new valuations."
+      icon={<FileX size={40} />}
+      ctaText="Refresh Data"
+      onCtaClick={onRefresh}
+      className="py-12"
+    />
   );
 
   return (
-    <div className={styles.tableContainer}>
+    <motion.div 
+      className={styles.tableContainer}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       <table className="min-w-full divide-y divide-neutral-light">
         <thead className="bg-neutral-lighter">
           <tr>
@@ -50,19 +85,30 @@ export const ValuationTable: React.FC<ValuationTableProps> = ({
         <tbody className="bg-white divide-y divide-neutral-light">
           {isLoading ? (
             Array(5).fill(0).map((_, idx) => (
-              <tr key={idx} className="animate-pulse">
+              <motion.tr 
+                key={idx} 
+                className="animate-pulse"
+                variants={rowVariants}
+              >
                 <td colSpan={columns.length} className="py-4 px-4">
                   <div className="h-6 bg-neutral-lighter rounded w-3/4"></div>
                 </td>
-              </tr>
+              </motion.tr>
             ))
           ) : valuations.length > 0 ? (
-            valuations.map((valuation) => (
-              <ValuationRow 
-                key={valuation.id} 
-                valuation={valuation}
-                onRefresh={onRefresh}
-              />
+            valuations.map((valuation, index) => (
+              <motion.tr 
+                key={valuation.id}
+                variants={rowVariants}
+                custom={index}
+              >
+                <td colSpan={columns.length} className="p-0">
+                  <ValuationRow 
+                    valuation={valuation}
+                    onRefresh={onRefresh}
+                  />
+                </td>
+              </motion.tr>
             ))
           ) : (
             <tr>
@@ -73,7 +119,7 @@ export const ValuationTable: React.FC<ValuationTableProps> = ({
           )}
         </tbody>
       </table>
-    </div>
+    </motion.div>
   );
 };
 
