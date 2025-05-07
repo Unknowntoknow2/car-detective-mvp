@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Valuation } from '../types';
+import { Valuation, ValuationRowProps } from '../types';
 import { ValuationRow } from './ValuationRow';
 import { Loader2, AlertCircle, SearchX } from 'lucide-react';
 import { motion } from 'framer-motion';

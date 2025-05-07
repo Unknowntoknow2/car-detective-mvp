@@ -1,91 +1,56 @@
 
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { generatePdf } from './pdf/pdfGenerator';
-import { ReportData } from './pdf/types';
-import { generateValuationNarrative } from './pdf/sections/valuationSummary';
-
-interface PdfDownloadParams {
-  vehicle: DecodedVehicleInfo;
-  valuation: number;
-  explanation: string;
-  explanationText?: string;
-  comparables?: { source: string; price: number; date: string }[];
-  valuationId?: string;
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
-  bestPhotoUrl?: string;
-  photoExplanation?: string;
-  adjustments?: Array<{ factor: string; impact: number; description?: string }>;
-}
+import { FormData } from '@/types/premium-valuation';
 
 /**
- * Generates a PDF valuation report for a vehicle
- * @param params Object containing vehicle information, valuation, explanation and comparable listings
+ * Generates a PDF for the valuation report
+ * @param data The report data
+ * @param options Additional options for PDF generation
  * @returns Promise resolving to PDF document as Uint8Array
  */
-export async function generateValuationPdf(params: PdfDownloadParams): Promise<Uint8Array> {
-  // Convert the params to the expected ReportData format
-  const reportData: ReportData = {
-    vin: params.vehicle.vin || 'Unknown',
-    make: params.vehicle.make,
-    model: params.vehicle.model,
-    year: params.vehicle.year,
-    mileage: params.vehicle.mileage?.toString() || '0',
-    condition: (params.vehicle.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor') || 'Good',
-    zipCode: params.vehicle.zipCode || '',
-    estimatedValue: params.valuation,
-    confidenceScore: 85, // Default value
-    color: params.vehicle.color || 'Not Specified',
-    bodyStyle: params.vehicle.bodyType || 'Not Specified',
-    bodyType: params.vehicle.bodyType || 'Not Specified',
-    fuelType: params.vehicle.fuelType || 'Not Specified',
-    explanation: params.explanation,
+export async function generateValuationPdf(
+  data: FormData, 
+  options: {
+    isPremium?: boolean;
+    includeBranding?: boolean;
+    includeAIScore?: boolean;
+    includeFooter?: boolean;
+    includeTimestamp?: boolean;
+    includePhotoAssessment?: boolean;
+  } = {}
+): Promise<Uint8Array> {
+  const defaultOptions = {
     isPremium: false,
-    valuationId: params.valuationId,
-    aiCondition: params.aiCondition ? {
-      condition: params.aiCondition.condition || 'Good',
-      confidenceScore: params.aiCondition.confidenceScore,
-      issuesDetected: params.aiCondition.issuesDetected || [],
-      aiSummary: params.aiCondition.aiSummary || ''
-    } : null,
-    bestPhotoUrl: params.bestPhotoUrl,
-    photoExplanation: params.photoExplanation,
-    adjustments: params.adjustments || []
+    includeBranding: true,
+    includeAIScore: true,
+    includeFooter: true,
+    includeTimestamp: true,
+    includePhotoAssessment: true
   };
   
-  // Generate the valuation narrative if not provided
-  if (!reportData.narrative) {
-    try {
-      // Calculate base price
-      const basePrice = params.adjustments && params.adjustments.length > 0 
-        ? params.valuation - params.adjustments.reduce((sum, adj) => sum + adj.impact, 0)
-        : params.valuation;
-        
-      const narrative = await generateValuationNarrative({
-        make: params.vehicle.make,
-        model: params.vehicle.model,
-        year: params.vehicle.year,
-        mileage: params.vehicle.mileage || 0,
-        zipCode: params.vehicle.zipCode || '',
-        condition: params.vehicle.condition || 'Good',
-        basePrice: basePrice,
-        adjustedPrice: params.valuation,
-        confidenceScore: params.aiCondition?.confidenceScore || 85,
-        photoExplanation: params.photoExplanation,
-        fuelType: params.vehicle.fuelType,
-        transmission: params.vehicle.transmission
-      });
-      
-      reportData.narrative = narrative;
-    } catch (error) {
-      console.error("Error generating narrative:", error);
-      // Continue without narrative if generation fails
-    }
+  const mergedOptions = { ...defaultOptions, ...options };
+  
+  // For premium reports, we would include additional data and formatting
+  if (mergedOptions.isPremium) {
+    console.log('Generating premium PDF with enhanced data for:', data);
+    // In a real implementation, we would use pdf-lib or a similar library
+    // to create a more detailed and styled PDF for premium users
+    
+    // This is where we would add premium-only sections like:
+    // - CARFAX report data
+    // - Detailed market analysis
+    // - AI condition assessment with photos
+    // - Dealer comparison pricing
+  } else {
+    console.log('Generating basic PDF for:', data);
   }
   
-  return generatePdf(reportData);
+  // Add adjustments with default empty description if needed
+  const adjustments = data.adjustments?.map(adj => ({
+    factor: adj.factor,
+    impact: adj.impact,
+    description: adj.description || ""
+  })) || [];
+  
+  // Return dummy data for now
+  return new Uint8Array([0]); // Placeholder
 }

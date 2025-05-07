@@ -14,21 +14,21 @@ export interface Photo {
   uploaded?: boolean;
   uploading?: boolean;
   error?: string;
-  explanation?: string; // Added missing property
+  explanation?: string;
 }
 
 export interface PhotoScore {
   url: string;
   score: number;
-  isPrimary?: boolean; // Added missing property
-  explanation?: string; // Added missing property
+  isPrimary?: boolean;
+  explanation?: string;
 }
 
 export interface PhotoScoringResult {
   overallScore: number;
   individualScores: PhotoScore[];
   aiCondition?: AICondition;
-  // Add missing properties for tests
+  // Adding missing properties used in tests
   photos?: Photo[];
   photoScore?: number;
   error?: string;

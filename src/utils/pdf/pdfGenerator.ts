@@ -42,21 +42,29 @@ async function html2pdf(html: string, outputPath: string, options: any = {}, cal
   return pdfDoc.save();
 }
 
+// Create default report options
+const defaultReportOptions: ReportOptions = {
+  includeBranding: true,
+  includeAIScore: true,
+  includeFooter: true,
+  includeTimestamp: true,
+  includePhotoAssessment: true,
+  printBackground: true,
+  format: 'A4'
+};
+
 // Main function to generate the PDF
 export async function generatePdf(
   data: ReportData, 
   template: string = 'valuation-report', 
   outputPath: string = '', 
-  options: ReportOptions = {
-    includeBranding: true,
-    includeAIScore: true,
-    includeFooter: true,
-    includeTimestamp: true,
-    includePhotoAssessment: true
-  }, 
+  options: Partial<ReportOptions> = {}, 
   callback?: (pdfDoc: PDFDocument) => void
 ): Promise<Uint8Array> {
   try {
+    // Merge provided options with defaults
+    const mergedOptions: ReportOptions = { ...defaultReportOptions, ...options };
+    
     // In a browser environment, we'll use a simplified approach
     // We're creating a mock HTML based on the template name
     const mockTemplateHtml = `
@@ -75,8 +83,8 @@ export async function generatePdf(
     
     const html = generateTemplateHtml(mockTemplateHtml, data);
     
-    // Generate PDF 
-    const pdfBuffer = await html2pdf(html, outputPath, options, callback);
+    // Generate PDF with merged options
+    const pdfBuffer = await html2pdf(html, outputPath, mergedOptions, callback);
     
     return pdfBuffer;
   } catch (error) {

@@ -5,6 +5,14 @@ export interface ReportOptions {
   includeFooter: boolean;
   includeTimestamp: boolean;
   includePhotoAssessment: boolean;
+  // Additional properties used in the code
+  format?: string;
+  printBackground?: boolean;
+  landscape?: boolean;
+  showWholesaleValue?: boolean;
+  dealerName?: string;
+  title?: string;
+  userName?: string;
 }
 
 // If needed, make sure the rest of your existing type definitions remain
