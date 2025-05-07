@@ -12,7 +12,13 @@ import { ReportData, ReportOptions } from './types';
  */
 export async function generateValuationReport(
   data: ReportData,
-  options: ReportOptions = {}
+  options: ReportOptions = {
+    includeBranding: true,
+    includeAIScore: true,
+    includeFooter: true,
+    includeTimestamp: true,
+    includePhotoAssessment: true
+  }
 ): Promise<string> {
   try {
     // Create output directory if it doesn't exist
@@ -158,7 +164,10 @@ export async function addWatermark(
         y: height / 2,
         size: 60,
         opacity: 0.15,
-        rotate: Math.PI / 4, // 45 degrees
+        rotate: {
+          type: 'degrees',
+          angle: 45
+        }
       });
     }
     

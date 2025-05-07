@@ -1,4 +1,3 @@
-
 export interface FormData {
   // Vehicle identification
   identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
@@ -26,7 +25,7 @@ export interface FormData {
   transmissionType?: string;
   
   // Vehicle condition
-  hasAccident?: boolean | string; // Updated to accept both boolean and string for backward compatibility
+  hasAccident?: boolean | string; 
   accidentDescription?: string;
   photoScore?: number;
   titleStatus?: string;
@@ -48,6 +47,14 @@ export interface FormData {
   confidenceScore?: number;
   priceRange?: [number, number];
   valuationId?: string;
+  
+  // Missing properties
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  estimatedValue?: number;
 }
 
 // Add FeatureOption interface used by component files

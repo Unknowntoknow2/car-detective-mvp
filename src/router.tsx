@@ -1,63 +1,88 @@
+
 import React from 'react';
-import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
-import App from './App';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthLayout } from './layouts/AuthLayout';
+import { DashboardLayout } from './layouts/DashboardLayout';
+import { AuthGuard } from './guards/AuthGuard';
+import { GuestGuard } from './guards/GuestGuard';
+
+// Pages
 import HomePage from './pages/HomePage';
-import ValuationPage from './pages/ValuationPage';
-import PremiumPage from './pages/PremiumPage';
-import UpgradePage from './pages/UpgradePage';
-import ProfilePage from './pages/ProfilePage';
-import VehicleHistoryPage from './pages/VehicleHistoryPage';
-import MyValuationsPage from './pages/MyValuationsPage';
 import NotFoundPage from './pages/NotFoundPage';
-import { AuthLayout } from './modules/auth/AuthLayout';
+import LookupPage from './pages/LookupPage';
 import SignInPage from './modules/auth/SignInPage';
 import SignUpPage from './modules/auth/SignUpPage';
 import ForgotPasswordPage from './modules/auth/ForgotPasswordPage';
 import ResetPasswordPage from './modules/auth/ResetPasswordPage';
+import MagicLinkPage from './modules/auth/MagicLinkPage';
 import ConfirmationPage from './modules/auth/ConfirmationPage';
-import { withAuth } from './modules/auth/withAuth';
 import AdminAnalyticsDashboard from './components/admin/dashboard/AdminAnalyticsDashboard';
-import { DesignSystemPage } from './pages/DesignSystem';
-import { PremiumValuationPage } from './pages/PremiumValuationPage';
+import DesignSystem from './pages/DesignSystem';
+import PremiumValuationPage from './pages/PremiumValuationPage';
+import MyValuationsPage from './pages/MyValuationsPage';
+import ProfilePage from './pages/ProfilePage';
+import SharePage from './pages/share/[token]';
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <>
-      <Route path="/" element={<App />}>
-        <Route index element={<HomePage />} />
-        <Route path="valuation" element={<ValuationPage />} />
-        <Route path="premium" element={<PremiumPage />} />
-        <Route path="premium-valuation" element={<PremiumValuationPage />} />
-        <Route path="upgrade" element={<UpgradePage />} />
-        <Route path="profile" element={withAuth(ProfilePage)} />
-        <Route path="vehicle-history" element={withAuth(VehicleHistoryPage)} />
-        <Route path="my-valuations" element={withAuth(MyValuationsPage)} />
-        <Route path="design-system" element={<DesignSystemPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+const Router = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<HomePage />} />
+        
+        {/* Auth routes */}
+        <Route element={<GuestGuard />}>
+          <Route element={<AuthLayout title="Sign In" />}>
+            <Route path="/login" element={<SignInPage />} />
+          </Route>
+          <Route element={<AuthLayout title="Sign Up" />}>
+            <Route path="/register" element={<SignUpPage />} />
+          </Route>
+          <Route element={<AuthLayout title="Reset Password" />}>
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          </Route>
+          <Route element={<AuthLayout title="Reset Password" />}>
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
+          <Route element={<AuthLayout title="Magic Link" />}>
+            <Route path="/magic-link" element={<MagicLinkPage />} />
+          </Route>
+          <Route 
+            path="/auth/confirmation" 
+            element={
+              <ConfirmationPage 
+                title="Email Confirmed" 
+                message="Your email has been confirmed! You can now sign in."
+                buttonText="Sign In"
+                buttonHref="/login"
+              />
+            } 
+          />
+        </Route>
+        
+        {/* Protected routes */}
+        <Route element={<AuthGuard />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/lookup/*" element={<LookupPage />} />
+            <Route path="/valuations" element={<MyValuationsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/premium-valuation" element={<PremiumValuationPage />} />
+            <Route path="/admin/analytics" element={<AdminAnalyticsDashboard />} />
+          </Route>
+        </Route>
+        
+        {/* Shared valuation page */}
+        <Route path="/share/:token" element={<SharePage />} />
+        
+        {/* Design system (development only) */}
+        <Route path="/design" element={<DesignSystem />} />
+        
+        {/* Not found */}
+        <Route path="/404" element={<NotFoundPage />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
-      <Route path="/auth" element={<AuthLayout />}>
-        <Route path="signin" element={<SignInPage />} />
-        <Route path="signup" element={<SignUpPage />} />
-        <Route path="forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="reset-password" element={<ResetPasswordPage />} />
-        <Route
-          path="confirmation"
-          element={<ConfirmationPage
-            title="Email Confirmed"
-            message="Your email has been confirmed successfully."
-            buttonText="Go to Login"
-            buttonHref="/auth/signin"
-          />}
-        />
-      </Route>
-
-      <Route
-        path="/admin"
-        element={withAuth(AdminAnalyticsDashboard, ['admin'])}
-      />
-    </>
-  )
-);
-
-export default router;
+export default Router;

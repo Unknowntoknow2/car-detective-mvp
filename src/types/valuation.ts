@@ -1,4 +1,3 @@
-
 export interface ValuationResult {
   id: string;
   make: string;
@@ -30,6 +29,7 @@ export interface ValuationResult {
   pdfUrl?: string;
   gptExplanation?: string;
   vin?: string;
+  features?: string[];
 }
 
 export interface ValuationResultProps {
@@ -42,6 +42,7 @@ export interface ValuationResultProps {
   location?: string;
   valuation?: number;
   isManualValuation?: boolean;
+  features?: string[];
 }
 
 export interface ValuationInput {

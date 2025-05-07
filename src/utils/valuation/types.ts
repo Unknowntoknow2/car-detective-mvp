@@ -9,6 +9,8 @@ export interface ValuationParams {
   condition: string;
   zip?: string;
   trim?: string;
+  transmission?: string;
+  fuelType?: string;
   accidentCount?: number;
   titleStatus?: string;
   premiumFeatures?: string[];

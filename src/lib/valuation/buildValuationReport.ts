@@ -1,11 +1,13 @@
+
 import { calculateValuation } from '@/utils/valuation/valuationEngine';
 import { ValuationParams } from '@/utils/valuation/types';
 import { decodeVin } from '@/services/vinService';
 import { lookupPlate } from '@/services/plateService';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadPdf } from '@/utils/pdf';
-import { ValuationResult } from '@/types/valuation';
+import { ValuationResult, AdjustmentBreakdown } from '@/types/valuation';
 import { AICondition } from '@/types/photo';
+import { ReportData } from '@/utils/pdf/types';
 
 interface BuildValuationReportInput {
   identifierType: 'vin' | 'plate' | 'manual' | 'photo';
@@ -77,7 +79,9 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
           year: plateLookup.year,
           mileage: input.mileage || plateLookup.mileage || 0,
           condition: input.condition || 'Good',
-          zip: input.zipCode
+          zip: input.zipCode,
+          transmission: plateLookup.transmission,
+          fuelType: plateLookup.fuelType
         };
         break;
 
@@ -191,7 +195,11 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
       zipCode: input.zipCode || '90210',
       estimatedValue: valuationResult.estimatedValue,
       confidenceScore: valuationResult.confidenceScore,
-      adjustments: valuationResult.adjustments,
+      adjustments: valuationResult.adjustments.map((adj: AdjustmentBreakdown) => ({
+        factor: adj.name,
+        impact: adj.value,
+        description: adj.description || ""
+      })),
       priceRange: valuationResult.priceRange,
       isPremium: isPremiumUser,
       photoScore,
@@ -205,7 +213,31 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     // 7. Generate and Download PDF (if premium)
     if (isPremiumUser) {
       try {
-        await downloadPdf(result);
+        // Convert to ReportData format
+        const reportData: ReportData = {
+          make: result.make,
+          model: result.model,
+          year: result.year,
+          mileage: result.mileage,
+          condition: result.condition,
+          zipCode: result.zipCode,
+          estimatedValue: result.estimatedValue,
+          confidenceScore: result.confidenceScore || 80,
+          features: result.features || [],
+          valuationId: result.id,
+          adjustments: result.adjustments?.map(adj => ({
+            name: adj.factor,
+            value: adj.impact,
+            percentAdjustment: (adj.impact / result.estimatedValue) * 100,
+            description: adj.description
+          })) || [],
+          aiCondition: result.aiCondition,
+          bestPhotoUrl: result.bestPhotoUrl || undefined,
+          explanation: result.explanation,
+          vin: result.vin
+        };
+        
+        await downloadPdf(reportData);
       } catch (pdfError: any) {
         console.error('PDF generation failed:', pdfError);
       }

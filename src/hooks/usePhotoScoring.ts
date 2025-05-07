@@ -28,76 +28,73 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       uploading: false
     }));
     
-    setPhotos(prev => [...prev, ...newPhotos]);
+    setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
   }, []);
 
-  const removePhoto = useCallback((id: string) => {
-    setPhotos(prev => prev.filter(photo => photo.id !== id));
-  }, []);
-
-  const uploadAndAnalyzePhotos = useCallback(async () => {
-    if (photos.length === 0) {
-      setError('No photos to upload');
-      return;
-    }
-
+  const handleUpload = useCallback(async () => {
+    if (photos.length === 0) return;
+    
+    setIsUploading(true);
+    setError('');
+    
     try {
-      setIsUploading(true);
-      setError('');
+      const photosToUpload = photos.filter(photo => !photo.uploaded && photo.file);
       
-      // Upload photos
-      const uploadedPhotos = await uploadPhotos(photos, valuationId);
-      setPhotos(uploadedPhotos);
+      if (photosToUpload.length === 0) {
+        setIsUploading(false);
+        return;
+      }
       
-      // Get URLs of uploaded photos
+      // Upload photos and get URLs
+      const uploadedPhotos = await uploadPhotos(photosToUpload, valuationId);
+      
+      // Update photos state with uploaded status
+      setPhotos(prevPhotos => 
+        prevPhotos.map(photo => {
+          const uploaded = uploadedPhotos.find(up => up.id === photo.id);
+          if (uploaded) {
+            return { ...photo, ...uploaded };
+          }
+          return photo;
+        })
+      );
+      
+      // Get photo URLs for analysis
       const photoUrls = uploadedPhotos
-        .filter(p => p.uploaded && p.url)
-        .map(p => p.url);
+        .filter(photo => photo.uploaded && photo.url)
+        .map(photo => photo.url);
       
       if (photoUrls.length === 0) {
         throw new Error('No photos were successfully uploaded');
       }
       
       // Analyze photos
-      const analysisResult = await analyzePhotos(photoUrls, valuationId);
+      const result = await analyzePhotos(photoUrls, valuationId);
       
-      // Update state with results
-      setPhotoScores(analysisResult.individualScores);
-      setAICondition(analysisResult.aiCondition || null);
+      // Update states with results
+      setPhotoScores(result.individualScores);
+      setAICondition(result.aiCondition || null);
       
-      return analysisResult;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error during photo upload/analysis';
-      setError(errorMessage);
-      throw err;
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload or analyze photos');
+      console.error('Photo upload/analysis error:', err);
     } finally {
       setIsUploading(false);
     }
   }, [photos, valuationId]);
 
-  const createPhotoScores = useCallback(() => {
-    return photoScores;
-  }, [photoScores]);
-
-  const addExplanation = useCallback((photoId: string, explanation: string) => {
-    setPhotos(prev => 
-      prev.map(photo => 
-        photo.id === photoId 
-          ? { ...photo, explanation } 
-          : photo
-      )
-    );
+  const removePhoto = useCallback((id: string) => {
+    setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== id));
   }, []);
 
   return {
     photos,
+    photoScores,
+    aiCondition,
     isUploading,
     error,
     handleFileSelect,
-    uploadPhotos: uploadAndAnalyzePhotos,
-    removePhoto,
-    addExplanation,
-    createPhotoScores,
-    aiCondition
+    handleUpload,
+    removePhoto
   };
 }

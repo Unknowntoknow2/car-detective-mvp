@@ -22,10 +22,8 @@ export interface ReportData {
   valuationId?: string;
   plate?: string;
   state?: string;
-  // Add missing properties that are being used
   isPremium?: boolean;
   narrative?: string;
-  // Fields being used in tests/converters
   color?: string;
   bodyStyle?: string;
   bodyType?: string;
@@ -41,7 +39,6 @@ export interface ReportOptions {
   includeTimestamp: boolean;
   includePhotoAssessment: boolean;
   isPremium?: boolean;
-  // Add missing properties used in pdfGeneratorService
   format?: string;
   printBackground?: boolean;
   landscape?: boolean;
@@ -53,13 +50,16 @@ export interface ReportOptions {
 
 export interface SectionParams {
   doc: any;
+  page?: any;
   pageWidth: number;
   pageHeight: number;
   margin: number;
   fontSize: number;
   lineHeight: number;
-  // Add missing properties used in section files
-  page?: any;
   contentWidth?: number;
-  // Add any other properties that might be used
+  width?: number;
+  height?: number;
+  regularFont?: any;
+  boldFont?: any;
+  italicFont?: any;
 }

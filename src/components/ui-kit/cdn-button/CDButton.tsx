@@ -7,7 +7,7 @@ export type CDButtonVariant =
   | "outline" 
   | "destructive" 
   | "primary"
-  | "danger"; // Add "danger" variant
+  | "danger"; 
 
 export interface CDButtonProps {
   variant?: CDButtonVariant;
