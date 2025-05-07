@@ -31,7 +31,8 @@ describe('ValuationResult component', () => {
     mileage: 50000,
     condition: 'Good',
     location: '90210',
-    valuation: 15000
+    valuation: 15000,
+    valuationId: 'test-valuation-id' // Add the required valuationId prop
   };
 
   beforeEach(() => {

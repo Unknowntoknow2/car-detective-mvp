@@ -9,9 +9,11 @@ import { PremiumBadge } from '@/components/ui/premium-badge';
 import { ShieldCheck } from 'lucide-react';
 
 export function DealerValuationsList() {
+  const dealerId = ''; // Replace with actual dealer ID retrieval logic if needed
+  
   const {
     valuations,
-    isLoading,
+    loading,
     error,
     totalCount,
     currentPage,
@@ -20,7 +22,7 @@ export function DealerValuationsList() {
     handlePageChange,
     handleConditionFilterChange,
     handleDownloadReport
-  } = useDealerValuations();
+  } = useDealerValuations(dealerId);
 
   // Calculate how many valuations have high AI confidence
   const highConfidenceCount = valuations.filter(v => 
@@ -61,7 +63,7 @@ export function DealerValuationsList() {
               <CardTitle>Recent Valuations</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {loading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 3 }).map((_, i) => (
                     <Skeleton key={i} className="h-24 w-full" />
@@ -69,7 +71,7 @@ export function DealerValuationsList() {
                 </div>
               ) : error ? (
                 <div className="text-center py-6 text-red-500">
-                  {error}
+                  {error.message}
                 </div>
               ) : valuations.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
@@ -82,14 +84,14 @@ export function DealerValuationsList() {
                       key={valuation.id}
                       valuation={valuation}
                       aiCondition={valuation.aiCondition}
-                      onDownload={handleDownloadReport}
+                      onDownload={() => handleDownloadReport(valuation.id)}
                     />
                   ))}
                 </div>
               )}
               
               {/* Pagination */}
-              {!isLoading && totalCount > pageSize && (
+              {!loading && totalCount > pageSize && (
                 <div className="flex justify-center mt-6 gap-2">
                   <Button
                     variant="outline"

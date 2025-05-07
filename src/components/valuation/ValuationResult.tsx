@@ -12,17 +12,24 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 import { formatCurrency } from '@/utils/formatters';
 import { AICondition } from '@/types/photo';
 import PhotoView from './result/PhotoView';
+import { ValuationResultProps } from '@/types/valuation-result';
 
-interface ValuationResultProps {
-  valuationId: string;
-}
-
-export function ValuationResult({ valuationId }: ValuationResultProps) {
+export function ValuationResult({ 
+  valuationId,
+  make,
+  model,
+  year,
+  mileage,
+  condition,
+  location,
+  valuation,
+  isManualValuation
+}: ValuationResultProps) {
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   
   // Fetch valuation data from the database
-  const { data: valuation, isLoading, error } = useQuery({
+  const { data: valuationData, isLoading, error } = useQuery({
     queryKey: ['valuation', valuationId],
     queryFn: async () => {
       const response = await fetch(`/api/valuations/${valuationId}`);
@@ -30,11 +37,24 @@ export function ValuationResult({ valuationId }: ValuationResultProps) {
         throw new Error('Failed to fetch valuation data');
       }
       return response.json();
-    }
+    },
+    // Skip the query if we're using manual valuation data
+    enabled: !!valuationId && !isManualValuation
   });
 
+  // Use either fetched data or manual props
+  const vehicle = valuationData || {
+    make,
+    model,
+    year,
+    mileage,
+    condition,
+    zipCode: location,
+    valuation
+  };
+
   const downloadPdf = async () => {
-    if (!valuation) return;
+    if (!vehicle) return;
     
     setIsDownloading(true);
     toast({
@@ -45,36 +65,36 @@ export function ValuationResult({ valuationId }: ValuationResultProps) {
     try {
       // Extract vehicle info from valuation data
       const vehicleInfo: DecodedVehicleInfo = {
-        vin: valuation.vin || '',
-        make: valuation.make || '',
-        model: valuation.model || '',
-        year: valuation.year || 0,
-        mileage: valuation.mileage || 0,
-        condition: valuation.condition || 'Good',
-        zipCode: valuation.zip_code || '',
-        bodyType: valuation.body_type || '',
-        color: valuation.color || '',
-        fuelType: valuation.data?.fuel_type || '',
-        transmission: valuation.data?.transmission || '',
+        vin: vehicle.vin || '',
+        make: vehicle.make || '',
+        model: vehicle.model || '',
+        year: vehicle.year || 0,
+        mileage: vehicle.mileage || 0,
+        condition: vehicle.condition || 'Good',
+        zipCode: vehicle.zip_code || vehicle.zipCode || '',
+        bodyType: vehicle.body_type || '',
+        color: vehicle.color || '',
+        fuelType: vehicle.data?.fuel_type || '',
+        transmission: vehicle.data?.transmission || '',
       };
       
       // Extract AI condition data if available
-      const aiCondition: AICondition | null = valuation.data?.ai_condition ? {
-        condition: valuation.data.ai_condition.condition || null,
-        confidenceScore: valuation.data.ai_condition.confidenceScore || 0,
-        issuesDetected: valuation.data.ai_condition.issuesDetected || [],
-        aiSummary: valuation.data.ai_condition.aiSummary || ''
+      const aiCondition: AICondition | null = vehicle.data?.ai_condition ? {
+        condition: vehicle.data.ai_condition.condition || null,
+        confidenceScore: vehicle.data.ai_condition.confidenceScore || 0,
+        issuesDetected: vehicle.data.ai_condition.issuesDetected || [],
+        aiSummary: vehicle.data.ai_condition.aiSummary || ''
       } : null;
 
       // Generate PDF with best photo and explanation
       const pdfBytes = await generateValuationPdf({
         vehicle: vehicleInfo,
-        valuation: valuation.estimated_value,
-        explanation: valuation.explanation || 'Valuation based on market data analysis',
+        valuation: vehicle.estimated_value || vehicle.valuation || 0,
+        explanation: vehicle.explanation || vehicle.data?.explanation || 'Valuation based on market data analysis',
         valuationId: valuationId,
         aiCondition: aiCondition,
-        bestPhotoUrl: valuation.data?.best_photo_url || undefined,
-        photoExplanation: valuation.data?.photo_explanation || undefined
+        bestPhotoUrl: vehicle.data?.best_photo_url || undefined,
+        photoExplanation: vehicle.data?.photo_explanation || undefined
       });
       
       // Create download link
@@ -103,7 +123,7 @@ export function ValuationResult({ valuationId }: ValuationResultProps) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !isManualValuation) {
     return (
       <Card className="p-6">
         <Skeleton className="h-12 w-3/4 mb-4" />
@@ -114,7 +134,7 @@ export function ValuationResult({ valuationId }: ValuationResultProps) {
     );
   }
 
-  if (error || !valuation) {
+  if ((error || !vehicle) && !isManualValuation) {
     return (
       <Card className="p-6 text-center">
         <h3 className="text-xl font-bold text-red-500 mb-2">Error Loading Valuation</h3>
@@ -123,45 +143,57 @@ export function ValuationResult({ valuationId }: ValuationResultProps) {
     );
   }
 
+  // Create a fallback for the fetched data or manual props
+  const displayVehicle = valuationData || {
+    year: year || 0,
+    make: make || '',
+    model: model || '',
+    mileage: mileage || 0,
+    condition: condition || 'Good',
+    estimated_value: valuation || 0,
+    confidence_score: 85,
+    data: {}
+  };
+
   return (
     <Card className="p-6">
       <div className="flex flex-col md:flex-row justify-between mb-4">
         <div>
           <h2 className="text-2xl font-bold">
-            {valuation.year} {valuation.make} {valuation.model}
+            {displayVehicle.year} {displayVehicle.make} {displayVehicle.model}
           </h2>
           <div className="flex flex-wrap gap-2 mt-2">
-            <Badge variant="outline">{valuation.condition} Condition</Badge>
-            <Badge variant="outline">{valuation.mileage.toLocaleString()} miles</Badge>
-            {valuation.data?.fuel_type && (
-              <Badge variant="outline">{valuation.data.fuel_type}</Badge>
+            <Badge variant="outline">{displayVehicle.condition} Condition</Badge>
+            <Badge variant="outline">{(displayVehicle.mileage || 0).toLocaleString()} miles</Badge>
+            {displayVehicle.data?.fuel_type && (
+              <Badge variant="outline">{displayVehicle.data.fuel_type}</Badge>
             )}
-            {valuation.data?.transmission && (
-              <Badge variant="outline">{valuation.data.transmission}</Badge>
+            {displayVehicle.data?.transmission && (
+              <Badge variant="outline">{displayVehicle.data.transmission}</Badge>
             )}
           </div>
         </div>
         <div className="mt-4 md:mt-0">
           <h3 className="text-xl font-bold text-green-600">
-            {formatCurrency(valuation.estimated_value)}
+            {formatCurrency(displayVehicle.estimated_value || displayVehicle.valuation || 0)}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Confidence: {valuation.confidence_score || 85}%
+            Confidence: {displayVehicle.confidence_score || 85}%
           </p>
         </div>
       </div>
 
-      {valuation.data?.best_photo_url && (
+      {displayVehicle.data?.best_photo_url && (
         <PhotoView 
-          photoUrl={valuation.data.best_photo_url} 
-          explanation={valuation.data.photo_explanation}
-          condition={valuation.data.ai_condition}
+          photoUrl={displayVehicle.data.best_photo_url} 
+          explanation={displayVehicle.data.photo_explanation}
+          condition={displayVehicle.data.ai_condition}
         />
       )}
 
       <div className="mt-6">
         <h3 className="text-lg font-semibold mb-2">Why this price?</h3>
-        <p className="text-gray-700">{valuation.explanation}</p>
+        <p className="text-gray-700">{displayVehicle.explanation || displayVehicle.data?.explanation || 'Based on current market data and vehicle condition.'}</p>
       </div>
 
       <div className="mt-6">

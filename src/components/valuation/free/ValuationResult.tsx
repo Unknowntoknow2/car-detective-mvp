@@ -31,7 +31,6 @@ export function ValuationResult({ valuationData, valuationId }: ValuationResultP
     return (
       <ValuationResultComponent 
         valuationId={valuationId}
-        isManualValuation={true}
       />
     );
   }

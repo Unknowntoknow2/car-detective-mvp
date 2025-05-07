@@ -1,10 +1,9 @@
-
 import React from 'react';
+import PhotoView from './PhotoView';
 import { Share, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
-import { PhotoView } from './PhotoView';
 import { Badge } from '@/components/ui/badge';
 
 interface ValuationHeaderProps {
