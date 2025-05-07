@@ -1,4 +1,6 @@
 
+// src/utils/validation/enhanced-validation.ts
+
 import React from 'react';
 import { z } from 'zod';
 
@@ -62,7 +64,7 @@ export const EnhancedManualEntrySchema = z.object({
 /**
  * Informational component to explain VIN format
  */
-export const VinInfoMessage: React.FC = () => {
+export const EnhancedVinInfoMessage: React.FC = () => {
   return (
     <div className="text-sm text-gray-500">
       <p>A valid VIN:</p>
