@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-import { CarDetectiveValidator } from '@/utils/validation/CarDetectiveValidator';
-import { VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
+import { isValidVIN, VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
 
 interface VINLookupFormProps {
   onSubmit: (vin: string) => void;
@@ -27,7 +26,7 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
       return false;
     }
     
-    if (!CarDetectiveValidator.isValidVIN(value)) {
+    if (!isValidVIN(value)) {
       setValidationError('VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q');
       return false;
     }

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import { CarDetectiveValidator } from '@/utils/validation/CarDetectiveValidator';
+import { isValidVIN } from '@/utils/validation/vin-validation-helpers';
 
 interface UseVinInputProps {
   initialValue?: string;
@@ -32,7 +32,7 @@ export function useVinInput({
       return false;
     }
     
-    if (!CarDetectiveValidator.isValidVIN(vin)) {
+    if (!isValidVIN(vin)) {
       setValidationError('VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q');
       setIsValid(false);
       return false;
