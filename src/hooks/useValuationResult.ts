@@ -23,19 +23,19 @@ export function useValuationResult(valuationId: string) {
         ...data,
         isPremium,
         // Map to consistent camelCase format for frontend use
-        estimatedValue: data.estimatedValue || 0,
-        confidenceScore: data.confidenceScore || 75,
-        // Add these properties in a consistent format - support both formats
+        estimatedValue: data.estimatedValue || data.estimated_value || 0,
+        confidenceScore: data.confidenceScore || data.confidence_score || 75,
+        // Add these properties in a consistent format
+        bodyStyle: data.bodyStyle || data.body_style || null,
+        bodyType: data.bodyType || data.body_type || null,
+        fuelType: data.fuelType || data.fuel_type || null,
         color: data.color || null,
-        bodyStyle: data.body_style || data.bodyStyle || null,
-        bodyType: data.body_type || data.bodyType || null,
-        fuelType: data.fuel_type || data.fuelType || null,
         explanation: data.explanation || null,
         transmission: data.transmission || null,
-        // Also maintain the original properties in snake_case format for backward compatibility
-        body_style: data.body_style || data.bodyStyle || null,
-        body_type: data.body_type || data.bodyType || null,
-        fuel_type: data.fuel_type || data.fuelType || null
+        // These are accessed in PremiumValuationPage.tsx so we need to ensure they exist
+        body_style: data.bodyStyle || data.body_style || null,
+        body_type: data.bodyType || data.body_type || null,
+        fuel_type: data.fuelType || data.fuel_type || null
       };
     },
     enabled: !!valuationId,

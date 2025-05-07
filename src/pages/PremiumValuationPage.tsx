@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,9 +93,9 @@ export default function PremiumValuationPage() {
     condition: valuation.condition,
     confidence_score: valuation.confidenceScore,
     color: valuation.color,
-    body_style: valuation.bodyStyle || valuation.body_style,
-    body_type: valuation.bodyType || valuation.body_type,
-    fuel_type: valuation.fuelType || valuation.fuel_type,
+    body_style: valuation.bodyStyle,
+    body_type: valuation.bodyType,
+    fuel_type: valuation.fuelType,
     explanation: valuation.explanation,
     transmission: valuation.transmission
   };
