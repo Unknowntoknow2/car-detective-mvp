@@ -177,7 +177,7 @@ export async function buildValuationReport(valuationId: string): Promise<Uint8Ar
       true, // includeTimestamp
       1,    // pageNumber
       1,    // totalPages
-      reportData.isPremium // includeWatermark
+      reportData.isPremium // includeWatermark based on premium status
     );
     
     // 18. Generate and return PDF bytes

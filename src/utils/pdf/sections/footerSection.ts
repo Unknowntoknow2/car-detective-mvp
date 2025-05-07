@@ -103,7 +103,7 @@ export function drawFooterSection(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.08,
-      rotate: degrees(-30)
+      rotate: { type: 'degrees' as const, angle: -30 }
     });
   }
 }
