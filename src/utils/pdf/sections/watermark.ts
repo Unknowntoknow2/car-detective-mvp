@@ -2,6 +2,7 @@
 // ✅ TS check passed
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
+import { RotationTypes } from 'pdf-lib';
 
 /**
  * Applies a watermark to the PDF page
@@ -27,7 +28,10 @@ export function applyWatermark(
     font: boldFont,
     color: rgb(0.9, 0.9, 0.9),
     opacity: 0.04,
-    rotate: degrees(-30)
+    rotate: {
+      type: RotationTypes.Degrees,
+      angle: -30
+    }
   });
   
   // Add additional watermarks if the page is large enough
@@ -40,7 +44,10 @@ export function applyWatermark(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.04,
-      rotate: degrees(-30)
+      rotate: {
+        type: RotationTypes.Degrees,
+        angle: -30
+      }
     });
     
     // Bottom watermark
@@ -51,7 +58,10 @@ export function applyWatermark(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.04,
-      rotate: degrees(-30)
+      rotate: {
+        type: RotationTypes.Degrees,
+        angle: -30
+      }
     });
   }
 }
@@ -63,7 +73,7 @@ export function applyWatermark(
  */
 function degrees(angle: number) {
   return { 
-    type: 'degrees' as const, 
+    type: RotationTypes.Degrees, 
     angle 
   };
 }
@@ -106,7 +116,10 @@ export function applyWatermarkPattern(
         font: boldFont,
         color: rgb(0.9, 0.9, 0.9),
         opacity: 0.03, // Very subtle
-        rotate: degrees(-30)
+        rotate: {
+          type: RotationTypes.Degrees,
+          angle: -30
+        }
       });
     }
   }

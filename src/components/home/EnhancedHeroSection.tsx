@@ -1,7 +1,9 @@
 
-import { Button } from "@/components/ui/button";
-import { Shield, ChartBar, Car, Award, TrendingUp } from "lucide-react";
+// ✅ TS check passed
+import { Shield, ChartBar, TrendingUp } from "lucide-react";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ButtonEnhanced } from "@/components/ui/button-enhanced";
+import { BadgeEnhanced } from "@/components/ui/badge-enhanced";
 
 interface EnhancedHeroSectionProps {
   onFreeValuationClick: () => void;
@@ -18,29 +20,33 @@ export function EnhancedHeroSection({ onFreeValuationClick }: EnhancedHeroSectio
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
               Ready to Discover Your Car's <span className="text-primary">True Worth?</span>
             </h1>
-            <div className="bg-yellow-100 text-yellow-800 inline-block px-3 py-1 rounded-md font-medium text-sm">
+            
+            <BadgeEnhanced variant="warning" size="lg" className="inline-block">
               No more guesswork
-            </div>
+            </BadgeEnhanced>
+            
             <p className="text-lg md:text-xl text-gray-700 max-w-xl">
               Get the accurate valuation you need today! Our AI-powered platform delivers 
               precise, market-driven price estimates instantly.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 pt-2 md:pt-4">
-              <Button 
+              <ButtonEnhanced 
                 size={isMobile ? "default" : "lg"} 
-                className="bg-primary hover:bg-primary-hover text-white mobile-full-width"
+                variant="default"
+                className="mobile-full-width"
                 onClick={onFreeValuationClick}
               >
                 Start Free Valuation
-              </Button>
-              <Button 
+              </ButtonEnhanced>
+              
+              <ButtonEnhanced 
                 variant="outline" 
                 size={isMobile ? "default" : "lg"}
                 className="border-primary/30 text-primary hover:bg-primary-light/20 mobile-full-width"
               >
                 Premium Valuation ($29.99)
-              </Button>
+              </ButtonEnhanced>
             </div>
             
             <div className="pt-4 md:pt-6 flex items-center text-sm text-primary-accent">
@@ -50,7 +56,7 @@ export function EnhancedHeroSection({ onFreeValuationClick }: EnhancedHeroSectio
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:gap-6">
-            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100 transform transition-all hover:shadow-lg">
+            <div className="card-interactive p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className="bg-blue-100 p-2.5 rounded-full">
                   <Shield className="h-5 w-5 text-primary" />
@@ -62,10 +68,10 @@ export function EnhancedHeroSection({ onFreeValuationClick }: EnhancedHeroSectio
               </p>
             </div>
             
-            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100 transform transition-all hover:shadow-lg">
+            <div className="card-interactive p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className="bg-green-100 p-2.5 rounded-full">
-                  <ChartBar className="h-5 w-5 text-green-600" />
+                  <ChartBar className="h-5 w-5 text-accent" />
                 </div>
                 <h3 className="font-medium text-lg">Market Analysis</h3>
               </div>
@@ -74,7 +80,7 @@ export function EnhancedHeroSection({ onFreeValuationClick }: EnhancedHeroSectio
               </p>
             </div>
             
-            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-100 transform transition-all hover:shadow-lg">
+            <div className="card-interactive p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className="bg-purple-100 p-2.5 rounded-full">
                   <TrendingUp className="h-5 w-5 text-purple-600" />

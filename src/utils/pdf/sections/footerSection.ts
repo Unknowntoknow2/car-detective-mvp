@@ -2,6 +2,7 @@
 // ✅ TS check passed
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
+import { RotationTypes } from 'pdf-lib';
 
 /**
  * Helper function to create a proper rotation object
@@ -10,7 +11,7 @@ import { SectionParams } from '../types';
  */
 function degrees(angle: number) {
   return { 
-    type: 'degrees' as const, 
+    type: RotationTypes.Degrees, 
     angle 
   };
 }
@@ -96,11 +97,15 @@ export function drawFooterSection(
  * @param params Section parameters including page and fonts
  * @param companyName Company name to include in disclaimer
  * @param color Color for the footer text
+ * @param currentPage Current page number (default: 1)
+ * @param totalPages Total number of pages (default: 1)
  */
 export function drawWatermarkedFooter(
   params: SectionParams,
   companyName: string,
-  color: { r: number; g: number; b: number }
+  color: { r: number; g: number; b: number },
+  currentPage: number = 1,
+  totalPages: number = 1
 ): void {
   const { page, width, height, margin, regularFont } = params;
   
@@ -115,6 +120,20 @@ export function drawWatermarkedFooter(
     font: regularFont,
     color: rgb(color.r, color.g, color.b),
     opacity: 0.6,
-    rotate: degrees(10),
+    rotate: {
+      type: RotationTypes.Degrees,
+      angle: 10
+    }
+  });
+  
+  // Add page numbers
+  const pageText = `Page ${currentPage} of ${totalPages}`;
+  page.drawText(pageText, {
+    x: width - margin - 100,
+    y: margin,
+    size: 8,
+    font: regularFont,
+    color: rgb(color.r, color.g, color.b),
+    opacity: 0.8
   });
 }
