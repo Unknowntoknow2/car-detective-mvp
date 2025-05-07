@@ -1,4 +1,9 @@
 
-import '@testing-library/jest-dom';
+import { expect, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 
-// Add any global setup needed for tests here
+// Automatically run cleanup after each test
+afterEach(() => {
+  cleanup();
+});
