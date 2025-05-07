@@ -1,84 +1,94 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
+import { AICondition } from '@/types/photo';
+import { Camera, AlertCircle, Info } from 'lucide-react';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { InfoIcon, Camera } from 'lucide-react';
+} from "@/components/ui/tooltip";
 
 interface PhotoViewProps {
   photoUrl: string;
-  score?: number | null;
-  explanation?: string | null;
+  explanation?: string;
+  condition?: AICondition;
 }
 
-export function PhotoView({ photoUrl, score, explanation }: PhotoViewProps) {
-  // Format score as percentage
-  const formatScore = (score?: number | null): string => {
-    if (score === undefined || score === null) return 'N/A';
-    return `${Math.round(score * 100)}/100`;
-  };
-
-  // Get score color class
-  const getScoreColorClass = (score?: number | null): string => {
-    if (score === undefined || score === null) return 'bg-gray-500';
-    if (score >= 0.85) return 'bg-green-500';
-    if (score >= 0.7) return 'bg-blue-500';
-    if (score >= 0.5) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
+export default function PhotoView({ photoUrl, explanation, condition }: PhotoViewProps) {
+  if (!photoUrl) return null;
+  
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Camera className="h-4 w-4" />
-          AI Photo Assessment
-        </CardTitle>
-      </CardHeader>
+    <div className="mt-4">
+      <h3 className="text-lg font-semibold mb-2 flex items-center">
+        <Camera className="h-4 w-4 mr-2" />
+        Vehicle Photo Assessment
+      </h3>
       
-      <CardContent className="p-0">
+      <Card className="overflow-hidden">
         <div className="relative">
-          {/* Photo */}
-          <div className="aspect-video">
-            <img 
-              src={photoUrl} 
-              alt="Vehicle photo" 
-              className="w-full h-full object-cover" 
-            />
-          </div>
+          <img 
+            src={photoUrl} 
+            alt="Vehicle" 
+            className="w-full h-auto object-cover max-h-80"
+          />
           
-          {/* Score badge */}
-          <div className="absolute top-2 right-2">
-            <Badge className={`${getScoreColorClass(score)} font-medium`}>
-              Score: {formatScore(score)}
-            </Badge>
-          </div>
+          {condition && (
+            <div className="absolute top-2 right-2">
+              <Badge 
+                className={`${getConditionColor(condition.condition)}`}
+              >
+                {condition.condition || 'Good'} Condition
+              </Badge>
+            </div>
+          )}
         </div>
         
-        {/* Explanation */}
-        {explanation ? (
-          <div className="p-3 bg-muted/30 border-t">
+        {explanation && (
+          <div className="p-3 bg-slate-50 border-t">
             <div className="flex items-start gap-2">
-              <InfoIcon className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <Info className="h-4 w-4 mt-1 text-blue-500 flex-shrink-0" />
               <div>
-                <p className="text-xs font-medium text-primary">AI Observation</p>
-                <p className="text-sm mt-1">{explanation}</p>
+                <p className="text-sm font-medium">AI Observation:</p>
+                <p className="text-sm text-gray-600">{explanation}</p>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="p-3 bg-muted/30 border-t">
-            <p className="text-sm text-muted-foreground text-center">
-              No AI assessment available for this photo
-            </p>
+        )}
+        
+        {condition?.issuesDetected && condition.issuesDetected.length > 0 && (
+          <div className="p-3 border-t">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-0.5 text-amber-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Issues Detected:</p>
+                <ul className="list-disc list-inside text-sm text-gray-600">
+                  {condition.issuesDetected.map((issue, index) => (
+                    <li key={index}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
+}
+
+// Helper function to get color based on condition
+function getConditionColor(condition: string | null): string {
+  switch(condition?.toLowerCase()) {
+    case 'excellent':
+      return 'bg-green-500 hover:bg-green-600';
+    case 'good':
+      return 'bg-blue-500 hover:bg-blue-600';
+    case 'fair':
+      return 'bg-amber-500 hover:bg-amber-600';
+    case 'poor':
+      return 'bg-red-500 hover:bg-red-600';
+    default:
+      return 'bg-slate-500 hover:bg-slate-600';
+  }
 }

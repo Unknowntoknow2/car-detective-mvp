@@ -3,12 +3,7 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 import { generatePdf } from './pdf/pdfGenerator';
 import { ReportData } from './pdf/types';
 
-/**
- * Generates a PDF valuation report for a vehicle
- * @param params Object containing vehicle information, valuation, explanation and comparable listings
- * @returns Promise resolving to PDF document as Uint8Array
- */
-export async function generateValuationPdf(params: {
+interface PdfDownloadParams {
   vehicle: DecodedVehicleInfo;
   valuation: number;
   explanation: string;
@@ -23,7 +18,14 @@ export async function generateValuationPdf(params: {
   } | null;
   bestPhotoUrl?: string;
   photoExplanation?: string;
-}): Promise<Uint8Array> {
+}
+
+/**
+ * Generates a PDF valuation report for a vehicle
+ * @param params Object containing vehicle information, valuation, explanation and comparable listings
+ * @returns Promise resolving to PDF document as Uint8Array
+ */
+export async function generateValuationPdf(params: PdfDownloadParams): Promise<Uint8Array> {
   // Convert the params to the expected ReportData format
   const reportData: ReportData = {
     vin: params.vehicle.vin || 'Unknown',
