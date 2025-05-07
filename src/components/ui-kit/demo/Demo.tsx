@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   HeadingXL,
@@ -175,7 +174,7 @@ const Demo = () => {
             <HeadingS>Button States</HeadingS>
             <div className="flex flex-wrap gap-4">
               <CDButton variant="primary" isLoading>Loading</CDButton>
-              <CDButton variant="primary" isDisabled>Disabled</CDButton>
+              <CDButton variant="primary" disabled>Disabled</CDButton>
               <CDButton variant="primary" icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
@@ -528,3 +527,17 @@ const Demo = () => {
 };
 
 export default Demo;
+
+const ButtonDemo = () => {
+  return (
+    <div className="flex flex-wrap gap-4">
+      <CDButton>Default</CDButton>
+      <CDButton variant="default" disabled>
+        Disabled
+      </CDButton>
+      <CDButton variant="default" disabled>
+        Disabled
+      </CDButton>
+    </div>
+  );
+};

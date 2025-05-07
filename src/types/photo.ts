@@ -15,6 +15,10 @@ export interface Photo {
   uploading?: boolean;
   error?: string;
   explanation?: string;
+  name?: string;
+  size?: number;
+  type?: string;
+  file?: File;
 }
 
 export interface PhotoScore {

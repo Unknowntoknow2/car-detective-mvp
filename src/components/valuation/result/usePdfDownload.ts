@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { toast } from 'sonner';
 import { ReportData, ReportOptions } from '@/utils/pdf/types';
-import { ValuationResult } from '@/types/valuation';
+import { ValuationResult, AdjustmentBreakdown } from '@/types/valuation';
 
 export function usePdfDownload() {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -36,16 +36,24 @@ export function usePdfDownload() {
           description: adj.description || '',
           percentAdjustment: Math.round((adj.impact / valuation.estimatedValue) * 100 * 100) / 100
         })) || [],
-        aiCondition: valuation.aiCondition || undefined,
+        aiCondition: valuation.aiCondition ? {
+          condition: valuation.aiCondition.condition as "Excellent" | "Good" | "Fair" | "Poor",
+          confidenceScore: valuation.aiCondition.confidenceScore,
+          issuesDetected: valuation.aiCondition.issuesDetected || []
+        } : undefined,
         bestPhotoUrl: valuation.bestPhotoUrl,
         explanation: valuation.explanation,
-        features: [],
+        features: valuation.features || [],
         valuationId: valuation.id
       };
       
       const pdf = await generateValuationPdf(reportData, {
-        isPremium: valuation.isPremium,
-        ...options
+        includeBranding: true,
+        includeAIScore: !!valuation.aiCondition,
+        includeFooter: true,
+        includeTimestamp: true,
+        includePhotoAssessment: !!valuation.bestPhotoUrl,
+        isPremium: valuation.isPremium
       });
       
       // Create a blob from the PDF Uint8Array

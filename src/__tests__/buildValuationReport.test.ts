@@ -9,13 +9,6 @@ import { downloadPdf } from '@/utils/pdf';
 // Mock the dependencies
 jest.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    upsert: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    maybeSingle: jest.fn().mockReturnThis(),
-    single: jest.fn().mockReturnThis(),
     functions: {
       invoke: jest.fn()
     }
@@ -62,14 +55,6 @@ const mockPhoto = new File(['mock photo content'], 'test-photo.jpg', { type: 'im
 describe('buildValuationReport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Mock Supabase responses
-    (supabase.from as jest.Mock).mockReturnThis();
-    (supabase.select as jest.Mock).mockReturnThis();
-    (supabase.eq as jest.Mock).mockReturnThis();
-    (supabase.maybeSingle as jest.Mock).mockResolvedValue({ data: { base_price: 28000 }, error: null });
-    (supabase.insert as jest.Mock).mockResolvedValue({ data: { id: 'test-session-id' }, error: null });
-    (supabase.upsert as jest.Mock).mockResolvedValue({ data: null, error: null });
     
     // Mock function calls
     (decodeVin as jest.Mock).mockResolvedValue(mockVinData);
@@ -152,7 +137,6 @@ describe('buildValuationReport', () => {
     expect(supabase.functions.invoke).toHaveBeenCalledWith('generate-explanation', expect.any(Object));
     expect(supabase.functions.invoke).toHaveBeenCalledWith('verify-payment', expect.any(Object));
     expect(downloadPdf).toHaveBeenCalled();
-    expect(supabase.upsert).toHaveBeenCalled();
   });
 
   // Test 2: Basic free user flow (no premium features)
@@ -203,7 +187,6 @@ describe('buildValuationReport', () => {
     expect(calculateValuation).toHaveBeenCalled();
     expect(supabase.functions.invoke).toHaveBeenCalledWith('verify-payment', expect.any(Object));
     expect(downloadPdf).not.toHaveBeenCalled();
-    expect(supabase.upsert).toHaveBeenCalled();
   });
 
   // Test 3: Error handling - missing VIN

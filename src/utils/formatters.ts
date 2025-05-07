@@ -1,68 +1,62 @@
 
 /**
- * Format currency values
+ * Format currency values with appropriate locale and currency symbol
+ * @param value The numeric value to format as currency
+ * @param currency The currency code (default: USD)
+ * @returns Formatted currency string
  */
-export function formatCurrency(amount: number): string {
+export function formatCurrency(value: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(amount);
+  }).format(value);
 }
 
 /**
- * Formats a relative time (e.g., "2 hours ago", "5 days ago")
+ * Format a date string into a more human-readable format
+ * @param dateString The date string to format
+ * @param options Additional formatting options
+ * @returns Formatted date string
  */
-export function formatRelativeTime(date: Date | string | number): string {
-  const now = new Date();
-  const past = new Date(date);
-  const diffMs = now.getTime() - past.getTime();
+export function formatDate(dateString: string | Date, options: Intl.DateTimeFormatOptions = {}): string {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
   
-  // Convert to seconds
-  const diffSec = Math.floor(diffMs / 1000);
-  
-  // Less than a minute
-  if (diffSec < 60) {
-    return 'just now';
-  }
-  
-  // Minutes
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) {
-    return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
-  }
-  
-  // Hours
-  const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) {
-    return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
-  }
-  
-  // Days
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) {
-    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
-  }
-  
-  // Months
-  const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths < 12) {
-    return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`;
-  }
-  
-  // Years
-  const diffYears = Math.floor(diffMonths / 12);
-  return `${diffYears} ${diffYears === 1 ? 'year' : 'years'} ago`;
-}
-
-/**
- * Format a date to a readable string
- */
-export function formatDate(date: Date | string | number): string {
-  return new Date(date).toLocaleDateString('en-US', {
+  const defaultOptions: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+    month: 'long',
+    day: 'numeric',
+    ...options
+  };
+  
+  return new Intl.DateTimeFormat('en-US', defaultOptions).format(date);
+}
+
+/**
+ * Format large numbers with appropriate separators
+ * @param value The numeric value to format
+ * @returns Formatted number string
+ */
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-US').format(value);
+}
+
+/**
+ * Format mileage with appropriate separators and unit
+ * @param mileage The mileage value to format
+ * @returns Formatted mileage string
+ */
+export function formatMileage(mileage: number): string {
+  return `${new Intl.NumberFormat('en-US').format(mileage)} mi`;
+}
+
+/**
+ * Format a percentage value
+ * @param value The decimal value to format as percentage (e.g., 0.15 for 15%)
+ * @param decimals Number of decimal places
+ * @returns Formatted percentage string
+ */
+export function formatPercentage(value: number, decimals = 0): string {
+  return `${(value * 100).toFixed(decimals)}%`;
 }

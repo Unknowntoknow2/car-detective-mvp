@@ -30,4 +30,14 @@ export interface ReportOptions {
   includeFooter: boolean;
   includeTimestamp: boolean;
   includePhotoAssessment: boolean;
+  isPremium?: boolean;
+}
+
+export interface SectionParams {
+  doc: any;
+  pageWidth: number;
+  pageHeight: number;
+  margin: number;
+  fontSize: number;
+  lineHeight: number;
 }

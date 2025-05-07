@@ -1,80 +1,77 @@
 
 import React from 'react';
+import { X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Photo } from '@/types/photo';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 interface PhotoUploadListProps {
   photos: Photo[];
-  onRemove: (photoId: string) => void;
+  onRemove: (id: string) => void;
 }
 
-export function PhotoUploadList({ photos, onRemove }: PhotoUploadListProps) {
+export const PhotoUploadList: React.FC<PhotoUploadListProps> = ({ photos, onRemove }) => {
   if (photos.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">Uploaded Photos ({photos.length})</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <h3 className="text-sm font-medium">Selected Photos</h3>
+      <ul className="space-y-2">
         {photos.map((photo) => (
-          <Card key={photo.id} className="overflow-hidden">
-            <div className="relative aspect-[4/3] bg-slate-100">
-              {photo.url ? (
-                <img
-                  src={photo.url}
-                  alt="Vehicle"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  {photo.uploading ? (
-                    <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
-                  ) : (
-                    <div className="w-full h-full bg-slate-200" />
-                  )}
-                </div>
-              )}
-              <Button
-                size="icon"
-                variant="destructive"
-                className="absolute top-1 right-1 h-7 w-7 opacity-90"
-                onClick={() => onRemove(photo.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              {photo.error && (
-                <div className="absolute bottom-0 inset-x-0 bg-red-500 text-white text-xs p-1">
-                  <div className="flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    <span className="truncate">{photo.error}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between">
-                <div className="text-xs truncate">
-                  {photo.uploading && (
-                    <span className="text-slate-500">Uploading...</span>
-                  )}
-                  {photo.uploaded && (
-                    <span className="text-green-600 flex items-center">
-                      <Check className="h-3 w-3 mr-1" />
-                      Uploaded
-                    </span>
-                  )}
-                  {photo.error && (
-                    <span className="text-red-500">Failed</span>
-                  )}
-                </div>
+          <li key={photo.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 bg-slate-200 rounded overflow-hidden flex items-center justify-center">
+                {photo.url && (
+                  <img 
+                    src={photo.url} 
+                    alt={`Vehicle photo ${photo.id}`} 
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{photo.name}</p>
+                <p className="text-xs text-slate-500 truncate">
+                  {photo.size ? `${Math.round(photo.size / 1024)} KB` : ''}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              {photo.uploading && (
+                <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
+              )}
+              
+              {photo.uploaded && (
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              )}
+              
+              {photo.error && (
+                <div className="flex items-center">
+                  <AlertCircle className="h-4 w-4 text-red-500 mr-1" />
+                  <span className="text-xs text-red-500 max-w-[150px] truncate">
+                    {photo.error}
+                  </span>
+                </div>
+              )}
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => onRemove(photo.id)}
+                disabled={photo.uploading}
+                className="h-6 w-6"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Remove</span>
+              </Button>
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
-}
+};
+
+export default PhotoUploadList;

@@ -1,14 +1,16 @@
 
-import { FormData } from '@/types/premium-valuation';
+import { ReportData, ReportOptions } from './types';
 
 /**
  * Generates a PDF for the valuation report
  * @param data The report data
- * @param isPremium Whether this is a premium report (requires premium_unlocked)
+ * @param options Options for PDF generation
  * @returns Promise resolving to PDF document as Uint8Array
  */
-export async function generateValuationPdf(data: FormData, isPremium: boolean = false): Promise<Uint8Array> {
+export async function generateValuationPdf(data: ReportData, options: Partial<ReportOptions> = {}): Promise<Uint8Array> {
   // For premium reports, we would include additional data and formatting
+  const isPremium = options.isPremium || false;
+  
   if (isPremium) {
     console.log('Generating premium PDF with enhanced data for:', data);
     // In a real implementation, we would use pdf-lib or a similar library
