@@ -63,6 +63,7 @@ export async function generatePdf(
   
   // Create a params object that we'll pass to the section drawing functions
   const sectionParams = {
+    page,
     width,
     height,
     margin,
@@ -115,9 +116,9 @@ export async function generatePdf(
       }
     };
     
-    // Temporarily cast the return value to number since the function should 
-    // return a number but TypeScript thinks it returns a Promise<number>
-    yPosition = drawAIConditionSection(conditionParams, aiSectionParams) as number;
+    // Use as number since the function returns a number, but TypeScript thinks it might be a Promise
+    const newYPosition = drawAIConditionSection(conditionParams, aiSectionParams);
+    yPosition = typeof newYPosition === 'number' ? newYPosition : await newYPosition;
   }
   
   // Add explanation section

@@ -125,8 +125,9 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
       }
     };
     
-    // Temporarily cast the return value to number to fix TypeScript error
-    currentY = await drawAIConditionSection(conditionParams, sectionParams) as number;
+    // Handle the case where the function might return a promise or a number
+    const newY = drawAIConditionSection(conditionParams, sectionParams);
+    currentY = typeof newY === 'number' ? newY : await newY;
     currentY = currentY - 15;
   }
   

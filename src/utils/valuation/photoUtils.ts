@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -52,8 +51,8 @@ export async function getValuationPhotos(valuationId: string): Promise<any[]> {
 }
 
 /**
- * Updates valuation with photo metadata (when the valuation table schema has the required fields)
- * This will be needed in the future if we decide to add these fields to the valuations table
+ * Updates valuation with photo metadata
+ * This function saves photo metadata to the valuation_photos table
  */
 export async function updateValuationWithPhotoMetadata(
   valuationId: string,
@@ -62,14 +61,23 @@ export async function updateValuationWithPhotoMetadata(
   explanation?: string
 ): Promise<boolean> {
   try {
-    // This is a placeholder for future implementation if the schema changes
-    console.log(`Would update valuation ${valuationId} with photo metadata:`, {
-      photoUrl,
-      photoScore,
-      explanation
-    });
+    // Insert or update valuation_photos table
+    const { error } = await supabase
+      .from('valuation_photos')
+      .upsert({
+        valuation_id: valuationId,
+        photo_url: photoUrl,
+        score: photoScore,
+        // If explanation is supported in your schema, include it
+        // otherwise it will be ignored
+        uploaded_at: new Date().toISOString()
+      });
     
-    // For now, just return success
+    if (error) {
+      console.error('Error updating valuation photo metadata:', error);
+      return false;
+    }
+    
     return true;
   } catch (err) {
     console.error('Error updating valuation with photo metadata:', err);

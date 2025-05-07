@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getBestPhotoUrl } from '@/utils/valuation/photoUtils';
 
 interface ValuationData {
   id: string;
@@ -46,9 +47,10 @@ export function useValuationResult(valuationId: string) {
       setError(null);
       setIsError(false);
 
+      // First get the basic valuation data
       const { data: valuationData, error: valuationError } = await supabase
         .from('valuations')
-        .select('*, valuation_photos(id, photo_url, score, explanation)')
+        .select('*')
         .eq('id', valuationId)
         .single();
 
@@ -60,19 +62,39 @@ export function useValuationResult(valuationId: string) {
         throw new Error('Valuation not found');
       }
 
+      // Fetch best photo data separately using the utility function
+      let bestPhoto = null;
+      let bestPhotoUrl = null;
+      let photoScore = null;
+      let photoExplanation = null;
+
+      try {
+        // Get photo data from valuation_photos table
+        const { data: photosData, error: photosError } = await supabase
+          .from('valuation_photos')
+          .select('photo_url, score')
+          .eq('valuation_id', valuationId)
+          .order('score', { ascending: false })
+          .limit(1);
+          
+        if (!photosError && photosData && photosData.length > 0) {
+          bestPhoto = photosData[0];
+          bestPhotoUrl = bestPhoto.photo_url;
+          photoScore = bestPhoto.score;
+          // Default empty explanation if column doesn't exist
+          photoExplanation = '';
+        }
+      } catch (photoErr) {
+        console.error('Error fetching photo data:', photoErr);
+        // Continue with null photo data
+      }
+
       // Determine condition from condition score
       const condition = valuationData.condition_score ? 
                   (valuationData.condition_score >= 90 ? 'Excellent' : 
                    valuationData.condition_score >= 75 ? 'Good' : 
                    valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
                   'Good';
-
-      // Find best photo if there are valuation photos
-      const photos = valuationData.valuation_photos || [];
-      const bestPhoto = photos.length > 0 
-        ? photos.reduce((best, current) => 
-            (current.score > best.score) ? current : best, photos[0])
-        : null;
 
       // Transform the Supabase data to our expected format
       const transformedData: ValuationData = {
@@ -111,9 +133,9 @@ export function useValuationResult(valuationId: string) {
         fuelType: '',
         explanation: '',
         transmission: '',
-        bestPhotoUrl: bestPhoto ? bestPhoto.photo_url : null,
-        photoScore: bestPhoto ? bestPhoto.score : null,
-        photoExplanation: bestPhoto ? bestPhoto.explanation : null,
+        bestPhotoUrl: bestPhotoUrl,
+        photoScore: photoScore,
+        photoExplanation: photoExplanation,
         aiCondition: null
       };
 

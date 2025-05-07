@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationWithCondition } from '@/types/dealer';
-import { ConditionFilterOption } from '@/components/dealer/ConditionFilter';
+
+// Export this type so it can be used by components
+export type ConditionFilterOption = 'all' | 'excellent' | 'good' | 'fair' | 'poor';
 
 interface UseDealerValuationsResult {
   valuations: ValuationWithCondition[];
@@ -32,8 +34,8 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
       setError(null);
 
       try {
-        // Basic query setup
-        let query = supabase.from('valuations').select('*');
+        // Basic query setup - fixed the type issue by specifying the table directly
+        let query = supabase.from('valuations');
           
         if (dealerId) {
           query = query.eq('dealer_id', dealerId);
@@ -63,6 +65,7 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         const from = (currentPage - 1) * pageSize;
         // Now do the main query with pagination
         const { data, error: queryError } = await query
+          .select('*')
           .range(from, from + pageSize - 1);
 
         if (queryError) {
