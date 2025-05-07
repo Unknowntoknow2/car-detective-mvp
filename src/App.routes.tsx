@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { Suspense } from 'react';
@@ -39,6 +40,7 @@ const QADashboardPage = React.lazy(() => import('./modules/qa-dashboard/page'));
 // const AuthLayout = React.lazy(() => import('./layouts/AuthLayout'));
 // const DashboardLayout = React.lazy(() => import('./layouts/DashboardLayout'));
 // const AdminLayout = React.lazy(() => import('./layouts/AdminLayout'));
+*/
 
 const AppRoutes = () => {
   return null; // Disabled for now
