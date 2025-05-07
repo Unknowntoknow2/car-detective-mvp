@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNicbVinCheck } from '@/hooks/useNicbVinCheck';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { validateVIN } from '@/utils/validation/enhanced-validation';
+import { validateVIN } from '@/utils/validation/vin-validation';
 
 export const NicbVinCheck: React.FC = () => {
   const [vinInput, setVinInput] = useState('');

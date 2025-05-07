@@ -1,6 +1,6 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import { isValidVIN } from '@/utils/validation/vin-validation-helpers';
+import { isValidVIN } from '@/utils/validation/vin-validation';
 
 interface UseVinInputProps {
   initialValue?: string;

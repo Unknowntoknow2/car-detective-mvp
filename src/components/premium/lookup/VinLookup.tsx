@@ -3,8 +3,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation-helpers';
+import { validateVIN } from '@/utils/validation/vin-validation';
 import { useState, useEffect } from 'react';
+import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 
 interface VinLookupProps {
   value?: string;
@@ -63,12 +64,7 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
             <p>{error}</p>
           </div>
         ) : (
-          <div className="flex items-start gap-2 text-xs text-slate-500">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>
-              Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.
-            </p>
-          </div>
+          <VinInfoMessage />
         )}
       </div>
       

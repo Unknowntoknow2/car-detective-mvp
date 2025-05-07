@@ -2,7 +2,7 @@
 import { Input } from '@/components/ui/input';
 import { CheckCircle2 } from 'lucide-react';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
-import { VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
+import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 
 interface VinInputProps {
   value: string;

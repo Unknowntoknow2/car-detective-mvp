@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation-helpers';
+import { validateVIN } from '@/utils/validation/vin-validation';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { motion } from 'framer-motion';
+import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 
 interface EnhancedVinLookupProps {
   value: string;
@@ -37,7 +39,7 @@ export function EnhancedVinLookup({
     
     const validation = validateVIN(value);
     setIsValid(validation.isValid);
-    setValidationError(validation.error);
+    setValidationError(validation.error || null);
   }, [value]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -83,12 +85,7 @@ export function EnhancedVinLookup({
       ) : error ? (
         <FormValidationError error={error} />
       ) : (
-        <div className="flex items-start gap-2 text-sm text-slate-500 pl-1">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-1 text-slate-400" />
-          <p className="text-xs">
-            Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.
-          </p>
-        </div>
+        <VinInfoMessage />
       )}
       
       <div className="flex justify-end">

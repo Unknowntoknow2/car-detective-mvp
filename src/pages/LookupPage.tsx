@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { VinLookupForm } from '@/components/lookup/vin/VinLookupForm';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
+import ManualEntryForm from '@/components/lookup/manual/ManualEntryForm';
 
 const LookupPage: React.FC = () => {
   const handleManualSubmit = (data: any) => {

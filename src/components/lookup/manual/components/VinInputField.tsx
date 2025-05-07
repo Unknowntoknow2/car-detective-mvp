@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
-import { validateVin, VinInfoMessage } from '@/utils/validation/vin-validation-helpers';
+import { validateVin } from '@/utils/validation/vin-validation';
+import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 import { AlertCircle } from 'lucide-react';
 
 interface VinInputFieldProps {
@@ -24,7 +25,7 @@ export const VinInputField: React.FC<VinInputFieldProps> = ({ form }) => {
     }
     
     const result = validateVin(vinValue);
-    setVinError(result.valid ? null : result.message);
+    setVinError(result.valid ? null : result.message || null);
   }, [vinValue]);
 
   return (
