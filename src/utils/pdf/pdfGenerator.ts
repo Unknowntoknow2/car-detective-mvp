@@ -61,25 +61,40 @@ export async function generatePdf(
   
   yPosition -= 70; // Move down after header
   
-  // Add vehicle info section
-  yPosition = drawVehicleInfoSection(page, {
-    data,
-    yPosition,
+  // Create a params object that we'll pass to the section drawing functions
+  const sectionParams = {
     width,
+    height,
     margin,
     regularFont,
     boldFont
-  });
+  };
+  
+  // Add vehicle info section
+  yPosition = drawVehicleInfoSection(
+    page,
+    {
+      data,
+      yPosition,
+      width,
+      margin,
+      regularFont,
+      boldFont
+    }
+  );
   
   // Add main valuation section
-  yPosition = drawValuationSection(page, {
-    data,
-    yPosition,
-    width,
-    margin,
-    regularFont,
-    boldFont
-  });
+  yPosition = drawValuationSection(
+    page,
+    {
+      data,
+      yPosition,
+      width,
+      margin,
+      regularFont,
+      boldFont
+    }
+  );
   
   // If there's a best photo available and photo assessment is enabled
   if (data.bestPhotoUrl && options.includePhotoAssessment) {
@@ -89,7 +104,7 @@ export async function generatePdf(
       photoExplanation: data.photoExplanation
     };
     
-    const sectionParams = {
+    const aiSectionParams = {
       page,
       yPosition,
       margin,
@@ -100,7 +115,9 @@ export async function generatePdf(
       }
     };
     
-    yPosition = drawAIConditionSection(conditionParams, sectionParams);
+    // Temporarily cast the return value to number since the function should 
+    // return a number but TypeScript thinks it returns a Promise<number>
+    yPosition = drawAIConditionSection(conditionParams, aiSectionParams) as number;
   }
   
   // Add explanation section

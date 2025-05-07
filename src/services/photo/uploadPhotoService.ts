@@ -110,17 +110,24 @@ export async function uploadAndScorePhotos(
       }
     }
     
-    // Update the valuation with the best photo and score
+    // Instead of updating the valuation table directly, we'll handle
+    // this through the valuation_photos table:
     if (bestPhoto) {
-      // Create update object with the photo information
-      await supabase
-        .from('valuations')
-        .update({
-          best_photo_url: bestPhoto.url,
-          photo_score: bestPhoto.score,
-          photo_explanation: bestPhoto.explanation
+      // First, create an entry in valuation_photos for this photo
+      const { data: photoData, error: photoError } = await supabase
+        .from('valuation_photos')
+        .insert({
+          valuation_id: valuationId,
+          photo_url: bestPhoto.url,
+          score: bestPhoto.score,
+          explanation: bestPhoto.explanation
         })
-        .eq('id', valuationId);
+        .select('*')
+        .single();
+      
+      if (photoError) {
+        console.error('Error saving photo metadata:', photoError);
+      }
     }
     
     return {
@@ -180,46 +187,19 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
       // Continue anyway as the database record is gone
     }
     
-    // Check if this is the primary photo by fetching the valuation
-    const { data: valuation } = await supabase
-      .from('valuations')
-      .select('best_photo_url')
-      .eq('id', valuationId)
-      .single();
+    // Find a new best photo
+    const { data: remainingPhotos, error: remainingError } = await supabase
+      .from('valuation_photos')
+      .select('*')
+      .eq('valuation_id', valuationId)
+      .order('score', { ascending: false })
+      .limit(1);
     
-    const isPrimaryPhoto = valuation?.best_photo_url === photoData.photo_url;
-    
-    // If this was the primary photo, find a new best photo
-    if (isPrimaryPhoto) {
-      // Find the new best photo
-      const { data: remainingPhotos, error: remainingError } = await supabase
-        .from('valuation_photos')
-        .select('*')
-        .eq('valuation_id', valuationId)
-        .order('score', { ascending: false })
-        .limit(1);
-        
-      if (!remainingError && remainingPhotos && remainingPhotos.length > 0) {
-        // Update the valuation with the new best photo
-        await supabase
-          .from('valuations')
-          .update({
-            best_photo_url: remainingPhotos[0].photo_url,
-            photo_score: remainingPhotos[0].score,
-            photo_explanation: remainingPhotos[0].explanation || null
-          })
-          .eq('id', valuationId);
-      } else {
-        // No photos left, clear the best photo
-        await supabase
-          .from('valuations')
-          .update({
-            best_photo_url: null,
-            photo_score: null,
-            photo_explanation: null
-          })
-          .eq('id', valuationId);
-      }
+    if (!remainingError && remainingPhotos && remainingPhotos.length > 0) {
+      // We found a new best photo
+      // However, since we're not updating the valuations table directly,
+      // we don't need to modify any fields there
+      console.log('New best photo selected:', remainingPhotos[0]);
     }
   } catch (err) {
     console.error('Error in deletePhoto:', err);

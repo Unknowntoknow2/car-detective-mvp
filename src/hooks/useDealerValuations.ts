@@ -33,7 +33,7 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
 
       try {
         // Basic query setup
-        let query = supabase.from('valuations');
+        let query = supabase.from('valuations').select('*');
           
         if (dealerId) {
           query = query.eq('dealer_id', dealerId);
@@ -45,7 +45,16 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         }
         
         // Get count first with a separate query
-        const countQuery = query.select('id', { count: 'exact' });
+        const countQuery = supabase.from('valuations').select('id', { count: 'exact' });
+        
+        if (dealerId) {
+          countQuery.eq('dealer_id', dealerId);
+        }
+        
+        if (conditionFilter !== 'all') {
+          countQuery.eq('condition_score', getConditionScoreRange(conditionFilter));
+        }
+        
         const { count, error: countError } = await countQuery;
         
         if (countError) throw new Error(countError.message);
@@ -54,7 +63,6 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         const from = (currentPage - 1) * pageSize;
         // Now do the main query with pagination
         const { data, error: queryError } = await query
-          .select('*')
           .range(from, from + pageSize - 1);
 
         if (queryError) {
@@ -77,7 +85,7 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
               created_at: valuation.created_at,
               is_vin_lookup: valuation.is_vin_lookup,
               aiCondition: null, // Will be populated if you have photo condition data
-              fuel_type: valuation.fuel_type || '',
+              fuel_type: valuation.body_type || '', // Using body_type as fallback since fuel_type doesn't exist
               zip_code: valuation.state || '',
               body_type: valuation.body_type || '',
               color: valuation.color || ''

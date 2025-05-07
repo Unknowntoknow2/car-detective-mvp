@@ -48,7 +48,7 @@ export function useValuationResult(valuationId: string) {
 
       const { data: valuationData, error: valuationError } = await supabase
         .from('valuations')
-        .select('*')
+        .select('*, valuation_photos(id, photo_url, score, explanation)')
         .eq('id', valuationId)
         .single();
 
@@ -66,6 +66,13 @@ export function useValuationResult(valuationId: string) {
                    valuationData.condition_score >= 75 ? 'Good' : 
                    valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
                   'Good';
+
+      // Find best photo if there are valuation photos
+      const photos = valuationData.valuation_photos || [];
+      const bestPhoto = photos.length > 0 
+        ? photos.reduce((best, current) => 
+            (current.score > best.score) ? current : best, photos[0])
+        : null;
 
       // Transform the Supabase data to our expected format
       const transformedData: ValuationData = {
@@ -104,9 +111,9 @@ export function useValuationResult(valuationId: string) {
         fuelType: '',
         explanation: '',
         transmission: '',
-        bestPhotoUrl: valuationData.best_photo_url || null,
-        photoScore: valuationData.photo_score || null,
-        photoExplanation: valuationData.photo_explanation || null,
+        bestPhotoUrl: bestPhoto ? bestPhoto.photo_url : null,
+        photoScore: bestPhoto ? bestPhoto.score : null,
+        photoExplanation: bestPhoto ? bestPhoto.explanation : null,
         aiCondition: null
       };
 
