@@ -1,4 +1,3 @@
-
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { AICondition } from '@/types/photo';
 import { ReportData, ReportOptions } from './types';
@@ -44,7 +43,7 @@ export function convertVehicleInfoToReportData(
     isPremium: options.isPremium || false,
     transmission: vehicle.transmission || 'Not Specified',
     aiCondition: options.aiCondition ? {
-      condition: options.aiCondition.condition || 'Good',
+      condition: options.aiCondition.condition as "Excellent" | "Good" | "Fair" | "Poor",
       confidenceScore: options.aiCondition.confidenceScore || 80,
       issuesDetected: options.aiCondition.issuesDetected || [],
       aiSummary: options.aiCondition.aiSummary || ''

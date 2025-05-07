@@ -61,28 +61,30 @@ export const CDButton: React.FC<ButtonProps> = ({
     fullWidth ? "w-full" : "",
   ].join(" ");
 
-  // Create motion animation props
+  // Create separate motion animation props
   const buttonMotionProps: Partial<MotionProps> = {
     whileHover: isDisabled || isLoading ? undefined : { scale: 1.02 },
     whileTap: isDisabled || isLoading ? undefined : { scale: 0.98 },
     ...motionProps
   };
 
-  // Separate HTML button props from motion props to fix type error
-  const { className: _, ...htmlButtonProps } = props;
+  // HTML props (separate from motion props)
+  const htmlButtonProps: React.ButtonHTMLAttributes<HTMLButtonElement> = {
+    type,
+    disabled: isDisabled || isLoading,
+    'aria-label': ariaLabel,
+    onClick,
+    ...props
+  };
 
   return (
     <motion.button
-      type={type}
       className={cn(
         baseClasses,
         sizeClasses[size],
         variantClasses[variant],
         className
       )}
-      onClick={onClick}
-      disabled={isDisabled || isLoading}
-      aria-label={ariaLabel}
       {...buttonMotionProps}
       {...htmlButtonProps}
     >

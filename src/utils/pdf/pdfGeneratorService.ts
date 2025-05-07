@@ -1,338 +1,272 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ReportData, SectionParams } from './types';
-import { drawVehicleInfoSection } from './sections/vehicleInfoSection';
-import { drawValuationSection } from './sections/valuationSection';
-import { drawExplanationSection } from './sections/explanationSection';
-import { drawFooterSection } from './sections/footerSection';
-import { applyWatermark } from './sections/watermark';
+import fs from 'fs/promises';
+import path from 'path';
+import { PDFDocument } from 'pdf-lib';
+import { generatePdf } from './pdfGenerator';
+import { ReportData, ReportOptions } from './types';
 
 /**
- * Generates a PDF report for a vehicle valuation
- * @param data The report data to include
+ * Generates a valuation report PDF
+ * @param data The report data
  * @param options Options for PDF generation
- * @returns Promise resolving to PDF document as Uint8Array
+ * @returns The path to the generated PDF
  */
-export async function generatePdfReport(
+export async function generateValuationReport(
   data: ReportData,
-  options: {
-    includeBranding?: boolean;
-    includeTimestamp?: boolean;
-    includePageNumbers?: boolean;
-    pageNumber?: number;
-    totalPages?: number;
-  } = {}
-): Promise<Uint8Array> {
-  // Create a new PDF document
-  const pdfDoc = await PDFDocument.create();
-  
-  // Add a page to the document (Letter size)
-  const page = pdfDoc.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  
-  // Embed fonts
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  
-  // Set drawing parameters
-  const margin = 50;
-  const contentWidth = width - margin * 2;
-  
-  // Create section params object
-  const sectionParams: SectionParams = {
-    page,
-    width,
-    height,
-    margin,
-    regularFont,
-    boldFont,
-    contentWidth
-  };
-  
-  // Apply watermark if premium
-  if (data.isPremium && options.includeBranding !== false) {
-    applyWatermark(sectionParams, "Car Detective™ • Premium Report");
+  options: ReportOptions = {}
+): Promise<string> {
+  try {
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(process.cwd(), 'reports');
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    // Generate a unique filename
+    const timestamp = new Date().getTime();
+    const filename = `valuation-report-${data.vin}-${timestamp}.pdf`;
+    const outputPath = path.join(outputDir, filename);
+    
+    // Generate the PDF
+    await generatePdf(
+      data,
+      'valuation-report',
+      outputPath,
+      { format: 'A4', printBackground: true },
+      (doc) => {
+        // Add watermark or other modifications
+      }
+    );
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Error generating valuation report:', error);
+    throw new Error(`Failed to generate valuation report: ${error.message}`);
   }
-  
-  // Track vertical position
-  let yPosition = height - margin;
-  
-  // Draw header
-  page.drawRectangle({
-    x: margin,
-    y: height - margin - 50,
-    width: contentWidth,
-    height: 50,
-    color: rgb(0.95, 0.95, 0.95),
-    borderColor: rgb(0.8, 0.8, 0.8),
-    borderWidth: 1,
-  });
-  
-  page.drawText("Vehicle Valuation Report", {
-    x: margin + 10,
-    y: height - margin - 30,
-    size: 18,
-    font: boldFont
-  });
-  
-  yPosition -= 70;
-  
-  // Draw vehicle info section
-  yPosition = drawVehicleInfoSection(sectionParams, data, yPosition);
-  
-  // Draw valuation section
-  yPosition = drawValuationSection(sectionParams, data, yPosition);
-  
-  // Draw explanation if available
-  if (data.explanation) {
-    yPosition = drawExplanationSection(sectionParams, data.explanation, yPosition);
-  }
-  
-  // Draw footer
-  drawFooterSection(
-    sectionParams,
-    options.includeTimestamp !== false, // includeTimestamp
-    options.pageNumber || 1,            // pageNumber
-    options.totalPages || 1,            // totalPages
-    options.includeBranding || false    // includeWatermark
-  );
-  
-  // Generate and return PDF bytes
-  return await pdfDoc.save();
 }
 
 /**
- * Generates a multi-page PDF report for a vehicle valuation
- * @param data The report data to include
+ * Generates a premium valuation report PDF with additional details
+ * @param data The report data
  * @param options Options for PDF generation
- * @returns Promise resolving to PDF document as Uint8Array
+ * @returns The path to the generated PDF
  */
-export async function generateMultiPagePdfReport(
+export async function generatePremiumReport(
   data: ReportData,
-  options: {
-    includeBranding?: boolean;
-    includeTimestamp?: boolean;
-    includePageNumbers?: boolean;
-  } = {}
-): Promise<Uint8Array> {
-  // Create a new PDF document
-  const pdfDoc = await PDFDocument.create();
-  
-  // Add first page (main valuation)
-  const page1 = pdfDoc.addPage([612, 792]);
-  const { width, height } = page1.getSize();
-  
-  // Embed fonts
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  
-  // Set drawing parameters
-  const margin = 50;
-  const contentWidth = width - margin * 2;
-  
-  // Create section params object for first page
-  const sectionParams1: SectionParams = {
-    page: page1,
-    width,
-    height,
-    margin,
-    regularFont,
-    boldFont,
-    contentWidth
-  };
-  
-  // Apply watermark if premium
-  if (data.isPremium && options.includeBranding !== false) {
-    applyWatermark(sectionParams1, "Car Detective™ • Premium Report");
+  options: ReportOptions = {}
+): Promise<string> {
+  try {
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(process.cwd(), 'reports', 'premium');
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    // Generate a unique filename
+    const timestamp = new Date().getTime();
+    const filename = `premium-report-${data.vin}-${timestamp}.pdf`;
+    const outputPath = path.join(outputDir, filename);
+    
+    // Add premium flag to data
+    const premiumData = {
+      ...data,
+      isPremium: true
+    };
+    
+    // Generate the PDF
+    await generatePdf(
+      premiumData,
+      'premium-report',
+      outputPath,
+      { format: 'A4', printBackground: true },
+      (doc) => {
+        // Add premium watermark or other modifications
+      }
+    );
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Error generating premium report:', error);
+    throw new Error(`Failed to generate premium report: ${error.message}`);
   }
-  
-  // Track vertical position
-  let yPosition = height - margin;
-  
-  // Draw header
-  page1.drawRectangle({
-    x: margin,
-    y: height - margin - 50,
-    width: contentWidth,
-    height: 50,
-    color: rgb(0.95, 0.95, 0.95),
-    borderColor: rgb(0.8, 0.8, 0.8),
-    borderWidth: 1,
-  });
-  
-  page1.drawText("Vehicle Valuation Report", {
-    x: margin + 10,
-    y: height - margin - 30,
-    size: 18,
-    font: boldFont
-  });
-  
-  yPosition -= 70;
-  
-  // Draw vehicle info section
-  yPosition = drawVehicleInfoSection(sectionParams1, data, yPosition);
-  
-  // Draw valuation section
-  yPosition = drawValuationSection(sectionParams1, data, yPosition);
-  
-  // Draw footer on first page
-  drawFooterSection(
-    sectionParams1,
-    options.includeTimestamp !== false, // includeTimestamp
-    1,                                  // pageNumber
-    2,                                  // totalPages
-    options.includeBranding || false    // includeWatermark
-  );
-  
-  // Add second page (explanation and details)
-  const page2 = pdfDoc.addPage([612, 792]);
-  
-  // Create section params object for second page
-  const sectionParams2: SectionParams = {
-    page: page2,
-    width,
-    height,
-    margin,
-    regularFont,
-    boldFont,
-    contentWidth
-  };
-  
-  // Apply watermark if premium
-  if (data.isPremium && options.includeBranding !== false) {
-    applyWatermark(sectionParams2, "Car Detective™ • Premium Report");
-  }
-  
-  // Reset vertical position for second page
-  yPosition = height - margin;
-  
-  // Draw header on second page
-  page2.drawRectangle({
-    x: margin,
-    y: height - margin - 50,
-    width: contentWidth,
-    height: 50,
-    color: rgb(0.95, 0.95, 0.95),
-    borderColor: rgb(0.8, 0.8, 0.8),
-    borderWidth: 1,
-  });
-  
-  page2.drawText("Valuation Details", {
-    x: margin + 10,
-    y: height - margin - 30,
-    size: 18,
-    font: boldFont
-  });
-  
-  yPosition -= 70;
-  
-  // Draw explanation if available
-  if (data.explanation) {
-    yPosition = drawExplanationSection(sectionParams2, data.explanation, yPosition);
-  }
-  
-  // Draw footer on second page
-  drawFooterSection(
-    sectionParams2,
-    options.includeTimestamp !== false, // includeTimestamp
-    2,                                  // pageNumber
-    2,                                  // totalPages
-    options.includeBranding || false    // includeWatermark
-  );
-  
-  // Generate and return PDF bytes
-  return await pdfDoc.save();
 }
 
 /**
- * Generates a PDF report with custom options
- * @param data The report data to include
+ * Generates a dealer report PDF
+ * @param data The report data
  * @param options Options for PDF generation
- * @returns Promise resolving to PDF document as Uint8Array
+ * @returns The path to the generated PDF
  */
-export async function generateCustomPdfReport(
+export async function generateDealerReport(
   data: ReportData,
-  options: {
-    includeBranding?: boolean;
-    includeTimestamp?: boolean;
-    includePageNumbers?: boolean;
-    includeExplanation?: boolean;
-    includeAdjustments?: boolean;
-  } = {}
-): Promise<Uint8Array> {
-  // Create a new PDF document
-  const pdfDoc = await PDFDocument.create();
-  
-  // Add a page to the document
-  const page = pdfDoc.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  
-  // Embed fonts
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  
-  // Set drawing parameters
-  const margin = 50;
-  const contentWidth = width - margin * 2;
-  
-  // Create section params object
-  const sectionParams: SectionParams = {
-    page,
-    width,
-    height,
-    margin,
-    regularFont,
-    boldFont,
-    contentWidth
-  };
-  
-  // Apply watermark if premium and branding is included
-  if (data.isPremium && options.includeBranding !== false) {
-    applyWatermark(sectionParams, "Car Detective™ • Premium Report");
+  options: ReportOptions = {}
+): Promise<string> {
+  try {
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(process.cwd(), 'reports', 'dealer');
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    // Generate a unique filename
+    const timestamp = new Date().getTime();
+    const filename = `dealer-report-${data.vin}-${timestamp}.pdf`;
+    const outputPath = path.join(outputDir, filename);
+    
+    // Add dealer-specific data
+    const dealerData = {
+      ...data,
+      isDealer: true,
+      showWholesaleValue: options.showWholesaleValue || false,
+      dealerName: options.dealerName || 'Authorized Dealer'
+    };
+    
+    // Generate the PDF
+    await generatePdf(
+      dealerData,
+      'dealer-report',
+      outputPath,
+      { format: 'A4', printBackground: true },
+      (doc) => {
+        // Add dealer watermark or other modifications
+      }
+    );
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Error generating dealer report:', error);
+    throw new Error(`Failed to generate dealer report: ${error.message}`);
   }
-  
-  // Track vertical position
-  let yPosition = height - margin;
-  
-  // Draw header
-  page.drawRectangle({
-    x: margin,
-    y: height - margin - 50,
-    width: contentWidth,
-    height: 50,
-    color: rgb(0.95, 0.95, 0.95),
-    borderColor: rgb(0.8, 0.8, 0.8),
-    borderWidth: 1,
-  });
-  
-  page.drawText("Vehicle Valuation Report", {
-    x: margin + 10,
-    y: height - margin - 30,
-    size: 18,
-    font: boldFont
-  });
-  
-  yPosition -= 70;
-  
-  // Draw vehicle info section
-  yPosition = drawVehicleInfoSection(sectionParams, data, yPosition);
-  
-  // Draw valuation section
-  yPosition = drawValuationSection(sectionParams, data, yPosition);
-  
-  // Draw explanation if available and included in options
-  if (data.explanation && options.includeExplanation !== false) {
-    yPosition = drawExplanationSection(sectionParams, data.explanation, yPosition);
+}
+
+/**
+ * Adds a watermark to an existing PDF
+ * @param pdfPath Path to the PDF file
+ * @param watermarkText Text to use as watermark
+ * @returns Path to the watermarked PDF
+ */
+export async function addWatermark(
+  pdfPath: string,
+  watermarkText: string
+): Promise<string> {
+  try {
+    // Read the PDF file
+    const pdfBytes = await fs.readFile(pdfPath);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+    
+    // Add watermark to each page
+    for (const page of pages) {
+      const { width, height } = page.getSize();
+      
+      // Draw watermark text
+      page.drawText(watermarkText, {
+        x: width / 2 - 150,
+        y: height / 2,
+        size: 60,
+        opacity: 0.15,
+        rotate: Math.PI / 4, // 45 degrees
+      });
+    }
+    
+    // Save the modified PDF
+    const modifiedPdfBytes = await pdfDoc.save();
+    const outputPath = pdfPath.replace('.pdf', '-watermarked.pdf');
+    await fs.writeFile(outputPath, modifiedPdfBytes);
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Error adding watermark:', error);
+    throw new Error(`Failed to add watermark: ${error.message}`);
   }
-  
-  // Draw footer
-  drawFooterSection(
-    sectionParams,
-    options.includeTimestamp !== false, // includeTimestamp
-    1,                                  // pageNumber
-    1,                                  // totalPages
-    options.includeBranding || false    // includeWatermark
-  );
-  
-  // Generate and return PDF bytes
-  return await pdfDoc.save();
+}
+
+/**
+ * Generates a comparison report for multiple vehicles
+ * @param vehicles Array of vehicle report data
+ * @param options Options for PDF generation
+ * @returns Path to the generated PDF
+ */
+export async function generateComparisonReport(
+  vehicles: ReportData[],
+  options: ReportOptions = {}
+): Promise<string> {
+  try {
+    if (!vehicles || vehicles.length < 2) {
+      throw new Error('At least two vehicles are required for comparison');
+    }
+    
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(process.cwd(), 'reports', 'comparison');
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    // Generate a unique filename
+    const timestamp = new Date().getTime();
+    const filename = `comparison-report-${timestamp}.pdf`;
+    const outputPath = path.join(outputDir, filename);
+    
+    // Prepare comparison data
+    const comparisonData = {
+      vehicles,
+      timestamp: new Date().toISOString(),
+      title: options.title || 'Vehicle Comparison Report',
+      userName: options.userName || 'Car Detective User'
+    };
+    
+    // Generate the PDF
+    await generatePdf(
+      comparisonData,
+      'comparison-report',
+      outputPath,
+      { format: 'A4', printBackground: true, landscape: true },
+      (doc) => {
+        // Add comparison-specific modifications
+      }
+    );
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Error generating comparison report:', error);
+    throw new Error(`Failed to generate comparison report: ${error.message}`);
+  }
+}
+
+/**
+ * Generates a market trend report
+ * @param data The report data
+ * @param marketData Market trend data
+ * @param options Options for PDF generation
+ * @returns Path to the generated PDF
+ */
+export async function generateMarketTrendReport(
+  data: ReportData,
+  marketData: any,
+  options: ReportOptions = {}
+): Promise<string> {
+  try {
+    // Create output directory if it doesn't exist
+    const outputDir = path.join(process.cwd(), 'reports', 'market');
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    // Generate a unique filename
+    const timestamp = new Date().getTime();
+    const filename = `market-trend-report-${data.vin}-${timestamp}.pdf`;
+    const outputPath = path.join(outputDir, filename);
+    
+    // Combine data
+    const reportData = {
+      ...data,
+      marketData,
+      isPremium: true
+    };
+    
+    // Generate the PDF
+    await generatePdf(
+      reportData,
+      'market-trend-report',
+      outputPath,
+      { format: 'A4', printBackground: true },
+      (doc) => {
+        // Add market trend specific modifications
+      }
+    );
+    
+    return outputPath;
+  } catch (error) {
+    console.error('Error generating market trend report:', error);
+    throw new Error(`Failed to generate market trend report: ${error.message}`);
+  }
 }

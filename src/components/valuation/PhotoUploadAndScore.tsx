@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PhotoUploader } from './photo-upload/PhotoUploader';
@@ -27,7 +26,7 @@ export function PhotoUploadAndScore({
       const condition: AICondition = {
         condition: getConditionFromScore(score),
         confidenceScore: score * 100,
-        bestPhotoUrl: bestPhoto
+        issuesDetected: []
       };
       
       onScoreChange(score, condition);

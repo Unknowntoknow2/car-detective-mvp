@@ -1,210 +1,104 @@
+import { getConditionAdjustment } from '../adjustments/conditionAdjustments';
+import { RulesEngineInput } from '../rules/types';
+import { getMileageAdjustment } from '../adjustments/mileageAdjustments';
+import { getDemandAdjustment } from '../adjustments/demandAdjustments';
+import { PhotoScoreCalculator } from '../rules/calculators/photoScoreCalculator';
+import { AICondition } from '@/types/photo';
 
-/**
- * Enterprise-Level, 100% Accurate Car Valuation Logic
- * 
- * This module provides precise valuation calculations for vehicles
- * based on industry-standard formulas and data.
- */
-
-import { getMarketMultiplier } from './marketData';
-import { getBestPhotoAssessment } from '../valuationService';
-
-export interface ValuationInput {
-  baseMarketValue: number;
-  vehicleYear: number;
-  make: string;
-  model: string;
-  mileage: number;
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-  zipCode: string;
-  features: string[];
-  aiConditionOverride?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  };
-  valuationId?: string;
+interface ValuationBreakdownItem {
+  factor: string;
+  impact: number;
+  description: string;
 }
 
-export interface ValuationOutput {
-  adjustedMarketValue: number;
-  adjustments: {
-    mileageAdjustment: number;
-    conditionAdjustment: number;
-    regionalAdjustment: number;
-    featureAdjustments: { [feature: string]: number };
-  };
-  totalAdjustments: number;
-  finalValuation: number;
-  conditionSource?: 'user' | 'ai';
-  aiSummary?: string;
-  photoAssessment?: {
-    bestPhotoUrl?: string;
-    individualScores?: { url: string; score: number; isPrimary?: boolean }[];
-  };
+interface FinalValuationResult {
+  estimatedValue: number;
+  valuationBreakdown: ValuationBreakdownItem[];
+  confidenceScore: number;
+  aiCondition?: AICondition;
 }
 
 /**
- * Calculates precise mileage adjustment based on industry-standard depreciation curves
- * @param mileage The vehicle mileage
- * @param baseValue The base market value of the vehicle
- * @returns The exact dollar adjustment for mileage
+ * Calculates the final valuation based on various factors and adjustments.
  */
-function mileageAdjustment(mileage: number, baseValue: number): number {
-  let percentAdjustment: number;
-  if (mileage <= 10000) percentAdjustment = 0.03;
-  else if (mileage <= 30000) percentAdjustment = 0.015;
-  else if (mileage <= 50000) percentAdjustment = 0;
-  else if (mileage <= 75000) percentAdjustment = -0.05;
-  else if (mileage <= 100000) percentAdjustment = -0.10;
-  else if (mileage <= 125000) percentAdjustment = -0.15;
-  else if (mileage <= 150000) percentAdjustment = -0.20;
-  else percentAdjustment = -0.25;
+export function calculateFinalValuation(input: RulesEngineInput): FinalValuationResult {
+  const { basePrice, condition, mileage, zipCode, photoScore } = input;
 
-  return baseValue * percentAdjustment;
-}
+  let estimatedValue = basePrice;
+  const valuationBreakdown: ValuationBreakdownItem[] = [];
 
-/**
- * Calculates precise condition adjustment based on vehicle condition
- * @param condition The vehicle condition rating
- * @param baseValue The base market value of the vehicle
- * @returns The exact dollar adjustment for condition
- */
-function conditionAdjustment(condition: string, baseValue: number): number {
-  const adjustments: Record<string, number> = {
-    'Excellent': 0.05,
-    'Good': 0.0,
-    'Fair': -0.08,
-    'Poor': -0.15
-  };
-  
-  return baseValue * (adjustments[condition] || 0);
-}
+  // 1. Condition Adjustment
+  const conditionAdjustment = getConditionAdjustment(condition, basePrice);
+  estimatedValue += conditionAdjustment;
+  valuationBreakdown.push({
+    factor: 'Condition',
+    impact: Math.round((conditionAdjustment / basePrice) * 100),
+    description: `Adjustment based on the vehicle's condition (${condition})`
+  });
 
-/**
- * Calculates regional market adjustment based on ZIP code
- * @param zipCode The vehicle's location ZIP code
- * @param baseValue The base market value of the vehicle
- * @returns The exact dollar adjustment for regional market conditions
- */
-async function regionalAdjustment(zipCode: string, baseValue: number): Promise<number> {
-  // Use the getMarketMultiplier function to fetch multiplier from Supabase
-  const multiplier = await getMarketMultiplier(zipCode);
-  console.log(`Applied market multiplier for ${zipCode}: ${multiplier}%`);
-  return baseValue * (multiplier / 100);
-}
+  // 2. Mileage Adjustment
+  const mileageAdjustment = getMileageAdjustment(mileage, basePrice);
+  estimatedValue += mileageAdjustment;
+  valuationBreakdown.push({
+    factor: 'Mileage',
+    impact: Math.round((mileageAdjustment / basePrice) * 100),
+    description: `Adjustment based on the vehicle's mileage (${mileage})`
+  });
 
-/**
- * Exact feature value mapping
- * Defines precise dollar value for each premium feature
- */
-const featureValueMap: Record<string, number> = {
-  'Leather Seats': 300,
-  'Navigation System': 250,
-  'Premium Wheels': 400,
-  'Sunroof': 350,
-  'Backup Camera': 200,
-  'Bluetooth': 150,
-  'Remote Start': 250
-};
+  // 3. Demand Adjustment
+  const demandAdjustment = getDemandAdjustment(zipCode, basePrice);
+  estimatedValue += demandAdjustment;
+  valuationBreakdown.push({
+    factor: 'Location',
+    impact: Math.round((demandAdjustment / basePrice) * 100),
+    description: `Adjustment based on the vehicle's location (${zipCode})`
+  });
 
-/**
- * Calculates exact feature adjustments based on vehicle features
- * @param features Array of features present in the vehicle
- * @returns Object with each feature and its exact dollar value
- */
-function featureAdjustments(features: string[]): { [feature: string]: number } {
-  return features.reduce((acc, feature) => {
-    if (featureValueMap[feature]) acc[feature] = featureValueMap[feature];
-    return acc;
-  }, {} as Record<string, number>);
-}
+  // 4. Photo Score Adjustment
+  if (photoScore) {
+    const photoScoreCalculator = new PhotoScoreCalculator();
+    const photoScoreAdjustment = photoScoreCalculator.calculate(input);
 
-/**
- * Calculates the final valuation of a vehicle with precise adjustments
- * @param input Complete valuation input parameters
- * @returns Detailed valuation output with all adjustments and final value
- */
-export async function calculateFinalValuation(input: ValuationInput): Promise<ValuationOutput> {
-  // If a valuation ID is provided, try to get AI condition assessment
-  let aiConditionOverride = input.aiConditionOverride;
-  let photoAssessment = undefined;
-  
-  if (input.valuationId && !aiConditionOverride) {
-    console.log(`Checking for AI photo assessment for valuation ${input.valuationId}`);
-    try {
-      const { aiCondition, photoScores } = await getBestPhotoAssessment(input.valuationId);
-      
-      if (aiCondition && aiCondition.confidenceScore >= 70) {
-        console.log(`Found valid AI condition assessment: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
-        aiConditionOverride = aiCondition;
-        
-        // If we have photo scores, include them in the output
-        if (photoScores && photoScores.length > 0) {
-          // Find the primary photo (highest score) to use as the best photo
-          const sortedScores = [...photoScores].sort((a, b) => b.score - a.score);
-          photoAssessment = {
-            bestPhotoUrl: sortedScores[0].url,
-            individualScores: photoScores
-          };
-        }
-      } else if (aiCondition) {
-        console.log(`Found AI condition assessment but confidence too low: ${aiCondition.condition} (${aiCondition.confidenceScore}%)`);
-      }
-    } catch (err) {
-      console.error('Error fetching AI condition data:', err);
-      // Continue with user-provided condition if AI assessment fails
+    if (photoScoreAdjustment) {
+      estimatedValue += photoScoreAdjustment.value;
+      valuationBreakdown.push({
+        factor: 'Photo Score',
+        impact: Math.round(photoScoreAdjustment.percentAdjustment * 100),
+        description: photoScoreAdjustment.description
+      });
     }
   }
-  
-  // Determine which condition to use - AI or user input
-  // Use AI condition if it exists and has high confidence, otherwise use user-provided condition
-  const useAiCondition = aiConditionOverride && 
-                         aiConditionOverride.confidenceScore >= 70;
-  
-  const finalCondition = useAiCondition 
-    ? aiConditionOverride!.condition 
-    : input.condition;
-  
-  // Calculate precise mileage adjustment
-  const mileageAdj = mileageAdjustment(input.mileage, input.baseMarketValue);
-  
-  // Calculate exact condition adjustment
-  const conditionAdj = conditionAdjustment(finalCondition, input.baseMarketValue);
-  
-  // Get regional market adjustment from Supabase
-  const regionalAdj = await regionalAdjustment(input.zipCode, input.baseMarketValue);
 
-  // Calculate exact feature adjustments
-  const featAdjObj = featureAdjustments(input.features);
-  const totalFeatAdj = Object.values(featAdjObj).reduce((sum, val) => sum + val, 0);
+  // Ensure the estimated value is not negative
+  estimatedValue = Math.max(0, estimatedValue);
 
-  // Calculate total adjustments with exact precision
-  const totalAdjustments = mileageAdj + conditionAdj + regionalAdj + totalFeatAdj;
-  
-  // Calculate final valuation with exact formula
-  const finalValuation = input.baseMarketValue + totalAdjustments;
+  // 5. Photo Analysis Condition
+  if (photoScore) {
+    const photoScoreCondition: AICondition = {
+      condition: getConditionFromScore(photoScore) as "Excellent" | "Good" | "Fair" | "Poor",
+      confidenceScore: photoScore * 100,
+      issuesDetected: []
+    };
 
-  // Return complete valuation output with all precise adjustments
-  const result: ValuationOutput = {
-    adjustedMarketValue: input.baseMarketValue,
-    adjustments: {
-      mileageAdjustment: mileageAdj,
-      conditionAdjustment: conditionAdj,
-      regionalAdjustment: regionalAdj,
-      featureAdjustments: featAdjObj
-    },
-    totalAdjustments,
-    finalValuation,
-    conditionSource: useAiCondition ? 'ai' : 'user',
-    photoAssessment
-  };
-  
-  // Include AI summary if available and being used
-  if (useAiCondition && aiConditionOverride?.aiSummary) {
-    result.aiSummary = aiConditionOverride.aiSummary;
+    return {
+      estimatedValue: Math.round(estimatedValue),
+      valuationBreakdown,
+      confidenceScore: 85,
+      aiCondition: photoScoreCondition
+    };
   }
-  
-  return result;
+
+  return {
+    estimatedValue: Math.round(estimatedValue),
+    valuationBreakdown,
+    confidenceScore: 85
+  };
+}
+
+// Helper function to convert score to condition
+function getConditionFromScore(score: number): "Excellent" | "Good" | "Fair" | "Poor" {
+  if (score >= 0.85) return "Excellent";
+  if (score >= 0.7) return "Good";
+  if (score >= 0.5) return "Fair";
+  return "Poor";
 }
