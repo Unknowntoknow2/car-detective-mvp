@@ -30,21 +30,18 @@ export function useValuationResult(valuationId: string) {
         fuelType: null,
         color: null,
         explanation: null,
-        transmission: null
+        transmission: null,
+        aiCondition: null
       };
       
-      // Handle estimatedValue (camelCase) and estimated_value (snake_case)
+      // Handle estimatedValue (camelCase)
       if (data.estimatedValue !== undefined) {
         transformedData.estimatedValue = data.estimatedValue;
-      } else if (data.estimated_value !== undefined) {
-        transformedData.estimatedValue = data.estimated_value;
       }
       
-      // Handle confidenceScore (camelCase) and confidence_score (snake_case)
+      // Handle confidenceScore (camelCase)
       if (data.confidenceScore !== undefined) {
         transformedData.confidenceScore = data.confidenceScore;
-      } else if (data.confidence_score !== undefined) {
-        transformedData.confidenceScore = data.confidence_score;
       }
       
       // Handle color
@@ -52,25 +49,19 @@ export function useValuationResult(valuationId: string) {
         transformedData.color = data.color;
       }
       
-      // Handle bodyStyle (camelCase) and body_style (snake_case)
+      // Handle bodyStyle (camelCase)
       if (data.bodyStyle !== undefined) {
         transformedData.bodyStyle = data.bodyStyle;
-      } else if (data.body_style !== undefined) {
-        transformedData.bodyStyle = data.body_style;
       }
       
-      // Handle bodyType (camelCase) and body_type (snake_case)
+      // Handle bodyType (camelCase)
       if (data.bodyType !== undefined) {
         transformedData.bodyType = data.bodyType;
-      } else if (data.body_type !== undefined) {
-        transformedData.bodyType = data.body_type;
       }
       
-      // Handle fuelType (camelCase) and fuel_type (snake_case)
+      // Handle fuelType (camelCase)
       if (data.fuelType !== undefined) {
         transformedData.fuelType = data.fuelType;
-      } else if (data.fuel_type !== undefined) {
-        transformedData.fuelType = data.fuel_type;
       }
       
       // Handle explanation and transmission
@@ -82,12 +73,10 @@ export function useValuationResult(valuationId: string) {
         transformedData.transmission = data.transmission;
       }
       
-      // Add snake_case versions for backward compatibility
-      transformedData.body_style = transformedData.bodyStyle;
-      transformedData.body_type = transformedData.bodyType;
-      transformedData.fuel_type = transformedData.fuelType;
-      transformedData.estimated_value = transformedData.estimatedValue;
-      transformedData.confidence_score = transformedData.confidenceScore;
+      // Handle aiCondition if it exists
+      if (data.aiCondition !== undefined) {
+        transformedData.aiCondition = data.aiCondition;
+      }
       
       return transformedData;
     },
