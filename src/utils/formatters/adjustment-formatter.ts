@@ -1,50 +1,49 @@
 
-export interface ValuationAdjustment {
+import { AdjustmentBreakdown } from "@/utils/rules/types";
+
+export function formatAdjustmentValue(value: number): string {
+  const formatted = Math.abs(value).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+  
+  return value >= 0 ? `+${formatted}` : `-${formatted}`;
+}
+
+export function formatAdjustmentPercentage(percentage: number): string {
+  const formatted = Math.abs(percentage).toFixed(1);
+  return percentage >= 0 ? `+${formatted}%` : `-${formatted}%`;
+}
+
+export function convertNewAdjustmentsToLegacyFormat(
+  adjustments: {
+    factor: string;
+    impact: number;
+    description?: string;
+  }[]
+): AdjustmentBreakdown[] {
+  return adjustments.map(adj => ({
+    name: adj.factor,
+    factor: adj.factor,
+    impact: adj.impact,
+    value: adj.impact,
+    description: adj.description || `Adjustment based on ${adj.factor}`,
+    percentAdjustment: adj.impact
+  }));
+}
+
+export function convertLegacyAdjustmentsToNewFormat(
+  adjustments: AdjustmentBreakdown[]
+): {
   factor: string;
   impact: number;
   description: string;
-}
-
-interface LegacyAdjustment {
-  name: string;
-  value: number;
-  percentage: number;
-}
-
-// This is the format expected by the PDF generator
-interface PdfAdjustment {
-  label: string;
-  value: number;
-}
-
-/**
- * Converts legacy adjustment format to the new format
- */
-export function convertLegacyAdjustmentsToNewFormat(adjustments: LegacyAdjustment[]): ValuationAdjustment[] {
-  return adjustments.map(adjustment => ({
-    factor: adjustment.name,
-    impact: adjustment.percentage,
-    description: `Impact of ${adjustment.name} on vehicle value: ${adjustment.value}`
-  }));
-}
-
-/**
- * Converts new adjustment format to legacy format
- */
-export function convertNewAdjustmentsToLegacyFormat(adjustments: ValuationAdjustment[]): LegacyAdjustment[] {
-  return adjustments.map(adjustment => ({
-    name: adjustment.factor,
-    value: 0, // We don't have this in the new format
-    percentage: adjustment.impact
-  }));
-}
-
-/**
- * Converts valuation adjustments to the format expected by PDF generator
- */
-export function convertAdjustmentsToPdfFormat(adjustments: ValuationAdjustment[]): PdfAdjustment[] {
-  return adjustments.map(adjustment => ({
-    label: adjustment.factor,
-    value: adjustment.impact
+}[] {
+  return adjustments.map(adj => ({
+    factor: adj.name,
+    impact: adj.percentAdjustment,
+    description: adj.description
   }));
 }

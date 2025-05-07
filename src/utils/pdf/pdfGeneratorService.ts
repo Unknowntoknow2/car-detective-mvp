@@ -1,8 +1,21 @@
+
 import fs from 'fs/promises';
 import path from 'path';
 import { PDFDocument } from 'pdf-lib';
 import { generatePdf } from './pdfGenerator';
 import { ReportData, ReportOptions } from './types';
+
+const defaultReportOptions: ReportOptions = {
+  includeBranding: true,
+  includeAIScore: true,
+  includeFooter: true,
+  includeTimestamp: true,
+  includePhotoAssessment: true,
+  isPremium: false,
+  printBackground: true,
+  landscape: false,
+  showWholesaleValue: false
+};
 
 /**
  * Generates a valuation report PDF
@@ -12,13 +25,7 @@ import { ReportData, ReportOptions } from './types';
  */
 export async function generateValuationReport(
   data: ReportData,
-  options: ReportOptions = {
-    includeBranding: true,
-    includeAIScore: true,
-    includeFooter: true,
-    includeTimestamp: true,
-    includePhotoAssessment: true
-  }
+  options: Partial<ReportOptions> = {}
 ): Promise<string> {
   try {
     // Create output directory if it doesn't exist
@@ -30,12 +37,17 @@ export async function generateValuationReport(
     const filename = `valuation-report-${data.vin}-${timestamp}.pdf`;
     const outputPath = path.join(outputDir, filename);
     
-    // Generate the PDF
+    // Generate the PDF with merged options
+    const mergedOptions: ReportOptions = {
+      ...defaultReportOptions,
+      ...options
+    };
+    
     await generatePdf(
       data,
       'valuation-report',
       outputPath,
-      { format: 'A4', printBackground: true },
+      mergedOptions,
       (doc) => {
         // Add watermark or other modifications
       }
@@ -44,7 +56,7 @@ export async function generateValuationReport(
     return outputPath;
   } catch (error) {
     console.error('Error generating valuation report:', error);
-    throw new Error(`Failed to generate valuation report: ${error.message}`);
+    throw new Error(`Failed to generate valuation report: ${(error as Error).message}`);
   }
 }
 
@@ -56,7 +68,7 @@ export async function generateValuationReport(
  */
 export async function generatePremiumReport(
   data: ReportData,
-  options: ReportOptions = {}
+  options: Partial<ReportOptions> = {}
 ): Promise<string> {
   try {
     // Create output directory if it doesn't exist
@@ -74,12 +86,18 @@ export async function generatePremiumReport(
       isPremium: true
     };
     
-    // Generate the PDF
+    // Generate the PDF with merged options
+    const mergedOptions: ReportOptions = {
+      ...defaultReportOptions,
+      isPremium: true,
+      ...options
+    };
+    
     await generatePdf(
       premiumData,
       'premium-report',
       outputPath,
-      { format: 'A4', printBackground: true },
+      mergedOptions,
       (doc) => {
         // Add premium watermark or other modifications
       }
@@ -88,53 +106,7 @@ export async function generatePremiumReport(
     return outputPath;
   } catch (error) {
     console.error('Error generating premium report:', error);
-    throw new Error(`Failed to generate premium report: ${error.message}`);
-  }
-}
-
-/**
- * Generates a dealer report PDF
- * @param data The report data
- * @param options Options for PDF generation
- * @returns The path to the generated PDF
- */
-export async function generateDealerReport(
-  data: ReportData,
-  options: ReportOptions = {}
-): Promise<string> {
-  try {
-    // Create output directory if it doesn't exist
-    const outputDir = path.join(process.cwd(), 'reports', 'dealer');
-    await fs.mkdir(outputDir, { recursive: true });
-    
-    // Generate a unique filename
-    const timestamp = new Date().getTime();
-    const filename = `dealer-report-${data.vin}-${timestamp}.pdf`;
-    const outputPath = path.join(outputDir, filename);
-    
-    // Add dealer-specific data
-    const dealerData = {
-      ...data,
-      isDealer: true,
-      showWholesaleValue: options.showWholesaleValue || false,
-      dealerName: options.dealerName || 'Authorized Dealer'
-    };
-    
-    // Generate the PDF
-    await generatePdf(
-      dealerData,
-      'dealer-report',
-      outputPath,
-      { format: 'A4', printBackground: true },
-      (doc) => {
-        // Add dealer watermark or other modifications
-      }
-    );
-    
-    return outputPath;
-  } catch (error) {
-    console.error('Error generating dealer report:', error);
-    throw new Error(`Failed to generate dealer report: ${error.message}`);
+    throw new Error(`Failed to generate premium report: ${(error as Error).message}`);
   }
 }
 
@@ -165,7 +137,7 @@ export async function addWatermark(
         size: 60,
         opacity: 0.15,
         rotate: {
-          type: 'degrees',
+          type: 'degrees' as any,
           angle: 45
         }
       });
@@ -179,7 +151,7 @@ export async function addWatermark(
     return outputPath;
   } catch (error) {
     console.error('Error adding watermark:', error);
-    throw new Error(`Failed to add watermark: ${error.message}`);
+    throw new Error(`Failed to add watermark: ${(error as Error).message}`);
   }
 }
 
@@ -191,15 +163,11 @@ export async function addWatermark(
  */
 export async function generateComparisonReport(
   vehicles: ReportData[],
-  options: ReportOptions = {}
+  options: Partial<ReportOptions> = {}
 ): Promise<string> {
   try {
-    if (!vehicles || vehicles.length < 2) {
-      throw new Error('At least two vehicles are required for comparison');
-    }
-    
     // Create output directory if it doesn't exist
-    const outputDir = path.join(process.cwd(), 'reports', 'comparison');
+    const outputDir = path.join(process.cwd(), 'reports', 'comparisons');
     await fs.mkdir(outputDir, { recursive: true });
     
     // Generate a unique filename
@@ -207,75 +175,87 @@ export async function generateComparisonReport(
     const filename = `comparison-report-${timestamp}.pdf`;
     const outputPath = path.join(outputDir, filename);
     
-    // Prepare comparison data
-    const comparisonData = {
+    // Create a composite "report data" for the comparison
+    // This is a special case that the PDF generator needs to handle differently
+    const comparisonData: any = {
       vehicles,
       timestamp: new Date().toISOString(),
       title: options.title || 'Vehicle Comparison Report',
       userName: options.userName || 'Car Detective User'
     };
     
-    // Generate the PDF
+    // Generate the PDF with merged options
+    const mergedOptions: ReportOptions = {
+      ...defaultReportOptions,
+      landscape: true, // Comparison reports are typically in landscape
+      ...options
+    };
+    
+    // For comparison reports, we'll call a special template
     await generatePdf(
-      comparisonData,
+      comparisonData as any,
       'comparison-report',
       outputPath,
-      { format: 'A4', printBackground: true, landscape: true },
+      mergedOptions,
       (doc) => {
-        // Add comparison-specific modifications
+        // Add any custom modifications
       }
     );
     
     return outputPath;
   } catch (error) {
     console.error('Error generating comparison report:', error);
-    throw new Error(`Failed to generate comparison report: ${error.message}`);
+    throw new Error(`Failed to generate comparison report: ${(error as Error).message}`);
   }
 }
 
 /**
- * Generates a market trend report
+ * Generates a dealer report PDF
  * @param data The report data
- * @param marketData Market trend data
  * @param options Options for PDF generation
- * @returns Path to the generated PDF
+ * @returns The path to the generated PDF
  */
-export async function generateMarketTrendReport(
+export async function generateDealerReport(
   data: ReportData,
-  marketData: any,
-  options: ReportOptions = {}
+  options: Partial<ReportOptions> = {}
 ): Promise<string> {
   try {
     // Create output directory if it doesn't exist
-    const outputDir = path.join(process.cwd(), 'reports', 'market');
+    const outputDir = path.join(process.cwd(), 'reports', 'dealer');
     await fs.mkdir(outputDir, { recursive: true });
     
     // Generate a unique filename
     const timestamp = new Date().getTime();
-    const filename = `market-trend-report-${data.vin}-${timestamp}.pdf`;
+    const filename = `dealer-report-${data.vin}-${timestamp}.pdf`;
     const outputPath = path.join(outputDir, filename);
     
-    // Combine data
-    const reportData = {
+    // Add dealer-specific data
+    const dealerData = {
       ...data,
-      marketData,
-      isPremium: true
+      isDealer: true,
+      showWholesaleValue: options.showWholesaleValue || false,
+      dealerName: options.dealerName || 'Authorized Dealer'
     };
     
-    // Generate the PDF
+    // Generate the PDF with merged options
+    const mergedOptions: ReportOptions = {
+      ...defaultReportOptions,
+      ...options
+    };
+    
     await generatePdf(
-      reportData,
-      'market-trend-report',
+      dealerData,
+      'dealer-report',
       outputPath,
-      { format: 'A4', printBackground: true },
+      mergedOptions,
       (doc) => {
-        // Add market trend specific modifications
+        // Add dealer watermark or other modifications
       }
     );
     
     return outputPath;
   } catch (error) {
-    console.error('Error generating market trend report:', error);
-    throw new Error(`Failed to generate market trend report: ${error.message}`);
+    console.error('Error generating dealer report:', error);
+    throw new Error(`Failed to generate dealer report: ${(error as Error).message}`);
   }
 }

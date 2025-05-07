@@ -1,5 +1,6 @@
+
 import { getConditionAdjustment } from '../adjustments/conditionAdjustments';
-import { RulesEngineInput } from '../rules/types';
+import { RulesEngineInput, AdjustmentBreakdown } from '../rules/types';
 import { getMileageAdjustment } from '../adjustments/mileageAdjustments';
 import { getDemandAdjustment } from '../adjustments/demandAdjustments';
 import { PhotoScoreCalculator } from '../rules/calculators/photoScoreCalculator';
@@ -11,48 +12,73 @@ interface ValuationBreakdownItem {
   description: string;
 }
 
-interface FinalValuationResult {
+export interface FinalValuationResult {
   estimatedValue: number;
   valuationBreakdown: ValuationBreakdownItem[];
   confidenceScore: number;
   aiCondition?: AICondition;
+  adjustments: {
+    mileageAdjustment: number;
+    conditionAdjustment: number;
+    regionalAdjustment: number;
+    featureAdjustments: Record<string, number>;
+  };
+  totalAdjustments: number;
+  finalValuation: number;
+  conditionSource?: string;
+  aiSummary?: string;
 }
 
 /**
  * Calculates the final valuation based on various factors and adjustments.
  */
 export function calculateFinalValuation(input: RulesEngineInput): FinalValuationResult {
-  const { basePrice, condition, mileage, zipCode, photoScore } = input;
+  const { basePrice = 0, condition, mileage, zipCode, photoScore } = input;
 
   let estimatedValue = basePrice;
   const valuationBreakdown: ValuationBreakdownItem[] = [];
+  let conditionSource = 'user';
+  let aiSummary: string | undefined;
+
+  // Adjustments object
+  const adjustments = {
+    mileageAdjustment: 0,
+    conditionAdjustment: 0,
+    regionalAdjustment: 0,
+    featureAdjustments: {} as Record<string, number>
+  };
 
   // 1. Condition Adjustment
-  const conditionAdjustment = getConditionAdjustment(condition, basePrice);
-  estimatedValue += conditionAdjustment;
+  adjustments.conditionAdjustment = getConditionAdjustment(condition, basePrice);
   valuationBreakdown.push({
     factor: 'Condition',
-    impact: Math.round((conditionAdjustment / basePrice) * 100),
+    impact: Math.round((adjustments.conditionAdjustment / basePrice) * 100),
     description: `Adjustment based on the vehicle's condition (${condition})`
   });
 
   // 2. Mileage Adjustment
-  const mileageAdjustment = getMileageAdjustment(mileage, basePrice);
-  estimatedValue += mileageAdjustment;
+  adjustments.mileageAdjustment = getMileageAdjustment(mileage, basePrice);
   valuationBreakdown.push({
     factor: 'Mileage',
-    impact: Math.round((mileageAdjustment / basePrice) * 100),
+    impact: Math.round((adjustments.mileageAdjustment / basePrice) * 100),
     description: `Adjustment based on the vehicle's mileage (${mileage})`
   });
 
   // 3. Demand Adjustment
-  const demandAdjustment = getDemandAdjustment(zipCode, basePrice);
-  estimatedValue += demandAdjustment;
+  adjustments.regionalAdjustment = getDemandAdjustment(zipCode, basePrice);
   valuationBreakdown.push({
     factor: 'Location',
-    impact: Math.round((demandAdjustment / basePrice) * 100),
+    impact: Math.round((adjustments.regionalAdjustment / basePrice) * 100),
     description: `Adjustment based on the vehicle's location (${zipCode})`
   });
+
+  // 4. Feature Adjustments
+  if (input.features && input.features.length > 0) {
+    input.features.forEach(feature => {
+      const value = Math.round(basePrice * 0.01); // Example: 1% per feature
+      adjustments.featureAdjustments[feature] = value;
+    });
+  }
 
   // 4. Photo Score Adjustment
   if (photoScore) {
@@ -60,7 +86,7 @@ export function calculateFinalValuation(input: RulesEngineInput): FinalValuation
     const photoScoreAdjustment = photoScoreCalculator.calculate(input);
 
     if (photoScoreAdjustment) {
-      estimatedValue += photoScoreAdjustment.value;
+      const photoValue = photoScoreAdjustment.value;
       valuationBreakdown.push({
         factor: 'Photo Score',
         impact: Math.round(photoScoreAdjustment.percentAdjustment * 100),
@@ -69,6 +95,16 @@ export function calculateFinalValuation(input: RulesEngineInput): FinalValuation
     }
   }
 
+  // Calculate total adjustments
+  const totalAdjustments = 
+    adjustments.mileageAdjustment + 
+    adjustments.conditionAdjustment + 
+    adjustments.regionalAdjustment + 
+    Object.values(adjustments.featureAdjustments).reduce((sum, value) => sum + value, 0);
+
+  // Final valuation
+  const finalValuation = basePrice + totalAdjustments;
+  
   // Ensure the estimated value is not negative
   estimatedValue = Math.max(0, estimatedValue);
 
@@ -79,19 +115,30 @@ export function calculateFinalValuation(input: RulesEngineInput): FinalValuation
       confidenceScore: photoScore * 100,
       issuesDetected: []
     };
+    
+    conditionSource = 'ai';
 
     return {
       estimatedValue: Math.round(estimatedValue),
       valuationBreakdown,
       confidenceScore: 85,
-      aiCondition: photoScoreCondition
+      aiCondition: photoScoreCondition,
+      adjustments,
+      totalAdjustments,
+      finalValuation: Math.round(finalValuation),
+      conditionSource,
+      aiSummary
     };
   }
 
   return {
     estimatedValue: Math.round(estimatedValue),
     valuationBreakdown,
-    confidenceScore: 85
+    confidenceScore: 85,
+    adjustments,
+    totalAdjustments,
+    finalValuation: Math.round(finalValuation),
+    conditionSource
   };
 }
 

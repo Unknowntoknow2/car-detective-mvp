@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 
@@ -40,7 +39,7 @@ export async function getValuationByToken(token: string): Promise<ValuationResul
       year: valuation.year,
       mileage: valuation.mileage,
       condition: valuation.condition_score ? valuation.condition_score.toString() : 'Good', // Map to string condition
-      zipCode: valuation.zip || '', // Map zip to zipCode
+      zipCode: valuation.state || '', // Map state to zipCode
       estimatedValue: valuation.estimated_value,
       confidenceScore: valuation.confidence_score,
       fuelType: valuation.fuel_type || '', // Map fuel_type
@@ -102,11 +101,11 @@ export async function fetchValuation(id: string): Promise<ValuationResult> {
       year: data.year,
       mileage: data.mileage,
       condition: mapConditionScore(data.condition_score), // Map condition score to string
-      zipCode: data.zip || '90210', // Default to 90210 if not available
+      zipCode: data.state || '90210', // Default to 90210 if not available
       estimatedValue: data.estimated_value,
       confidenceScore: data.confidence_score,
-      fuelType: data.fuel_type,
-      bestPhotoUrl: data.photo_url,
+      fuelType: data.fuel_type || '',
+      bestPhotoUrl: data.photo_url || '',
       adjustments: generateMockAdjustments(data),
       priceRange: calculatePriceRange(data.estimated_value, data.confidence_score),
       vin: data.vin,
