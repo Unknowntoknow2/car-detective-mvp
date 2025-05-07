@@ -1,102 +1,94 @@
 
-// VIN must be 17 characters, alphanumeric, excluding I, O, Q
-const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
+import React from 'react';
+import { AlertCircle } from 'lucide-react';
 
 /**
- * Checks whether a VIN string is valid based on standard VIN rules.
- * @param vin - The Vehicle Identification Number to validate
- * @returns true if valid, false otherwise
+ * Validates a Vehicle Identification Number (VIN)
+ * @param vin The VIN to validate
+ * @returns Object with validation result and error message
  */
-export function isValidVIN(vin: string): boolean {
-  if (!vin) return false;
-  return VIN_REGEX.test(vin.toUpperCase());
-}
-
-/**
- * Validates a VIN according to ISO 3779 standard
- * @param vin - The Vehicle Identification Number to validate
- * @returns Object with isValid flag and optional error message
- */
-export function validateVIN(vin: string): { isValid: boolean; error?: string } {
-  if (!vin) {
-    return { isValid: false, error: "VIN is required" };
+export function validateVIN(vin: string): { isValid: boolean; error: string } {
+  // Early return if empty - this might be valid for a form that doesn't require VIN
+  if (!vin || vin.trim() === '') {
+    return { isValid: false, error: 'VIN is required' };
   }
 
+  // Check length
   if (vin.length !== 17) {
-    return { isValid: false, error: "VIN must be exactly 17 characters" };
+    return { isValid: false, error: 'VIN must be exactly 17 characters' };
   }
 
-  // Check for valid characters (no I,O,Q)
-  if (/[IOQ]/.test(vin.toUpperCase())) {
-    return { isValid: false, error: "VIN cannot contain letters I, O, or Q" };
+  // Check for invalid characters (VINs only use alphanumeric except I, O, Q)
+  const validVinRegex = /^[A-HJ-NPR-Z0-9]+$/;
+  if (!validVinRegex.test(vin)) {
+    return { 
+      isValid: false, 
+      error: 'VIN contains invalid characters (only alphanumeric allowed, excluding I, O, Q)' 
+    };
   }
 
-  // Basic format validation (alphanumeric only)
-  if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin.toUpperCase())) {
-    return { isValid: false, error: "VIN can only contain letters A-H, J-N, P, R-Z and numbers" };
-  }
-
-  // Check VIN check digit (position 9)
+  // Check digit validation (for North American VINs)
   try {
     if (!validateVinCheckDigit(vin)) {
-      return { isValid: false, error: "Invalid VIN check digit (position 9)" };
+      return { isValid: false, error: 'Invalid VIN check digit - this is not a valid VIN' };
     }
-  } catch (e) {
-    // If check digit validation fails, still allow the VIN
-    console.error("Error validating VIN check digit:", e);
+  } catch (error) {
+    console.error('Error validating VIN check digit:', error);
+    return { isValid: false, error: 'Error validating VIN format' };
   }
 
-  return { isValid: true };
+  return { isValid: true, error: '' };
 }
 
 /**
- * Calculate and validate the VIN check digit according to ISO 3779
- * @param vin - The Vehicle Identification Number to validate
- * @returns true if check digit is valid, false otherwise
+ * Validates the check digit (9th character) of a VIN using the standard algorithm
+ * @param vin The VIN to validate
+ * @returns Boolean indicating if the check digit is valid
  */
-export function validateVinCheckDigit(vin: string): boolean {
-  // Transliteration values for each position
-  const transliterationValues: { [key: string]: number } = {
-    A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8,
-    J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9,
-    S: 2, T: 3, U: 4, V: 5, W: 6, X: 7, Y: 8, Z: 9,
+function validateVinCheckDigit(vin: string): boolean {
+  if (vin.length !== 17) return false;
+  
+  // Character values for check digit calculation
+  const charValues: { [key: string]: number } = {
+    'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8,
+    'J': 1, 'K': 2, 'L': 3, 'M': 4, 'N': 5, 'P': 7, 'R': 9,
+    'S': 2, 'T': 3, 'U': 4, 'V': 5, 'W': 6, 'X': 7, 'Y': 8, 'Z': 9,
     '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '0': 0
   };
 
   // Weight factors for each position
-  const weightFactors = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
-
-  // If VIN is not 17 characters, don't validate check digit
-  if (vin.length !== 17) return false;
-
-  const upperVin = vin.toUpperCase();
-  const checkDigit = upperVin[8];
-  let sum = 0;
-
+  const weights = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+  
   // Calculate weighted sum
+  let sum = 0;
   for (let i = 0; i < 17; i++) {
-    const char = upperVin[i];
-    const value = transliterationValues[char];
+    const char = vin.charAt(i).toUpperCase();
+    const value = charValues[char];
     
-    if (value === undefined) return false;  // Invalid character
+    if (value === undefined) return false; // Invalid character
     
-    sum += value * weightFactors[i];
+    sum += value * weights[i];
   }
-
+  
   // Calculate check digit
   const remainder = sum % 11;
-  const expectedCheckDigit = remainder === 10 ? 'X' : remainder.toString();
-
-  return checkDigit === expectedCheckDigit;
+  const checkDigit = remainder === 10 ? 'X' : remainder.toString();
+  
+  // 9th position (index 8) should match calculated check digit
+  return vin.charAt(8).toUpperCase() === checkDigit;
 }
 
 /**
- * A helper component for displaying VIN-related information messages
+ * React component that provides helpful information about VIN format
  */
-export function VinInfoMessage() {
+export const VinInfoMessage: React.FC = () => {
   return (
-    <div className="flex items-start gap-2 text-xs text-slate-500">
-      <p>Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.</p>
+    <div className="flex items-start gap-1.5 mt-1.5 text-muted-foreground text-xs">
+      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+      <span>
+        A Vehicle Identification Number (VIN) is a unique 17-character code assigned to every vehicle.
+        It's typically found on the driver's side dashboard, door jamb, or vehicle registration.
+      </span>
     </div>
   );
-}
+};
