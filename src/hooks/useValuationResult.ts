@@ -65,12 +65,11 @@ export function useValuationResult(valuationId: string) {
         year: valuationData.year || 0,
         mileage: valuationData.mileage || 0,
         // Use condition_score as a fallback if condition doesn't exist
-        condition: valuationData.condition || 
-                  (valuationData.condition_score ? 
+        condition: valuationData.condition_score ? 
                     (valuationData.condition_score >= 90 ? 'Excellent' : 
                      valuationData.condition_score >= 75 ? 'Good' : 
                      valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
-                    'Good'),
+                    'Good',
         zipCode: valuationData.state || '',
         estimatedValue: valuationData.estimated_value || 0,
         confidenceScore: valuationData.confidence_score || 75,
