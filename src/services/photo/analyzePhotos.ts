@@ -1,62 +1,80 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { PhotoScoringResult, AICondition } from '@/types/photo';
-import { uploadPhotos } from './uploadPhotoService';
 
+/**
+ * Analyzes photos using the photo analysis edge function
+ */
 export async function analyzePhotos(photoUrls: string[], valuationId: string): Promise<PhotoScoringResult> {
   try {
-    // Call the Supabase Edge Function for image analysis
+    if (!photoUrls.length) {
+      return {
+        overallScore: 0,
+        individualScores: [],
+        error: 'No photos provided'
+      };
+    }
+
+    // Call the photo analysis edge function
     const { data, error } = await supabase.functions.invoke('score-image', {
-      body: { photoUrls, valuationId }
+      body: {
+        photoUrls,
+        valuationId
+      }
     });
-    
+
     if (error) {
-      throw new Error(`Failed to analyze photos: ${error.message}`);
+      console.error('Error analyzing photos:', error);
+      return {
+        overallScore: 0,
+        individualScores: [],
+        error: error.message || 'Failed to analyze photos'
+      };
     }
-    
-    if (!data || !data.scores) {
-      throw new Error('Invalid response from photo analysis service');
-    }
-    
-    return {
-      overallScore: data.overallScore || 
-        (data.scores.reduce((sum: number, item: any) => sum + (item.score || 0), 0) / data.scores.length),
-      individualScores: data.scores.map((score: any) => ({
-        url: score.url,
-        score: score.score,
-        isPrimary: score.isPrimary || false,
-        explanation: score.explanation
-      })),
+
+    // Process the response data
+    const result: PhotoScoringResult = {
+      overallScore: data.score || 0,
+      individualScores: data.scores || [],
       aiCondition: data.aiCondition as AICondition
     };
-  } catch (error) {
-    console.error('Error analyzing photos:', error);
-    throw error;
+
+    return result;
+  } catch (error: any) {
+    console.error('Error in analyzePhotos:', error);
+    return {
+      overallScore: 0,
+      individualScores: [],
+      error: error.message || 'Failed to analyze photos'
+    };
   }
 }
 
-export async function uploadAndAnalyzePhotos(photos: File[], valuationId: string): Promise<PhotoScoringResult> {
-  // First upload the photos
-  const uploadedPhotos = await uploadPhotos(photos.map(file => ({
-    id: crypto.randomUUID(),
-    file,
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    uploaded: false,
-    uploading: true,
-    url: URL.createObjectURL(file)
-  })), valuationId);
-  
-  // Extract URLs from uploaded photos
-  const photoUrls = uploadedPhotos
-    .filter(photo => photo.uploaded && photo.url)
-    .map(photo => photo.url);
+export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string): Promise<PhotoScoringResult> => {
+  try {
+    // Upload files to storage
+    const uploadPromises = files.map(async (file) => {
+      const filename = `${valuationId}/${Math.random().toString(36).substring(2)}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(filename, file);
+        
+      if (error) throw error;
+      
+      const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
+      return url;
+    });
     
-  if (photoUrls.length === 0) {
-    throw new Error('No photos were successfully uploaded');
+    const photoUrls = await Promise.all(uploadPromises);
+    
+    // Analyze the photos
+    return await analyzePhotos(photoUrls, valuationId);
+  } catch (error: any) {
+    console.error('Error in uploadAndAnalyzePhotos:', error);
+    return {
+      overallScore: 0,
+      individualScores: [],
+      error: error.message || 'Failed to upload and analyze photos'
+    };
   }
-  
-  // Analyze the photos
-  return analyzePhotos(photoUrls, valuationId);
-}
+};

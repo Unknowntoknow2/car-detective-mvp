@@ -39,13 +39,13 @@ export async function getValuationByToken(token: string): Promise<ValuationResul
       model: valuation.model,
       year: valuation.year,
       mileage: valuation.mileage,
-      condition: valuation.condition,
-      zipCode: valuation.zip_code,
+      condition: valuation.condition_score.toString(), // Map to string condition
+      zipCode: valuation.zip || '', // Map zip to zipCode
       estimatedValue: valuation.estimated_value,
       confidenceScore: valuation.confidence_score,
-      fuelType: valuation.fuel_type,
+      fuelType: valuation.fuel_type || '', // Map fuel_type
       isPremium: valuation.premium_unlocked,
-      bestPhotoUrl: valuation.best_photo_url
+      bestPhotoUrl: valuation.photo_url || '' // Map best_photo_url or photo_url
     };
   } catch (error) {
     console.error('Error in getValuationByToken:', error);
@@ -72,8 +72,8 @@ export async function getAllUserValuations(userId: string): Promise<ValuationRes
       model: val.model,
       year: val.year,
       mileage: val.mileage,
-      condition: val.condition,
-      zipCode: val.zip_code,
+      condition: val.condition_score.toString(), // Map condition_score to condition string
+      zipCode: val.zip || '', // Map zip to zipCode
       estimatedValue: val.estimated_value,
       confidenceScore: val.confidence_score
     }));

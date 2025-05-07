@@ -2,6 +2,7 @@
 import { PDFPage, PDFFont, rgb } from 'pdf-lib';
 import { ReportData, SectionParams } from '../types';
 import { formatCurrency } from '@/utils/formatters';
+import { AdjustmentBreakdown } from '@/utils/rules/types';
 
 /**
  * Draws the valuation section of the PDF
@@ -15,7 +16,7 @@ export function drawValuationSection(
   data: ReportData,
   yPosition: number
 ): number {
-  const { page, margin, width, regularFont, boldFont, contentWidth } = params;
+  const { doc, page, margin, width, regularFont, boldFont, contentWidth } = params;
   let currentY = yPosition;
   
   // Section heading
@@ -67,7 +68,7 @@ export function drawValuationSection(
     const { renderAdjustmentTable } = require('./adjustmentTable');
     
     // Get the base price (can be derived from the final value minus adjustments)
-    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + (adj.value || adj.impact || 0), 0);
     const basePrice = data.estimatedValue - totalAdjustment;
     
     // Render the adjustment table and get the new Y position

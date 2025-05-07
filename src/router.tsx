@@ -1,88 +1,58 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthLayout } from './layouts/AuthLayout';
-import { DashboardLayout } from './layouts/DashboardLayout';
-import { AuthGuard } from './guards/AuthGuard';
-import { GuestGuard } from './guards/GuestGuard';
-
-// Pages
-import HomePage from './pages/HomePage';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import NotFoundPage from './pages/NotFoundPage';
-import LookupPage from './pages/LookupPage';
-import SignInPage from './modules/auth/SignInPage';
-import SignUpPage from './modules/auth/SignUpPage';
-import ForgotPasswordPage from './modules/auth/ForgotPasswordPage';
-import ResetPasswordPage from './modules/auth/ResetPasswordPage';
-import MagicLinkPage from './modules/auth/MagicLinkPage';
-import ConfirmationPage from './modules/auth/ConfirmationPage';
-import AdminAnalyticsDashboard from './components/admin/dashboard/AdminAnalyticsDashboard';
-import DesignSystem from './pages/DesignSystem';
-import PremiumValuationPage from './pages/PremiumValuationPage';
-import MyValuationsPage from './pages/MyValuationsPage';
-import ProfilePage from './pages/ProfilePage';
-import SharePage from './pages/share/[token]';
+import AuthLayout from './layouts/AuthLayout';
+import DashboardLayout from './layouts/DashboardLayout';
+import AuthGuard from './guards/AuthGuard';
+import GuestGuard from './guards/GuestGuard';
 
-const Router = () => {
+// Lazy load pages
+import ForgotPasswordPage from './modules/auth/ForgotPasswordPage';
+import ConfirmationPage, { ConfirmationPageProps } from './modules/auth/ConfirmationPage';
+import VpicDecoderPage from './pages/VpicDecoderPage';
+import NicbVinCheckPage from './pages/NicbVinCheckPage';
+import LookupPage from './pages/LookupPage';
+
+// Admin components
+import { AdminAnalyticsDashboard } from './components/admin/dashboard/AdminAnalyticsDashboard';
+
+export const Router = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<HomePage />} />
-        
-        {/* Auth routes */}
+    <Routes>
+      {/* Auth routes */}
+      <Route element={<AuthLayout />}>
         <Route element={<GuestGuard />}>
-          <Route element={<AuthLayout title="Sign In" />}>
-            <Route path="/login" element={<SignInPage />} />
-          </Route>
-          <Route element={<AuthLayout title="Sign Up" />}>
-            <Route path="/register" element={<SignUpPage />} />
-          </Route>
-          <Route element={<AuthLayout title="Reset Password" />}>
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          </Route>
-          <Route element={<AuthLayout title="Reset Password" />}>
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-          </Route>
-          <Route element={<AuthLayout title="Magic Link" />}>
-            <Route path="/magic-link" element={<MagicLinkPage />} />
-          </Route>
-          <Route 
-            path="/auth/confirmation" 
-            element={
-              <ConfirmationPage 
-                title="Email Confirmed" 
-                message="Your email has been confirmed! You can now sign in."
-                buttonText="Sign In"
-                buttonHref="/login"
-              />
-            } 
-          />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/signup-success" element={
+            <ConfirmationPage 
+              title="Registration Successful" 
+              message="Your account has been created. You can now log in." 
+              buttonText="Go to Login" 
+              buttonHref="/login" 
+            />
+          } />
         </Route>
-        
-        {/* Protected routes */}
+      </Route>
+
+      {/* Protected dashboard routes */}
+      <Route element={<DashboardLayout />}>
         <Route element={<AuthGuard />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/lookup/*" element={<LookupPage />} />
-            <Route path="/valuations" element={<MyValuationsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/premium-valuation" element={<PremiumValuationPage />} />
-            <Route path="/admin/analytics" element={<AdminAnalyticsDashboard />} />
-          </Route>
+          <Route path="/admin/analytics" element={<AdminAnalyticsDashboard />} />
         </Route>
-        
-        {/* Shared valuation page */}
-        <Route path="/share/:token" element={<SharePage />} />
-        
-        {/* Design system (development only) */}
-        <Route path="/design" element={<DesignSystem />} />
-        
-        {/* Not found */}
-        <Route path="/404" element={<NotFoundPage />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
-    </BrowserRouter>
+      </Route>
+
+      {/* Public routes */}
+      <Route path="/vpic-decoder" element={<VpicDecoderPage />} />
+      <Route path="/nicb-check" element={<NicbVinCheckPage />} />
+      <Route path="/lookup" element={<LookupPage />} />
+      <Route path="/lookup/vin" element={<LookupPage />} />
+
+      {/* Redirect root to lookup */}
+      <Route path="/" element={<Navigate to="/lookup" replace />} />
+
+      {/* 404 route */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 };
-
-export default Router;

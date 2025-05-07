@@ -1,124 +1,124 @@
 
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
+import { AdjustmentBreakdown } from '@/utils/rules/types';
 import { formatCurrency } from '@/utils/formatters';
 
 /**
- * Renders a valuation adjustment table in the PDF
- * 
- * @param params Section parameters for the PDF
- * @param basePrice The base vehicle price before adjustments
- * @param adjustments Array of adjustment items with factor, impact, and optional description
- * @param yPosition The Y position to start drawing the table
- * @returns The new Y position after drawing the table
+ * Renders an adjustment table in the PDF
+ * @param params PDF section parameters
+ * @param basePrice The base price before adjustments
+ * @param adjustments Array of adjustment breakdowns
+ * @param yPosition Current Y position in the PDF
+ * @returns New Y position after drawing the table
  */
 export function renderAdjustmentTable(
   params: SectionParams,
   basePrice: number,
-  adjustments: Array<{ factor: string; impact: number; description?: string }>,
+  adjustments: AdjustmentBreakdown[],
   yPosition: number
 ): number {
-  const { page, margin, contentWidth, regularFont, boldFont } = params;
+  const { doc, page, margin, contentWidth, regularFont, boldFont } = params;
+
+  if (!page || !doc) {
+    console.error('PDF page or document not defined');
+    return yPosition;
+  }
+
+  // Title
   let currentY = yPosition;
-  
-  // Title for the adjustments table
-  page.drawText('Valuation Breakdown:', {
+  page.drawText('Value Adjustments', {
+    x: margin,
+    y: currentY,
+    size: 14,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1)
+  });
+
+  currentY -= 20;
+
+  // Base price row
+  page.drawText('Base Value:', {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: regularFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+
+  page.drawText(formatCurrency(basePrice), {
+    x: margin + (contentWidth || 0) - 100,
+    y: currentY,
+    size: 12,
+    font: boldFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+
+  currentY -= 15;
+
+  // Draw separator line
+  page.drawLine({
+    start: { x: margin, y: currentY + 5 },
+    end: { x: margin + (contentWidth || 0), y: currentY + 5 },
+    thickness: 0.5,
+    color: rgb(0.8, 0.8, 0.8)
+  });
+
+  currentY -= 10;
+
+  // Draw adjustments
+  for (const adj of adjustments) {
+    const adjValue = adj.value || adj.impact || 0;
+    const isPositive = adjValue > 0;
+    
+    page.drawText(adj.name || adj.factor || 'Adjustment', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+
+    page.drawText(`${isPositive ? '+' : ''}${formatCurrency(adjValue)}`, {
+      x: margin + (contentWidth || 0) - 100,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: isPositive ? rgb(0.2, 0.7, 0.2) : rgb(0.8, 0.2, 0.2)
+    });
+
+    currentY -= 20;
+  }
+
+  // Draw separator line
+  page.drawLine({
+    start: { x: margin, y: currentY + 10 },
+    end: { x: margin + (contentWidth || 0), y: currentY + 10 },
+    thickness: 0.5,
+    color: rgb(0.8, 0.8, 0.8)
+  });
+
+  currentY -= 5;
+
+  // Draw final value
+  page.drawText('Final Estimated Value:', {
     x: margin,
     y: currentY,
     size: 12,
     font: boldFont,
-    color: rgb(0.3, 0.3, 0.3)
+    color: rgb(0.1, 0.1, 0.1)
   });
-  
-  currentY -= 20;
-  
-  // If no adjustments, display a message and exit
-  if (!adjustments || adjustments.length === 0) {
-    page.drawText('No adjustments applied. Final value equals base price.', {
-      x: margin,
-      y: currentY,
-      size: 10,
-      font: regularFont,
-      color: rgb(0.5, 0.5, 0.5)
-    });
-    return currentY - 15;
-  }
-  
-  // Draw the base price row
-  const labelX = margin;
-  const valueX = margin + contentWidth - 80;
-  
-  page.drawText('Base Price:', {
-    x: labelX,
-    y: currentY,
-    size: 10,
-    font: boldFont,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-  
-  page.drawText(formatCurrency(basePrice), {
-    x: valueX,
-    y: currentY,
-    size: 10,
-    font: boldFont,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-  
-  currentY -= 15;
-  
-  // Draw each adjustment line
-  for (const adjustment of adjustments) {
-    const prefix = adjustment.impact >= 0 ? '+ ' : '- ';
-    const absValue = Math.abs(adjustment.impact);
-    
-    page.drawText(`${prefix}${adjustment.factor}`, {
-      x: labelX,
-      y: currentY,
-      size: 10,
-      font: regularFont,
-      color: rgb(0.3, 0.3, 0.3)
-    });
-    
-    page.drawText(`${prefix}${formatCurrency(absValue)}`, {
-      x: valueX,
-      y: currentY,
-      size: 10,
-      font: regularFont,
-      color: rgb(0.3, 0.3, 0.3)
-    });
-    
-    currentY -= 15;
-  }
-  
-  // Draw horizontal line before total
-  page.drawLine({
-    start: { x: valueX - 50, y: currentY + 5 },
-    end: { x: valueX + 80, y: currentY + 5 },
-    thickness: 1,
-    color: rgb(0.7, 0.7, 0.7)
-  });
-  
-  currentY -= 15;
-  
-  // Calculate total value
-  const totalValue = basePrice + adjustments.reduce((sum, adj) => sum + adj.impact, 0);
-  
-  // Draw the final value
-  page.drawText('Final Adjusted Value:', {
-    x: labelX,
+
+  const totalAdjustment = adjustments.reduce((sum, adj) => sum + (adj.value || adj.impact || 0), 0);
+  const finalValue = basePrice + totalAdjustment;
+
+  page.drawText(formatCurrency(finalValue), {
+    x: margin + (contentWidth || 0) - 100,
     y: currentY,
     size: 12,
     font: boldFont,
-    color: rgb(0.2, 0.2, 0.2)
+    color: rgb(0.1, 0.1, 0.1)
   });
-  
-  page.drawText(formatCurrency(totalValue), {
-    x: valueX,
-    y: currentY,
-    size: 12,
-    font: boldFont,
-    color: rgb(0.2, 0.2, 0.2)
-  });
-  
-  return currentY - 10;
+
+  return currentY - 20;
 }

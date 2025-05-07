@@ -1,5 +1,5 @@
 
-import { AdjustmentBreakdown } from '@/types/valuation';
+import { AdjustmentBreakdown } from '@/utils/rules/types';
 import { AICondition } from '@/types/photo';
 
 export interface ReportData {
@@ -63,3 +63,5 @@ export interface SectionParams {
   boldFont?: any;
   italicFont?: any;
 }
+
+export type RotationTypes = number | 'degrees';

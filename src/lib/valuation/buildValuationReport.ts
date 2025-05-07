@@ -80,8 +80,8 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
           mileage: input.mileage || plateLookup.mileage || 0,
           condition: input.condition || 'Good',
           zip: input.zipCode,
-          transmission: plateLookup.transmission,
-          fuelType: plateLookup.fuelType
+          transmission: plateLookup.transmission || undefined,
+          fuelType: plateLookup.fuelType || undefined
         };
         break;
 
@@ -155,9 +155,7 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     }
 
     // 4. Calculate Valuation
-    const valuationResult = await calculateValuation(valuationParams, (progress: number) => {
-      console.log(`Valuation progress: ${progress}%`);
-    });
+    const valuationResult = await calculateValuation(valuationParams);
 
     if (!valuationResult) {
       throw new Error('Failed to calculate valuation');
@@ -196,15 +194,21 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
       estimatedValue: valuationResult.estimatedValue,
       confidenceScore: valuationResult.confidenceScore,
       adjustments: valuationResult.adjustments.map((adj: AdjustmentBreakdown) => ({
-        factor: adj.name,
-        impact: adj.value,
-        description: adj.description || ""
+        name: adj.name,
+        value: adj.value,
+        percentAdjustment: adj.percentAdjustment,
+        description: adj.description || "",
+        factor: adj.name
       })),
       priceRange: valuationResult.priceRange,
       isPremium: isPremiumUser,
       photoScore,
       bestPhotoUrl: bestPhotoUrl || null,
-      aiCondition,
+      aiCondition: aiCondition ? {
+        condition: (aiCondition.condition as "Excellent" | "Good" | "Fair" | "Poor"),
+        confidenceScore: aiCondition.confidenceScore,
+        issuesDetected: aiCondition.issuesDetected || []
+      } : undefined,
       explanation,
       vin: input.vin,
       features: input.features
@@ -226,10 +230,10 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
           features: result.features || [],
           valuationId: result.id,
           adjustments: result.adjustments?.map(adj => ({
-            name: adj.factor,
-            value: adj.impact,
-            percentAdjustment: (adj.impact / result.estimatedValue) * 100,
-            description: adj.description
+            name: adj.name || adj.factor || "",
+            value: adj.value,
+            percentAdjustment: adj.percentAdjustment,
+            description: adj.description || ""
           })) || [],
           aiCondition: result.aiCondition,
           bestPhotoUrl: result.bestPhotoUrl || undefined,

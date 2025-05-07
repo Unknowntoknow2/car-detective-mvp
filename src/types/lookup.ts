@@ -1,14 +1,27 @@
 
 export interface PlateLookupInfo {
-  vin: string;
+  vin?: string;
+  plate: string;
+  state: string;
   make: string;
   model: string;
   year: number;
   color?: string;
-  trim?: string;
-  plate: string; // Make this required since it's a plate lookup
-  state: string; // Make this required since it's a plate lookup
-  registeredState?: string;
-  estimatedValue?: number;
-  mileage?: number; // Add this for PDF generation
+  mileage?: number;
+  transmission?: string;
+  fuelType?: string;
+  bodyType?: string;
+}
+
+export interface VINLookupResponse {
+  success: boolean;
+  data?: {
+    make: string;
+    model: string;
+    year: number;
+    trim?: string;
+    engine?: string;
+    transmission?: string;
+  };
+  error?: string;
 }

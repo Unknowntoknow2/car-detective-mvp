@@ -4,6 +4,7 @@ export interface AICondition {
   confidenceScore: number;
   issuesDetected?: string[];
   aiSummary?: string;
+  summary?: string; // Alias for aiSummary for backward compatibility
 }
 
 export interface Photo {
@@ -37,6 +38,7 @@ export interface PhotoScoringResult {
   photoScore?: number;
   error?: string;
   uploadPhotos?: (files: File[]) => Promise<Photo[]>;
+  createPhotoScores?: () => Promise<PhotoScore[]>;
 }
 
 export const MAX_FILES = 5;

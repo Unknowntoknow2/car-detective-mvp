@@ -32,3 +32,27 @@ export interface ValuationResult {
   priceRange: [number, number];
   confidenceScore: number;
 }
+
+export interface ValuationInput {
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+  trim?: string;
+  fuelType?: string;
+  transmission?: string;
+  features?: string[];
+  accidentCount?: number;
+  color?: string;
+  premiumFeatures?: boolean;
+}
+
+export interface FinalValuationResult {
+  basePrice: number;
+  estimatedValue: number;
+  priceRange: [number, number];
+  confidenceScore: number;
+  adjustments: AdjustmentBreakdown[];
+}

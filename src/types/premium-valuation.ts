@@ -1,3 +1,4 @@
+
 export interface FormData {
   // Vehicle identification
   identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
@@ -55,6 +56,13 @@ export interface FormData {
     description?: string;
   }>;
   estimatedValue?: number;
+  explanation?: string;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  };
 }
 
 // Add FeatureOption interface used by component files
