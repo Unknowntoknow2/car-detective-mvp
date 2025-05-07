@@ -18,64 +18,76 @@ export function useValuationResult(valuationId: string) {
       // Check if this is a premium report
       const isPremium = await checkPremiumAccess(valuationId);
       
-      // Make a copy of the data to make our transformations on
-      const transformedData = { ...data, isPremium };
+      // Create a consistent data structure with all required properties
+      const transformedData = { 
+        ...data,
+        isPremium,
+        // Set default values for required properties
+        estimatedValue: 0,
+        confidenceScore: 75,
+        bodyStyle: null,
+        bodyType: null,
+        fuelType: null,
+        color: null,
+        explanation: null,
+        transmission: null
+      };
       
-      // Handle camelCase and snake_case variations for estimatedValue/estimated_value
+      // Handle estimatedValue (camelCase) and estimated_value (snake_case)
       if (data.estimatedValue !== undefined) {
         transformedData.estimatedValue = data.estimatedValue;
       } else if (data.estimated_value !== undefined) {
         transformedData.estimatedValue = data.estimated_value;
-      } else {
-        transformedData.estimatedValue = 0;
       }
       
-      // Handle camelCase and snake_case variations for confidenceScore/confidence_score
+      // Handle confidenceScore (camelCase) and confidence_score (snake_case)
       if (data.confidenceScore !== undefined) {
         transformedData.confidenceScore = data.confidenceScore;
       } else if (data.confidence_score !== undefined) {
         transformedData.confidenceScore = data.confidence_score;
-      } else {
-        transformedData.confidenceScore = 75;
       }
       
-      // Add additional properties with proper null fallbacks
-      transformedData.color = data.color || null;
+      // Handle color
+      if (data.color !== undefined) {
+        transformedData.color = data.color;
+      }
       
-      // Handle bodyStyle/body_style
+      // Handle bodyStyle (camelCase) and body_style (snake_case)
       if (data.bodyStyle !== undefined) {
         transformedData.bodyStyle = data.bodyStyle;
       } else if (data.body_style !== undefined) {
         transformedData.bodyStyle = data.body_style;
-      } else {
-        transformedData.bodyStyle = null;
       }
       
-      // Handle bodyType/body_type
+      // Handle bodyType (camelCase) and body_type (snake_case)
       if (data.bodyType !== undefined) {
         transformedData.bodyType = data.bodyType;
       } else if (data.body_type !== undefined) {
         transformedData.bodyType = data.body_type;
-      } else {
-        transformedData.bodyType = null;
       }
       
-      // Handle fuelType/fuel_type
+      // Handle fuelType (camelCase) and fuel_type (snake_case)
       if (data.fuelType !== undefined) {
         transformedData.fuelType = data.fuelType;
       } else if (data.fuel_type !== undefined) {
         transformedData.fuelType = data.fuel_type;
-      } else {
-        transformedData.fuelType = null;
       }
       
-      transformedData.explanation = data.explanation || null;
-      transformedData.transmission = data.transmission || null;
+      // Handle explanation and transmission
+      if (data.explanation !== undefined) {
+        transformedData.explanation = data.explanation;
+      }
+      
+      if (data.transmission !== undefined) {
+        transformedData.transmission = data.transmission;
+      }
       
       // Add snake_case versions for backward compatibility
       transformedData.body_style = transformedData.bodyStyle;
       transformedData.body_type = transformedData.bodyType;
       transformedData.fuel_type = transformedData.fuelType;
+      transformedData.estimated_value = transformedData.estimatedValue;
+      transformedData.confidence_score = transformedData.confidenceScore;
       
       return transformedData;
     },

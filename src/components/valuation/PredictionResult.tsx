@@ -61,8 +61,28 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
     }
   }, [error, retryCount, refetch, manualValuation]);
 
+  // Apply AI condition override if it exists and has high confidence
+  const getValuationWithAIOverride = () => {
+    if (!data) return null;
+    
+    // Create a copy of the data
+    const valuationWithOverride = { ...data };
+    
+    // Apply AI condition override if available and confidence score is high enough
+    if (conditionData && conditionData.confidenceScore >= 70) {
+      valuationWithOverride.condition = conditionData.condition;
+      valuationWithOverride.aiCondition = conditionData;
+      
+      // Recalculate the estimated value if needed
+      // Note: In a full implementation, you would call your valuation engine here
+      // For now, we'll just use the existing estimated value
+    }
+    
+    return valuationWithOverride;
+  };
+
   // Handle manual valuation data if provided and no database data was found
-  const valuationData = data || (manualValuation && error ? {
+  const valuationData = getValuationWithAIOverride() || (manualValuation && error ? {
     id: 'manual-' + Date.now(),
     make: manualValuation.make,
     model: manualValuation.model,
@@ -190,6 +210,9 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         Math.round(valuationData.estimatedValue * 1.05)
       ];
 
+  // Determine if the AI condition was used
+  const isAIVerified = !!(valuationData.aiCondition && valuationData.aiCondition.confidenceScore >= 70);
+
   return (
     <div className="space-y-6">
       <ValuationResults
@@ -197,8 +220,8 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         confidenceScore={valuationData.confidenceScore || 75}
         priceRange={priceRange}
         adjustments={valuationData.adjustments}
-        aiVerified={!!conditionData && conditionData.confidenceScore > 70}
-        aiCondition={conditionData}
+        aiVerified={isAIVerified}
+        aiCondition={valuationData.aiCondition || conditionData}
       />
       
       <div className="mt-6">
