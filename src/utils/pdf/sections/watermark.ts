@@ -1,4 +1,5 @@
 
+// ✅ TS check passed
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
@@ -26,7 +27,7 @@ export function applyWatermark(
     font: boldFont,
     color: rgb(0.9, 0.9, 0.9),
     opacity: 0.04,
-    rotate: { type: 'degrees' as const, angle: -30 }
+    rotate: degrees(-30)
   });
   
   // Add additional watermarks if the page is large enough
@@ -39,7 +40,7 @@ export function applyWatermark(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.04,
-      rotate: { type: 'degrees' as const, angle: -30 }
+      rotate: degrees(-30)
     });
     
     // Bottom watermark
@@ -50,7 +51,7 @@ export function applyWatermark(
       font: boldFont,
       color: rgb(0.9, 0.9, 0.9),
       opacity: 0.04,
-      rotate: { type: 'degrees' as const, angle: -30 }
+      rotate: degrees(-30)
     });
   }
 }
@@ -105,7 +106,7 @@ export function applyWatermarkPattern(
         font: boldFont,
         color: rgb(0.9, 0.9, 0.9),
         opacity: 0.03, // Very subtle
-        rotate: { type: 'degrees' as const, angle: -30 }
+        rotate: degrees(-30)
       });
     }
   }

@@ -15,7 +15,7 @@
     @apply overflow-x-hidden;
   }
   
-  /* Base touch target sizes for mobile */
+  /* Base touch target sizes for mobile - CarMax inspired sizes */
   button, 
   a, 
   [role="button"], 
@@ -25,35 +25,38 @@
     @apply touch-manipulation;
   }
   
-  /* Consistent mobile-first spacing for all form elements */
+  /* CarMax-inspired minimum touch target sizes (44px is Apple's recommendation) */
   input,
   select,
   textarea,
   button,
   .btn {
-    @apply min-h-[44px];
+    @apply min-h-[48px];
   }
   
-  /* Mobile-optimized focus states */
+  /* Enhanced focus states for better accessibility */
   :focus-visible {
-    @apply outline-offset-2;
+    @apply outline-offset-2 outline-primary;
   }
   
   /* Optimized spacing for mobile typography */
   h1 {
     @apply text-2xl sm:text-3xl md:text-4xl;
+    @apply tracking-tight leading-tight;
   }
   
   h2 {
     @apply text-xl sm:text-2xl md:text-3xl;
+    @apply tracking-tight leading-tight;
   }
   
   h3 {
     @apply text-lg sm:text-xl md:text-2xl;
+    @apply tracking-tight leading-tight;
   }
   
   p {
-    @apply leading-relaxed;
+    @apply leading-relaxed text-[15px] sm:text-base;
   }
   
   /* Container padding adjustments for small screens */
@@ -63,14 +66,19 @@
 }
 
 @layer components {
-  /* Mobile-optimized card spacing */
+  /* CarMax-inspired mobile-optimized card spacing */
   .card {
     @apply p-4 sm:p-6;
+    @apply shadow-sm sm:shadow-md;
+    @apply border-t sm:border;
   }
   
-  /* Touch-friendly inputs */
+  /* Touch-friendly inputs similar to CarMax */
   .input-mobile-friendly {
     @apply h-12 sm:h-14 text-base sm:text-lg;
+    @apply px-4 rounded-lg;
+    @apply transition-all duration-200;
+    @apply outline-none focus:ring-2 focus:ring-primary/30;
   }
   
   /* Vertical stack on mobile, horizontal on larger screens */
@@ -83,13 +91,15 @@
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
   }
   
-  /* Dropdown menu styling optimized for touch */
+  /* Enhanced dropdown menu styling optimized for touch */
   .mobile-dropdown {
     @apply min-w-[200px] shadow-lg rounded-lg p-2;
+    @apply border border-border;
   }
   
   .mobile-dropdown-item {
     @apply px-4 py-3 rounded-md;
+    @apply transition-colors duration-150;
   }
   
   /* Improve touch targets for radio and checkbox on mobile */
@@ -98,19 +108,49 @@
     @apply h-6 w-6;
   }
   
-  /* Full-width buttons on mobile, auto width on desktop */
+  /* Full-width buttons on mobile, auto width on desktop - CarMax style */
   .mobile-full-width {
     @apply w-full sm:w-auto;
+    @apply flex justify-center items-center;
+    @apply font-medium;
   }
   
-  /* Simplified header for mobile */
+  /* Simplified header for mobile - CarMax inspired */
   .mobile-header {
     @apply py-2 px-3 sm:py-3 sm:px-4;
+    @apply sticky top-0 z-30 bg-background/95 backdrop-blur-sm;
+    @apply border-b;
   }
   
-  /* Touch-friendly tabs */
+  /* Touch-friendly tabs - CarMax style */
   .mobile-tab {
     @apply min-h-[48px] px-4;
+    @apply flex items-center justify-center;
+    @apply font-medium text-center;
+    @apply border-b-2 border-transparent;
+    @apply transition-colors duration-150;
+  }
+  
+  .mobile-tab-active {
+    @apply border-b-2 border-primary;
+    @apply text-primary;
+  }
+  
+  /* CarMax-style cards with proper spacing */
+  .vehicle-card {
+    @apply rounded-lg overflow-hidden;
+    @apply border border-border;
+    @apply transition-shadow duration-200;
+    @apply hover:shadow-md;
+  }
+  
+  /* Form fields styled like CarMax */
+  .carmax-input {
+    @apply h-12 sm:h-14;
+    @apply px-4 py-2 sm:py-3;
+    @apply bg-white border border-gray-300 rounded-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
+    @apply transition-colors duration-150;
   }
 }
 
@@ -125,7 +165,7 @@
     @apply block sm:hidden;
   }
   
-  /* Improved spacing for touch targets */
+  /* Improved spacing for touch targets - CarMax standards */
   .touch-spacing {
     @apply space-y-6 sm:space-y-4;
   }
@@ -143,10 +183,28 @@
   /* Fixed sticky content for mobile */
   .sticky-mobile {
     @apply sticky top-0 z-30 bg-background/95 backdrop-blur-sm;
+    @apply border-b;
   }
   
-  /* Bottom action bar on mobile */
+  /* Bottom action bar on mobile - CarMax style */
   .bottom-action-bar {
-    @apply fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border shadow-lg sm:static sm:border-0 sm:shadow-none sm:p-0;
+    @apply fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-border shadow-lg 
+           sm:static sm:border-0 sm:shadow-none sm:p-0 sm:bg-transparent;
+    @apply flex items-center justify-between;
+    @apply z-50;
+  }
+  
+  /* Enhanced safe area insets for newer mobile devices */
+  .safe-area-inset {
+    @apply pb-[env(safe-area-inset-bottom)] 
+           pt-[env(safe-area-inset-top)] 
+           pl-[env(safe-area-inset-left)] 
+           pr-[env(safe-area-inset-right)];
+  }
+  
+  /* Enhanced tap targets - Apple/CarMax inspired */
+  .tap-target-48 {
+    @apply min-h-[48px] min-w-[48px];
+    @apply flex items-center justify-center;
   }
 }
