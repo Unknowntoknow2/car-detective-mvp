@@ -43,21 +43,23 @@ export function useDealerValuations(dealerId: string): UseDealerValuationsResult
         
         // Apply condition filter
         if (conditionFilter !== 'all') {
-          query = query.eq('condition_score', getConditionScoreRange(conditionFilter));
+          const scoreRange = getConditionScoreRange(conditionFilter);
+          // Use specific range comparison based on condition
+          if (conditionFilter === 'excellent') {
+            query = query.gte('condition_score', scoreRange);
+          } else if (conditionFilter === 'poor') {
+            query = query.lt(60); // Poor is less than 60
+          } else {
+            // For good and fair, we use between ranges
+            const upperLimit = conditionFilter === 'good' ? 90 : 75;
+            query = query.gte('condition_score', scoreRange).lt('condition_score', upperLimit);
+          }
         }
         
         // Get count first with a separate query
-        const countQuery = supabase.from('valuations').select('id', { count: 'exact' });
-        
-        if (dealerId) {
-          countQuery.eq('dealer_id', dealerId);
-        }
-        
-        if (conditionFilter !== 'all') {
-          countQuery.eq('condition_score', getConditionScoreRange(conditionFilter));
-        }
-        
-        const { count, error: countError } = await countQuery;
+        const { count, error: countError } = await supabase
+          .from('valuations')
+          .select('id', { count: 'exact' });
         
         if (countError) throw new Error(countError.message);
         

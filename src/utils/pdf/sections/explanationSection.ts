@@ -1,72 +1,71 @@
 
-import { PDFPage, PDFFont, rgb, Color } from 'pdf-lib';
+import { rgb } from 'pdf-lib';
+import { SectionParams } from '../types';
 
 /**
- * Draws the explanation section on the PDF
- * Returns the new Y position after drawing
+ * Draws the explanation section of the PDF
  */
 export function drawExplanationSection(
-  explanation: string | undefined,
-  page: PDFPage,
-  yPosition: number,
-  margin: number,
-  fonts: { regular: PDFFont; bold: PDFFont },
-  titleColor: Color = rgb(0.12, 0.46, 0.70) // Default color
+  params: SectionParams,
+  explanation: string,
+  yPosition: number
 ): number {
-  if (!explanation) {
-    return yPosition;
-  }
-
-  const { regular, bold } = fonts;
+  const { page, margin, regularFont, boldFont, contentWidth = 512 } = params;
+  const sectionTitle = "Valuation Explanation";
   
-  // Draw section header
-  page.drawText('Expert Commentary', {
+  // Draw section title
+  page.drawText(sectionTitle, {
     x: margin,
     y: yPosition,
-    size: 16,
-    font: bold,
-    color: titleColor,
+    size: 14,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1)
   });
-  yPosition -= 25;
-
-  // Break explanation into paragraphs
-  const paragraphs = explanation.split(/\n\n|\r\n\r\n/);
   
-  // Draw each paragraph
-  paragraphs.forEach((paragraph) => {
-    // Wrap text at about 80 characters per line
-    const maxCharsPerLine = 80;
-    let currentLine = '';
-    const words = paragraph.split(' ');
+  yPosition -= 25;
+  
+  // Break the explanation text into multiple lines
+  const fontSize = 10;
+  const lineHeight = 14;
+  const maxWidth = contentWidth;
+  const words = explanation.split(' ');
+  let currentLine = '';
+  let linesCount = 0;
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const testLineWidth = regularFont.widthOfTextAtSize(testLine, fontSize);
     
-    for (const word of words) {
-      if ((currentLine + word).length > maxCharsPerLine) {
-        page.drawText(currentLine, {
-          x: margin,
-          y: yPosition,
-          size: 12,
-          font: regular,
-        });
-        yPosition -= 18;
-        currentLine = word + ' ';
-      } else {
-        currentLine += word + ' ';
-      }
-    }
-    
-    if (currentLine.trim().length > 0) {
+    if (testLineWidth <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      // Draw the current line and start a new one
       page.drawText(currentLine, {
         x: margin,
-        y: yPosition,
-        size: 12,
-        font: regular,
+        y: yPosition - (linesCount * lineHeight),
+        size: fontSize,
+        font: regularFont,
+        color: rgb(0.2, 0.2, 0.2)
       });
-      yPosition -= 18;
+      
+      linesCount++;
+      currentLine = word;
     }
+  }
+  
+  // Draw the last line
+  if (currentLine) {
+    page.drawText(currentLine, {
+      x: margin,
+      y: yPosition - (linesCount * lineHeight),
+      size: fontSize,
+      font: regularFont,
+      color: rgb(0.2, 0.2, 0.2)
+    });
     
-    // Add space between paragraphs
-    yPosition -= 8;
-  });
-
-  return yPosition;
+    linesCount++;
+  }
+  
+  // Return the new vertical position after the explanation section
+  return yPosition - (linesCount * lineHeight) - 20;
 }

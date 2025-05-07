@@ -48,3 +48,45 @@ export function drawTextPair(
     color: valueColor
   });
 }
+
+/**
+ * Draws a section heading on a PDF
+ */
+export function drawSectionHeading(
+  page: PDFPage,
+  text: string,
+  yPosition: number,
+  margin: number,
+  font: any,
+  fontSize: number = 14,
+  color: Color = rgb(0.1, 0.1, 0.1)
+) {
+  page.drawText(text, {
+    x: margin,
+    y: yPosition,
+    size: fontSize,
+    font: font,
+    color: color
+  });
+  
+  return yPosition - 20; // Return the new Y position after the heading
+}
+
+/**
+ * Draws a horizontal line on a PDF
+ */
+export function drawHorizontalLine(
+  page: PDFPage, 
+  startX: number, 
+  endX: number, 
+  y: number, 
+  lineWidth: number = 1,
+  lineColor: Color = rgb(0.8, 0.8, 0.8)
+) {
+  page.drawLine({
+    start: { x: startX, y },
+    end: { x: endX, y },
+    thickness: lineWidth,
+    color: lineColor,
+  });
+}

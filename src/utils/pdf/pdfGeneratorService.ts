@@ -83,6 +83,13 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
   // Start main content below header
   currentY = height - 120;
   
+  // Create a unified params object to pass to section drawing functions
+  const sectionParams = {
+    page,
+    fonts,
+    constants
+  };
+  
   // Add discrete sections
   
   // Vehicle Information Section
@@ -113,7 +120,7 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
       photoExplanation: reportData.photoExplanation
     };
     
-    const sectionParams = {
+    const aiSectionParams = {
       page,
       yPosition: currentY,
       margin,
@@ -125,9 +132,8 @@ export async function generateValuationPdf(reportData: ReportData): Promise<Uint
       }
     };
     
-    // Handle the case where the function might return a promise or a number
-    const newY = drawAIConditionSection(conditionParams, sectionParams);
-    currentY = typeof newY === 'number' ? newY : await newY;
+    // Handle async operation correctly
+    currentY = await drawAIConditionSection(conditionParams, aiSectionParams);
     currentY = currentY - 15;
   }
   

@@ -1,6 +1,6 @@
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ReportData, ReportOptions } from './types';
+import { ReportData, ReportOptions, SectionParams } from './types';
 import { drawVehicleInfoSection } from './sections/vehicleInfoSection';
 import { drawValuationSection } from './sections/valuationSection';
 import { drawExplanationSection } from './sections/explanationSection';
@@ -61,40 +61,29 @@ export async function generatePdf(
   
   yPosition -= 70; // Move down after header
   
-  // Create a params object that we'll pass to the section drawing functions
-  const sectionParams = {
+  // Create a unified params object to pass to all section drawing functions
+  const sectionParams: SectionParams = {
     page,
     width,
     height,
     margin,
     regularFont,
-    boldFont
+    boldFont,
+    contentWidth
   };
   
   // Add vehicle info section
   yPosition = drawVehicleInfoSection(
-    page,
-    {
-      data,
-      yPosition,
-      width,
-      margin,
-      regularFont,
-      boldFont
-    }
+    sectionParams,
+    data,
+    yPosition
   );
   
   // Add main valuation section
   yPosition = drawValuationSection(
-    page,
-    {
-      data,
-      yPosition,
-      width,
-      margin,
-      regularFont,
-      boldFont
-    }
+    sectionParams,
+    data,
+    yPosition
   );
   
   // If there's a best photo available and photo assessment is enabled
@@ -105,42 +94,38 @@ export async function generatePdf(
       photoExplanation: data.photoExplanation
     };
     
-    const aiSectionParams = {
-      page,
-      yPosition,
-      margin,
-      width,
-      fonts: { 
-        regular: regularFont, 
-        bold: boldFont
+    // Use updated parameter structure
+    const updatedYPosition = await drawAIConditionSection(
+      conditionParams, 
+      {
+        page,
+        yPosition,
+        margin,
+        width,
+        fonts: { 
+          regular: regularFont, 
+          bold: boldFont
+        }
       }
-    };
+    );
     
-    // Use as number since the function returns a number, but TypeScript thinks it might be a Promise
-    const newYPosition = drawAIConditionSection(conditionParams, aiSectionParams);
-    yPosition = typeof newYPosition === 'number' ? newYPosition : await newYPosition;
+    // Handle async operation correctly
+    yPosition = updatedYPosition;
   }
   
-  // Add explanation section
+  // Add explanation section with updated parameters
   yPosition = drawExplanationSection(
-    page,
+    sectionParams,
     data.explanation || "No explanation available",
-    yPosition,
-    margin,
-    width - margin * 2,
-    regularFont,
-    boldFont
+    yPosition
   );
   
-  // Add footer
+  // Add footer with updated parameters
   if (options.includeFooter) {
-    drawFooterSection(page, {
-      width,
-      height,
-      margin,
-      regularFont,
-      includeTimestamp: options.includeTimestamp
-    });
+    drawFooterSection(
+      sectionParams,
+      options.includeTimestamp
+    );
   }
   
   // Serialize the PDF to bytes

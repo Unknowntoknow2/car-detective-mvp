@@ -1,22 +1,57 @@
 
+import { PDFPage, PDFFont } from 'pdf-lib';
+
 export interface ReportData {
-  vin: string;
+  vin?: string;
   make: string;
   model: string;
   year: number;
-  mileage: string;
+  mileage: string | number;
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   zipCode: string;
   estimatedValue: number;
   confidenceScore: number;
-  color: string;
-  bodyStyle: string;
-  bodyType: string;
-  fuelType: string;
-  explanation: string;
-  isPremium: boolean;
   valuationId?: string;
+  color?: string;
+  bodyStyle?: string;
+  bodyType?: string;
+  fuelType?: string;
+  explanation?: string;
+  isPremium?: boolean;
+  transmission?: string;
+  plate?: string;
+  state?: string;
+  bestPhotoUrl?: string;
+  photoScore?: number;
+  photoExplanation?: string;
   aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
+}
+
+export interface ReportOptions {
+  includeBranding: boolean;
+  includeAIScore: boolean;
+  includeFooter: boolean;
+  includeTimestamp: boolean;
+  includePhotoAssessment: boolean;
+}
+
+export interface SectionParams {
+  page: PDFPage;
+  width: number;
+  height: number;
+  margin: number;
+  regularFont: PDFFont;
+  boldFont: PDFFont;
+  contentWidth?: number;
+}
+
+export interface AIConditionParams {
+  aiCondition: {
     condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
     confidenceScore: number;
     issuesDetected?: string[];
@@ -24,23 +59,16 @@ export interface ReportData {
   } | null;
   bestPhotoUrl?: string;
   photoExplanation?: string;
-  transmission?: string;
-  priceRange?: [number, number];
-  plate?: string;
-  state?: string;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
 }
 
-export interface ReportOptions {
-  includeBranding?: boolean;
-  includeAIScore?: boolean;
-  includeFooter?: boolean;
-  includeTimestamp?: boolean;
-  includePhotoAssessment?: boolean;
+export interface AIConditionSectionParams {
+  page: PDFPage;
+  yPosition: number;
+  margin: number;
+  width: number;
+  fonts: {
+    regular: PDFFont;
+    bold: PDFFont;
+    italic?: PDFFont;
+  };
 }
-
-export type ValuationReportOptions = ReportOptions;

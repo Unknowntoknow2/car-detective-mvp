@@ -1,66 +1,49 @@
 
-import { PDFPage, rgb, PDFFont } from 'pdf-lib';
-
-interface FooterSectionProps {
-  width: number;
-  height: number;
-  margin: number;
-  regularFont: PDFFont;
-  includeTimestamp?: boolean;
-}
+import { rgb } from 'pdf-lib';
+import { SectionParams } from '../types';
 
 /**
- * Draw footer section on the PDF
+ * Draws the footer section of the PDF
  */
-export async function drawFooterSection(
-  page: PDFPage,
-  props: FooterSectionProps
-): Promise<void> {
-  const { width, height, margin, regularFont, includeTimestamp = true } = props;
-  const footerY = margin;
+export function drawFooterSection(
+  params: SectionParams,
+  includeTimestamp: boolean = true
+): void {
+  const { page, margin, width, height, regularFont, boldFont } = params;
+  const footerY = 30;
   
-  // Draw branding text
-  page.drawText('Report Powered by Car Price Perfector', { 
-    x: margin, 
-    y: footerY, 
-    size: 10, 
-    font: regularFont,
-    color: rgb(0.3, 0.3, 0.3)
+  // Draw horizontal line
+  page.drawLine({
+    start: { x: margin, y: footerY + 15 },
+    end: { x: width - margin, y: footerY + 15 },
+    thickness: 1,
+    color: rgb(0.8, 0.8, 0.8),
   });
   
-  // Draw disclaimer text
-  page.drawText('This estimate is based on market data and vehicle condition. Verify with a professional inspection.', { 
-    x: margin, 
-    y: footerY - 15, 
-    size: 10, 
-    font: regularFont, 
-    color: rgb(0.5, 0.5, 0.5) 
-  });
+  // Draw footer text
+  let footerText = "© Car Detective LLC - For informational purposes only";
   
-  // Draw timestamp if needed
   if (includeTimestamp) {
     const now = new Date();
-    const timestamp = now.toLocaleString();
-    const timestampWidth = regularFont.widthOfTextAtSize(timestamp, 8);
-    
-    page.drawText(timestamp, {
-      x: width - margin - timestampWidth,
-      y: footerY,
-      size: 8,
-      font: regularFont,
-      color: rgb(0.6, 0.6, 0.6)
-    });
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
+    footerText += ` - Generated on ${dateStr} at ${timeStr}`;
   }
   
-  // Draw page number
-  const pageText = 'Page 1 of 1';
-  const pageWidth = regularFont.widthOfTextAtSize(pageText, 8);
-  
-  page.drawText(pageText, {
-    x: width - margin - pageWidth,
-    y: footerY - 15,
+  page.drawText(footerText, {
+    x: margin,
+    y: footerY,
     size: 8,
     font: regularFont,
-    color: rgb(0.6, 0.6, 0.6)
+    color: rgb(0.5, 0.5, 0.5)
+  });
+  
+  // Draw page number
+  page.drawText("Page 1", {
+    x: width - margin - 30,
+    y: footerY,
+    size: 8,
+    font: regularFont,
+    color: rgb(0.5, 0.5, 0.5)
   });
 }
