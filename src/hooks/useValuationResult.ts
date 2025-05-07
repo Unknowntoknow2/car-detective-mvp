@@ -17,7 +17,7 @@ interface ValuationData {
   createdAt: string;
   aiCondition?: any;
   isPremium?: boolean;
-  // Add missing properties to fix Premium Valuation Page errors
+  // Add missing properties for PremiumValuationPage
   color?: string;
   bodyStyle?: string;
   bodyType?: string;
@@ -26,6 +26,7 @@ interface ValuationData {
   transmission?: string;
   bestPhotoUrl?: string;
   photoScore?: number;
+  photoExplanation?: string;
 }
 
 export function useValuationResult(valuationId: string) {
@@ -67,11 +68,11 @@ export function useValuationResult(valuationId: string) {
         year: valuationData.year || 0,
         mileage: valuationData.mileage || 0,
         // Use condition_score as a fallback if condition doesn't exist
-        condition: valuationData.condition_score ? 
+        condition: valuationData.condition || (valuationData.condition_score ? 
                     (valuationData.condition_score >= 90 ? 'Excellent' : 
                      valuationData.condition_score >= 75 ? 'Good' : 
                      valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
-                    'Good',
+                    'Good'),
         zipCode: valuationData.state || '',
         estimatedValue: valuationData.estimated_value || 0,
         confidenceScore: valuationData.confidence_score || 75,
@@ -93,7 +94,7 @@ export function useValuationResult(valuationId: string) {
         ],
         createdAt: valuationData.created_at,
         isPremium: valuationData.premium_unlocked || false,
-        // Add additional properties needed for PremiumValuationPage
+        // Add additional properties with proper fallbacks
         color: valuationData.color || '',
         bodyStyle: valuationData.body_style || '',
         bodyType: valuationData.body_type || '',
@@ -101,7 +102,8 @@ export function useValuationResult(valuationId: string) {
         explanation: valuationData.explanation || '',
         transmission: valuationData.transmission || '',
         bestPhotoUrl: valuationData.best_photo_url || null,
-        photoScore: valuationData.photo_score || null
+        photoScore: valuationData.photo_score || null,
+        photoExplanation: valuationData.photo_explanation || null
       };
 
       setData(transformedData);

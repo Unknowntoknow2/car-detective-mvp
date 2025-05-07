@@ -11,7 +11,7 @@ import { Photo, PhotoScore } from '@/types/photo';
 export async function uploadAndScorePhoto(
   valuationId: string, 
   file: File
-): Promise<{ score: number; url: string; id: string; bestPhoto: boolean }> {
+): Promise<{ score: number; url: string; id: string; bestPhoto: boolean; explanation?: string }> {
   if (!valuationId) {
     throw new Error("No valuation ID provided");
   }
@@ -53,7 +53,8 @@ export async function uploadAndScorePhoto(
       score: scoreData.score,
       url: scoreData.url,
       id: scoreData.id || '',
-      bestPhoto: scoreData.bestPhoto || false
+      bestPhoto: scoreData.bestPhoto || false,
+      explanation: scoreData.explanation || ''
     };
   } catch (err) {
     console.error('Error in uploadAndScorePhoto:', err);
@@ -70,7 +71,7 @@ export async function uploadAndScorePhotos(
 ): Promise<{
   photoUrls: string[];
   scores: PhotoScore[];
-  bestPhoto?: { url: string; score: number };
+  bestPhoto?: { url: string; score: number; explanation?: string };
 }> {
   if (!valuationId) {
     throw new Error("No valuation ID provided");
@@ -90,7 +91,8 @@ export async function uploadAndScorePhotos(
     const scores: PhotoScore[] = results.map(r => ({
       url: r.url,
       score: r.score,
-      isPrimary: r.bestPhoto
+      isPrimary: r.bestPhoto,
+      explanation: r.explanation
     }));
     
     // Find the best photo (highest score)
@@ -102,7 +104,8 @@ export async function uploadAndScorePhotos(
         bestScore = result.score;
         bestPhoto = {
           url: result.url,
-          score: result.score
+          score: result.score,
+          explanation: result.explanation
         };
       }
     }
@@ -113,8 +116,9 @@ export async function uploadAndScorePhotos(
         .from('valuations')
         .update({
           best_photo_url: bestPhoto.url,
-          photo_score: bestPhoto.score
-        })
+          photo_score: bestPhoto.score,
+          photo_explanation: bestPhoto.explanation
+        } as any)
         .eq('id', valuationId);
     }
     
@@ -176,7 +180,7 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
     }
     
     // If this was the best photo, update the valuation with new best photo
-    if (photoData.metadata?.isPrimary) {
+    if (photoData.is_primary) {
       // Find the new best photo
       const { data: remainingPhotos, error: remainingError } = await supabase
         .from('valuation_photos')
@@ -190,8 +194,9 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
           .from('valuations')
           .update({
             best_photo_url: remainingPhotos[0].photo_url,
-            photo_score: remainingPhotos[0].score
-          })
+            photo_score: remainingPhotos[0].score,
+            photo_explanation: remainingPhotos[0].explanation
+          } as any)
           .eq('id', valuationId);
       } else {
         // No photos left, clear the best photo
@@ -199,8 +204,9 @@ export async function deletePhoto(valuationId: string, photoId: string): Promise
           .from('valuations')
           .update({
             best_photo_url: null,
-            photo_score: null
-          })
+            photo_score: null,
+            photo_explanation: null
+          } as any)
           .eq('id', valuationId);
       }
     }

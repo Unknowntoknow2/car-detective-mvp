@@ -55,6 +55,9 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   const condition = valuationData?.condition || fallbackData.condition;
   const location = valuationData?.zipCode || fallbackData.location;
   const valuation = valuationData?.estimatedValue || fallbackData.valuation;
+  const bestPhotoUrl = valuationData?.bestPhotoUrl;
+  const photoScore = valuationData?.photoScore;
+  const photoExplanation = valuationData?.photoExplanation;
 
   // Get explanation data
   const { explanation, loading, error, handleRegenerateExplanation } = useValuationData({
@@ -81,6 +84,8 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
     confidenceScore: valuationDataResult?.confidenceScore,
     conditionData,
     adjustments: valuationDataResult?.adjustments,
+    bestPhotoUrl,
+    photoExplanation
   });
 
   // If we're still loading valuation data and have an ID, show loading state
@@ -108,6 +113,9 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         condition={condition}
         location={location}
         valuation={valuation}
+        bestPhotoUrl={bestPhotoUrl}
+        photoScore={photoScore}
+        photoExplanation={photoExplanation}
       />
       
       {/* AI Condition Assessment */}

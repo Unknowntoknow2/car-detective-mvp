@@ -1,8 +1,11 @@
 
-import { useState, useEffect } from 'react';
-import { Photo, PhotoScore, AICondition } from '@/types/photo';
-import { uploadAndScorePhotos, deletePhoto } from '@/services/photo/uploadPhotoService';
-import { fetchValuationPhotos } from '@/services/photo/fetchPhotos';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Photo, PhotoScore } from '@/types/photo';
+import { v4 as uuidv4 } from 'uuid';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
 
 export function usePhotoUpload(valuationId: string) {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -12,168 +15,262 @@ export function usePhotoUpload(valuationId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
 
-  const fetchPhotos = async () => {
+  // Fetch existing photos on mount
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      if (!valuationId) return;
+
+      try {
+        // Fetch photos from valuation_photos table
+        // Using any to work around TypeScript type issues
+        const { data, error } = await supabase
+          .from('valuation_photos' as any)
+          .select('*')
+          .eq('valuation_id', valuationId);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          // Convert to our Photo type
+          const fetchedPhotos: Photo[] = data.map((item: any) => ({
+            id: item.id,
+            url: item.photo_url,
+            explanation: item.explanation
+          }));
+          
+          setPhotos(fetchedPhotos);
+          
+          // Also set scores
+          const fetchedScores: PhotoScore[] = data.map((item: any) => ({
+            url: item.photo_url,
+            score: item.score,
+            explanation: item.explanation
+          }));
+          
+          setPhotoScores(fetchedScores);
+          
+          // Find best photo (highest score)
+          const highestScorePhoto = [...fetchedScores].sort((a, b) => b.score - a.score)[0];
+          if (highestScorePhoto) {
+            const bestPhotoData = fetchedPhotos.find(p => p.url === highestScorePhoto.url);
+            if (bestPhotoData) {
+              setBestPhoto(bestPhotoData);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching photos:', err);
+        setError('Failed to load existing photos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPhotos();
+  }, [valuationId]);
+
+  // Upload photos
+  const uploadPhotos = async (files: File[]) => {
     if (!valuationId) {
-      setIsLoading(false);
+      setError('No valuation ID provided');
+      return;
+    }
+
+    if (!files.length) {
+      setError('No files selected');
       return;
     }
 
     try {
-      setIsLoading(true);
       setError(null);
-      
-      // Use type assertion to handle the type mismatch with fetchValuationPhotos
-      const fetchedPhotos = await fetchValuationPhotos(valuationId) as unknown as Photo[];
-      
-      if (Array.isArray(fetchedPhotos)) {
-        setPhotos(fetchedPhotos);
-        
-        // Fetch scores from Supabase
-        const { data: scores, error: scoresError } = await supabase
-          .from('photo_scores')
-          .select('*')
-          .eq('valuation_id', valuationId);
-          
-        if (!scoresError && scores) {
-          const photoScores: PhotoScore[] = scores.map(s => ({
-            url: s.thumbnail_url || '',
-            score: s.score,
-            isPrimary: s.metadata?.isPrimary || false
-          }));
-          
-          setPhotoScores(photoScores);
-          
-          // Find best photo
-          const best = photoScores.find(p => p.isPrimary);
-          if (best) {
-            const bestPhotoObj = fetchedPhotos.find(p => p.url === best.url);
-            if (bestPhotoObj) {
-              setBestPhoto(bestPhotoObj);
-            }
-          }
-        }
-        
-        // Get AI condition assessment if available
-        const { data: photoCondition, error: conditionError } = await supabase
-          .from('photo_condition_scores')
-          .select('*')
-          .eq('valuation_id', valuationId)
-          .maybeSingle();
-          
-        if (!conditionError && photoCondition) {
-          setAiCondition({
-            condition: getConditionFromScore(photoCondition.condition_score),
-            confidenceScore: photoCondition.confidence_score,
-            issuesDetected: photoCondition.issues || [],
-            aiSummary: photoCondition.summary || ''
-          });
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching photos:', err);
-      setError('Failed to load photos');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Helper to map score to condition
-  const getConditionFromScore = (score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' | null => {
-    if (score >= 0.85) return 'Excellent';
-    if (score >= 0.70) return 'Good';
-    if (score >= 0.50) return 'Fair';
-    if (score > 0) return 'Poor';
-    return null;
-  };
-
-  useEffect(() => {
-    fetchPhotos();
-  }, [valuationId]);
-
-  // Upload new photos
-  const uploadPhotos = async (files: File[]) => {
-    if (!valuationId) {
-      setError('No valuation ID provided');
-      return null;
-    }
-    
-    if (files.length === 0) {
-      return null;
-    }
-    
-    try {
       setIsUploading(true);
       setProgress(0);
-      setError(null);
-      
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          const newProgress = prev + Math.random() * 10;
-          return newProgress >= 90 ? 90 : newProgress;
+
+      // Filter valid files
+      const validFiles: File[] = [];
+      for (const file of files) {
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+          console.warn(`Skipped file ${file.name}: Invalid type ${file.type}`);
+          continue;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+          console.warn(`Skipped file ${file.name}: Size too large (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+          continue;
+        }
+
+        validFiles.push(file);
+      }
+
+      if (!validFiles.length) {
+        setError('No valid files to upload. Please select JPEG or PNG images under 10MB.');
+        setIsUploading(false);
+        return;
+      }
+
+      const uploadedPhotos: Photo[] = [];
+      const newScores: PhotoScore[] = [];
+
+      // Upload each photo and process with the score-image function
+      for (const [index, file] of validFiles.entries()) {
+        // Create a unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${valuationId}/${uuidv4()}.${fileExt}`;
+        
+        // Convert file to base64 for the score-image function
+        const base64File = await fileToBase64(file);
+        
+        // Call the score-image function with the file data
+        const { data: scoreData, error: scoreError } = await supabase.functions.invoke('score-image', {
+          body: {
+            file: base64File,
+            fileName: `${file.name}`,
+            valuationId
+          }
         });
-      }, 300);
+        
+        if (scoreError) {
+          console.error('Error scoring image:', scoreError);
+          continue;
+        }
+        
+        if (!scoreData) {
+          console.error('No data returned from score-image function');
+          continue;
+        }
+        
+        // Extract the data from the function response
+        const { url, score, id: photoId, explanation } = scoreData;
+        
+        if (!url) {
+          console.error('No URL returned from score-image function');
+          continue;
+        }
+        
+        // Add to our list of photos
+        const newPhoto: Photo = {
+          id: photoId || uuidv4(),
+          url,
+          explanation
+        };
+        
+        uploadedPhotos.push(newPhoto);
+        
+        // Add score data
+        newScores.push({
+          url,
+          score: Number(score) || 0,
+          explanation
+        });
+        
+        // Update progress
+        setProgress(Math.round(((index + 1) / validFiles.length) * 100));
+      }
+
+      // Update state
+      setPhotos(prev => [...prev, ...uploadedPhotos]);
+      setPhotoScores(prev => [...prev, ...newScores]);
       
-      // Upload all files
-      const result = await uploadAndScorePhotos(valuationId, files);
+      // Find new best photo if applicable
+      updateBestPhoto([...photoScores, ...newScores], [...photos, ...uploadedPhotos]);
       
-      clearInterval(progressInterval);
-      setProgress(100);
-      
-      // Update the state with new photos
-      await fetchPhotos();
-      
-      return {
-        score: result.bestPhoto?.score || 0,
-        individualScores: result.scores
-      };
+      return uploadedPhotos;
     } catch (err) {
+      console.error('Error uploading photos:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload photos');
-      return null;
+      throw err;
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Delete a photo
-  const handleDeletePhoto = async (photo: Photo) => {
-    if (!photo.id) {
-      setError('Cannot delete photo without ID');
-      return;
-    }
+  // Helper to find the best photo based on scores
+  const updateBestPhoto = (scores: PhotoScore[], photosList: Photo[]) => {
+    if (!scores.length) return;
     
-    try {
-      await deletePhoto(valuationId, photo.id);
-      await fetchPhotos();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete photo');
+    // Find highest score
+    const sorted = [...scores].sort((a, b) => b.score - a.score);
+    if (sorted.length > 0) {
+      const highestScore = sorted[0];
+      const bestPhotoData = photosList.find(p => p.url === highestScore.url);
+      if (bestPhotoData) {
+        setBestPhoto(bestPhotoData);
+      }
     }
   };
 
-  // Reset all state
-  const resetUpload = async () => {
-    setPhotos([]);
-    setPhotoScores([]);
-    setBestPhoto(null);
-    setIsUploading(false);
-    setProgress(0);
-    setError(null);
-    await fetchPhotos();
+  // Delete a photo
+  const deletePhoto = async (photo: Photo) => {
+    if (!photo.id || !photo.url) return;
+    
+    try {
+      // Delete from Supabase storage
+      // Extract path from URL if needed
+      const urlObj = new URL(photo.url);
+      const filePath = urlObj.pathname.substring(urlObj.pathname.indexOf('/storage/') + 9);
+      
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('vehicle-photos')
+          .remove([filePath]);
+          
+        if (storageError) {
+          console.warn('Error removing from storage:', storageError);
+          // Continue anyway to remove from DB
+        }
+      }
+      
+      // Delete from valuation_photos table
+      const { error: dbError } = await supabase
+        .from('valuation_photos' as any)
+        .delete()
+        .eq('id', photo.id);
+        
+      if (dbError) throw dbError;
+      
+      // Update state
+      setPhotos(prev => prev.filter(p => p.id !== photo.id));
+      setPhotoScores(prev => prev.filter(p => p.url !== photo.url));
+      
+      // Update best photo if needed
+      if (bestPhoto?.id === photo.id) {
+        const remainingScores = photoScores.filter(p => p.url !== photo.url);
+        const remainingPhotos = photos.filter(p => p.id !== photo.id);
+        updateBestPhoto(remainingScores, remainingPhotos);
+      }
+      
+    } catch (err) {
+      console.error('Error deleting photo:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete photo');
+      throw err;
+    }
   };
 
   return {
     photos,
     photoScores,
     bestPhoto,
+    uploadPhotos,
+    deletePhoto,
     isUploading,
     isLoading,
     progress,
-    error,
-    uploadPhotos,
-    deletePhoto: handleDeletePhoto,
-    resetUpload,
-    aiCondition
+    error
   };
+}
+
+// Helper function to convert a file to base64
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+  });
 }

@@ -22,6 +22,7 @@ export async function generateValuationPdf(params: {
     aiSummary?: string;
   } | null;
   bestPhotoUrl?: string;
+  photoExplanation?: string;
 }): Promise<Uint8Array> {
   // Convert the params to the expected ReportData format
   const reportData: ReportData = {
@@ -47,7 +48,8 @@ export async function generateValuationPdf(params: {
       issuesDetected: params.aiCondition.issuesDetected || [],
       aiSummary: params.aiCondition.aiSummary || ''
     } : null,
-    bestPhotoUrl: params.bestPhotoUrl
+    bestPhotoUrl: params.bestPhotoUrl,
+    photoExplanation: params.photoExplanation
   };
   
   return generatePdf(reportData);

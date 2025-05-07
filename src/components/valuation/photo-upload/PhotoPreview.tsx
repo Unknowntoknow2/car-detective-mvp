@@ -3,7 +3,13 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Photo } from '@/types/photo';
 import { Badge } from '@/components/ui/badge';
-import { Star } from 'lucide-react';
+import { Star, Info } from 'lucide-react';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface PhotoPreviewProps {
   photo: Photo;
@@ -56,10 +62,30 @@ export function PhotoPreview({
       {/* Score badge */}
       {showScoreBadge && score !== undefined && (
         <div className="absolute bottom-0 left-0 right-0 p-2">
-          <Badge className={`${getScoreClass(score)} w-full justify-between`}>
-            <span>AI Score</span>
-            <span>{formatScore(score)}</span>
-          </Badge>
+          <div className="flex justify-between items-center">
+            <Badge className={`${getScoreClass(score)} w-full justify-between`}>
+              <span>AI Score</span>
+              <span>{formatScore(score)}</span>
+            </Badge>
+            
+            {/* AI Explanation tooltip */}
+            {photo.explanation && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="ml-1 bg-primary rounded-full flex items-center justify-center w-6 h-6">
+                      <Info className="h-3 w-3 text-white" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="text-xs">
+                      <span className="font-bold">AI Assessment:</span> {photo.explanation}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       )}
     </Card>

@@ -5,7 +5,7 @@ export interface ReportData {
   model: string;
   year: number;
   mileage: string;
-  condition: string;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   zipCode: string;
   estimatedValue: number;
   confidenceScore: number;
@@ -17,37 +17,19 @@ export interface ReportData {
   isPremium: boolean;
   valuationId?: string;
   aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
     confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
+    issuesDetected: string[];
+    aiSummary: string;
   } | null;
   bestPhotoUrl?: string;
-  // Add missing fields
-  plate?: string;
-  state?: string;
-  transmission?: string;
-  adjustments?: any[];
-  priceRange?: [number, number];
-  carfaxData?: any;
+  photoExplanation?: string;
 }
 
-export interface ValuationReportOptions {
-  mileage?: string | number;
-  estimatedValue?: number;
-  confidenceScore?: number;
-  condition?: string;
-  fuelType?: string;
-  zipCode?: string;
-  adjustments?: any[];
-  carfaxData?: any;
-  isPremium?: boolean;
-  explanation?: string;
-  aiCondition?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  } | null;
-  bestPhotoUrl?: string;
+export interface ReportOptions {
+  includeBranding?: boolean;
+  includeAIScore?: boolean;
+  includeFooter?: boolean;
+  includeTimestamp?: boolean;
+  includePhotoAssessment?: boolean;
 }

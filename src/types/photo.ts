@@ -6,6 +6,7 @@ export interface Photo {
   url: string;
   thumbnail?: string;
   id?: string;
+  explanation?: string;
 }
 
 export interface AICondition {
@@ -23,6 +24,7 @@ export interface ValuationPhoto {
   photo_url: string;
   score: number;
   uploaded_at: string;
+  explanation?: string;
 }
 
 // Type for individual photo scores
@@ -30,6 +32,7 @@ export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
+  explanation?: string;
 }
 
 // Type for the return value of the usePhotoScoring hook
@@ -48,5 +51,5 @@ export interface PhotoScoringResult {
   error: string | null;
   resetUpload: () => Promise<void>;
   individualScores: PhotoScore[];
-  isLoading: boolean; // Add the isLoading property
+  isLoading: boolean;
 }
