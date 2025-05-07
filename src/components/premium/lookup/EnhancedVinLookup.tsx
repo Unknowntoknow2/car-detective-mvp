@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVIN } from '@/utils/validation/vin-validation-helpers';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { motion } from 'framer-motion';
 

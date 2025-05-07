@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVIN } from '@/utils/validation/vin-validation-helpers';
 import { useState, useEffect } from 'react';
 
 interface VinLookupProps {

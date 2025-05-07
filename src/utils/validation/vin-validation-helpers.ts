@@ -33,8 +33,7 @@ export function validateVIN(vin: string): { isValid: boolean; error?: string } {
   if (!VIN_REGEX.test(vin.toUpperCase())) {
     return {
       isValid: false,
-      error:
-        "VIN must only contain letters A–H, J–N, P, R–Z and digits 0–9 (excluding I, O, Q)",
+      error: "VIN can only contain letters A-H, J-N, P, R-Z and numbers",
     };
   }
 
