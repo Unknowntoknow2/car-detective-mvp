@@ -31,6 +31,10 @@ export interface ValuationResult {
   gptExplanation?: string;
   vin?: string;
   features?: string[];
+  // Additional fields to match database column names
+  fuel_type?: string;
+  photo_url?: string;
+  zip?: string;
 }
 
 export interface ValuationResultProps {

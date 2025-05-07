@@ -30,8 +30,9 @@ export interface RulesEngineInput {
   valuationId?: string;
   aiConditionOverride?: AICondition;
   // Additional properties for compatibility
-  premiumFeatures?: boolean;
+  premiumFeatures?: string[] | boolean;
   equipmentIds?: string[];
+  trim?: string;
   exteriorColor?: string;
   colorMultiplier?: number;
   fuelTypeMultiplier?: number;
@@ -39,11 +40,18 @@ export interface RulesEngineInput {
   hasOpenRecall?: boolean;
   recallMultiplier?: number;
   warrantyStatus?: string;
+  warrantyMultiplier?: number;
+  bodyStyle?: string;
+  saleDate?: string | Date;
+  drivingProfile?: string;
+  drivingProfileMultiplier?: number;
+  carfaxData?: any;
+  bodyType?: string;
 }
 
-export type AdjustmentCalculator = (
-  input: RulesEngineInput
-) => AdjustmentBreakdown[];
+export interface AdjustmentCalculator {
+  calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> | AdjustmentBreakdown | null;
+}
 
 export interface ValuationInput {
   baseMarketValue: number;

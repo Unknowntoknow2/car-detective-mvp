@@ -14,7 +14,7 @@ export class EquipmentCalculator implements AdjustmentCalculator {
       const { data, error } = await supabase
         .from('equipment_options')
         .select('*')
-        .in('id', input.equipmentIds);
+        .in('id', input.equipmentIds.map(id => parseInt(id, 10) || id));
 
       if (error) {
         console.error('Error fetching equipment options:', error);

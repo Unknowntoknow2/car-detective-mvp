@@ -1,132 +1,97 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Define the shape of our auth context
 interface AuthContextType {
   isAuthenticated: boolean;
-  isLoading: boolean;
-  user: User | null;
-  session: Session | null;
-  signIn: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: Session | null;
-  }>;
-  signOut: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: Session | null;
-  }>;
+  user: any | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a context with a default value
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  user: null,
+  login: async () => {},
+  logout: async () => {},
+  register: async () => {},
+});
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
+// Create a provider component
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  
+  // Check for existing auth on mount
   useEffect(() => {
-    // Get session from local storage
-    const storedSession = localStorage.getItem('session');
-    if (storedSession) {
-      try {
-        const sessionData = JSON.parse(storedSession) as Session;
-        setSession(sessionData);
-        setUser(sessionData.user);
-      } catch (error) {
-        console.error('Failed to parse stored session:', error);
+    const checkAuth = () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        // In a real app, we would validate the token
+        setIsAuthenticated(true);
+        // In a real app, we would fetch user data
+        setUser({ id: '123', name: 'Test User' });
       }
-    }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-      
-      // Store session in localStorage
-      if (session) {
-        localStorage.setItem('session', JSON.stringify(session));
-        localStorage.setItem('auth_token', session.access_token);
-      } else {
-        localStorage.removeItem('session');
-        localStorage.removeItem('auth_token');
-      }
-    });
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
+    
+    checkAuth();
   }, []);
-
-  const signIn = async (email: string, password: string) => {
+  
+  // Login function
+  const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-      return { data: data.session, error: null };
+      // In a real app, this would call an API
+      console.log('Logging in with:', email, password);
+      
+      // Simulate a successful login
+      localStorage.setItem('auth_token', 'fake-token');
+      setIsAuthenticated(true);
+      setUser({ id: '123', name: 'Test User', email });
     } catch (error) {
-      console.error('Error signing in:', error);
-      return { data: null, error: error as Error };
+      console.error('Login error:', error);
+      throw error;
     }
   };
-
-  const signUp = async (email: string, password: string) => {
+  
+  // Logout function
+  const logout = async () => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-      return { data: data.session, error: null };
-    } catch (error) {
-      console.error('Error signing up:', error);
-      return { data: null, error: error as Error };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      localStorage.removeItem('session');
+      // In a real app, this would call an API
       localStorage.removeItem('auth_token');
+      setIsAuthenticated(false);
+      setUser(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Logout error:', error);
+      throw error;
     }
   };
-
+  
+  // Register function
+  const register = async (email: string, password: string, name: string) => {
+    try {
+      // In a real app, this would call an API
+      console.log('Registering with:', email, password, name);
+      
+      // Simulate a successful registration followed by login
+      localStorage.setItem('auth_token', 'fake-token');
+      setIsAuthenticated(true);
+      setUser({ id: '123', name, email });
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  };
+  
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated: !!user,
-        isLoading,
-        user,
-        session,
-        signIn,
-        signOut,
-        signUp,
-      }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Create a hook for using the auth context
+export function useAuth() {
+  return useContext(AuthContext);
+}

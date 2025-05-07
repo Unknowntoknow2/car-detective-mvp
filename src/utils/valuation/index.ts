@@ -1,5 +1,5 @@
+
+// Re-export types
 export * from './types';
-export * from './specializedAdjustments';
-export * from './valuationEngine';
-export * from './enterpriseValuation';
-export * from './examples';
+// Export the calculator module
+export { calculateFinalValuation } from './calculateFinalValuation';

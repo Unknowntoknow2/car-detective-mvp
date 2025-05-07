@@ -1,17 +1,9 @@
 
-/**
- * Generates a description for the photo score adjustment
- * @param photoScore The score from 0-1 representing the condition
- * @param percentAdjustment The percentage adjustment applied
- * @param adjustment The actual dollar amount of the adjustment
- * @returns A human-readable description of the photo score adjustment
- */
 export function getPhotoScoreAdjustmentDescription(
   photoScore: number, 
   percentAdjustment: number, 
   adjustment: number
 ): string {
-  // Format the adjustment as currency
   const formattedAdjustment = Math.abs(adjustment).toLocaleString('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -19,27 +11,15 @@ export function getPhotoScoreAdjustmentDescription(
     maximumFractionDigits: 0
   });
   
-  // Convert the percentage to a displayable format
-  const percentDisplay = Math.abs(Math.round(percentAdjustment * 100)) + '%';
+  const direction = adjustment >= 0 ? 'increased' : 'decreased';
   
-  // Determine the photo quality description based on the score
-  let qualityDescription: string;
   if (photoScore >= 0.9) {
-    qualityDescription = 'excellent';
+    return `Photos show excellent condition, value ${direction} by ${formattedAdjustment}`;
   } else if (photoScore >= 0.7) {
-    qualityDescription = 'good';
+    return `Photos show good condition, no adjustment applied`;
   } else if (photoScore >= 0.5) {
-    qualityDescription = 'fair';
+    return `Photos show fair condition, value ${direction} by ${formattedAdjustment}`;
   } else {
-    qualityDescription = 'poor';
-  }
-
-  // Build the description
-  if (percentAdjustment > 0) {
-    return `Photo analysis verified ${qualityDescription} condition (+${percentDisplay}, ${formattedAdjustment})`;
-  } else if (percentAdjustment < 0) {
-    return `Photo analysis verified ${qualityDescription} condition (-${percentDisplay}, -${formattedAdjustment})`;
-  } else {
-    return `Photo analysis verified ${qualityDescription} condition (no adjustment)`;
+    return `Photos show poor condition, value ${direction} by ${formattedAdjustment}`;
   }
 }

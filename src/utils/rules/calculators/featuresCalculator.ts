@@ -5,7 +5,10 @@ import valuationRules from '../../valuationRules.json';
 
 export class FeaturesCalculator {
   public calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
-    if (!input.premiumFeatures || input.premiumFeatures.length === 0) {
+    // Ensure premiumFeatures exists and has items
+    if (!input.premiumFeatures || 
+        (typeof input.premiumFeatures === 'boolean' && !input.premiumFeatures) ||
+        (Array.isArray(input.premiumFeatures) && input.premiumFeatures.length === 0)) {
       return null;
     }
     
@@ -17,19 +20,29 @@ export class FeaturesCalculator {
     let totalValue = 0;
     const featuresWithValues: { name: string; value: number }[] = [];
 
-    input.premiumFeatures.forEach(feature => {
-      const featureKey = feature.toLowerCase();
-      const featureInfo = featureRules[featureKey as keyof typeof featureRules];
-      
-      if (featureInfo) {
-        const featureValue = input.basePrice * featureInfo.value;
-        totalValue += featureValue;
-        featuresWithValues.push({
-          name: featureInfo.description || feature,
-          value: featureValue
-        });
-      }
-    });
+    // Handle premiumFeatures whether it's a boolean or array
+    if (Array.isArray(input.premiumFeatures)) {
+      input.premiumFeatures.forEach(feature => {
+        const featureKey = feature.toLowerCase();
+        const featureInfo = featureRules[featureKey as keyof typeof featureRules];
+        
+        if (featureInfo) {
+          const featureValue = input.basePrice * featureInfo.value;
+          totalValue += featureValue;
+          featuresWithValues.push({
+            name: featureInfo.description || feature,
+            value: featureValue
+          });
+        }
+      });
+    } else if (typeof input.premiumFeatures === 'boolean' && input.premiumFeatures) {
+      // If it's just a boolean, add a generic premium adjustment
+      totalValue = input.basePrice * 0.05; // 5% premium
+      featuresWithValues.push({
+        name: "Premium Features",
+        value: totalValue
+      });
+    }
     
     // Apply the feature value cap
     const cappedPercentage = Math.min(

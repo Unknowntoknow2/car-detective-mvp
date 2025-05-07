@@ -1,151 +1,144 @@
 
-import { getConditionAdjustment } from '../adjustments/conditionAdjustments';
 import { RulesEngineInput, AdjustmentBreakdown } from '../rules/types';
-import { getMileageAdjustment } from '../adjustments/mileageAdjustments';
-import { getDemandAdjustment } from '../adjustments/demandAdjustments';
-import { PhotoScoreCalculator } from '../rules/calculators/photoScoreCalculator';
 import { AICondition } from '@/types/photo';
+import rulesEngine from '../rulesEngine';
+import { calculateDemandAdjustment } from '../adjustments/demandAdjustments';
 
-interface ValuationBreakdownItem {
-  factor: string;
-  impact: number;
-  description: string;
+export interface ValuationInput {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  trim?: string;
+  fuelType?: string;
+  transmission?: string;
+  features?: string[];
+  accidentCount?: number;
+  color?: string;
+  premiumFeatures?: boolean;
+}
+
+export interface ValuationOutput {
+  estimatedValue: number;
+  basePrice: number;
+  adjustments: AdjustmentBreakdown[];
+  confidenceScore: number;
+  priceRange: [number, number];
 }
 
 export interface FinalValuationResult {
+  basePrice: number;
   estimatedValue: number;
-  valuationBreakdown: ValuationBreakdownItem[];
+  priceRange: [number, number];
   confidenceScore: number;
-  aiCondition?: AICondition;
-  adjustments: {
-    mileageAdjustment: number;
-    conditionAdjustment: number;
-    regionalAdjustment: number;
-    featureAdjustments: Record<string, number>;
-  };
-  totalAdjustments: number;
-  finalValuation: number;
-  conditionSource?: string;
+  adjustments: AdjustmentBreakdown[];
   aiSummary?: string;
+  conditionSource?: string;
 }
 
 /**
- * Calculates the final valuation based on various factors and adjustments.
+ * Calculate the final valuation for a vehicle
  */
-export function calculateFinalValuation(input: RulesEngineInput): FinalValuationResult {
-  const { basePrice = 0, condition, mileage, zipCode, photoScore } = input;
-
-  let estimatedValue = basePrice;
-  const valuationBreakdown: ValuationBreakdownItem[] = [];
-  let conditionSource = 'user';
-  let aiSummary: string | undefined;
-
-  // Adjustments object
-  const adjustments = {
-    mileageAdjustment: 0,
-    conditionAdjustment: 0,
-    regionalAdjustment: 0,
-    featureAdjustments: {} as Record<string, number>
+export async function calculateFinalValuation(
+  input: ValuationInput,
+  basePrice: number,
+  aiCondition?: AICondition | null
+): Promise<FinalValuationResult> {
+  // Convert input to RulesEngineInput
+  const rulesInput: RulesEngineInput = {
+    basePrice,
+    make: input.make,
+    model: input.model,
+    year: input.year,
+    mileage: input.mileage,
+    condition: input.condition,
+    zipCode: input.zipCode,
+    trim: input.trim,
+    fuelType: input.fuelType,
+    transmission: input.transmission,
+    accidentCount: input.accidentCount || 0,
+    color: input.color,
+    features: input.features,
+    premiumFeatures: input.premiumFeatures,
+    // Add AI condition override if present
+    aiConditionOverride: aiCondition
   };
-
-  // 1. Condition Adjustment
-  adjustments.conditionAdjustment = getConditionAdjustment(condition, basePrice);
-  valuationBreakdown.push({
-    factor: 'Condition',
-    impact: Math.round((adjustments.conditionAdjustment / basePrice) * 100),
-    description: `Adjustment based on the vehicle's condition (${condition})`
-  });
-
-  // 2. Mileage Adjustment
-  adjustments.mileageAdjustment = getMileageAdjustment(mileage, basePrice);
-  valuationBreakdown.push({
-    factor: 'Mileage',
-    impact: Math.round((adjustments.mileageAdjustment / basePrice) * 100),
-    description: `Adjustment based on the vehicle's mileage (${mileage})`
-  });
-
-  // 3. Demand Adjustment
-  adjustments.regionalAdjustment = getDemandAdjustment(zipCode, basePrice);
-  valuationBreakdown.push({
-    factor: 'Location',
-    impact: Math.round((adjustments.regionalAdjustment / basePrice) * 100),
-    description: `Adjustment based on the vehicle's location (${zipCode})`
-  });
-
-  // 4. Feature Adjustments
-  if (input.features && input.features.length > 0) {
-    input.features.forEach(feature => {
-      const value = Math.round(basePrice * 0.01); // Example: 1% per feature
-      adjustments.featureAdjustments[feature] = value;
-    });
-  }
-
-  // 4. Photo Score Adjustment
-  if (photoScore) {
-    const photoScoreCalculator = new PhotoScoreCalculator();
-    const photoScoreAdjustment = photoScoreCalculator.calculate(input);
-
-    if (photoScoreAdjustment) {
-      const photoValue = photoScoreAdjustment.value;
-      valuationBreakdown.push({
-        factor: 'Photo Score',
-        impact: Math.round(photoScoreAdjustment.percentAdjustment * 100),
-        description: photoScoreAdjustment.description
-      });
-    }
-  }
-
-  // Calculate total adjustments
-  const totalAdjustments = 
-    adjustments.mileageAdjustment + 
-    adjustments.conditionAdjustment + 
-    adjustments.regionalAdjustment + 
-    Object.values(adjustments.featureAdjustments).reduce((sum, value) => sum + value, 0);
-
-  // Final valuation
-  const finalValuation = basePrice + totalAdjustments;
   
-  // Ensure the estimated value is not negative
-  estimatedValue = Math.max(0, estimatedValue);
-
-  // 5. Photo Analysis Condition
-  if (photoScore) {
-    const photoScoreCondition: AICondition = {
-      condition: getConditionFromScore(photoScore) as "Excellent" | "Good" | "Fair" | "Poor",
-      confidenceScore: photoScore * 100,
-      issuesDetected: []
-    };
-    
-    conditionSource = 'ai';
-
-    return {
-      estimatedValue: Math.round(estimatedValue),
-      valuationBreakdown,
-      confidenceScore: 85,
-      aiCondition: photoScoreCondition,
-      adjustments,
-      totalAdjustments,
-      finalValuation: Math.round(finalValuation),
-      conditionSource,
-      aiSummary
-    };
-  }
-
+  // Calculate adjustments using rules engine
+  const adjustments = await rulesEngine.calculateAdjustments(rulesInput);
+  
+  // Calculate total adjustment
+  const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
+  
+  // Calculate estimated value
+  const estimatedValue = basePrice + totalAdjustment;
+  
+  // Calculate confidence score based on available data
+  const confidenceScore = calculateConfidenceScore(input, adjustments, aiCondition);
+  
+  // Calculate price range based on confidence score
+  const priceRange = calculatePriceRange(estimatedValue, confidenceScore);
+  
+  // Format the result
   return {
-    estimatedValue: Math.round(estimatedValue),
-    valuationBreakdown,
-    confidenceScore: 85,
+    basePrice,
+    estimatedValue,
+    priceRange,
+    confidenceScore,
     adjustments,
-    totalAdjustments,
-    finalValuation: Math.round(finalValuation),
-    conditionSource
+    aiSummary: aiCondition?.aiSummary,
+    conditionSource: aiCondition ? 'AI' : 'User' 
   };
 }
 
-// Helper function to convert score to condition
-function getConditionFromScore(score: number): "Excellent" | "Good" | "Fair" | "Poor" {
-  if (score >= 0.85) return "Excellent";
-  if (score >= 0.7) return "Good";
-  if (score >= 0.5) return "Fair";
-  return "Poor";
+/**
+ * Calculate confidence score based on input data quality
+ */
+function calculateConfidenceScore(
+  input: ValuationInput, 
+  adjustments: AdjustmentBreakdown[],
+  aiCondition?: AICondition | null
+): number {
+  // Base confidence starts at 70%
+  let confidence = 70;
+  
+  // Adjust based on data completeness
+  if (input.fuelType) confidence += 2;
+  if (input.transmission) confidence += 2;
+  if (input.trim) confidence += 3;
+  if (input.color) confidence += 1;
+  if (input.features && input.features.length > 0) confidence += 3;
+  
+  // Adjust based on AI condition data
+  if (aiCondition) {
+    // Add the AI confidence score (normalized to 0-15 range)
+    const aiConfidenceBoost = (aiCondition.confidenceScore / 100) * 15;
+    confidence += aiConfidenceBoost;
+  }
+  
+  // Adjust based on adjustment validity
+  if (adjustments.length >= 3) confidence += 2;
+  if (adjustments.length >= 5) confidence += 3;
+  
+  // Cap confidence at 95%
+  return Math.min(confidence, 95);
+}
+
+/**
+ * Calculate price range based on estimated value and confidence
+ */
+function calculatePriceRange(
+  estimatedValue: number, 
+  confidenceScore: number
+): [number, number] {
+  // Calculate margin based on confidence (less confident = wider range)
+  const margin = ((100 - confidenceScore) / 100) * estimatedValue;
+  
+  // Return price range as [min, max]
+  return [
+    Math.floor(estimatedValue - margin),
+    Math.ceil(estimatedValue + margin)
+  ];
 }

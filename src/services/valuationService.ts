@@ -41,11 +41,14 @@ export async function getValuationByToken(token: string): Promise<ValuationResul
       mileage: valuation.mileage,
       condition: valuation.condition_score ? valuation.condition_score.toString() : 'Good', // Map to string condition
       zipCode: valuation.state || '', // Map state to zipCode
+      zip: valuation.state || '', // Direct DB column mapping
       estimatedValue: valuation.estimated_value,
       confidenceScore: valuation.confidence_score,
       fuelType: valuation.fuel_type || '', // Map fuel_type
+      fuel_type: valuation.fuel_type || '', // Direct DB column mapping
       isPremium: valuation.premium_unlocked,
-      bestPhotoUrl: valuation.photo_url || '' // Map best_photo_url or photo_url
+      bestPhotoUrl: valuation.photo_url || '', // Map best_photo_url
+      photo_url: valuation.photo_url || '' // Direct DB column mapping
     };
   } catch (error) {
     console.error('Error in getValuationByToken:', error);
@@ -73,7 +76,8 @@ export async function getAllUserValuations(userId: string): Promise<ValuationRes
       year: val.year,
       mileage: val.mileage,
       condition: val.condition_score ? val.condition_score.toString() : 'Good', // Map condition_score to condition string
-      zipCode: val.zip || '', // Map zip to zipCode
+      zipCode: val.state || '', // Map state to zipCode
+      zip: val.state || '', // Direct DB column mapping
       estimatedValue: val.estimated_value,
       confidenceScore: val.confidence_score
     }));
@@ -103,10 +107,13 @@ export async function fetchValuation(id: string): Promise<ValuationResult> {
       mileage: data.mileage,
       condition: mapConditionScore(data.condition_score), // Map condition score to string
       zipCode: data.state || '90210', // Default to 90210 if not available
+      zip: data.state || '90210', // Direct DB column mapping
       estimatedValue: data.estimated_value,
       confidenceScore: data.confidence_score,
       fuelType: data.fuel_type || '', // Match property names
+      fuel_type: data.fuel_type || '', // Direct DB column mapping
       bestPhotoUrl: data.photo_url || '', // Match property names
+      photo_url: data.photo_url || '', // Direct DB column mapping
       adjustments: generateMockAdjustments(data),
       priceRange: calculatePriceRange(data.estimated_value, data.confidence_score),
       vin: data.vin,

@@ -1,76 +1,78 @@
+
 {
   "adjustments": {
     "mileage": [
-      { "min": 0, "max": 29999, "percent": 0.025 },
-      { "min": 30000, "max": 59999, "percent": 0 },
-      { "min": 60000, "max": 99999, "percent": -0.05 },
-      { "min": 100000, "max": 149999, "percent": -0.10 },
-      { "min": 150000, "max": 999999, "percent": -0.15 }
+      { "min": 0, "max": 15000, "percent": 0.05 },
+      { "min": 15001, "max": 30000, "percent": 0.03 },
+      { "min": 30001, "max": 60000, "percent": 0 },
+      { "min": 60001, "max": 90000, "percent": -0.05 },
+      { "min": 90001, "max": 120000, "percent": -0.1 },
+      { "min": 120001, "max": 150000, "percent": -0.15 },
+      { "min": 150001, "max": 999999, "percent": -0.25 }
     ],
     "condition": {
-      "excellent": 0.05,
-      "good": 0.0,
-      "fair": -0.075,
+      "excellent": 0.1,
+      "good": 0.05,
+      "fair": -0.05,
       "poor": -0.15
     },
     "zip": {
-      "hot": ["90210", "10001", "60611", "94102", "98101"],
-      "cold": ["78572", "30401", "63115", "35203", "59101"],
+      "hot": ["90210", "10001", "94105", "33139", "98101"],
+      "cold": ["49503", "56301", "87101", "68102", "59601"],
       "adjustments": {
-        "hot": 0.03,
-        "cold": -0.02,
+        "hot": 0.05,
+        "cold": -0.05,
         "default": 0
       }
-    },
-    "premiumFeatures": {
-      "leather seats": { "value": 0.02, "description": "Leather upholstery" },
-      "sunroof": { "value": 0.015, "description": "Sunroof or moonroof" },
-      "navigation": { "value": 0.01, "description": "Built-in navigation system" },
-      "premium audio": { "value": 0.02, "description": "Premium audio system" },
-      "adaptive cruise": { "value": 0.02, "description": "Adaptive cruise control" },
-      "blind spot": { "value": 0.01, "description": "Blind spot monitoring" },
-      "heated seats": { "value": 0.01, "description": "Heated seats" },
-      "360 camera": { "value": 0.02, "description": "360-degree camera system" }
     },
     "accidents": [
       { "count": 0, "percent": 0 },
       { "count": 1, "percent": -0.05 },
-      { "count": 2, "percent": -0.12 },
-      { "count": 3, "percent": -0.20 }
+      { "count": 2, "percent": -0.1 },
+      { "count": 3, "percent": -0.15 }
     ],
     "trims": {
-      "Toyota": {
-        "Camry": [
-          { "trim": "LE", "percent": -0.05 },
-          { "trim": "SE", "percent": 0 },
-          { "trim": "XLE", "percent": 0.07 },
-          { "trim": "XSE", "percent": 0.10 }
+      "toyota": {
+        "camry": [
+          { "trim": "le", "percent": 0 },
+          { "trim": "se", "percent": 0.03 },
+          { "trim": "xle", "percent": 0.05 },
+          { "trim": "xse", "percent": 0.07 },
+          { "trim": "trd", "percent": 0.1 }
         ],
-        "RAV4": [
-          { "trim": "LE", "percent": -0.05 },
-          { "trim": "XLE", "percent": 0 },
-          { "trim": "Adventure", "percent": 0.07 },
-          { "trim": "Limited", "percent": 0.10 },
-          { "trim": "TRD Off-Road", "percent": 0.15 }
+        "rav4": [
+          { "trim": "le", "percent": 0 },
+          { "trim": "xle", "percent": 0.04 },
+          { "trim": "adventure", "percent": 0.08 },
+          { "trim": "trd off-road", "percent": 0.12 }
         ]
       },
-      "Honda": {
-        "Civic": [
-          { "trim": "LX", "percent": -0.03 },
-          { "trim": "Sport", "percent": 0 },
-          { "trim": "EX", "percent": 0.05 },
-          { "trim": "Touring", "percent": 0.10 }
+      "honda": {
+        "accord": [
+          { "trim": "lx", "percent": 0 },
+          { "trim": "sport", "percent": 0.05 },
+          { "trim": "ex", "percent": 0.03 },
+          { "trim": "touring", "percent": 0.1 }
         ]
       }
     },
-    "featureValueCap": 0.15
+    "premiumFeatures": {
+      "leather": { "value": 0.02, "description": "Leather Interior" },
+      "sunroof": { "value": 0.01, "description": "Sunroof" },
+      "navigation": { "value": 0.01, "description": "Navigation System" },
+      "premium_audio": { "value": 0.015, "description": "Premium Audio System" },
+      "third_row": { "value": 0.02, "description": "Third Row Seating" },
+      "awd": { "value": 0.03, "description": "All-Wheel Drive" }
+    },
+    "featureValueCap": 0.10
   },
-  "confidenceRules": {
-    "vin": 30,
-    "zip": 15,
-    "mileage": 15,
-    "yearMakeModel": 20,
-    "condition": 10,
-    "carfax": 10
+  "confidenceScores": {
+    "baselineScore": 80,
+    "adjustments": {
+      "hasVin": 5,
+      "hasAccidentData": 3,
+      "hasPhotoAnalysis": 5,
+      "hasPremiumFeatures": 2
+    }
   }
 }
