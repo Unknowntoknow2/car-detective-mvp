@@ -13,8 +13,7 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // We need to update the auth context to ensure it has signUp
-  const auth = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,20 +28,19 @@ const RegisterPage: React.FC = () => {
     setError(null);
     
     try {
-      // Use optional chaining to handle potential missing signUp method
-      const result = await auth?.signUp?.(email, password);
+      const result = await signUp(email, password);
       
       if (result?.error) {
         setError(result.error.message || 'Registration failed');
+        setIsLoading(false);
         return;
       }
       
-      // Redirect to dashboard on successful registration
-      navigate('/dashboard');
+      // Navigate to login page after registration
+      navigate('/login');
     } catch (err) {
       setError('An error occurred during registration');
       console.error(err);
-    } finally {
       setIsLoading(false);
     }
   };

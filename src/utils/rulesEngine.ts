@@ -1,5 +1,5 @@
 
-import { RulesEngine as RulesEngineImplementation } from './rules/RulesEngine';
+import { RulesEngine as RulesEngineImplementation, AdjustmentBreakdown } from './rules/RulesEngine';
 
 // Create and export an instance of the rules engine
 export const RulesEngine = RulesEngineImplementation;
@@ -10,3 +10,5 @@ export interface ValuationAuditTrail {
   impact: number;
   description: string;
 }
+
+export { AdjustmentBreakdown };

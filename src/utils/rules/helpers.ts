@@ -1,4 +1,8 @@
 
+export function sum(values: number[]): number {
+  return values.reduce((acc, val) => acc + val, 0);
+}
+
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

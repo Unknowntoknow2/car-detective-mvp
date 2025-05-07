@@ -1,119 +1,67 @@
-import { Rule } from './types';
+
+import { Rule, RulesEngineInput, AdjustmentBreakdown } from './types';
 
 export class RulesEngine {
-  private rules: Rule[];
+  private rules: Rule[] = [];
 
-  constructor(rules: Rule[]) {
+  constructor(rules: Rule[] = []) {
     this.rules = rules;
   }
 
-  public evaluate(data: any): any {
-    let results: any = {};
+  addRule(rule: Rule): void {
+    this.rules.push(rule);
+  }
 
-    for (const rule of this.rules) {
+  addRules(rules: Rule[]): void {
+    this.rules = [...this.rules, ...rules];
+  }
+
+  evaluate(facts: RulesEngineInput): any {
+    // Sort rules by priority if defined
+    const sortedRules = [...this.rules].sort((a, b) => {
+      const priorityA = a.priority ?? 0;
+      const priorityB = b.priority ?? 0;
+      return priorityB - priorityA; // Higher priority first
+    });
+
+    // Apply rules in order
+    let result: any = null;
+    const auditTrail: AdjustmentBreakdown[] = [];
+
+    for (const rule of sortedRules) {
       try {
-        const condition = this.evaluateCondition(rule.condition, data);
-
-        if (condition) {
-          const consequence = this.evaluateConsequence(rule.consequence, data);
-          results = { ...results, ...consequence };
+        // Check if condition is met
+        const conditionMet = typeof rule.condition === 'function' 
+          ? rule.condition(facts)
+          : rule.condition;
+        
+        if (conditionMet) {
+          // Apply consequence
+          const consequence = typeof rule.consequence === 'function'
+            ? rule.consequence(facts)
+            : rule.consequence;
+          
+          result = consequence;
+          
+          // Add to audit trail if consequence has adjustment data
+          if (consequence && typeof consequence === 'object' && 'impact' in consequence) {
+            auditTrail.push({
+              factor: rule.name,
+              impact: consequence.impact,
+              description: rule.description || ''
+            });
+          }
         }
       } catch (error) {
-        console.error(`Error evaluating rule ${rule.name}:`, error);
+        console.error(`Error evaluating rule '${rule.name}':`, error);
       }
     }
 
-    return results;
-  }
-
-  private evaluateCondition(condition: any, data: any): boolean {
-    if (typeof condition === 'boolean') {
-      return condition;
-    }
-
-    if (typeof condition === 'function') {
-      return condition(data);
-    }
-
-    if (Array.isArray(condition)) {
-      return condition.every(subCondition => this.evaluateCondition(subCondition, data));
-    }
-
-    if (typeof condition === 'object' && condition !== null) {
-      const { fact, operator, value } = condition;
-      const factValue = data[fact];
-
-      switch (operator) {
-        case 'equal':
-          return factValue == value;
-        case 'notEqual':
-          return factValue != value;
-        case 'greaterThan':
-          return factValue > value;
-        case 'lessThan':
-          return factValue < value;
-        case 'greaterThanOrEqual':
-          return factValue >= value;
-        case 'lessThanOrEqual':
-          return factValue <= value;
-        case 'contains':
-          if (!Array.isArray(factValue)) {
-            console.warn(`'contains' operator requires fact '${fact}' to be an array.`);
-            return false;
-          }
-          return factValue.includes(value);
-        case 'notContains':
-          if (!Array.isArray(factValue)) {
-            console.warn(`'notContains' operator requires fact '${fact}' to be an array.`);
-            return false;
-          }
-          return !factValue.includes(value);
-        case 'isOneOf':
-          if (!Array.isArray(value)) {
-            console.warn(`'isOneOf' operator requires value to be an array.`);
-            return false;
-          }
-          return value.includes(factValue);
-        case 'isNotOneOf':
-          if (!Array.isArray(value)) {
-            console.warn(`'isNotOneOf' operator requires value to be an array.`);
-            return false;
-          }
-          return !value.includes(factValue);
-        default:
-          console.warn(`Unknown operator: ${operator}`);
-          return false;
-      }
-    }
-
-    console.warn(`Unknown condition type: ${typeof condition}`);
-    return false;
-  }
-
-  private evaluateConsequence(consequence: any, data: any): any {
-    if (typeof consequence === 'function') {
-      return consequence(data);
-    }
-
-    if (typeof consequence === 'object' && consequence !== null) {
-      let results: any = {};
-
-      for (const key in consequence) {
-        if (consequence.hasOwnProperty(key)) {
-          const value = consequence[key];
-
-          if (typeof value === 'function') {
-            results[key] = value(data);
-          } else {
-            results[key] = value;
-          }
-        }
-      }
-
-      return results;
-    }
-
-    console.warn(`Unknown consequence type: ${typeof consequence}`);
-    return {};
+    return {
+      result,
+      auditTrail
+    };
   }
 }
+
+export { AdjustmentBreakdown };

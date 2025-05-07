@@ -8,6 +8,7 @@ export interface NicbData {
   theft_date?: string;
   recovery_date?: string;
   last_checked?: string;
+  records?: any[];
 }
 
 // Define the response types for the NICB API

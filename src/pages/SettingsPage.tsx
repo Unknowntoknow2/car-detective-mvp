@@ -11,8 +11,7 @@ const SettingsPage: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      // Use optional chaining to handle potential missing signOut method
-      await signOut?.();
+      await signOut();
       navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);

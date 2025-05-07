@@ -1,73 +1,54 @@
 
-import React, { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { isValidVIN } from '@/utils/validation/vin-validation-helpers';
-import { useNicbVinCheck } from '@/hooks/useNicbVinCheck';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { NicbVinCheck } from '@/components/valuation/NicbVinCheck';
 
-export default function NicbVinCheckPage() {
-  const [vin, setVin] = useState('');
-  const { data, loading, error, checkVin } = useNicbVinCheck();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isValidVIN(vin)) {
-      await checkVin(vin);
-    } else {
-      alert('Please enter a valid 17-character VIN.');
-    }
-  };
-
+const NicbVinCheckPage: React.FC = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <Navbar />
-      <main className="flex-1 container mx-auto py-6 px-4">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>NICB VIN Check</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Enter 17-character VIN"
-                  value={vin}
-                  onChange={(e) => setVin(e.target.value.toUpperCase())}
-                  className="w-full"
-                />
-              </div>
-              <Button disabled={loading} className="w-full">
-                {loading ? 'Checking...' : 'Check VIN'}
-              </Button>
-            </form>
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            {data && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold">Results</h3>
-                <p>VIN: {data.vin}</p>
-                <p>Is Stolen: {data.is_stolen ? 'Yes' : 'No'}</p>
-                <p>Is Recovered: {data.is_recovered ? 'Yes' : 'No'}</p>
-                <p>Has Title Issues: {data.has_title_issues ? 'Yes' : 'No'}</p>
-                {data.theft_date && <p>Theft Date: {data.theft_date}</p>}
-                {data.recovery_date && <p>Recovery Date: {data.recovery_date}</p>}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-      <Footer />
+    <div className="container mx-auto py-8 px-4">
+      <h1 className="text-2xl font-bold mb-2">NICB VIN Check</h1>
+      <p className="text-muted-foreground mb-6">
+        Check if a vehicle has been reported stolen or has title issues
+      </p>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Theft & Title Check</CardTitle>
+          <CardDescription>
+            Enter a VIN to check the National Insurance Crime Bureau (NICB) database
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NicbVinCheck />
+        </CardContent>
+      </Card>
+      
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">About NICB VIN Check</h2>
+        <div className="prose max-w-none">
+          <p>
+            The NICB VIN Check is a free service provided by the National Insurance Crime 
+            Bureau to help consumers identify potentially stolen vehicles or vehicles with 
+            salvage or title issues.
+          </p>
+          <p>
+            This tool checks against the NICB's database which contains information on:
+          </p>
+          <ul>
+            <li>Vehicles reported as stolen and unrecovered</li>
+            <li>Vehicles reported as stolen and later recovered</li>
+            <li>Vehicles with salvage or other title issues</li>
+          </ul>
+          <p>
+            <strong>Note:</strong> While the NICB VIN Check is a valuable resource, it should not 
+            be your only source of information when purchasing a used vehicle. Always consider 
+            getting a comprehensive vehicle history report and having the vehicle inspected by 
+            a trusted mechanic.
+          </p>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default NicbVinCheckPage;
