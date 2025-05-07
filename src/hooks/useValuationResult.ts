@@ -18,25 +18,66 @@ export function useValuationResult(valuationId: string) {
       // Check if this is a premium report
       const isPremium = await checkPremiumAccess(valuationId);
       
-      // Return the data with standardized property names to work with our components
-      return {
-        ...data,
-        isPremium,
-        // Map to consistent camelCase format for frontend use
-        estimatedValue: data.estimatedValue || data.estimated_value || 0,
-        confidenceScore: data.confidenceScore || data.confidence_score || 75,
-        // Add these properties in a consistent format
-        bodyStyle: data.bodyStyle || data.body_style || null,
-        bodyType: data.bodyType || data.body_type || null,
-        fuelType: data.fuelType || data.fuel_type || null,
-        color: data.color || null,
-        explanation: data.explanation || null,
-        transmission: data.transmission || null,
-        // These are accessed in PremiumValuationPage.tsx so we need to ensure they exist
-        body_style: data.bodyStyle || data.body_style || null,
-        body_type: data.bodyType || data.body_type || null,
-        fuel_type: data.fuelType || data.fuel_type || null
-      };
+      // Make a copy of the data to make our transformations on
+      const transformedData = { ...data, isPremium };
+      
+      // Handle camelCase and snake_case variations for estimatedValue/estimated_value
+      if (data.estimatedValue !== undefined) {
+        transformedData.estimatedValue = data.estimatedValue;
+      } else if (data.estimated_value !== undefined) {
+        transformedData.estimatedValue = data.estimated_value;
+      } else {
+        transformedData.estimatedValue = 0;
+      }
+      
+      // Handle camelCase and snake_case variations for confidenceScore/confidence_score
+      if (data.confidenceScore !== undefined) {
+        transformedData.confidenceScore = data.confidenceScore;
+      } else if (data.confidence_score !== undefined) {
+        transformedData.confidenceScore = data.confidence_score;
+      } else {
+        transformedData.confidenceScore = 75;
+      }
+      
+      // Add additional properties with proper null fallbacks
+      transformedData.color = data.color || null;
+      
+      // Handle bodyStyle/body_style
+      if (data.bodyStyle !== undefined) {
+        transformedData.bodyStyle = data.bodyStyle;
+      } else if (data.body_style !== undefined) {
+        transformedData.bodyStyle = data.body_style;
+      } else {
+        transformedData.bodyStyle = null;
+      }
+      
+      // Handle bodyType/body_type
+      if (data.bodyType !== undefined) {
+        transformedData.bodyType = data.bodyType;
+      } else if (data.body_type !== undefined) {
+        transformedData.bodyType = data.body_type;
+      } else {
+        transformedData.bodyType = null;
+      }
+      
+      // Handle fuelType/fuel_type
+      if (data.fuelType !== undefined) {
+        transformedData.fuelType = data.fuelType;
+      } else if (data.fuel_type !== undefined) {
+        transformedData.fuelType = data.fuel_type;
+      } else {
+        transformedData.fuelType = null;
+      }
+      
+      transformedData.explanation = data.explanation || null;
+      transformedData.transmission = data.transmission || null;
+      
+      // Add snake_case versions for backward compatibility
+      transformedData.body_style = transformedData.bodyStyle;
+      transformedData.body_type = transformedData.bodyType;
+      transformedData.fuel_type = transformedData.fuelType;
+      
+      return transformedData;
     },
     enabled: !!valuationId,
     staleTime: 1000 * 60 * 5, // 5 minutes
