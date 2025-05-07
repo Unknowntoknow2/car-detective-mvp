@@ -1,47 +1,7 @@
-
+// src/utils/validation/enhanced-validation.ts
 import React from 'react';
 import { z } from 'zod';
 
-// VIN validation constants
-const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
-
-/**
- * Validates a VIN string and returns structured feedback
- */
-export function validateVIN(vin: string): { isValid: boolean; error?: string } {
-  if (!vin) {
-    return { isValid: false, error: 'VIN is required' };
-  }
-
-  if (vin.length !== 17) {
-    return { isValid: false, error: 'VIN must be exactly 17 characters' };
-  }
-
-  if (/[IOQ]/.test(vin.toUpperCase())) {
-    return { isValid: false, error: 'VIN cannot contain letters I, O, or Q' };
-  }
-
-  if (!VIN_REGEX.test(vin.toUpperCase())) {
-    return {
-      isValid: false,
-      error: 'VIN must only contain letters A-H, J-N, P, R-Z and digits 0-9',
-    };
-  }
-
-  return { isValid: true };
-}
-
-/**
- * Checks if a VIN is valid based on standard VIN rules
- */
-export function isValidVIN(vin: string): boolean {
-  const result = validateVIN(vin);
-  return result.isValid;
-}
-
-/**
- * Schema for manual entry validation
- */
 export const EnhancedManualEntrySchema = z.object({
   make: z.string().min(1, "Make is required"),
   model: z.string().min(1, "Model is required"),
@@ -59,17 +19,14 @@ export const EnhancedManualEntrySchema = z.object({
   vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format").optional(),
 });
 
-/**
- * Informational component to explain VIN format
- */
-export const EnhancedVinInfoMessage: React.FC = () => {
+export const VinInfoMessage: React.FC = () => {
   return (
     <div className="text-sm text-gray-500">
       <p>A valid VIN:</p>
       <ul className="list-disc list-inside space-y-1 ml-2 mt-1">
-        <li>Contains exactly 17 characters</li>
-        <li>Does not contain I, O, or Q</li>
-        <li>Contains only letters A-H, J-N, P, R-Z and numbers</li>
+        <li>Exactly 17 characters</li>
+        <li>No I, O, or Q</li>
+        <li>Only letters A–H, J–N, P, R–Z, and digits 0–9</li>
       </ul>
     </div>
   );
