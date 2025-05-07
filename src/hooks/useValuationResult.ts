@@ -4,6 +4,35 @@ import { supabase } from '@/integrations/supabase/client';
 import { getValuationResult, checkPremiumAccess } from '@/utils/valuationService';
 import { Valuation } from '@/types/valuation-history';
 
+// Define a more specific type for the valuation result
+type ValuationResultData = {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  adjustments?: { factor: string; impact: number; description: string }[];
+  isPremium: boolean;
+  bodyStyle?: string | null;
+  bodyType?: string | null;
+  fuelType?: string | null;
+  color?: string | null;
+  explanation?: string | null;
+  transmission?: string | null;
+  aiCondition?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  } | null;
+  bestPhotoUrl?: string;
+};
+
 export function useValuationResult(valuationId: string) {
   return useQuery({
     queryKey: ['valuation', valuationId],
@@ -19,7 +48,7 @@ export function useValuationResult(valuationId: string) {
       const isPremium = await checkPremiumAccess(valuationId);
       
       // Create a consistent data structure with all required properties
-      const transformedData = { 
+      const transformedData: ValuationResultData = { 
         ...data,
         isPremium,
         // Set default values for required properties
@@ -44,37 +73,33 @@ export function useValuationResult(valuationId: string) {
         transformedData.confidenceScore = data.confidenceScore;
       }
       
-      // Handle color
-      if (data.color !== undefined) {
+      // Only assign properties if they exist in the data object
+      if ('color' in data && data.color !== undefined) {
         transformedData.color = data.color;
       }
       
-      // Handle bodyStyle (camelCase)
-      if (data.bodyStyle !== undefined) {
+      if ('bodyStyle' in data && data.bodyStyle !== undefined) {
         transformedData.bodyStyle = data.bodyStyle;
       }
       
-      // Handle bodyType (camelCase)
-      if (data.bodyType !== undefined) {
+      if ('bodyType' in data && data.bodyType !== undefined) {
         transformedData.bodyType = data.bodyType;
       }
       
-      // Handle fuelType (camelCase)
-      if (data.fuelType !== undefined) {
+      if ('fuelType' in data && data.fuelType !== undefined) {
         transformedData.fuelType = data.fuelType;
       }
       
-      // Handle explanation and transmission
-      if (data.explanation !== undefined) {
+      if ('explanation' in data && data.explanation !== undefined) {
         transformedData.explanation = data.explanation;
       }
       
-      if (data.transmission !== undefined) {
+      if ('transmission' in data && data.transmission !== undefined) {
         transformedData.transmission = data.transmission;
       }
       
       // Handle aiCondition if it exists
-      if (data.aiCondition !== undefined) {
+      if ('aiCondition' in data && data.aiCondition !== undefined) {
         transformedData.aiCondition = data.aiCondition;
       }
       

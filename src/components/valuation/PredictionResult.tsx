@@ -138,7 +138,7 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         adjustments: valuationData.adjustments || [],
         fuelType: valuationData.fuelType || 'Not Specified',
         explanation: valuationData.explanation || 'Detailed valuation report for your vehicle', 
-        aiCondition: conditionData || valuationData.aiCondition
+        aiCondition: conditionData || (('aiCondition' in valuationData) ? valuationData.aiCondition : null)
       };
 
       // Convert to report data format
@@ -211,8 +211,10 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
       ];
 
   // Determine if the AI condition was used
-  const isAIVerified = !!(conditionData && conditionData.confidenceScore >= 70) || 
-                      !!(valuationData.aiCondition && valuationData.aiCondition.confidenceScore >= 70);
+  const hasAiCondition = conditionData || ('aiCondition' in valuationData && valuationData.aiCondition);
+  const isAIVerified = !!(hasAiCondition && 
+    ((conditionData?.confidenceScore >= 70) || 
+     (valuationData.aiCondition?.confidenceScore >= 70)));
 
   return (
     <div className="space-y-6">
@@ -222,7 +224,7 @@ export function PredictionResult({ valuationId, manualValuation }: PredictionRes
         priceRange={priceRange}
         adjustments={valuationData.adjustments}
         aiVerified={isAIVerified}
-        aiCondition={conditionData || valuationData.aiCondition}
+        aiCondition={conditionData || (('aiCondition' in valuationData) ? valuationData.aiCondition : null)}
       />
       
       <div className="mt-6">
