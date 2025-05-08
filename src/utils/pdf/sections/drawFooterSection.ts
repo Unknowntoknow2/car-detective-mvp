@@ -1,3 +1,4 @@
+
 import { SectionParams } from '../types';
 
 export function drawFooterSection(params: SectionParams) {
@@ -7,11 +8,16 @@ export function drawFooterSection(params: SectionParams) {
   const fontSize = 10;
 
   // Use the correct method to calculate text width based on the PDF library
-  const footerTextWidth = doc.widthOfString(footerText, { font: regularFont, size: fontSize });
-  const pageNumberTextWidth = doc.widthOfString(pageNumberText, { font: regularFont, size: fontSize });
+  const footerTextWidth = doc.widthOfString ? 
+    doc.widthOfString(footerText, { font: regularFont, size: fontSize }) : 
+    100; // Fallback width
+    
+  const pageNumberTextWidth = doc.widthOfString ? 
+    doc.widthOfString(pageNumberText, { font: regularFont, size: fontSize }) : 
+    50; // Fallback width
 
   const xFooterText = margin;
-  const yFooter = doc.pageHeight() - margin - 5;
+  const yFooter = doc.pageHeight ? doc.pageHeight() - margin - 5 : 700; // Fallback position
 
   doc.font(regularFont, fontSize)
     .fillColor('gray')

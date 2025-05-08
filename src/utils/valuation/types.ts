@@ -1,59 +1,68 @@
 
-export interface ValuationParams {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
+import { type ValuationInput } from '@/types/valuation';
+
+export interface EnhancedValuationParams extends ValuationInput {
+  // Original fields from ValuationInput plus additional fields
+  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
   trim?: string;
   bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  zip?: string;
-  zipCode?: string; // Add this to match ValuationInput requirement
-  features?: string[];
-  aiConditionData?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  };
-}
-
-export interface ValuationResult {
-  baseValue: number;
-  adjustments: AdjustmentFactor[];
-  finalValue: number;
-  confidenceScore: number;
-  priceRange: [number, number];
-  explanation?: string;
-}
-
-export interface AdjustmentFactor {
-  name: string;
-  value: number;
-  percentAdjustment: number;
-  description: string;
-  factor?: string;
-  impact?: number;
-  adjustment?: number;
-  impactPercentage?: number;
-}
-
-export interface EnhancedValuationParams extends ValuationParams {
   photoScore?: number;
   accidentCount?: number;
-  premiumFeatures?: string[];
+  premiumFeatures?: boolean[];
   mpg?: number;
-  zipCode: string; // Make zipCode required to match ValuationInput requirement
+  aiConditionData?: any;
+  
+  // Demand-related properties
+  saleDate?: string;
+  bodyStyle?: string;
+  exteriorColor?: string;
+  colorMultiplier?: number;
+  
+  // Add additional fields to fix errors
+  zip?: string;
 }
 
 export interface FinalValuationResult {
+  // Core valuation data
   baseValue: number;
-  adjustments: AdjustmentFactor[];
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
   finalValue: number;
   confidenceScore: number;
   priceRange: [number, number];
   estimatedValue: number;
-  explanation?: string; // Add explanation field for buildValuationReport
+  explanation?: string;
+  
+  // Additional fields to match test expectations
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  photoScore?: number;
+  bestPhotoUrl?: string | null;
+  isPremium?: boolean;
+  pdfUrl?: string;
+  features?: string[];
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+  };
+  
+  // Add any additional properties needed by the application
+  valuationId?: string;
+  vin?: string;
+}
+
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+  factor?: string;
+  impact?: number;
 }

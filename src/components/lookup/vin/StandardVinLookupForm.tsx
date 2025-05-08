@@ -23,7 +23,7 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, error })
     e.preventDefault();
     
     // Reset previous results and errors
-    setError(null);
+    setValidationError(null);
     setResult(null);
     
     // Validate VIN

@@ -38,5 +38,20 @@ export interface RuleResult {
   auditTrail: AdjustmentBreakdown[];
 }
 
-// Re-export AdjustmentBreakdown type
-export type { AdjustmentBreakdown } from '@/utils/pdf/types';
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+  factor?: string;
+  impact?: number;
+}
+
+// Add enhanced interface to avoid errors in demand adjustments
+export interface EnhancedRulesEngineInput extends RulesEngineInput {
+  baseValue: number;
+  saleDate?: string;
+  bodyStyle?: string;
+  exteriorColor?: string;
+  colorMultiplier?: number;
+}

@@ -1,71 +1,54 @@
 
+// Define the PDF section parameters
+export interface SectionParams {
+  doc: any; // PDF document object
+  page: any; // PDF page object
+  margin: number;
+  width: number;
+  height: number;
+  pageWidth: number;
+  regularFont: any;
+  boldFont: any;
+  contentWidth: number;
+}
+
 export interface ReportData {
   id?: string;
+  valuationId?: string;
   make: string;
-  makeId?: string;
   model: string;
-  modelId?: string;
   year: number;
   mileage: number;
   condition: string;
+  zipCode: string;
   estimatedValue: number;
+  confidenceScore: number;
   priceRange: [number, number];
   adjustments: AdjustmentBreakdown[];
+  generatedAt: string;
+  
+  // Optional fields
+  vin?: string;
   photoUrl?: string;
   explanation?: string;
-  generatedAt: string;
-  narrative?: string;
-  
-  // Adding properties needed for tests and PDF generation
-  confidenceScore?: number;
-  photoScore?: number;
   bestPhotoUrl?: string;
+  photoScore?: number;
   isPremium?: boolean;
-  pdfUrl?: string;
   features?: string[];
-  aiCondition?: any;
-  vin?: string;
-  valuationId?: string;
-  zipCode?: string;
+  aiCondition?: {
+    condition: "Excellent" | "Good" | "Fair" | "Poor";
+    confidenceScore: number;
+    issuesDetected?: string[];
+  };
+  
+  // Additional fields for specific use cases
   color?: string;
   bodyStyle?: string;
   bodyType?: string;
   fuelType?: string;
   transmission?: string;
+  narrative?: string;
   photoExplanation?: string;
-}
-
-export interface ReportOptions {
-  includeBranding: boolean;
-  includeAIScore: boolean;
-  includeFooter: boolean;
-  includeTimestamp: boolean;
-  includePhotoAssessment: boolean;
-  isPremium: boolean;
-  printBackground?: boolean;
-  landscape?: boolean;
-  showWholesaleValue?: boolean;
-  
-  // Additional options needed by PDF generator service
-  title?: string;
-  userName?: string;
-  dealerName?: string;
-}
-
-export interface SectionParams {
-  doc: any;
-  pageWidth: number;
-  pageHeight: number;
-  margin: number;
-  fontFamily: string;
-  
-  // Additional properties needed by PDF section modules
-  page?: any;
-  width?: number;
-  height?: number;
-  contentWidth?: number;
-  regularFont?: string;
-  boldFont?: string;
 }
 
 export interface AdjustmentBreakdown {
@@ -73,8 +56,26 @@ export interface AdjustmentBreakdown {
   value: number;
   description: string;
   percentAdjustment: number;
-  factor?: string;
-  impact?: number;
-  adjustment?: number;
-  impactPercentage?: number;
+}
+
+export interface PdfOptions {
+  format?: 'letter' | 'a4';
+  orientation?: 'portrait' | 'landscape';
+  margin?: number;
+  includeBranding?: boolean;
+  includeFooter?: boolean;
+  includeTimestamp?: boolean;
+  isPremium?: boolean;
+}
+
+export interface ReportOptions extends PdfOptions {
+  includeBranding?: boolean;
+  includeFooter?: boolean;
+  includeTimestamp?: boolean;
+  includePhotoAssessment?: boolean;
+  includeAIScore?: boolean;
+  isPremium?: boolean;
+  title?: string;
+  userName?: string;
+  dealerName?: string;
 }

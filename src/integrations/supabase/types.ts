@@ -529,6 +529,7 @@ export type Database = {
           msrp: number | null
           trim_name: string
           updated_at: string
+          year: number | null
         }
         Insert: {
           created_at?: string
@@ -540,6 +541,7 @@ export type Database = {
           msrp?: number | null
           trim_name: string
           updated_at?: string
+          year?: number | null
         }
         Update: {
           created_at?: string
@@ -551,6 +553,7 @@ export type Database = {
           msrp?: number | null
           trim_name?: string
           updated_at?: string
+          year?: number | null
         }
         Relationships: []
       }

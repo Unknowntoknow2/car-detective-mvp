@@ -50,7 +50,8 @@ export class RulesEngine {
               impact: consequence.impact,
               name: rule.name, // For backward compatibility
               value: consequence.impact, // For backward compatibility
-              description: rule.description || ''
+              description: rule.description || '',
+              percentAdjustment: 0 // Add default value for percentAdjustment
             });
           }
         }
