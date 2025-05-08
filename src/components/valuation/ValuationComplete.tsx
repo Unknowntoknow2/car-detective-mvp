@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -49,7 +48,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   useEffect(() => {
     const loadPhotoAssessment = async () => {
       try {
-        // Updated to match expected parameters
+        // getBestPhotoAssessment only expects one parameter
         const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId);
         
         if (aiCondition) {
@@ -78,7 +77,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       const calculateNewValuation = async () => {
         setCalculationInProgress(true);
         try {
-          // Updated to match expected parameters
+          // Fix: Pass proper parameters to calculateFinalValuation
           const result = await calculateFinalValuation(
             {
               make: valuationData.make,
@@ -86,30 +85,34 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
               year: valuationData.year,
               mileage: valuationData.mileage || 0,
               condition: aiCondition?.condition || valuationData.condition || 'good',
-              // Correctly pass the AI condition data
-              aiConditionData: aiCondition ? {
+              zipCode: '90210', // Default zipCode
+              // Properly pass the AI condition data
+              aiConditionOverride: aiCondition ? {
                 condition: aiCondition.condition,
                 confidenceScore: aiCondition.confidenceScore,
                 issuesDetected: aiCondition.issuesDetected,
                 aiSummary: aiCondition.aiSummary
-              } : null
+              } : undefined,
+              photoScore: photoScore || undefined
             },
-            0 // Adding a basePrice parameter (0 as placeholder)
+            0 // Base price (placeholder)
           );
           
-          setEstimatedValue(result.estimatedValue);
-          
-          // Convert the result adjustments to AuditTrail format if needed
-          if ('adjustments' in result && Array.isArray(result.adjustments)) {
-            // Type assertion to help TypeScript
-            const convertedAdjustments = (result.adjustments as any[]).map(adj => ({
-              factor: adj.name || adj.factor,
-              impact: adj.value || adj.impact,
-              description: adj.description
-            }));
-            setAuditTrail(convertedAdjustments as AuditTrail[]);
-          } else {
-            setAuditTrail(null);
+          if (result) {
+            setEstimatedValue(result.estimatedValue);
+            
+            // Convert the result adjustments to AuditTrail format if needed
+            if ('adjustments' in result && Array.isArray(result.adjustments)) {
+              // Type assertion to help TypeScript
+              const convertedAdjustments = (result.adjustments as any[]).map(adj => ({
+                factor: adj.name || adj.factor,
+                impact: adj.value || adj.impact,
+                description: adj.description
+              }));
+              setAuditTrail(convertedAdjustments as AuditTrail[]);
+            } else {
+              setAuditTrail(null);
+            }
           }
         } catch (error) {
           console.error("Error calculating valuation:", error);

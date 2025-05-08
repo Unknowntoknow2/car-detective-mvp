@@ -31,7 +31,7 @@ export function useManualValuation() {
     setError(null);
     
     try {
-      // Passing proper parameters as expected by calculateFinalValuation
+      // Fix: Pass an empty object as the second parameter for options
       const result = await calculateFinalValuation(
         {
           make: data.make,
@@ -39,15 +39,16 @@ export function useManualValuation() {
           year: data.year,
           mileage: data.mileage,
           condition: data.condition,
-          zip: data.zipCode,
+          zipCode: data.zipCode || '90210',
           trim: data.trim,
           accidentCount: data.accidentCount,
-          // Fixed: premiumFeatures should be passed as string[] not as boolean
-          premiumFeatures: data.premiumFeatures
+          // Fixed: Pass the array directly instead of converting to boolean
+          features: data.premiumFeatures
         }, 
-        0 // Adding a basePrice parameter (0 as placeholder)
+        0 // Add a basePrice parameter (0 as placeholder)
       );
       
+      // Now result is properly typed, not 'never'
       const valuationResult: ManualVehicleInfo = {
         ...data,
         valuation: result.estimatedValue,

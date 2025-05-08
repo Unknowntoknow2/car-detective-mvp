@@ -29,3 +29,16 @@ export async function getBestPhotoAssessment(valuationId: string) {
     ]
   };
 }
+
+// Add missing functions for useValuationHistory.ts
+export async function getUserValuations(userId: string) {
+  return [];
+}
+
+export async function getSavedValuations(userId: string) {
+  return [];
+}
+
+export async function getPremiumValuations(userId: string) {
+  return [];
+}

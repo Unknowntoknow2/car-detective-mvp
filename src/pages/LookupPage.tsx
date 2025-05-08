@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { VinLookupForm } from '@/components/lookup/vin/VinLookupForm';
+import { VinLookupForm } from '@/components/lookup/vin/VINLookupForm';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
 import ManualEntryForm from '@/components/lookup/manual/ManualEntryForm';
 

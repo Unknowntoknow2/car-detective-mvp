@@ -1,49 +1,87 @@
 
 import { useState, useCallback } from 'react';
-import { Photo, PhotoScore } from '@/types/photo';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
+import { Photo, PhotoScore } from '@/types/photo';
 
-export interface UsePhotoUploadOptions {
+interface UsePhotoUploadOptions {
   valuationId: string;
+  maxPhotos?: number;
 }
 
-export function usePhotoUpload({ valuationId }: UsePhotoUploadOptions) {
+export function usePhotoUpload({ valuationId, maxPhotos = 6 }: UsePhotoUploadOptions) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   
-  // Handle file selection
-  const handleFileSelect = useCallback((files: File[] | FileList) => {
-    const fileArray = Array.from(files);
-    const newPhotos: Photo[] = fileArray.map(file => ({
+  const handleFileSelect = useCallback((files: File[]) => {
+    // Limit number of files that can be added
+    const newFiles = files.slice(0, maxPhotos - photos.length);
+    
+    if (newFiles.length === 0) {
+      return;
+    }
+    
+    // Create photo objects from files
+    const newPhotos: Photo[] = newFiles.map(file => ({
       id: uuidv4(),
+      file,
       name: file.name,
       size: file.size,
       type: file.type,
-      file,
       url: URL.createObjectURL(file),
-      uploaded: false,
-      uploading: false
+      uploading: false,
+      uploaded: false
     }));
     
     setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
-    return newPhotos;
+  }, [photos.length, maxPhotos]);
+  
+  const removePhoto = useCallback((photoToRemove: Photo) => {
+    setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoToRemove.id));
+    
+    // Revoke object URL to prevent memory leaks
+    if (photoToRemove.url && photoToRemove.file) {
+      URL.revokeObjectURL(photoToRemove.url);
+    }
   }, []);
   
-  // Remove a photo
-  const removePhoto = useCallback((photoId: string) => {
-    setPhotos(prevPhotos => {
-      // Revoke the URL to avoid memory leaks
-      const photoToRemove = prevPhotos.find(p => p.id === photoId);
-      if (photoToRemove?.url) {
-        URL.revokeObjectURL(photoToRemove.url);
-      }
-      return prevPhotos.filter(photo => photo.id !== photoId);
-    });
-  }, []);
+  const uploadPhotos = useCallback(async () => {
+    if (photos.length === 0) {
+      setError('No photos to upload');
+      return;
+    }
+    
+    setIsUploading(true);
+    setError(null);
+    
+    try {
+      // Mark all photos as uploading
+      setPhotos(prevPhotos => 
+        prevPhotos.map(photo => ({ ...photo, uploading: true }))
+      );
+      
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mark photos as uploaded
+      setPhotos(prevPhotos => 
+        prevPhotos.map(photo => ({ 
+          ...photo, 
+          uploading: false, 
+          uploaded: true 
+        }))
+      );
+      
+      return true;
+    } catch (error) {
+      setError('Failed to upload photos');
+      console.error('Photo upload error:', error);
+      return false;
+    } finally {
+      setIsUploading(false);
+    }
+  }, [photos]);
   
-  // Add explanation to a photo
   const addExplanation = useCallback((photoId: string, explanation: string) => {
     setPhotos(prevPhotos => 
       prevPhotos.map(photo => 
@@ -52,59 +90,13 @@ export function usePhotoUpload({ valuationId }: UsePhotoUploadOptions) {
     );
   }, []);
   
-  // Upload photos to storage
-  const uploadPhotos = useCallback(async () => {
-    if (!photos.length) {
-      setError('No photos to upload');
-      return [];
-    }
-    
-    setIsUploading(true);
-    setError('');
-    
-    try {
-      // Mark all photos as uploading
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => ({ ...photo, uploading: true, error: undefined }))
-      );
-      
-      // Simulate upload for now - in a real app, this would be a real upload
-      // This is just placeholder code for the demo
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mark all as uploaded
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => ({ ...photo, uploading: false, uploaded: true }))
-      );
-      
-      return photos;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload photos';
-      setError(errorMessage);
-      
-      // Mark failed uploads
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => 
-          photo.uploading ? { ...photo, uploading: false, error: errorMessage } : photo
-        )
-      );
-      
-      throw error;
-    } finally {
-      setIsUploading(false);
-    }
-  }, [photos]);
-  
-  // Create photo scores from current state
   const createPhotoScores = useCallback((): PhotoScore[] => {
-    return photos
-      .filter(photo => photo.uploaded && photo.url)
-      .map(photo => ({
-        url: photo.url!,
-        score: Math.random() * 100, // Simulate scores for demo
-        isPrimary: false,
-        explanation: photo.explanation
-      }));
+    return photos.map(photo => ({
+      url: photo.url,
+      score: Math.random() * 0.4 + 0.6, // Random score between 0.6 and 1.0
+      isPrimary: false,
+      issues: []
+    }));
   }, [photos]);
   
   return {

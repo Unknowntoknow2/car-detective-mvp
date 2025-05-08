@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { validateVIN } from '@/utils/validation/vin-validation';
 
 interface UseVinInputOptions {
@@ -33,7 +33,7 @@ export function useVinInput({ initialValue = '', onValidChange }: UseVinInputOpt
     }
   }, [value, touched, onValidChange]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.toUpperCase();
     setValue(newValue);
     setTouched(true);

@@ -6,8 +6,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { downloadPdf } from '@/utils/pdf';
 import { ValuationResult, AdjustmentBreakdown } from '@/types/valuation';
 import { AICondition } from '@/types/photo';
-import { ReportData } from '@/utils/pdf/types';
 import { uploadAndAnalyzePhotos } from '@/services/photoService';
+
+// Define the ReportData interface here directly to avoid conflicts
+interface ReportData {
+  id?: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  priceRange: [number, number];
+  adjustments: AdjustmentBreakdown[];
+  photoUrl?: string;
+  explanation?: string;
+  generatedAt: string;
+}
 
 interface BuildValuationReportInput {
   identifierType: 'vin' | 'plate' | 'manual' | 'photo';
@@ -33,6 +48,115 @@ interface BuildValuationReportInput {
   isPremium?: boolean;
   isTestMode?: boolean;
   notifyDealers?: boolean;
+}
+
+// Update ValuationParams to include photoScore
+interface EnhancedValuationParams extends ValuationParams {
+  photoScore?: number;
+  accidentCount?: number;
+  premiumFeatures?: string[];
+  mpg?: number;
+  aiConditionData?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  };
+}
+
+// Fix the PhotoScoringResult interface to include vehicleInfo
+interface PhotoScoringResult {
+  score: number;
+  photoUrl: string;
+  condition: string;
+  confidenceScore: number;
+  vehicleInfo?: {
+    make: string;
+    model: string;
+    year: number;
+  };
+}
+
+// Fix the function that creates the report data
+function createReportData(
+  valuationId: string,
+  vehicleDetails: any,
+  valuationParams: EnhancedValuationParams,
+  finalValuation: any,
+  bestPhotoUrl: string | null,
+  explanation?: string
+): ReportData {
+  return {
+    id: valuationId,
+    make: vehicleDetails.make,
+    model: vehicleDetails.model,
+    year: vehicleDetails.year,
+    mileage: valuationParams.mileage,
+    condition: valuationParams.condition,
+    estimatedValue: finalValuation.estimatedValue,
+    priceRange: finalValuation.priceRange,
+    adjustments: finalValuation.adjustments,
+    photoUrl: bestPhotoUrl || undefined,
+    explanation: explanation,
+    generatedAt: new Date().toISOString()
+  };
+}
+
+// Helper function to ensure condition is one of the valid enum values
+function ensureValidCondition(condition: any): "Excellent" | "Good" | "Fair" | "Poor" {
+  if (typeof condition === 'string') {
+    const validValues = ["Excellent", "Good", "Fair", "Poor"];
+    const normalized = condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
+    
+    if (validValues.includes(normalized)) {
+      return normalized as "Excellent" | "Good" | "Fair" | "Poor";
+    }
+  }
+  
+  // Default to "Good" if not valid
+  return "Good";
+}
+
+// Helper function to convert condition string to numeric score
+function convertConditionToScore(condition: string): number {
+  switch (condition.toLowerCase()) {
+    case 'excellent': return 90;
+    case 'fair': return 60;
+    case 'poor': return 45;
+    case 'good':
+    default: return 75; // Default to 'Good'
+  }
+}
+
+// Helper function to get a base price for vehicle (simplified for demonstration)
+function getBasePrice(make: string, model: string, year: number): number {
+  // In production, this would query a database or API for accurate pricing
+  const currentYear = new Date().getFullYear();
+  const age = currentYear - year;
+  
+  // Base price starts at $30,000 and decreases with age
+  let basePrice = 30000 - (age * 1500);
+  
+  // Premium brands adjustment
+  const premiumBrands = ['BMW', 'Mercedes', 'Audi', 'Lexus', 'Porsche', 'Tesla'];
+  if (premiumBrands.includes(make)) {
+    basePrice *= 1.4;
+  }
+  
+  // Budget brands adjustment
+  const budgetBrands = ['Kia', 'Hyundai', 'Suzuki', 'Mitsubishi'];
+  if (budgetBrands.includes(make)) {
+    basePrice *= 0.85;
+  }
+  
+  // Truck/SUV adjustment
+  const truckSuvModels = ['F-150', 'Silverado', 'Ram', 'Explorer', 'Tahoe', 'Suburban', 'Highlander', '4Runner'];
+  if (truckSuvModels.some(truck => model.includes(truck))) {
+    basePrice *= 1.2;
+  }
+  
+  // Ensure base price doesn't go below minimum threshold
+  return Math.max(basePrice, 2000);
 }
 
 /**
@@ -432,87 +556,4 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     console.error('Error in buildValuationReport:', error);
     throw error;
   }
-}
-
-// Fix the PhotoScoringResult interface to include vehicleInfo
-interface PhotoScoringResult {
-  score: number;
-  photoUrl: string;
-  condition: string;
-  confidenceScore: number;
-  vehicleInfo?: {
-    make: string;
-    model: string;
-    year: number;
-  };
-}
-
-// Update ValuationParams to include photoScore
-interface EnhancedValuationParams {
-  // ... existing fields from ValuationParams
-  photoScore?: number;
-}
-
-// In the ReportData interface, ensure id is a valid property
-interface ReportData {
-  id?: string;
-  // ... other properties
-}
-
-// Helper function to ensure condition is one of the valid enum values
-function ensureValidCondition(condition: any): "Excellent" | "Good" | "Fair" | "Poor" {
-  if (typeof condition === 'string') {
-    const validValues = ["Excellent", "Good", "Fair", "Poor"];
-    const normalized = condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
-    
-    if (validValues.includes(normalized)) {
-      return normalized as "Excellent" | "Good" | "Fair" | "Poor";
-    }
-  }
-  
-  // Default to "Good" if not valid
-  return "Good";
-}
-
-// Helper function to convert condition string to numeric score
-function convertConditionToScore(condition: string): number {
-  switch (condition.toLowerCase()) {
-    case 'excellent': return 90;
-    case 'good': return 75;
-    case 'fair': return 60;
-    case 'poor': return 45;
-    default: return 75; // Default to 'Good'
-  }
-}
-
-// Helper function to get a base price for vehicle (simplified for demonstration)
-function getBasePrice(make: string, model: string, year: number): number {
-  // In production, this would query a database or API for accurate pricing
-  // This is a simplified placeholder
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-  
-  // Base price starts at $30,000 and decreases with age
-  let basePrice = 30000 - (age * 1500);
-  
-  // Premium brands adjustment
-  const premiumBrands = ['BMW', 'Mercedes', 'Audi', 'Lexus', 'Porsche', 'Tesla'];
-  if (premiumBrands.includes(make)) {
-    basePrice *= 1.4;
-  }
-  
-  // Budget brands adjustment
-  const budgetBrands = ['Kia', 'Hyundai', 'Suzuki', 'Mitsubishi'];
-  if (budgetBrands.includes(make)) {
-    basePrice *= 0.85;
-  }
-  
-  // Truck/SUV adjustment
-  const truckSuvModels = ['F-150', 'Silverado', 'Ram', 'Explorer', 'Tahoe', 'Suburban', 'Highlander', '4Runner'];
-  if (truckSuvModels.some(truck => model.includes(truck))) {
-    basePrice *= 1.2;
-  }
-  
-  // Ensure base price doesn't go below minimum threshold
-  return Math.max(basePrice, 2000);
 }

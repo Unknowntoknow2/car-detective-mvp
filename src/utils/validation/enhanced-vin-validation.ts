@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 // Export the VIN regex for reuse
@@ -22,6 +23,26 @@ export const EnhancedManualEntrySchema = z.object({
   accidentCount: z.number().min(0).optional(),
   vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format").optional(),
 });
+
+// Add the missing validateVinEnhanced function
+export function validateVinEnhanced(vin: string) {
+  try {
+    if (!vin) {
+      return { isValid: false, error: 'VIN is required' };
+    }
+    
+    if (!VIN_REGEX.test(vin)) {
+      return { 
+        isValid: false, 
+        error: 'VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q' 
+      };
+    }
+    
+    return { isValid: true, error: null };
+  } catch (error) {
+    return { isValid: false, error: 'Invalid VIN format' };
+  }
+}
 
 // Re-export validation functions from vin-validation.ts for backward compatibility
 export * from './vin-validation';
