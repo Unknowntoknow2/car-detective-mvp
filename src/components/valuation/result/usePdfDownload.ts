@@ -17,7 +17,6 @@ export function usePdfDownload() {
       
       // Convert ValuationResult to ReportData
       const reportData: ReportData = {
-        vin: valuation.vin,
         make: valuation.make,
         model: valuation.model,
         year: valuation.year,
@@ -44,6 +43,8 @@ export function usePdfDownload() {
         bestPhotoUrl: valuation.bestPhotoUrl,
         explanation: valuation.explanation,
         features: valuation.features || [],
+        generatedAt: new Date().toISOString(),
+        id: valuation.id,
         valuationId: valuation.id
       };
       

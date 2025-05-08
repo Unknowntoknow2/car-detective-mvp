@@ -518,6 +518,48 @@ export type Database = {
         }
         Relationships: []
       }
+      model_trims_temp_enriched: {
+        Row: {
+          creaed_at: string | null
+          created_at: string | null
+          description: string | null
+          engine_type: string
+          image_url: string | null
+          image_URL: string | null
+          model_name: string
+          msrp: number | null
+          MSRP: number | null
+          source: string | null
+          trim_name: string
+        }
+        Insert: {
+          creaed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          engine_type: string
+          image_url?: string | null
+          image_URL?: string | null
+          model_name: string
+          msrp?: number | null
+          MSRP?: number | null
+          source?: string | null
+          trim_name: string
+        }
+        Update: {
+          creaed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          engine_type?: string
+          image_url?: string | null
+          image_URL?: string | null
+          model_name?: string
+          msrp?: number | null
+          MSRP?: number | null
+          source?: string | null
+          trim_name?: string
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           created_at: string | null

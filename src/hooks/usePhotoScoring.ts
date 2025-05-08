@@ -47,7 +47,15 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       // Upload photos to service
       const photosToUpload = photos.filter(p => !p.uploaded && p.file);
       const photoFiles = photosToUpload.map(p => p.file as File);
-      const uploadedPhotos = await uploadPhotos(photoFiles, valuationId);
+      
+      // Convert File[] to Photo[] (with necessary properties) before uploading
+      const photosForUpload: Photo[] = photoFiles.map(file => ({
+        id: uuidv4(),
+        url: URL.createObjectURL(file),
+        file
+      }));
+      
+      const uploadedPhotos = await uploadPhotos(photosForUpload, valuationId);
       
       // Update local state with uploaded photos
       setPhotos(prev => prev.map(photo => {

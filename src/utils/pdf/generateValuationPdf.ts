@@ -1,30 +1,22 @@
 
 import { ReportData, ReportOptions } from './types';
+import { defaultReportOptions } from './defaultReportOptions';
 
-/**
- * Generates a PDF for the valuation report
- * @param data The report data
- * @param options Options for PDF generation
- * @returns Promise resolving to PDF document as Uint8Array
- */
-export async function generateValuationPdf(data: ReportData, options: Partial<ReportOptions> = {}): Promise<Uint8Array> {
-  // For premium reports, we would include additional data and formatting
-  const isPremium = options.isPremium || false;
+export async function generateValuationPdf(
+  reportData: ReportData,
+  options: Partial<ReportOptions> = {}
+): Promise<Uint8Array> {
+  // Merge default options with provided options
+  const mergedOptions = { ...defaultReportOptions, ...options };
   
-  if (isPremium) {
-    console.log('Generating premium PDF with enhanced data for:', data);
-    // In a real implementation, we would use pdf-lib or a similar library
-    // to create a more detailed and styled PDF for premium users
-    
-    // This is where we would add premium-only sections like:
-    // - CARFAX report data
-    // - Detailed market analysis
-    // - AI condition assessment with photos
-    // - Dealer comparison pricing
-  } else {
-    console.log('Generating basic PDF for:', data);
-  }
+  // This is just a placeholder implementation
+  console.log('Generating PDF with data:', reportData, 'and options:', mergedOptions);
   
-  // Return dummy data for now
-  return new Uint8Array([0]); // Placeholder
+  // In a real implementation, this would generate a PDF document
+  // For now, we'll just return a simple mock Uint8Array
+  const mockPdfContent = `Vehicle Valuation Report for ${reportData.year} ${reportData.make} ${reportData.model}`;
+  
+  // Convert string to Uint8Array
+  const encoder = new TextEncoder();
+  return encoder.encode(mockPdfContent);
 }

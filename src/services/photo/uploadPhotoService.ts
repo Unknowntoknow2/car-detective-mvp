@@ -4,51 +4,38 @@ import { Photo } from '@/types/photo';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function uploadPhotos(photos: Photo[], valuationId: string): Promise<Photo[]> {
-  const uploadPromises = photos.map(async (photo) => {
-    if (!photo.url && !photo.uploading && !photo.error) {
-      try {
-        // Create a URL from the Blob/File
-        const photoFile = await fetch(URL.createObjectURL(photo as unknown as Blob)).then(r => r.blob());
-        
-        // Prepare the file path
-        const fileExt = photo.name?.split('.').pop() || 'jpg';
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `${valuationId}/${fileName}`;
-        
-        // Upload to Supabase Storage
-        const { data, error } = await supabase.storage
-          .from('vehicle-photos')
-          .upload(filePath, photoFile, {
-            cacheControl: '3600',
-            upsert: false
-          });
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('vehicle-photos')
-          .getPublicUrl(filePath);
-        
-        return {
-          ...photo,
-          url: urlData.publicUrl,
-          uploaded: true,
-          uploading: false
-        };
-      } catch (error) {
-        console.error(`Error uploading photo ${photo.id}:`, error);
-        return {
-          ...photo,
-          error: (error as Error).message || 'Upload failed',
-          uploading: false
-        };
-      }
+  try {
+    if (!photos.length) {
+      return [];
     }
-    return photo;
-  });
-  
-  return Promise.all(uploadPromises);
+    
+    const uploadPromises = photos.map(async (photo) => {
+      if (!photo.file) {
+        throw new Error(`No file provided for photo ${photo.id}`);
+      }
+      
+      const filename = `${valuationId}/${uuidv4()}-${photo.file.name}`;
+      const { data, error } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(filename, photo.file);
+        
+      if (error) {
+        throw error;
+      }
+      
+      const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
+      
+      return {
+        ...photo,
+        url,
+        uploaded: true
+      };
+    });
+    
+    const uploadedPhotos = await Promise.all(uploadPromises);
+    return uploadedPhotos;
+  } catch (error: any) {
+    console.error('Error uploading photos:', error);
+    throw new Error(`Failed to upload photos: ${error.message}`);
+  }
 }

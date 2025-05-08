@@ -66,6 +66,7 @@ interface EnhancedValuationParams extends ValuationParams {
   accidentCount?: number;
   premiumFeatures?: string[];
   mpg?: number;
+  zipCode?: string; // Add zipCode field to match ValuationInput requirement
 }
 
 export async function buildValuationReport(input: BuildValuationReportInput): Promise<ReportData> {
@@ -122,6 +123,7 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     fuelType: input.fuelType,
     transmission: input.transmission,
     zip: input.zipCode,
+    zipCode: input.zipCode, // Add zipCode to match ValuationInput
     features: input.features,
     photoScore: photoResult?.score,
     aiConditionData: aiCondition ? {
@@ -137,6 +139,9 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
 
   // Call calculateFinalValuation with the options parameter
   const result = await calculateFinalValuation(valuationParams, {});
+
+  // Create explanation if it doesn't exist in result
+  const explanation = result.explanation || "No detailed explanation available";
 
   // Convert the adjustments to AdjustmentBreakdown format
   const adjustmentsFormatted: AdjustmentBreakdown[] = (result.adjustments || []).map(adjustment => ({
@@ -159,7 +164,7 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     adjustments: adjustmentsFormatted,
     photoUrl: photoResult?.photoUrl,
     bestPhotoUrl: photoResult?.photoUrl,
-    explanation: result.explanation,
+    explanation: explanation,
     generatedAt: new Date().toISOString(),
     confidenceScore: result.confidenceScore,
     photoScore: photoResult?.score,

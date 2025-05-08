@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -25,10 +26,10 @@ export default function ManualLookupPage() {
       make: data.make,
       model: data.model,
       year: parseInt(data.year), // Convert string to number
-      mileage: parseInt(data.mileage), // Included as part of DecodedVehicleInfo
+      mileage: parseInt(data.mileage), // Added to match updated interface
       fuelType: data.fuelType || 'Gasoline',
-      condition: data.condition, // Included as part of DecodedVehicleInfo
-      zipCode: data.zipCode || '10001', // Included as part of DecodedVehicleInfo
+      condition: data.condition, // Added to match updated interface
+      zipCode: data.zipCode || '10001', // Added to match updated interface
       transmission: 'Unknown', // Required field in DecodedVehicleInfo
     };
     
@@ -54,30 +55,44 @@ export default function ManualLookupPage() {
         confidenceScore: 75,
         adjustments: [
           { 
-            name: "Mileage", 
-            value: -1200, 
+            factor: "Mileage", 
+            impact: -1200, 
             description: "Based on average mileage for this vehicle type and year", 
+            name: "Mileage",
+            value: -1200,
             percentAdjustment: -5
           },
           { 
-            name: "Condition", 
-            value: 800, 
+            factor: "Condition", 
+            impact: 800, 
             description: "Based on reported vehicle condition", 
+            name: "Condition",
+            value: 800,
             percentAdjustment: 3.5
           },
           { 
-            name: "Market Demand", 
-            value: 1500, 
+            factor: "Market Demand", 
+            impact: 1500, 
             description: "Current market trends for this make/model", 
+            name: "Market Demand",
+            value: 1500,
             percentAdjustment: 6.5
           }
-        ]
+        ],
+        aiCondition: {
+          condition: 'Good',
+          confidenceScore: 85
+        },
+        isPremium: false
       };
       
       const reportData = convertVehicleInfoToReportData(manualEntryResult, defaultValuationData);
       
       // Call the download function
       const pdfBlob = await downloadPdf(reportData);
+      if (!pdfBlob) {
+        throw new Error("Failed to generate PDF");
+      }
       
       // Create a download link and trigger it
       const url = URL.createObjectURL(pdfBlob);

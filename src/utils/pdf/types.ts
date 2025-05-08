@@ -16,7 +16,7 @@ export interface ReportData {
   generatedAt: string;
   narrative?: string;
   
-  // Adding missing properties found in tests
+  // Adding properties needed for tests
   confidenceScore?: number;
   photoScore?: number;
   bestPhotoUrl?: string;
@@ -24,6 +24,21 @@ export interface ReportData {
   pdfUrl?: string;
   features?: string[];
   aiCondition?: any;
+  vin?: string;
+  valuationId?: string;
+  zipCode?: string;
+}
+
+export interface ReportOptions {
+  includeBranding: boolean;
+  includeAIScore: boolean;
+  includeFooter: boolean;
+  includeTimestamp: boolean;
+  includePhotoAssessment: boolean;
+  isPremium: boolean;
+  printBackground?: boolean;
+  landscape?: boolean;
+  showWholesaleValue?: boolean;
 }
 
 export interface SectionParams {

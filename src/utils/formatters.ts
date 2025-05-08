@@ -1,73 +1,48 @@
 
-// Format date to locale string
-export function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions = {}): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+/**
+ * Format a number with commas as thousands separators
+ */
+export function formatNumber(value: number | string | undefined): string {
+  if (value === undefined) return '0';
   
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    ...options
-  };
+  const num = typeof value === 'string' ? parseFloat(value) : value;
   
-  return dateObj.toLocaleDateString(undefined, defaultOptions);
+  if (isNaN(num)) return '0';
+  
+  return num.toLocaleString('en-US');
 }
 
-// Format currency values
-export function formatCurrency(amount: number): string {
+/**
+ * Format a number as currency (USD)
+ */
+export function formatCurrency(value: number | string | undefined): string {
+  if (value === undefined) return '$0';
+  
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  
+  if (isNaN(num)) return '$0';
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(amount);
+  }).format(num);
 }
 
-// Format number with commas
-export function formatNumber(num: number): string {
-  return new Intl.NumberFormat('en-US').format(num);
-}
-
-// Format relative time (e.g. "2 days ago")
-export function formatRelativeTime(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
+/**
+ * Format a date string to a readable format
+ */
+export function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '';
   
-  if (diffInSeconds < 60) {
-    return 'just now';
-  }
+  const date = new Date(dateString);
   
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
-  }
+  if (isNaN(date.getTime())) return '';
   
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) {
-    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInWeeks = Math.floor(diffInDays / 7);
-  if (diffInWeeks < 4) {
-    return `${diffInWeeks} week${diffInWeeks > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) {
-    return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInYears = Math.floor(diffInDays / 365);
-  return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
-}
-
-// Format percentage values
-export function formatPercentage(value: number, decimals = 1): string {
-  return `${(value * 100).toFixed(decimals)}%`;
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric'
+  });
 }

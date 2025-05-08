@@ -14,8 +14,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         condition: 'Fair',
         confidenceScore: 0,
         overallScore: 0,
-        individualScores: [],
-        error: 'No photos provided'
+        individualScores: []
       };
     }
 

@@ -13,6 +13,11 @@ const LookupPage: React.FC = () => {
     // Implement submission logic here
   };
 
+  const handleVinSubmit = (vin: string) => {
+    console.log('VIN submitted:', vin);
+    // Implement VIN submission logic here
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <Card>
@@ -29,7 +34,7 @@ const LookupPage: React.FC = () => {
             <Separator className="mb-6" />
             
             <TabsContent value="vin">
-              <VINLookupForm />
+              <VINLookupForm onSubmit={handleVinSubmit} />
             </TabsContent>
             
             <TabsContent value="plate">
