@@ -523,11 +523,13 @@ export type Database = {
           created_at: string
           description: string | null
           engine_type: string | null
+          fuel_type: string | null
           id: string
           image_url: string | null
           model_id: string | null
           msrp: number | null
-          trim_name: string
+          transmission: string | null
+          trim_name: string | null
           updated_at: string
           year: number | null
         }
@@ -535,11 +537,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           engine_type?: string | null
+          fuel_type?: string | null
           id?: string
           image_url?: string | null
           model_id?: string | null
           msrp?: number | null
-          trim_name: string
+          transmission?: string | null
+          trim_name?: string | null
           updated_at?: string
           year?: number | null
         }
@@ -547,15 +551,25 @@ export type Database = {
           created_at?: string
           description?: string | null
           engine_type?: string | null
+          fuel_type?: string | null
           id?: string
           image_url?: string | null
           model_id?: string | null
           msrp?: number | null
-          trim_name?: string
+          transmission?: string | null
+          trim_name?: string | null
           updated_at?: string
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "model_trims_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       model_trims_temp_enriched: {
         Row: {

@@ -50,7 +50,7 @@ export async function getValuationById(id: string) {
     vehicle_features: [],
     year: 2018,
     mileage: 45000,
-    fuel_type: 'Gasoline' // ensure this property exists
+    fuel_type: 'Gasoline'
   };
 
   // Access properties safely
@@ -59,8 +59,15 @@ export async function getValuationById(id: string) {
     // Parse safely for fuel_type
     fuelType: mockData.fuel_type || 'Unknown',
     // Ensure photoUrl is properly handled
-    photoUrl: typeof mockData.photo_url === 'string' ? mockData.photo_url : undefined
+    photoUrl: undefined // Fixed missing photo_url access
   };
+}
+
+// Add fetchValuation function for [token].tsx
+export async function fetchValuation(token: string) {
+  console.log(`Fetching valuation with token: ${token}`);
+  // Mock implementation similar to getValuationById
+  return getValuationById(token);
 }
 
 // Add missing functions for useValuationHistory.ts

@@ -48,12 +48,22 @@ export function useManualValuation() {
         0 // Add a basePrice parameter (0 as placeholder)
       );
       
+      // Map the result adjustments to the correct format including factor and impact
+      const adjustments: AdjustmentBreakdown[] = (result.adjustments || []).map(adj => ({
+        factor: adj.factor || adj.name || 'Unknown',
+        impact: adj.impact || adj.value || 0,
+        name: adj.name || adj.factor || 'Unknown',
+        value: adj.value || adj.impact || 0,
+        description: adj.description || '',
+        percentAdjustment: adj.percentAdjustment || 0
+      }));
+      
       // Now result is properly typed, not 'never'
       const valuationResult: ManualVehicleInfo = {
         ...data,
         valuation: result.estimatedValue,
         confidenceScore: result.confidenceScore,
-        adjustments: result.adjustments,
+        adjustments: adjustments,
         priceRange: result.priceRange
       };
       

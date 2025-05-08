@@ -1,17 +1,20 @@
-
 import fs from 'fs/promises';
 import path from 'path';
 import { PDFDocument } from 'pdf-lib';
 import { generatePdf } from './pdfGenerator';
 import { ReportData, ReportOptions } from './types';
 
-const defaultReportOptions: ReportOptions = {
+const DEFAULT_OPTIONS: ReportOptions = {
+  format: 'letter',
+  orientation: 'portrait',
+  margin: 50,
   includeBranding: true,
-  includeAIScore: true,
   includeFooter: true,
   includeTimestamp: true,
   includePhotoAssessment: true,
+  includeAIScore: true,
   isPremium: false,
+  title: 'Vehicle Valuation Report',
   printBackground: true,
   landscape: false,
   showWholesaleValue: false
@@ -39,7 +42,7 @@ export async function generateValuationReport(
     
     // Generate the PDF with merged options
     const mergedOptions: ReportOptions = {
-      ...defaultReportOptions,
+      ...DEFAULT_OPTIONS,
       ...options
     };
     
@@ -88,7 +91,7 @@ export async function generatePremiumReport(
     
     // Generate the PDF with merged options
     const mergedOptions: ReportOptions = {
-      ...defaultReportOptions,
+      ...DEFAULT_OPTIONS,
       isPremium: true,
       ...options
     };
@@ -186,7 +189,7 @@ export async function generateComparisonReport(
     
     // Generate the PDF with merged options
     const mergedOptions: ReportOptions = {
-      ...defaultReportOptions,
+      ...DEFAULT_OPTIONS,
       landscape: true, // Comparison reports are typically in landscape
       ...options
     };
@@ -239,7 +242,7 @@ export async function generateDealerReport(
     
     // Generate the PDF with merged options
     const mergedOptions: ReportOptions = {
-      ...defaultReportOptions,
+      ...DEFAULT_OPTIONS,
       ...options
     };
     

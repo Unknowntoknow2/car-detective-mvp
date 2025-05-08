@@ -19,6 +19,7 @@ export interface AdjustmentCalculator {
 
 export interface RulesEngineInput {
   baseValue: number;
+  basePrice?: number;
   make: string;
   model: string;
   year: number;
@@ -33,15 +34,21 @@ export interface RulesEngineInput {
   mpg?: number;
   zipCode?: string;
   aiConditionData?: any;
-  // Add properties used in calculators
+  // Additional properties used in calculators
   exteriorColor?: string;
   colorMultiplier?: number;
   carfaxData?: any;
-  basePrice?: number;
   saleDate?: string;
   bodyStyle?: string;
   features?: string[];
   fuelTypeMultiplier?: number;
+  transmissionType?: string;
+  transmissionMultiplier?: number;
+  warrantyStatus?: string;
+  hasOpenRecall?: boolean;
+  recallCount?: number;
+  aiConditionOverride?: any;
+  drivingProfile?: any;
 }
 
 export interface RuleResult {
@@ -57,12 +64,12 @@ export interface RuleResult {
 }
 
 export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
   name: string;
   value: number;
   description: string;
   percentAdjustment: number;
-  factor: string;
-  impact: number;
 }
 
 export interface Rule {

@@ -82,10 +82,12 @@ export class FeaturesCalculator {
     }
     
     return {
+      factor: "Premium Features",
+      impact: cappedValue,
       name: "Premium Features",
       value: cappedValue,
       description,
-      percentAdjustment: cappedPercentage
+      percentAdjustment: cappedPercentage * 100
     };
   }
 }

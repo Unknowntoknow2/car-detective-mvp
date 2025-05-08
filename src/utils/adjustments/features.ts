@@ -34,7 +34,7 @@ export const getFeatureAdjustments = (input: RulesEngineInput): {
   totalAdjustment: number;
   featuresApplied: Array<{name: string; impact: number}>;
 } => {
-  // Use premiumFeatures if features is not available
+  // Use premiumFeatures if provided or fall back to features
   const features = Array.isArray(input.premiumFeatures) ? input.premiumFeatures : 
                   (Array.isArray(input.features) ? input.features : []);
   
