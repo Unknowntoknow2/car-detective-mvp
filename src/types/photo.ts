@@ -1,4 +1,3 @@
-
 /**
  * Photo-related types
  */
@@ -32,10 +31,10 @@ export interface PhotoAnalysisResult {
   error?: string;
 }
 
-// Add missing Photo interface
 export interface Photo {
   id: string;
   url: string;
+  valuationId: string; // ✅ required by tests + Supabase usage
   metadata?: Record<string, any>;
   name?: string;
   size?: number;
@@ -48,19 +47,19 @@ export interface Photo {
   issues?: string[];
 }
 
-// Add missing constants
 export const MAX_FILES = 6;
 export const MIN_FILES = 1;
 
-// Add missing PhotoScoringResult
 export interface PhotoScoringResult {
   score: number;
   photoUrl: string;
-  condition: string;
+  condition: ConditionRating;
   confidenceScore: number;
   vehicleInfo?: {
     make: string;
     model: string;
     year: number;
   };
+  individualScores?: number[];
+  error?: string;
 }
