@@ -1,48 +1,99 @@
 
-import { z } from 'zod';
-
-// Export the VIN regex for reuse
-export const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
+import { isValidVIN } from './vin-validation';
 
 /**
- * Schema for manual entry validation
+ * Enhanced VIN validation with additional features
  */
-export const EnhancedManualEntrySchema = z.object({
-  make: z.string().min(1, "Make is required"),
-  model: z.string().min(1, "Model is required"),
-  year: z.number().min(1900).max(new Date().getFullYear() + 1),
-  mileage: z.number().min(0),
-  condition: z.string().min(1, "Condition is required"),
-  zipCode: z.string().regex(/^\d{5}$/, "ZIP code must be 5 digits"),
-  trim: z.string().optional(),
-  color: z.string().optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional(),
-  bodyType: z.string().optional(),
-  features: z.array(z.string()).optional(),
-  accidentCount: z.number().min(0).optional(),
-  vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format").optional(),
-});
+export const isValidVIN = (vin: string): boolean => {
+  // Use the base validation function
+  return isValidVIN(vin);
+};
 
-// Add the missing validateVinEnhanced function
-export function validateVinEnhanced(vin: string) {
-  try {
-    if (!vin) {
-      return { isValid: false, error: 'VIN is required' };
-    }
-    
-    if (!VIN_REGEX.test(vin)) {
-      return { 
-        isValid: false, 
-        error: 'VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q' 
-      };
-    }
-    
-    return { isValid: true, error: null };
-  } catch (error) {
-    return { isValid: false, error: 'Invalid VIN format' };
+/**
+ * Check if VIN meets standard requirements
+ * - Must be 17 characters
+ * - No I, O, or Q characters allowed
+ * - Must be alphanumeric
+ */
+export const validateVinFormat = (vin: string): boolean => {
+  if (!vin || vin.length !== 17) {
+    return false;
   }
-}
 
-// Re-export validation functions from vin-validation.ts for backward compatibility
-export * from './vin-validation';
+  // Check for prohibited letters (I, O, Q)
+  if (/[IOQ]/.test(vin.toUpperCase())) {
+    return false;
+  }
+
+  // Check if alphanumeric
+  return /^[A-HJ-NPR-Z0-9]+$/.test(vin.toUpperCase());
+};
+
+/**
+ * Get VIN validation error message
+ */
+export const getVinValidationError = (vin: string): string | null => {
+  if (!vin) {
+    return 'VIN is required';
+  }
+  
+  if (vin.length !== 17) {
+    return 'VIN must be exactly 17 characters';
+  }
+  
+  if (/[IOQ]/.test(vin.toUpperCase())) {
+    return 'VIN cannot contain the letters I, O, or Q';
+  }
+  
+  if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin.toUpperCase())) {
+    return 'VIN must contain only letters and numbers';
+  }
+  
+  return null;
+};
+
+/**
+ * Decodes a VIN to get basic manufacturer information
+ */
+export const decodeVinPrefix = (vin: string): { country: string; manufacturer: string } | null => {
+  if (!isValidVIN(vin)) {
+    return null;
+  }
+  
+  // This is a simplified implementation
+  const wmi = vin.substring(0, 3).toUpperCase();
+  
+  // Maps for common World Manufacturer Identifiers
+  const countryMap: Record<string, string> = {
+    '1': 'United States',
+    '2': 'Canada',
+    '3': 'Mexico',
+    'J': 'Japan',
+    'K': 'Korea',
+    'L': 'China',
+    'S': 'United Kingdom',
+    'V': 'France',
+    'W': 'Germany',
+    'Y': 'Sweden',
+    'Z': 'Italy'
+  };
+  
+  const manufacturerMap: Record<string, string> = {
+    '1G': 'General Motors',
+    '1J': 'Jeep',
+    '1F': 'Ford',
+    '2T': 'Toyota Canada',
+    '3H': 'Honda Mexico',
+    'JN': 'Nissan',
+    'KM': 'Hyundai',
+    'WA': 'Audi',
+    'WB': 'BMW',
+    'WD': 'Mercedes-Benz',
+    'WV': 'Volkswagen'
+  };
+  
+  const country = countryMap[wmi[0]] || 'Unknown';
+  const manufacturer = manufacturerMap[wmi.substring(0, 2)] || 'Unknown';
+  
+  return { country, manufacturer };
+};

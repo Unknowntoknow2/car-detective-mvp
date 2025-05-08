@@ -1,67 +1,111 @@
 
 import { useState, useCallback } from 'react';
-import { Photo, MAX_FILES, PhotoAnalysisResult } from '@/types/photo';
+import { Photo, PhotoAnalysisResult, PhotoScore, AICondition } from '@/types/photo';
+import { v4 as uuidv4 } from 'uuid';
+import { analyzePhotos } from '@/services/photo/analyzePhotos';
+import { uploadPhotos } from '@/services/photo/uploadPhotoService';
 
-export function usePhotoScoring(initialPhotos: Photo[] = []) {
-  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
+interface UsePhotoScoringOptions {
+  valuationId: string;
+}
+
+export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState('');
   const [scoringResult, setScoringResult] = useState<PhotoAnalysisResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [photoScores, setPhotoScores] = useState<PhotoScore[]>([]);
   
-  const analyzePhotos = useCallback(async () => {
-    if (!photos.length) {
-      setError('No photos to analyze');
-      return null;
+  const handleFileSelect = useCallback((files: File[]) => {
+    const newPhotos: Photo[] = Array.from(files).map(file => ({
+      id: uuidv4(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+      file,
+      uploading: false,
+      uploaded: false
+    }));
+    
+    setPhotos(prev => [...prev, ...newPhotos]);
+  }, []);
+  
+  const handleUpload = useCallback(async () => {
+    if (photos.length === 0) {
+      setError('No photos to upload');
+      return Promise.reject(new Error('No photos to upload'));
     }
     
-    setIsLoading(true);
-    setError(null);
+    setIsUploading(true);
+    setError('');
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Mark photos as uploading
+      setPhotos(prev => prev.map(photo => ({ ...photo, uploading: true })));
       
-      // Mock analysis result
-      const mockResult: PhotoAnalysisResult = {
-        overallScore: 0.85,
-        individualScores: photos.map(photo => ({
-          url: photo.url,
-          score: Math.random() * 0.4 + 0.6, // Random score between 0.6 and 1.0
-          isPrimary: false
-        })),
-        aiCondition: {
-          condition: 'Good',
-          confidenceScore: 85,
-          issuesDetected: ['Minor scratches on driver side', 'Small dent on rear bumper']
+      // Upload photos to service
+      const photosToUpload = photos.filter(p => !p.uploaded && p.file);
+      const uploadedPhotos = await uploadPhotos(
+        photosToUpload.map(p => p.file as File), 
+        valuationId
+      );
+      
+      // Update local state with uploaded photos
+      setPhotos(prev => prev.map(photo => {
+        const uploadedPhoto = uploadedPhotos.find(up => up.id === photo.id);
+        if (uploadedPhoto) {
+          return { ...photo, ...uploadedPhoto, uploading: false, uploaded: true };
         }
-      };
+        return photo;
+      }));
       
-      // Set primary photo
-      if (mockResult.individualScores.length > 0) {
-        const highestScoreIndex = mockResult.individualScores
-          .map((s, i) => ({ index: i, score: s.score }))
-          .sort((a, b) => b.score - a.score)[0].index;
-          
-        mockResult.individualScores[highestScoreIndex].isPrimary = true;
-      }
+      // Analyze photos
+      const photoUrls = uploadedPhotos.map(p => p.url);
+      const result = await analyzePhotos(photoUrls, valuationId);
+      setScoringResult(result);
+      setPhotoScores(result.individualScores || []);
       
-      setScoringResult(mockResult);
-      return mockResult;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Photo analysis failed';
+      return result;
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to upload and analyze photos';
       setError(errorMessage);
-      return null;
+      
+      // Mark photos with error
+      setPhotos(prev => prev.map(photo => {
+        if (photo.uploading) {
+          return { ...photo, uploading: false, error: errorMessage };
+        }
+        return photo;
+      }));
+      
+      return Promise.reject(new Error(errorMessage));
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
-  }, [photos]);
+  }, [photos, valuationId]);
+  
+  const removePhoto = useCallback((id: string) => {
+    setPhotos(prev => prev.filter(photo => photo.id !== id));
+  }, []);
+  
+  const createPhotoScores = useCallback(() => {
+    if (!scoringResult || !scoringResult.individualScores) {
+      return [];
+    }
+    return scoringResult.individualScores;
+  }, [scoringResult]);
   
   return {
     photos,
     setPhotos,
-    scoringResult,
-    isLoading,
+    isUploading,
     error,
-    analyzePhotos
+    scoringResult,
+    photoScores,
+    handleFileSelect,
+    handleUpload,
+    removePhoto,
+    createPhotoScores
   };
 }

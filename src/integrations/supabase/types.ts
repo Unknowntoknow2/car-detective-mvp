@@ -541,6 +541,21 @@ export type Database = {
           },
         ]
       }
+      models_temp: {
+        Row: {
+          make_name: string
+          model_name: string
+        }
+        Insert: {
+          make_name: string
+          model_name: string
+        }
+        Update: {
+          make_name?: string
+          model_name?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount: number

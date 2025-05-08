@@ -83,4 +83,6 @@ export interface AdjustmentBreakdown {
   percentAdjustment: number;
   factor?: string;
   impact?: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }

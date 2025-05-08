@@ -1,3 +1,4 @@
+
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
 import { ValuationParams } from '@/utils/valuation/types';
 import { decodeVin } from '@/services/vinService';
@@ -5,7 +6,7 @@ import { lookupPlate } from '@/services/plateService';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadPdf } from '@/utils/pdf';
 import { ValuationResult, AdjustmentBreakdown } from '@/types/valuation';
-import { AICondition } from '@/types/photo';
+import { AICondition, ConditionRating } from '@/types/photo';
 import { uploadAndAnalyzePhotos } from '@/services/photoService';
 
 interface ReportData {
@@ -53,13 +54,13 @@ interface BuildValuationReportInput {
   notifyDealers?: boolean;
 }
 
-interface EnhancedValuationParams extends ValuationParams {
+interface EnhancedValuationParams extends Omit<ValuationParams, 'aiConditionData'> {
   photoScore?: number;
   accidentCount?: number;
   premiumFeatures?: string[];
   mpg?: number;
   aiConditionData?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    condition: ConditionRating;
     confidenceScore: number;
     issuesDetected?: string[];
     aiSummary?: string;
@@ -107,22 +108,37 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
   }
 
   let aiCondition: AICondition | undefined;
+  let photoResult;
+  
   if (input.photos && input.photos.length > 0) {
-    const result = await uploadAndAnalyzePhotos(input.photos);
-    aiCondition = {
-      condition: result.condition,
-      confidenceScore: result.confidenceScore,
-      issuesDetected: result.issuesDetected,
-      aiSummary: result.aiSummary
-    };
+    try {
+      photoResult = await uploadAndAnalyzePhotos(input.photos, input.valuationId || 'temp-id');
+      
+      if (!photoResult.error) {
+        aiCondition = {
+          condition: photoResult.condition,
+          confidenceScore: photoResult.confidenceScore,
+          issuesDetected: photoResult.individualScores?.map(s => `Issue with photo ${s}`), // Simplified for now
+          aiSummary: `Photo analysis completed with score ${photoResult.score}`
+        };
+      }
+    } catch (error) {
+      console.error('Error processing photos:', error);
+      // Continue without photo analysis
+    }
   }
 
   const valuationParams: EnhancedValuationParams = {
     ...baseInfo,
     mileage: input.mileage || 0,
-    condition: input.condition || aiCondition?.condition || 'Good',
-    photoScore: aiCondition?.confidenceScore,
-    aiConditionData: aiCondition,
+    condition: input.condition || (aiCondition?.condition as string) || 'Good',
+    photoScore: photoResult?.score,
+    aiConditionData: aiCondition ? {
+      condition: aiCondition.condition,
+      confidenceScore: aiCondition.confidenceScore,
+      issuesDetected: aiCondition.issuesDetected,
+      aiSummary: aiCondition.aiSummary
+    } : undefined,
     accidentCount: input.accidentCount,
     premiumFeatures: input.features,
     mpg: input.mpg || undefined

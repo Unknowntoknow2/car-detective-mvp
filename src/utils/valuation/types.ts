@@ -1,60 +1,40 @@
 
-import { AdjustmentBreakdown } from '../rules/types';
-
 export interface ValuationParams {
   make: string;
   model: string;
   year: number;
   mileage: number;
   condition: string;
-  zip?: string;
   trim?: string;
-  transmission?: string;
+  bodyType?: string;
   fuelType?: string;
-  accidentCount?: number;
-  titleStatus?: string;
-  premiumFeatures?: string[];
-  mpg?: number | null;
-  osmData?: any;
-  censusData?: any;
+  transmission?: string;
+  zip?: string;
+  features?: string[];
   aiConditionData?: {
-    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null;
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
     confidenceScore: number;
     issuesDetected?: string[];
     aiSummary?: string;
-  } | null;
+  };
 }
 
 export interface ValuationResult {
-  estimatedValue: number;
-  basePrice: number;
-  adjustments: AdjustmentBreakdown[];
-  priceRange: [number, number];
+  baseValue: number;
+  adjustments: AdjustmentFactor[];
+  finalValue: number;
   confidenceScore: number;
+  priceRange: [number, number];
+  explanation?: string;
 }
 
-export interface ValuationInput {
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  zipCode?: string;
-  trim?: string;
-  fuelType?: string;
-  transmission?: string;
-  features?: string[];
-  accidentCount?: number;
-  color?: string;
-  premiumFeatures?: boolean;
-}
-
-export interface FinalValuationResult {
-  basePrice: number;
-  estimatedValue: number;
-  priceRange: [number, number];
-  confidenceScore: number;
-  adjustments: AdjustmentBreakdown[];
-  aiSummary?: string;
-  conditionSource?: string;
+export interface AdjustmentFactor {
+  name: string;
+  value: number;
+  percentAdjustment: number;
+  description: string;
+  factor?: string;
+  impact?: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }

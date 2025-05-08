@@ -1,50 +1,77 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { isValidVIN } from '@/utils/validation/vin-validation';
 
-interface UseVinInputOptions {
+interface UseVinInputProps {
   initialValue?: string;
   onValidChange?: (isValid: boolean) => void;
 }
 
-export function useVinInput({ initialValue = '', onValidChange }: UseVinInputOptions = {}) {
-  const [value, setValue] = useState(initialValue);
-  const [touched, setTouched] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isValid, setIsValid] = useState(false);
+interface UseVinInputResult {
+  value: string;
+  touched: boolean;
+  validationError: string | null;
+  isValid: boolean;
+  handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  resetVin: () => void;
+}
 
-  useEffect(() => {
-    if (value) {
-      const validation = validateVIN(value);
-      setValidationError(validation.error || null);
-      const newIsValid = validation.isValid;
-      setIsValid(newIsValid);
-      
-      if (onValidChange) {
-        onValidChange(newIsValid);
-      }
-    } else {
-      setValidationError(touched ? 'VIN is required' : null);
+export function useVinInput({ 
+  initialValue = '', 
+  onValidChange 
+}: UseVinInputProps = {}): UseVinInputResult {
+  const [value, setValue] = useState<string>(initialValue);
+  const [touched, setTouched] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isValid, setIsValid] = useState<boolean>(false);
+
+  const validateVin = (vin: string) => {
+    if (!vin) {
+      setValidationError('VIN is required');
       setIsValid(false);
-      
-      if (onValidChange) {
-        onValidChange(false);
-      }
+      return false;
     }
-  }, [value, touched, onValidChange]);
+    
+    if (!isValidVIN(vin)) {
+      setValidationError('VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q');
+      setIsValid(false);
+      return false;
+    }
+    
+    setValidationError(null);
+    setIsValid(true);
+    return true;
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.toUpperCase();
     setValue(newValue);
     setTouched(true);
+    
+    const isInputValid = validateVin(newValue);
+    if (onValidChange) {
+      onValidChange(isInputValid);
+    }
   };
 
-  const reset = () => {
+  const resetVin = () => {
     setValue('');
     setTouched(false);
     setValidationError(null);
     setIsValid(false);
+    if (onValidChange) {
+      onValidChange(false);
+    }
   };
+
+  useEffect(() => {
+    if (initialValue) {
+      const isInputValid = validateVin(initialValue);
+      if (onValidChange) {
+        onValidChange(isInputValid);
+      }
+    }
+  }, [initialValue, onValidChange]);
 
   return {
     value,
@@ -52,6 +79,6 @@ export function useVinInput({ initialValue = '', onValidChange }: UseVinInputOpt
     validationError,
     isValid,
     handleInputChange,
-    reset
+    resetVin
   };
 }
