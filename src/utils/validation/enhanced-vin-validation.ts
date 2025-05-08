@@ -1,12 +1,12 @@
 
-import { isValidVIN } from './vin-validation';
+import { isValidVIN as baseValidation } from './vin-validation';
 
 /**
  * Enhanced VIN validation with additional features
  */
-export const isValidVIN = (vin: string): boolean => {
+export const validateVinEnhanced = (vin: string): boolean => {
   // Use the base validation function
-  return isValidVIN(vin);
+  return baseValidation(vin);
 };
 
 /**
@@ -56,7 +56,7 @@ export const getVinValidationError = (vin: string): string | null => {
  * Decodes a VIN to get basic manufacturer information
  */
 export const decodeVinPrefix = (vin: string): { country: string; manufacturer: string } | null => {
-  if (!isValidVIN(vin)) {
+  if (!baseValidation(vin)) {
     return null;
   }
   
@@ -97,3 +97,6 @@ export const decodeVinPrefix = (vin: string): { country: string; manufacturer: s
   
   return { country, manufacturer };
 };
+
+// Export the base validation function as well for backward compatibility
+export { baseValidation as isValidVIN };

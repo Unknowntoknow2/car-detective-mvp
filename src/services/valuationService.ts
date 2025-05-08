@@ -1,168 +1,172 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
+import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
+import { AICondition, PhotoScore } from '@/types/photo';
 
-/**
- * Retrieves a valuation by its public token
- * @param token The public token for the valuation
- */
-export async function getValuationByToken(token: string): Promise<ValuationResult | null> {
+interface FetchValuationOptions {
+  includePremiumDetails?: boolean;
+}
+
+export async function fetchValuation(
+  valuationId: string, 
+  options: FetchValuationOptions = {}
+): Promise<ValuationResult | null> {
   try {
-    // First, look up the token to get the valuation ID
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('public_tokens')
-      .select('valuation_id')
-      .eq('token', token)
-      .single();
-    
-    if (tokenError || !tokenData) {
-      console.error('Error retrieving token data:', tokenError);
-      return null;
-    }
-    
-    // Now fetch the valuation with that ID
-    const { data: valuation, error: valuationError } = await supabase
+    const { data, error } = await supabase
       .from('valuations')
-      .select('*')
-      .eq('id', tokenData.valuation_id)
+      .select(`
+        *,
+        photo_scores:photo_scores(*),
+        photo_condition:photo_condition_scores(*),
+        vehicle_features:vehicle_features(feature_id)
+      `)
+      .eq('id', valuationId)
       .single();
-    
-    if (valuationError) {
-      console.error('Error retrieving valuation:', valuationError);
+
+    if (error) {
+      console.error('Error fetching valuation:', error);
       return null;
     }
-    
-    // Format the valuation to match our ValuationResult interface
-    return {
-      id: valuation.id,
-      make: valuation.make,
-      model: valuation.model,
-      year: valuation.year,
-      mileage: valuation.mileage,
-      condition: valuation.condition_score ? valuation.condition_score.toString() : 'Good', // Map to string condition
-      zipCode: valuation.state || '', // Map state to zipCode
-      zip: valuation.state || '', // Direct DB column mapping
-      estimatedValue: valuation.estimated_value,
-      confidenceScore: valuation.confidence_score,
-      fuelType: valuation.fuel_type || '', // Map fuel_type
-      bestPhotoUrl: valuation.photo_url || '', // Map best_photo_url
-      // Include these for backward compatibility
-      photo_url: valuation.photo_url || '',
-      fuel_type: valuation.fuel_type || ''
+
+    if (!data) {
+      return null;
+    }
+
+    // Map database columns to ValuationResult fields
+    const valuation: ValuationResult = {
+      id: data.id,
+      make: data.make || '',
+      model: data.model || '',
+      year: data.year || 0,
+      mileage: data.mileage || 0,
+      condition: data.condition || 'Good',
+      zipCode: data.zip || '',
+      zip: data.zip || '',
+      fuel_type: data.fuel_type || data.fuelType || '',
+      photo_url: data.photo_url || '',
+      fuelType: data.fuel_type || data.fuelType || '',
+      bestPhotoUrl: data.photo_url || '',
+      estimatedValue: data.estimated_value || 0,
+      confidenceScore: data.confidence_score || 80,
+      priceRange: [
+        Math.floor((data.estimated_value || 0) * 0.95), 
+        Math.ceil((data.estimated_value || 0) * 1.05)
+      ],
+      features: data.vehicle_features?.map((vf: any) => vf.feature_id) || []
     };
+
+    // Add premium details if requested and available
+    if (options.includePremiumDetails && data.premium_unlocked) {
+      const premiumDetails = await fetchPremiumDetails(valuationId);
+      
+      if (premiumDetails) {
+        valuation.adjustments = premiumDetails.adjustments;
+        valuation.explanation = premiumDetails.explanation;
+      }
+    }
+
+    return valuation;
   } catch (error) {
-    console.error('Error in getValuationByToken:', error);
+    console.error('Error in fetchValuation:', error);
     return null;
   }
 }
 
-export async function getAllUserValuations(userId: string): Promise<ValuationResult[]> {
+export async function fetchPremiumDetails(valuationId: string) {
   try {
-    const { data, error } = await supabase
-      .from('valuations')
+    // Fetch adjustment factors from the database
+    const { data: adjustmentData, error: adjustmentError } = await supabase
+      .from('valuation_adjustments')
       .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching valuations:', error);
-      return [];
-    }
-    
-    return data.map(val => ({
-      id: val.id,
-      make: val.make,
-      model: val.model,
-      year: val.year,
-      mileage: val.mileage,
-      condition: val.condition_score ? val.condition_score.toString() : 'Good', // Map condition_score to condition string
-      zipCode: val.state || '', // Map state to zipCode
-      zip: val.state || '', // Direct DB column mapping
-      estimatedValue: val.estimated_value,
-      confidenceScore: val.confidence_score
-    }));
-  } catch (error) {
-    console.error('Error in getAllUserValuations:', error);
-    return [];
-  }
-}
+      .eq('valuation_id', valuationId);
 
-export async function fetchValuation(id: string): Promise<ValuationResult> {
-  try {
-    const { data, error } = await supabase
-      .from('valuations')
-      .select('*')
-      .eq('id', id)
+    if (adjustmentError) {
+      console.error('Error fetching adjustment data:', adjustmentError);
+      return null;
+    }
+
+    // Convert the database format to the expected format
+    const adjustments = adjustmentData.map((adj: any) => ({
+      factor: adj.factor_name,
+      impact: adj.impact_value,
+      description: adj.description
+    }));
+
+    // Fetch explanation if available
+    const { data: explanationData, error: explanationError } = await supabase
+      .from('valuation_explanations')
+      .select('explanation')
+      .eq('valuation_id', valuationId)
       .single();
-    
-    if (error) throw error;
-    if (!data) throw new Error('Valuation not found');
-    
-    // Transform the database record to the ValuationResult format
+
+    if (explanationError && explanationError.code !== 'PGRST116') {
+      console.error('Error fetching explanation:', explanationError);
+    }
+
     return {
-      id: data.id,
-      make: data.make,
-      model: data.model,
-      year: data.year,
-      mileage: data.mileage,
-      condition: mapConditionScore(data.condition_score), // Map condition score to string
-      zipCode: data.state || '90210', // Default to 90210 if not available
-      zip: data.state || '90210', // Direct DB column mapping
-      estimatedValue: data.estimated_value,
-      confidenceScore: data.confidence_score,
-      fuelType: data.fuel_type || '', // Match property names
-      fuel_type: data.fuel_type || '', // For backward compatibility 
-      bestPhotoUrl: data.photo_url || '', // Match property names
-      photo_url: data.photo_url || '', // For backward compatibility
-      adjustments: generateMockAdjustments(data),
-      priceRange: calculatePriceRange(data.estimated_value, data.confidence_score),
-      vin: data.vin,
-      // Add more fields as needed
+      adjustments,
+      explanation: explanationData?.explanation || ''
     };
   } catch (error) {
-    console.error('Error fetching valuation:', error);
-    throw error;
+    console.error('Error in fetchPremiumDetails:', error);
+    return null;
   }
 }
 
-// Helper function to map condition score to a string
-function mapConditionScore(score: number): string {
-  if (score >= 90) return 'Excellent';
-  if (score >= 75) return 'Good';
-  if (score >= 60) return 'Fair';
-  return 'Poor';
-}
+export async function getBestPhotoAssessment(valuationId: string) {
+  try {
+    // Query for photo score data
+    const { data: photoScores, error: photoError } = await supabase
+      .from('photo_scores')
+      .select('*')
+      .eq('valuation_id', valuationId)
+      .order('score', { ascending: false });
 
-function generateMockAdjustments(data: any): Array<{ factor: string; impact: number; description?: string }> {
-  return [
-    {
-      factor: 'Mileage',
-      impact: calculateMileageAdjustment(data.mileage),
-      description: `Based on ${data.mileage.toLocaleString()} miles`
-    },
-    {
-      factor: 'Condition',
-      impact: (data.condition_score - 70) / 10,
-      description: `${mapConditionScore(data.condition_score)} condition`
-    },
-    {
-      factor: 'Market Demand',
-      impact: data.zip_demand_factor ? (data.zip_demand_factor - 1) * 5 : 1.5,
-      description: `Market demand in ${data.state || 'your area'}` // Use state instead of zip
+    if (photoError) {
+      console.error('Error fetching photo scores:', photoError);
+      return { photoScores: [] };
     }
-  ];
-}
 
-function calculatePriceRange(estimatedValue: number, confidenceScore: number): [number, number] {
-  const margin = (100 - confidenceScore) / 100 * estimatedValue;
-  return [Math.floor(estimatedValue - margin), Math.ceil(estimatedValue + margin)];
-}
+    // Query for AI condition assessment
+    const { data: aiConditionData, error: aiError } = await supabase
+      .from('photo_condition_scores')
+      .select('*')
+      .eq('valuation_id', valuationId)
+      .single();
 
-function calculateMileageAdjustment(mileage: number): number {
-  const avgMileage = 12000 * 5; // 5 years at 12k miles per year
-  if (mileage <= avgMileage) {
-    return (avgMileage - mileage) / 20000;
-  } else {
-    return (avgMileage - mileage) / 20000;
+    if (aiError && aiError.code !== 'PGRST116') {
+      console.error('Error fetching AI condition data:', aiError);
+    }
+
+    // Format photo scores to match the PhotoScore type
+    const formattedPhotoScores: PhotoScore[] = photoScores.map((score: any) => ({
+      url: score.thumbnail_url || '',
+      score: score.score || 0,
+      isPrimary: false,
+      issues: score.metadata?.issues || []
+    }));
+
+    // Format AI condition data if available
+    let aiCondition: AICondition | null = null;
+    if (aiConditionData) {
+      aiCondition = {
+        condition: aiConditionData.condition_score >= 85 ? 'Excellent' :
+                  aiConditionData.condition_score >= 70 ? 'Good' :
+                  aiConditionData.condition_score >= 50 ? 'Fair' : 'Poor',
+        confidenceScore: aiConditionData.confidence_score || 0,
+        issuesDetected: aiConditionData.issues || [],
+        aiSummary: aiConditionData.summary || '',
+        bestPhotoUrl: formattedPhotoScores[0]?.url
+      };
+    }
+
+    return {
+      photoScores: formattedPhotoScores,
+      aiCondition
+    };
+  } catch (error) {
+    console.error('Error in getBestPhotoAssessment:', error);
+    return { photoScores: [] };
   }
 }

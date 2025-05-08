@@ -1,13 +1,17 @@
+
 export interface DecodedVehicleInfo {
-  make: string;              // human readable
-  makeId: string;            // UUID from Supabase
+  vin: string;
+  make: string;
   model: string;
-  modelId?: string;          // optional for now
   year: number;
   trim?: string;
   transmission?: string;
   fuelType?: string;
+  // Adding missing properties
+  engine?: string;
+  drivetrain?: string;
   bodyType?: string;
-  mpg?: number | null;
-  vin?: string;
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
 }

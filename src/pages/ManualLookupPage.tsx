@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -26,9 +25,10 @@ export default function ManualLookupPage() {
       make: data.make,
       model: data.model,
       year: parseInt(data.year), // Convert string to number
-      mileage: parseInt(data.mileage), // Convert string to number
+      mileage: parseInt(data.mileage), // Included as part of DecodedVehicleInfo
       fuelType: data.fuelType || 'Gasoline',
-      condition: data.condition,
+      condition: data.condition, // Included as part of DecodedVehicleInfo
+      zipCode: data.zipCode || '10001', // Included as part of DecodedVehicleInfo
       transmission: 'Unknown', // Required field in DecodedVehicleInfo
     };
     
@@ -48,23 +48,49 @@ export default function ManualLookupPage() {
       // For manual entries, we'll use some default values for non-provided fields
       const defaultValuationData = {
         mileage: manualEntryResult.mileage || 50000,
-        estimatedValue: 23500, // Default value
-        fuelType: manualEntryResult.fuelType || "Gasoline",
-        condition: manualEntryResult.condition || "Good",
-        zipCode: manualEntryResult.zipCode || "10001",
-        confidenceScore: 80,
-        adjustments: []
+        estimatedValue: 22500,
+        condition: manualEntryResult.condition || 'Good',
+        zipCode: manualEntryResult.zipCode || '10001',
+        confidenceScore: 75,
+        adjustments: [
+          { 
+            name: "Mileage", 
+            value: -1200, 
+            description: "Based on average mileage for this vehicle type and year", 
+            percentAdjustment: -5
+          },
+          { 
+            name: "Condition", 
+            value: 800, 
+            description: "Based on reported vehicle condition", 
+            percentAdjustment: 3.5
+          },
+          { 
+            name: "Market Demand", 
+            value: 1500, 
+            description: "Current market trends for this make/model", 
+            percentAdjustment: 6.5
+          }
+        ]
       };
-
-      const reportData = convertVehicleInfoToReportData(
-        manualEntryResult, 
-        defaultValuationData
-      );
       
-      await downloadPdf(reportData);
-      toast.success("PDF report generated successfully");
+      const reportData = convertVehicleInfoToReportData(manualEntryResult, defaultValuationData);
+      
+      // Call the download function
+      const pdfBlob = await downloadPdf(reportData);
+      
+      // Create a download link and trigger it
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${manualEntryResult.year}_${manualEntryResult.make}_${manualEntryResult.model}_Report.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("PDF report downloaded successfully");
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error('Error generating PDF:', error);
       toast.error("Failed to generate PDF report");
     } finally {
       setIsDownloading(false);
@@ -72,95 +98,61 @@ export default function ManualLookupPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <main className="flex-1 container py-10">
-        <div className="mx-auto max-w-4xl">
-          <h1 className="text-3xl font-bold text-center mb-8">Vehicle Lookup</h1>
-          <p className="text-center text-muted-foreground mb-8">
-            Look up vehicle information using VIN, license plate, or manual entry
-          </p>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-auto p-1 rounded-lg">
-              <TabsTrigger 
-                value="vin" 
-                className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <CarFront className="w-5 h-5" />
-                  <span>VIN Lookup</span>
-                </div>
-              </TabsTrigger>
+      
+      <main className="flex-grow container mx-auto py-8 px-4">
+        <h1 className="text-2xl font-bold mb-6">Vehicle Information Lookup</h1>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Enter Vehicle Information</CardTitle>
+            <CardDescription>
+              Choose a method to retrieve vehicle information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-3 mb-6">
+                <TabsTrigger value="vin">
+                  <Search className="mr-2 h-4 w-4" />
+                  VIN
+                </TabsTrigger>
+                <TabsTrigger value="plate">
+                  <CarFront className="mr-2 h-4 w-4" />
+                  License Plate
+                </TabsTrigger>
+                <TabsTrigger value="manual">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Manual Entry
+                </TabsTrigger>
+              </TabsList>
               
-              <TabsTrigger 
-                value="plate" 
-                className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <Search className="w-5 h-5" />
-                  <span>Plate Lookup</span>
-                </div>
-              </TabsTrigger>
+              <TabsContent value="vin">
+                <VinDecoderForm />
+              </TabsContent>
               
-              <TabsTrigger 
-                value="manual" 
-                className="py-4 px-2 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white z-10"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  <span>Manual Entry</span>
-                </div>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="vin" className="mt-6 z-0">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <CardTitle>VIN Lookup</CardTitle>
-                  <CardDescription>Enter your Vehicle Identification Number for a detailed analysis</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <VinDecoderForm />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="plate" className="mt-6 z-0">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <CardTitle>License Plate Lookup</CardTitle>
-                  <CardDescription>Look up your vehicle using license plate information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <PlateDecoderForm />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="manual" className="mt-6 z-0">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <CardTitle>Manual Entry</CardTitle>
-                  <CardDescription>Enter vehicle details manually for a custom valuation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ManualEntryForm onSubmit={handleManualSubmit} />
-                  
-                  {manualEntryResult && (
-                    <div className="mt-8">
-                      <VehicleInfoCard 
-                        vehicleInfo={manualEntryResult}
-                        onDownloadPdf={handleDownloadPdf}
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+              <TabsContent value="plate">
+                <PlateDecoderForm />
+              </TabsContent>
+              
+              <TabsContent value="manual">
+                <ManualEntryForm onSubmit={handleManualSubmit} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+        
+        {manualEntryResult && (
+          <div className="mt-8">
+            <VehicleInfoCard 
+              vehicleInfo={manualEntryResult} 
+              onDownloadPdf={handleDownloadPdf}
+            />
+          </div>
+        )}
       </main>
+      
       <Footer />
     </div>
   );

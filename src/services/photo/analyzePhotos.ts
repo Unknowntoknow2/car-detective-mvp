@@ -9,6 +9,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
   try {
     if (!photoUrls.length) {
       return {
+        score: 0,
+        photoUrl: '',
+        condition: 'Fair',
+        confidenceScore: 0,
         overallScore: 0,
         individualScores: [],
         error: 'No photos provided'
@@ -26,6 +30,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
     if (error) {
       console.error('Error analyzing photos:', error);
       return {
+        score: 0,
+        photoUrl: '',
+        condition: 'Fair',
+        confidenceScore: 0,
         overallScore: 0,
         individualScores: [],
         error: error.message || 'Failed to analyze photos'
@@ -38,6 +46,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
 
     // Process the response data
     const result: PhotoScoringResult = {
+      score: data.score || 0,
+      photoUrl: data.bestPhotoUrl || data.scores[0]?.url || '',
+      condition: (data.aiCondition?.condition || 'Fair') as any,
+      confidenceScore: data.aiCondition?.confidenceScore || 0,
       overallScore: data.score || 0,
       individualScores: data.scores.map((score: any) => ({
         url: score.url,
@@ -51,6 +63,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
   } catch (error: any) {
     console.error('Error in analyzePhotos:', error);
     return {
+      score: 0,
+      photoUrl: '',
+      condition: 'Fair',
+      confidenceScore: 0,
       overallScore: 0,
       individualScores: [],
       error: error.message || 'Failed to analyze photos'
@@ -80,6 +96,10 @@ export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string)
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {
+      score: 0,
+      photoUrl: '',
+      condition: 'Fair',
+      confidenceScore: 0,
       overallScore: 0,
       individualScores: [],
       error: error.message || 'Failed to upload and analyze photos'

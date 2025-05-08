@@ -46,10 +46,8 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       
       // Upload photos to service
       const photosToUpload = photos.filter(p => !p.uploaded && p.file);
-      const uploadedPhotos = await uploadPhotos(
-        photosToUpload.map(p => p.file as File), 
-        valuationId
-      );
+      const photoFiles = photosToUpload.map(p => p.file as File);
+      const uploadedPhotos = await uploadPhotos(photoFiles, valuationId);
       
       // Update local state with uploaded photos
       setPhotos(prev => prev.map(photo => {
@@ -63,8 +61,19 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       // Analyze photos
       const photoUrls = uploadedPhotos.map(p => p.url);
       const result = await analyzePhotos(photoUrls, valuationId);
-      setScoringResult(result);
-      setPhotoScores(result.individualScores || []);
+      
+      // Convert PhotoScoringResult to PhotoAnalysisResult
+      const analysisResult: PhotoAnalysisResult = {
+        overallScore: result.overallScore || result.score || 0,
+        individualScores: result.individualScores || [],
+        aiCondition: result.aiCondition
+      };
+      
+      setScoringResult(analysisResult);
+      
+      if (result.individualScores && Array.isArray(result.individualScores)) {
+        setPhotoScores(result.individualScores);
+      }
       
       return result;
     } catch (err: any) {

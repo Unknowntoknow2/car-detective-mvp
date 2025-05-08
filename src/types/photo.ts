@@ -63,9 +63,9 @@ export interface PhotoScoringResult {
     makeId?: string;
     modelId?: string;
   };
-  individualScores?: number[];
   error?: string;
-  overallScore?: number; // Added to match expected structure in buildValuationReport
-  individualScores?: PhotoScore[]; // Added to match expected structure in buildValuationReport
-  aiCondition?: AICondition; // Added to match expected structure in buildValuationReport
+  // Add properties to match PhotoAnalysisResult for compatibility
+  overallScore?: number;
+  individualScores?: PhotoScore[];
+  aiCondition?: AICondition;
 }

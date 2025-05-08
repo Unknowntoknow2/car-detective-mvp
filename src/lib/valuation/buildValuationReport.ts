@@ -6,7 +6,7 @@ import { lookupPlate } from '@/services/plateService';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadPdf } from '@/utils/pdf';
 import { ValuationResult, AdjustmentBreakdown } from '@/types/valuation';
-import { AICondition, ConditionRating } from '@/types/photo';
+import { AICondition, ConditionRating, PhotoScore } from '@/types/photo';
 import { uploadAndAnalyzePhotos } from '@/services/photoService';
 
 interface ReportData {
@@ -24,6 +24,13 @@ interface ReportData {
   photoUrl?: string;
   explanation?: string;
   generatedAt: string;
+  confidenceScore?: number;
+  photoScore?: number;
+  bestPhotoUrl?: string;
+  isPremium?: boolean;
+  pdfUrl?: string;
+  features?: string[];
+  aiCondition?: any;
 }
 
 interface BuildValuationReportInput {
@@ -54,33 +61,11 @@ interface BuildValuationReportInput {
   notifyDealers?: boolean;
 }
 
-interface EnhancedValuationParams extends Omit<ValuationParams, 'aiConditionData'> {
+interface EnhancedValuationParams extends ValuationParams {
   photoScore?: number;
   accidentCount?: number;
   premiumFeatures?: string[];
   mpg?: number;
-  aiConditionData?: {
-    condition: ConditionRating;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  };
-}
-
-interface PhotoScoringResult {
-  score: number;
-  photoUrl: string;
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-  confidenceScore: number;
-  vehicleInfo?: {
-    make: string;
-    model: string;
-    year: number;
-    makeId?: string;
-    modelId?: string;
-  };
-  individualScores?: number[];
-  error?: string;
 }
 
 export async function buildValuationReport(input: BuildValuationReportInput): Promise<ReportData> {
@@ -118,7 +103,7 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
         aiCondition = {
           condition: photoResult.condition,
           confidenceScore: photoResult.confidenceScore,
-          issuesDetected: photoResult.individualScores?.map(s => `Issue with photo ${s}`), // Simplified for now
+          issuesDetected: photoResult.individualScores?.map((s: PhotoScore) => `Issue with photo ${s.url}`), // Simplified for now
           aiSummary: `Photo analysis completed with score ${photoResult.score}`
         };
       }
@@ -132,6 +117,12 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     ...baseInfo,
     mileage: input.mileage || 0,
     condition: input.condition || (aiCondition?.condition as string) || 'Good',
+    trim: input.trim,
+    bodyType: input.bodyType,
+    fuelType: input.fuelType,
+    transmission: input.transmission,
+    zip: input.zipCode,
+    features: input.features,
     photoScore: photoResult?.score,
     aiConditionData: aiCondition ? {
       condition: aiCondition.condition,
@@ -144,18 +135,37 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     mpg: input.mpg || undefined
   };
 
-  const result: ValuationResult = calculateFinalValuation(valuationParams);
+  // Call calculateFinalValuation with the options parameter
+  const result = await calculateFinalValuation(valuationParams, {});
+
+  // Convert the adjustments to AdjustmentBreakdown format
+  const adjustmentsFormatted: AdjustmentBreakdown[] = (result.adjustments || []).map(adjustment => ({
+    name: adjustment.factor || adjustment.name || '',
+    value: adjustment.impact || adjustment.value || 0,
+    description: adjustment.description || '',
+    percentAdjustment: adjustment.percentAdjustment || 0,
+    factor: adjustment.factor,
+    impact: adjustment.impact,
+    adjustment: adjustment.value,
+    impactPercentage: adjustment.percentAdjustment
+  }));
 
   const report: ReportData = {
     ...baseInfo,
     mileage: valuationParams.mileage,
     condition: valuationParams.condition,
     estimatedValue: result.estimatedValue,
-    priceRange: result.priceRange,
-    adjustments: result.adjustments,
-    photoUrl: input.photos && input.photos.length > 0 ? 'photo_url_placeholder' : undefined,
+    priceRange: result.priceRange || [0, 0],
+    adjustments: adjustmentsFormatted,
+    photoUrl: photoResult?.photoUrl,
+    bestPhotoUrl: photoResult?.photoUrl,
     explanation: result.explanation,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
+    confidenceScore: result.confidenceScore,
+    photoScore: photoResult?.score,
+    isPremium: input.isPremium,
+    features: input.features,
+    aiCondition: aiCondition
   };
 
   return report;

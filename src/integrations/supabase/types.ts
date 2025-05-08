@@ -485,25 +485,34 @@ export type Database = {
       model_trims: {
         Row: {
           created_at: string
+          description: string | null
           engine_type: string | null
           id: string
+          image_url: string | null
           model_id: string | null
+          msrp: number | null
           trim_name: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           engine_type?: string | null
           id?: string
+          image_url?: string | null
           model_id?: string | null
+          msrp?: number | null
           trim_name: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           engine_type?: string | null
           id?: string
+          image_url?: string | null
           model_id?: string | null
+          msrp?: number | null
           trim_name?: string
           updated_at?: string
         }
@@ -540,21 +549,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      models_temp: {
-        Row: {
-          make_name: string
-          model_name: string
-        }
-        Insert: {
-          make_name: string
-          model_name: string
-        }
-        Update: {
-          make_name?: string
-          model_name?: string
-        }
-        Relationships: []
       }
       orders: {
         Row: {

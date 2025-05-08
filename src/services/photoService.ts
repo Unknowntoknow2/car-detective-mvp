@@ -10,6 +10,10 @@ export async function scorePhotos(photoUrls: string[], valuationId: string): Pro
   } catch (error: any) {
     console.error('Error scoring photos:', error);
     return {
+      score: 0,
+      photoUrl: '',
+      condition: 'Fair',
+      confidenceScore: 0,
       overallScore: 0,
       individualScores: [],
       error: error.message || 'Failed to score photos'
@@ -39,6 +43,10 @@ export async function uploadAndAnalyzePhotos(files: File[], valuationId: string)
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {
+      score: 0,
+      photoUrl: '',
+      condition: 'Fair',
+      confidenceScore: 0,
       overallScore: 0,
       individualScores: [],
       error: error.message || 'Failed to upload and analyze photos'

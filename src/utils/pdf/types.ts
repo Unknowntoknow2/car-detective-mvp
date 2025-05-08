@@ -1,67 +1,35 @@
 
-import { AdjustmentBreakdown } from '@/utils/rules/types';
-import { AICondition } from '@/types/photo';
-
 export interface ReportData {
-  vin?: string;
+  id?: string;
   make: string;
+  makeId?: string;
   model: string;
+  modelId?: string;
   year: number;
-  mileage: number | string;
+  mileage: number;
   condition: string;
-  zipCode: string;
   estimatedValue: number;
-  priceRange?: [number, number];
-  confidenceScore: number;
-  adjustments?: AdjustmentBreakdown[];
-  aiCondition?: AICondition | null;
-  aiSummary?: string;
-  bestPhotoUrl?: string;
+  priceRange: [number, number];
+  adjustments: AdjustmentBreakdown[];
+  photoUrl?: string;
   explanation?: string;
-  features?: string[];
-  valuationId?: string;
-  plate?: string;
-  state?: string;
-  isPremium?: boolean;
+  generatedAt: string;
   narrative?: string;
-  color?: string;
-  bodyStyle?: string;
-  bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  photoExplanation?: string;
-}
-
-export interface ReportOptions {
-  includeBranding: boolean;
-  includeAIScore: boolean;
-  includeFooter: boolean;
-  includeTimestamp: boolean;
-  includePhotoAssessment: boolean;
+  
+  // Adding missing properties found in tests
+  confidenceScore?: number;
+  photoScore?: number;
+  bestPhotoUrl?: string;
   isPremium?: boolean;
-  format?: string;
-  printBackground?: boolean;
-  landscape?: boolean;
-  showWholesaleValue?: boolean;
-  dealerName?: string;
-  title?: string;
-  userName?: string;
+  pdfUrl?: string;
+  features?: string[];
+  aiCondition?: any;
 }
 
 export interface SectionParams {
   doc: any;
-  page?: any;
   pageWidth: number;
   pageHeight: number;
   margin: number;
-  fontSize: number;
-  lineHeight: number;
-  contentWidth?: number;
-  width?: number;
-  height?: number;
-  regularFont?: any;
-  boldFont?: any;
-  italicFont?: any;
+  fontFamily: string;
 }
-
-export type RotationTypes = number | "degree";
