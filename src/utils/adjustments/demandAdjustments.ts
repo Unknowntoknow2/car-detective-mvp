@@ -1,5 +1,5 @@
 
-import { RulesEngineInput } from './types';
+import { RulesEngineInput } from '../rules/types';
 
 interface AdjustmentResult {
   factor: string;

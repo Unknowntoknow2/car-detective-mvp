@@ -89,7 +89,7 @@ export default function ValuationDetailPage() {
           mileage: valuation.mileage,
           estimated_value: valuation.estimatedValue,
           is_premium: isPremium,
-          premium_unlocked: isPremium,
+          premium_unlocked: isPremium, // This is now valid because we added it to the Valuation type
           condition: valuation.condition,
           confidence_score: valuation.confidenceScore,
         }} 

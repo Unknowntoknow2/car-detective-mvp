@@ -45,7 +45,7 @@ export interface EnhancedValuationParams extends ValuationParams {
   accidentCount?: number;
   premiumFeatures?: string[];
   mpg?: number;
-  zipCode?: string; // Add zipCode field to match ValuationInput requirement
+  zipCode: string; // Make zipCode required to match ValuationInput requirement
 }
 
 export interface FinalValuationResult {

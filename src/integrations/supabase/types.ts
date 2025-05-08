@@ -426,6 +426,42 @@ export type Database = {
         }
         Relationships: []
       }
+      makes_backup: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          make_id: number | null
+          make_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          make_id?: number | null
+          make_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          make_id?: number | null
+          make_name?: string | null
+        }
+        Relationships: []
+      }
+      makes_temp: {
+        Row: {
+          id: string
+          make_name: string | null
+        }
+        Insert: {
+          id?: string
+          make_name?: string | null
+        }
+        Update: {
+          id?: string
+          make_name?: string | null
+        }
+        Relationships: []
+      }
       market_adjustments: {
         Row: {
           last_updated: string

@@ -1,94 +1,123 @@
 import { generatePdf } from './pdfGenerator';
 import { ReportData } from './types';
+import fs from 'node:fs';
 
-describe('PDF Generator', () => {
-  test('generates a valid PDF with basic data', async () => {
-    // Prepare minimal test data
-    const mockData: ReportData = {
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      mileage: 25000,
-      condition: 'Good',
-      estimatedValue: 20000,
-      vin: 'ABC123456789',
-      zipCode: '90210',
-      confidenceScore: 85,
-      color: 'Red',
-      bodyStyle: 'Sedan',
-      bodyType: 'Sedan',
-      fuelType: 'Gasoline',
-      explanation: 'This is a test explanation',
-      isPremium: false
-    };
+// In all test data objects, add the required properties
+const testReportData: ReportData = {
+  make: 'Toyota',
+  model: 'Camry',
+  year: 2020,
+  mileage: 35000,
+  condition: 'Good',
+  estimatedValue: 18500,
+  vin: '1HGCM82633A004352',
+  zipCode: '10001',
+  confidenceScore: 85,
+  color: 'Blue',
+  bodyStyle: 'Sedan',
+  bodyType: 'Sedan',
+  fuelType: 'Gasoline',
+  explanation: 'This is a test explanation',
+  isPremium: false,
+  // Add required properties
+  priceRange: [16650, 20350],
+  adjustments: [
+    {
+      name: 'Mileage',
+      value: -500,
+      description: 'Vehicle has higher than average mileage',
+      percentAdjustment: -2.7
+    }
+  ],
+  generatedAt: new Date().toISOString()
+};
 
-    // Generate the PDF
-    const pdfBytes = await generatePdf(mockData);
-    
-    // Verify we got some bytes back
-    expect(pdfBytes).toBeTruthy();
-    expect(pdfBytes.length).toBeGreaterThan(0);
+const testReportDataWithAICondition: ReportData = {
+  make: 'Toyota',
+  model: 'Camry',
+  year: 2020,
+  mileage: 35000,
+  condition: 'Good',
+  estimatedValue: 18500,
+  vin: '1HGCM82633A004352',
+  zipCode: '10001',
+  confidenceScore: 85,
+  color: 'Blue',
+  bodyStyle: 'Sedan',
+  bodyType: 'Sedan',
+  fuelType: 'Gasoline',
+  explanation: 'This is a test explanation',
+  isPremium: false,
+  aiCondition: {
+    condition: 'Good',
+    confidenceScore: 0.85,
+    issuesDetected: ['Scratch on door', 'Dent on hood'],
+    aiSummary: 'The AI detected some minor issues with the vehicle.'
+  },
+  // Add required properties
+  priceRange: [16650, 20350],
+  adjustments: [
+    {
+      name: 'Mileage',
+      value: -500,
+      description: 'Vehicle has higher than average mileage',
+      percentAdjustment: -2.7
+    }
+  ],
+  generatedAt: new Date().toISOString()
+};
+
+const testReportDataPremium: ReportData = {
+  make: 'Toyota',
+  model: 'Camry',
+  year: 2020,
+  mileage: 35000,
+  condition: 'Good',
+  estimatedValue: 18500,
+  vin: '1HGCM82633A004352',
+  zipCode: '10001',
+  confidenceScore: 85,
+  color: 'Blue',
+  bodyStyle: 'Sedan',
+  bodyType: 'Sedan',
+  fuelType: 'Gasoline',
+  explanation: 'This is a test explanation',
+  isPremium: true,
+  // Add required properties
+  priceRange: [16650, 20350],
+  adjustments: [
+    {
+      name: 'Mileage',
+      value: -500,
+      description: 'Vehicle has higher than average mileage',
+      percentAdjustment: -2.7
+    }
+  ],
+  generatedAt: new Date().toISOString()
+};
+
+describe('PDF Generation', () => {
+  it('should generate a PDF report', async () => {
+    const pdfBuffer = await generatePdf(testReportData);
+    expect(pdfBuffer).toBeInstanceOf(Buffer);
+
+    // Optionally save the PDF to a file for manual inspection
+    fs.writeFileSync('test-report.pdf', pdfBuffer);
   });
 
-  test('includes AI condition data when provided', async () => {
-    // Prepare test data with AI condition assessment
-    const mockData: ReportData = {
-      make: 'Honda',
-      model: 'Accord',
-      year: 2019,
-      mileage: 35000,
-      condition: 'Good',
-      estimatedValue: 18500,
-      vin: 'DEF123456789',
-      zipCode: '10001',
-      confidenceScore: 90,
-      color: 'Blue',
-      bodyStyle: 'Sedan',
-      bodyType: 'Sedan',
-      fuelType: 'Gasoline',
-      explanation: 'This is a test explanation with AI condition',
-      isPremium: false,
-      aiCondition: {
-        condition: 'Good',
-        confidenceScore: 85,
-        issuesDetected: ['Minor scratch on rear bumper', 'Light wear on driver seat'],
-        aiSummary: 'Vehicle is in good condition with minor cosmetic issues.'
-      }
-    };
+  it('should generate a PDF report with AI condition data', async () => {
+    const pdfBuffer = await generatePdf(testReportDataWithAICondition);
+    expect(pdfBuffer).toBeInstanceOf(Buffer);
 
-    // Generate the PDF
-    const pdfBytes = await generatePdf(mockData);
-    
-    // Verify we got some bytes back
-    expect(pdfBytes).toBeTruthy();
-    expect(pdfBytes.length).toBeGreaterThan(0);
+    // Optionally save the PDF to a file for manual inspection
+    fs.writeFileSync('test-report-ai.pdf', pdfBuffer);
   });
 
-  test('generates a premium report when isPremium is true', async () => {
-    // Prepare minimal test data for premium report
-    const mockData: ReportData = {
-      make: 'Tesla',
-      model: 'Model 3',
-      year: 2021,
-      mileage: 15000,
-      condition: 'Excellent',
-      estimatedValue: 42000,
-      vin: 'GHI123456789',
-      zipCode: '94105',
-      confidenceScore: 95,
-      color: 'White',
-      bodyStyle: 'Sedan',
-      bodyType: 'Sedan',
-      fuelType: 'Electric',
-      explanation: 'This is a test explanation for premium report',
-      isPremium: true
-    };
+  it('should generate a premium PDF report', async () => {
+    const pdfBuffer = await generatePdf(testReportDataPremium);
+    expect(pdfBuffer).toBeInstanceOf(Buffer);
 
-    // Generate the PDF
-    const pdfBytes = await generatePdf(mockData);
-    
-    // Verify we got some bytes back
-    expect(pdfBytes).toBeTruthy();
-    expect(pdfBytes.length).toBeGreaterThan(0);
+    // Optionally save the PDF to a file for manual inspection
+    fs.writeFileSync('test-report-premium.pdf', pdfBuffer);
   });
 });

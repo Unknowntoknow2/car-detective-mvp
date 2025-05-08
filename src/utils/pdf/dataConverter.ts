@@ -1,93 +1,95 @@
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { AICondition } from '@/types/photo';
-import { ReportData, ReportOptions } from './types';
+import { ReportData } from './types';
+import { AdjustmentBreakdown } from './types';
 
 /**
- * Converts vehicle information to PDF report data format
+ * Convert vehicle information to report data format
+ * @param vehicleInfo Basic vehicle information
+ * @param additionalData Additional data needed for the report
+ * @returns Report data object
  */
-export function convertVehicleInfoToReportData(
-  vehicle: DecodedVehicleInfo,
-  options: {
-    mileage?: number;
-    estimatedValue?: number;
-    condition?: string;
-    zipCode?: string;
-    confidenceScore?: number;
-    adjustments?: {
-      factor: string;
-      impact: number;
-      description: string;
-    }[];
-    aiCondition?: AICondition | null;
-    isPremium?: boolean;
-    bestPhotoUrl?: string;
-    photoExplanation?: string;
-  } = {}
-): ReportData {
-  // Extract values with fallbacks
-  const reportData: ReportData = {
-    vin: vehicle.vin || 'Unknown',
-    make: vehicle.make || '',
-    model: vehicle.model || '',
-    year: vehicle.year || 0,
-    mileage: options.mileage || (vehicle.mileage ? Number(vehicle.mileage) : 0),
-    condition: (options.condition || vehicle.condition || 'Good') as 'Excellent' | 'Good' | 'Fair' | 'Poor',
-    zipCode: options.zipCode || vehicle.zipCode || '',
-    estimatedValue: options.estimatedValue || 0,
-    confidenceScore: options.confidenceScore || 85,
-    color: vehicle.color || 'Not Specified',
-    bodyStyle: vehicle.bodyType || 'Not Specified',
-    bodyType: vehicle.bodyType || 'Not Specified',
-    fuelType: vehicle.fuelType || 'Not Specified',
-    explanation: 'Generated using AI-powered market data analysis',
-    isPremium: options.isPremium || false,
-    transmission: vehicle.transmission || 'Not Specified',
-    bestPhotoUrl: options.bestPhotoUrl,
-    photoExplanation: options.photoExplanation
+export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additionalData: {
+  mileage: number;
+  estimatedValue: number;
+  confidenceScore?: number;
+  condition: string;
+  zipCode: string;
+  adjustments: AdjustmentBreakdown[];
+  isPremium?: boolean;
+}): ReportData {
+  return {
+    make: vehicleInfo.make,
+    model: vehicleInfo.model,
+    year: vehicleInfo.year,
+    mileage: additionalData.mileage,
+    condition: additionalData.condition,
+    estimatedValue: additionalData.estimatedValue,
+    confidenceScore: additionalData.confidenceScore || 75,
+    vin: vehicleInfo.vin,
+    zipCode: additionalData.zipCode,
+    color: vehicleInfo.color,
+    bodyStyle: vehicleInfo.bodyType,
+    bodyType: vehicleInfo.bodyType,
+    fuelType: vehicleInfo.fuelType,
+    transmission: vehicleInfo.transmission,
+    isPremium: additionalData.isPremium || false,
+    // Add required properties
+    priceRange: [
+      Math.round(additionalData.estimatedValue * 0.90), 
+      Math.round(additionalData.estimatedValue * 1.10)
+    ],
+    adjustments: additionalData.adjustments,
+    generatedAt: new Date().toISOString()
   };
+}
 
-  // Add price range
-  if (options.estimatedValue) {
-    reportData.priceRange = [
-      Math.round(options.estimatedValue * 0.95),
-      Math.round(options.estimatedValue * 1.05)
-    ];
-  }
+/**
+ * Convert a valuation result to report data format
+ * @param valuation Valuation result object
+ * @returns Report data object
+ */
+export function convertValuationToReportData(valuation: any): ReportData {
+  // Extract adjustments or create empty array
+  const adjustments: AdjustmentBreakdown[] = valuation.adjustments?.map((adj: any) => ({
+    name: adj.factor || adj.name,
+    value: adj.impact || adj.value || 0,
+    description: adj.description || '',
+    percentAdjustment: adj.impactPercentage || adj.percentAdjustment || 0
+  })) || [];
 
-  // Add adjustments if provided
-  if (options.adjustments && options.adjustments.length > 0) {
-    reportData.adjustments = options.adjustments?.map(adj => ({
-      name: adj.factor,
-      value: adj.impact,
-      description: adj.description || '',
-      percentAdjustment: (adj.impact / options.estimatedValue) * 100
-    })) || [];
-  }
+  // Calculate price range if not provided
+  const priceRange = valuation.priceRange || [
+    Math.round((valuation.estimatedValue || valuation.valuation || 0) * 0.9),
+    Math.round((valuation.estimatedValue || valuation.valuation || 0) * 1.1)
+  ];
 
-  // Handle aiCondition correctly
-  if (options.aiCondition) {
-    // Make sure condition is one of the allowed values
-    let condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-    
-    if (options.aiCondition.condition === 'Excellent' || 
-        options.aiCondition.condition === 'Good' || 
-        options.aiCondition.condition === 'Fair' || 
-        options.aiCondition.condition === 'Poor') {
-      condition = options.aiCondition.condition;
-    } else {
-      // Default to Good if not one of the expected values
-      condition = 'Good';
-    }
-    
-    reportData.aiCondition = {
-      condition,
-      confidenceScore: options.aiCondition.confidenceScore || 80,
-      issuesDetected: options.aiCondition.issuesDetected || [],
-      aiSummary: options.aiCondition.aiSummary || ''
-    };
-  } else {
-    reportData.aiCondition = null;
-  }
-
-  return reportData;
+  return {
+    id: valuation.id,
+    make: valuation.make || '',
+    model: valuation.model || '',
+    year: valuation.year || 0,
+    mileage: valuation.mileage || 0,
+    condition: valuation.condition || 'Good',
+    estimatedValue: valuation.estimatedValue || valuation.valuation || 0,
+    priceRange: priceRange,
+    adjustments: adjustments,
+    photoUrl: valuation.bestPhotoUrl || valuation.photoUrl || '',
+    explanation: valuation.explanation || valuation.gptExplanation || '',
+    generatedAt: valuation.created_at || new Date().toISOString(),
+    confidenceScore: valuation.confidenceScore || 75,
+    photoScore: valuation.photoScore || 0,
+    bestPhotoUrl: valuation.bestPhotoUrl || '',
+    isPremium: valuation.isPremium || false,
+    features: valuation.features || [],
+    aiCondition: valuation.aiCondition || null,
+    vin: valuation.vin || '',
+    valuationId: valuation.id,
+    zipCode: valuation.zipCode || valuation.zip || '',
+    color: valuation.color || '',
+    bodyStyle: valuation.bodyStyle || valuation.bodyType || '',
+    bodyType: valuation.bodyType || valuation.bodyStyle || '',
+    fuelType: valuation.fuelType || valuation.fuel_type || '',
+    transmission: valuation.transmission || '',
+    photoExplanation: valuation.photoExplanation || ''
+  };
 }

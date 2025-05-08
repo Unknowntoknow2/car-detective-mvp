@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
@@ -147,5 +146,21 @@ export async function getPremiumValuations(userId: string): Promise<ValuationRes
 }
 
 export async function getValuationByToken(token: string): Promise<ValuationResult | null> {
-  return null;
+  try {
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('public_tokens')
+      .select('valuation_id')
+      .eq('token', token)
+      .single();
+
+    if (tokenError || !tokenData) {
+      console.error('Error fetching token:', tokenError);
+      return null;
+    }
+    
+    return getValuationById(tokenData.valuation_id);
+  } catch (error) {
+    console.error('Error in getValuationByToken:', error);
+    return null;
+  }
 }

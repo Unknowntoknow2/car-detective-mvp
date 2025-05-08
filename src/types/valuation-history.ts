@@ -13,4 +13,6 @@ export interface Valuation {
   valuation?: number;
   estimated_value?: number;
   is_premium?: boolean;
+  premium_unlocked?: boolean;
+  confidence_score?: number;
 }
