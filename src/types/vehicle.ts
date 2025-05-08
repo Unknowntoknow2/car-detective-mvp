@@ -1,19 +1,13 @@
-
 export interface DecodedVehicleInfo {
-  vin: string;
-  make: string;
+  make: string;              // human readable
+  makeId: string;            // UUID from Supabase
   model: string;
+  modelId?: string;          // optional for now
   year: number;
   trim?: string;
-  engine?: string;
-  transmission?: string; // Make transmission optional
-  drivetrain?: string;
-  bodyType?: string;
-  mileage?: number;
+  transmission?: string;
   fuelType?: string;
-  color?: string;
-  condition?: string;
-  zipCode?: string;
-  plate?: string; // Add plate field to support usage in ValuationTable
-  state?: string; // Add state field
+  bodyType?: string;
+  mpg?: number | null;
+  vin?: string;
 }
