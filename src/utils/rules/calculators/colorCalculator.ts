@@ -1,7 +1,7 @@
 
-import { RulesEngineInput } from '../types';
+import { RulesEngineInput, AdjustmentCalculator } from '../types';
 
-export class ColorCalculator {
+export class ColorCalculator implements AdjustmentCalculator {
   calculate(input: RulesEngineInput) {
     // Check if exteriorColor exists
     const exteriorColor = input.exteriorColor || '';
@@ -16,7 +16,10 @@ export class ColorCalculator {
       impact,
       description: exteriorColor 
         ? `${exteriorColor} color adjustment` 
-        : "Standard color"
+        : "Standard color",
+      name: "Exterior Color",
+      value: impact,
+      percentAdjustment: impact
     };
   }
 }

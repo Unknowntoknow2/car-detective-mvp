@@ -46,12 +46,12 @@ export class RulesEngine {
           // Add to audit trail if consequence has adjustment data
           if (consequence && typeof consequence === 'object' && 'impact' in consequence) {
             auditTrail.push({
-              factor: rule.name,
-              impact: consequence.impact,
-              name: rule.name, // For backward compatibility
-              value: consequence.impact, // For backward compatibility
+              name: rule.name,
+              value: consequence.impact,
               description: rule.description || '',
-              percentAdjustment: 0 // Add default value for percentAdjustment
+              percentAdjustment: 0, // Default percentAdjustment
+              factor: rule.name,
+              impact: consequence.impact
             });
           }
         }

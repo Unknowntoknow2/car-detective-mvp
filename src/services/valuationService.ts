@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
@@ -42,7 +43,7 @@ export async function fetchValuation(
       condition: data.condition_score ? data.condition_score.toString() : 'Good',
       zipCode: data.state || '',
       zip: data.state || '',
-      fuelType: data.fuelType || '',
+      fuelType: data.fuel_type || '',
       bestPhotoUrl: data.photo_scores?.length > 0 ? data.photo_scores[0].url : '',
       estimatedValue: data.estimated_value || 0,
       confidenceScore: data.confidence_score || 80,
@@ -158,7 +159,7 @@ export async function getValuationByToken(token: string): Promise<ValuationResul
       return null;
     }
     
-    return getValuationById(tokenData.valuation_id);
+    return fetchValuation(tokenData.valuation_id);
   } catch (error) {
     console.error('Error in getValuationByToken:', error);
     return null;

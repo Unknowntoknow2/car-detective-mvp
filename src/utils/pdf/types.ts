@@ -39,6 +39,7 @@ export interface ReportData {
     condition: "Excellent" | "Good" | "Fair" | "Poor";
     confidenceScore: number;
     issuesDetected?: string[];
+    aiSummary?: string; // Add aiSummary property
   };
   
   // Additional fields for specific use cases
@@ -56,6 +57,8 @@ export interface AdjustmentBreakdown {
   value: number;
   description: string;
   percentAdjustment: number;
+  factor?: string; 
+  impact?: number;
 }
 
 export interface PdfOptions {
@@ -78,4 +81,7 @@ export interface ReportOptions extends PdfOptions {
   title?: string;
   userName?: string;
   dealerName?: string;
+  printBackground?: boolean; // Add printBackground property
+  landscape?: boolean; // Add landscape property
+  showWholesaleValue?: boolean; // Add showWholesaleValue property
 }

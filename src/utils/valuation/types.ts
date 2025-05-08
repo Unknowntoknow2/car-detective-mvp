@@ -17,6 +17,7 @@ export interface EnhancedValuationParams extends ValuationInput {
   bodyStyle?: string;
   exteriorColor?: string;
   colorMultiplier?: number;
+  carfaxData?: any;
   
   // Add additional fields to fix errors
   zip?: string;
@@ -29,6 +30,9 @@ export interface FinalValuationResult {
     factor: string;
     impact: number;
     description?: string;
+    name?: string;
+    value?: number;
+    percentAdjustment?: number;
   }>;
   finalValue: number;
   confidenceScore: number;
@@ -51,6 +55,7 @@ export interface FinalValuationResult {
     condition: string;
     confidenceScore: number;
     issuesDetected?: string[];
+    aiSummary?: string;
   };
   
   // Add any additional properties needed by the application

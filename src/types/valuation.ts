@@ -36,6 +36,7 @@ export interface ValuationResult {
   photo_url?: string;
   zip?: string;
   created_at?: string; // Add this to match MyValuationsPage usage
+  premium_unlocked?: boolean; // Add premium_unlocked field
 }
 
 export interface ValuationResultProps {
@@ -52,7 +53,7 @@ export interface ValuationResultProps {
 }
 
 export interface ValuationInput {
-  identifierType: 'vin' | 'plate' | 'manual' | 'photo';
+  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
   vin?: string;
   plate?: string;
   state?: string;
@@ -61,7 +62,7 @@ export interface ValuationInput {
   year?: number;
   mileage?: number;
   condition?: string;
-  zipCode?: string;
+  zipCode: string; // Make required to match expectation in buildValuationReport
   bodyType?: string;
   trim?: string;
   transmission?: string;

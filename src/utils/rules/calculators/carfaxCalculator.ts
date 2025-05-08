@@ -1,7 +1,7 @@
 
-import { RulesEngineInput } from '../types';
+import { RulesEngineInput, AdjustmentCalculator } from '../types';
 
-export class CarfaxCalculator {
+export class CarfaxCalculator implements AdjustmentCalculator {
   calculate(input: RulesEngineInput) {
     // Check if carfaxData exists
     const hasCarfaxData = !!input.carfaxData;
@@ -12,7 +12,10 @@ export class CarfaxCalculator {
       impact,
       description: hasCarfaxData 
         ? "CARFAX report verified" 
-        : "No CARFAX data available"
+        : "No CARFAX data available",
+      name: "CARFAX Report",
+      value: impact,
+      percentAdjustment: impact / input.baseValue * 100
     };
   }
 }

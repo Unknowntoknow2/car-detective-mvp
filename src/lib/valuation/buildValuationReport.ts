@@ -9,6 +9,9 @@ import {
   FinalValuationResult,
 } from '@/utils/valuation/types';
 import { RulesEngine } from '@/utils/rules/RulesEngine';
+import { AccidentCalculator } from '@/utils/rules/calculators/accidentCalculator';
+import { CarfaxCalculator } from '@/utils/rules/calculators/carfaxCalculator';
+import { ColorCalculator } from '@/utils/rules/calculators/colorCalculator';
 
 // Instead of importing non-existent rule files, create a placeholder array
 const rules = [];
@@ -56,6 +59,7 @@ const calculateValuation = async (params: EnhancedValuationParams): Promise<Fina
 
   const facts = {
     baseValue,
+    basePrice: baseValue, // Add basePrice property
     make: params.make,
     model: params.model,
     year: params.year,
@@ -75,12 +79,13 @@ const calculateValuation = async (params: EnhancedValuationParams): Promise<Fina
     colorMultiplier: params.colorMultiplier || 1.0,
     saleDate: params.saleDate || '',
     bodyStyle: params.bodyType || '',
+    carfaxData: params.carfaxData
   };
 
   const { result, auditTrail } = engine.evaluate(facts);
 
   const finalValue = result !== null ? result : baseValue;
-  const priceRange = [finalValue * 0.9, finalValue * 1.1];
+  const priceRange: [number, number] = [finalValue * 0.9, finalValue * 1.1];
   const confidenceScore = 80;
 
   // Return the expected result format with all required fields

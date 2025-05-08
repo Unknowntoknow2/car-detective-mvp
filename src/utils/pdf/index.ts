@@ -1,3 +1,4 @@
+
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
 
@@ -26,6 +27,7 @@ export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, 
     year: vehicleInfo.year,
     mileage: valuationData.mileage || 0,
     condition: valuationData.condition || 'Good',
+    zipCode: vehicleInfo.zipCode || valuationData.zipCode || '10001',
     estimatedValue: valuationData.estimatedValue || 0,
     priceRange: [
       Math.floor((valuationData.estimatedValue || 0) * 0.95),

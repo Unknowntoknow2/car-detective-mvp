@@ -1,18 +1,15 @@
 
+// Add or update this interface to include zipCode
 export interface DecodedVehicleInfo {
-  vin?: string;
+  vin: string;
   make: string;
   model: string;
   year: number;
   trim?: string;
-  transmission?: string;
-  bodyType?: string;
-  fuelType?: string;
   engine?: string;
-  drivetrain?: string;
-  color?: string;
-  state?: string;
-  plate?: string;
+  transmission?: string;
+  fuelType?: string;
+  bodyType?: string;
   zipCode?: string;
   mileage?: number;
   condition?: string;
