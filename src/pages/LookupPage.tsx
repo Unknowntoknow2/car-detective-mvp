@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -6,6 +7,7 @@ import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { VINLookupForm } from '@/components/lookup/vin/StandardVinLookupForm';
 
 export default function PlateLookupPage() {
   const [showManualEntry, setShowManualEntry] = useState(false);
@@ -14,6 +16,12 @@ export default function PlateLookupPage() {
   const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log("Manual entry form submitted:", data);
     // Here you would typically handle the form submission
+  };
+
+  // Add handler for VINLookupForm
+  const handleVinSubmit = (vin: string) => {
+    console.log("VIN form submitted:", vin);
+    // Handle the VIN lookup logic here
   };
 
   return (
@@ -37,6 +45,8 @@ export default function PlateLookupPage() {
             ctaText="Explore Premium Features"
             ctaHref="/premium"
           />
+          
+          <VINLookupForm onSubmit={handleVinSubmit} />
 
           <PlateDecoderForm onManualEntryClick={() => setShowManualEntry(true)} />
 

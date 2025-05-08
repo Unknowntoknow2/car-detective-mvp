@@ -8,9 +8,14 @@ import { AlertCircle } from 'lucide-react';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 import { validateVIN } from '@/utils/validation/vin-validation';
 
-export const VinLookupForm: React.FC = () => {
+interface VINLookupFormProps {
+  onSubmit: (vin: string) => void;
+  error?: string | null;
+}
+
+export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, error }) => {
   const [vin, setVin] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any | null>(null);
   
@@ -24,33 +29,12 @@ export const VinLookupForm: React.FC = () => {
     // Validate VIN
     const validation = validateVIN(vin);
     if (!validation.isValid) {
-      setError(validation.error || 'Invalid VIN');
+      setValidationError(validation.error || 'Invalid VIN');
       return;
     }
     
-    // Show loading state
-    setIsLoading(true);
-    
-    try {
-      // Implement your VIN lookup logic here
-      // For example:
-      // const data = await fetchVehicleInfoByVin(vin);
-      // setResult(data);
-      
-      // Simulate API call for now
-      setTimeout(() => {
-        setResult({ 
-          make: 'Sample Make', 
-          model: 'Sample Model',
-          year: 2023
-        });
-        setIsLoading(false);
-      }, 1500);
-    } catch (err) {
-      console.error('Error fetching VIN information:', err);
-      setError('Failed to fetch vehicle information');
-      setIsLoading(false);
-    }
+    // Call the onSubmit handler
+    onSubmit(vin);
   };
   
   return (
@@ -72,6 +56,13 @@ export const VinLookupForm: React.FC = () => {
             <VinInfoMessage />
           </div>
         </div>
+        
+        {validationError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{validationError}</AlertDescription>
+          </Alert>
+        )}
         
         {error && (
           <Alert variant="destructive">
@@ -109,5 +100,3 @@ export const VinLookupForm: React.FC = () => {
     </div>
   );
 };
-
-export default VinLookupForm;
