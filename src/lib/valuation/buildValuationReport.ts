@@ -11,7 +11,9 @@ import { uploadAndAnalyzePhotos } from '@/services/photoService';
 interface ReportData {
   id?: string;
   make: string;
+  makeId?: string;
   model: string;
+  modelId?: string;
   year: number;
   mileage: number;
   condition: string;
@@ -29,7 +31,9 @@ interface BuildValuationReportInput {
   plate?: string;
   state?: string;
   make?: string;
+  makeId?: string;
   model?: string;
+  modelId?: string;
   year?: number;
   mileage?: number;
   condition?: string;
@@ -71,13 +75,15 @@ interface PhotoScoringResult {
     make: string;
     model: string;
     year: number;
+    makeId?: string;
+    modelId?: string;
   };
   individualScores?: number[];
   error?: string;
 }
 
 export async function buildValuationReport(input: BuildValuationReportInput): Promise<ReportData> {
-  let baseInfo = { make: input.make, model: input.model, year: input.year };
+  let baseInfo = { make: input.make, model: input.model, year: input.year, makeId: input.makeId, modelId: input.modelId };
   let decodedData;
 
   if (input.identifierType === 'vin' && input.vin) {
@@ -85,14 +91,18 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     baseInfo = {
       make: decodedData.make,
       model: decodedData.model,
-      year: decodedData.year
+      year: decodedData.year,
+      makeId: decodedData.makeId,
+      modelId: decodedData.modelId
     };
   } else if (input.identifierType === 'plate' && input.plate && input.state) {
     decodedData = await lookupPlate(input.plate, input.state);
     baseInfo = {
       make: decodedData.make,
       model: decodedData.model,
-      year: decodedData.year
+      year: decodedData.year,
+      makeId: decodedData.makeId,
+      modelId: decodedData.modelId
     };
   }
 
