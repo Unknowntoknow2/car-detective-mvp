@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
-import { VinInfoMessage } from '@/utils/validation/enhanced-validation';
-import { validateVIN } from '@/utils/validation/enhanced-validation';
+import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
+import { validateVIN } from '@/utils/validation/vin-validation';
 
 export const VinLookupForm: React.FC = () => {
   const [vin, setVin] = useState('');

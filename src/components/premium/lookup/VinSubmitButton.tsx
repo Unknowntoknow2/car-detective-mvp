@@ -6,12 +6,16 @@ interface VinSubmitButtonProps {
   onClick: () => void;
   disabled: boolean;
   isLoading: boolean;
+  text?: string;
+  loadingText?: string;
 }
 
-export function VinSubmitButton({ 
-  onClick, 
+export function VinSubmitButton({
+  onClick,
   disabled,
-  isLoading 
+  isLoading,
+  text = 'Look up Vehicle',
+  loadingText = 'Looking up VIN...'
 }: VinSubmitButtonProps) {
   return (
     <Button 
@@ -22,12 +26,12 @@ export function VinSubmitButton({
       {isLoading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Looking up VIN...
+          {loadingText}
         </>
       ) : (
         <>
           <Search className="mr-2 h-4 w-4" />
-          Get Vehicle Details
+          {text}
         </>
       )}
     </Button>

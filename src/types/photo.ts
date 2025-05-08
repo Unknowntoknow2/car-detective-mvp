@@ -1,38 +1,33 @@
 
-export interface Photo {
-  id: string;
-  url: string;
-  metadata?: Record<string, any>;
-  name?: string;
-  size?: number;
-  type?: string;
-  file?: File;
-  uploading?: boolean;
-  uploaded?: boolean;
-  error?: string;
-  explanation?: string;
+/**
+ * Photo-related types
+ */
+
+export type ConditionRating = 'Excellent' | 'Good' | 'Fair' | 'Poor';
+
+export interface AICondition {
+  condition: ConditionRating;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  aiSummary?: string;
+  bestPhotoUrl?: string;
 }
 
 export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
+  issues?: string[];
 }
 
-export interface AICondition {
-  condition: "Excellent" | "Good" | "Fair" | "Poor";
-  confidenceScore: number;
-  issuesDetected?: string[];
-  aiSummary?: string;
-}
-
-export interface PhotoScoringResult {
+export interface PhotoAnalysisResult {
   overallScore: number;
   individualScores: PhotoScore[];
   aiCondition?: AICondition;
+  vehicleInfo?: {
+    make: string;
+    model: string;
+    year: number;
+  };
   error?: string;
 }
-
-// Constants for photo upload validation
-export const MAX_FILES = 5;
-export const MIN_FILES = 1;

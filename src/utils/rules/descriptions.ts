@@ -1,25 +1,32 @@
 
+/**
+ * Utility functions for generating human-readable descriptions for valuation adjustments
+ */
+
+/**
+ * Generate a description for a photo score adjustment
+ */
 export function getPhotoScoreAdjustmentDescription(
   photoScore: number, 
-  percentAdjustment: number, 
-  adjustment: number
+  impactPercentage: number, 
+  adjustmentAmount: number
 ): string {
-  const formattedAdjustment = Math.abs(adjustment).toLocaleString('en-US', {
+  const formattedAmount = Math.abs(adjustmentAmount).toLocaleString(undefined, {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
   
-  const direction = adjustment >= 0 ? 'increased' : 'decreased';
+  const formattedPercentage = Math.abs(impactPercentage).toFixed(1);
   
   if (photoScore >= 0.9) {
-    return `Photos show excellent condition, value ${direction} by ${formattedAdjustment}`;
+    return `Your vehicle photos show excellent condition, adding ${formattedAmount} (${formattedPercentage}%) to the valuation.`;
   } else if (photoScore >= 0.7) {
-    return `Photos show good condition, no adjustment applied`;
+    return `Vehicle condition from photos matches expected condition, no adjustment applied.`;
   } else if (photoScore >= 0.5) {
-    return `Photos show fair condition, value ${direction} by ${formattedAdjustment}`;
+    return `Photos show some wear and issues, reducing value by ${formattedAmount} (${formattedPercentage}%).`;
   } else {
-    return `Photos show poor condition, value ${direction} by ${formattedAdjustment}`;
+    return `Photos indicate significant condition issues, reducing value by ${formattedAmount} (${formattedPercentage}%).`;
   }
 }

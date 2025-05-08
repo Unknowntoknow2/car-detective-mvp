@@ -49,8 +49,8 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   useEffect(() => {
     const loadPhotoAssessment = async () => {
       try {
-        // Pass an empty object as the second parameter
-        const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId, {});
+        // Updated to match expected parameters
+        const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId);
         
         if (aiCondition) {
           setAiCondition(aiCondition);
@@ -78,21 +78,24 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       const calculateNewValuation = async () => {
         setCalculationInProgress(true);
         try {
-          // Recalculate valuation with photo score and AI condition
-          const result = await calculateFinalValuation({
-            make: valuationData.make,
-            model: valuationData.model,
-            year: valuationData.year,
-            mileage: valuationData.mileage || 0,
-            condition: aiCondition?.condition || valuationData.condition || 'good',
-            // Correctly pass the AI condition data
-            aiConditionData: aiCondition ? {
-              condition: aiCondition.condition,
-              confidenceScore: aiCondition.confidenceScore,
-              issuesDetected: aiCondition.issuesDetected,
-              aiSummary: aiCondition.aiSummary
-            } : null
-          });
+          // Updated to match expected parameters
+          const result = await calculateFinalValuation(
+            {
+              make: valuationData.make,
+              model: valuationData.model,
+              year: valuationData.year,
+              mileage: valuationData.mileage || 0,
+              condition: aiCondition?.condition || valuationData.condition || 'good',
+              // Correctly pass the AI condition data
+              aiConditionData: aiCondition ? {
+                condition: aiCondition.condition,
+                confidenceScore: aiCondition.confidenceScore,
+                issuesDetected: aiCondition.issuesDetected,
+                aiSummary: aiCondition.aiSummary
+              } : null
+            },
+            0 // Adding a basePrice parameter (0 as placeholder)
+          );
           
           setEstimatedValue(result.estimatedValue);
           

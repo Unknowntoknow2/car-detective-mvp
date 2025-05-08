@@ -17,7 +17,7 @@ export interface ValuationInput {
   features?: string[];
   accidentCount?: number;
   color?: string;
-  premiumFeatures?: boolean;
+  premiumFeatures?: boolean | string[];
   photoScore?: number;
 }
 
@@ -54,7 +54,7 @@ export async function calculateFinalValuation(
     accidentCount: input.accidentCount || 0,
     color: input.color,
     features: input.features,
-    premiumFeatures: input.premiumFeatures,
+    premiumFeatures: typeof input.premiumFeatures === 'boolean' ? input.premiumFeatures : !!input.premiumFeatures?.length,
     // Add AI condition override if present
     aiConditionOverride: aiCondition,
     photoScore: input.photoScore

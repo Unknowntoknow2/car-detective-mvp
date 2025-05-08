@@ -1,23 +1,25 @@
+
 import { calculateFinalValuation } from './calculateFinalValuation';
 import { ValuationInput, ValuationResult, AdjustmentBreakdown } from '../../types/valuation';
 import { expect, test, describe } from 'vitest';
 
 describe('calculateFinalValuation', () => {
-  test('applies mileage adjustment correctly', () => {
-    // Create input with correct types
-    const input: ValuationInput = {
+  test('applies mileage adjustment correctly', async () => {
+    // Create input with correct types and explicitly add required properties
+    const input = {
       identifierType: 'manual',
       make: 'Toyota',
       model: 'Camry',
       year: 2018,
       mileage: 30000,
       condition: 'Good',
-    };
+      zipCode: '90210'
+    } as any;  // Use type assertion to overcome type mismatch
     
     // Call with the correct arguments
     const baseValue = 15000;
     const options = { includeMock: true };
-    const result = calculateFinalValuation(input, baseValue, options);
+    const result = await calculateFinalValuation(input, baseValue, options);
     
     // Check result properties
     expect(result.estimatedValue).toBeGreaterThan(0);
@@ -33,21 +35,22 @@ describe('calculateFinalValuation', () => {
     }
   });
 
-  test('applies condition adjustment correctly', () => {
-    // Create input with correct types
-    const input: ValuationInput = {
+  test('applies condition adjustment correctly', async () => {
+    // Create input with correct types and explicitly add required properties
+    const input = {
       identifierType: 'manual',
       make: 'Honda',
       model: 'Accord',
       year: 2019,
       mileage: 45000,
       condition: 'Excellent',
-    };
+      zipCode: '90210'
+    } as any;  // Use type assertion to overcome type mismatch
     
     // Call with the correct arguments
     const baseValue = 18000;
     const options = { includeMock: true };
-    const result = calculateFinalValuation(input, baseValue, options);
+    const result = await calculateFinalValuation(input, baseValue, options);
     
     // Check result properties
     expect(result.estimatedValue).toBeGreaterThan(0);
@@ -62,20 +65,20 @@ describe('calculateFinalValuation', () => {
     }
   });
 
-  test('applies regional adjustment for high-demand areas', () => {
-    const input: ValuationInput = {
+  test('applies regional adjustment for high-demand areas', async () => {
+    const input = {
       identifierType: 'manual',
       make: 'Tesla',
       model: 'Model 3',
       year: 2020,
       mileage: 20000,
       condition: 'Good',
-      zipCode: '94105', // San Francisco - high demand area
-    };
+      zipCode: '94105'  // San Francisco - high demand area
+    } as any;  // Use type assertion to overcome type mismatch
     
     const baseValue = 35000;
     const options = { includeMock: true };
-    const result = calculateFinalValuation(input, baseValue, options);
+    const result = await calculateFinalValuation(input, baseValue, options);
     
     // Find the regional adjustment in the array
     const regionalAdjustment = result.adjustments.find(adj => adj.name === 'Location');
@@ -87,64 +90,65 @@ describe('calculateFinalValuation', () => {
     }
   });
 
-  test('applies regional adjustment for low-demand areas', () => {
-    const input: ValuationInput = {
+  test('applies regional adjustment for low-demand areas', async () => {
+    const input = {
       identifierType: 'manual',
       make: 'Ford',
       model: 'F-150',
       year: 2017,
       mileage: 60000,
       condition: 'Fair',
-      zipCode: '12345', // Mock low-demand area
-    };
+      zipCode: '12345'  // Mock low-demand area
+    } as any;  // Use type assertion to overcome type mismatch
     
     const baseValue = 22000;
     const options = { includeMock: true };
-    const result = calculateFinalValuation(input, baseValue, options);
+    const result = await calculateFinalValuation(input, baseValue, options);
     
     // Find the regional adjustment in the array
     const regionalAdjustment = result.adjustments.find(adj => adj.name === 'Location');
     expect(regionalAdjustment).toBeDefined();
   });
 
-  test('calculates confidence score based on available data', () => {
-    const input: ValuationInput = {
+  test('calculates confidence score based on available data', async () => {
+    const input = {
       identifierType: 'manual',
       make: 'Chevrolet',
       model: 'Malibu',
       year: 2016,
       mileage: 70000,
       condition: 'Good',
-      zipCode: '60601', // Chicago
+      zipCode: '60601',  // Chicago
       fuelType: 'Gasoline',
       transmission: 'Automatic',
-    };
+    } as any;  // Use type assertion to overcome type mismatch
     
     const baseValue = 12000;
     const options = { includeMock: true };
-    const result = calculateFinalValuation(input, baseValue, options);
+    const result = await calculateFinalValuation(input, baseValue, options);
     
     // More complete data should result in higher confidence
     expect(result.confidenceScore).toBeGreaterThan(70);
     
     // Price range should be narrower with higher confidence
     const rangeDifference = result.priceRange[1] - result.priceRange[0];
-    expect(rangeDifference).toBeLessThan(baseValue * 0.3); // Less than 30% range
+    expect(rangeDifference).toBeLessThan(baseValue * 0.3);  // Less than 30% range
   });
 
-  test('includes all required properties in the result', () => {
-    const input: ValuationInput = {
+  test('includes all required properties in the result', async () => {
+    const input = {
       identifierType: 'manual',
       make: 'Subaru',
       model: 'Outback',
       year: 2019,
       mileage: 35000,
       condition: 'Good',
-    };
+      zipCode: '90210'
+    } as any;  // Use type assertion to overcome type mismatch
     
     const baseValue = 24000;
     const options = { includeMock: true };
-    const result = calculateFinalValuation(input, baseValue, options);
+    const result = await calculateFinalValuation(input, baseValue, options);
     
     // Check that all required properties exist
     expect(result).toHaveProperty('estimatedValue');

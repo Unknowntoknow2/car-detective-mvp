@@ -1,40 +1,40 @@
 
-export interface Rule {
-  name: string;
-  condition: any;
-  consequence: any;
-  priority?: number;
-  description?: string;
-}
+/**
+ * Types for the rules engine
+ */
 
 export interface RulesEngineInput {
-  [key: string]: any;
+  basePrice: number;
   make: string;
   model: string;
   year: number;
-  condition: string;
   mileage: number;
-  zipCode?: string;
-  basePrice?: number;
+  condition: string;
+  zipCode: string;
+  trim?: string;
+  fuelType?: string;
+  transmission?: string;
+  features?: string[];
   accidentCount?: number;
+  color?: string;
+  premiumFeatures?: boolean;
+  aiConditionOverride?: any;
+  photoScore?: number;
 }
 
 export interface AdjustmentBreakdown {
-  // Original fields used in the code base
-  name?: string;   
-  value?: number;  
+  name: string;
+  value: number;
   description: string;
-  percentAdjustment?: number;
-  
-  // New fields required by type check
-  factor?: string;  
-  impact?: number;  
-  
-  // Additional fields to support other parts of the codebase
-  label?: string;
-  amount?: number;
+  percentAdjustment: number;
+  factor?: string;
+  impact?: number;
 }
 
-export interface AdjustmentCalculator {
-  calculate: (input: RulesEngineInput) => AdjustmentBreakdown[] | AdjustmentBreakdown | null | Promise<AdjustmentBreakdown | null>;
+export interface Rule {
+  id: string;
+  name: string;
+  description: string;
+  calculate: (input: RulesEngineInput) => number;
+  getDescription: (input: RulesEngineInput, impact: number) => string;
 }

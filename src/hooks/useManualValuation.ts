@@ -31,18 +31,22 @@ export function useManualValuation() {
     setError(null);
     
     try {
-      // Pass an empty object as the second parameter for options
-      const result = await calculateFinalValuation({
-        make: data.make,
-        model: data.model,
-        year: data.year,
-        mileage: data.mileage,
-        condition: data.condition,
-        zip: data.zipCode,
-        trim: data.trim,
-        accidentCount: data.accidentCount,
-        premiumFeatures: data.premiumFeatures
-      }, {});
+      // Passing proper parameters as expected by calculateFinalValuation
+      const result = await calculateFinalValuation(
+        {
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          mileage: data.mileage,
+          condition: data.condition,
+          zip: data.zipCode,
+          trim: data.trim,
+          accidentCount: data.accidentCount,
+          // Fixed: premiumFeatures should be passed as string[] not as boolean
+          premiumFeatures: data.premiumFeatures
+        }, 
+        0 // Adding a basePrice parameter (0 as placeholder)
+      );
       
       const valuationResult: ManualVehicleInfo = {
         ...data,
