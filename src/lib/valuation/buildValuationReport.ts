@@ -1,76 +1,136 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { usePhotoScoring } from './usePhotoScoring';
+import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
+import { ValuationParams } from '@/utils/valuation/types';
+import { decodeVin } from '@/services/vinService';
+import { lookupPlate } from '@/services/plateService';
+import { supabase } from '@/integrations/supabase/client';
+import { downloadPdf } from '@/utils/pdf';
+import { ValuationResult, AdjustmentBreakdown } from '@/types/valuation';
+import { AICondition } from '@/types/photo';
+import { uploadAndAnalyzePhotos } from '@/services/photoService';
 
-// Mock Supabase integration
-jest.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    storage: {
-      from: () => ({
-        upload: jest.fn(() => ({ data: {}, error: null })),
-        getPublicUrl: jest.fn(() => ({ data: { publicUrl: 'http://mocked-url.com/photo.jpg' } }))
-      })
-    },
-    from: () => ({
-      insert: jest.fn(() => ({ error: null }))
-    })
+interface ReportData {
+  id?: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  priceRange: [number, number];
+  adjustments: AdjustmentBreakdown[];
+  photoUrl?: string;
+  explanation?: string;
+  generatedAt: string;
+}
+
+interface BuildValuationReportInput {
+  identifierType: 'vin' | 'plate' | 'manual' | 'photo';
+  vin?: string;
+  plate?: string;
+  state?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+  bodyType?: string;
+  trim?: string;
+  transmission?: string;
+  fuelType?: string;
+  accidentCount?: number;
+  photos?: File[];
+  features?: string[];
+  mpg?: number | null;
+  userId?: string;
+  valuationId?: string;
+  isPremium?: boolean;
+  isTestMode?: boolean;
+  notifyDealers?: boolean;
+}
+
+interface EnhancedValuationParams extends ValuationParams {
+  photoScore?: number;
+  accidentCount?: number;
+  premiumFeatures?: string[];
+  mpg?: number;
+  aiConditionData?: {
+    condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    confidenceScore: number;
+    issuesDetected?: string[];
+    aiSummary?: string;
+  };
+}
+
+interface PhotoScoringResult {
+  score: number;
+  photoUrl: string;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  confidenceScore: number;
+  vehicleInfo?: {
+    make: string;
+    model: string;
+    year: number;
+  };
+  individualScores?: number[];
+  error?: string;
+}
+
+export async function buildValuationReport(input: BuildValuationReportInput): Promise<ReportData> {
+  let baseInfo = { make: input.make, model: input.model, year: input.year };
+  let decodedData;
+
+  if (input.identifierType === 'vin' && input.vin) {
+    decodedData = await decodeVin(input.vin);
+    baseInfo = {
+      make: decodedData.make,
+      model: decodedData.model,
+      year: decodedData.year
+    };
+  } else if (input.identifierType === 'plate' && input.plate && input.state) {
+    decodedData = await lookupPlate(input.plate, input.state);
+    baseInfo = {
+      make: decodedData.make,
+      model: decodedData.model,
+      year: decodedData.year
+    };
   }
-}));
 
-// Mock UUID
-jest.mock('uuid', () => ({ v4: () => 'mocked-uuid' }));
+  let aiCondition: AICondition | undefined;
+  if (input.photos && input.photos.length > 0) {
+    const result = await uploadAndAnalyzePhotos(input.photos);
+    aiCondition = {
+      condition: result.condition,
+      confidenceScore: result.confidenceScore,
+      issuesDetected: result.issuesDetected,
+      aiSummary: result.aiSummary
+    };
+  }
 
-// Delay mock
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const valuationParams: EnhancedValuationParams = {
+    ...baseInfo,
+    mileage: input.mileage || 0,
+    condition: input.condition || aiCondition?.condition || 'Good',
+    photoScore: aiCondition?.confidenceScore,
+    aiConditionData: aiCondition,
+    accidentCount: input.accidentCount,
+    premiumFeatures: input.features,
+    mpg: input.mpg || undefined
+  };
 
-describe('usePhotoScoring Hook', () => {
-  it('should upload and score a photo correctly', async () => {
-    const { result } = renderHook(() => usePhotoScoring('valuation-123'));
+  const result: ValuationResult = calculateFinalValuation(valuationParams);
 
-    const file = new File(['fake'], 'photo.png', { type: 'image/png' });
+  const report: ReportData = {
+    ...baseInfo,
+    mileage: valuationParams.mileage,
+    condition: valuationParams.condition,
+    estimatedValue: result.estimatedValue,
+    priceRange: result.priceRange,
+    adjustments: result.adjustments,
+    photoUrl: input.photos && input.photos.length > 0 ? 'photo_url_placeholder' : undefined,
+    explanation: result.explanation,
+    generatedAt: new Date().toISOString()
+  };
 
-    await act(async () => {
-      await result.current.handleFileSelect(file);
-    });
-
-    expect(result.current.photos).toHaveLength(1);
-    expect(result.current.photoScores[0]).toBeGreaterThanOrEqual(0.6);
-    expect(result.current.photoScores[0]).toBeLessThanOrEqual(0.95);
-    expect(result.current.isUploading).toBe(false);
-    expect(result.current.isScoring).toBe(false);
-    expect(result.current.error).toBe(null);
-  });
-
-  it('should reset state properly', async () => {
-    const { result } = renderHook(() => usePhotoScoring('valuation-123'));
-
-    act(() => {
-      result.current.setPhotos([{ photoUrl: 'url', thumbnailUrl: 'url', score: 0.88, valuationId: 'valuation-123' }]);
-    });
-
-    act(() => {
-      result.current.resetUpload();
-    });
-
-    expect(result.current.photos).toHaveLength(0);
-    expect(result.current.error).toBe(null);
-    expect(result.current.uploadProgress).toBe(0);
-  });
-
-  it('should allow removing individual photos', async () => {
-    const { result } = renderHook(() => usePhotoScoring('valuation-123'));
-
-    act(() => {
-      result.current.setPhotos([
-        { photoUrl: 'url1', thumbnailUrl: 'url1', score: 0.88, valuationId: 'valuation-123' },
-        { photoUrl: 'url2', thumbnailUrl: 'url2', score: 0.77, valuationId: 'valuation-123' }
-      ]);
-    });
-
-    act(() => {
-      result.current.removePhoto(0);
-    });
-
-    expect(result.current.photos).toHaveLength(1);
-    expect(result.current.photos[0].photoUrl).toBe('url2');
-  });
-});
+  return report;
+}
