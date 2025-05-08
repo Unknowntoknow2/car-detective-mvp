@@ -1,6 +1,7 @@
+
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
-import { AdjustmentBreakdown } from './types';
+import { AdjustmentBreakdown } from '@/utils/rules/types';
 
 /**
  * Convert vehicle information to report data format
@@ -28,7 +29,6 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
     vin: vehicleInfo.vin,
     zipCode: additionalData.zipCode,
     color: vehicleInfo.color,
-    bodyStyle: vehicleInfo.bodyType,
     bodyType: vehicleInfo.bodyType,
     fuelType: vehicleInfo.fuelType,
     transmission: vehicleInfo.transmission,
@@ -50,11 +50,20 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
  */
 export function convertValuationToReportData(valuation: any): ReportData {
   // Extract adjustments or create empty array
-  const adjustments: AdjustmentBreakdown[] = valuation.adjustments?.map((adj: any) => ({
+  const adjustments: Array<{
+    factor?: string;
+    impact?: number;
+    name?: string;
+    value?: number;
+    description?: string;
+    percentAdjustment?: number;
+  }> = valuation.adjustments?.map((adj: any) => ({
     name: adj.factor || adj.name,
     value: adj.impact || adj.value || 0,
     description: adj.description || '',
-    percentAdjustment: adj.impactPercentage || adj.percentAdjustment || 0
+    percentAdjustment: adj.impactPercentage || adj.percentAdjustment || 0,
+    factor: adj.factor || adj.name,
+    impact: adj.impact || adj.value || 0
   })) || [];
 
   // Calculate price range if not provided
@@ -64,7 +73,6 @@ export function convertValuationToReportData(valuation: any): ReportData {
   ];
 
   return {
-    id: valuation.id,
     make: valuation.make || '',
     model: valuation.model || '',
     year: valuation.year || 0,
@@ -73,12 +81,11 @@ export function convertValuationToReportData(valuation: any): ReportData {
     estimatedValue: valuation.estimatedValue || valuation.valuation || 0,
     priceRange: priceRange,
     adjustments: adjustments,
-    photoUrl: valuation.bestPhotoUrl || valuation.photoUrl || '',
+    bestPhotoUrl: valuation.bestPhotoUrl || valuation.photoUrl || '',
     explanation: valuation.explanation || valuation.gptExplanation || '',
     generatedAt: valuation.created_at || new Date().toISOString(),
     confidenceScore: valuation.confidenceScore || 75,
     photoScore: valuation.photoScore || 0,
-    bestPhotoUrl: valuation.bestPhotoUrl || '',
     isPremium: valuation.isPremium || false,
     features: valuation.features || [],
     aiCondition: valuation.aiCondition || null,
@@ -86,7 +93,6 @@ export function convertValuationToReportData(valuation: any): ReportData {
     valuationId: valuation.id,
     zipCode: valuation.zipCode || valuation.zip || '',
     color: valuation.color || '',
-    bodyStyle: valuation.bodyStyle || valuation.bodyType || '',
     bodyType: valuation.bodyType || valuation.bodyStyle || '',
     fuelType: valuation.fuelType || valuation.fuel_type || '',
     transmission: valuation.transmission || '',

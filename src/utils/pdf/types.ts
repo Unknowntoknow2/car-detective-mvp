@@ -14,17 +14,25 @@ export interface ReportOptions {
   printBackground?: boolean;
   landscape?: boolean;
   showWholesaleValue?: boolean;
+  userName?: string;
+  dealerName?: string;
 }
 
 export interface SectionParams {
   // Add all needed properties for section parameters
   doc: any;
+  page: any;
   pageWidth: number;
   pageHeight: number;
+  width: number;
+  height: number;
   margin: number;
   fontRegular: string;
   fontBold: string;
   fontItalic: string;
+  regularFont: any;
+  boldFont: any;
+  contentWidth: number;
   red: string;
   black: string;
   gray: string;
@@ -71,4 +79,7 @@ export interface ReportData {
   features?: string[];
   color?: string;
   narrative?: string;
+  id?: string;
+  valuationId?: string;
+  photoExplanation?: string;
 }

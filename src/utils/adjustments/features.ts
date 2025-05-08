@@ -34,17 +34,22 @@ export const getFeatureAdjustments = (input: RulesEngineInput): {
   totalAdjustment: number;
   featuresApplied: Array<{name: string; impact: number}>;
 } => {
-  const features = Array.isArray(input.features) ? input.features : [];
+  // Use premiumFeatures if features is not available
+  const features = Array.isArray(input.premiumFeatures) ? input.premiumFeatures : 
+                  (Array.isArray(input.features) ? input.features : []);
+  
   let totalAdjustment = 0;
   const featuresApplied = [];
   
   for (const feature of features) {
-    const featureKey = feature.toLowerCase().replace(/\s+/g, '_');
-    if (featureImpacts[featureKey as keyof typeof featureImpacts]) {
+    const featureKey = typeof feature === 'string' ? 
+      feature.toLowerCase().replace(/\s+/g, '_') : '';
+      
+    if (featureKey && featureImpacts[featureKey as keyof typeof featureImpacts]) {
       const impact = featureImpacts[featureKey as keyof typeof featureImpacts] * input.basePrice;
       totalAdjustment += impact;
       featuresApplied.push({
-        name: featureDescriptions[featureKey as keyof typeof featureDescriptions] || feature,
+        name: featureDescriptions[featureKey as keyof typeof featureDescriptions] || featureKey,
         impact
       });
     }

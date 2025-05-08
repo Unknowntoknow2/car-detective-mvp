@@ -40,6 +40,8 @@ export interface RulesEngineInput {
   basePrice?: number;
   saleDate?: string;
   bodyStyle?: string;
+  features?: string[];
+  fuelTypeMultiplier?: number;
 }
 
 export interface RuleResult {
@@ -52,4 +54,21 @@ export interface RuleResult {
     value?: number;
     percentAdjustment?: number;
   }>;
+}
+
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+  factor: string;
+  impact: number;
+}
+
+export interface Rule {
+  name: string;
+  description?: string;
+  condition: boolean | ((facts: RulesEngineInput) => boolean);
+  consequence: any | ((facts: RulesEngineInput) => any);
+  priority?: number;
 }

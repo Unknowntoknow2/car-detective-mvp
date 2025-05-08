@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { calculateFinalValuation } from '@/utils/valuationEngine';
-import type { AdjustmentBreakdown } from '@/utils/rules/types';
+import { AdjustmentBreakdown } from '@/utils/rules/types';
 
 export type ManualVehicleInfo = {
   make: string;

@@ -12,7 +12,7 @@ export const defaultReportOptions: ReportOptions = {
   includeAIScore: false,
   isPremium: false,
   title: 'Vehicle Valuation Report',
-  printBackground: true, // Ensure this property is properly defined in the ReportOptions interface
-  landscape: false, // Ensure this property is properly defined in the ReportOptions interface
-  showWholesaleValue: false // Ensure this property is properly defined in the ReportOptions interface
+  printBackground: true,
+  landscape: false,
+  showWholesaleValue: false
 };

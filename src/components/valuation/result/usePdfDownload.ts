@@ -33,10 +33,12 @@ export function usePdfDownload() {
           name: adj.factor,
           value: adj.impact,
           description: adj.description || '',
-          percentAdjustment: Math.round((adj.impact / valuation.estimatedValue) * 100 * 100) / 100
+          percentAdjustment: Math.round((adj.impact / valuation.estimatedValue) * 100 * 100) / 100,
+          factor: adj.factor,
+          impact: adj.impact
         })) || [],
         aiCondition: valuation.aiCondition ? {
-          condition: valuation.aiCondition.condition as "Excellent" | "Good" | "Fair" | "Poor",
+          condition: valuation.aiCondition.condition as string,
           confidenceScore: valuation.aiCondition.confidenceScore,
           issuesDetected: valuation.aiCondition.issuesDetected || []
         } : undefined,
@@ -44,7 +46,6 @@ export function usePdfDownload() {
         explanation: valuation.explanation,
         features: valuation.features || [],
         generatedAt: new Date().toISOString(),
-        id: valuation.id,
         valuationId: valuation.id
       };
       
