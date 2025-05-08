@@ -48,7 +48,7 @@ export const VehicleDetailsGrid = ({ vehicleInfo }: VehicleDetailsGridProps) => 
       </div>
       <div className="space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Drivetrain</p>
-        <p className="text-lg font-semibold">{displayField(vehicleInfo.drivetrain)}</p>
+        <p className="text-lg font-semibold">{displayField(vehicleInfo.drivetrain || "Unknown")}</p>
       </div>
       <div className="space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Body Type</p>
@@ -57,4 +57,3 @@ export const VehicleDetailsGrid = ({ vehicleInfo }: VehicleDetailsGridProps) => 
     </div>
   );
 };
-

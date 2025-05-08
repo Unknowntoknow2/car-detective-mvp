@@ -13,4 +13,6 @@ export interface DecodedVehicleInfo {
   zipCode?: string;
   mileage?: number;
   condition?: string;
+  drivetrain?: string; // Add this missing property
+  color?: string;      // Add this missing property
 }

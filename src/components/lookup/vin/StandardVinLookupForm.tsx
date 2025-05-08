@@ -1,102 +1,110 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
-import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { Button } from '@/components/ui/button';
+import { useVinDecoder } from '@/hooks/useVinDecoder';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface VINLookupFormProps {
-  onSubmit: (vin: string) => void;
-  error?: string | null;
-}
-
-export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, error }) => {
+export function StandardVinLookupForm() {
   const [vin, setVin] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<any | null>(null);
-  
+  const [localError, setLocalError] = useState<string | null>(null); // Add a local error state
+  const { lookupVin, isLoading, error } = useVinDecoder();
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Reset previous results and errors
-    setValidationError(null);
-    setResult(null);
-    
-    // Validate VIN
-    const validation = validateVIN(vin);
-    if (!validation.isValid) {
-      setValidationError(validation.error || 'Invalid VIN');
+    if (!vin || vin.length !== 17) {
+      setLocalError('Please enter a valid 17-character VIN');
+      toast.error('Please enter a valid 17-character VIN');
       return;
     }
-    
-    // Call the onSubmit handler
-    onSubmit(vin);
+
+    setLocalError(null);
+
+    try {
+      // Lookup VIN
+      const result = await lookupVin(vin);
+      
+      if (!result) {
+        setLocalError('Unable to decode VIN');
+        toast.error('Unable to decode VIN');
+        return;
+      }
+      
+      // Create a valuation entry
+      const { data: valuationData, error: insertError } = await supabase
+        .from('valuations')
+        .insert({
+          vin,
+          make: result.make,
+          model: result.model,
+          year: result.year,
+          mileage: 50000, // Default mileage
+          user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
+          is_vin_lookup: true,
+          condition_score: 70,
+          estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000), // Mock value for demo
+          confidence_score: 85
+        })
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Error saving valuation:', insertError);
+        setLocalError('Failed to save valuation data');
+        toast.error('Failed to save valuation data');
+        return;
+      }
+      
+      // Save the valuation ID to localStorage
+      localStorage.setItem('latest_valuation_id', valuationData.id);
+      
+      // Navigate to the results page
+      navigate(`/result?valuationId=${valuationData.id}`);
+      
+    } catch (err) {
+      console.error('Error in VIN lookup:', err);
+      setLocalError('Failed to process VIN');
+      toast.error('Failed to process VIN');
+    }
   };
-  
+
+  // Display either the local error or the error from the hook
+  const displayError = localError || error;
+
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="vin" className="block text-sm font-medium mb-1">
-            Vehicle Identification Number (VIN)
-          </label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <div className="flex items-center gap-3">
           <Input
-            id="vin"
             value={vin}
             onChange={(e) => setVin(e.target.value.toUpperCase())}
             placeholder="Enter 17-character VIN"
-            maxLength={17}
             className="font-mono"
+            maxLength={17}
           />
-          <div className="mt-2">
-            <VinInfoMessage />
-          </div>
+          <Button type="submit" disabled={isLoading || vin.length !== 17}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Decoding...
+              </>
+            ) : (
+              'Lookup'
+            )}
+          </Button>
         </div>
-        
-        {validationError && (
-          <Alert variant="destructive">
+        {displayError && (
+          <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{validationError}</AlertDescription>
-          </Alert>
+            <span>{displayError}</span>
+          </div>
         )}
-        
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Looking up...' : 'Lookup Vehicle'}
-        </Button>
-      </form>
-      
-      {result && (
-        <Card className="mt-6">
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-semibold mb-4">Vehicle Information</h3>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Make</dt>
-                <dd>{result.make}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Model</dt>
-                <dd>{result.model}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Year</dt>
-                <dd>{result.year}</dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      </div>
+    </form>
   );
-};
+}

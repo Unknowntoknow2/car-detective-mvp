@@ -1,87 +1,74 @@
 
-// Define the PDF section parameters
-export interface SectionParams {
-  doc: any; // PDF document object
-  page: any; // PDF page object
+// Update or create this file to define the ReportOptions interface with all needed properties
+export interface ReportOptions {
+  format: string;
+  orientation: string;
   margin: number;
-  width: number;
-  height: number;
+  includeBranding: boolean;
+  includeFooter: boolean;
+  includeTimestamp: boolean;
+  includePhotoAssessment: boolean;
+  includeAIScore: boolean;
+  isPremium: boolean;
+  title: string;
+  printBackground?: boolean;
+  landscape?: boolean;
+  showWholesaleValue?: boolean;
+}
+
+export interface SectionParams {
+  // Add all needed properties for section parameters
+  doc: any;
   pageWidth: number;
-  regularFont: any;
-  boldFont: any;
-  contentWidth: number;
+  pageHeight: number;
+  margin: number;
+  fontRegular: string;
+  fontBold: string;
+  fontItalic: string;
+  red: string;
+  black: string;
+  gray: string;
+  lightGray: string;
+  green: string;
+  blue: string;
+  // Add any other colors or parameters needed
 }
 
 export interface ReportData {
-  id?: string;
-  valuationId?: string;
   make: string;
   model: string;
   year: number;
-  mileage: number;
+  mileage: number | string;
   condition: string;
   zipCode: string;
   estimatedValue: number;
-  confidenceScore: number;
   priceRange: [number, number];
-  adjustments: AdjustmentBreakdown[];
+  adjustments: Array<{
+    factor?: string;
+    impact?: number;
+    name?: string;
+    value?: number;
+    description?: string;
+    percentAdjustment?: number;
+  }>;
   generatedAt: string;
-  
-  // Optional fields
-  vin?: string;
-  photoUrl?: string;
-  explanation?: string;
-  bestPhotoUrl?: string;
+  confidenceScore: number;
   photoScore?: number;
+  bestPhotoUrl?: string;
   isPremium?: boolean;
-  features?: string[];
   aiCondition?: {
-    condition: "Excellent" | "Good" | "Fair" | "Poor";
+    condition: string;
     confidenceScore: number;
     issuesDetected?: string[];
-    aiSummary?: string; // Add aiSummary property
+    aiSummary?: string;
   };
-  
-  // Additional fields for specific use cases
-  color?: string;
-  bodyStyle?: string;
-  bodyType?: string;
+  explanation?: string;
+  vin?: string;
+  trim?: string;
   fuelType?: string;
   transmission?: string;
+  bodyType?: string;
+  features?: string[];
+  color?: string;
   narrative?: string;
-  photoExplanation?: string;
-}
-
-export interface AdjustmentBreakdown {
-  name: string;
-  value: number;
-  description: string;
-  percentAdjustment: number;
-  factor?: string; 
-  impact?: number;
-}
-
-export interface PdfOptions {
-  format?: 'letter' | 'a4';
-  orientation?: 'portrait' | 'landscape';
-  margin?: number;
-  includeBranding?: boolean;
-  includeFooter?: boolean;
-  includeTimestamp?: boolean;
-  isPremium?: boolean;
-}
-
-export interface ReportOptions extends PdfOptions {
-  includeBranding?: boolean;
-  includeFooter?: boolean;
-  includeTimestamp?: boolean;
-  includePhotoAssessment?: boolean;
-  includeAIScore?: boolean;
-  isPremium?: boolean;
-  title?: string;
-  userName?: string;
-  dealerName?: string;
-  printBackground?: boolean; // Add printBackground property
-  landscape?: boolean; // Add landscape property
-  showWholesaleValue?: boolean; // Add showWholesaleValue property
 }

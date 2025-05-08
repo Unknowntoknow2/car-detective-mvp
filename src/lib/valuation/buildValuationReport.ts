@@ -78,7 +78,7 @@ const calculateValuation = async (params: EnhancedValuationParams): Promise<Fina
     exteriorColor: params.exteriorColor || '',
     colorMultiplier: params.colorMultiplier || 1.0,
     saleDate: params.saleDate || '',
-    bodyStyle: params.bodyType || '',
+    bodyStyle: params.bodyType || '', // Map bodyType to bodyStyle
     carfaxData: params.carfaxData
   };
 

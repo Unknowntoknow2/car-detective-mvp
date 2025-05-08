@@ -8,7 +8,7 @@ export interface EnhancedValuationParams extends ValuationInput {
   bodyType?: string;
   photoScore?: number;
   accidentCount?: number;
-  premiumFeatures?: boolean[];
+  premiumFeatures?: boolean[] | string[];
   mpg?: number;
   aiConditionData?: any;
   

@@ -43,8 +43,8 @@ export async function fetchValuation(
       condition: data.condition_score ? data.condition_score.toString() : 'Good',
       zipCode: data.state || '',
       zip: data.state || '',
-      fuelType: data.fuel_type || '',
-      bestPhotoUrl: data.photo_scores?.length > 0 ? data.photo_scores[0].url : '',
+      fuelType: data.fuel_type || '', // Fixed to use correct property name
+      bestPhotoUrl: data.photo_scores?.length > 0 ? data.photo_scores[0].photo_url : '', // Fixed property access
       estimatedValue: data.estimated_value || 0,
       confidenceScore: data.confidence_score || 80,
       priceRange: [
@@ -146,22 +146,7 @@ export async function getPremiumValuations(userId: string): Promise<ValuationRes
   return [];
 }
 
-export async function getValuationByToken(token: string): Promise<ValuationResult | null> {
-  try {
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('public_tokens')
-      .select('valuation_id')
-      .eq('token', token)
-      .single();
-
-    if (tokenError || !tokenData) {
-      console.error('Error fetching token:', tokenError);
-      return null;
-    }
-    
-    return fetchValuation(tokenData.valuation_id);
-  } catch (error) {
-    console.error('Error in getValuationByToken:', error);
-    return null;
-  }
+// Fix the function that doesn't exist
+export async function getValuationById(valuationId: string): Promise<ValuationResult | null> {
+  return fetchValuation(valuationId);
 }
