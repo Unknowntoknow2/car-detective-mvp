@@ -1,62 +1,58 @@
 
-import { RulesEngineInput } from '../rules/types';
+import { RulesEngineInput } from './types';
 
-export const calculateDemandAdjustment = (input: RulesEngineInput): number => {
-  // Default demand multiplier is 1.0 (no adjustment)
-  let demandMultiplier = 1.0;
-  
-  // Apply zip code based adjustment if available
-  if (input.zipCode) {
-    // In a real implementation, this would lookup zip code specific demand data
-    // For now, we'll use a simple mock implementation
-    const firstDigit = parseInt(input.zipCode.charAt(0), 10);
-    
-    // Simple mock calculation based on first digit of zip code
-    switch (firstDigit) {
-      case 9: // West coast
-        demandMultiplier = 1.05; // 5% premium for California, etc.
-        break;
-      case 1: // Northeast
-        demandMultiplier = 1.03; // 3% premium for NY, MA, etc.
-        break;
-      case 3: // Southeast
-        demandMultiplier = 0.98; // 2% discount for FL, GA, etc.
-        break;
-      case 6: // Midwest
-        demandMultiplier = 0.97; // 3% discount for IL, MI, etc.
-        break;
-      default:
-        demandMultiplier = 1.0; // No adjustment for other regions
-    }
-  }
-  
-  // Apply seasonal adjustments if sale date is provided
+interface AdjustmentResult {
+  factor: string;
+  impact: number;
+  description: string;
+}
+
+export interface EnhancedRulesEngineInput extends RulesEngineInput {
+  saleDate?: string;
+  bodyStyle?: string;
+}
+
+/**
+ * Calculate the market demand adjustment based on the vehicle data
+ * @param input Data for the rules engine evaluation
+ * @returns Adjustment result
+ */
+export function calculateMarketDemand(input: EnhancedRulesEngineInput): AdjustmentResult {
+  let impactPercentage = 0;
+  let explanation = 'Based on current market conditions';
+
+  // Check if the vehicle is in high demand season
+  const currentMonth = new Date().getMonth() + 1; // 1-12
   if (input.saleDate) {
-    const saleDate = new Date(input.saleDate);
-    const month = saleDate.getMonth(); // 0-11
-    
-    // Adjust for seasonal factors
-    if (input.bodyStyle?.toLowerCase().includes('convertible')) {
-      // Convertibles sell better in spring/summer
-      if (month >= 3 && month <= 8) { // April through September
-        demandMultiplier *= 1.07; // 7% premium in warm months
-      } else {
-        demandMultiplier *= 0.95; // 5% discount in cold months
-      }
-    } else if (input.bodyStyle?.toLowerCase().includes('suv') || 
-               input.bodyStyle?.toLowerCase().includes('truck')) {
-      // SUVs and trucks sell better in fall/winter
-      if (month >= 9 || month <= 2) { // October through March
-        demandMultiplier *= 1.03; // 3% premium in cold months
-      }
+    const saleMonth = new Date(input.saleDate).getMonth() + 1;
+    // Spring and summer months typically have higher demand
+    if (saleMonth >= 3 && saleMonth <= 8) {
+      impactPercentage += 2; // 2% positive adjustment for spring/summer sales
     }
   }
-  
-  // Apply make/model specific adjustment
-  const isLuxury = ['bmw', 'audi', 'mercedes', 'lexus', 'porsche'].includes(input.make.toLowerCase());
-  if (isLuxury) {
-    demandMultiplier *= 1.02; // 2% premium for luxury brands
+
+  // Body style demand (SUVs and trucks typically have higher demand)
+  if (input.bodyStyle) {
+    if (input.bodyStyle.toLowerCase().includes('suv')) {
+      impactPercentage += 3;
+      explanation += ', SUVs have strong market demand';
+    } else if (input.bodyStyle.toLowerCase().includes('truck')) {
+      impactPercentage += 2;
+      explanation += ', trucks have above-average market demand';
+    } else if (input.bodyStyle.toLowerCase().includes('sedan')) {
+      impactPercentage -= 1;
+      explanation += ', sedans have below-average market demand';
+    }
   }
-  
-  return demandMultiplier;
-};
+
+  // Calculate actual impact amount
+  const impact = input.baseValue * (impactPercentage / 100);
+
+  return {
+    factor: 'Market Demand',
+    impact: Math.round(impact),
+    description: explanation
+  };
+}
+
+// Additional market demand adjustments can be added below

@@ -35,6 +35,7 @@ export interface ValuationResult {
   fuel_type?: string;
   photo_url?: string;
   zip?: string;
+  created_at?: string; // Add this to match MyValuationsPage usage
 }
 
 export interface ValuationResultProps {

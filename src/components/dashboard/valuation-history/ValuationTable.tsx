@@ -11,15 +11,18 @@ interface ValuationTableProps {
 
 export function ValuationTable({ valuations }: ValuationTableProps) {
   const handleDownloadReport = (valuation: Valuation) => {
-    const reportData = convertVehicleInfoToReportData({
+    // Create a vehicle info object that matches DecodedVehicleInfo
+    const vehicleInfo = {
       make: valuation.make || '',
       model: valuation.model || '',
       year: valuation.year || 0,
       vin: valuation.vin || '',
       transmission: 'Automatic', // Add default transmission
-      plate: valuation.plate, // Added to the interface above
       state: valuation.state,
-    }, {
+      // Don't include plate property here as it's not in DecodedVehicleInfo
+    };
+    
+    const reportData = convertVehicleInfoToReportData(vehicleInfo, {
       mileage: valuation.mileage || 0,
       estimatedValue: valuation.valuation || valuation.estimated_value || 0,
       confidenceScore: 85,

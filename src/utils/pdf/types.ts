@@ -16,7 +16,7 @@ export interface ReportData {
   generatedAt: string;
   narrative?: string;
   
-  // Adding properties needed for tests
+  // Adding properties needed for tests and PDF generation
   confidenceScore?: number;
   photoScore?: number;
   bestPhotoUrl?: string;
@@ -27,6 +27,12 @@ export interface ReportData {
   vin?: string;
   valuationId?: string;
   zipCode?: string;
+  color?: string;
+  bodyStyle?: string;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+  photoExplanation?: string;
 }
 
 export interface ReportOptions {
@@ -39,6 +45,11 @@ export interface ReportOptions {
   printBackground?: boolean;
   landscape?: boolean;
   showWholesaleValue?: boolean;
+  
+  // Additional options needed by PDF generator service
+  title?: string;
+  userName?: string;
+  dealerName?: string;
 }
 
 export interface SectionParams {
@@ -47,4 +58,23 @@ export interface SectionParams {
   pageHeight: number;
   margin: number;
   fontFamily: string;
+  
+  // Additional properties needed by PDF section modules
+  page?: any;
+  width?: number;
+  height?: number;
+  contentWidth?: number;
+  regularFont?: string;
+  boldFont?: string;
+}
+
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+  factor?: string;
+  impact?: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }

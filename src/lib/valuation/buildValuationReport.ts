@@ -1,6 +1,6 @@
 
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
-import { ValuationParams } from '@/utils/valuation/types';
+import { ValuationParams, EnhancedValuationParams } from '@/utils/valuation/types';
 import { decodeVin } from '@/services/vinService';
 import { lookupPlate } from '@/services/plateService';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +31,9 @@ interface ReportData {
   pdfUrl?: string;
   features?: string[];
   aiCondition?: any;
+  vin?: string;
+  valuationId?: string;
+  zipCode?: string;
 }
 
 interface BuildValuationReportInput {
@@ -59,14 +62,6 @@ interface BuildValuationReportInput {
   isPremium?: boolean;
   isTestMode?: boolean;
   notifyDealers?: boolean;
-}
-
-interface EnhancedValuationParams extends ValuationParams {
-  photoScore?: number;
-  accidentCount?: number;
-  premiumFeatures?: string[];
-  mpg?: number;
-  zipCode?: string; // Add zipCode field to match ValuationInput requirement
 }
 
 export async function buildValuationReport(input: BuildValuationReportInput): Promise<ReportData> {
@@ -123,7 +118,7 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     fuelType: input.fuelType,
     transmission: input.transmission,
     zip: input.zipCode,
-    zipCode: input.zipCode, // Add zipCode to match ValuationInput
+    zipCode: input.zipCode, // Match ValuationInput requirement
     features: input.features,
     photoScore: photoResult?.score,
     aiConditionData: aiCondition ? {
@@ -170,7 +165,10 @@ export async function buildValuationReport(input: BuildValuationReportInput): Pr
     photoScore: photoResult?.score,
     isPremium: input.isPremium,
     features: input.features,
-    aiCondition: aiCondition
+    aiCondition: aiCondition,
+    vin: input.vin,
+    valuationId: input.valuationId,
+    zipCode: input.zipCode
   };
 
   return report;
