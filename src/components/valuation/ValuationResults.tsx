@@ -1,156 +1,148 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CheckCircle, AlertCircle, Download, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useAICondition } from '@/hooks/useAICondition';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { formatCurrency } from '@/utils/formatters';
 
-interface Adjustment {
+interface PriceAdjustment {
   factor: string;
   impact: number;
-  description: string;
+  description?: string;
+}
+
+interface VehicleInfo {
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  mileage?: number;
+  condition?: string;
 }
 
 interface ValuationResultsProps {
   estimatedValue: number;
   confidenceScore: number;
   basePrice?: number;
-  adjustments?: Adjustment[];
+  adjustments?: PriceAdjustment[];
   priceRange?: [number, number];
   demandFactor?: number;
-  vehicleInfo: {
-    year: number;
-    make: string;
-    model: string;
-    trim?: string;
-    mileage?: number;
-    condition?: string;
-  };
-  valuationId?: string;
-  onDownloadPdf?: () => void;
-  onEmailReport?: () => void;
+  vehicleInfo: VehicleInfo;
 }
 
 export function ValuationResults({
   estimatedValue,
   confidenceScore,
   basePrice,
-  adjustments,
+  adjustments = [],
   priceRange,
   demandFactor,
-  vehicleInfo,
-  valuationId,
-  onDownloadPdf,
-  onEmailReport
+  vehicleInfo
 }: ValuationResultsProps) {
-  const isMobile = useIsMobile();
-  const { conditionData } = valuationId ? useAICondition(valuationId) : { conditionData: null };
+  // Format price range
+  const formattedPriceRange = priceRange
+    ? `${formatCurrency(priceRange[0])} - ${formatCurrency(priceRange[1])}`
+    : `${formatCurrency(estimatedValue * 0.95)} - ${formatCurrency(estimatedValue * 1.05)}`;
   
-  const handleDownloadPdf = () => {
-    if (onDownloadPdf) {
-      onDownloadPdf();
-    } else {
-      toast.success("PDF download started!");
-      // Default implementation could go here
-    }
-  };
-
-  const handleEmailReport = () => {
-    if (onEmailReport) {
-      onEmailReport();
-    } else {
-      toast.success("Report emailed successfully!");
-      // Default implementation could go here
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-primary/20">
+      <Card className="border-primary/20">
         <CardHeader className="bg-primary-light/10 pb-3">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base md:text-lg line-clamp-1">
-              {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-            </CardTitle>
-          </div>
-          <CardDescription className="text-xs md:text-sm line-clamp-1">
-            {vehicleInfo.trim && `${vehicleInfo.trim} • `}
-            {vehicleInfo.mileage && `${vehicleInfo.mileage.toLocaleString()} miles • `}
-            {vehicleInfo.condition && vehicleInfo.condition}
-            {conditionData && conditionData.confidenceScore >= 80 && (
-              <span className="ml-2 text-green-600 font-medium"> • AI Verified: {conditionData.condition}</span>
-            )}
-          </CardDescription>
+          <CardTitle className="text-xl text-primary">Estimated Value</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-2">Estimated Value</p>
-            <p className="text-3xl md:text-4xl font-bold text-primary">
-              ${estimatedValue?.toLocaleString() || 'N/A'}
-            </p>
-            <div className="flex items-center justify-center mt-2">
-              <div className="px-3 py-1 text-xs font-medium bg-primary-light/20 text-primary rounded-full">
-                {confidenceScore || 0}% Confidence
+          <div className="text-center mb-6">
+            <span className="text-4xl font-bold">{formatCurrency(estimatedValue)}</span>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Confidence Score</span>
+                <span className="font-medium">{confidenceScore}%</span>
               </div>
+              <Progress value={confidenceScore} className="h-2" />
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              <p>Market Value Range:</p>
+              <p className="font-medium text-base text-foreground">{formattedPriceRange}</p>
             </div>
           </div>
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            {basePrice && (
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <p className="font-medium">Base Price</p>
-                <p className="text-lg">${basePrice?.toLocaleString() || 'N/A'}</p>
+          
+          <Separator className="my-4" />
+          
+          <div className="space-y-3">
+            <h3 className="font-medium text-sm">Vehicle Information</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div>
+                <p className="text-muted-foreground">Make:</p>
+                <p className="font-medium">{vehicleInfo.make}</p>
               </div>
-            )}
-            {adjustments && adjustments.length > 0 && (
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <p className="font-medium">Adjustments</p>
-                <ul className="text-sm mt-1 space-y-1">
-                  {adjustments.slice(0, 3).map((adj, i) => (
-                    <li key={i} className="flex justify-between">
-                      <span className="line-clamp-1">{adj.factor}</span>
-                      <span className={adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {adj.impact > 0 ? '+' : ''}{adj.impact}%
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              <div>
+                <p className="text-muted-foreground">Model:</p>
+                <p className="font-medium">{vehicleInfo.model}</p>
               </div>
-            )}
-            {demandFactor && (
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <p className="font-medium">Market Adjustment</p>
-                <p className="text-lg">
-                  {demandFactor !== 1 
-                    ? ((demandFactor - 1) * 100).toFixed(1) + '%' 
-                    : '0%'}
-                </p>
+              <div>
+                <p className="text-muted-foreground">Year:</p>
+                <p className="font-medium">{vehicleInfo.year}</p>
               </div>
-            )}
-          </div>
-
-          {priceRange && (
-            <div className="mt-4 p-4 bg-primary/5 rounded-lg">
-              <p className="font-medium">Price Range</p>
-              <p className="text-base md:text-lg">${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}</p>
+              {vehicleInfo.mileage && (
+                <div>
+                  <p className="text-muted-foreground">Mileage:</p>
+                  <p className="font-medium">{vehicleInfo.mileage.toLocaleString()} miles</p>
+                </div>
+              )}
+              {vehicleInfo.condition && (
+                <div>
+                  <p className="text-muted-foreground">Condition:</p>
+                  <p className="font-medium capitalize">{vehicleInfo.condition}</p>
+                </div>
+              )}
+              {vehicleInfo.trim && (
+                <div>
+                  <p className="text-muted-foreground">Trim:</p>
+                  <p className="font-medium">{vehicleInfo.trim}</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button onClick={handleDownloadPdf} className="flex-1">
-          <Download className="h-4 w-4 mr-2" />
-          {isMobile ? "Download PDF" : "Download PDF Report"}
-        </Button>
-        <Button variant="outline" onClick={handleEmailReport} className="flex-1">
-          <Mail className="h-4 w-4 mr-2" />
-          {isMobile ? "Email Report" : "Email Me the Report"}
-        </Button>
-      </div>
+      
+      {(adjustments && adjustments.length > 0) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Value Adjustments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {basePrice && (
+                <li className="flex justify-between items-center pb-2 border-b border-gray-100">
+                  <span className="font-medium">Base Market Value</span>
+                  <span>{formatCurrency(basePrice)}</span>
+                </li>
+              )}
+              
+              {adjustments.map((adjustment, index) => (
+                <li key={index} className="flex justify-between items-start text-sm">
+                  <div>
+                    <p className="font-medium">{adjustment.factor}</p>
+                    {adjustment.description && (
+                      <p className="text-muted-foreground text-xs mt-0.5">{adjustment.description}</p>
+                    )}
+                  </div>
+                  <span className={`font-medium ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {adjustment.impact >= 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
+
+export default ValuationResults;

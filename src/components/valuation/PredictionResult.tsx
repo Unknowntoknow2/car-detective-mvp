@@ -1,200 +1,201 @@
-
 import React, { useState, useEffect } from 'react';
-import { AICondition } from '@/types/photo';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
-import { useValuationResult } from '@/hooks/useValuationResult';
-import { useAICondition } from '@/hooks/useAICondition';
-import { ValuationData } from './result/ValuationData';
-import { DownloadSection } from './result/DownloadSection';
-import { ErrorAlert } from './result/ErrorAlert';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getValuationById } from '@/services/valuationService';
+import { AICondition } from '@/types/photo';
+import { formatCurrency } from '@/utils/formatters';
+import { ValuationResults } from './ValuationResults';
 
-// Define the props interface for the component
 interface PredictionResultProps {
   valuationId: string;
   manualValuation?: any;
   photoCondition?: AICondition;
 }
 
-export const PredictionResult: React.FC<PredictionResultProps> = ({
-  valuationId,
+export function PredictionResult({ 
+  valuationId, 
   manualValuation,
   photoCondition
-}) => {
-  const [retryCount, setRetryCount] = useState(0);
+}: PredictionResultProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any | null>(null);
   
-  // Get valuation ID (from prop or localStorage)
-  const localValuationId = valuationId; // Using the prop directly instead of hook
-
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    isError,
-    refetch 
-  } = useValuationResult(localValuationId || '');
-  
-  const { 
-    conditionData, 
-    isLoading: isLoadingCondition 
-  } = useAICondition(localValuationId);
-
-  // Force a retry if there was a Supabase error
   useEffect(() => {
-    if (error && retryCount < 3 && !manualValuation) {
-      const timer = setTimeout(() => {
-        console.log(`Retrying valuation fetch (attempt ${retryCount + 1}/3)...`);
-        refetch();
-        setRetryCount(prev => prev + 1);
-      }, 1000 * (retryCount + 1)); // Exponential backoff
-      
-      return () => clearTimeout(timer);
+    // If we have manual valuation data, use it directly
+    if (manualValuation) {
+      setData({
+        make: manualValuation.make,
+        model: manualValuation.model,
+        year: manualValuation.year,
+        mileage: manualValuation.mileage,
+        condition: manualValuation.condition,
+        zipCode: manualValuation.zipCode || '90210',
+        estimated_value: manualValuation.valuation || 25000,
+        confidence_score: manualValuation.confidenceScore || 85,
+        base_price: manualValuation.basePrice || 25000,
+        adjustments: manualValuation.adjustments || [],
+        aiCondition: photoCondition
+      });
+      return;
     }
-  }, [error, retryCount, refetch, manualValuation]);
-
-  // Apply AI condition override if it exists and has high confidence
-  const getValuationWithAIOverride = () => {
-    if (!data) return null;
     
-    // Create a copy of the data
-    const valuationWithOverride = { ...data };
-    
-    // Apply AI condition override if available and confidence score is high enough
-    const conditionToUse = photoCondition || conditionData;
-    if (conditionToUse && conditionToUse.confidenceScore >= 70) {
-      valuationWithOverride.condition = conditionToUse.condition || valuationWithOverride.condition;
+    // Otherwise, fetch valuation data from the API
+    async function fetchValuationData() {
+      if (!valuationId) return;
       
-      // For TypeScript, we need to handle the aiCondition property safely
-      if ('aiCondition' in valuationWithOverride) {
-        valuationWithOverride.aiCondition = conditionToUse;
-      } else {
-        // Add the property if it doesn't exist
-        (valuationWithOverride as any).aiCondition = conditionToUse;
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const result = await getValuationById(valuationId);
+        
+        setData({
+          ...result,
+          aiCondition: photoCondition
+        });
+      } catch (err) {
+        console.error('Error fetching valuation data:', err);
+        setError('Failed to load valuation data. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     }
     
-    return valuationWithOverride;
+    fetchValuationData();
+  }, [valuationId, manualValuation, photoCondition]);
+  
+  const handleRefresh = async () => {
+    if (!valuationId) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const result = await getValuationById(valuationId);
+      
+      setData({
+        ...result,
+        aiCondition: photoCondition
+      });
+    } catch (err) {
+      console.error('Error refreshing valuation data:', err);
+      setError('Failed to refresh valuation data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handle manual valuation data if provided and no database data was found
-  const valuationData = getValuationWithAIOverride() || (manualValuation && error ? {
-    id: 'manual-' + Date.now(),
-    make: manualValuation.make,
-    model: manualValuation.model,
-    year: manualValuation.year,
-    mileage: manualValuation.mileage,
-    condition: manualValuation.condition || 'Good',
-    zipCode: manualValuation.zipCode || '',
-    estimatedValue: manualValuation.valuation || 20000,
-    confidenceScore: 75,
-    priceRange: [
-      manualValuation.valuation ? Math.round(manualValuation.valuation * 0.95) : 19000,
-      manualValuation.valuation ? Math.round(manualValuation.valuation * 1.05) : 21000
-    ] as [number, number],
-    adjustments: [
-      { 
-        factor: 'Base Condition', 
-        impact: 0, 
-        description: 'Baseline vehicle value' 
-      },
-      { 
-        factor: 'Market Demand', 
-        impact: 1.5, 
-        description: 'Current market conditions' 
-      }
-    ],
-    createdAt: new Date().toISOString()
-  } : null);
-
-  // Setup PDF download functionality
-  const isDownloading = false;
-  const handleDownloadPdf = () => {
-    // Placeholder for PDF download functionality
-    console.log('Download PDF triggered');
-  };
-
-  // Show loading state during initial data fetch
-  if (isLoading && !manualValuation) {
+  if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-lg">Valuation</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-12 w-1/2" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  // Show error state if fetch failed and no manual data is available
-  if ((error && !valuationData) || (isError && !valuationData)) {
+  if (error) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription className="space-y-2">
-          <p>{error?.message || "Failed to load valuation data"}</p>
-          <div className="mt-2">
-            <button 
-              onClick={() => refetch()} 
-              className="px-3 py-1 text-sm bg-white text-red-600 border border-red-600 rounded hover:bg-red-50"
-            >
-              {retryCount >= 3 ? "Try Again" : <div className="flex items-center"><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Retrying...</div>}
-            </button>
-          </div>
+          <p>{error}</p>
+          {valuationId && (
+            <Button variant="outline" size="sm" onClick={handleRefresh} className="mt-2">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          )}
         </AlertDescription>
       </Alert>
     );
   }
 
-  if (!valuationData) {
+  if (!data) {
     return (
-      <ErrorAlert 
-        title="No Valuation Data" 
-        description="We couldn't find valuation data for this vehicle. Please try again with different information."
-      />
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>No Data Available</AlertTitle>
+        <AlertDescription>
+          No valuation data is available for this vehicle.
+        </AlertDescription>
+      </Alert>
     );
   }
 
-  // Ensure priceRange is a tuple with exactly two elements
-  const priceRange: [number, number] = valuationData.priceRange && valuationData.priceRange.length >= 2 
-    ? [valuationData.priceRange[0], valuationData.priceRange[1]] 
+  // Generate some mock adjustments if none are provided
+  const adjustments = data.adjustments && data.adjustments.length > 0 
+    ? data.adjustments 
     : [
-        Math.round(valuationData.estimatedValue * 0.95),
-        Math.round(valuationData.estimatedValue * 1.05)
+        { 
+          factor: 'Mileage', 
+          impact: -500, 
+          description: `Based on ${data.mileage?.toLocaleString() || '45,000'} miles` 
+        },
+        { 
+          factor: 'Condition', 
+          impact: data.condition === 'Excellent' ? 1500 : 
+                  data.condition === 'Good' ? 500 : 
+                  data.condition === 'Fair' ? -500 : -1500, 
+          description: `${data.condition || 'Good'} condition` 
+        },
+        { 
+          factor: 'Market Demand', 
+          impact: 750, 
+          description: 'High demand in your region' 
+        }
       ];
 
-  // Determine if the AI condition was used
-  const hasAiCondition = conditionData || ('aiCondition' in valuationData);
-  const isAIVerified = !!(hasAiCondition && 
-    ((conditionData?.confidenceScore >= 70) || 
-     ('aiCondition' in valuationData && 
-      valuationData.aiCondition && 
-      'confidenceScore' in valuationData.aiCondition && 
-      valuationData.aiCondition.confidenceScore >= 70)));
-
+  // Extract AI condition data if available
+  let aiConditionAdjustment = null;
+  if (data.aiCondition) {
+    const aiConditionImpact = 
+      data.aiCondition.condition === 'Excellent' ? 1500 :
+      data.aiCondition.condition === 'Good' ? 500 :
+      data.aiCondition.condition === 'Fair' ? -500 : -1500;
+    
+    aiConditionAdjustment = {
+      factor: 'AI Condition Assessment',
+      impact: aiConditionImpact,
+      description: `Based on photo analysis: ${data.aiCondition.condition} (${data.aiCondition.confidenceScore}% confidence)`
+    };
+    
+    // Add AI condition adjustment to the adjustments array
+    adjustments.push(aiConditionAdjustment);
+  }
+  
   return (
-    <div className="space-y-6">
-      <ValuationData
-        estimatedValue={valuationData.estimatedValue}
-        confidenceScore={valuationData.confidenceScore || 75}
-        priceRange={priceRange}
-        adjustments={valuationData.adjustments}
-        isAIVerified={isAIVerified}
-        conditionData={conditionData || ('aiCondition' in valuationData ? valuationData.aiCondition : null)}
-      />
-      
-      <DownloadSection 
-        valuationId={localValuationId || ''}
-        onDownload={handleDownloadPdf}
-        isDownloading={isDownloading}
-      />
-    </div>
+    <ValuationResults
+      estimatedValue={data.estimated_value || data.valuation || 25000}
+      confidenceScore={data.confidence_score || data.confidenceScore || 85}
+      basePrice={data.base_price || data.basePrice}
+      adjustments={adjustments}
+      priceRange={data.price_range || data.priceRange}
+      demandFactor={data.zip_demand_factor}
+      vehicleInfo={{
+        year: data.year,
+        make: data.make,
+        model: data.model,
+        trim: data.trim,
+        mileage: data.mileage,
+        condition: data.condition
+      }}
+    />
   );
-};
+}
+
+export default PredictionResult;

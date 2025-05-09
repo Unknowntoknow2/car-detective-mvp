@@ -1,58 +1,27 @@
 
-// src/types/photo.ts
-
-export const MAX_FILES = 8;
+export const MAX_FILES = 6;
 export const MIN_FILES = 1;
 
-export interface Photo {
-  id?: string;
-  file?: File;
-  name?: string;
-  url?: string;
-  uploading?: boolean;
+export interface PhotoFile {
+  file: File;
+  id: string;
+  preview: string;
   uploaded?: boolean;
-  error?: string | null;
-  score?: number;
-  isPrimary?: boolean;
-  valuationId?: string;
-  type?: string;
-  angle?: string;
-  fileName?: string;
-  size?: number;
+  url?: string;
+  error?: string;
+}
+
+export interface AICondition {
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  confidenceScore: number;
+  issuesDetected?: string[];
+  aiSummary?: string;
 }
 
 export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
-  factor?: string;
-  impact?: number;
-}
-
-export interface AICondition {
-  condition: string;
-  confidenceScore: number;
-  issuesDetected?: string[];
-  aiSummary?: string;
-}
-
-export interface PhotoScoringResult {
-  photoScore: number;
-  bestPhotoUrl?: string;
-  aiCondition?: AICondition;
-  explanation?: string;
-  individualScores: PhotoScore[];
-  photoUrls: string[];
-  score: number;
-  error?: string | null;
-}
-
-export interface PhotoAnalysisResult {
-  photoUrls: string[];
-  score: number;
-  aiCondition?: AICondition;
-  individualScores?: PhotoScore[];
-  error?: string | null;
 }
 
 export interface AdjustmentBreakdown {
@@ -64,5 +33,9 @@ export interface AdjustmentBreakdown {
   impact: number;
   adjustment?: number;
   impactPercentage?: number;
-  percentage?: number; // Add percentage property for compatibility
+}
+
+export interface PhotoAssessmentResult {
+  aiCondition: AICondition;
+  photoScores: PhotoScore[];
 }
