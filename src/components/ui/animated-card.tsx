@@ -1,15 +1,17 @@
 
 import React from 'react';
 import { Card } from './card';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { shouldReduceMotion } from '@/utils/animations';
 
 interface AnimatedCardProps extends React.ComponentPropsWithRef<typeof Card> {
   animate?: boolean;
   hoverEffect?: 'lift' | 'scale' | 'glow' | 'none';
   delay?: number;
+  children?: React.ReactNode;
 }
 
+// Create a properly typed motion component
 const MotionCard = motion(Card);
 
 export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
@@ -20,7 +22,7 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
       return <Card ref={ref} {...props}>{children}</Card>;
     }
     
-    let hoverAnimation = {};
+    let hoverAnimation: Partial<MotionProps> = {};
     
     switch (hoverEffect) {
       case 'lift':
@@ -48,16 +50,20 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
         hoverAnimation = {};
     }
     
+    const initialAnimation: Partial<MotionProps> = {
+      initial: { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { 
+        duration: 0.5,
+        delay: delay,
+        ease: [0.25, 0.1, 0.25, 1.0]
+      }
+    };
+    
     return (
       <MotionCard
         ref={ref}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ 
-          duration: 0.5,
-          delay: delay,
-          ease: [0.25, 0.1, 0.25, 1.0]
-        }}
+        {...initialAnimation}
         {...hoverAnimation}
         {...props}
       >

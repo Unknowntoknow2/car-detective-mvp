@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Button, ButtonProps } from './button';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { shouldReduceMotion } from '@/utils/animations';
 
 interface AnimatedButtonProps extends ButtonProps {
   scaleOnHover?: boolean;
   pulseOnHover?: boolean;
   iconAnimation?: 'rotate' | 'bounce' | 'pulse' | 'shake' | 'none';
+  children?: React.ReactNode;
 }
 
 const MotionButton = motion(Button);
@@ -28,7 +29,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
       child => !React.isValidElement(child) || typeof child.type === 'string'
     );
     
-    let iconAnimationProps = {};
+    let iconAnimationProps: Partial<MotionProps> = {};
     
     if (iconChild && iconAnimation !== 'none') {
       switch (iconAnimation) {
@@ -59,15 +60,15 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
       }
     }
     
-    const motionProps: any = {
+    const motionProps: Partial<MotionProps> = {
       whileHover: scaleOnHover ? { scale: 1.05 } : undefined,
       whileTap: { scale: 0.98 },
       transition: { duration: 0.2 }
     };
     
-    if (pulseOnHover) {
+    if (pulseOnHover && motionProps.whileHover) {
       motionProps.whileHover = { 
-        ...motionProps.whileHover,
+        ...(typeof motionProps.whileHover === 'object' ? motionProps.whileHover : {}),
         boxShadow: "0 0 0 4px rgba(59, 130, 246, 0.3)"
       };
     }
