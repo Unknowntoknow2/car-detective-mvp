@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePlateLookup } from '@/hooks/usePlateLookup';
 import { Car, Search, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { US_STATES } from '@/components/premium/lookup/shared/states-data';
+import { states } from '@/components/premium/lookup/shared/states-data'; // Updated from US_STATES to states
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -132,7 +132,7 @@ export function EnhancedPlateLookup({ onComplete }: { onComplete: (data: any) =>
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
             <SelectContent>
-              {US_STATES.map((state) => (
+              {states.map((state) => ( // Changed from US_STATES to states
                 <SelectItem key={state.value} value={state.value}>
                   {state.label} ({state.value})
                 </SelectItem>

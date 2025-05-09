@@ -1,320 +1,56 @@
-
-import React, { useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { ConditionLevel } from '@/components/lookup/types/manualEntry';
-import { motion } from 'framer-motion';
-import { AlertTriangle, CheckCircle, HelpCircle, ArrowUp, WrenchIcon } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LucideIcon } from 'lucide-react';
-
-// Extended interface for condition options
-interface ConditionOption {
-  value: ConditionLevel;
-  label: string;
-  conditionValue: number;
-  description: string;
-  valueImpact: string;
-  icon: LucideIcon;
-  improvementTip: string;
-}
-
-// More detailed condition options with gradual steps
-const CONDITION_OPTIONS: ConditionOption[] = [
-  { 
-    value: 'poor', 
-    label: 'Poor', 
-    conditionValue: 25, 
-    description: 'Significant repairs needed, not fully operational',
-    valueImpact: 'Reduces value by 20-30%',
-    icon: AlertTriangle,
-    improvementTip: 'Focus on critical mechanical repairs first. Address safety issues before cosmetic improvements.'
-  },
-  { 
-    value: 'fair', 
-    label: 'Fair', 
-    conditionValue: 50, 
-    description: 'Functional but has noticeable wear and issues',
-    valueImpact: 'Reduces value by 10-15%',
-    icon: AlertTriangle,
-    improvementTip: 'Regular maintenance and minor repairs can significantly increase value. Consider professional detailing.'
-  },
-  { 
-    value: 'good', 
-    label: 'Good', 
-    conditionValue: 75, 
-    description: 'Minor wear, fully functional with minimal issues',
-    valueImpact: 'Baseline value',
-    icon: CheckCircle,
-    improvementTip: 'Maintain service records and address any minor cosmetic issues to retain maximum value.'
-  },
-  { 
-    value: 'excellent', 
-    label: 'Excellent', 
-    conditionValue: 100, 
-    description: 'Like new condition with minimal wear',
-    valueImpact: 'Increases value by 5-15%',
-    icon: CheckCircle,
-    improvementTip: 'Continue meticulous maintenance. Preserve documentation of service history for best resale value.'
-  }
-];
-
-// More specific feedback for each 5% increment within condition categories
-const getDetailedConditionFeedback = (value: number): { feedback: string, tipDetail: string } => {
-  if (value <= 25) {
-    if (value <= 5) return { 
-      feedback: 'Very poor condition. Significant mechanical failures.',
-      tipDetail: 'Consider addressing major mechanical issues before valuation.'
-    };
-    if (value <= 10) return { 
-      feedback: 'Poor condition with multiple critical issues.',
-      tipDetail: 'Focus on engine, transmission, and safety systems first.'
-    };
-    if (value <= 15) return { 
-      feedback: 'Poor condition but potentially repairable.',
-      tipDetail: 'Get professional estimates for major repairs before selling.'
-    };
-    if (value <= 20) return { 
-      feedback: 'Poor condition with some functional components.',
-      tipDetail: 'Document any recent repairs - this helps justify a higher value.'
-    };
-    return { 
-      feedback: 'Below average condition but drivable.',
-      tipDetail: 'Clean interior and exterior thoroughly before valuation.'
-    };
-  } else if (value <= 50) {
-    if (value <= 30) return { 
-      feedback: 'Fair condition with noticeable mechanical issues.',
-      tipDetail: 'Address fluid leaks and warning lights before valuation.'
-    };
-    if (value <= 35) return { 
-      feedback: 'Fair condition with some cosmetic damage.',
-      tipDetail: 'Consider affordable body work for dents and scratches.'
-    };
-    if (value <= 40) return { 
-      feedback: 'Fair condition with worn interior.',
-      tipDetail: 'Replace or repair torn upholstery and damaged trim.'
-    };
-    if (value <= 45) return { 
-      feedback: 'Fair condition with aging components.',
-      tipDetail: 'Replace worn belts, hoses, and filters to improve reliability.'
-    };
-    return { 
-      feedback: 'Fair condition with decent functionality.',
-      tipDetail: 'Professional detailing can add several hundred dollars in value.'
-    };
-  } else if (value <= 75) {
-    if (value <= 55) return { 
-      feedback: 'Good condition with minor mechanical wear.',
-      tipDetail: 'Address any small oil leaks or unusual sounds.'
-    };
-    if (value <= 60) return { 
-      feedback: 'Good condition with some cosmetic issues.',
-      tipDetail: 'Touch up paint chips and polish exterior for better first impression.'
-    };
-    if (value <= 65) return { 
-      feedback: 'Good condition with normal wear for age.',
-      tipDetail: 'Replace worn tires and brakes to demonstrate good maintenance.'
-    };
-    if (value <= 70) return { 
-      feedback: 'Good condition with well-maintained systems.',
-      tipDetail: 'Gather and organize maintenance records to prove care.'
-    };
-    return { 
-      feedback: 'Very good condition with minimal issues.',
-      tipDetail: 'Consider certified pre-owned programs if your vehicle qualifies.'
-    };
-  } else {
-    if (value <= 80) return { 
-      feedback: 'Excellent condition with minor wear.',
-      tipDetail: 'Detail engine bay to showcase exceptional care.'
-    };
-    if (value <= 85) return { 
-      feedback: 'Excellent condition with minimal signs of use.',
-      tipDetail: 'Have dealership inspection to validate condition.'
-    };
-    if (value <= 90) return { 
-      feedback: 'Excellent condition, nearly flawless.',
-      tipDetail: 'Obtain paint depth measurements to prove original finish.'
-    };
-    if (value <= 95) return { 
-      feedback: 'Near perfect condition, rarely seen in used vehicles.',
-      tipDetail: 'Take professional photos that highlight pristine condition.'
-    };
-    return { 
-      feedback: 'Showroom condition, indistinguishable from new.',
-      tipDetail: 'Consider specialty marketplaces for collector-quality vehicles.'
-    };
-  }
-};
+import React from 'react';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { UseFormReturn } from 'react-hook-form';
+import { ConditionLevel } from '@/components/lookup/types/manualEntry'; // Fixed import
 
 interface ConditionInputProps {
-  condition: ConditionLevel;
-  conditionValue: number;
-  onChange: (value: ConditionLevel) => void;
-  onSliderChange: (value: number) => void;
-  disabled?: boolean;
+  form: UseFormReturn<any>;
 }
 
-export function ConditionInput({ 
-  condition, 
-  conditionValue, 
-  onChange, 
-  onSliderChange, 
-  disabled 
-}: ConditionInputProps) {
-  const selectedCondition = CONDITION_OPTIONS.find(option => option.value === condition);
-  const detailedFeedback = getDetailedConditionFeedback(conditionValue);
-
-  const getConditionColor = (value: string): string => {
-    switch (value) {
-      case 'poor': return 'text-red-500 bg-red-50';
-      case 'fair': return 'text-amber-500 bg-amber-50';
-      case 'good': return 'text-green-500 bg-green-50';
-      case 'excellent': return 'text-blue-500 bg-blue-50';
-      default: return 'text-slate-500 bg-slate-50';
-    }
-  };
-  
-  const handleTabClick = (option: ConditionOption) => {
-    if (disabled) return;
-    onChange(option.value);
-    onSliderChange(option.conditionValue);
-  };
-
-  // Custom slider marker component to show ticks
-  const SliderMarkers = () => {
-    return (
-      <div className="relative w-full h-0">
-        {[0, 25, 50, 75, 100].map((percent) => (
-          <div 
-            key={percent} 
-            className={`absolute w-0.5 h-2 bg-slate-300 -mt-1 ${
-              conditionValue >= percent ? 'bg-primary' : ''
-            }`} 
-            style={{ left: `${percent}%` }}
-          />
-        ))}
-      </div>
-    );
-  };
-
+export const ConditionInput: React.FC<ConditionInputProps> = ({ form }) => {
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <Label className="text-base font-medium text-slate-700">Vehicle Condition</Label>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                <HelpCircle className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs p-4">
-              <p className="text-sm font-medium mb-2">How condition affects valuation:</p>
-              <ul className="space-y-2 text-sm">
-                {CONDITION_OPTIONS.map(option => (
-                  <li key={option.value} className="flex items-start">
-                    <span className={`inline-block w-2 h-2 rounded-full mt-1.5 mr-2 ${option.value === 'poor' ? 'bg-red-500' : option.value === 'fair' ? 'bg-amber-500' : option.value === 'good' ? 'bg-green-500' : 'bg-blue-500'}`}></span>
-                    <span>
-                      <strong className="font-medium">{option.label}:</strong> {option.valueImpact}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      
-      <div className="grid grid-cols-4 gap-2">
-        {CONDITION_OPTIONS.map((option) => (
-          <motion.div
-            key={option.value}
-            whileHover={{ scale: disabled ? 1 : 1.02 }}
-            whileTap={{ scale: disabled ? 1 : 0.98 }}
-            className={`
-              cursor-pointer rounded-lg border p-3 text-center transition-all
-              ${condition === option.value 
-                ? `border-2 ${getConditionColor(option.value)} border-${option.value === 'poor' ? 'red' : option.value === 'fair' ? 'amber' : option.value === 'good' ? 'green' : 'blue'}-300` 
-                : 'border-slate-200 hover:border-slate-300 bg-white'
-              }
-              ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
-            `}
-            onClick={() => handleTabClick(option)}
-          >
-            <div className="flex flex-col items-center justify-center h-full">
-              <option.icon className={`h-5 w-5 mb-1 ${condition === option.value ? (option.value === 'poor' || option.value === 'fair' ? 'text-amber-500' : 'text-green-500') : 'text-slate-400'}`} />
-              <span className={`text-sm font-medium ${condition === option.value ? (option.value === 'poor' ? 'text-red-700' : option.value === 'fair' ? 'text-amber-700' : option.value === 'good' ? 'text-green-700' : 'text-blue-700') : 'text-slate-700'}`}>
-                {option.label}
-              </span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-      
-      <div className="mt-4">
-        <div className="flex justify-between text-xs text-slate-500 mb-1">
-          <span className="text-red-500">Poor</span>
-          <span className="text-amber-500">Fair</span>
-          <span className="text-green-500">Good</span>
-          <span className="text-blue-500">Excellent</span>
-        </div>
-        
-        <Slider 
-          value={[conditionValue]} 
-          max={100} 
-          step={5} 
-          onValueChange={value => onSliderChange(value[0])}
-          disabled={disabled}
-          className="mt-2"
-        />
-        
-        <SliderMarkers />
-        
-        <div className="flex justify-between mt-1">
-          <span className="text-xs text-slate-400">0%</span>
-          <span className="text-xs text-slate-400">25%</span>
-          <span className="text-xs text-slate-400">50%</span>
-          <span className="text-xs text-slate-400">75%</span>
-          <span className="text-xs text-slate-400">100%</span>
-        </div>
-      </div>
-      
-      {selectedCondition && (
-        <motion.div 
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          key={`${selectedCondition.value}-${conditionValue}`}
-          className={`p-4 rounded-lg border mt-4 ${getConditionColor(selectedCondition.value)}`}
-        >
-          <div className="flex items-start gap-3">
-            <selectedCondition.icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${selectedCondition.value === 'poor' || selectedCondition.value === 'fair' ? 'text-amber-500' : 'text-green-500'}`} />
-            <div>
-              <h4 className="text-sm font-medium mb-1">
-                {selectedCondition.label} Condition - {conditionValue}%
-              </h4>
-              <p className="text-xs mb-2">
-                {detailedFeedback.feedback}
-              </p>
-              <div className="p-3 bg-white bg-opacity-60 rounded border border-current border-opacity-20 mt-2">
-                <div className="flex items-start gap-2">
-                  <WrenchIcon className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h5 className="text-xs font-medium text-slate-700 mb-0.5">Improvement Tip:</h5>
-                    <p className="text-xs text-slate-600">{detailedFeedback.tipDetail}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 mt-2 text-xs text-primary font-medium">
-                  <ArrowUp className="h-3 w-3" />
-                  <span>Value Impact: {selectedCondition.valueImpact}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+    <FormField
+      control={form.control}
+      name="condition"
+      render={({ field }) => (
+        <FormItem className="space-y-3">
+          <FormLabel>Condition</FormLabel>
+          <FormControl>
+            <RadioGroup 
+              onValueChange={field.onChange} 
+              defaultValue={field.value} 
+              className="flex flex-col space-y-1"
+            >
+              <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormControl>
+                  <RadioGroupItem value={ConditionLevel.Excellent} id="excellent" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
+                </FormControl>
+                <FormLabel htmlFor="excellent" className="font-normal">Excellent</FormLabel>
+              </FormItem>
+              <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormControl>
+                  <RadioGroupItem value={ConditionLevel.Good} id="good" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
+                </FormControl>
+                <FormLabel htmlFor="good" className="font-normal">Good</FormLabel>
+              </FormItem>
+              <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormControl>
+                  <RadioGroupItem value={ConditionLevel.Fair} id="fair" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
+                </FormControl>
+                <FormLabel htmlFor="fair" className="font-normal">Fair</FormLabel>
+              </FormItem>
+              <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormControl>
+                  <RadioGroupItem value={ConditionLevel.Poor} id="poor" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
+                </FormControl>
+                <FormLabel htmlFor="poor" className="font-normal">Poor</FormLabel>
+              </FormItem>
+            </RadioGroup>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       )}
-    </div>
+    />
   );
-}
+};

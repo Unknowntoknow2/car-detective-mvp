@@ -6,7 +6,7 @@ interface FormValidationErrorProps {
   error: string;
   variant?: 'error' | 'warning' | 'info';
   className?: string;
-  details?: string;
+  details?: string; // Make sure the details prop is included
 }
 
 export function FormValidationError({ 
