@@ -1,5 +1,8 @@
 // src/types/photo.ts
 
+export const MAX_FILES = 8;
+export const MIN_FILES = 1;
+
 export interface Photo {
   id?: string;
   file?: File;
