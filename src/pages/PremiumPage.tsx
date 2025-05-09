@@ -42,7 +42,7 @@ export default function PremiumPage() {
           <EnhancedPremiumFeaturesTabs />
         </div>
         
-        <ComparisonSection />
+        <ComparisonSection scrollToForm={scrollToForm} />
         
         <div ref={formRef} id="premium-form" className="container max-w-5xl py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
           <div className="space-y-6 sm:space-y-8">
