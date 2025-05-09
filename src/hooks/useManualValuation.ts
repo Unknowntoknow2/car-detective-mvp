@@ -56,7 +56,7 @@ export function useManualValuation() {
           value: adj.value || adj.impact || 0,
           description: adj.description || '',
           percentAdjustment: adj.percentAdjustment || adj.percentage || 0,
-          // Add empty properties to satisfy the interface
+          // Add properties with default values to satisfy the interface
           adjustment: 0,
           impactPercentage: 0
         };

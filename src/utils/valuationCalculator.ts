@@ -26,6 +26,8 @@ export interface ValuationResult {
   }[];
   confidenceScore: number;
   baseValue: number;
+  estimatedValue?: number;
+  priceRange?: [number, number];
 }
 
 export function calculateFinalValuation(params: ValuationParams): ValuationResult {
@@ -118,11 +120,21 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   confidenceScore = Math.min(98, confidenceScore);
   confidenceScore = Math.max(75, confidenceScore);
 
+  // Add estimatedValue and priceRange for compatibility with newer interfaces
+  const estimatedValue = finalValue;
+  const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
+  const priceRange: [number, number] = [
+    Math.floor(estimatedValue - margin),
+    Math.ceil(estimatedValue + margin)
+  ];
+
   return {
     finalValue,
     adjustments,
     confidenceScore,
     baseValue,
+    estimatedValue,
+    priceRange
   };
 }
 
@@ -163,12 +175,17 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
   return baseValue * trendMultiplier;
 }
 
-// Import from './valuation/calculateFinalValuation' and export the types and functions
-import {
-  calculateFinalValuation as enterpriseCalculateFinalValuation,
-  ValuationInput as EnterpriseValuationInput,
-  FinalValuationResult as EnterpriseValuationOutput
+// Import correct types from valuation/types and export them
+import { 
+  ValuationParams as EnterpriseValuationParams,
+  ValuationResult as EnterpriseValuationResult
 } from './valuation/types';
 
-export { enterpriseCalculateFinalValuation };
-export type { EnterpriseValuationInput, EnterpriseValuationOutput };
+// Export the corrected types and functions
+export type ValuationInput = ValuationParams;
+export type FinalValuationResult = ValuationResult;
+export type EnterpriseValuationInput = EnterpriseValuationParams;
+export type EnterpriseValuationOutput = EnterpriseValuationResult;
+
+// Export the function from valuationEngine as enterpriseCalculateFinalValuation
+export { calculateFinalValuation as enterpriseCalculateFinalValuation };

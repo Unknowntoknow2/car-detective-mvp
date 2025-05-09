@@ -1,22 +1,23 @@
-// src/utils/valuationEngine.ts
+
+// src/utils/valuation/valuationEngine.ts
 
 import {
   mileageAdjustmentCurve
-} from './adjustments/mileageAdjustments';
+} from '../adjustments/mileageAdjustments';
 import {
   getConditionMultiplier
-} from './adjustments/conditionAdjustments';
+} from '../adjustments/conditionAdjustments';
 import {
   getRegionalMarketMultiplier
-} from './adjustments/locationAdjustments';
+} from '../adjustments/locationAdjustments';
 import {
   getFeatureAdjustments
-} from './adjustments/featureAdjustments';
+} from '../adjustments/featureAdjustments';
 import type { AICondition } from '@/types/photo';
 import type {
-  ValuationInput as EnterpriseValuationInput,
+  EnhancedValuationParams,
   FinalValuationResult as EnterpriseValuationOutput
-} from './valuation/types';
+} from './types';
 
 export interface ValuationParams {
   baseMarketValue: number;
@@ -25,7 +26,7 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   mileage?: number;
-  condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  condition?: string; // Changed to string to allow any condition string
   zipCode?: string;
   features?: string[];
   trim?: string;
@@ -110,26 +111,36 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    const featureImpact = getFeatureAdjustments(params.features, baseValue);
+    // Fix: Handle feature adjustments properly by checking the return type
+    const featureResult = getFeatureAdjustments(params.features, baseValue);
+    
+    let featureAdjustmentValue = 0;
+    if (typeof featureResult === 'number') {
+      featureAdjustmentValue = featureResult;
+    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
+      featureAdjustmentValue = featureResult.totalAdjustment;
+    }
+    
     adjustments.push({
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
-      impact: featureImpact,
-      percentage: (featureImpact / baseValue) * 100,
+      impact: featureAdjustmentValue,
+      percentage: (featureAdjustmentValue / baseValue) * 100,
       factor: 'Premium Features',
-      value: featureImpact,
-      percentAdjustment: (featureImpact / baseValue) * 100
+      value: featureAdjustmentValue,
+      percentAdjustment: (featureAdjustmentValue / baseValue) * 100
     });
-    totalAdjustment += featureImpact;
+    totalAdjustment += featureAdjustmentValue;
     confidenceScore += 2;
   }
 
-  if (params.make && params.model && params.vehicleYear) {
-    const trendImpact = calculateMakeModelTrend(params.make, params.model, params.vehicleYear, baseValue);
+  if (params.make && params.model && (params.year || params.vehicleYear)) {
+    const year = params.year || params.vehicleYear || 0;
+    const trendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
     if (trendImpact !== 0) {
       adjustments.push({
         name: 'Market Trends',
-        description: `Current market trends for ${params.vehicleYear} ${params.make} ${params.model}`,
+        description: `Current market trends for ${year} ${params.make} ${params.model}`,
         impact: trendImpact,
         percentage: (trendImpact / baseValue) * 100,
         factor: 'Market Trends',
@@ -192,8 +203,14 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
   return baseValue * multiplier;
 }
 
-export { calculateFinalValuation as enterpriseCalculateFinalValuation };
-export type { EnterpriseValuationInput, EnterpriseValuationOutput };
+// Export types from current file
+export type ValuationInput = ValuationParams;
+export type EnterpriseValuationInput = ValuationParams;
+export type { EnterpriseValuationOutput };
 
+// Export functions with enterprise prefix for compatibility
+export { calculateFinalValuation as enterpriseCalculateFinalValuation };
+
+// Export additional functions for backward compatibility
 export const calculateValuation = calculateFinalValuation;
 export const getBaseValue = (params: any) => params.baseMarketValue || 0;

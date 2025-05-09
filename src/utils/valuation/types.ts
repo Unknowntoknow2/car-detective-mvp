@@ -14,6 +14,7 @@ export interface EnhancedValuationParams extends ValuationInput {
   mpg?: number;
   aiConditionData?: any;
   aiConditionOverride?: AICondition;
+  vehicleYear?: number;
   
   // Demand-related properties
   saleDate?: string;

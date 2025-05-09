@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -248,4 +249,74 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       />
     </div>
   );
+  
+  // Helper function definitions that were omitted in the truncated code
+  function handlePhotoScoreChange(score: number, condition?: any) {
+    setPhotoScore(score);
+    setAiCondition(condition);
+    setPhotoSubmitted(true);
+    
+    // Find the highest score photo from the condition
+    if (condition?.bestPhotoUrl) {
+      setBestPhotoUrl(condition.bestPhotoUrl);
+    }
+    
+    toast.success(`Photos analyzed and vehicle condition assessed`);
+  }
+
+  function saveToAccount() {
+    if (!user) {
+      toast.error("Please sign in to save this valuation");
+      navigate('/auth');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      supabase
+        .from('saved_valuations')
+        .insert({
+          user_id: user.id,
+          make: valuationData.make,
+          model: valuationData.model,
+          year: valuationData.year,
+          vin: valuationData.vin, // This is optional in the DB
+          valuation: estimatedValue || 0,
+          confidence_score: photoSubmitted ? 92 : 85, // Higher confidence with photo
+          condition_score: photoScore ? Math.round(photoScore * 100) : null,
+        })
+        .select()
+        .single()
+        .then(({ data, error }) => {
+          if (error) throw error;
+          setIsSaving(false);
+          toast.success("Valuation saved successfully");
+        })
+        .catch(err => {
+          console.error("Error saving valuation:", err);
+          setIsSaving(false);
+          toast.error("Failed to save valuation");
+        });
+    } catch (err) {
+      console.error("Error saving valuation:", err);
+      setIsSaving(false);
+      toast.error("Failed to save valuation");
+    }
+  }
+
+  function shareValuation() {
+    if (navigator.share) {
+      navigator.share({
+        title: `${valuationData.year} ${valuationData.make} ${valuationData.model} Valuation`,
+        text: `Check out my car valuation for a ${valuationData.year} ${valuationData.make} ${valuationData.model}`,
+        url: window.location.href,
+      }).catch(err => {
+        console.error('Share failed:', err);
+      });
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard");
+    }
+  }
 }

@@ -6,7 +6,10 @@ import { analyzePhotos } from './photo/analyzePhotos';
 export async function scorePhotos(photoUrls: string[], valuationId: string): Promise<PhotoScoringResult> {
   try {
     const result = await analyzePhotos(photoUrls, valuationId);
-    return result;
+    return {
+      ...result,
+      photoUrls // Ensure photoUrls is included in the result
+    };
   } catch (error: any) {
     console.error('Error scoring photos:', error);
     return {
