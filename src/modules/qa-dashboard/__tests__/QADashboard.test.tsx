@@ -1,13 +1,11 @@
-
 import React from 'react';
 import { render } from '@testing-library/react';
-import * as testing from '@testing-library/dom';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import QADashboardPage from '../page';
 
-// Access screen from testing-library/dom
-const { screen } = testing;
+// Import directly from @testing-library/dom
+import { screen } from '@testing-library/dom';
 
 const queryClient = new QueryClient();
 
