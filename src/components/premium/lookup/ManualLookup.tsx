@@ -47,9 +47,9 @@ export function ManualLookup({ onSubmit, isLoading, submitButtonText = "Submit" 
     onSubmit({
       make: values.make,
       model: values.model,
-      year: parseInt(values.year),
+      year: values.year,
       trim: values.trim,
-      mileage: values.mileage ? parseInt(values.mileage) : undefined,
+      mileage: values.mileage,
     });
   };
 

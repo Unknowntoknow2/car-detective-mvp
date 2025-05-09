@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { useVinInput } from '@/hooks/useVinInput';
@@ -54,6 +55,12 @@ export function VinInputForm({
     }
   };
 
+  // Handle the change from input element and convert it to string for parent component
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleInputChange(e);
+    onChange(e.target.value);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-2">
@@ -65,7 +72,7 @@ export function VinInputForm({
       
       <VinInput
         value={vinValue}
-        onChange={handleInputChange}
+        onChange={handleVinChange}
         validationError={validationError}
         externalError={error}
         touched={touched}
