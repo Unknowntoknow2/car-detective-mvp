@@ -1,4 +1,3 @@
-
 // src/utils/valuationCalculator.ts
 
 import { mileageAdjustmentCurve } from './adjustments/mileageAdjustments';
@@ -85,21 +84,13 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Pass features with basePrice as a RulesEngineInput object
-    const rulesInput = {
+    // Update: Pass proper object structure that matches what getFeatureAdjustments accepts
+    const featureResult = getFeatureAdjustments({
       features: params.features,
-      basePrice: baseValue,
-    };
+      basePrice: baseValue
+    });
     
-    // Fix: Handle getFeatureAdjustments properly
-    const featureResult = getFeatureAdjustments(rulesInput);
-    
-    let featureImpact = 0;
-    if (typeof featureResult === 'number') {
-      featureImpact = featureResult;
-    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
-      featureImpact = featureResult.totalAdjustment;
-    }
+    const featureImpact = featureResult.totalAdjustment;
     
     adjustments.push({
       name: 'Premium Features',

@@ -1,4 +1,3 @@
-
 // src/utils/valuationEngine.ts
 
 import {
@@ -85,20 +84,13 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Pass features as a RulesEngineInput object that includes basePrice
-    const rulesInput = {
+    // Update: Pass proper object structure that matches what getFeatureAdjustments accepts
+    const featureResult = getFeatureAdjustments({
       features: params.features,
-      basePrice: baseValue,
-    };
+      basePrice: baseValue
+    });
     
-    const featureResult = getFeatureAdjustments(rulesInput);
-    
-    let featureAdjustmentValue = 0;
-    if (typeof featureResult === 'number') {
-      featureAdjustmentValue = featureResult;
-    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
-      featureAdjustmentValue = featureResult.totalAdjustment;
-    }
+    const featureAdjustmentValue = featureResult.totalAdjustment;
     
     adjustments.push({
       name: 'Premium Features',

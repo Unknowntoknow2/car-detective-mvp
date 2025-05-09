@@ -30,8 +30,8 @@ export const featureDescriptions = {
   'performance_package': 'Performance Package'
 };
 
-// Modified to accept either a RulesEngineInput or just features array
-export const getFeatureAdjustments = (input: RulesEngineInput | string[]): { 
+// Modified to accept either a RulesEngineInput, a partial input with features and basePrice, or just features array
+export const getFeatureAdjustments = (input: RulesEngineInput | { features: string[], basePrice: number } | string[]): { 
   totalAdjustment: number;
   featuresApplied: Array<{name: string; impact: number}>;
 } => {
@@ -43,19 +43,23 @@ export const getFeatureAdjustments = (input: RulesEngineInput | string[]): {
     // If input is a string array, it's the features directly
     features = input;
     basePrice = 20000; // Default base price if not provided
+  } else if ('features' in input && 'basePrice' in input) {
+    // If input is a simplified object with just features and basePrice
+    features = input.features;
+    basePrice = input.basePrice;
   } else {
-    // If input is a RulesEngineInput object
+    // If input is a full RulesEngineInput object
     // Use premiumFeatures if provided or fall back to features
-    if (Array.isArray(input.premiumFeatures)) {
+    if ('premiumFeatures' in input && Array.isArray(input.premiumFeatures)) {
       // Convert any boolean values to strings if needed
       features = input.premiumFeatures.map(item => String(item));
-    } else if (Array.isArray(input.features)) {
+    } else if ('features' in input && Array.isArray(input.features)) {
       features = input.features.map(item => String(item));
     } else {
       features = [];
     }
     
-    basePrice = input.basePrice;
+    basePrice = input.basePrice || input.baseValue;
   }
   
   let totalAdjustment = 0;
