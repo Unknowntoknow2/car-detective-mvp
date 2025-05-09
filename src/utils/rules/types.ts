@@ -1,4 +1,5 @@
 
+
 export interface AdjustmentCalculator {
   calculate: (input: RulesEngineInput) => {
     factor: string;
@@ -79,3 +80,4 @@ export interface Rule {
   consequence: any | ((facts: RulesEngineInput) => any);
   priority?: number;
 }
+

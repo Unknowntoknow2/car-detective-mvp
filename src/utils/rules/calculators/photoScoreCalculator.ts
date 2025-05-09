@@ -27,9 +27,12 @@ export class PhotoScoreCalculator implements AdjustmentCalculator {
 
     // Apply adjustment to base price
     const adjustment = input.basePrice * percentAdjustment;
+    const name = 'Photo Score';
 
     return {
-      name: 'Photo Score',
+      factor: name,
+      impact: Math.round(adjustment),
+      name: name,
       value: Math.round(adjustment),
       description: getPhotoScoreAdjustmentDescription(input.photoScore, percentAdjustment, adjustment),
       percentAdjustment

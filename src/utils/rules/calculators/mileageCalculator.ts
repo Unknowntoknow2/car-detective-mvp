@@ -1,33 +1,47 @@
 
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-import rulesConfig from '../../valuationRules.json';
 
 export class MileageCalculator implements AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    const mileageRules = rulesConfig.adjustments.mileage;
-    const rule = mileageRules.find(r => input.mileage >= r.min && input.mileage <= r.max);
+  public calculate(input: RulesEngineInput): AdjustmentBreakdown {
+    // Calculate the expected annual mileage based on the vehicle's age
+    const vehicleAge = new Date().getFullYear() - input.year;
+    const expectedMileage = vehicleAge * 12000; // Assuming 12,000 miles per year as average
+    const mileageDifference = input.mileage - expectedMileage;
     
-    const adjustment = rule ? input.basePrice * rule.percent : 0;
+    // Calculate adjustment as a percentage of the base price
+    let percentAdjustment = 0;
+    if (mileageDifference > 0) {
+      // Higher than expected mileage: negative adjustment
+      percentAdjustment = -Math.min(0.15, (mileageDifference / 10000) * 0.03);
+    } else if (mileageDifference < 0) {
+      // Lower than expected mileage: positive adjustment
+      percentAdjustment = Math.min(0.1, (Math.abs(mileageDifference) / 10000) * 0.02);
+    }
+    
+    const impact = Math.round(input.basePrice * percentAdjustment);
+    const name = 'Mileage';
     
     return {
-      name: 'Mileage Impact',
-      value: Math.round(adjustment),
-      description: this.getMileageDescription(input.mileage),
-      percentAdjustment: rule ? rule.percent : 0
+      factor: name,
+      impact: impact,
+      name: name,
+      value: impact,
+      description: this.getMileageDescription(input.mileage, expectedMileage, percentAdjustment),
+      percentAdjustment
     };
   }
-
-  private getMileageDescription(mileage: number): string {
-    if (mileage < 30000) {
-      return "Vehicle has low mileage (below 30,000 miles)";
-    } else if (mileage <= 60000) {
-      return "Vehicle has average mileage";
-    } else if (mileage <= 100000) {
-      return "Vehicle has high mileage (above 60,000 miles)";
-    } else if (mileage <= 150000) {
-      return "Vehicle has very high mileage (above 100,000 miles)";
+  
+  private getMileageDescription(actual: number, expected: number, adjustment: number): string {
+    const formattedActual = actual.toLocaleString();
+    const formattedExpected = expected.toLocaleString();
+    const adjustmentPercent = Math.abs(adjustment * 100).toFixed(1);
+    
+    if (adjustment > 0) {
+      return `Vehicle has ${formattedActual} miles, which is lower than the expected ${formattedExpected} miles. This results in a +${adjustmentPercent}% adjustment.`;
+    } else if (adjustment < 0) {
+      return `Vehicle has ${formattedActual} miles, which is higher than the expected ${formattedExpected} miles. This results in a -${adjustmentPercent}% adjustment.`;
     } else {
-      return "Vehicle has excessive mileage (above 150,000 miles)";
+      return `Vehicle has ${formattedActual} miles, which is close to the expected ${formattedExpected} miles. No adjustment needed.`;
     }
   }
 }

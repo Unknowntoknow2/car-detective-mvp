@@ -9,12 +9,15 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
   try {
     if (!photoUrls.length) {
       return {
-        score: 0,
-        photoUrl: '',
+        overallScore: 0,
+        individualScores: [],
+        score: 0, // For backward compatibility
         condition: 'Fair',
         confidenceScore: 0,
-        overallScore: 0,
-        individualScores: []
+        aiCondition: {
+          condition: 'Fair',
+          confidenceScore: 0
+        }
       };
     }
 
@@ -29,13 +32,16 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
     if (error) {
       console.error('Error analyzing photos:', error);
       return {
-        score: 0,
-        photoUrl: '',
-        condition: 'Fair',
-        confidenceScore: 0,
         overallScore: 0,
         individualScores: [],
-        error: error.message || 'Failed to analyze photos'
+        score: 0, // For backward compatibility
+        condition: 'Fair',
+        confidenceScore: 0,
+        error: error.message || 'Failed to analyze photos',
+        aiCondition: {
+          condition: 'Fair',
+          confidenceScore: 0
+        }
       };
     }
 
@@ -45,16 +51,17 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
 
     // Process the response data
     const result: PhotoScoringResult = {
-      score: data.score || 0,
-      photoUrl: data.bestPhotoUrl || data.scores[0]?.url || '',
-      condition: (data.aiCondition?.condition || 'Fair') as any,
-      confidenceScore: data.aiCondition?.confidenceScore || 0,
       overallScore: data.score || 0,
       individualScores: data.scores.map((score: any) => ({
         url: score.url,
         score: score.score,
         isPrimary: score.isPrimary || false
       })) || [],
+      // Backward compatibility fields
+      score: data.score || 0,
+      photoUrl: data.bestPhotoUrl || data.scores[0]?.url || '',
+      condition: (data.aiCondition?.condition || 'Fair') as any,
+      confidenceScore: data.aiCondition?.confidenceScore || 0,
       aiCondition: data.aiCondition as AICondition
     };
 
@@ -62,13 +69,17 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
   } catch (error: any) {
     console.error('Error in analyzePhotos:', error);
     return {
-      score: 0,
+      overallScore: 0,
+      individualScores: [],
+      score: 0, // For backward compatibility
       photoUrl: '',
       condition: 'Fair',
       confidenceScore: 0,
-      overallScore: 0,
-      individualScores: [],
-      error: error.message || 'Failed to analyze photos'
+      error: error.message || 'Failed to analyze photos',
+      aiCondition: {
+        condition: 'Fair',
+        confidenceScore: 0
+      }
     };
   }
 }
@@ -95,13 +106,17 @@ export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string)
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {
-      score: 0,
+      overallScore: 0,
+      individualScores: [],
+      score: 0, // For backward compatibility
       photoUrl: '',
       condition: 'Fair',
       confidenceScore: 0,
-      overallScore: 0,
-      individualScores: [],
-      error: error.message || 'Failed to upload and analyze photos'
+      error: error.message || 'Failed to upload and analyze photos',
+      aiCondition: {
+        condition: 'Fair',
+        confidenceScore: 0
+      }
     };
   }
 };

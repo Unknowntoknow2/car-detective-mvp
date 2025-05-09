@@ -48,7 +48,7 @@ export function useManualValuation() {
         0 // Add a basePrice parameter (0 as placeholder)
       );
       
-      // Map the result adjustments to the correct format including factor and impact
+      // Map the result adjustments to the correct format
       const adjustments: AdjustmentBreakdown[] = (result.adjustments || []).map(adj => ({
         factor: adj.factor || adj.name || 'Unknown',
         impact: adj.impact || adj.value || 0,

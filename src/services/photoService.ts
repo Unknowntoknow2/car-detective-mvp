@@ -10,13 +10,17 @@ export async function scorePhotos(photoUrls: string[], valuationId: string): Pro
   } catch (error: any) {
     console.error('Error scoring photos:', error);
     return {
-      score: 0,
+      overallScore: 0,
+      individualScores: [],
+      score: 0, // For backward compatibility
       photoUrl: '',
       condition: 'Fair',
       confidenceScore: 0,
-      overallScore: 0,
-      individualScores: [],
-      error: error.message || 'Failed to score photos'
+      error: error.message || 'Failed to score photos',
+      aiCondition: {
+        condition: 'Fair',
+        confidenceScore: 0
+      }
     };
   }
 }
@@ -43,13 +47,17 @@ export async function uploadAndAnalyzePhotos(files: File[], valuationId: string)
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {
-      score: 0,
+      overallScore: 0,
+      individualScores: [],
+      score: 0, // For backward compatibility
       photoUrl: '',
       condition: 'Fair',
       confidenceScore: 0,
-      overallScore: 0,
-      individualScores: [],
-      error: error.message || 'Failed to upload and analyze photos'
+      error: error.message || 'Failed to upload and analyze photos',
+      aiCondition: {
+        condition: 'Fair',
+        confidenceScore: 0
+      }
     };
   }
 }
