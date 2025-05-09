@@ -2,49 +2,29 @@
 import { IdentifierType, RequiredInputs, Stage, ValuationPipelineState, ValuationResult, Vehicle } from './types';
 import { supabase } from '@/integrations/supabase/client';
 
-export async function lookupVehicle(
+// Function to decode vehicle from VIN or plate (renamed from lookupVehicle to decodeVehicle)
+export async function decodeVehicle(
   type: IdentifierType,
   identifier: string,
   state?: string,
   manualData?: { make: string; model: string; year: number; trim?: string; fuelType?: string; bodyType?: string; }
-): Promise<ValuationPipelineState> {
+): Promise<{ vehicle: Vehicle; error: string | null }> {
   try {
-    // Set the initial state to lookup in progress
-    const initialState: ValuationPipelineState = {
-      stage: 'lookup_in_progress',
-      vehicle: null,
-      requiredInputs: null,
-      valuationResult: null,
-      error: null,
-      isLoading: true
-    };
-
     // Handle manual entry for vehicles not in database
     if (type === 'manual' && manualData) {
       const vehicle: Vehicle = {
         make: manualData.make,
         model: manualData.model,
         year: manualData.year,
-        trim: manualData.trim || '',
-        fuelType: manualData.fuelType || '',
-        bodyType: manualData.bodyType || ''
+        trim: manualData.trim,
+        fuelType: manualData.fuelType,
+        transmission: 'Automatic',
+        bodyType: manualData.bodyType
       };
 
-      // Prepare required inputs
-      const requiredInputs: RequiredInputs = {
-        mileage: null,
-        fuelType: null,
-        zipCode: '',
-        condition: 4, // Default to good condition
-        conditionLabel: 'Good'
-      };
-
-      return {
-        ...initialState,
-        stage: 'details_required',
+      return { 
         vehicle,
-        requiredInputs,
-        isLoading: false
+        error: null
       };
     }
 
@@ -61,21 +41,9 @@ export async function lookupVehicle(
         bodyType: 'Sedan'
       };
 
-      // Prepare required inputs
-      const requiredInputs: RequiredInputs = {
-        mileage: null,
-        fuelType: 'Gasoline',
-        zipCode: '',
-        condition: 4, // Default to good condition
-        conditionLabel: 'Good'
-      };
-
       return {
-        ...initialState,
-        stage: 'details_required',
         vehicle,
-        requiredInputs,
-        isLoading: false
+        error: null
       };
     }
 
@@ -86,61 +54,37 @@ export async function lookupVehicle(
         make: 'Honda',
         model: 'Accord',
         year: 2020,
+        trim: 'LX',
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
         bodyType: 'Sedan'
       };
 
-      // Prepare required inputs
-      const requiredInputs: RequiredInputs = {
-        mileage: null,
-        fuelType: null,
-        zipCode: '',
-        condition: 4, // Default to good condition
-        conditionLabel: 'Good'
-      };
-
       return {
-        ...initialState,
-        stage: 'details_required',
         vehicle,
-        requiredInputs,
-        isLoading: false
+        error: null
       };
     }
 
-    // Return error state if lookup type is not supported
+    // Return error if lookup type is not supported
     return {
-      ...initialState,
-      stage: 'lookup_failed',
-      error: 'Unsupported lookup type',
-      isLoading: false
+      vehicle: {} as Vehicle,
+      error: 'Unsupported lookup type'
     };
   } catch (error) {
     return {
-      stage: 'lookup_failed',
-      vehicle: null,
-      requiredInputs: null,
-      valuationResult: null,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred during vehicle lookup',
-      isLoading: false
+      vehicle: {} as Vehicle,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred during vehicle lookup'
     };
   }
 }
 
-export async function submitValuationDetails(
+// Function to generate valuation from vehicle and details
+export async function generateValuation(
   vehicle: Vehicle,
   details: Partial<RequiredInputs>
-): Promise<ValuationPipelineState> {
+): Promise<{ result: ValuationResult | null; error: string | null }> {
   try {
-    // Set the initial state to valuation in progress
-    const initialState: ValuationPipelineState = {
-      stage: 'valuation_in_progress',
-      vehicle,
-      requiredInputs: { ...details } as RequiredInputs,
-      valuationResult: null,
-      error: null,
-      isLoading: true
-    };
-
     // Mock valuation result, replace with actual API call
     const valuationResult: ValuationResult = {
       id: crypto.randomUUID(),
@@ -149,9 +93,6 @@ export async function submitValuationDetails(
       price_range: [23500, 26500],
       base_price: 24000,
       zip_demand_factor: 1.05,
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
       adjustments: [
         {
           factor: 'Mileage',
@@ -172,19 +113,13 @@ export async function submitValuationDetails(
     };
 
     return {
-      ...initialState,
-      stage: 'valuation_complete',
-      valuationResult,
-      isLoading: false
+      result: valuationResult,
+      error: null
     };
   } catch (error) {
     return {
-      stage: 'valuation_failed',
-      vehicle,
-      requiredInputs: { ...details } as RequiredInputs,
-      valuationResult: null,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred during valuation',
-      isLoading: false
+      result: null,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred during valuation'
     };
   }
 }

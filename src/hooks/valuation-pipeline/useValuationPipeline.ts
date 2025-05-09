@@ -17,6 +17,7 @@ export function useValuationPipeline(): ValuationPipeline {
   const [requiredInputs, setRequiredInputs] = useState<RequiredInputs | null>(null);
   const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Reset the pipeline
   const reset = () => {
@@ -25,18 +26,21 @@ export function useValuationPipeline(): ValuationPipeline {
     setRequiredInputs(null);
     setValuationResult(null);
     setError(null);
+    setIsLoading(false);
   };
 
   // Step 1: Run lookup by VIN or plate
-  const runLookup = async (type: IdentifierType, identifier: string, state?: string) => {
+  const runLookup = async (type: IdentifierType, identifier: string, state?: string, manualData?: any) => {
     setStage('lookup_in_progress');
     setError(null);
+    setIsLoading(true);
     
-    const { vehicle: vehicleData, error: lookupError } = await decodeVehicle(type, identifier, state);
+    const { vehicle: vehicleData, error: lookupError } = await decodeVehicle(type, identifier, state, manualData);
     
     if (lookupError) {
       setStage('lookup_failed');
       setError(lookupError);
+      setIsLoading(false);
       toast.error(lookupError);
       return false;
     }
@@ -45,6 +49,7 @@ export function useValuationPipeline(): ValuationPipeline {
     
     // Move to next stage - we need additional details from the user
     setStage('details_required');
+    setIsLoading(false);
     
     // Pre-fill available data for the required inputs
     setRequiredInputs({
@@ -71,12 +76,14 @@ export function useValuationPipeline(): ValuationPipeline {
     
     setStage('valuation_in_progress');
     setError(null);
+    setIsLoading(true);
     
     const { result, error: valuationError } = await generateValuation(vehicle, details);
     
     if (valuationError) {
       setStage('valuation_failed');
       setError(valuationError);
+      setIsLoading(false);
       toast.error(valuationError);
       return false;
     }
@@ -84,10 +91,12 @@ export function useValuationPipeline(): ValuationPipeline {
     if (result) {
       setValuationResult(result);
       setStage('valuation_complete');
+      setIsLoading(false);
       toast.success('Vehicle valuation complete!');
       return true;
     }
     
+    setIsLoading(false);
     return false;
   };
 
@@ -97,7 +106,7 @@ export function useValuationPipeline(): ValuationPipeline {
     requiredInputs,
     valuationResult,
     error,
-    isLoading: stage === 'lookup_in_progress' || stage === 'valuation_in_progress',
+    isLoading,
     runLookup,
     submitValuation,
     reset

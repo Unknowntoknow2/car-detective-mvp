@@ -52,6 +52,11 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
     });
   };
 
+  const handleEmailReport = () => {
+    toast.success("Email report functionality will be implemented soon!");
+    return "";
+  };
+
   // If we're in the details collection stage, show the pipeline UI
   if (stage === 'details_required' && requiredInputs && pipelineVehicle) {
     return (

@@ -1,189 +1,245 @@
-// src/utils/valuation/valuationEngine.ts
 
-import {
-  mileageAdjustmentCurve
-} from '../adjustments/mileageAdjustments';
-import {
-  getConditionMultiplier
-} from '../adjustments/conditionAdjustments';
-import {
-  getRegionalMarketMultiplier
-} from '../adjustments/locationAdjustments';
-import {
-  getFeatureAdjustments
-} from '../adjustments/featureAdjustments';
-import type { AICondition } from '@/types/photo';
-import type {
-  EnhancedValuationParams,
-  FinalValuationResult as EnterpriseValuationOutput,
-  ValuationParams,
-  ValuationResult,
-  ValuationInput
-} from './types';
+import { AdjustmentBreakdown } from '@/types/photo';
 
-export function calculateFinalValuation(params: ValuationParams): ValuationResult {
-  if (params.baseMarketValue === undefined || params.baseMarketValue <= 0) {
-    throw new Error('Base market value is required and must be greater than zero');
+/**
+ * Calculate the value adjustment based on mileage
+ */
+export function calculateMileageAdjustment(baseValue: number, mileage: number): AdjustmentBreakdown {
+  // Default to no adjustment
+  if (!mileage || mileage <= 0) {
+    return {
+      name: "Mileage",
+      value: 0,
+      description: "No mileage information provided",
+      percentAdjustment: 0,
+      factor: "mileage",
+      impact: 0
+    };
   }
 
-  const baseValue = params.baseMarketValue;
-  const adjustments: ValuationResult['adjustments'] = [];
-  let confidenceScore = 85;
-  let totalAdjustment = 0;
-
-  if (params.mileage !== undefined && params.mileage >= 0) {
-    const mileageImpact = baseValue * mileageAdjustmentCurve(params.mileage);
-    adjustments.push({
-      name: 'Mileage',
-      description: getMileageAdjustmentDescription(params.mileage),
-      impact: mileageImpact,
-      percentAdjustment: (mileageImpact / baseValue) * 100,
-      factor: 'Mileage',
-      value: mileageImpact,
-      percentAdjustment: (mileageImpact / baseValue) * 100 // Keep for backward compatibility
-    });
-    totalAdjustment += mileageImpact;
-    confidenceScore += 3;
+  // Calculate adjustment based on mileage ranges
+  let adjustment = 0;
+  let description = "";
+  
+  if (mileage < 25000) {
+    adjustment = baseValue * 0.08; // +8%
+    description = "Very low mileage adds value";
+  } else if (mileage < 50000) {
+    adjustment = baseValue * 0.04; // +4%
+    description = "Below average mileage adds value";
+  } else if (mileage < 75000) {
+    adjustment = 0;
+    description = "Average mileage, no adjustment";
+  } else if (mileage < 100000) {
+    adjustment = baseValue * -0.05; // -5%
+    description = "Above average mileage reduces value";
+  } else if (mileage < 150000) {
+    adjustment = baseValue * -0.12; // -12%
+    description = "High mileage reduces value";
+  } else {
+    adjustment = baseValue * -0.2; // -20%
+    description = "Very high mileage significantly reduces value";
   }
-
-  if (params.condition) {
-    const multiplier = getConditionMultiplier(params.condition);
-    const impact = baseValue * multiplier;
-    adjustments.push({
-      name: 'Condition',
-      description: `Vehicle in ${params.condition} condition`,
-      impact,
-      percentAdjustment: multiplier * 100,
-      factor: 'Condition',
-      value: impact,
-      percentAdjustment: multiplier * 100 // Keep for backward compatibility
-    });
-    totalAdjustment += impact;
-    confidenceScore += 2;
-  }
-
-  if (params.zipCode) {
-    const multiplier = getRegionalMarketMultiplier(params.zipCode);
-    const impact = baseValue * multiplier;
-    adjustments.push({
-      name: 'Regional Market',
-      description: getRegionalMarketDescription(params.zipCode, multiplier),
-      impact,
-      percentAdjustment: multiplier * 100,
-      factor: 'Regional Market',
-      value: impact,
-      percentAdjustment: multiplier * 100 // Keep for backward compatibility
-    });
-    totalAdjustment += impact;
-    confidenceScore += 3;
-  }
-
-  if (params.features && params.features.length > 0) {
-    // Fix: Handle getFeatureAdjustments properly, passing only one argument
-    // The function is expected to handle the baseValue internally
-    const featureResult = getFeatureAdjustments(params.features);
-    
-    let featureAdjustmentValue = 0;
-    if (typeof featureResult === 'number') {
-      featureAdjustmentValue = featureResult;
-    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
-      featureAdjustmentValue = featureResult.totalAdjustment;
-    }
-    
-    adjustments.push({
-      name: 'Premium Features',
-      description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
-      impact: featureAdjustmentValue,
-      percentAdjustment: (featureAdjustmentValue / baseValue) * 100,
-      factor: 'Premium Features',
-      value: featureAdjustmentValue,
-      percentAdjustment: (featureAdjustmentValue / baseValue) * 100 // Keep for backward compatibility
-    });
-    totalAdjustment += featureAdjustmentValue;
-    confidenceScore += 2;
-  }
-
-  if (params.make && params.model && (params.year || params.vehicleYear)) {
-    const year = params.year || params.vehicleYear || 0;
-    const trendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
-    if (trendImpact !== 0) {
-      adjustments.push({
-        name: 'Market Trends',
-        description: `Current market trends for ${year} ${params.make} ${params.model}`,
-        impact: trendImpact,
-        percentAdjustment: (trendImpact / baseValue) * 100,
-        factor: 'Market Trends',
-        value: trendImpact,
-        percentAdjustment: (trendImpact / baseValue) * 100 // Keep for backward compatibility
-      });
-      totalAdjustment += trendImpact;
-      confidenceScore += 2;
-    }
-  }
-
-  const finalValue = Math.round(baseValue + totalAdjustment);
-  confidenceScore = Math.max(75, Math.min(98, confidenceScore));
-
-  const estimatedValue = Math.round(baseValue + totalAdjustment);
-  const priceRange = calculatePriceRange(estimatedValue, confidenceScore);
-
+  
+  const percentAdjustment = (adjustment / baseValue) * 100;
+  
   return {
-    finalValue,
-    adjustments,
-    confidenceScore,
-    baseValue,
-    estimatedValue,
-    priceRange
+    name: "Mileage",
+    value: Math.round(adjustment),
+    description,
+    percentAdjustment: parseFloat(percentAdjustment.toFixed(1)),
+    factor: "mileage",
+    impact: Math.round(adjustment)
   };
 }
 
-function calculatePriceRange(estimatedValue: number, confidenceScore: number): [number, number] {
-  const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
-  return [
-    Math.floor(estimatedValue - margin),
-    Math.ceil(estimatedValue + margin)
-  ];
+/**
+ * Calculate the value adjustment based on vehicle condition
+ */
+export function calculateConditionAdjustment(baseValue: number, condition: number): AdjustmentBreakdown {
+  let adjustment = 0;
+  let description = "";
+  
+  switch(condition) {
+    case 5: // Excellent
+      adjustment = baseValue * 0.1; // +10%
+      description = "Excellent condition adds significant value";
+      break;
+    case 4: // Very Good
+      adjustment = baseValue * 0.05; // +5%
+      description = "Very good condition adds value";
+      break;
+    case 3: // Good
+      adjustment = 0;
+      description = "Good condition, no adjustment";
+      break;
+    case 2: // Fair
+      adjustment = baseValue * -0.08; // -8%
+      description = "Fair condition reduces value";
+      break;
+    case 1: // Poor
+      adjustment = baseValue * -0.18; // -18%
+      description = "Poor condition significantly reduces value";
+      break;
+    default:
+      adjustment = 0;
+      description = "Standard condition, no adjustment";
+  }
+  
+  const percentAdjustment = (adjustment / baseValue) * 100;
+  
+  return {
+    name: "Condition",
+    value: Math.round(adjustment),
+    description,
+    percentAdjustment: parseFloat(percentAdjustment.toFixed(1)),
+    factor: "condition",
+    impact: Math.round(adjustment)
+  };
 }
 
-function getMileageAdjustmentDescription(mileage: number): string {
-  if (mileage < 15000) return 'Very low mileage, significantly above average value';
-  if (mileage < 40000) return 'Below average mileage, positively impacts value';
-  if (mileage < 75000) return 'Average mileage for vehicle age';
-  if (mileage < 120000) return 'Above average mileage, slightly reduces value';
-  return 'High mileage, significantly reduces value';
+/**
+ * Calculate the value adjustment based on location/zip code
+ */
+export function calculateLocationAdjustment(baseValue: number, zipCode: string): AdjustmentBreakdown {
+  if (!zipCode) {
+    return {
+      name: "Location",
+      value: 0,
+      description: "No location information provided",
+      percentAdjustment: 0,
+      factor: "location",
+      impact: 0
+    };
+  }
+  
+  // Mock adjustment based on zip code first digit
+  // In a real app, this would use a geographic database
+  const firstDigit = parseInt(zipCode.charAt(0));
+  let adjustment = 0;
+  let description = "";
+  
+  switch(firstDigit) {
+    case 9: // West Coast
+    case 0: // Northeast
+      adjustment = baseValue * 0.07; // +7%
+      description = "High demand in your area";
+      break;
+    case 3: // Southeast
+    case 8: // Mountain
+      adjustment = baseValue * 0.03; // +3%
+      description = "Moderate demand in your area";
+      break;
+    case 1: // Northeast
+    case 2: // Mid-Atlantic
+      adjustment = 0;
+      description = "Average demand in your area";
+      break;
+    case 7: // Central
+      adjustment = baseValue * -0.02; // -2%
+      description = "Slightly lower demand in your area";
+      break;
+    default: // Midwest and others
+      adjustment = baseValue * -0.04; // -4%
+      description = "Lower demand in your area";
+  }
+  
+  const percentAdjustment = (adjustment / baseValue) * 100;
+  
+  return {
+    name: "Location",
+    value: Math.round(adjustment),
+    description,
+    percentAdjustment: parseFloat(percentAdjustment.toFixed(1)),
+    factor: "location",
+    impact: Math.round(adjustment)
+  };
 }
 
-function getRegionalMarketDescription(zipCode: string, multiplier: number): string {
-  if (multiplier > 0.03) return `High demand in ${zipCode} region, significantly increases value`;
-  if (multiplier > 0) return `Slightly above average demand in ${zipCode} region`;
-  if (multiplier > -0.03) return `Slightly below average demand in ${zipCode} region`;
-  return `Lower demand in ${zipCode} region, decreases value`;
+/**
+ * Calculate the value adjustment based on accident history
+ */
+export function calculateAccidentAdjustment(baseValue: number, hasAccident: boolean, description?: string): AdjustmentBreakdown {
+  if (!hasAccident) {
+    return {
+      name: "Accident History",
+      value: 0,
+      description: "No accident history",
+      percentAdjustment: 0,
+      factor: "accident",
+      impact: 0
+    };
+  }
+  
+  // Simple model: severity based on description length
+  let adjustment = baseValue * -0.08; // Default -8%
+  let adjustmentDesc = "Accident history reduces value";
+  
+  if (description && description.length > 0) {
+    // Longer descriptions imply more severe accidents
+    if (description.length > 100) {
+      adjustment = baseValue * -0.15; // -15%
+      adjustmentDesc = "Major accident significantly reduces value";
+    } else if (description.length > 50) {
+      adjustment = baseValue * -0.1; // -10%
+      adjustmentDesc = "Moderate accident reduces value";
+    }
+  }
+  
+  const percentAdjustment = (adjustment / baseValue) * 100;
+  
+  return {
+    name: "Accident History",
+    value: Math.round(adjustment),
+    description: adjustmentDesc,
+    percentAdjustment: parseFloat(percentAdjustment.toFixed(1)),
+    factor: "accident",
+    impact: Math.round(adjustment)
+  };
 }
 
-function calculateMakeModelTrend(make: string, model: string, year: number, baseValue: number): number {
+/**
+ * Calculate trend adjustment based on market data
+ */
+export function calculateMarketTrendAdjustment(baseValue: number, vehicleYear: number): AdjustmentBreakdown {
   const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-  const luxury = ['BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Porsche'];
-  const electric = ['Model 3', 'Model Y', 'Leaf', 'Bolt', 'ID.4', 'Ioniq'];
-  const classics = ['Mustang', 'Corvette', 'Bronco', 'Defender', 'Wrangler'];
-
-  let multiplier = 0;
-  if (luxury.includes(make) && age < 5) multiplier -= 0.02;
-  if (electric.includes(model) || make === 'Tesla') multiplier += 0.04;
-  if (classics.includes(model)) multiplier += 0.02;
-  if (['Toyota', 'Honda', 'Lexus'].includes(make)) multiplier += 0.015;
-
-  return baseValue * multiplier;
+  const vehicleAge = currentYear - vehicleYear;
+  
+  let adjustment = 0;
+  let description = "";
+  
+  // Newer vehicles tend to have better market trends
+  if (vehicleAge <= 3) {
+    adjustment = baseValue * 0.04; // +4%
+    description = "Recent model in high demand";
+  } else if (vehicleAge <= 6) {
+    adjustment = baseValue * 0.02; // +2%
+    description = "Moderate market demand";
+  } else if (vehicleAge <= 10) {
+    adjustment = 0;
+    description = "Neutral market trends";
+  } else if (vehicleAge <= 15) {
+    adjustment = baseValue * -0.03; // -3%
+    description = "Lower demand for older models";
+  } else {
+    // Special case for classics (20+ years)
+    if (vehicleAge > 25) {
+      adjustment = baseValue * 0.05; // +5%
+      description = "Potential classic vehicle value";
+    } else {
+      adjustment = baseValue * -0.06; // -6%
+      description = "Aging model with declining value";
+    }
+  }
+  
+  const percentAdjustment = (adjustment / baseValue) * 100;
+  
+  return {
+    name: "Market Trends",
+    value: Math.round(adjustment),
+    description,
+    percentAdjustment: parseFloat(percentAdjustment.toFixed(1)),
+    factor: "market",
+    impact: Math.round(adjustment)
+  };
 }
-
-// Export types from current file
-export type { ValuationInput };
-export type EnterpriseValuationInput = ValuationParams;
-export type { EnterpriseValuationOutput };
-
-// Export functions with enterprise prefix for compatibility
-export { calculateFinalValuation as enterpriseCalculateFinalValuation };
-
-// Export additional functions for backward compatibility
-export const calculateValuation = calculateFinalValuation;
-export const getBaseValue = (params: any) => params.baseMarketValue || 0;

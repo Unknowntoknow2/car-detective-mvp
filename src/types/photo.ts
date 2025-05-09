@@ -18,6 +18,13 @@ export interface Photo {
   explanation?: string;
 }
 
+// Added PhotoFile type for mock uploader
+export interface PhotoFile {
+  id: string;
+  file: File;
+  preview: string;
+}
+
 export interface AICondition {
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   confidenceScore: number;
@@ -41,7 +48,7 @@ export interface AdjustmentBreakdown {
   impact: number;
   adjustment?: number;
   impactPercentage?: number;
-  percentage?: number; // Adding missing property causing errors
+  percentage?: number; // Explicitly added this property
 }
 
 export interface PhotoAssessmentResult {

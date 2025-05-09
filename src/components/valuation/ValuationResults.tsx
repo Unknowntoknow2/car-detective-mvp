@@ -1,15 +1,10 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { formatCurrency } from '@/utils/formatters';
-
-interface PriceAdjustment {
-  factor: string;
-  impact: number;
-  description?: string;
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { formatCurrency, formatPercentage } from '@/utils/formatters';
+import { Button } from '@/components/ui/button';
+import { Download, Send } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface VehicleInfo {
   year: number;
@@ -20,129 +15,157 @@ interface VehicleInfo {
   condition?: string;
 }
 
-interface ValuationResultsProps {
+interface Adjustment {
+  factor: string;
+  impact: number;
+  description: string;
+}
+
+export interface ValuationResultsProps {
   estimatedValue: number;
   confidenceScore: number;
   basePrice?: number;
-  adjustments?: PriceAdjustment[];
+  adjustments?: Adjustment[];
   priceRange?: [number, number];
   demandFactor?: number;
   vehicleInfo: VehicleInfo;
+  onDownloadPdf?: () => void;
+  onEmailReport?: () => void;
 }
 
-export function ValuationResults({
+export const ValuationResults: React.FC<ValuationResultsProps> = ({
   estimatedValue,
   confidenceScore,
   basePrice,
-  adjustments = [],
+  adjustments,
   priceRange,
   demandFactor,
-  vehicleInfo
-}: ValuationResultsProps) {
-  // Format price range
-  const formattedPriceRange = priceRange
-    ? `${formatCurrency(priceRange[0])} - ${formatCurrency(priceRange[1])}`
-    : `${formatCurrency(estimatedValue * 0.95)} - ${formatCurrency(estimatedValue * 1.05)}`;
-  
+  vehicleInfo,
+  onDownloadPdf,
+  onEmailReport,
+}) => {
+  const formatAdjustment = (impact: number) => {
+    const prefix = impact > 0 ? '+' : '';
+    return `${prefix}${formatCurrency(impact)}`;
+  };
+
+  const handleDownload = () => {
+    if (onDownloadPdf) {
+      onDownloadPdf();
+    } else {
+      toast.success("Download functionality coming soon!");
+    }
+  };
+
+  const handleEmailReport = () => {
+    if (onEmailReport) {
+      onEmailReport();
+    } else {
+      toast.success("Email report functionality coming soon!");
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <Card className="border-primary/20">
-        <CardHeader className="bg-primary-light/10 pb-3">
-          <CardTitle className="text-xl text-primary">Estimated Value</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="text-center mb-6">
-            <span className="text-4xl font-bold">{formatCurrency(estimatedValue)}</span>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Confidence Score</span>
-                <span className="font-medium">{confidenceScore}%</span>
-              </div>
-              <Progress value={confidenceScore} className="h-2" />
-            </div>
-            
-            <div className="text-sm text-muted-foreground">
-              <p>Market Value Range:</p>
-              <p className="font-medium text-base text-foreground">{formattedPriceRange}</p>
-            </div>
-          </div>
-          
-          <Separator className="my-4" />
-          
-          <div className="space-y-3">
-            <h3 className="font-medium text-sm">Vehicle Information</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <div>
-                <p className="text-muted-foreground">Make:</p>
-                <p className="font-medium">{vehicleInfo.make}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Model:</p>
-                <p className="font-medium">{vehicleInfo.model}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Year:</p>
-                <p className="font-medium">{vehicleInfo.year}</p>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-muted-foreground">Vehicle</h3>
+              <p className="text-2xl font-bold">
+                {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.trim || ''}
+              </p>
               {vehicleInfo.mileage && (
-                <div>
-                  <p className="text-muted-foreground">Mileage:</p>
-                  <p className="font-medium">{vehicleInfo.mileage.toLocaleString()} miles</p>
-                </div>
+                <p className="text-muted-foreground">
+                  {vehicleInfo.mileage.toLocaleString()} miles
+                </p>
               )}
               {vehicleInfo.condition && (
-                <div>
-                  <p className="text-muted-foreground">Condition:</p>
-                  <p className="font-medium capitalize">{vehicleInfo.condition}</p>
-                </div>
-              )}
-              {vehicleInfo.trim && (
-                <div>
-                  <p className="text-muted-foreground">Trim:</p>
-                  <p className="font-medium">{vehicleInfo.trim}</p>
-                </div>
+                <p className="text-muted-foreground">
+                  Condition: {vehicleInfo.condition}
+                </p>
               )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {(adjustments && adjustments.length > 0) && (
+          </CardContent>
+        </Card>
+
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Value Adjustments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {basePrice && (
-                <li className="flex justify-between items-center pb-2 border-b border-gray-100">
-                  <span className="font-medium">Base Market Value</span>
-                  <span>{formatCurrency(basePrice)}</span>
-                </li>
+          <CardContent className="p-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-muted-foreground">Estimated Value</h3>
+              <p className="text-3xl font-bold text-primary">
+                {formatCurrency(estimatedValue)}
+              </p>
+              {priceRange && (
+                <p className="text-muted-foreground">
+                  Range: {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+                </p>
               )}
-              
-              {adjustments.map((adjustment, index) => (
-                <li key={index} className="flex justify-between items-start text-sm">
-                  <div>
-                    <p className="font-medium">{adjustment.factor}</p>
-                    {adjustment.description && (
-                      <p className="text-muted-foreground text-xs mt-0.5">{adjustment.description}</p>
-                    )}
-                  </div>
-                  <span className={`font-medium ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {adjustment.impact >= 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className="text-sm font-medium">
+                  Confidence: {formatPercentage(confidenceScore)}
+                </div>
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary"
+                    style={{ width: `${confidenceScore}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {adjustments && adjustments.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Valuation Breakdown</h3>
+            {basePrice && (
+              <div className="flex justify-between py-2 border-b">
+                <span className="font-medium">Base Value</span>
+                <span>{formatCurrency(basePrice)}</span>
+              </div>
+            )}
+            {adjustments.map((adj, index) => (
+              <div key={index} className="flex justify-between py-2 border-b">
+                <span>{adj.description}</span>
+                <span className={adj.impact > 0 ? 'text-green-600' : adj.impact < 0 ? 'text-red-600' : ''}>
+                  {formatAdjustment(adj.impact)}
+                </span>
+              </div>
+            ))}
+            {demandFactor && (
+              <div className="flex justify-between py-2 border-b">
+                <span>Local Market Adjustment</span>
+                <span>{demandFactor > 1 ? '+' : ''}{((demandFactor - 1) * 100).toFixed(1)}%</span>
+              </div>
+            )}
+            <div className="flex justify-between py-2 mt-2 font-bold">
+              <span>Final Value</span>
+              <span>{formatCurrency(estimatedValue)}</span>
+            </div>
           </CardContent>
         </Card>
       )}
+
+      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <Button 
+          onClick={handleDownload}
+          className="flex-1"
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Download Report
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={handleEmailReport}
+          className="flex-1"
+        >
+          <Send className="mr-2 h-4 w-4" />
+          Email Report
+        </Button>
+      </div>
     </div>
   );
-}
-
-export default ValuationResults;
+};
