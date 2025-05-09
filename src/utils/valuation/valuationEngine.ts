@@ -1,4 +1,3 @@
-
 import { AdjustmentBreakdown } from '@/types/photo';
 import { ValuationResult, ValuationParams } from './types';
 import { supabase } from '@/integrations/supabase/client';
@@ -253,13 +252,19 @@ export function calculateMarketTrendAdjustment(baseValue: number, vehicleYear: n
 // Added these missing exports for compatibility with existing code that imports them
 export const calculateValuation = (params: ValuationParams): ValuationResult => {
   // Mock implementation to match the interface
+  const baseValue = 24000;
+  const finalValue = 25000;
+  
   return {
     estimatedValue: 25000,
     confidenceScore: 90,
     priceRange: [23500, 26500],
     basePrice: 24000,
     // Remove zip_demand_factor as it's not in the FinalValuationResult type
-    adjustments: []
+    adjustments: [],
+    // Add the missing properties
+    baseValue: baseValue,
+    finalValue: finalValue
   };
 };
 
