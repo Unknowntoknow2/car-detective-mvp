@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Card, CardProps } from './card';
+import { Card } from './card';
 import { motion } from 'framer-motion';
 import { shouldReduceMotion } from '@/utils/animations';
 
-interface AnimatedCardProps extends CardProps {
+interface AnimatedCardProps extends React.ComponentPropsWithRef<typeof Card> {
   animate?: boolean;
   hoverEffect?: 'lift' | 'scale' | 'glow' | 'none';
   delay?: number;

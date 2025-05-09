@@ -59,7 +59,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
       }
     }
     
-    const motionProps = {
+    const motionProps: any = {
       whileHover: scaleOnHover ? { scale: 1.05 } : undefined,
       whileTap: { scale: 0.98 },
       transition: { duration: 0.2 }
