@@ -1,132 +1,58 @@
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Share, Save, Loader2 } from "lucide-react";
-import { formatCurrency } from "@/utils/formatters";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { AIConditionBadge } from "../AIConditionBadge";
+import React from 'react';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { Share, Download, Star } from 'lucide-react';
 
-export interface ValuationHeaderProps {
-  valuationData: {
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-    mileage?: number;
-    vin?: string;
-    estimatedValue?: number;
-    condition?: string;
-  };
-  photoSubmitted: boolean;
-  photoScore: number | null;
-  aiCondition: any | null;
-  estimatedValue?: number;
-  calculationInProgress: boolean;
-  onShareValuation: () => void;
-  onSaveToAccount: () => void;
-  isSaving: boolean;
-  bestPhotoUrl?: string;
+interface ValuationHeaderProps {
+  vehicleName: string;
+  vehicleSpecs?: string;
+  estimatedValue: number;
+  confidenceScore?: number;
 }
 
-export function ValuationHeader({ 
-  valuationData, 
-  photoSubmitted, 
-  photoScore, 
-  aiCondition,
+export function ValuationHeader({
+  vehicleName,
+  vehicleSpecs,
   estimatedValue,
-  calculationInProgress,
-  onShareValuation,
-  onSaveToAccount,
-  isSaving,
-  bestPhotoUrl
+  confidenceScore
 }: ValuationHeaderProps) {
-  const displayValue = estimatedValue || valuationData.estimatedValue;
-  const formatMileage = (mileage?: number) => {
-    return mileage ? mileage.toLocaleString() : 'Unknown';
-  };
-
   return (
-    <Card className="bg-white overflow-hidden border border-primary/10">
-      {bestPhotoUrl && (
-        <div className="h-48 overflow-hidden relative">
-          <img 
-            src={bestPhotoUrl} 
-            alt="Vehicle" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-semibold mb-2">{vehicleName}</h1>
+          {vehicleSpecs && <p className="text-gray-600">{vehicleSpecs}</p>}
         </div>
-      )}
-      <CardContent className={`p-6 ${bestPhotoUrl ? '-mt-20 relative z-10' : ''}`}>
-        <div className="flex flex-col md:flex-row justify-between gap-4">
-          <div>
-            <h2 className={`text-2xl font-bold mb-1 ${bestPhotoUrl ? 'text-white' : 'text-gray-900'}`}>
-              {valuationData.year} {valuationData.make} {valuationData.model}
-              {valuationData.trim && ` ${valuationData.trim}`}
-            </h2>
-            <p className={`text-sm ${bestPhotoUrl ? 'text-white/90' : 'text-gray-500'} mb-3`}>
-              {formatMileage(valuationData.mileage)} miles
-              {valuationData.vin && ` • VIN: ${valuationData.vin.slice(-6)}`}
-            </p>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {aiCondition && (
-                <AIConditionBadge 
-                  condition={aiCondition.condition} 
-                  confidenceScore={aiCondition.confidenceScore} 
-                />
-              )}
-              <Badge variant="outline" className="bg-white/90">
-                {photoSubmitted ? 'Photos Analyzed' : 'No Photos'}
-              </Badge>
+        
+        <div className="text-right">
+          <div className="text-2xl sm:text-3xl font-bold text-primary">
+            ${estimatedValue.toLocaleString()}
+          </div>
+          {confidenceScore && (
+            <div className="text-sm text-gray-500 mt-1">
+              {confidenceScore}% confidence
             </div>
-          </div>
-          <div className={`text-center ${bestPhotoUrl ? 'bg-white rounded-lg p-3 shadow-sm' : ''}`}>
-            <p className="text-sm text-gray-500 font-medium mb-1">Estimated Value</p>
-            {calculationInProgress ? (
-              <div className="flex items-center justify-center gap-2 h-9">
-                <Skeleton className="h-9 w-32" />
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-            ) : (
-              <p className="text-3xl font-bold text-primary">
-                {displayValue ? formatCurrency(displayValue) : 'Calculating...'}
-              </p>
-            )}
-          </div>
+          )}
         </div>
-
-        <div className="flex flex-wrap gap-2 mt-6">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-1.5"
-            onClick={onShareValuation}
-          >
-            <Share className="h-4 w-4" />
-            Share
-          </Button>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="gap-1.5"
-            onClick={onSaveToAccount}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save to Account
-              </>
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <Separator className="my-4" />
+      
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Share className="h-4 w-4" />
+          <span>Share</span>
+        </Button>
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Download className="h-4 w-4" />
+          <span>Download</span>
+        </Button>
+        <Button variant="outline" size="sm" className="flex items-center gap-1">
+          <Star className="h-4 w-4" />
+          <span>Save</span>
+        </Button>
+      </div>
+    </div>
   );
 }
