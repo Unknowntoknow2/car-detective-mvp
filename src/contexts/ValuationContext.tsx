@@ -86,9 +86,9 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
           // We'll use premium features via standard properties
           // that are expected by the calculateFinalValuation function
           baseMarketValue: valuationData.baseMarketValue,
-          photoScore: valuationData.photoScore,
           accidentCount: valuationData.accidentCount,
-          color: valuationData.exteriorColor
+          // Use properties that exist in the ValuationInput type
+          // Removed photoScore and exteriorColor as they don't exist in ValuationInput
         },
         baseMarketValue,
         // Optionally pass the AI condition as the third parameter if available
