@@ -1,5 +1,7 @@
 
 import { AICondition } from '@/types/photo';
+import { AdjustmentBreakdown } from '@/types/valuation';
+import { FinalValuationResult } from './valuation/types';
 
 // Re-export the function with compatibility with other parts of the codebase
 export async function calculateFinalValuation(input: any, basePrice?: number, aiCondition?: AICondition) {
@@ -42,23 +44,29 @@ function estimateBasePrice(vehicle: any): number {
 }
 
 // Generate mock adjustments
-function generateMockAdjustments(input: any) {
+function generateMockAdjustments(input: any): AdjustmentBreakdown[] {
   return [
     {
       name: 'Mileage',
+      factor: 'Mileage',
       value: -1000,
+      impact: -1000,
       description: 'Based on vehicle mileage',
       percentAdjustment: -3.5
     },
     {
       name: 'Condition',
+      factor: 'Condition',
       value: 800,
+      impact: 800,
       description: 'Based on reported condition',
       percentAdjustment: 2.5
     },
     {
       name: 'Market Demand',
+      factor: 'Market Demand',
       value: 1200,
+      impact: 1200,
       description: 'Current market demand in your area',
       percentAdjustment: 4.0
     }

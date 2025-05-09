@@ -1,14 +1,18 @@
+
 import { calculateFinalValuation } from './calculateFinalValuation';
 
 describe('calculateFinalValuation', () => {
+  const basePrice = 25000;
+
   test('should calculate base valuation', async () => {
     const result = await calculateFinalValuation({
       make: 'Toyota',
       model: 'Camry',
       year: 2019,
       mileage: 50000,
-      condition: 'Good'
-    });
+      condition: 'Good',
+      zipCode: '90210'
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);
@@ -20,8 +24,9 @@ describe('calculateFinalValuation', () => {
       model: 'Camry',
       year: 2019,
       mileage: 100000,
-      condition: 'Good'
-    });
+      condition: 'Good',
+      zipCode: '90210'
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);
@@ -33,8 +38,9 @@ describe('calculateFinalValuation', () => {
       model: 'Camry',
       year: 2019,
       mileage: 50000,
-      condition: 'Excellent'
-    });
+      condition: 'Excellent',
+      zipCode: '90210'
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);
@@ -48,12 +54,13 @@ describe('calculateFinalValuation', () => {
       mileage: 50000,
       condition: 'Good',
       photoScore: 0.78,
+      zipCode: '90210',
       aiConditionOverride: {
         condition: 'Good',
         confidenceScore: 85,
         issuesDetected: []
-      } // Fixed AICondition type
-    });
+      }
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);
@@ -66,12 +73,13 @@ describe('calculateFinalValuation', () => {
       year: 2019,
       mileage: 50000,
       condition: 'Good',
+      zipCode: '90210',
       aiConditionOverride: {
         condition: 'Excellent',
         confidenceScore: 95,
         issuesDetected: []
-      } // Fixed AICondition type
-    });
+      }
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);
@@ -84,12 +92,13 @@ describe('calculateFinalValuation', () => {
       year: 2019,
       mileage: 50000,
       condition: 'Good',
+      zipCode: '90210',
       aiConditionOverride: {
         condition: 'Fair',
         confidenceScore: 60,
         issuesDetected: []
-      } // Fixed AICondition type
-    });
+      }
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);
@@ -103,12 +112,13 @@ describe('calculateFinalValuation', () => {
       mileage: 50000,
       condition: 'Good',
       trim: 'XLE',
+      zipCode: '90210',
       aiConditionOverride: {
         condition: 'Good',
         confidenceScore: 80,
         issuesDetected: []
-      } // Fixed AICondition type
-    });
+      }
+    }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
     expect(result.confidenceScore).toBeGreaterThan(0);

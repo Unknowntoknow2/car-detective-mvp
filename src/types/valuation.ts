@@ -76,6 +76,7 @@ export interface ValuationInput {
   isPremium?: boolean;
   isTestMode?: boolean;
   notifyDealers?: boolean;
+  baseMarketValue?: number; // Add this property for compatibility
 }
 
 export interface AdjustmentBreakdown {
@@ -83,8 +84,8 @@ export interface AdjustmentBreakdown {
   value: number;
   description: string;
   percentAdjustment: number;
-  factor?: string;
-  impact?: number;
+  factor: string;
+  impact: number;
   adjustment?: number;
   impactPercentage?: number;
 }

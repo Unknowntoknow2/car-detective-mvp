@@ -1,69 +1,92 @@
 
 /**
- * Enterprise Valuation Examples
- * 
- * Demonstrates the usage of the enterprise-level valuation system
- * with exact calculations and precise results.
+ * Examples of using the valuation engine
  */
 
-import { calculateFinalValuation, ValuationInput, ValuationOutput } from './calculateFinalValuation';
+import { calculateFinalValuation, ValuationInput } from './calculateFinalValuation';
+import { FinalValuationResult } from './types';
 
 /**
- * Example usage of the precise valuation calculator
- * @returns A Promise resolving to a detailed valuation example
+ * Simple example of using the valuation engine with minimal parameters
  */
-export async function valuationExample(): Promise<ValuationOutput> {
-  const sampleInput: ValuationInput = {
-    baseMarketValue: 25000,
-    vehicleYear: 2019,
+export async function basicValuationExample(): Promise<FinalValuationResult> {
+  // Define the vehicle details
+  const vehicleParams: ValuationInput = {
     make: 'Toyota',
-    model: 'RAV4',
+    model: 'Camry',
+    year: 2018,
     mileage: 45000,
     condition: 'Good',
-    zipCode: '98101', // Seattle
-    features: ['Leather Seats', 'Navigation System', 'Backup Camera']
+    zipCode: '90210', // Important for regional adjustments
+    // Optional parameters can be added for more accurate valuation
   };
-
-  return await calculateFinalValuation(sampleInput);
+  
+  // Define a base market value if you have one, otherwise
+  // the system will estimate one based on the vehicle details
+  const basePrice = 25000;
+  
+  // Calculate the valuation
+  return await calculateFinalValuation(vehicleParams, basePrice);
 }
 
 /**
- * Displays the valuation example in a formatted way
- * @returns Formatted string with valuation details
+ * Example with all possible parameters for maximum accuracy
  */
-export async function printValuationExample(): Promise<string> {
-  const result = await valuationExample();
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+export async function detailedValuationExample(): Promise<FinalValuationResult> {
+  // Define comprehensive vehicle details
+  const vehicleParams: ValuationInput = {
+    make: 'BMW',
+    model: '3 Series',
+    year: 2020,
+    mileage: 25000,
+    condition: 'Excellent',
+    zipCode: '10001', // NYC
+    trim: '330i',
+    fuelType: 'Gasoline',
+    transmission: 'Automatic',
+    features: [
+      'leather_seats',
+      'navigation',
+      'premium_audio',
+      'panoramic_roof'
+    ],
+    accidentCount: 0,
+    color: 'Black'
   };
-
-  let output = '=== PRECISE VEHICLE VALUATION ===\n\n';
-  output += `Base Market Value: ${formatCurrency(result.adjustedMarketValue)}\n\n`;
-  output += 'Adjustments:\n';
-  output += `- Mileage Adjustment: ${formatCurrency(result.adjustments.mileageAdjustment)}\n`;
-  output += `- Condition Adjustment: ${formatCurrency(result.adjustments.conditionAdjustment)}\n`;
-  output += `- Regional Market Adjustment: ${formatCurrency(result.adjustments.regionalAdjustment)}\n`;
-  output += '- Feature Adjustments:\n';
   
-  Object.entries(result.adjustments.featureAdjustments).forEach(([feature, value]) => {
-    output += `  * ${feature}: ${formatCurrency(value)}\n`;
-  });
+  // Use a known market value if available
+  const basePrice = 35000;
   
-  output += `\nTotal Adjustments: ${formatCurrency(result.totalAdjustments)}\n`;
-  output += `Final Valuation: ${formatCurrency(result.finalValuation)}\n`;
-  
-  return output;
+  // Calculate the valuation
+  return await calculateFinalValuation(vehicleParams, basePrice);
 }
 
 /**
- * Log valuation example to console
+ * Example using photos and AI analysis
  */
-export async function logValuationExample(): Promise<void> {
-  console.log(await printValuationExample());
+export async function photoBasedValuationExample(photoScore: number): Promise<FinalValuationResult> {
+  // Basic vehicle details
+  const vehicleParams: ValuationInput = {
+    make: 'Honda',
+    model: 'Accord',
+    year: 2019,
+    mileage: 30000,
+    condition: 'Good', // User-reported condition
+    zipCode: '60601', // Chicago
+    photoScore: photoScore // Photo analysis score (0-1)
+  };
+  
+  // AI-detected condition (could come from photo analysis)
+  const aiCondition = {
+    condition: 'Good',
+    confidenceScore: 85,
+    issuesDetected: ['minor_scratches'],
+    aiSummary: 'Vehicle appears to be in good condition with minor scratches on the driver-side door.'
+  };
+  
+  // Use an estimated base value
+  const baseValue = 22000;
+  
+  // Calculate valuation using photo data
+  return await calculateFinalValuation(vehicleParams, baseValue, aiCondition);
 }

@@ -50,11 +50,16 @@ export class LocationCalculator implements AdjustmentCalculator {
           console.log('Error fetching location data from zip_cache:', err);
         }
         
+        const factor = 'Location Impact';
+        const impact = Math.round(adjustment);
+        
         return {
           name: 'Location Impact',
-          value: Math.round(adjustment),
+          value: impact,
           description: `${getMarketMultiplierDescription(marketMultiplier)} (${locationName})`,
-          percentAdjustment: marketMultiplier
+          percentAdjustment: marketMultiplier,
+          factor,
+          impact
         };
       }
     } catch (err) {
@@ -74,12 +79,16 @@ export class LocationCalculator implements AdjustmentCalculator {
     
     const adjustment = input.basePrice * zipRules.adjustments[zoneType];
     const description = `Based on market demand in ${input.zipCode}`;
+    const factor = 'Location Impact';
+    const impact = Math.round(adjustment);
     
     return {
       name: 'Location Impact',
-      value: Math.round(adjustment),
+      value: impact,
       description,
-      percentAdjustment: zipRules.adjustments[zoneType] * 100 // Convert to percentage
+      percentAdjustment: zipRules.adjustments[zoneType] * 100, // Convert to percentage
+      factor,
+      impact
     };
   }
 }

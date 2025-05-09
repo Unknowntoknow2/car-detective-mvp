@@ -19,12 +19,16 @@ export class RecallCalculator implements Calculator {
     const recallCount = input.hasOpenRecall ? (input.recallCount ?? 1) : 0;
     const percentAdjustment = this.RECALL_ADJUSTMENT_PERCENTAGE * recallCount;
     const valueAdjustment = input.basePrice * percentAdjustment;
+    const factor = 'Open Recalls';
+    const impact = valueAdjustment;
 
     return {
       name: 'Open Recalls',
       value: valueAdjustment,
       percentAdjustment: percentAdjustment * 100, // Convert to percentage for display
-      description: `Vehicle has ${recallCount} open recall(s), which affects value by ${(percentAdjustment * 100).toFixed(1)}%`
+      description: `Vehicle has ${recallCount} open recall(s), which affects value by ${(percentAdjustment * 100).toFixed(1)}%`,
+      factor,
+      impact
     };
   }
 }

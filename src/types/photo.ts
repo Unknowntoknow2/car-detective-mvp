@@ -1,3 +1,4 @@
+
 // src/types/photo.ts
 
 export const MAX_FILES = 8;
@@ -43,6 +44,7 @@ export interface PhotoScoringResult {
   individualScores: PhotoScore[];
   photoUrls: string[];
   score: number;
+  error?: string | null;
 }
 
 export interface AdjustmentBreakdown {
@@ -56,29 +58,3 @@ export interface AdjustmentBreakdown {
   impactPercentage?: number;
 }
 
-export interface ValuationInput {
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
-  vin?: string;
-  plate?: string;
-  state?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
-  zipCode: string;
-  bodyType?: string;
-  trim?: string;
-  transmission?: string;
-  fuelType?: string;
-  accidentCount?: number;
-  photos?: File[];
-  features?: string[];
-  mpg?: number | null;
-  userId?: string;
-  valuationId?: string;
-  isPremium?: boolean;
-  isTestMode?: boolean;
-  notifyDealers?: boolean;
-  baseMarketValue?: number;
-}

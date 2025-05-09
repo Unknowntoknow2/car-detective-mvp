@@ -23,6 +23,7 @@ export interface EnhancedValuationParams extends ValuationInput {
   // Add additional fields to fix errors
   zip?: string;
   baseMarketValue?: number;
+  titleStatus?: string; // Add for compatibility with tests
 }
 
 export interface FinalValuationResult {

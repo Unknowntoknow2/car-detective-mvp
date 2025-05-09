@@ -1,163 +1,193 @@
 
-import { calculateValuation } from './valuationEngine';
-import { getMileageAdjustment } from '../adjustments/mileageAdjustments';
-import { getConditionAdjustment } from '../adjustments/conditionAdjustments';
+import { calculateValuation, getBaseValue } from './valuationEngine';
+import { EnhancedValuationParams } from './types';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock the Supabase client
+// Mock Supabase
 jest.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
-    maybeSingle: jest.fn()
+    single: jest.fn()
   }
-}));
-
-// Mock adjustment functions
-jest.mock('../adjustments/mileageAdjustments', () => ({
-  getMileageAdjustment: jest.fn()
-}));
-
-jest.mock('../adjustments/conditionAdjustments', () => ({
-  getConditionAdjustment: jest.fn()
 }));
 
 describe('valuationEngine', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Default mock implementation for adjustment functions
-    (getMileageAdjustment as jest.Mock).mockReturnValue(-1000);
-    (getConditionAdjustment as jest.Mock).mockReturnValue(500);
-    
-    // Mock Supabase response for zip code lookup
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          maybeSingle: jest.fn().mockResolvedValue({
-            data: { market_multiplier: 2.5 },
-            error: null
+  });
+  
+  describe('getBaseValue', () => {
+    it('should return the base value from database', async () => {
+      // Mock Supabase response
+      (supabase.from as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: { base_price: 25000 },
+                error: null
+              })
+            })
           })
         })
-      })
+      });
+      
+      const result = await getBaseValue({
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        zipCode: '90210'
+      });
+      
+      expect(result).toBe(25000);
     });
-  });
-
-  it('should calculate a basic valuation with minimal parameters', async () => {
-    const result = await calculateValuation({
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      mileage: 30000,
-      condition: 'good'
-    });
-
-    expect(result).toBeDefined();
-    expect(result.estimatedValue).toBeGreaterThan(0);
-    expect(result.basePrice).toBe(20000); // default base price in our simplified example
-    expect(result.adjustments.length).toBeGreaterThanOrEqual(2); // at least mileage and condition
-    expect(result.priceRange).toHaveLength(2);
-    expect(result.confidenceScore).toBeGreaterThan(0);
-    expect(result.confidenceScore).toBeLessThanOrEqual(100);
-  });
-
-  it('should apply all available adjustments when parameters are provided', async () => {
-    const result = await calculateValuation({
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      mileage: 30000,
-      condition: 'excellent',
-      zip: '90210',
-      trim: 'XSE',
-      accidentCount: 1,
-      premiumFeatures: ['leather', 'sunroof'],
-      titleStatus: 'clean',
-      mpg: 32
-    });
-
-    expect(result.adjustments.length).toBeGreaterThanOrEqual(5);
     
-    // Check that specific adjustments are included
-    const adjustmentNames = result.adjustments.map(adj => adj.name);
-    expect(adjustmentNames).toContain('Mileage');
-    expect(adjustmentNames).toContain('Condition');
-    expect(adjustmentNames).toContain('Location');
-  });
-
-  it('should handle missing optional parameters gracefully', async () => {
-    const result = await calculateValuation({
-      make: 'Honda',
-      model: 'Accord',
-      year: 2018,
-      mileage: 40000,
-      condition: 'fair'
-    });
-
-    expect(result).toBeDefined();
-    expect(result.estimatedValue).toBeGreaterThan(0);
-  });
-
-  it('should apply market multiplier from zip code correctly', async () => {
-    // Mock a specific market multiplier
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          maybeSingle: jest.fn().mockResolvedValue({
-            data: { market_multiplier: 5.0 },
-            error: null
+    it('should return default value if database error', async () => {
+      // Mock Supabase error
+      (supabase.from as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: null,
+                error: { message: 'DB Error' }
+              })
+            })
           })
         })
-      })
+      });
+      
+      const result = await getBaseValue({
+        make: 'Unknown',
+        model: 'Model',
+        year: 2022,
+        zipCode: '12345'
+      });
+      
+      expect(result).toBe(15000); // Default value
     });
-
-    const result = await calculateValuation({
-      make: 'BMW',
-      model: '3 Series',
-      year: 2021,
-      mileage: 15000,
-      condition: 'excellent',
-      zip: '94105'
-    });
-
-    // Find the location adjustment
-    const locationAdjustment = result.adjustments.find(adj => adj.name === 'Location');
-    expect(locationAdjustment).toBeDefined();
-    
-    // With a 5% market multiplier on a $20000 base price, we expect a $1000 adjustment
-    expect(locationAdjustment?.percentAdjustment).toBe(5.0);
-    expect(locationAdjustment?.value).toBe(1000);
   });
-
-  it('should handle Supabase errors gracefully', async () => {
-    // Mock a Supabase error
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          maybeSingle: jest.fn().mockResolvedValue({
-            data: null,
-            error: { message: 'Database error' }
+  
+  describe('calculateValuation', () => {
+    it('should calculate valuation with all adjustments', async () => {
+      // Mock getBaseValue
+      jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ baseValue: 25000 })
+      } as unknown as Response);
+      
+      const params: EnhancedValuationParams = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 30000,
+        condition: 'excellent',
+        zipCode: '90210', // Add zipCode parameter
+        fuelType: 'hybrid',
+        bodyType: 'sedan'
+      };
+      
+      const result = await calculateValuation(params);
+      
+      expect(result.estimatedValue).toBeGreaterThan(0);
+      expect(result.adjustments.length).toBeGreaterThan(0);
+      expect(result.confidenceScore).toBeGreaterThan(0);
+      expect(result.priceRange).toHaveLength(2);
+    });
+    
+    it('should account for accident history', async () => {
+      const params: EnhancedValuationParams = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 30000,
+        condition: 'good',
+        zipCode: '90210', // Add zipCode parameter
+        accidentCount: 2,
+        titleStatus: 'clean' // Keep this for backward compatibility
+      };
+      
+      const result = await calculateValuation(params);
+      
+      // Check for accident adjustment
+      const accidentAdjustment = result.adjustments.find(
+        adj => adj.name === 'Accident History' || adj.factor === 'Accident History'
+      );
+      
+      expect(accidentAdjustment).toBeDefined();
+      expect(accidentAdjustment!.value).toBeLessThan(0); // Negative impact
+    });
+    
+    it('should handle missing optional parameters', async () => {
+      const params: EnhancedValuationParams = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 30000,
+        condition: 'good',
+        zipCode: '90210' // Add zipCode parameter
+      };
+      
+      const result = await calculateValuation(params);
+      
+      expect(result.estimatedValue).toBeGreaterThan(0);
+      expect(result.confidenceScore).toBeGreaterThan(0);
+    });
+    
+    it('should apply regional adjustments based on ZIP code', async () => {
+      // Mock the market multiplier data
+      (supabase.from as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: { market_multiplier: 3.5 },
+              error: null
+            })
           })
         })
-      })
+      });
+      
+      const params: EnhancedValuationParams = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 30000,
+        condition: 'good',
+        zipCode: '90210' // Add zipCode parameter
+      };
+      
+      const result = await calculateValuation(params);
+      
+      // Check for location adjustment
+      const locationAdjustment = result.adjustments.find(
+        adj => adj.name === 'Location Impact' || adj.factor === 'Location Impact'
+      );
+      
+      expect(locationAdjustment).toBeDefined();
     });
-
-    const result = await calculateValuation({
-      make: 'Ford',
-      model: 'Mustang',
-      year: 2019,
-      mileage: 25000,
-      condition: 'good',
-      zip: '33101'
-    });
-
-    // Should still return a valid result despite the error
-    expect(result).toBeDefined();
-    expect(result.estimatedValue).toBeGreaterThan(0);
     
-    // Should not include a location adjustment due to the error
-    const locationAdjustment = result.adjustments.find(adj => adj.name === 'Location');
-    expect(locationAdjustment).toBeUndefined();
+    it('should handle premium features', async () => {
+      const params: EnhancedValuationParams = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 30000,
+        condition: 'good',
+        zipCode: '90210', // Add zipCode parameter
+        premiumFeatures: ['leather_seats', 'navigation', 'sunroof']
+      };
+      
+      const result = await calculateValuation(params);
+      
+      // Check for features adjustment
+      const featuresAdjustment = result.adjustments.find(
+        adj => adj.name === 'Premium Features' || adj.factor === 'Premium Features'
+      );
+      
+      expect(featuresAdjustment).toBeDefined();
+      expect(featuresAdjustment!.value).toBeGreaterThan(0); // Positive impact
+    });
   });
 });

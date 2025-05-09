@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { calculateFinalValuation } from '@/utils/valuationEngine';
@@ -45,16 +46,19 @@ export function useManualValuation() {
         25000
       );
 
-      const adjustments: AdjustmentBreakdown[] = (result.adjustments || []).map(adj => ({
-        factor: adj.factor || adj.name || 'Unknown',
-        impact: typeof adj.impact === 'number' ? adj.impact : adj.value || 0,
-        name: adj.name || adj.factor || 'Unknown',
-        value: adj.value || adj.impact || 0,
-        description: adj.description || '',
-        percentAdjustment: adj.percentAdjustment || 0,
-        adjustment: adj.adjustment,
-        impactPercentage: adj.impactPercentage
-      }));
+      const adjustments: AdjustmentBreakdown[] = (result.adjustments || []).map(adj => {
+        // Ensure all required properties are present
+        return {
+          factor: adj.factor || adj.name || 'Unknown',
+          impact: typeof adj.impact === 'number' ? adj.impact : adj.value || 0,
+          name: adj.name || adj.factor || 'Unknown',
+          value: adj.value || adj.impact || 0,
+          description: adj.description || '',
+          percentAdjustment: adj.percentAdjustment || 0,
+          adjustment: adj.adjustment,
+          impactPercentage: adj.impactPercentage
+        };
+      });
 
       const valuationResult: ManualVehicleInfo = {
         ...data,

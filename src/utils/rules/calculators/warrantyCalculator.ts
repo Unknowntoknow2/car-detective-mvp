@@ -21,12 +21,16 @@ export class WarrantyCalculator implements AdjustmentCalculator {
         const multiplier = warrantyData.multiplier;
         const percentAdjustment = (multiplier - 1) * 100;
         const value = Math.round(input.basePrice * (multiplier - 1));
+        const factor = 'Warranty Status';
+        const impact = value;
         
         return {
           name: 'Warranty Status',
           value: value,
           percentAdjustment: percentAdjustment,
-          description: warrantyData.description || `Vehicle has ${input.warrantyStatus} warranty that affects value`
+          description: warrantyData.description || `Vehicle has ${input.warrantyStatus} warranty that affects value`,
+          factor,
+          impact
         };
       } catch (error) {
         console.error('Error fetching warranty factor:', error);

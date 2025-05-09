@@ -17,12 +17,16 @@ export class TrimCalculator implements AdjustmentCalculator {
     if (!trimData) return null;
     
     const adjustment = input.basePrice * trimData.percent;
+    const factor = 'Trim Level';
+    const impact = Math.round(adjustment);
     
     return {
       name: 'Trim Level',
       value: Math.round(adjustment),
       description: `${input.make} ${input.model} ${input.trim} trim package`,
-      percentAdjustment: trimData.percent
+      percentAdjustment: trimData.percent,
+      factor,
+      impact
     };
   }
 }

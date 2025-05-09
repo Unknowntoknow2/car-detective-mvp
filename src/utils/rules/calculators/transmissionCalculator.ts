@@ -12,6 +12,8 @@ export class TransmissionCalculator implements Calculator {
     // Calculate the adjustment value
     const adjustmentPercentage = (input.transmissionMultiplier - 1) * 100;
     const adjustmentValue = input.basePrice * (input.transmissionMultiplier - 1);
+    const factor = "Transmission";
+    const impact = Math.round(adjustmentValue);
 
     // Only create an adjustment if there's an actual impact
     if (input.transmissionMultiplier === 1) {
@@ -30,7 +32,9 @@ export class TransmissionCalculator implements Calculator {
       name: "Transmission",
       value: Math.round(adjustmentValue),
       percentAdjustment: adjustmentPercentage,
-      description: `${input.transmissionType} is a ${category.toLowerCase()} transmission type (${adjustmentPercentage > 0 ? '+' : ''}${adjustmentPercentage.toFixed(0)}% adjustment)`
+      description: `${input.transmissionType} is a ${category.toLowerCase()} transmission type (${adjustmentPercentage > 0 ? '+' : ''}${adjustmentPercentage.toFixed(0)}% adjustment)`,
+      factor,
+      impact
     };
   }
 }

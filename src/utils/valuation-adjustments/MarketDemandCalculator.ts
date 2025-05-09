@@ -1,51 +1,62 @@
 
 import { AdjustmentBreakdown, RulesEngineInput } from '../rules/types';
+import { Calculator } from '../rules/interfaces/Calculator';
 
-export class MarketDemandCalculator {
-  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    if (!input.zipCode) {
-      return null;
+export class MarketDemandCalculator implements Calculator {
+  private BASE_ADJUSTMENT = 0.03; // 3% base adjustment
+
+  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
+    // Get the current month (1-12)
+    const currentMonth = new Date().getMonth() + 1;
+    
+    // Calculate seasonal component (higher demand in spring/summer months)
+    let seasonalAdjustment = 0;
+    if (currentMonth >= 3 && currentMonth <= 8) {
+      // Spring and summer months - higher demand
+      seasonalAdjustment = 0.02; // 2% boost
+    } else if (currentMonth >= 11 || currentMonth <= 1) {
+      // Winter months - lower demand
+      seasonalAdjustment = -0.01; // 1% reduction
     }
     
-    try {
-      // In a real implementation, this would fetch data from the API
-      // For now, we'll simulate market demand based on ZIP code
-      const zipSum = input.zipCode.split('').reduce((sum, digit) => sum + parseInt(digit, 10), 0);
-      
-      let multiplier = 1.0;
-      let demandLevel = "Average";
-      
-      // Simulate different market conditions based on ZIP code
-      if (zipSum % 5 === 0) {
-        // High demand area
-        multiplier = 1.035; // +3.5%
-        demandLevel = "High";
-      } else if (zipSum % 5 === 1) {
-        // Slightly above average
-        multiplier = 1.015; // +1.5%
-        demandLevel = "Above Average";
-      } else if (zipSum % 5 === 3) {
-        // Slightly below average
-        multiplier = 0.985; // -1.5%
-        demandLevel = "Below Average";
-      } else if (zipSum % 5 === 4) {
-        // Low demand area
-        multiplier = 0.975; // -2.5%
-        demandLevel = "Low";
-      }
-      
-      const percentAdjustment = (multiplier - 1) * 100;
-      const value = Math.round(input.basePrice * (multiplier - 1));
-      
-      return {
-        name: 'Local Market Demand',
-        value: value,
-        percentAdjustment: percentAdjustment,
-        description: `${demandLevel} demand in ZIP code ${input.zipCode} affects vehicle value`
-      };
-    } catch (error) {
-      console.error('Error calculating market demand adjustment:', error);
-      return null;
+    // Check if vehicle type information is available
+    let typeAdjustment = 0;
+    const bodyType = input.bodyType?.toLowerCase() || '';
+    
+    if (bodyType.includes('suv') || bodyType.includes('crossover')) {
+      typeAdjustment = 0.02; // 2% boost for SUVs/crossovers
+    } else if (bodyType.includes('truck') || bodyType.includes('pickup')) {
+      typeAdjustment = 0.015; // 1.5% boost for trucks
+    } else if (bodyType.includes('sedan')) {
+      typeAdjustment = -0.01; // 1% reduction for sedans
     }
+    
+    // Calculate combined adjustment
+    const totalAdjustment = this.BASE_ADJUSTMENT + seasonalAdjustment + typeAdjustment;
+    const impactValue = Math.round(input.basePrice * totalAdjustment);
+    const factor = "Market Demand";
+    const impact = impactValue;
+    
+    // Description based on components
+    let description = "Based on current market conditions";
+    if (seasonalAdjustment !== 0) {
+      description += seasonalAdjustment > 0 
+        ? ", seasonal demand is higher" 
+        : ", seasonal demand is lower";
+    }
+    if (typeAdjustment !== 0 && bodyType) {
+      description += typeAdjustment > 0 
+        ? `, ${bodyType} vehicles have higher demand` 
+        : `, ${bodyType} vehicles have lower demand`;
+    }
+    
+    return {
+      name: "Market Demand",
+      value: impactValue,
+      percentAdjustment: totalAdjustment * 100,
+      description,
+      factor,
+      impact
+    };
   }
 }

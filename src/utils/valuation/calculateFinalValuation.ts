@@ -55,7 +55,7 @@ export async function calculateFinalValuation(
     accidentCount: input.accidentCount || 0,
     exteriorColor: input.color,
     features: input.features,
-    premiumFeatures: Array.isArray(input.premiumFeatures) ? input.premiumFeatures : [!!input.premiumFeatures],
+    premiumFeatures: input.premiumFeatures || [],
     // Add AI condition override if present
     aiConditionOverride: aiCondition,
     photoScore: input.photoScore
@@ -69,14 +69,16 @@ export async function calculateFinalValuation(
     const photoAdjustment = calculatePhotoScoreAdjustment(input.photoScore, basePrice);
     const photoImpactPercent = (photoAdjustment / basePrice) * 100;
     
-    adjustments.push({
+    const photoAdjustmentBreakdown: AdjustmentBreakdown = {
       name: 'Photo Condition',
       factor: 'Photo Condition',
       value: photoAdjustment,
       impact: photoAdjustment,
       description: getPhotoScoreAdjustmentDescription(input.photoScore, photoImpactPercent, photoAdjustment),
       percentAdjustment: photoImpactPercent
-    });
+    };
+    
+    adjustments.push(photoAdjustmentBreakdown);
   }
   
   // Calculate total adjustment
