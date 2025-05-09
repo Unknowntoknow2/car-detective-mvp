@@ -13,13 +13,27 @@ import { MarketingBanner } from "@/components/marketing/MarketingBanner";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { LookupTabs } from "@/components/home/LookupTabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useValuation } from "@/contexts/ValuationContext";
 
 export default function Index() {
   const valuationRef = useRef<HTMLDivElement>(null);
   const [valuationType, setValuationType] = useState<'free' | 'premium'>('free');
+  const { processFreeValuation, processPremiumValuation } = useValuation();
   
   const scrollToValuation = () => {
     valuationRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleValuationTypeChange = (value: string) => {
+    setValuationType(value as 'free' | 'premium');
+    
+    // Track user selection for analytics purposes
+    try {
+      // Analytics tracking would go here
+      console.log(`User selected ${value} valuation type`);
+    } catch (error) {
+      console.error("Error tracking valuation type selection:", error);
+    }
   };
 
   return (
@@ -48,7 +62,7 @@ export default function Index() {
             <Tabs 
               defaultValue="free" 
               value={valuationType} 
-              onValueChange={(value) => setValuationType(value as 'free' | 'premium')}
+              onValueChange={handleValuationTypeChange}
               className="w-full max-w-3xl mx-auto mb-8"
             >
               <TabsList className="grid w-full grid-cols-2">

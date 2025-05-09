@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { LookupTabs } from "@/components/home/LookupTabs";
+import { useValuation } from "@/contexts/ValuationContext";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface PremiumTabsProps {
   showFreeValuation?: boolean;
@@ -13,6 +16,24 @@ interface PremiumTabsProps {
 export function PremiumTabs({ showFreeValuation = true }: PremiumTabsProps) {
   // If showFreeValuation is false, we'll default to premium tab
   const defaultTab = showFreeValuation ? "basic" : "premium";
+  const { processPremiumValuation, isProcessing } = useValuation();
+  const [upgrading, setUpgrading] = useState(false);
+  
+  const handlePremiumUpgrade = async () => {
+    setUpgrading(true);
+    try {
+      // Here we would typically handle the payment flow
+      // For now, we'll just show a toast
+      toast.success("Redirecting to premium checkout...");
+      // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      window.location.href = "/premium";
+    } catch (error) {
+      toast.error("Failed to process premium upgrade");
+    } finally {
+      setUpgrading(false);
+    }
+  };
   
   return (
     <Tabs defaultValue={defaultTab} className="max-w-4xl mx-auto">
@@ -84,8 +105,13 @@ export function PremiumTabs({ showFreeValuation = true }: PremiumTabsProps) {
                 <span>Professional PDF Report</span>
               </li>
             </ul>
-            <Button className="w-full mt-4" size="lg" asChild>
-              <Link to="/premium">Get Premium Report</Link>
+            <Button 
+              className="w-full mt-4" 
+              size="lg" 
+              onClick={handlePremiumUpgrade}
+              disabled={upgrading || isProcessing}
+            >
+              {upgrading || isProcessing ? "Processing..." : "Get Premium Report for $29.99"}
             </Button>
           </CardContent>
         </Card>

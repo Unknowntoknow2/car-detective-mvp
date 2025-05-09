@@ -5,6 +5,7 @@ import LoadingComponent from './components/ui/loading-component';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { AuthProvider } from './contexts/AuthContext';
+import { ValuationProvider } from './contexts/ValuationContext';
 
 // Lazy-loaded pages
 const Index = lazy(() => import('./pages/Index'));
@@ -21,18 +22,20 @@ function App() {
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <Router>
         <AuthProvider>
-          <Suspense fallback={<LoadingComponent />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/valuation" element={<ValuationPage />} />
-              <Route path="/premium" element={<PremiumPage />} />
-              <Route path="/premium-valuation" element={<PremiumValuationPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/my-valuations" element={<MyValuationsPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Suspense>
+          <ValuationProvider>
+            <Suspense fallback={<LoadingComponent />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/valuation" element={<ValuationPage />} />
+                <Route path="/premium" element={<PremiumPage />} />
+                <Route path="/premium-valuation" element={<PremiumValuationPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/my-valuations" element={<MyValuationsPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
+          </ValuationProvider>
         </AuthProvider>
       </Router>
       <Toaster position="top-right" />
