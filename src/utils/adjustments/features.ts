@@ -1,3 +1,4 @@
+
 import { RulesEngineInput } from '../rules/types';
 
 // Mapping of features to their impact values
@@ -45,8 +46,14 @@ export const getFeatureAdjustments = (input: RulesEngineInput | string[]): {
   } else {
     // If input is a RulesEngineInput object
     // Use premiumFeatures if provided or fall back to features
-    features = Array.isArray(input.premiumFeatures) ? input.premiumFeatures : 
-              (Array.isArray(input.features) ? input.features : []);
+    if (Array.isArray(input.premiumFeatures)) {
+      // Convert any boolean values to strings if needed
+      features = input.premiumFeatures.map(item => String(item));
+    } else if (Array.isArray(input.features)) {
+      features = input.features.map(item => String(item));
+    } else {
+      features = [];
+    }
     
     basePrice = input.basePrice;
   }

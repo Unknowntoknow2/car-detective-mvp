@@ -85,18 +85,22 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Pass only one argument to getFeatureAdjustments
-    const featureResult = getFeatureAdjustments(params.features);
-    let featureImpact: number;
-
+    // Pass features with basePrice as a RulesEngineInput object
+    const rulesInput = {
+      features: params.features,
+      basePrice: baseValue,
+    };
+    
+    // Fix: Handle getFeatureAdjustments properly
+    const featureResult = getFeatureAdjustments(rulesInput);
+    
+    let featureImpact = 0;
     if (typeof featureResult === 'number') {
       featureImpact = featureResult;
     } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
       featureImpact = featureResult.totalAdjustment;
-    } else {
-      featureImpact = 0;
     }
-
+    
     adjustments.push({
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
