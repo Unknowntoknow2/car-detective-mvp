@@ -1,97 +1,169 @@
+// src/utils/valuationEngine.ts
 
-import { AICondition } from '@/types/photo';
-import { AdjustmentBreakdown } from '@/types/valuation';
-import { FinalValuationResult } from './valuation/types';
+import {
+  mileageAdjustmentCurve
+} from './adjustments/mileageAdjustments';
+import {
+  getConditionMultiplier
+} from './adjustments/conditionAdjustments';
+import {
+  getRegionalMarketMultiplier
+} from './adjustments/locationAdjustments';
+import {
+  getFeatureAdjustments
+} from './adjustments/featureAdjustments';
+import type { AICondition } from '@/types/photo';
 
-// Re-export the function with compatibility with other parts of the codebase
-export async function calculateFinalValuation(input: any, basePrice?: number, aiCondition?: AICondition) {
-  // If basePrice isn't provided, estimate one based on the vehicle
-  const estimatedBasePrice = basePrice || estimateBasePrice(input);
-  
-  // Mock implementation for now
-  const adjustments = generateMockAdjustments(input);
-  const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.value, 0);
-  const estimatedValue = estimatedBasePrice + totalAdjustment;
-  const confidenceScore = calculateConfidenceScore(input, aiCondition);
-  const priceRange = calculatePriceRange(estimatedValue, confidenceScore);
-  
+export interface ValuationParams {
+  baseMarketValue: number;
+  vehicleYear?: number;
+  year?: number;
+  make?: string;
+  model?: string;
+  mileage?: number;
+  condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  zipCode?: string;
+  features?: string[];
+  trim?: string;
+  photoScore?: number;
+  aiConditionOverride?: AICondition;
+}
+
+export interface ValuationResult {
+  finalValue: number;
+  adjustments: {
+    name: string;
+    description: string;
+    impact: number;
+    percentage: number;
+  }[];
+  confidenceScore: number;
+  baseValue: number;
+}
+
+export function calculateFinalValuation(params: ValuationParams): ValuationResult {
+  if (params.baseMarketValue === undefined || params.baseMarketValue <= 0) {
+    throw new Error('Base market value is required and must be greater than zero');
+  }
+
+  const baseValue = params.baseMarketValue;
+  const adjustments: ValuationResult['adjustments'] = [];
+  let confidenceScore = 85;
+  let totalAdjustment = 0;
+
+  if (params.mileage !== undefined && params.mileage >= 0) {
+    const mileageImpact = baseValue * mileageAdjustmentCurve(params.mileage);
+    adjustments.push({
+      name: 'Mileage',
+      description: getMileageAdjustmentDescription(params.mileage),
+      impact: mileageImpact,
+      percentage: (mileageImpact / baseValue) * 100,
+    });
+    totalAdjustment += mileageImpact;
+    confidenceScore += 3;
+  }
+
+  if (params.condition) {
+    const multiplier = getConditionMultiplier(params.condition);
+    const impact = baseValue * multiplier;
+    adjustments.push({
+      name: 'Condition',
+      description: `Vehicle in ${params.condition} condition`,
+      impact,
+      percentage: multiplier * 100,
+    });
+    totalAdjustment += impact;
+    confidenceScore += 2;
+  }
+
+  if (params.zipCode) {
+    const multiplier = getRegionalMarketMultiplier(params.zipCode);
+    const impact = baseValue * multiplier;
+    adjustments.push({
+      name: 'Regional Market',
+      description: getRegionalMarketDescription(params.zipCode, multiplier),
+      impact,
+      percentage: multiplier * 100,
+    });
+    totalAdjustment += impact;
+    confidenceScore += 3;
+  }
+
+  if (params.features && params.features.length > 0) {
+    const featureImpact = getFeatureAdjustments(params.features, baseValue);
+    adjustments.push({
+      name: 'Premium Features',
+      description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
+      impact: featureImpact,
+      percentage: (featureImpact / baseValue) * 100,
+    });
+    totalAdjustment += featureImpact;
+    confidenceScore += 2;
+  }
+
+  if (params.make && params.model && params.vehicleYear) {
+    const trendImpact = calculateMakeModelTrend(params.make, params.model, params.vehicleYear, baseValue);
+    if (trendImpact !== 0) {
+      adjustments.push({
+        name: 'Market Trends',
+        description: `Current market trends for ${params.vehicleYear} ${params.make} ${params.model}`,
+        impact: trendImpact,
+        percentage: (trendImpact / baseValue) * 100,
+      });
+      totalAdjustment += trendImpact;
+      confidenceScore += 2;
+    }
+  }
+
+  const finalValue = Math.round(baseValue + totalAdjustment);
+  confidenceScore = Math.max(75, Math.min(98, confidenceScore));
+
   return {
-    basePrice: estimatedBasePrice,
-    estimatedValue,
+    finalValue,
     adjustments,
     confidenceScore,
-    priceRange,
-    aiSummary: aiCondition?.aiSummary
+    baseValue,
   };
 }
 
-// Helper function to estimate a base price (simplified)
-function estimateBasePrice(vehicle: any): number {
+function getMileageAdjustmentDescription(mileage: number): string {
+  if (mileage < 15000) return 'Very low mileage, significantly above average value';
+  if (mileage < 40000) return 'Below average mileage, positively impacts value';
+  if (mileage < 75000) return 'Average mileage for vehicle age';
+  if (mileage < 120000) return 'Above average mileage, slightly reduces value';
+  return 'High mileage, significantly reduces value';
+}
+
+function getRegionalMarketDescription(zipCode: string, multiplier: number): string {
+  if (multiplier > 0.03) return `High demand in ${zipCode} region, significantly increases value`;
+  if (multiplier > 0) return `Slightly above average demand in ${zipCode} region`;
+  if (multiplier > -0.03) return `Slightly below average demand in ${zipCode} region`;
+  return `Lower demand in ${zipCode} region, decreases value`;
+}
+
+function calculateMakeModelTrend(make: string, model: string, year: number, baseValue: number): number {
   const currentYear = new Date().getFullYear();
-  const age = currentYear - (vehicle.year || 2020);
-  
-  // Start with a base value that depends on vehicle age
-  let basePrice = 30000 - (age * 1500);
-  
-  // Adjust for luxury brands
-  const luxuryBrands = ['BMW', 'Mercedes', 'Audi', 'Lexus', 'Tesla', 'Porsche'];
-  if (luxuryBrands.includes(vehicle.make)) {
-    basePrice *= 1.5;
-  }
-  
-  // Ensure a minimum value
-  return Math.max(basePrice, 2000);
+  const age = currentYear - year;
+  const luxury = ['BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Porsche'];
+  const electric = ['Model 3', 'Model Y', 'Leaf', 'Bolt', 'ID.4', 'Ioniq'];
+  const classics = ['Mustang', 'Corvette', 'Bronco', 'Defender', 'Wrangler'];
+
+  let multiplier = 0;
+  if (luxury.includes(make) && age < 5) multiplier -= 0.02;
+  if (electric.includes(model) || make === 'Tesla') multiplier += 0.04;
+  if (classics.includes(model)) multiplier += 0.02;
+  if (['Toyota', 'Honda', 'Lexus'].includes(make)) multiplier += 0.015;
+
+  return baseValue * multiplier;
 }
 
-// Generate mock adjustments
-function generateMockAdjustments(input: any): AdjustmentBreakdown[] {
-  return [
-    {
-      name: 'Mileage',
-      factor: 'Mileage',
-      value: -1000,
-      impact: -1000,
-      description: 'Based on vehicle mileage',
-      percentAdjustment: -3.5
-    },
-    {
-      name: 'Condition',
-      factor: 'Condition',
-      value: 800,
-      impact: 800,
-      description: 'Based on reported condition',
-      percentAdjustment: 2.5
-    },
-    {
-      name: 'Market Demand',
-      factor: 'Market Demand',
-      value: 1200,
-      impact: 1200,
-      description: 'Current market demand in your area',
-      percentAdjustment: 4.0
-    }
-  ];
-}
+import {
+  calculateFinalValuation as enterpriseCalculateFinalValuation,
+} from './valuation/calculateFinalValuation';
+import type {
+  ValuationInput as EnterpriseValuationInput,
+  FinalValuationResult as EnterpriseValuationOutput
+} from './valuation/calculateFinalValuation';
 
-// Calculate confidence score
-function calculateConfidenceScore(input: any, aiCondition?: AICondition): number {
-  // Base confidence
-  let score = 80;
-  
-  // Add confidence from AI condition if available
-  if (aiCondition) {
-    score += (aiCondition.confidenceScore / 100) * 10;
-  }
-  
-  // Cap at 95
-  return Math.min(score, 95);
-}
-
-// Calculate price range
-function calculatePriceRange(estimatedValue: number, confidenceScore: number): [number, number] {
-  const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
-  return [
-    Math.floor(estimatedValue - margin),
-    Math.ceil(estimatedValue + margin)
-  ];
-}
+export { enterpriseCalculateFinalValuation };
+export type { EnterpriseValuationInput, EnterpriseValuationOutput };
