@@ -1,12 +1,16 @@
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import * as testing from '@testing-library/dom';
 import { CDButton } from '../CDButton';
 import { CDCard, CDCardHeader, CDCardBody, CDCardFooter } from '../CDCard';
 import { CDInput } from '../CDInput';
 import { CDBadge } from '../CDBadge';
 import { CDNavbar } from '../CDNavbar';
 import { CDFooter } from '../CDFooter';
+
+// Access screen and fireEvent from testing-library/dom
+const { screen, fireEvent } = testing;
 
 // Button Tests
 describe('CDButton', () => {

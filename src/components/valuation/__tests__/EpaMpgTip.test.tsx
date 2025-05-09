@@ -1,10 +1,14 @@
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import * as testing from '@testing-library/dom';
 import { EpaMpgTip } from '../EpaMpgTip';
 import { useEpaMpg } from '@/hooks/useEpaMpg';
 import { UseQueryResult } from '@tanstack/react-query';
 import { EpaMpgResult } from '@/hooks/useEpaMpg';
+
+// Access screen from testing-library/dom
+const { screen } = testing;
 
 // Mock the hook
 jest.mock('@/hooks/useEpaMpg');

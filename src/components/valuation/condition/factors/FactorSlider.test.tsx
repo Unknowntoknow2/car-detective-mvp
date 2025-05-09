@@ -1,7 +1,11 @@
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import * as testing from '@testing-library/dom';
 import { describe, it, expect, vi } from 'vitest';
 import { FactorSlider, ConditionOption } from '../FactorSlider';
+
+// Access screen and fireEvent from testing-library/dom
+const { screen, fireEvent } = testing;
 
 describe('Factor Slider Components', () => {
   const mockAccidentOptions: ConditionOption[] = [
