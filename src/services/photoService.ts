@@ -10,13 +10,10 @@ export async function scorePhotos(photoUrls: string[], valuationId: string): Pro
   } catch (error: any) {
     console.error('Error scoring photos:', error);
     return {
-      overallScore: 0,
+      photoScore: 0,
       individualScores: [],
       score: 0, // For backward compatibility
-      photoUrl: '',
-      condition: 'Fair',
-      confidenceScore: 0,
-      error: error.message || 'Failed to score photos',
+      bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
         confidenceScore: 0
@@ -47,13 +44,10 @@ export async function uploadAndAnalyzePhotos(files: File[], valuationId: string)
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {
-      overallScore: 0,
+      photoScore: 0,
       individualScores: [],
       score: 0, // For backward compatibility
-      photoUrl: '',
-      condition: 'Fair',
-      confidenceScore: 0,
-      error: error.message || 'Failed to upload and analyze photos',
+      bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
         confidenceScore: 0

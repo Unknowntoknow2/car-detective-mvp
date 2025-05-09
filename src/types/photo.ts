@@ -1,3 +1,4 @@
+
 // src/types/photo.ts
 
 export const MAX_FILES = 8;
@@ -54,6 +55,13 @@ export interface AdjustmentBreakdown {
   impact: number;
   adjustment?: number;
   impactPercentage?: number;
+}
+
+export interface PhotoAnalysisResult {
+  photoUrls: string[];
+  score: number;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
 }
 
 export interface ValuationInput {
