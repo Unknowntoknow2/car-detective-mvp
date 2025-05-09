@@ -1,15 +1,20 @@
 import { calculateFinalValuation } from './calculateFinalValuation';
 
-describe('calculateFinalValuation', () => {
-  const basePrice = 25000;
+// Fix 1: Remove incorrect import
+// import { ValuationOutput } from './calculateFinalValuation';
 
+// Fix 2: Add basePrice consistently
+const basePrice = 25000;
+
+describe('calculateFinalValuation', () => {
   test('should calculate base valuation', async () => {
     const result = await calculateFinalValuation({
       make: 'Toyota',
       model: 'Camry',
       year: 2019,
       mileage: 50000,
-      condition: 'Good'
+      condition: 'Good',
+      zipCode: '90210'
     }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
@@ -22,7 +27,8 @@ describe('calculateFinalValuation', () => {
       model: 'Camry',
       year: 2019,
       mileage: 100000,
-      condition: 'Good'
+      condition: 'Good',
+      zipCode: '90210'
     }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
@@ -35,7 +41,8 @@ describe('calculateFinalValuation', () => {
       model: 'Camry',
       year: 2019,
       mileage: 50000,
-      condition: 'Excellent'
+      condition: 'Excellent',
+      zipCode: '90210'
     }, basePrice);
 
     expect(result.estimatedValue).toBeGreaterThan(0);
@@ -49,6 +56,7 @@ describe('calculateFinalValuation', () => {
       year: 2019,
       mileage: 50000,
       condition: 'Good',
+      zipCode: '90210',
       photoScore: 0.78,
       aiConditionOverride: {
         condition: 'Good',
@@ -68,6 +76,7 @@ describe('calculateFinalValuation', () => {
       year: 2019,
       mileage: 50000,
       condition: 'Good',
+      zipCode: '90210',
       aiConditionOverride: {
         condition: 'Excellent',
         confidenceScore: 95,
@@ -86,6 +95,7 @@ describe('calculateFinalValuation', () => {
       year: 2019,
       mileage: 50000,
       condition: 'Good',
+      zipCode: '90210',
       aiConditionOverride: {
         condition: 'Fair',
         confidenceScore: 60,
@@ -104,6 +114,7 @@ describe('calculateFinalValuation', () => {
       year: 2019,
       mileage: 50000,
       condition: 'Good',
+      zipCode: '90210',
       trim: 'XLE',
       aiConditionOverride: {
         condition: 'Good',
