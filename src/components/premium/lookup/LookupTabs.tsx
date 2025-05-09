@@ -1,8 +1,8 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { VinLookup } from './VinLookup';
-import { PlateLookup } from './PlateLookup';
-import { ManualLookup } from './ManualLookup';
+import { VinLookup } from '@/components/lookup/VinLookup';
+import { PlateLookup } from '@/components/lookup/PlateLookup';
+import { ManualLookup } from '@/components/lookup/ManualLookup';
 import { CarFront, Search, FileText } from 'lucide-react';
 
 interface LookupTabsProps {
