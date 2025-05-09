@@ -31,10 +31,10 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // Use the standard valuation algorithm for free users
-      const result = await calculateFinalValuation({
-        ...valuationData,
+      const result = await calculateFinalValuation(
+        valuationData,
         baseMarketValue
-      });
+      );
 
       setLastValuationResult(result);
       return result;
@@ -57,14 +57,18 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // For the premium valuation, we'll use the same calculation function but with premium options
-      const result = await calculateFinalValuation({
-        ...valuationData,
+      const result = await calculateFinalValuation(
+        {
+          ...valuationData,
+          isPremium: true,
+          includeCarfax: true,
+          includeDealerOffers: true,
+          includeMarketTrends: true
+        },
         baseMarketValue,
-        isPremium: true,
-        includeCarfax: true,
-        includeDealerOffers: true,
-        includeMarketTrends: true
-      });
+        // Optionally pass the AI condition as the third parameter if available
+        valuationData.aiConditionOverride || null
+      );
 
       setLastValuationResult(result);
       return result;
