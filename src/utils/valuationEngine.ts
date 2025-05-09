@@ -1,3 +1,4 @@
+
 // src/utils/valuationEngine.ts
 
 import {
@@ -42,10 +43,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       name: 'Mileage',
       description: getMileageAdjustmentDescription(params.mileage),
       impact: mileageImpact,
-      percentAdjustment: (mileageImpact / baseValue) * 100,
       factor: 'Mileage',
       value: mileageImpact,
-      percentAdjustment: (mileageImpact / baseValue) * 100 // Keep for backward compatibility
+      percentAdjustment: (mileageImpact / baseValue) * 100
     });
     totalAdjustment += mileageImpact;
     confidenceScore += 3;
@@ -58,10 +58,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       name: 'Condition',
       description: `Vehicle in ${params.condition} condition`,
       impact,
-      percentAdjustment: multiplier * 100,
       factor: 'Condition',
       value: impact,
-      percentAdjustment: multiplier * 100 // Keep for backward compatibility
+      percentAdjustment: multiplier * 100
     });
     totalAdjustment += impact;
     confidenceScore += 2;
@@ -74,10 +73,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       name: 'Regional Market',
       description: getRegionalMarketDescription(params.zipCode, multiplier),
       impact,
-      percentAdjustment: multiplier * 100,
       factor: 'Regional Market',
       value: impact,
-      percentAdjustment: multiplier * 100 // Keep for backward compatibility
+      percentAdjustment: multiplier * 100
     });
     totalAdjustment += impact;
     confidenceScore += 3;
@@ -96,10 +94,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
       impact: featureAdjustmentValue,
-      percentAdjustment: (featureAdjustmentValue / baseValue) * 100,
       factor: 'Premium Features',
       value: featureAdjustmentValue,
-      percentAdjustment: (featureAdjustmentValue / baseValue) * 100 // Keep for backward compatibility
+      percentAdjustment: (featureAdjustmentValue / baseValue) * 100
     });
     totalAdjustment += featureAdjustmentValue;
     confidenceScore += 2;
@@ -113,10 +110,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
         name: 'Market Trends',
         description: `Current market trends for ${year} ${params.make} ${params.model}`,
         impact: trendImpact,
-        percentAdjustment: (trendImpact / baseValue) * 100,
         factor: 'Market Trends',
         value: trendImpact,
-        percentAdjustment: (trendImpact / baseValue) * 100 // Keep for backward compatibility
+        percentAdjustment: (trendImpact / baseValue) * 100
       });
       totalAdjustment += trendImpact;
       confidenceScore += 2;

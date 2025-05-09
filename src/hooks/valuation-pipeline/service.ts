@@ -16,10 +16,9 @@ export async function decodeVehicle(
         make: manualData.make,
         model: manualData.model,
         year: manualData.year,
-        trim: manualData.trim,
-        fuelType: manualData.fuelType,
-        transmission: 'Automatic',
-        bodyType: manualData.bodyType
+        trim: manualData.trim || undefined,
+        fuelType: manualData.fuelType || undefined,
+        transmission: 'Automatic'
       };
 
       return { 
@@ -37,8 +36,7 @@ export async function decodeVehicle(
         year: 2019,
         trim: 'LE',
         fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        bodyType: 'Sedan'
+        transmission: 'Automatic'
       };
 
       return {
@@ -56,8 +54,7 @@ export async function decodeVehicle(
         year: 2020,
         trim: 'LX',
         fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        bodyType: 'Sedan'
+        transmission: 'Automatic'
       };
 
       return {

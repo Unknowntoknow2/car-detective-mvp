@@ -67,6 +67,17 @@ const ValuationPage = () => {
     }
   }, [selectedMake, selectedModel, form]);
 
+  // Helper to convert condition string to number
+  const getConditionNumber = (condition: string): number => {
+    switch (condition.toLowerCase()) {
+      case 'excellent': return 5;
+      case 'good': return 3;
+      case 'fair': return 2;
+      case 'poor': return 1;
+      default: return 3; // Default to 'good'
+    }
+  };
+
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -74,9 +85,11 @@ const ValuationPage = () => {
     
     try {
       // Submit the valuation request
+      const conditionNumber = getConditionNumber(data.condition);
+      
       const success = await submitValuation({
         mileage: data.mileage,
-        condition: Number(data.condition), // Fixed: converting string to number
+        condition: conditionNumber,
         conditionLabel: data.condition.charAt(0).toUpperCase() + data.condition.slice(1),
         zipCode: data.zipCode,
       });
@@ -120,7 +133,7 @@ const ValuationPage = () => {
     setSelectedYear(yearValue);
     
     try {
-      // Fixed: using correct parameter signature
+      // Using the correct parameters for manual lookup
       await runLookup('manual', 'manual-entry', undefined, {
         make: selectedMake,
         model: selectedModel,
