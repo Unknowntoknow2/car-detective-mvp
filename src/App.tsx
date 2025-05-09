@@ -19,8 +19,8 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <Suspense fallback={<LoadingComponent />}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -33,9 +33,9 @@ function App() {
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
-        </Router>
-        <Toaster position="top-right" />
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
+      <Toaster position="top-right" />
     </ThemeProvider>
   );
 }

@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
 
 type AuthContextType = {
@@ -24,7 +24,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  
+  // Use try/catch to handle the case where Router might not be available
+  let navigate: NavigateFunction | undefined;
+  try {
+    navigate = useNavigate();
+  } catch (e) {
+    console.warn("Router context not available. Navigation will be limited.");
+  }
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -59,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
       
-      navigate('/dashboard');
+      if (navigate) navigate('/dashboard');
       toast.success('Successfully signed in!');
       return {};
     } catch (err: any) {
@@ -106,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       await supabase.auth.signOut();
-      navigate('/');
+      if (navigate) navigate('/');
       toast.success('Successfully signed out!');
     } catch (err: any) {
       toast.error(err.message || 'An error occurred during sign out');
@@ -156,7 +163,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       toast.success('Password updated successfully.');
-      navigate('/dashboard');
+      if (navigate) navigate('/dashboard');
       return {};
     } catch (err: any) {
       const errorMsg = err.message || 'An error occurred while updating password';
