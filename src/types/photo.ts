@@ -1,37 +1,27 @@
+// src/types/photo.ts
 
-// Create or update photo types
 export interface Photo {
   id?: string;
-  url: string;
-  score?: number;
-  isPrimary?: boolean;
-  valuationId?: string;
-  type?: string;
-  angle?: string;
-  fileName?: string;
-  size?: number;
+  file?: File;
+  name?: string;
+  url?: string;
+  uploading?: boolean;
+  uploaded?: boolean;
+  error?: string | null;
 }
 
 export interface PhotoScore {
+  url: string;
   score: number;
-  primaryUrl?: string;
-  angles?: { [key: string]: number };
-}
-
-export interface AICondition {
-  condition: string;
-  confidenceScore: number;
-  issuesDetected?: string[];
-  aiSummary?: string;
+  isPrimary?: boolean;
 }
 
 export interface PhotoScoringResult {
-  photoScore: number;
-  bestPhotoUrl?: string;
-  aiCondition?: AICondition;
-  explanation?: string;
+  overallScore: number;
+  individualScores: PhotoScore[];
+  aiCondition: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+  };
 }
-
-// Constants
-export const MAX_FILES = 8;
-export const MIN_FILES = 1;
