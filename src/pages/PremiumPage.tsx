@@ -65,6 +65,7 @@ export default function PremiumPage() {
     localStorage.setItem("premium_vehicle", JSON.stringify({
       identifierType: 'vin',
       identifier: vehicle.vin || '',
+      vin: vehicle.vin || '',
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
