@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from '@/components/ui/button';
@@ -8,38 +8,59 @@ import { PremiumValuationTabs } from '@/components/premium/sections/PremiumValua
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Award, ChartBar, FileText } from 'lucide-react';
+import { PremiumHero } from '@/components/premium/sections/PremiumHero';
+import '@/styles/mobile-optimizations.css';
 
 const PremiumPage = () => {
+  const formRef = useRef<HTMLDivElement>(null);
+  const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!cardRef.current) return;
+      
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      
+      const rotationX = y / 20;
+      const rotationY = -x / 20;
+      
+      setCardRotation({
+        x: rotationX,
+        y: rotationY
+      });
+    };
+    
+    const resetRotation = () => {
+      setCardRotation({ x: 0, y: 0 });
+    };
+    
+    const cardElement = cardRef.current;
+    
+    if (cardElement) {
+      cardElement.addEventListener('mousemove', handleMouseMove);
+      cardElement.addEventListener('mouseleave', resetRotation);
+      
+      return () => {
+        cardElement.removeEventListener('mousemove', handleMouseMove);
+        cardElement.removeEventListener('mouseleave', resetRotation);
+      };
+    }
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <Navbar />
       <main className="flex-1 animate-fade-in">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <Badge className="mb-4 bg-white/20 text-white hover:bg-white/30 transition-colors">
-                Premium Experience
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Advanced Vehicle Valuation & Analytics
-              </h1>
-              <p className="text-lg md:text-xl mb-8 text-white/90">
-                Get dealer-competitive offers, full vehicle history, and pricing forecasts 
-                with our comprehensive premium valuation tools.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-white text-indigo-700 hover:bg-white/90">
-                  Try Premium for $29.99
-                </Button>
-                <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
-                  Learn More
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
+        {/* Hero Section with Premium Hero component */}
+        <PremiumHero scrollToForm={scrollToForm} />
+        
         {/* Premium Benefits Section */}
         <section className="py-16 bg-slate-50">
           <div className="container mx-auto px-4">
@@ -108,7 +129,7 @@ const PremiumPage = () => {
         <EnhancedPremiumFeaturesTabs />
 
         {/* Pricing Section */}
-        <section className="py-16 bg-white">
+        <section id="premium-form" ref={formRef} className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
