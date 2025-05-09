@@ -30,23 +30,24 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       // Calculate base market value - this would typically come from a database or API
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
+      // Prepare the input with all required fields and proper defaults
+      const input = {
+        make: valuationData.make || '',
+        model: valuationData.model || '',
+        year: valuationData.year || new Date().getFullYear(),
+        mileage: valuationData.mileage || 0,
+        condition: valuationData.condition || 'Good',
+        zipCode: valuationData.zipCode || '',
+        fuelType: valuationData.fuelType || 'Gasoline',
+        transmission: valuationData.transmission || 'Automatic',
+        features: valuationData.features || [],
+        trim: valuationData.trim || '',
+        baseMarketValue: baseMarketValue
+      };
+      
       // Use the standard valuation algorithm for free users
-      // Ensure we're passing all required fields with proper defaults
       const result = await calculateFinalValuation(
-        {
-          make: valuationData.make || '', 
-          model: valuationData.model || '',
-          year: valuationData.year || new Date().getFullYear(),
-          mileage: valuationData.mileage || 0,
-          condition: valuationData.condition || 'Good',
-          zipCode: valuationData.zipCode,
-          fuelType: valuationData.fuelType,
-          transmission: valuationData.transmission,
-          features: valuationData.features,
-          trim: valuationData.trim,
-          baseMarketValue: valuationData.baseMarketValue,
-          // Only include fields that exist in the target ValuationInput type
-        },
+        input,
         baseMarketValue
       );
 
@@ -70,26 +71,24 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       // Calculate base market value - premium users get a more accurate base value
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
-      // For the premium valuation, we'll use the same calculation function but with premium options
+      // For the premium valuation, prepare input with all required fields
+      const input = {
+        make: valuationData.make || '',
+        model: valuationData.model || '',
+        year: valuationData.year || new Date().getFullYear(),
+        mileage: valuationData.mileage || 0,
+        condition: valuationData.condition || 'Good',
+        zipCode: valuationData.zipCode || '',
+        trim: valuationData.trim || '',
+        fuelType: valuationData.fuelType || 'Gasoline',
+        transmission: valuationData.transmission || 'Automatic',
+        features: valuationData.features || [],
+        baseMarketValue: valuationData.baseMarketValue,
+        accidentCount: valuationData.accidentCount
+      };
+
       const result = await calculateFinalValuation(
-        {
-          make: valuationData.make || '',
-          model: valuationData.model || '',
-          year: valuationData.year || new Date().getFullYear(),
-          mileage: valuationData.mileage || 0,
-          condition: valuationData.condition || 'Good',
-          zipCode: valuationData.zipCode,
-          trim: valuationData.trim,
-          fuelType: valuationData.fuelType,
-          transmission: valuationData.transmission,
-          features: valuationData.features,
-          // We'll use premium features via standard properties
-          // that are expected by the calculateFinalValuation function
-          baseMarketValue: valuationData.baseMarketValue,
-          accidentCount: valuationData.accidentCount,
-          // Use properties that exist in the ValuationInput type
-          // Removed photoScore and exteriorColor as they don't exist in ValuationInput
-        },
+        input,
         baseMarketValue,
         // Optionally pass the AI condition as the third parameter if available
         valuationData.aiConditionOverride || null
