@@ -31,8 +31,22 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // Use the standard valuation algorithm for free users
+      // Ensure we're passing all required fields with proper defaults
       const result = await calculateFinalValuation(
-        valuationData,
+        {
+          make: valuationData.make || '', 
+          model: valuationData.model || '',
+          year: valuationData.year || new Date().getFullYear(),
+          mileage: valuationData.mileage || 0,
+          condition: valuationData.condition || 'Good',
+          zipCode: valuationData.zipCode,
+          fuelType: valuationData.fuelType,
+          transmission: valuationData.transmission,
+          features: valuationData.features,
+          trim: valuationData.trim,
+          baseMarketValue: valuationData.baseMarketValue,
+          // Only include fields that exist in the target ValuationInput type
+        },
         baseMarketValue
       );
 
@@ -59,11 +73,22 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       // For the premium valuation, we'll use the same calculation function but with premium options
       const result = await calculateFinalValuation(
         {
-          ...valuationData,
-          isPremium: true,
-          includeCarfax: true,
-          includeDealerOffers: true,
-          includeMarketTrends: true
+          make: valuationData.make || '',
+          model: valuationData.model || '',
+          year: valuationData.year || new Date().getFullYear(),
+          mileage: valuationData.mileage || 0,
+          condition: valuationData.condition || 'Good',
+          zipCode: valuationData.zipCode,
+          trim: valuationData.trim,
+          fuelType: valuationData.fuelType,
+          transmission: valuationData.transmission,
+          features: valuationData.features,
+          // We'll use premium features via standard properties
+          // that are expected by the calculateFinalValuation function
+          baseMarketValue: valuationData.baseMarketValue,
+          photoScore: valuationData.photoScore,
+          accidentCount: valuationData.accidentCount,
+          color: valuationData.exteriorColor
         },
         baseMarketValue,
         // Optionally pass the AI condition as the third parameter if available
