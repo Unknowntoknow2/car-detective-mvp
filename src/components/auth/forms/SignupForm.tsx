@@ -1,15 +1,29 @@
 
 import { useState } from 'react';
-import { Mail, Phone } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AuthType } from '@/types/auth';
-import { toast } from 'sonner';
-import { EmailSignup } from './signup/EmailSignup';
-import { PhoneSignup } from './signup/PhoneSignup';
-import { supabase } from '@/integrations/supabase/client';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Loader2, Mail, KeyRound, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Checkbox } from '@/components/ui/checkbox';
+
+// Define form schema
+const formSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  confirmPassword: z.string(),
+  firstName: z.string().min(1, { message: 'First name is required' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the terms and conditions',
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 interface SignupFormProps {
   isLoading: boolean;
@@ -17,176 +31,224 @@ interface SignupFormProps {
 }
 
 export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
-  const [authType, setAuthType] = useState<AuthType>('email');
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [termsError, setTermsError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [phoneError, setPhoneError] = useState('');
+  const { signUp } = useAuth();
+  const [formError, setFormError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
 
-  const validateTerms = () => {
-    if (!agreeToTerms) {
-      setTermsError('You must agree to the Terms and Privacy Policy');
-      return false;
-    }
-    setTermsError('');
-    return true;
-  };
+  // Initialize form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      firstName: '',
+      lastName: '',
+      agreeToTerms: false,
+    },
+  });
 
-  const handleSignupError = (error: any) => {
-    console.error('Signup error:', error);
-    if (error.message.includes('rate limit')) {
-      toast.error('Too many attempts', {
-        description: 'Please wait a moment before trying again.',
-      });
-    } else {
-      toast.error('Sign up failed', {
-        description: error.message || 'An unexpected error occurred. Please try again later.',
-      });
-    }
-  };
-
-  const handleEmailSignup = async (email: string, password: string): Promise<void> => {
-    if (!validateTerms()) return Promise.resolve();
-    
-    // Double check for existing email before proceeding
-    if (emailError.includes('already exists')) {
-      toast.error('Email already in use', {
-        description: 'This email is already registered. Please try logging in instead.',
-      });
-      return Promise.resolve();
-    }
-    
+  // Form submission handler
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setFormError(null);
     setIsLoading(true);
-
+    
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin + '/auth/callback',
-          data: {
-            agreed_to_terms: agreeToTerms,
-          }
-        }
-      });
-
-      if (error) throw error;
+      const { error } = await signUp(values.email, values.password);
       
-      toast.success('Account created successfully', {
-        description: 'Please check your email for a verification link to complete your registration.',
-      });
-    } catch (error: any) {
-      handleSignupError(error);
+      if (error) {
+        setFormError(error.message || 'Failed to create account');
+        return;
+      }
+      
+      // Show success message
+      setSuccess(true);
+      form.reset();
+    } catch (err) {
+      setFormError('An unexpected error occurred');
+      console.error('Signup error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePhoneSignup = async (phone: string): Promise<void> => {
-    if (!validateTerms()) return Promise.resolve();
-    
-    // Double check for existing phone before proceeding
-    if (phoneError.includes('already exists')) {
-      toast.error('Phone already in use', {
-        description: 'This phone number is already registered. Please try logging in instead.',
-      });
-      return Promise.resolve();
-    }
-    
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone,
-        options: {
-          shouldCreateUser: true,
-        }
-      });
-
-      if (error) throw error;
-      
-      toast.success('Verification code sent', {
-        description: 'Please check your phone for the verification code to complete your registration.',
-      });
-    } catch (error: any) {
-      handleSignupError(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (authType === 'email') {
-      const emailInput = document.getElementById('email') as HTMLInputElement;
-      const passwordInput = document.getElementById('password') as HTMLInputElement;
-      if (emailInput && passwordInput) {
-        handleEmailSignup(emailInput.value, passwordInput.value);
-      }
-    } else {
-      const phoneInput = document.getElementById('phone-number') as HTMLInputElement;
-      if (phoneInput) {
-        handlePhoneSignup(phoneInput.value);
-      }
-    }
-  };
+  if (success) {
+    return (
+      <div className="p-6 bg-green-50 border border-green-200 rounded-lg text-center">
+        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-green-800 mb-2">Registration Successful!</h3>
+        <p className="text-sm text-green-700">
+          Please check your email to verify your account. Once verified, you can sign in to your account.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <Tabs defaultValue="email" className="w-full" onValueChange={(value) => setAuthType(value as AuthType)}>
-      <TabsList className="grid w-full grid-cols-2 rounded-xl overflow-hidden">
-        <TabsTrigger value="email" className="flex items-center gap-2 transition-all duration-200">
-          <Mail className="h-4 w-4" />
-          Email
-        </TabsTrigger>
-        <TabsTrigger value="phone" className="flex items-center gap-2 transition-all duration-200">
-          <Phone className="h-4 w-4" />
-          Phone
-        </TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="email" className="mt-4">
-        <EmailSignup
-          isLoading={isLoading}
-          onSignup={handleEmailSignup}
-          emailError={emailError}
-          setEmailError={setEmailError}
-        />
-      </TabsContent>
-      
-      <TabsContent value="phone" className="mt-4">
-        <PhoneSignup
-          isLoading={isLoading}
-          onSignup={handlePhoneSignup}
-          phoneError={phoneError}
-          setPhoneError={setPhoneError}
-        />
-      </TabsContent>
-
-      <div className="mt-4">
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="terms" 
-            checked={agreeToTerms} 
-            onCheckedChange={(checked) => {
-              setAgreeToTerms(checked === true);
-              if (checked) setTermsError('');
-            }}
-            className="rounded-md transition-all duration-200"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {formError && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+            {formError}
+          </div>
+        )}
+        
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>First Name</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      {...field}
+                      placeholder="First name"
+                      className="pl-10"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <Label htmlFor="terms" className="text-sm">
-            I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>
-          </Label>
+          
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Name</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Last name"
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        {termsError && <div className="text-sm text-destructive mt-1">{termsError}</div>}
-      </div>
-
-      <Button 
-        type="button" 
-        className="w-full mt-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200" 
-        disabled={isLoading || (authType === 'email' && !!emailError) || (authType === 'phone' && !!phoneError) || !agreeToTerms}
-        onClick={handleSubmit}
-      >
-        {isLoading ? 'Processing...' : 'Create Account'}
-      </Button>
-    </Tabs>
+        
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...field}
+                    placeholder="Enter your email"
+                    type="email"
+                    className="pl-10"
+                    disabled={isLoading}
+                    autoComplete="email"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...field}
+                    placeholder="Create a password" 
+                    type="password"
+                    className="pl-10"
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...field}
+                    placeholder="Confirm your password" 
+                    type="password"
+                    className="pl-10"
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="agreeToTerms"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4 bg-muted/50">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and{' '}
+                  <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+                </FormLabel>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
+        
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            'Create Account'
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 };
