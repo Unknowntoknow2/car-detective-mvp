@@ -255,7 +255,7 @@ export const calculateValuation = (params: ValuationParams): ValuationResult => 
   // Mock implementation to match the interface
   return {
     estimatedValue: 25000,
-    confidence_score: 90,
+    confidenceScore: 90,
     price_range: [23500, 26500],
     base_price: 24000,
     zip_demand_factor: 1.05,
@@ -356,7 +356,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
 
   return {
     estimatedValue: estimatedValue,
-    confidence_score: confidenceScore,
+    confidenceScore: confidenceScore,
     price_range: priceRange,
     base_price: baseValue,
     zip_demand_factor: 1.0,
