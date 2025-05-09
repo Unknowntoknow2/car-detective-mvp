@@ -1,10 +1,13 @@
 
+import React from 'react';
 import { Badge } from "@/components/ui/badge";
 
 export function CarfaxBadge() {
   return (
-    <Badge variant="outline" className="bg-primary/5 text-primary font-medium py-1.5 px-3 mb-4">
-      CARFAX® Report Included ($44 value)
-    </Badge>
+    <div className="flex justify-center sm:justify-start">
+      <Badge variant="outline" className="bg-primary/5 text-primary py-1.5 px-3 mb-2 font-medium">
+        CARFAX® Report Included ($44 value)
+      </Badge>
+    </div>
   );
 }
