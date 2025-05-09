@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { LookupTabs } from '@/components/premium/lookup/LookupTabs';
@@ -19,6 +19,13 @@ export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
+  // Debugging logs to track vehicle data
+  useEffect(() => {
+    if (vehicle) {
+      console.log("Vehicle data updated:", vehicle);
+    }
+  }, [vehicle]);
+  
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -31,6 +38,20 @@ export default function PremiumPage() {
     setLookup(value);
     // Reset vehicle data when changing lookup method
     reset();
+  };
+
+  const handleLookupSubmit = async (type: 'vin' | 'plate' | 'manual', identifier: string, state?: string, data?: any) => {
+    try {
+      // Call lookupVehicle and handle the result
+      const result = await lookupVehicle(type, identifier, state, data);
+      
+      if (result) {
+        console.log("Lookup successful:", result);
+        toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
+      }
+    } catch (error) {
+      console.error("Lookup error:", error);
+    }
   };
 
   const handleManualSubmit = (data: ManualEntryFormData) => {
@@ -86,7 +107,9 @@ export default function PremiumPage() {
               formProps={{ 
                 onSubmit: handleManualSubmit,
                 isLoading: isLoading,
-                submitButtonText: "Get Premium Valuation"
+                submitButtonText: "Get Premium Valuation",
+                onVinLookup: (vin) => handleLookupSubmit('vin', vin),
+                onPlateLookup: (plate, state) => handleLookupSubmit('plate', plate, state)
               }} 
             />
             

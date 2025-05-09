@@ -1,61 +1,49 @@
 
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2 } from 'lucide-react';
-import { FormValidationError } from '@/components/premium/common/FormValidationError';
-import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
+import { Label } from '@/components/ui/label';
+import { validateVIN } from '@/utils/validation/vin-validation';
 
 interface VinInputProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  validationError: string | null;
-  externalError?: string | null;
-  touched: boolean;
-  isValid: boolean;
-  isLoading: boolean;
-  onKeyPress?: (e: React.KeyboardEvent) => void;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  label?: string;
 }
 
-export function VinInput({
-  value,
-  onChange,
-  validationError,
-  externalError,
-  touched,
-  isValid,
-  isLoading,
-  onKeyPress
-}: VinInputProps) {
+export function VinInput({ value, onChange, placeholder = "Enter VIN", label }: VinInputProps) {
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (value && value.length > 0) {
+      if (value.length !== 17) {
+        setError('VIN must be 17 characters');
+      } else {
+        // Basic validation
+        const isValid = /^[A-HJ-NPR-Z0-9]{17}$/i.test(value);
+        setError(isValid ? null : 'Invalid VIN format');
+      }
+    } else {
+      setError(null);
+    }
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value.toUpperCase());
+  };
+
   return (
-    <div className="space-y-3">
-      <div className="relative">
-        <Input 
-          value={value}
-          onChange={onChange}
-          placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
-          className={`text-lg font-mono tracking-wide h-12 pr-10 ${
-            (touched && validationError) ? 'border-red-500 focus-visible:ring-red-500' : 
-            (isValid) ? 'border-green-500 focus-visible:ring-green-500' : ''
-          }`}
-          onKeyPress={onKeyPress}
-        />
-        {isValid && !isLoading && (
-          <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
-        )}
-      </div>
-      
-      {touched && validationError ? (
-        <FormValidationError 
-          error={validationError}
-          variant="error"
-        />
-      ) : externalError ? (
-        <FormValidationError 
-          error={externalError} 
-          variant="error"
-        />
-      ) : (
-        <VinInfoMessage />
-      )}
+    <div className="space-y-2">
+      {label && <Label htmlFor="vin">{label}</Label>}
+      <Input
+        id="vin"
+        value={value}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className={`font-mono ${error ? 'border-red-300' : value.length === 17 ? 'border-green-300' : ''}`}
+        maxLength={17}
+      />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   );
 }
