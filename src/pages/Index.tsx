@@ -71,7 +71,8 @@ export default function Index() {
                     Get comprehensive analysis with CARFAX® report and dealer-competitive offers.
                   </p>
                 </div>
-                <PremiumTabs />
+                {/* Show only the Premium component, not free valuation */}
+                <PremiumTabs showFreeValuation={false} />
               </TabsContent>
             </Tabs>
           </div>

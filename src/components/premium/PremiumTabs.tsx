@@ -6,35 +6,49 @@ import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { LookupTabs } from "@/components/home/LookupTabs";
 
-export function PremiumTabs() {
-  return (
-    <Tabs defaultValue="basic" className="max-w-4xl mx-auto">
-      <TabsList className="grid w-full grid-cols-2 h-auto p-1">
-        <TabsTrigger 
-          value="basic" 
-          className="py-3 px-4 rounded-md data-[state=active]:shadow-sm"
-        >
-          Free Valuation
-        </TabsTrigger>
-        <TabsTrigger 
-          value="premium" 
-          className="py-3 px-4 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
-        >
-          Premium Report
-        </TabsTrigger>
-      </TabsList>
+interface PremiumTabsProps {
+  showFreeValuation?: boolean;
+}
 
-      <TabsContent value="basic" className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Free Valuation</CardTitle>
-            <CardDescription>Get a quick, AI-powered estimate based on market data.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LookupTabs />
-          </CardContent>
-        </Card>
-      </TabsContent>
+export function PremiumTabs({ showFreeValuation = true }: PremiumTabsProps) {
+  // If showFreeValuation is false, we'll default to premium tab
+  const defaultTab = showFreeValuation ? "basic" : "premium";
+  
+  return (
+    <Tabs defaultValue={defaultTab} className="max-w-4xl mx-auto">
+      {showFreeValuation ? (
+        <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+          <TabsTrigger 
+            value="basic" 
+            className="py-3 px-4 rounded-md data-[state=active]:shadow-sm"
+          >
+            Free Valuation
+          </TabsTrigger>
+          <TabsTrigger 
+            value="premium" 
+            className="py-3 px-4 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            Premium Report
+          </TabsTrigger>
+        </TabsList>
+      ) : (
+        // When showFreeValuation is false, don't show tabs selector - only premium content
+        <div className="mb-6"></div>
+      )}
+
+      {showFreeValuation && (
+        <TabsContent value="basic" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Free Valuation</CardTitle>
+              <CardDescription>Get a quick, AI-powered estimate based on market data.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LookupTabs />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      )}
 
       <TabsContent value="premium" className="mt-6">
         <Card className="border-2 border-primary">
