@@ -3,7 +3,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Car, Shield, DollarSign, Star, LogIn } from 'lucide-react';
-import HeroImage from '@/assets/hero-car.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 
 const HomePage: React.FC = () => {
@@ -41,11 +40,11 @@ const HomePage: React.FC = () => {
               </div>
             </div>
             <div className="hidden lg:block">
-              <img 
-                src={HeroImage} 
-                alt="Car valuation" 
-                className="rounded-lg shadow-2xl max-w-md mx-auto transform -rotate-2"
-              />
+              <div 
+                className="rounded-lg shadow-2xl max-w-md mx-auto transform -rotate-2 bg-gradient-to-r from-gray-700 to-gray-800 h-80 flex items-center justify-center"
+              >
+                <Car className="h-32 w-32 text-white/60" />
+              </div>
             </div>
           </div>
         </div>
