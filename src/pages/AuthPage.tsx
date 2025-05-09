@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const AuthPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth?.() || {};
+  const [isLoading, setIsLoading] = useState(false);
   
   // Redirect already logged in users
   React.useEffect(() => {
@@ -37,11 +38,11 @@ const AuthPage = () => {
               </TabsList>
               
               <TabsContent value="login">
-                <LoginForm />
+                <LoginForm isLoading={isLoading} setIsLoading={setIsLoading} />
               </TabsContent>
               
               <TabsContent value="signup">
-                <SignupForm />
+                <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
               </TabsContent>
             </Tabs>
           </CardContent>
