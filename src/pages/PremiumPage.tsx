@@ -9,12 +9,15 @@ import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { PremiumHero } from '@/components/premium/PremiumHero';
 import { EnhancedPremiumFeaturesTabs } from '@/components/premium/features/EnhancedPremiumFeaturesTabs';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export default function PremiumPage() {
-  const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
+  const { lookupVehicle, isLoading, vehicle, reset } = useVehicleLookup();
   const [lookup, setLookup] = useState<'vin' | 'plate' | 'manual'>('vin');
   const featuresRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,10 +29,32 @@ export default function PremiumPage() {
 
   const handleLookupChange = (value: 'vin' | 'plate' | 'manual') => {
     setLookup(value);
+    // Reset vehicle data when changing lookup method
+    reset();
   };
 
   const handleManualSubmit = (data: ManualEntryFormData) => {
     lookupVehicle('manual', 'manual-entry', undefined, data);
+  };
+
+  const handleProceedToValuation = () => {
+    if (!vehicle) return;
+    
+    // Save vehicle details to localStorage for the premium valuation process
+    localStorage.setItem("premium_vehicle", JSON.stringify({
+      identifierType: 'vin',
+      identifier: vehicle.vin || '',
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      trim: vehicle.trim || "Standard",
+      bodyType: vehicle.bodyType,
+      transmission: vehicle.transmission,
+      drivetrain: vehicle.drivetrain
+    }));
+    
+    toast.success("Vehicle information saved. Continuing to premium valuation.");
+    navigate("/premium-valuation");
   };
 
   return (
@@ -66,7 +91,7 @@ export default function PremiumPage() {
             />
             
             {vehicle && (
-              <div className="mt-8 bg-white p-6 rounded-lg shadow-sm border">
+              <div className="mt-8 bg-white p-6 rounded-lg shadow-sm border animate-fade-in">
                 <h2 className="text-xl font-semibold mb-4">Vehicle Information</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -76,12 +101,15 @@ export default function PremiumPage() {
                   </div>
                   <div className="space-y-2">
                     {vehicle.trim && <p><span className="font-medium">Trim:</span> {vehicle.trim}</p>}
-                    {vehicle.mileage && <p><span className="font-medium">Mileage:</span> {vehicle.mileage.toLocaleString()}</p>}
                     {vehicle.bodyType && <p><span className="font-medium">Body Type:</span> {vehicle.bodyType}</p>}
+                    {vehicle.transmission && <p><span className="font-medium">Transmission:</span> {vehicle.transmission}</p>}
+                    {vehicle.drivetrain && <p><span className="font-medium">Drivetrain:</span> {vehicle.drivetrain}</p>}
                   </div>
                 </div>
                 <div className="mt-6">
-                  <Button className="w-full">Proceed to Premium Valuation</Button>
+                  <Button className="w-full" onClick={handleProceedToValuation}>
+                    Proceed to Premium Valuation
+                  </Button>
                 </div>
               </div>
             )}
