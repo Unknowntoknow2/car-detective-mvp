@@ -65,10 +65,11 @@ export interface FinalValuationResult {
   regionalAdjustment?: number;
 }
 
-// Add ValuationParams and ValuationResult for backwards compatibility
-export type ValuationParams = EnhancedValuationParams & { 
-  baseMarketValue: number; // Make this required here
-};
+// Update ValuationParams to make baseMarketValue required
+export type ValuationParams = {
+  baseMarketValue: number; // Make this required
+} & Omit<EnhancedValuationParams, 'baseMarketValue'>;
+
 export type ValuationResult = FinalValuationResult;
 
 // Add ValuationOutput for backward compatibility with existing code

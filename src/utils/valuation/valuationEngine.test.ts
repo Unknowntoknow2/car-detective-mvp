@@ -1,6 +1,6 @@
 
 import { calculateValuation, getBaseValue } from './valuationEngine';
-import { EnhancedValuationParams } from './types';
+import { EnhancedValuationParams, ValuationParams } from './types';
 import { supabase } from '@/integrations/supabase/client';
 
 // Mock Supabase
@@ -78,7 +78,7 @@ describe('valuationEngine', () => {
         json: jest.fn().mockResolvedValue({ baseValue: 25000 })
       } as unknown as Response);
       
-      const params: EnhancedValuationParams = {
+      const params: ValuationParams = {
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
@@ -87,7 +87,7 @@ describe('valuationEngine', () => {
         zipCode: '90210', // Add zipCode parameter
         fuelType: 'hybrid',
         bodyType: 'sedan',
-        baseMarketValue: 25000 // Add required baseMarketValue
+        baseMarketValue: 25000 // Required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -99,7 +99,7 @@ describe('valuationEngine', () => {
     });
     
     it('should account for accident history', async () => {
-      const params: EnhancedValuationParams = {
+      const params: ValuationParams = {
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
@@ -108,7 +108,7 @@ describe('valuationEngine', () => {
         zipCode: '90210', // Add zipCode parameter
         accidentCount: 2,
         titleStatus: 'clean', // Keep this for backward compatibility
-        baseMarketValue: 25000 // Add required baseMarketValue
+        baseMarketValue: 25000 // Required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -123,14 +123,14 @@ describe('valuationEngine', () => {
     });
     
     it('should handle missing optional parameters', async () => {
-      const params: EnhancedValuationParams = {
+      const params: ValuationParams = {
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
         mileage: 30000,
         condition: 'good',
         zipCode: '90210', // Add zipCode parameter
-        baseMarketValue: 25000 // Add required baseMarketValue
+        baseMarketValue: 25000 // Required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -152,14 +152,14 @@ describe('valuationEngine', () => {
         })
       });
       
-      const params: EnhancedValuationParams = {
+      const params: ValuationParams = {
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
         mileage: 30000,
         condition: 'good',
         zipCode: '90210', // Add zipCode parameter
-        baseMarketValue: 25000 // Add required baseMarketValue
+        baseMarketValue: 25000 // Required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -173,7 +173,7 @@ describe('valuationEngine', () => {
     });
     
     it('should handle premium features', async () => {
-      const params: EnhancedValuationParams = {
+      const params: ValuationParams = {
         make: 'Toyota',
         model: 'Camry',
         year: 2020,
@@ -181,7 +181,7 @@ describe('valuationEngine', () => {
         condition: 'good',
         zipCode: '90210', // Add zipCode parameter
         premiumFeatures: ['leather_seats', 'navigation', 'sunroof'],
-        baseMarketValue: 25000 // Add required baseMarketValue
+        baseMarketValue: 25000 // Required baseMarketValue
       };
       
       const result = await calculateValuation(params);

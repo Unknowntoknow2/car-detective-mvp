@@ -64,4 +64,5 @@ export interface AdjustmentBreakdown {
   impact: number;
   adjustment?: number;
   impactPercentage?: number;
+  percentage?: number; // Add percentage property for compatibility
 }

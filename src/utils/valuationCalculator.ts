@@ -93,7 +93,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Handle feature adjustments properly
+    // Fix: Handle feature adjustments properly, only passing needed parameters
     const featureResult = getFeatureAdjustments(params.features, baseValue);
     let featureImpact: number;
 

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { calculateFinalValuation } from '@/utils/valuationEngine';
+import { calculateFinalValuation } from '@/utils/valuation/valuationEngine';
 import { AdjustmentBreakdown } from '@/types/photo';
 
 export type ManualVehicleInfo = {
@@ -31,7 +31,7 @@ export function useManualValuation() {
     setError(null);
 
     try {
-      // The baseMarketValue must be provided in the params object
+      // Ensure baseMarketValue is provided in the ValuationParams object
       const valuationParams = {
         make: data.make,
         model: data.model,
@@ -42,7 +42,7 @@ export function useManualValuation() {
         trim: data.trim,
         accidentCount: data.accidentCount,
         features: data.premiumFeatures,
-        baseMarketValue: 25000 // Default base value
+        baseMarketValue: 25000 // Required baseMarketValue
       };
       
       const result = await calculateFinalValuation(valuationParams);
