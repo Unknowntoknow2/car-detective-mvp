@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Photo, PhotoScore, PhotoScoringResult, AICondition, PhotoAnalysisResult } from '@/types/photo';
@@ -10,8 +11,22 @@ interface UsePhotoScoringOptions {
 export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<PhotoAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [photoScores, setPhotoScores] = useState<PhotoScore[]>([]);
+  
+  const handleFileSelect = useCallback((files: File[]) => {
+    const newPhotos = files.map(file => ({
+      id: Math.random().toString(36).substring(2),
+      file,
+      name: file.name,
+      uploading: false,
+      uploaded: false
+    }));
+    
+    setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
+  }, []);
   
   const uploadPhoto = useCallback(async (file: File) => {
     setIsAnalyzing(true);
@@ -78,8 +93,10 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       // Update photos with scores if individual scores are available
       if (result.individualScores && result.individualScores.length > 0) {
         const updatedPhotos = [...photos];
+        const newPhotoScores: PhotoScore[] = [];
         
         result.individualScores.forEach(scoreData => {
+          newPhotoScores.push(scoreData);
           const photoIndex = updatedPhotos.findIndex(p => p.url === scoreData.url);
           if (photoIndex >= 0) {
             updatedPhotos[photoIndex] = {
@@ -91,6 +108,7 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
         });
         
         setPhotos(updatedPhotos);
+        setPhotoScores(newPhotoScores);
       }
       
       return result;
@@ -103,6 +121,54 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
       setIsAnalyzing(false);
     }
   }, [photos, valuationId]);
+  
+  const handleUpload = useCallback(async () => {
+    setIsUploading(true);
+    setError(null);
+    
+    try {
+      // Process each photo for upload
+      const uploadPromises = photos
+        .filter(p => !p.uploaded && p.file)
+        .map(photo => {
+          markPhotoAsUploading(photo.id);
+          return uploadPhotoFile(photo.file as File, photo.id);
+        });
+      
+      await Promise.all(uploadPromises);
+      
+      // Now analyze all photos
+      const result = await analyzePhotos();
+      setIsUploading(false);
+      return result;
+    } catch (error: any) {
+      setIsUploading(false);
+      const errorMsg = error.message || 'Failed to upload photos';
+      setError(errorMsg);
+      console.error('Upload error:', error);
+      throw error;
+    }
+  }, [photos]);
+  
+  // Helper function to upload a single photo file
+  const uploadPhotoFile = async (file: File, photoId: string) => {
+    try {
+      const filename = `${valuationId}/${Math.random().toString(36).substring(2)}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(filename, file);
+        
+      if (error) throw error;
+      
+      const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
+      
+      markPhotoAsUploaded(photoId, url);
+      return url;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
+  };
   
   const removePhoto = useCallback((photoId: string) => {
     setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoId));
@@ -118,23 +184,47 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
   }, []);
   
   // Mark a photo as uploaded
-  const markPhotoAsUploaded = useCallback((photoId: string) => {
+  const markPhotoAsUploaded = useCallback((photoId: string, url?: string) => {
     setPhotos(prevPhotos => 
       prevPhotos.map(photo => 
-        photo.id === photoId ? { ...photo, uploading: false, uploaded: true } : photo
+        photo.id === photoId ? { 
+          ...photo, 
+          uploading: false, 
+          uploaded: true,
+          ...(url ? { url } : {})
+        } : photo
       )
     );
   }, []);
   
+  // Create photo scores array from photos
+  const createPhotoScores = useCallback(() => {
+    const scores = photos
+      .filter(photo => photo.uploaded && photo.url)
+      .map(photo => ({
+        url: photo.url as string,
+        score: photo.score || 0.7, // Default score if not available
+        isPrimary: photo.isPrimary || false
+      }));
+    
+    setPhotoScores(scores);
+    return scores;
+  }, [photos]);
+  
   return {
     photos,
     isAnalyzing,
+    isUploading,
     analysisResult,
     error,
-    uploadPhoto: () => {}, // implement or remove if not needed
+    photoScores,
+    uploadPhoto,
     analyzePhotos,
     removePhoto,
     markPhotoAsUploading,
-    markPhotoAsUploaded
+    markPhotoAsUploaded,
+    handleFileSelect,
+    handleUpload,
+    createPhotoScores
   };
 }

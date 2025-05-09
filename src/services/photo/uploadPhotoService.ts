@@ -28,7 +28,8 @@ export async function uploadPhotos(photos: Photo[], valuationId: string): Promis
       return {
         ...photo,
         url,
-        uploaded: true
+        uploaded: true,
+        uploading: false
       };
     });
     
