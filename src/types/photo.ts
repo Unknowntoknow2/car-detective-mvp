@@ -2,13 +2,20 @@
 export const MAX_FILES = 6;
 export const MIN_FILES = 1;
 
-export interface PhotoFile {
-  file: File;
+export interface Photo {
   id: string;
-  preview: string;
-  uploaded?: boolean;
+  file?: File;
+  name?: string;
+  size?: number;
+  type?: string;
   url?: string;
+  preview?: string;
+  uploading?: boolean;
+  uploaded?: boolean;
   error?: string;
+  score?: number;
+  isPrimary?: boolean;
+  explanation?: string;
 }
 
 export interface AICondition {
@@ -22,6 +29,7 @@ export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
+  issues?: string[];
 }
 
 export interface AdjustmentBreakdown {
@@ -33,9 +41,27 @@ export interface AdjustmentBreakdown {
   impact: number;
   adjustment?: number;
   impactPercentage?: number;
+  percentage?: number; // Adding missing property causing errors
 }
 
 export interface PhotoAssessmentResult {
   aiCondition: AICondition;
   photoScores: PhotoScore[];
+}
+
+export interface PhotoScoringResult {
+  photoScore: number;
+  score: number;
+  individualScores: PhotoScore[];
+  photoUrls: string[];
+  bestPhotoUrl?: string;
+  aiCondition: AICondition;
+  error?: string;
+}
+
+export interface PhotoAnalysisResult {
+  photoUrls: string[];
+  score: number;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
 }

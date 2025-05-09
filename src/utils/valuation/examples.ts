@@ -1,92 +1,174 @@
+import {
+  ValuationParams,
+  ValuationResult,
+  EnhancedValuationParams,
+  FinalValuationResult
+} from './types';
 
-/**
- * Examples of using the valuation engine
- */
+// Example base market value
+export const baseMarketValue = 25000;
 
-import { calculateFinalValuation, ValuationInput } from './calculateFinalValuation';
-import { FinalValuationResult } from './types';
+// Example mileage
+export const mileage = 50000;
 
-/**
- * Simple example of using the valuation engine with minimal parameters
- */
-export async function basicValuationExample(): Promise<FinalValuationResult> {
-  // Define the vehicle details
-  const vehicleParams: ValuationInput = {
-    make: 'Toyota',
-    model: 'Camry',
-    year: 2018,
-    mileage: 45000,
+// Example condition
+export const condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' = 'Good';
+
+// Example zip code
+export const zipCode = '90210';
+
+// Example premium features
+export const premiumFeatures = ['Leather Seats', 'Navigation System'];
+
+// Example ValuationParams object
+export const valuationParams: ValuationParams = {
+  baseMarketValue: baseMarketValue,
+  mileage: mileage,
+  condition: condition,
+  zipCode: zipCode,
+  features: premiumFeatures,
+  make: 'Toyota',
+  model: 'Camry',
+  year: 2018
+};
+
+// Example ValuationResult object
+export const valuationResult: ValuationResult = {
+  finalValue: 28000,
+  adjustments: [
+    {
+      name: 'Mileage',
+      value: -1000,
+      description: 'Below average mileage',
+      percentAdjustment: -3.4,
+      factor: 'mileage',
+      impact: -1000
+    },
+    {
+      name: 'Condition',
+      value: 2000,
+      description: 'Good condition',
+      percentAdjustment: 6.9,
+      factor: 'condition',
+      impact: 2000
+    },
+    {
+      name: 'Regional Market',
+      value: 1500,
+      description: 'High demand in your area',
+      percentAdjustment: 5.2,
+      factor: 'location',
+      impact: 1500
+    },
+    {
+      name: 'Premium Features',
+      value: 500,
+      description: 'Leather seats and navigation system',
+      percentAdjustment: 1.7,
+      factor: 'features',
+      impact: 500
+    },
+    {
+      name: 'Market Trends',
+      value: 1000,
+      description: 'Favorable market trends',
+      percentAdjustment: 3.4,
+      factor: 'trends',
+      impact: 1000
+    }
+  ],
+  confidenceScore: 95,
+  baseValue: baseMarketValue,
+  estimatedValue: 28000,
+  priceRange: [26500, 29500]
+};
+
+// Example EnhancedValuationParams object
+export const enhancedValuationParams: EnhancedValuationParams = {
+  baseMarketValue: baseMarketValue,
+  mileage: mileage,
+  condition: condition,
+  zipCode: zipCode,
+  features: premiumFeatures,
+  accidentCount: 0,
+  trim: 'LE',
+  bodyType: 'Sedan',
+  transmission: 'Automatic',
+  fuelType: 'Gasoline',
+  make: 'Toyota',
+  model: 'Camry',
+  year: 2018,
+  aiConditionOverride: {
     condition: 'Good',
-    zipCode: '90210', // Important for regional adjustments
-    // Optional parameters can be added for more accurate valuation
-  };
-  
-  // Define a base market value if you have one, otherwise
-  // the system will estimate one based on the vehicle details
-  const basePrice = 25000;
-  
-  // Calculate the valuation
-  return await calculateFinalValuation(vehicleParams, basePrice);
-}
+    confidenceScore: 80,
+    issuesDetected: [],
+    aiSummary: 'Vehicle is in good condition with no visible issues.'
+  }
+};
 
-/**
- * Example with all possible parameters for maximum accuracy
- */
-export async function detailedValuationExample(): Promise<FinalValuationResult> {
-  // Define comprehensive vehicle details
-  const vehicleParams: ValuationInput = {
-    make: 'BMW',
-    model: '3 Series',
-    year: 2020,
-    mileage: 25000,
-    condition: 'Excellent',
-    zipCode: '10001', // NYC
-    trim: '330i',
-    fuelType: 'Gasoline',
-    transmission: 'Automatic',
-    features: [
-      'leather_seats',
-      'navigation',
-      'premium_audio',
-      'panoramic_roof'
-    ],
-    accidentCount: 0,
-    color: 'Black'
-  };
-  
-  // Use a known market value if available
-  const basePrice = 35000;
-  
-  // Calculate the valuation
-  return await calculateFinalValuation(vehicleParams, basePrice);
-}
-
-/**
- * Example using photos and AI analysis
- */
-export async function photoBasedValuationExample(photoScore: number): Promise<FinalValuationResult> {
-  // Basic vehicle details
-  const vehicleParams: ValuationInput = {
-    make: 'Honda',
-    model: 'Accord',
-    year: 2019,
-    mileage: 30000,
-    condition: 'Good', // User-reported condition
-    zipCode: '60601', // Chicago
-    photoScore: photoScore // Photo analysis score (0-1)
-  };
-  
-  // AI-detected condition (could come from photo analysis)
-  const aiCondition = {
-    condition: 'Good',
-    confidenceScore: 85,
-    issuesDetected: ['minor_scratches'],
-    aiSummary: 'Vehicle appears to be in good condition with minor scratches on the driver-side door.'
-  };
-  
-  // Use an estimated base value
-  const baseValue = 22000;
-  
-  // Calculate valuation using photo data
-  return await calculateFinalValuation(vehicleParams, baseValue, aiCondition);
-}
+// Example FinalValuationResult object
+export const finalValuationResult: FinalValuationResult = {
+  finalValue: 30000,
+  adjustments: [
+    {
+      name: 'Mileage',
+      value: -1000,
+      description: 'Below average mileage',
+      percentAdjustment: -3.3,
+      factor: 'mileage',
+      impact: -1000
+    },
+    {
+      name: 'Condition',
+      value: 2000,
+      description: 'Good condition',
+      percentAdjustment: 6.7,
+      factor: 'condition',
+      impact: 2000
+    },
+    {
+      name: 'Regional Market',
+      value: 1500,
+      description: 'High demand in your area',
+      percentAdjustment: 5.0,
+      factor: 'location',
+      impact: 1500
+    },
+    {
+      name: 'Premium Features',
+      value: 500,
+      description: 'Leather seats and navigation system',
+      percentAdjustment: 1.7,
+      factor: 'features',
+      impact: 500
+    },
+    {
+      name: 'Accident History',
+      value: -500,
+      description: 'No accident history',
+      percentAdjustment: -1.7,
+      factor: 'accident',
+      impact: -500
+    },
+    {
+      name: 'Trim Level',
+      value: 500,
+      description: 'LE trim level',
+      percentAdjustment: 1.7,
+      factor: 'trim',
+      impact: 500
+    },
+    {
+      name: 'Market Trends',
+      value: 1000,
+      description: 'Favorable market trends',
+      percentAdjustment: 3.3,
+      factor: 'trends',
+      impact: 1000
+    }
+  ],
+  confidenceScore: 95,
+  baseValue: baseMarketValue,
+  estimatedValue: 30000,
+  priceRange: [28500, 31500]
+};

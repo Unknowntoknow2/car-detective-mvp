@@ -40,7 +40,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       percentAdjustment: (mileageImpact / baseValue) * 100,
       factor: 'Mileage',
       value: mileageImpact,
-      percentage: (mileageImpact / baseValue) * 100 // Keep for backward compatibility
+      percentAdjustment: (mileageImpact / baseValue) * 100 // Keep for backward compatibility
     });
     totalAdjustment += mileageImpact;
     confidenceScore += 3;
@@ -56,7 +56,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       percentAdjustment: multiplier * 100,
       factor: 'Condition',
       value: impact,
-      percentage: multiplier * 100 // Keep for backward compatibility
+      percentAdjustment: multiplier * 100 // Keep for backward compatibility
     });
     totalAdjustment += impact;
     confidenceScore += 2;
@@ -72,7 +72,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       percentAdjustment: multiplier * 100,
       factor: 'Regional Market',
       value: impact,
-      percentage: multiplier * 100 // Keep for backward compatibility
+      percentAdjustment: multiplier * 100 // Keep for backward compatibility
     });
     totalAdjustment += impact;
     confidenceScore += 3;
@@ -97,7 +97,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       percentAdjustment: (featureAdjustmentValue / baseValue) * 100,
       factor: 'Premium Features',
       value: featureAdjustmentValue,
-      percentage: (featureAdjustmentValue / baseValue) * 100 // Keep for backward compatibility
+      percentAdjustment: (featureAdjustmentValue / baseValue) * 100 // Keep for backward compatibility
     });
     totalAdjustment += featureAdjustmentValue;
     confidenceScore += 2;
@@ -114,7 +114,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
         percentAdjustment: (trendImpact / baseValue) * 100,
         factor: 'Market Trends',
         value: trendImpact,
-        percentage: (trendImpact / baseValue) * 100 // Keep for backward compatibility
+        percentAdjustment: (trendImpact / baseValue) * 100 // Keep for backward compatibility
       });
       totalAdjustment += trendImpact;
       confidenceScore += 2;

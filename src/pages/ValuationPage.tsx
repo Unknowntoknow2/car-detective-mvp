@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +32,7 @@ const ValuationPage = () => {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [selectedMake, setSelectedMake] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
   
   // Use the valuation pipeline hook
   const {
@@ -76,7 +76,7 @@ const ValuationPage = () => {
       // Submit the valuation request
       const success = await submitValuation({
         mileage: data.mileage,
-        condition: data.condition,
+        condition: Number(data.condition), // Fixed: converting string to number
         conditionLabel: data.condition.charAt(0).toUpperCase() + data.condition.slice(1),
         zipCode: data.zipCode,
       });
@@ -117,7 +117,10 @@ const ValuationPage = () => {
       return;
     }
     
+    setSelectedYear(yearValue);
+    
     try {
+      // Fixed: using correct parameter signature
       await runLookup('manual', 'manual-entry', undefined, {
         make: selectedMake,
         model: selectedModel,

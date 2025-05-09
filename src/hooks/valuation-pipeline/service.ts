@@ -1,251 +1,190 @@
 
-import { 
-  IdentifierType, 
-  Vehicle, 
-  RequiredInputs,
-  ValuationResult 
-} from './types';
+import { IdentifierType, RequiredInputs, Stage, ValuationPipelineState, ValuationResult, Vehicle } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Decode vehicle information from an identifier (VIN, license plate, etc.)
- */
-export async function decodeVehicle(
-  type: IdentifierType, 
-  identifier: string, 
-  state?: string
-): Promise<{ vehicle: Vehicle | null; error: string | null }> {
+export async function lookupVehicle(
+  type: IdentifierType,
+  identifier: string,
+  state?: string,
+  manualData?: { make: string; model: string; year: number; trim?: string; fuelType?: string; bodyType?: string; }
+): Promise<ValuationPipelineState> {
   try {
-    if (type === 'manual') {
-      const parts = identifier.split('|');
-      const vehicleData = typeof parts[2] === 'object' ? parts[2] : {
-        make: parts[0] || '',
-        model: parts[1] || '',
-        year: parseInt(parts[2] || '0', 10) || new Date().getFullYear(),
+    // Set the initial state to lookup in progress
+    const initialState: ValuationPipelineState = {
+      stage: 'lookup_in_progress',
+      vehicle: null,
+      requiredInputs: null,
+      valuationResult: null,
+      error: null,
+      isLoading: true
+    };
+
+    // Handle manual entry for vehicles not in database
+    if (type === 'manual' && manualData) {
+      const vehicle: Vehicle = {
+        make: manualData.make,
+        model: manualData.model,
+        year: manualData.year,
+        trim: manualData.trim || '',
+        fuelType: manualData.fuelType || '',
+        bodyType: manualData.bodyType || ''
       };
-      
+
+      // Prepare required inputs
+      const requiredInputs: RequiredInputs = {
+        mileage: null,
+        fuelType: null,
+        zipCode: '',
+        condition: 4, // Default to good condition
+        conditionLabel: 'Good'
+      };
+
       return {
-        vehicle: {
-          make: vehicleData.make || '',
-          model: vehicleData.model || '',
-          year: vehicleData.year || 0,
-          trim: vehicleData.trim || '',
-          fuelType: vehicleData.fuelType || '',
-          bodyType: vehicleData.bodyType || '',
-        },
-        error: null
+        ...initialState,
+        stage: 'details_required',
+        vehicle,
+        requiredInputs,
+        isLoading: false
       };
     }
-    
-    // Mock data for demonstration
-    let mockResponse: Vehicle;
-    
+
+    // Handle VIN lookup
     if (type === 'vin') {
-      mockResponse = {
+      // Mock data for the VIN lookup, replace with actual API call
+      const vehicle: Vehicle = {
         make: 'Toyota',
         model: 'Camry',
         year: 2019,
         trim: 'LE',
         fuelType: 'Gasoline',
-        bodyType: 'Sedan',
+        transmission: 'Automatic',
+        bodyType: 'Sedan'
       };
-    } else if (type === 'plate') {
-      mockResponse = {
-        make: 'Honda',
-        model: 'Civic',
-        year: 2020,
-        trim: 'EX',
+
+      // Prepare required inputs
+      const requiredInputs: RequiredInputs = {
+        mileage: null,
         fuelType: 'Gasoline',
-        bodyType: 'Sedan',
+        zipCode: '',
+        condition: 4, // Default to good condition
+        conditionLabel: 'Good'
       };
-    } else {
+
       return {
-        vehicle: null,
-        error: 'Unsupported lookup type'
+        ...initialState,
+        stage: 'details_required',
+        vehicle,
+        requiredInputs,
+        isLoading: false
       };
     }
-    
-    // Add a small delay to simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+
+    // Handle plate lookup
+    if (type === 'plate' && state) {
+      // Mock data for plate lookup, replace with actual API call
+      const vehicle: Vehicle = {
+        make: 'Honda',
+        model: 'Accord',
+        year: 2020,
+        bodyType: 'Sedan'
+      };
+
+      // Prepare required inputs
+      const requiredInputs: RequiredInputs = {
+        mileage: null,
+        fuelType: null,
+        zipCode: '',
+        condition: 4, // Default to good condition
+        conditionLabel: 'Good'
+      };
+
+      return {
+        ...initialState,
+        stage: 'details_required',
+        vehicle,
+        requiredInputs,
+        isLoading: false
+      };
+    }
+
+    // Return error state if lookup type is not supported
     return {
-      vehicle: mockResponse,
-      error: null
+      ...initialState,
+      stage: 'lookup_failed',
+      error: 'Unsupported lookup type',
+      isLoading: false
     };
   } catch (error) {
-    console.error('Error decoding vehicle:', error);
     return {
+      stage: 'lookup_failed',
       vehicle: null,
-      error: 'Failed to decode vehicle information. Please try again.'
+      requiredInputs: null,
+      valuationResult: null,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred during vehicle lookup',
+      isLoading: false
     };
   }
 }
 
-/**
- * Generate a valuation for a vehicle with the provided details
- */
-export async function generateValuation(
-  vehicle: Vehicle, 
+export async function submitValuationDetails(
+  vehicle: Vehicle,
   details: Partial<RequiredInputs>
-): Promise<{ result: ValuationResult | null; error: string | null }> {
+): Promise<ValuationPipelineState> {
   try {
-    // Add a small delay to simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
-    // Mock valuation result
-    const basePrice = calculateBasePrice(vehicle);
-    const mileageAdjustment = calculateMileageAdjustment(details.mileage || 0, vehicle.year);
-    const conditionAdjustment = calculateConditionAdjustment(details.condition || 3);
-    
-    const estimatedValue = Math.round(basePrice + mileageAdjustment + conditionAdjustment);
-    const confidenceScore = calculateConfidenceScore(details);
-    
-    const result: ValuationResult = {
-      id: generateRandomId(),
+    // Set the initial state to valuation in progress
+    const initialState: ValuationPipelineState = {
+      stage: 'valuation_in_progress',
+      vehicle,
+      requiredInputs: { ...details } as RequiredInputs,
+      valuationResult: null,
+      error: null,
+      isLoading: true
+    };
+
+    // Mock valuation result, replace with actual API call
+    const valuationResult: ValuationResult = {
+      id: crypto.randomUUID(),
+      estimated_value: 25000,
+      confidence_score: 90,
+      price_range: [23500, 26500],
+      base_price: 24000,
+      zip_demand_factor: 1.05,
       make: vehicle.make,
       model: vehicle.model,
       year: vehicle.year,
-      trim: vehicle.trim,
-      mileage: details.mileage || 0,
-      condition: details.conditionLabel || 'Good',
-      zipCode: details.zipCode || '90210',
-      estimated_value: estimatedValue,
-      base_price: basePrice,
-      confidence_score: confidenceScore,
       adjustments: [
         {
           factor: 'Mileage',
-          impact: mileageAdjustment,
-          description: `Based on ${(details.mileage || 0).toLocaleString()} miles for a ${vehicle.year} model`
+          impact: -500,
+          description: 'Below average mileage'
         },
         {
           factor: 'Condition',
-          impact: conditionAdjustment,
-          description: `${details.conditionLabel || 'Good'} condition adjustment`
+          impact: 1000,
+          description: 'Good condition adds value'
         },
         {
           factor: 'Market Demand',
-          impact: calculateMarketAdjustment(basePrice, details.zipCode),
-          description: 'Based on market demand in your region'
+          impact: 500,
+          description: 'High demand in your area'
         }
-      ],
-      price_range: [
-        Math.round(estimatedValue * 0.95),
-        Math.round(estimatedValue * 1.05)
-      ],
-      zip_demand_factor: 1.02
+      ]
     };
-    
+
     return {
-      result,
-      error: null
+      ...initialState,
+      stage: 'valuation_complete',
+      valuationResult,
+      isLoading: false
     };
   } catch (error) {
-    console.error('Error generating valuation:', error);
     return {
-      result: null,
-      error: 'Failed to generate valuation. Please try again.'
+      stage: 'valuation_failed',
+      vehicle,
+      requiredInputs: { ...details } as RequiredInputs,
+      valuationResult: null,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred during valuation',
+      isLoading: false
     };
   }
-}
-
-// Helper functions for valuation calculations
-function calculateBasePrice(vehicle: Vehicle): number {
-  // Simple mock calculation based on make, model, and year
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - vehicle.year;
-  
-  let basePrice = 0;
-  
-  // Very simplified base prices
-  if (vehicle.make === 'Toyota') {
-    basePrice = vehicle.model === 'Camry' ? 28000 : 25000;
-  } else if (vehicle.make === 'Honda') {
-    basePrice = vehicle.model === 'Civic' ? 25000 : 27000;
-  } else if (vehicle.make === 'BMW') {
-    basePrice = 45000;
-  } else if (vehicle.make === 'Ford') {
-    basePrice = vehicle.model === 'F-150' ? 40000 : 30000;
-  } else {
-    basePrice = 30000; // Default
-  }
-  
-  // Depreciation based on age
-  const yearlyDepreciation = 0.1; // 10% per year
-  const depreciation = Math.min(0.8, age * yearlyDepreciation); // Cap at 80%
-  
-  return Math.round(basePrice * (1 - depreciation));
-}
-
-function calculateMileageAdjustment(mileage: number, year: number): number {
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-  
-  // Expected mileage based on age (12,000 miles per year)
-  const expectedMileage = age * 12000;
-  const mileageDifference = mileage - expectedMileage;
-  
-  // Adjustment rate (e.g., -$0.1 per mile above expected)
-  const adjustmentRate = -0.1;
-  
-  return Math.round(mileageDifference * adjustmentRate);
-}
-
-function calculateConditionAdjustment(condition: number | string): number {
-  // Convert string condition to number if needed
-  let conditionScore: number;
-  
-  if (typeof condition === 'string') {
-    switch (condition.toLowerCase()) {
-      case 'excellent': conditionScore = 5; break;
-      case 'very good': conditionScore = 4; break;
-      case 'good': conditionScore = 3; break;
-      case 'fair': conditionScore = 2; break;
-      case 'poor': conditionScore = 1; break;
-      default: conditionScore = 3; // Default to 'Good'
-    }
-  } else {
-    conditionScore = condition;
-  }
-  
-  // Adjustments based on condition
-  switch (conditionScore) {
-    case 5: return 1500;  // Excellent
-    case 4: return 800;   // Very Good
-    case 3: return 0;     // Good (baseline)
-    case 2: return -800;  // Fair
-    case 1: return -1500; // Poor
-    default: return 0;
-  }
-}
-
-function calculateMarketAdjustment(basePrice: number, zipCode?: string): number {
-  // Simple mock adjustment based on ZIP code
-  // In a real app, this would use actual market data
-  if (!zipCode) return 0;
-  
-  // Use the first digit of the ZIP code for demo purposes
-  const firstDigit = parseInt(zipCode.charAt(0), 10);
-  const adjustmentFactor = 0.02 * (firstDigit / 9); // 0-2% adjustment
-  
-  return Math.round(basePrice * adjustmentFactor);
-}
-
-function calculateConfidenceScore(details: Partial<RequiredInputs>): number {
-  // Base confidence score
-  let score = 85;
-  
-  // Adjust based on available data
-  if (details.mileage) score += 5;
-  if (details.condition) score += 5;
-  if (details.zipCode) score += 5;
-  if (details.hasAccident === false) score += 5; // Known no-accident
-  if (details.hasAccident === true) score -= 5;  // Known accident
-  
-  // Cap the score between 60 and 98
-  return Math.min(98, Math.max(60, score));
-}
-
-function generateRandomId(): string {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
 }

@@ -126,8 +126,6 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
                 mileage: requiredInputs?.mileage,
                 condition: requiredInputs?.conditionLabel
               }}
-              onDownloadPdf={onDownloadPdf}
-              onEmailReport={() => toast.success("Email report functionality will be implemented soon!")}
             />
           </CardContent>
         </Card>

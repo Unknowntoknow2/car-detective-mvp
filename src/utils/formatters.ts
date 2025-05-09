@@ -27,3 +27,15 @@ export function formatPercentage(value: number): string {
     maximumFractionDigits: 1
   }).format(value / 100);
 }
+
+/**
+ * Formats a date as MM/DD/YYYY
+ */
+export function formatDate(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric'
+  });
+}

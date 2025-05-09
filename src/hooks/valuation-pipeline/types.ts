@@ -1,5 +1,5 @@
 
-export type IdentifierType = 'vin' | 'plate';
+export type IdentifierType = 'vin' | 'plate' | 'manual';
 
 export type Stage = 
   | 'initial' 
@@ -19,6 +19,7 @@ export interface Vehicle {
   engine?: string;
   transmission?: string;
   fuelType?: string;
+  bodyType?: string;
 }
 
 export interface RequiredInputs {
@@ -38,6 +39,9 @@ export interface ValuationResult {
   price_range?: [number, number];
   base_price?: number;
   zip_demand_factor?: number;
+  make?: string;
+  model?: string;
+  year?: number;
   adjustments?: Array<{
     factor: string;
     impact: number;
@@ -55,7 +59,7 @@ export interface ValuationPipelineState {
 }
 
 export interface ValuationPipelineActions {
-  runLookup: (type: IdentifierType, identifier: string, state?: string) => Promise<boolean>;
+  runLookup: (type: IdentifierType, identifier: string, state?: string, manualData?: any) => Promise<boolean>;
   submitValuation: (details: Partial<RequiredInputs>) => Promise<boolean>;
   reset: () => void;
 }
