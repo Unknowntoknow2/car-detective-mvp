@@ -31,41 +31,43 @@ export function useManualValuation() {
     setError(null);
 
     try {
-      const result = await calculateFinalValuation(
-        {
-          make: data.make,
-          model: data.model,
-          year: data.year,
-          mileage: data.mileage,
-          condition: data.condition,
-          zipCode: data.zipCode || '90210',
-          trim: data.trim,
-          accidentCount: data.accidentCount,
-          features: data.premiumFeatures
-        },
-        25000
-      );
+      // The baseMarketValue must be provided in the params object
+      const valuationParams = {
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        zipCode: data.zipCode || '90210',
+        trim: data.trim,
+        accidentCount: data.accidentCount,
+        features: data.premiumFeatures,
+        baseMarketValue: 25000 // Default base value
+      };
+      
+      const result = await calculateFinalValuation(valuationParams);
 
+      // Convert the result adjustments to AdjustmentBreakdown format
       const adjustments: AdjustmentBreakdown[] = (result.adjustments || []).map(adj => {
-        // Ensure all required properties are present
         return {
+          name: adj.name || 'Unknown',
           factor: adj.factor || adj.name || 'Unknown',
-          impact: typeof adj.impact === 'number' ? adj.impact : adj.value || 0,
-          name: adj.name || adj.factor || 'Unknown',
+          impact: adj.impact || 0,
           value: adj.value || adj.impact || 0,
           description: adj.description || '',
-          percentAdjustment: adj.percentAdjustment || 0,
-          adjustment: adj.adjustment,
-          impactPercentage: adj.impactPercentage
+          percentAdjustment: adj.percentage || 0,
+          // Handle missing properties safely
+          adjustment: adj.adjustment || 0,
+          impactPercentage: adj.impactPercentage || 0
         };
       });
 
       const valuationResult: ManualVehicleInfo = {
         ...data,
-        valuation: result.estimatedValue,
+        valuation: result.estimatedValue || result.finalValue,
         confidenceScore: result.confidenceScore,
         adjustments: adjustments,
-        priceRange: result.priceRange
+        priceRange: result.priceRange || [result.finalValue * 0.9, result.finalValue * 1.1]
       };
 
       setVehicleInfo(valuationResult);

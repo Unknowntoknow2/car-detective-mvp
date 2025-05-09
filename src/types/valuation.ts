@@ -1,4 +1,3 @@
-
 export interface ValuationResult {
   id: string;
   make: string;
@@ -77,6 +76,7 @@ export interface ValuationInput {
   isTestMode?: boolean;
   notifyDealers?: boolean;
   baseMarketValue?: number; // Add this property for compatibility
+  aiConditionOverride?: any; // Add this property for AI condition
 }
 
 export interface AdjustmentBreakdown {

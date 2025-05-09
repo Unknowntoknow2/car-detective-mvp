@@ -77,37 +77,35 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
       const calculateNewValuation = async () => {
         setCalculationInProgress(true);
         try {
-          // Fix: Pass proper parameters to calculateFinalValuation
-          const result = await calculateFinalValuation(
-            {
-              make: valuationData.make,
-              model: valuationData.model,
-              year: valuationData.year,
-              mileage: valuationData.mileage || 0,
-              condition: aiCondition?.condition || valuationData.condition || 'good',
-              zipCode: '90210', // Default zipCode
-              // Properly pass the AI condition data
-              aiConditionOverride: aiCondition ? {
-                condition: aiCondition.condition,
-                confidenceScore: aiCondition.confidenceScore,
-                issuesDetected: aiCondition.issuesDetected,
-                aiSummary: aiCondition.aiSummary
-              } : undefined,
-              photoScore: photoScore || undefined
-            },
-            0 // Base price (placeholder)
-          );
+          // Fix: Pass proper parameters to calculateFinalValuation with baseMarketValue
+          const result = await calculateFinalValuation({
+            make: valuationData.make,
+            model: valuationData.model,
+            year: valuationData.year,
+            mileage: valuationData.mileage || 0,
+            condition: aiCondition?.condition || valuationData.condition || 'good',
+            zipCode: '90210', // Default zipCode
+            // Properly pass the AI condition data
+            aiConditionOverride: aiCondition ? {
+              condition: aiCondition.condition,
+              confidenceScore: aiCondition.confidenceScore,
+              issuesDetected: aiCondition.issuesDetected,
+              aiSummary: aiCondition.aiSummary
+            } : undefined,
+            photoScore: photoScore || undefined,
+            baseMarketValue: 25000 // Default base value
+          });
           
           if (result) {
-            setEstimatedValue(result.estimatedValue);
+            setEstimatedValue(result.estimatedValue || result.finalValue);
             
             // Convert the result adjustments to AuditTrail format if needed
             if ('adjustments' in result && Array.isArray(result.adjustments)) {
               // Type assertion to help TypeScript
               const convertedAdjustments = (result.adjustments as any[]).map(adj => ({
-                factor: adj.name || adj.factor,
-                impact: adj.value || adj.impact,
-                description: adj.description
+                factor: adj.factor || adj.name || 'Unknown',
+                impact: adj.impact || adj.value || 0,
+                description: adj.description || ''
               }));
               setAuditTrail(convertedAdjustments as AuditTrail[]);
             } else {

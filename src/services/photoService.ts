@@ -38,17 +38,17 @@ export async function uploadAndAnalyzePhotos(files: File[], valuationId: string)
       return url;
     });
     
-    const photoUrls = await Promise.all(uploadPromises);
+    const uploadedPhotoUrls = await Promise.all(uploadPromises);
     
     // Analyze the photos
-    return await scorePhotos(photoUrls, valuationId);
+    return await scorePhotos(uploadedPhotoUrls, valuationId);
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {
       photoScore: 0,
       individualScores: [],
       score: 0,
-      photoUrls: photoUrls,
+      photoUrls: [], // Fix: empty array instead of undefined photoUrls
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',

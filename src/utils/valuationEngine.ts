@@ -1,3 +1,4 @@
+
 // src/utils/valuationEngine.ts
 
 import {
@@ -13,10 +14,6 @@ import {
   getFeatureAdjustments
 } from './adjustments/featureAdjustments';
 import type { AICondition } from '@/types/photo';
-import type {
-  ValuationInput as EnterpriseValuationInput,
-  FinalValuationResult as EnterpriseValuationOutput
-} from './calculateFinalValuation';
 
 export interface ValuationParams {
   baseMarketValue: number;
@@ -41,9 +38,12 @@ export interface ValuationResult {
     impact: number;
     percentage: number;
     factor: string;
+    value?: number;
   }[];
   confidenceScore: number;
   baseValue: number;
+  estimatedValue: number;
+  priceRange: [number, number];
 }
 
 export function calculateFinalValuation(params: ValuationParams): ValuationResult {
@@ -63,7 +63,8 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: getMileageAdjustmentDescription(params.mileage),
       impact: mileageImpact,
       percentage: (mileageImpact / baseValue) * 100,
-      factor: 'Mileage'
+      factor: 'Mileage',
+      value: mileageImpact
     });
     totalAdjustment += mileageImpact;
     confidenceScore += 3;
@@ -77,7 +78,8 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: `Vehicle in ${params.condition} condition`,
       impact,
       percentage: multiplier * 100,
-      factor: 'Condition'
+      factor: 'Condition',
+      value: impact
     });
     totalAdjustment += impact;
     confidenceScore += 2;
@@ -91,37 +93,50 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: getRegionalMarketDescription(params.zipCode, multiplier),
       impact,
       percentage: multiplier * 100,
-      factor: 'Regional Market'
+      factor: 'Regional Market',
+      value: impact
     });
     totalAdjustment += impact;
     confidenceScore += 3;
   }
 
   if (params.features && params.features.length > 0) {
-    const featureImpact = getFeatureAdjustments(params.features, baseValue);
+    // Modified to handle the return type correctly
+    const featureResult = getFeatureAdjustments(params.features, baseValue);
+    
+    // Check if it's a simple number or an object with totalAdjustment
+    const featureImpact = typeof featureResult === 'number' 
+      ? featureResult 
+      : featureResult.totalAdjustment;
+    
     adjustments.push({
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
       impact: featureImpact,
       percentage: (featureImpact / baseValue) * 100,
-      factor: 'Premium Features'
+      factor: 'Premium Features',
+      value: featureImpact
     });
     totalAdjustment += featureImpact;
     confidenceScore += 2;
   }
 
-  if (params.make && params.model && params.vehicleYear) {
-    const trendImpact = calculateMakeModelTrend(params.make, params.model, params.vehicleYear, baseValue);
-    if (trendImpact !== 0) {
-      adjustments.push({
-        name: 'Market Trends',
-        description: `Current market trends for ${params.vehicleYear} ${params.make} ${params.model}`,
-        impact: trendImpact,
-        percentage: (trendImpact / baseValue) * 100,
-        factor: 'Market Trends'
-      });
-      totalAdjustment += trendImpact;
-      confidenceScore += 2;
+  if (params.make && params.model && (params.year || params.vehicleYear)) {
+    const year = params.year || params.vehicleYear;
+    if (year) {
+      const trendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
+      if (trendImpact !== 0) {
+        adjustments.push({
+          name: 'Market Trends',
+          description: `Current market trends for ${year} ${params.make} ${params.model}`,
+          impact: trendImpact,
+          percentage: (trendImpact / baseValue) * 100,
+          factor: 'Market Trends',
+          value: trendImpact
+        });
+        totalAdjustment += trendImpact;
+        confidenceScore += 2;
+      }
     }
   }
 
@@ -133,6 +148,11 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
     adjustments,
     confidenceScore,
     baseValue,
+    estimatedValue: finalValue,
+    priceRange: [
+      Math.floor(finalValue * 0.9),
+      Math.ceil(finalValue * 1.1)
+    ]
   };
 }
 
@@ -168,7 +188,10 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
 }
 
 export { calculateFinalValuation as enterpriseCalculateFinalValuation };
-export type { EnterpriseValuationInput, EnterpriseValuationOutput };
+export type { 
+  ValuationParams as EnterpriseValuationInput, 
+  ValuationResult as EnterpriseValuationOutput 
+};
 
 export const calculateValuation = calculateFinalValuation;
 export const getBaseValue = (params: any) => params.baseMarketValue || 0;
