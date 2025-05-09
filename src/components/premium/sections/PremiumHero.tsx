@@ -1,128 +1,136 @@
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown, Shield, Building, ChartBar } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { fadeInAnimation, slideInAnimation, shouldReduceMotion } from '@/utils/animations';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import { Zap, ChevronDown, Check } from 'lucide-react';
 
 interface PremiumHeroProps {
-  scrollToForm?: () => void;
+  scrollToForm: () => void;
 }
 
 export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const handlePurchase = async () => {
-    if (!user) {
-      toast.error("Please sign in to purchase premium valuation");
-      navigate("/auth");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      toast.info("Preparing checkout...");
-      
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {},
-      });
-
-      if (error) {
-        console.error('Checkout error:', error);
-        throw new Error(error.message || 'Failed to create checkout session');
-      }
-
-      if (!data?.url) {
-        throw new Error('No checkout URL received');
-      }
-      
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error("Failed to process payment. Please try again.");
-      setIsLoading(false);
-    }
-  };
-
+  const reduceMotion = shouldReduceMotion();
+  
   return (
-    <div className="bg-gradient-to-b from-slate-50 to-white py-24 border-b">
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-6">
-          <Badge variant="outline" className="bg-primary/5 text-primary py-1.5 px-3 mb-4 font-medium">
-            CARFAX® Report Included ($44 value)
-          </Badge>
+    <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 md:py-24 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-20 pointer-events-none"></div>
+      
+      {/* Animated Circles */}
+      {!reduceMotion && (
+        <>
+          <motion.div 
+            className="absolute rounded-full bg-white/10 w-64 h-64 -top-20 -left-20"
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.1, 0.15, 0.1] 
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity, 
+              repeatType: "reverse" 
+            }}
+          />
+          <motion.div 
+            className="absolute rounded-full bg-white/5 w-96 h-96 -bottom-40 -right-20"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.05, 0.1, 0.05] 
+            }}
+            transition={{ 
+              duration: 10, 
+              repeat: Infinity, 
+              repeatType: "reverse" 
+            }}
+          />
+        </>
+      )}
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={reduceMotion ? {} : "hidden"}
+            animate={reduceMotion ? {} : "visible"}
+            variants={fadeInAnimation}
+          >
+            <Badge className="mb-4 bg-white/20 text-white hover:bg-white/30 transition-colors">
+              Premium Experience
+            </Badge>
+          </motion.div>
           
-          <h1 className="text-4xl font-display font-bold text-slate-900 sm:text-5xl md:text-6xl">
-            Premium Valuation — $29.99
-          </h1>
+          <motion.h1 
+            className="text-4xl md:text-5xl font-bold mb-6 leading-tight"
+            initial={reduceMotion ? {} : "hidden"}
+            animate={reduceMotion ? {} : "visible"}
+            variants={slideInAnimation}
+          >
+            Advanced Vehicle Valuation & Analytics
+          </motion.h1>
           
-          <p className="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">
-            Get the most accurate valuation with our professional-grade service
-          </p>
+          <motion.p 
+            className="text-lg md:text-xl mb-8 text-white/90"
+            initial={reduceMotion ? {} : "hidden"}
+            animate={reduceMotion ? {} : "visible"}
+            variants={slideInAnimation}
+            transition={{ delay: 0.1 }}
+          >
+            Get dealer-competitive offers, full vehicle history, and pricing forecasts 
+            with our comprehensive premium valuation tools.
+          </motion.p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-            <Button 
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={reduceMotion ? {} : "hidden"}
+            animate={reduceMotion ? {} : "visible"}
+            variants={slideInAnimation}
+            transition={{ delay: 0.2 }}
+          >
+            <AnimatedButton 
               size="lg" 
-              className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white transition-all duration-300 py-6 px-8 h-auto text-lg font-medium"
-              onClick={handlePurchase}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>Processing...</>
-              ) : (
-                <>Purchase Premium <ArrowRight className="ml-2 h-5 w-5" /></>
-              )}
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="w-full sm:w-auto border-slate-300 hover:bg-slate-50 transition-all duration-300 py-6 px-8 h-auto text-lg font-medium"
+              className="bg-white text-indigo-700 hover:bg-white/90"
               onClick={scrollToForm}
+              scaleOnHover
+              iconAnimation="pulse"
             >
-              View Options <ChevronDown className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
+              <Zap className="mr-2 h-5 w-5" />
+              Try Premium for $29.99
+            </AnimatedButton>
+            
+            <AnimatedButton 
+              size="lg" 
+              variant="outline" 
+              className="bg-transparent border-white text-white hover:bg-white/10"
+              iconAnimation="bounce"
+            >
+              <ChevronDown className="mr-2 h-5 w-5" />
+              Learn More
+            </AnimatedButton>
+          </motion.div>
           
-          <div className="grid sm:grid-cols-3 gap-8 mt-16 text-left">
-            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <Shield className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">Full CARFAX Report</h3>
-              </div>
-              <p className="text-slate-600">Complete vehicle history with accident records and service data</p>
+          <motion.div 
+            className="mt-10 flex items-center justify-center gap-6 text-sm"
+            initial={reduceMotion ? {} : "hidden"}
+            animate={reduceMotion ? {} : "visible"}
+            variants={fadeInAnimation}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="flex items-center">
+              <Check className="mr-2 h-4 w-4 text-green-300" />
+              <span>CARFAX® Included</span>
             </div>
-            
-            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <Building className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">Dealer-beat Offers</h3>
-              </div>
-              <p className="text-slate-600">Compare real-time offers from local dealerships</p>
+            <div className="flex items-center">
+              <Check className="mr-2 h-4 w-4 text-green-300" />
+              <span>One-Time Payment</span>
             </div>
-            
-            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 rounded-full bg-primary/10">
-                  <ChartBar className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">12-Month Forecast</h3>
-              </div>
-              <p className="text-slate-600">AI-powered price prediction for optimal selling time</p>
+            <div className="flex items-center">
+              <Check className="mr-2 h-4 w-4 text-green-300" />
+              <span>No Subscription</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

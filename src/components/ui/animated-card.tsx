@@ -1,0 +1,70 @@
+
+import React from 'react';
+import { Card, CardProps } from './card';
+import { motion } from 'framer-motion';
+import { shouldReduceMotion } from '@/utils/animations';
+
+interface AnimatedCardProps extends CardProps {
+  animate?: boolean;
+  hoverEffect?: 'lift' | 'scale' | 'glow' | 'none';
+  delay?: number;
+}
+
+const MotionCard = motion(Card);
+
+export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
+  ({ children, animate = true, hoverEffect = 'lift', delay = 0, ...props }, ref) => {
+    const reduceMotion = shouldReduceMotion();
+    
+    if (reduceMotion || !animate) {
+      return <Card ref={ref} {...props}>{children}</Card>;
+    }
+    
+    let hoverAnimation = {};
+    
+    switch (hoverEffect) {
+      case 'lift':
+        hoverAnimation = {
+          whileHover: { y: -5, transition: { duration: 0.2 } },
+          whileTap: { y: 0 }
+        };
+        break;
+      case 'scale':
+        hoverAnimation = {
+          whileHover: { scale: 1.02, transition: { duration: 0.2 } },
+          whileTap: { scale: 0.98 }
+        };
+        break;
+      case 'glow':
+        hoverAnimation = {
+          whileHover: { 
+            boxShadow: "0 0 20px rgba(59, 130, 246, 0.3)",
+            transition: { duration: 0.2 }
+          }
+        };
+        break;
+      case 'none':
+      default:
+        hoverAnimation = {};
+    }
+    
+    return (
+      <MotionCard
+        ref={ref}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.5,
+          delay: delay,
+          ease: [0.25, 0.1, 0.25, 1.0]
+        }}
+        {...hoverAnimation}
+        {...props}
+      >
+        {children}
+      </MotionCard>
+    );
+  }
+);
+
+AnimatedCard.displayName = "AnimatedCard";
