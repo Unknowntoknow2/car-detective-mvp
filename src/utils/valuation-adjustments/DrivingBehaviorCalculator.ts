@@ -51,11 +51,19 @@ export class DrivingBehaviorCalculator implements AdjustmentCalculator {
         description = `Driving profile: ${input.drivingProfile}`;
     }
     
+    const name = 'Driving Behavior';
+    const factor = name;
+    const value = Math.round(adjustment);
+    const impact = value;
+    const percentAdjustment = multiplier - 1;
+    
     return {
-      name: 'Driving Behavior',
-      value: Math.round(adjustment),
+      name,
+      factor,
+      value,
+      impact,
       description,
-      percentAdjustment: multiplier - 1
+      percentAdjustment
     };
   }
 }

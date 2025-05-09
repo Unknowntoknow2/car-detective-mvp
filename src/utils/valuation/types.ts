@@ -1,5 +1,6 @@
 
 import { type ValuationInput } from '@/types/valuation';
+import { AdjustmentBreakdown } from '@/types/photo';
 
 export interface EnhancedValuationParams extends ValuationInput {
   // Original fields from ValuationInput plus additional fields
@@ -21,19 +22,14 @@ export interface EnhancedValuationParams extends ValuationInput {
   
   // Add additional fields to fix errors
   zip?: string;
+  baseMarketValue?: number;
 }
 
 export interface FinalValuationResult {
   // Core valuation data
   baseValue: number;
-  adjustments: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-    name?: string;
-    value?: number;
-    percentAdjustment?: number;
-  }>;
+  basePrice?: number;
+  adjustments: AdjustmentBreakdown[];
   finalValue: number;
   confidenceScore: number;
   priceRange: [number, number];
@@ -61,13 +57,12 @@ export interface FinalValuationResult {
   // Add any additional properties needed by the application
   valuationId?: string;
   vin?: string;
+  regionalAdjustment?: number;
 }
 
-export interface AdjustmentBreakdown {
-  name: string;
-  value: number;
-  description: string;
-  percentAdjustment: number;
-  factor?: string;
-  impact?: number;
-}
+// Add ValuationParams and ValuationResult for backwards compatibility
+export type ValuationParams = EnhancedValuationParams;
+export type ValuationResult = FinalValuationResult;
+
+// Add ValuationOutput for backward compatibility with existing code
+export type ValuationOutput = FinalValuationResult;

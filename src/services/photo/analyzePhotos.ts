@@ -11,7 +11,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
       return {
         photoScore: 0,
         individualScores: [],
-        score: 0, // For backward compatibility
+        score: 0,
         aiCondition: {
           condition: 'Fair',
           confidenceScore: 0
@@ -32,7 +32,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
       return {
         photoScore: 0,
         individualScores: [],
-        score: 0, // For backward compatibility
+        score: 0,
         aiCondition: {
           condition: 'Fair',
           confidenceScore: 0
@@ -42,7 +42,16 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
     }
 
     if (!data || !Array.isArray(data.scores)) {
-      throw new Error('Invalid response from photo analysis service');
+      return {
+        photoScore: 0,
+        individualScores: [],
+        score: 0,
+        aiCondition: {
+          condition: 'Fair',
+          confidenceScore: 0
+        },
+        error: 'Invalid response from photo analysis service'
+      };
     }
 
     // Process the response data
@@ -65,7 +74,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
     return {
       photoScore: 0,
       individualScores: [],
-      score: 0, // For backward compatibility
+      score: 0,
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
@@ -100,7 +109,7 @@ export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string)
     return {
       photoScore: 0,
       individualScores: [],
-      score: 0, // For backward compatibility
+      score: 0,
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',

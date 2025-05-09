@@ -31,7 +31,7 @@ export function useManualValuation() {
     setError(null);
     
     try {
-      // Fix: Pass an empty object as the second parameter for options
+      // Pass required parameters to calculateFinalValuation (input and basePrice)
       const result = await calculateFinalValuation(
         {
           make: data.make,
@@ -42,10 +42,10 @@ export function useManualValuation() {
           zipCode: data.zipCode || '90210',
           trim: data.trim,
           accidentCount: data.accidentCount,
-          // Fixed: Pass the array directly instead of converting to boolean
+          // Pass the array directly
           features: data.premiumFeatures
         }, 
-        0 // Add a basePrice parameter (0 as placeholder)
+        25000 // Add a basePrice parameter with a default value
       );
       
       // Map the result adjustments to the correct format with all required fields
@@ -58,7 +58,6 @@ export function useManualValuation() {
         percentAdjustment: adj.percentAdjustment || 0
       }));
       
-      // Now result is properly typed, not 'never'
       const valuationResult: ManualVehicleInfo = {
         ...data,
         valuation: result.estimatedValue,

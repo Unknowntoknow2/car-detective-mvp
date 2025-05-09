@@ -45,6 +45,7 @@ export interface PhotoScoringResult {
   photoUrls?: string[];
   score?: number;
   overallScore?: number;
+  error?: string;
 }
 
 export interface PhotoAnalysisResult {

@@ -30,12 +30,13 @@ export class PhotoScoreCalculator implements AdjustmentCalculator {
     const name = 'Photo Score';
     const factor = name;
     const impact = Math.round(adjustment);
+    const value = impact;
 
     return {
       factor,
       impact,
       name,
-      value: impact,
+      value,
       description: getPhotoScoreAdjustmentDescription(input.photoScore, percentAdjustment, adjustment),
       percentAdjustment
     };

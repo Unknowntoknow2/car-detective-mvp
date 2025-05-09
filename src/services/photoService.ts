@@ -12,7 +12,7 @@ export async function scorePhotos(photoUrls: string[], valuationId: string): Pro
     return {
       photoScore: 0,
       individualScores: [],
-      score: 0, // For backward compatibility
+      score: 0,
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
@@ -46,7 +46,7 @@ export async function uploadAndAnalyzePhotos(files: File[], valuationId: string)
     return {
       photoScore: 0,
       individualScores: [],
-      score: 0, // For backward compatibility
+      score: 0,
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',

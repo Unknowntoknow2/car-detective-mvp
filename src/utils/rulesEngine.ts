@@ -11,19 +11,25 @@ export default {
     return [
       {
         name: 'Mileage',
+        factor: 'Mileage',
         value: calculateMileageAdjustment(input),
+        impact: calculateMileageAdjustment(input),
         description: getMileageAdjustmentDescription(input),
         percentAdjustment: calculateMileagePercentage(input)
       },
       {
         name: 'Condition',
+        factor: 'Condition',
         value: calculateConditionAdjustment(input),
+        impact: calculateConditionAdjustment(input),
         description: `Based on ${input.condition} condition`,
         percentAdjustment: calculateConditionPercentage(input)
       },
       {
         name: 'Market Demand',
+        factor: 'Market Demand',
         value: input.basePrice * 0.03,
+        impact: input.basePrice * 0.03,
         description: 'Current market demand in your region',
         percentAdjustment: 3
       }

@@ -17,7 +17,7 @@ export interface ValuationInput {
   features?: string[];
   accidentCount?: number;
   color?: string;
-  premiumFeatures?: boolean | string[];
+  premiumFeatures?: boolean[] | string[];
   photoScore?: number;
 }
 
@@ -41,6 +41,7 @@ export async function calculateFinalValuation(
 ): Promise<FinalValuationResult> {
   // Convert input to RulesEngineInput
   const rulesInput: RulesEngineInput = {
+    baseValue: basePrice,
     basePrice,
     make: input.make,
     model: input.model,
@@ -50,11 +51,11 @@ export async function calculateFinalValuation(
     zipCode: input.zipCode,
     trim: input.trim,
     fuelType: input.fuelType,
-    transmission: input.transmission,
+    transmissionType: input.transmission,
     accidentCount: input.accidentCount || 0,
-    color: input.color,
+    exteriorColor: input.color,
     features: input.features,
-    premiumFeatures: typeof input.premiumFeatures === 'boolean' ? input.premiumFeatures : !!input.premiumFeatures?.length,
+    premiumFeatures: Array.isArray(input.premiumFeatures) ? input.premiumFeatures : [!!input.premiumFeatures],
     // Add AI condition override if present
     aiConditionOverride: aiCondition,
     photoScore: input.photoScore
@@ -70,7 +71,9 @@ export async function calculateFinalValuation(
     
     adjustments.push({
       name: 'Photo Condition',
+      factor: 'Photo Condition',
       value: photoAdjustment,
+      impact: photoAdjustment,
       description: getPhotoScoreAdjustmentDescription(input.photoScore, photoImpactPercent, photoAdjustment),
       percentAdjustment: photoImpactPercent
     });

@@ -1,36 +1,46 @@
 
-import { Calculator } from '../interfaces/Calculator';
-import { AdjustmentBreakdown, RulesEngineInput } from '../types';
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 
-export class FuelTypeCalculator implements Calculator {
-  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    // Skip if no fuel type information is provided
-    if (!input.fuelType || !input.fuelTypeMultiplier) {
+export class FuelTypeCalculator implements AdjustmentCalculator {
+  public calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+    if (!input.fuelType) {
       return null;
     }
 
-    // Calculate the adjustment value
-    const adjustmentPercentage = (input.fuelTypeMultiplier - 1) * 100;
-    const adjustmentValue = input.basePrice * (input.fuelTypeMultiplier - 1);
+    const fuelType = input.fuelType.toLowerCase();
+    let percentAdjustment = 0;
 
-    // Only create an adjustment if there's an actual impact
-    if (input.fuelTypeMultiplier === 1) {
-      return null;
+    // Apply different adjustments based on fuel type
+    switch (fuelType) {
+      case 'electric':
+        percentAdjustment = 0.05; // +5% for electric
+        break;
+      case 'hybrid':
+        percentAdjustment = 0.03; // +3% for hybrid
+        break;
+      case 'diesel':
+        percentAdjustment = 0.02; // +2% for diesel
+        break;
+      case 'gasoline':
+      case 'gas':
+        percentAdjustment = 0; // No adjustment (baseline)
+        break;
+      default:
+        return null; // Unknown fuel type
     }
 
-    // Get the category based on the multiplier
-    let category = "Standard";
-    if (input.fuelTypeMultiplier > 1) {
-      category = "Premium";
-    } else if (input.fuelTypeMultiplier < 1) {
-      category = "Discount";
-    }
+    const value = input.basePrice * percentAdjustment;
+    const name = 'Fuel Type';
+    const factor = name;
+    const impact = Math.round(value);
 
     return {
-      name: "Fuel Type",
-      value: Math.round(adjustmentValue),
-      percentAdjustment: adjustmentPercentage,
-      description: `${input.fuelType} is a ${category.toLowerCase()} fuel type (${adjustmentPercentage > 0 ? '+' : ''}${adjustmentPercentage.toFixed(0)}% adjustment)`
+      name,
+      factor,
+      value,
+      impact,
+      percentAdjustment,
+      description: `${fuelType.charAt(0).toUpperCase() + fuelType.slice(1)} fuel type adjustment`
     };
   }
 }
