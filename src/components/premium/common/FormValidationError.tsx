@@ -5,11 +5,15 @@ import { AlertCircle, XCircle, AlertTriangle } from 'lucide-react';
 interface FormValidationErrorProps {
   error: string;
   variant?: 'error' | 'warning' | 'info';
+  className?: string;
+  details?: string;
 }
 
 export function FormValidationError({ 
   error, 
-  variant = 'error' 
+  variant = 'error',
+  className = '',
+  details
 }: FormValidationErrorProps) {
   if (!error) return null;
   
@@ -40,9 +44,12 @@ export function FormValidationError({
   };
   
   return (
-    <div className={`flex items-start gap-2 text-sm ${getTextColor()}`}>
+    <div className={`flex items-start gap-2 text-sm ${getTextColor()} ${className}`}>
       {getIcon()}
-      <p>{error}</p>
+      <div>
+        <p>{error}</p>
+        {details && <p className="text-xs mt-1 opacity-80">{details}</p>}
+      </div>
     </div>
   );
 }

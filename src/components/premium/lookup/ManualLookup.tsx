@@ -44,13 +44,14 @@ export function ManualLookup({ onSubmit, isLoading, submitButtonText = "Submit" 
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    onSubmit({
+    // Create a ManualEntryFormData object without the trim property
+    const manualEntryData: ManualEntryFormData = {
       make: values.make,
       model: values.model,
       year: values.year,
-      trim: values.trim,
-      mileage: values.mileage,
-    });
+      mileage: values.mileage || '',
+    };
+    onSubmit(manualEntryData);
   };
 
   return (

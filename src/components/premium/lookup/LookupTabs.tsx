@@ -2,7 +2,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { VinInput } from './VinInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -42,6 +41,10 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
     if (!plate || !state) return;
     formProps.onPlateLookup?.(plate, state);
   };
+
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVin(e.target.value.toUpperCase());
+  };
   
   return (
     <Tabs 
@@ -59,11 +62,15 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleVinSubmit} className="space-y-4">
-              <VinInput 
-                value={vin}
-                onChange={setVin}
-                placeholder="Enter 17-character VIN"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="vin">Vehicle Identification Number</Label>
+                <Input 
+                  id="vin"
+                  value={vin}
+                  onChange={handleVinChange}
+                  placeholder="Enter 17-character VIN"
+                />
+              </div>
               <Button 
                 type="submit" 
                 className="w-full" 

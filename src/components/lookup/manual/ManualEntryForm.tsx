@@ -5,7 +5,7 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVin } from '@/utils/validation/vin-validation';
 import { AlertCircle } from 'lucide-react';
 
 // Import our new component parts
@@ -29,9 +29,17 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface ManualEntryFormProps {
   onSubmit: (data: FormValues) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
 }
 
-export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit }) => {
+export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
+  onSubmit, 
+  isLoading = false,
+  submitButtonText = "Get Valuation",
+  isPremium = false
+}) => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,8 +56,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit }) =>
   const handleSubmit = (values: FormValues) => {
     // Only check VIN validation if a value is provided
     if (values.vin && values.vin.trim() !== '') {
-      const validation = validateVIN(values.vin);
-      if (!validation.isValid) {
+      const validation = validateVin(values.vin);
+      if (!validation.valid) {
         // We don't need to set error state here as it's handled in the VinInputField component
         return;
       }
@@ -80,8 +88,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit }) =>
         {/* VIN field with validation */}
         <VinInputField form={form} />
         
-        <Button type="submit" className="w-full">
-          Get Valuation
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Processing..." : submitButtonText}
         </Button>
       </form>
     </Form>

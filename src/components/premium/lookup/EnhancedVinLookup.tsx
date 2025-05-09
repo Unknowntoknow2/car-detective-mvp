@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, CheckCircle2, Search } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVin } from '@/utils/validation/vin-validation';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { motion } from 'framer-motion';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
@@ -37,9 +37,9 @@ export function EnhancedVinLookup({
 
     setTouched(true);
     
-    const validation = validateVIN(value);
-    setIsValid(validation.isValid);
-    setValidationError(validation.error || null);
+    const validation = validateVin(value);
+    setIsValid(validation.valid);
+    setValidationError(validation.valid ? null : validation.message || null);
   }, [value]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

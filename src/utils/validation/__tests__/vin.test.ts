@@ -1,5 +1,5 @@
 
-import { validateVin, validateVinCheckDigit, isValidVIN } from '../vin-validation-helpers';
+import { validateVin, validateVinCheckDigit, isValidVIN } from '../vin-validation';
 
 describe('VIN Validation', () => {
   // ✅ isValidVIN

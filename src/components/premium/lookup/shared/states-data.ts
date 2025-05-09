@@ -1,5 +1,5 @@
 
-export const US_STATES = [
+export const states = [
   { value: 'AL', label: 'Alabama' },
   { value: 'AK', label: 'Alaska' },
   { value: 'AZ', label: 'Arizona' },
@@ -50,9 +50,5 @@ export const US_STATES = [
   { value: 'WV', label: 'West Virginia' },
   { value: 'WI', label: 'Wisconsin' },
   { value: 'WY', label: 'Wyoming' },
-  { value: 'DC', label: 'District of Columbia' },
-  { value: 'PR', label: 'Puerto Rico' },
+  { value: 'DC', label: 'District of Columbia' }
 ];
-
-// Alias export for backwards compatibility with some components
-export const states = US_STATES;

@@ -85,9 +85,9 @@ export function PredictionReviewStep({
         {error && (
           <FormValidationError 
             error="Valuation Error" 
-            details={error} 
-            className="mb-4" 
-            variant="error" 
+            variant="error"
+            details={error}
+            className="mb-4"
           />
         )}
         
