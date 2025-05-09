@@ -1,3 +1,4 @@
+
 // src/utils/valuationEngine.ts
 
 import {
@@ -25,7 +26,7 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   mileage?: number;
-  condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  condition?: string; // Changed from 'Excellent' | 'Good' | 'Fair' | 'Poor' to allow any string
   zipCode?: string;
   features?: string[];
   trim?: string;
@@ -110,26 +111,37 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
+    // Fix: Handle getFeatureAdjustments properly, only passing features and baseValue
     const featureImpact = getFeatureAdjustments(params.features, baseValue);
+    
+    // Handle different return types of getFeatureAdjustments
+    let featureAdjustmentValue = 0;
+    if (typeof featureImpact === 'number') {
+      featureAdjustmentValue = featureImpact;
+    } else if (featureImpact && typeof featureImpact === 'object' && 'totalAdjustment' in featureImpact) {
+      featureAdjustmentValue = featureImpact.totalAdjustment;
+    }
+    
     adjustments.push({
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
-      impact: featureImpact,
-      percentage: (featureImpact / baseValue) * 100,
+      impact: featureAdjustmentValue,
+      percentage: (featureAdjustmentValue / baseValue) * 100,
       factor: 'Premium Features',
-      value: featureImpact,
-      percentAdjustment: (featureImpact / baseValue) * 100
+      value: featureAdjustmentValue,
+      percentAdjustment: (featureAdjustmentValue / baseValue) * 100
     });
-    totalAdjustment += featureImpact;
+    totalAdjustment += featureAdjustmentValue;
     confidenceScore += 2;
   }
 
-  if (params.make && params.model && params.vehicleYear) {
-    const trendImpact = calculateMakeModelTrend(params.make, params.model, params.vehicleYear, baseValue);
+  if (params.make && params.model && (params.year || params.vehicleYear)) {
+    const year = params.year || params.vehicleYear || 0;
+    const trendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
     if (trendImpact !== 0) {
       adjustments.push({
         name: 'Market Trends',
-        description: `Current market trends for ${params.vehicleYear} ${params.make} ${params.model}`,
+        description: `Current market trends for ${year} ${params.make} ${params.model}`,
         impact: trendImpact,
         percentage: (trendImpact / baseValue) * 100,
         factor: 'Market Trends',

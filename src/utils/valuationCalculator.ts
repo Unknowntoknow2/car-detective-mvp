@@ -1,3 +1,4 @@
+
 import { mileageAdjustmentCurve } from './adjustments/mileageAdjustments';
 import { getConditionMultiplier } from './adjustments/conditionAdjustments';
 import { getRegionalMarketMultiplier } from './adjustments/locationAdjustments';
@@ -10,7 +11,7 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   mileage?: number;
-  condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  condition?: string; // Changed to string to accept any condition string
   zipCode?: string;
   features?: string[];
 }
@@ -76,23 +77,35 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    const featureAdjustments = getFeatureAdjustments(params.features, baseValue);
+    // Fix: Handle feature adjustments correctly
+    const featureResult = getFeatureAdjustments(params.features, baseValue);
+    let featureImpact: number;
+    
+    if (typeof featureResult === 'number') {
+      featureImpact = featureResult;
+    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
+      featureImpact = featureResult.totalAdjustment;
+    } else {
+      featureImpact = 0;
+    }
+    
     adjustments.push({
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
-      impact: featureAdjustments,
-      percentage: (featureAdjustments / baseValue) * 100,
+      impact: featureImpact,
+      percentage: (featureImpact / baseValue) * 100,
     });
-    totalAdjustment += featureAdjustments;
+    totalAdjustment += featureImpact;
     confidenceScore += 2;
   }
 
-  if (params.make && params.model && params.vehicleYear) {
-    const marketTrendImpact = calculateMakeModelTrend(params.make, params.model, params.vehicleYear, baseValue);
+  if (params.make && params.model && (params.vehicleYear || params.year)) {
+    const year = params.year || params.vehicleYear || 0;
+    const marketTrendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
     if (marketTrendImpact !== 0) {
       adjustments.push({
         name: 'Market Trends',
-        description: `Current market trends for ${params.vehicleYear} ${params.make} ${params.model}`,
+        description: `Current market trends for ${year} ${params.make} ${params.model}`,
         impact: marketTrendImpact,
         percentage: (marketTrendImpact / baseValue) * 100,
       });
@@ -150,13 +163,12 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
   return baseValue * trendMultiplier;
 }
 
+// Import from './valuation/calculateFinalValuation' and export the types and functions
 import {
   calculateFinalValuation as enterpriseCalculateFinalValuation,
-} from './valuation/calculateFinalValuation';
-import type {
   ValuationInput as EnterpriseValuationInput,
   FinalValuationResult as EnterpriseValuationOutput
-} from './valuation/calculateFinalValuation';
+} from './valuation/types';
 
 export { enterpriseCalculateFinalValuation };
 export type { EnterpriseValuationInput, EnterpriseValuationOutput };

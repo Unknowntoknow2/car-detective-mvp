@@ -1,3 +1,4 @@
+
 // src/utils/valuation/valuationEngine.ts
 
 import { getFeatureAdjustments } from '../adjustments/featureAdjustments';
@@ -12,11 +13,11 @@ import type { EnhancedValuationParams, FinalValuationResult } from './types';
 // We'll make sure our return types match what's expected
 
 export function calculateFinalValuation(params: EnhancedValuationParams): FinalValuationResult {
-  if (!params.baseMarketValue && !params.basePrice) {
-    throw new Error('Base market value or base price is required');
+  if (!params.baseMarketValue) {
+    throw new Error('Base market value is required');
   }
 
-  const baseValue = params.baseMarketValue || params.basePrice || 25000;
+  const baseValue = params.baseMarketValue || 25000;
   const adjustments: AdjustmentBreakdown[] = [];
   let confidenceScore = 85;
   let totalAdjustment = 0;
@@ -71,14 +72,16 @@ export function calculateFinalValuation(params: EnhancedValuationParams): FinalV
 
   // Add features adjustment
   if (params.features && params.features.length > 0) {
-    // Handle the different return types of getFeatureAdjustments
+    // Fix: Pass only one argument to getFeatureAdjustments
     const featureResult = getFeatureAdjustments(params.features, baseValue);
     let featureImpact: number;
     
     if (typeof featureResult === 'number') {
       featureImpact = featureResult;
-    } else {
+    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
       featureImpact = featureResult.totalAdjustment;
+    } else {
+      featureImpact = 0;
     }
     
     adjustments.push({
@@ -164,4 +167,4 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
 // Export with consistent names
 export { calculateFinalValuation as enterpriseCalculateFinalValuation };
 export const calculateValuation = calculateFinalValuation;
-export const getBaseValue = (params: any) => params.baseMarketValue || params.basePrice || 0;
+export const getBaseValue = (params: any) => params.baseMarketValue || 0;

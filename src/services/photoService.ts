@@ -38,10 +38,14 @@ export async function uploadAndAnalyzePhotos(files: File[], valuationId: string)
       return url;
     });
     
-    const uploadedPhotoUrls = await Promise.all(uploadPromises);
+    const uploadedUrls = await Promise.all(uploadPromises);
     
     // Analyze the photos
-    return await scorePhotos(uploadedPhotoUrls, valuationId);
+    const result = await scorePhotos(uploadedUrls, valuationId);
+    return {
+      ...result,
+      photoUrls: uploadedUrls // Ensure photoUrls is included in the result
+    };
   } catch (error: any) {
     console.error('Error in uploadAndAnalyzePhotos:', error);
     return {

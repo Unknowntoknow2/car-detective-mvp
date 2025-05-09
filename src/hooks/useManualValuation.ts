@@ -55,10 +55,10 @@ export function useManualValuation() {
           impact: adj.impact || 0,
           value: adj.value || adj.impact || 0,
           description: adj.description || '',
-          percentAdjustment: adj.percentage || 0,
-          // Handle missing properties safely
-          adjustment: adj.adjustment || 0,
-          impactPercentage: adj.impactPercentage || 0
+          percentAdjustment: adj.percentAdjustment || adj.percentage || 0,
+          // Add empty properties to satisfy the interface
+          adjustment: 0,
+          impactPercentage: 0
         };
       });
 
