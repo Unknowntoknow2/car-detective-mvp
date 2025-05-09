@@ -1,11 +1,9 @@
 
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { ZipValidation } from './ZipValidation';
 import { useZipValidation } from '@/hooks/useZipValidation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import * as rtl from '@testing-library/react';
-const { screen, waitFor } = rtl;
 
 // Mock the hook
 jest.mock('@/hooks/useZipValidation');

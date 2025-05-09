@@ -1,7 +1,5 @@
 
-import { render } from '@testing-library/react';
-import * as rtl from '@testing-library/react';
-const { screen, fireEvent } = rtl;
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { FactorSlider, ConditionOption } from '../FactorSlider';
 

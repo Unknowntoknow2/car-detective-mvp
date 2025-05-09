@@ -1,8 +1,6 @@
 
 import React from 'react';
-import { render } from '@testing-library/react';
-import * as rtl from '@testing-library/react';
-const { screen, fireEvent } = rtl;
+import { render, screen, fireEvent } from '@testing-library/react';
 import { CDButton } from '../CDButton';
 import { CDCard, CDCardHeader, CDCardBody, CDCardFooter } from '../CDCard';
 import { CDInput } from '../CDInput';

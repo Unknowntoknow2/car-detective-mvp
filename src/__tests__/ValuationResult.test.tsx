@@ -1,10 +1,9 @@
+
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ValuationResult from '@/components/valuation/ValuationResult';
 import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
-import * as rtl from '@testing-library/react';
-const { screen, waitFor } = rtl;
 
 // Mock the generateValuationExplanation function
 jest.mock('@/utils/generateValuationExplanation');
