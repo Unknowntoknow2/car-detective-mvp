@@ -1,4 +1,3 @@
-
 // src/utils/valuationCalculator.ts
 
 import { mileageAdjustmentCurve } from './adjustments/mileageAdjustments';
@@ -13,7 +12,7 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   mileage?: number;
-  condition?: string;
+  condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   zipCode?: string;
   features?: string[];
 }
@@ -25,9 +24,7 @@ export interface ValuationResult {
     description: string;
     impact: number;
     percentage: number;
-    factor?: string;
-    value?: number;
-    percentAdjustment?: number;
+    factor: string;
   }[];
   confidenceScore: number;
   baseValue: number;
@@ -52,9 +49,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: getMileageAdjustmentDescription(params.mileage),
       impact: mileageImpact,
       percentage: (mileageImpact / baseValue) * 100,
-      factor: 'Mileage',
-      value: mileageImpact,
-      percentAdjustment: (mileageImpact / baseValue) * 100
+      factor: 'Mileage'
     });
     totalAdjustment += mileageImpact;
     confidenceScore += 3;
@@ -68,9 +63,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: `Vehicle in ${params.condition} condition`,
       impact: conditionImpact,
       percentage: conditionMultiplier * 100,
-      factor: 'Condition',
-      value: conditionImpact,
-      percentAdjustment: conditionMultiplier * 100
+      factor: 'Condition'
     });
     totalAdjustment += conditionImpact;
     confidenceScore += 2;
@@ -84,17 +77,14 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: getRegionalMarketDescription(params.zipCode, regionalMultiplier),
       impact: regionalImpact,
       percentage: regionalMultiplier * 100,
-      factor: 'Regional Market',
-      value: regionalImpact,
-      percentAdjustment: regionalMultiplier * 100
+      factor: 'Regional Market'
     });
     totalAdjustment += regionalImpact;
     confidenceScore += 3;
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Handle feature adjustments properly, only passing needed parameters
-    const featureResult = getFeatureAdjustments(params.features, baseValue);
+    const featureResult = getFeatureAdjustments(params.features);
     let featureImpact: number;
 
     if (typeof featureResult === 'number') {
@@ -110,9 +100,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
       impact: featureImpact,
       percentage: (featureImpact / baseValue) * 100,
-      factor: 'Premium Features',
-      value: featureImpact,
-      percentAdjustment: (featureImpact / baseValue) * 100
+      factor: 'Premium Features'
     });
     totalAdjustment += featureImpact;
     confidenceScore += 2;
@@ -127,9 +115,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
         description: `Current market trends for ${year} ${params.make} ${params.model}`,
         impact: marketTrendImpact,
         percentage: (marketTrendImpact / baseValue) * 100,
-        factor: 'Market Trends',
-        value: marketTrendImpact,
-        percentAdjustment: (marketTrendImpact / baseValue) * 100
+        factor: 'Market Trends'
       });
       totalAdjustment += marketTrendImpact;
       confidenceScore += 2;
@@ -179,6 +165,7 @@ function getRegionalMarketDescription(zipCode: string, multiplier: number): stri
 function calculateMakeModelTrend(make: string, model: string, year: number, baseValue: number): number {
   const currentYear = new Date().getFullYear();
   const vehicleAge = currentYear - year;
+
   const luxuryBrands = ['BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Porsche'];
   const electricModels = ['Model 3', 'Model Y', 'Leaf', 'Bolt', 'ID.4', 'Ioniq'];
   const classicModels = ['Mustang', 'Corvette', 'Bronco', 'Defender', 'Wrangler'];
