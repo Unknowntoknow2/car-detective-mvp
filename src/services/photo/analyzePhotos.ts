@@ -12,6 +12,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         photoScore: 0,
         individualScores: [],
         score: 0,
+        photoUrls: [],
         aiCondition: {
           condition: 'Fair',
           confidenceScore: 0
@@ -33,6 +34,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         photoScore: 0,
         individualScores: [],
         score: 0,
+        photoUrls: photoUrls,
         aiCondition: {
           condition: 'Fair',
           confidenceScore: 0
@@ -46,6 +48,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         photoScore: 0,
         individualScores: [],
         score: 0,
+        photoUrls: photoUrls,
         aiCondition: {
           condition: 'Fair',
           confidenceScore: 0
@@ -62,6 +65,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         score: score.score,
         isPrimary: score.isPrimary || false
       })) || [],
+      photoUrls: photoUrls,
       // Backward compatibility fields
       score: data.score || 0,
       bestPhotoUrl: data.bestPhotoUrl || data.scores[0]?.url || '',
@@ -75,6 +79,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
       photoScore: 0,
       individualScores: [],
       score: 0,
+      photoUrls: photoUrls,
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
@@ -110,6 +115,7 @@ export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string)
       photoScore: 0,
       individualScores: [],
       score: 0,
+      photoUrls: [],
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',

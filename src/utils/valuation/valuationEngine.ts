@@ -1,4 +1,3 @@
-// src/utils/valuations/valuationEngine.ts
 
 import {
   mileageAdjustmentCurve
@@ -13,6 +12,7 @@ import {
   getFeatureAdjustments
 } from '../adjustments/featureAdjustments';
 import type { AICondition } from '@/types/photo';
+import { ValuationParams, ValuationResult } from './types';
 
 export interface ValuationParams {
   baseMarketValue: number;
@@ -36,6 +36,7 @@ export interface ValuationResult {
     description: string;
     impact: number;
     percentage: number;
+    factor: string;
   }[];
   confidenceScore: number;
   baseValue: number;
@@ -58,6 +59,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: getMileageAdjustmentDescription(params.mileage),
       impact: mileageImpact,
       percentage: (mileageImpact / baseValue) * 100,
+      factor: 'Mileage'
     });
     totalAdjustment += mileageImpact;
     confidenceScore += 3;
@@ -71,6 +73,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: `Vehicle in ${params.condition} condition`,
       impact,
       percentage: multiplier * 100,
+      factor: 'Condition'
     });
     totalAdjustment += impact;
     confidenceScore += 2;
@@ -84,6 +87,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: getRegionalMarketDescription(params.zipCode, multiplier),
       impact,
       percentage: multiplier * 100,
+      factor: 'Regional Market'
     });
     totalAdjustment += impact;
     confidenceScore += 3;
@@ -96,6 +100,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
       impact: featureImpact,
       percentage: (featureImpact / baseValue) * 100,
+      factor: 'Premium Features'
     });
     totalAdjustment += featureImpact;
     confidenceScore += 2;
@@ -109,6 +114,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
         description: `Current market trends for ${params.vehicleYear} ${params.make} ${params.model}`,
         impact: trendImpact,
         percentage: (trendImpact / baseValue) * 100,
+        factor: 'Market Trends'
       });
       totalAdjustment += trendImpact;
       confidenceScore += 2;
@@ -160,11 +166,15 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
 // Re-exported version
 import {
   calculateFinalValuation as enterpriseCalculateFinalValuation,
-} from './valuation/calculateFinalValuation';
+} from './calculateFinalValuation';
 import type {
   ValuationInput as EnterpriseValuationInput,
   FinalValuationResult as EnterpriseValuationOutput
-} from './valuation/calculateFinalValuation';
+} from './calculateFinalValuation';
 
 export { enterpriseCalculateFinalValuation };
 export type { EnterpriseValuationInput, EnterpriseValuationOutput };
+
+// Add these exports for test compatibility
+export const calculateValuation = calculateFinalValuation;
+export const getBaseValue = (params: any) => params.baseMarketValue || 0;

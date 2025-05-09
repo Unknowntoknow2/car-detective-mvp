@@ -1,6 +1,7 @@
 
 import { type ValuationInput } from '@/types/valuation';
 import { AdjustmentBreakdown } from '@/types/photo';
+import { AICondition } from '@/types/photo';
 
 export interface EnhancedValuationParams extends ValuationInput {
   // Original fields from ValuationInput plus additional fields
@@ -12,6 +13,7 @@ export interface EnhancedValuationParams extends ValuationInput {
   premiumFeatures?: boolean[] | string[];
   mpg?: number;
   aiConditionData?: any;
+  aiConditionOverride?: AICondition;
   
   // Demand-related properties
   saleDate?: string;

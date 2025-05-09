@@ -19,6 +19,8 @@ export interface ValuationInput {
   color?: string;
   premiumFeatures?: boolean[] | string[];
   photoScore?: number;
+  aiConditionOverride?: AICondition;
+  baseMarketValue?: number;
 }
 
 export interface FinalValuationResult {
@@ -29,6 +31,8 @@ export interface FinalValuationResult {
   adjustments: AdjustmentBreakdown[];
   aiSummary?: string;
   conditionSource?: string;
+  baseValue: number;
+  finalValue: number;
 }
 
 /**
@@ -96,7 +100,9 @@ export async function calculateFinalValuation(
   // Format the result
   return {
     basePrice,
+    baseValue: basePrice,
     estimatedValue,
+    finalValue: estimatedValue,
     priceRange,
     confidenceScore,
     adjustments,

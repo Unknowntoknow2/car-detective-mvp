@@ -47,6 +47,14 @@ export interface PhotoScoringResult {
   error?: string | null;
 }
 
+export interface PhotoAnalysisResult {
+  photoUrls: string[];
+  score: number;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
+  error?: string | null;
+}
+
 export interface AdjustmentBreakdown {
   name: string;
   value: number;
@@ -57,4 +65,3 @@ export interface AdjustmentBreakdown {
   adjustment?: number;
   impactPercentage?: number;
 }
-
