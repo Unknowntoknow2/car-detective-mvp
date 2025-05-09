@@ -86,7 +86,8 @@ describe('valuationEngine', () => {
         condition: 'excellent',
         zipCode: '90210', // Add zipCode parameter
         fuelType: 'hybrid',
-        bodyType: 'sedan'
+        bodyType: 'sedan',
+        baseMarketValue: 25000 // Add required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -106,7 +107,8 @@ describe('valuationEngine', () => {
         condition: 'good',
         zipCode: '90210', // Add zipCode parameter
         accidentCount: 2,
-        titleStatus: 'clean' // Keep this for backward compatibility
+        titleStatus: 'clean', // Keep this for backward compatibility
+        baseMarketValue: 25000 // Add required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -127,7 +129,8 @@ describe('valuationEngine', () => {
         year: 2020,
         mileage: 30000,
         condition: 'good',
-        zipCode: '90210' // Add zipCode parameter
+        zipCode: '90210', // Add zipCode parameter
+        baseMarketValue: 25000 // Add required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -155,7 +158,8 @@ describe('valuationEngine', () => {
         year: 2020,
         mileage: 30000,
         condition: 'good',
-        zipCode: '90210' // Add zipCode parameter
+        zipCode: '90210', // Add zipCode parameter
+        baseMarketValue: 25000 // Add required baseMarketValue
       };
       
       const result = await calculateValuation(params);
@@ -176,7 +180,8 @@ describe('valuationEngine', () => {
         mileage: 30000,
         condition: 'good',
         zipCode: '90210', // Add zipCode parameter
-        premiumFeatures: ['leather_seats', 'navigation', 'sunroof']
+        premiumFeatures: ['leather_seats', 'navigation', 'sunroof'],
+        baseMarketValue: 25000 // Add required baseMarketValue
       };
       
       const result = await calculateValuation(params);

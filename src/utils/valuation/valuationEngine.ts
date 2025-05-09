@@ -16,42 +16,10 @@ import {
 import type { AICondition } from '@/types/photo';
 import type {
   EnhancedValuationParams,
-  FinalValuationResult as EnterpriseValuationOutput
+  FinalValuationResult as EnterpriseValuationOutput,
+  ValuationParams,
+  ValuationResult
 } from './types';
-
-export interface ValuationParams {
-  baseMarketValue: number;
-  vehicleYear?: number;
-  year?: number;
-  make?: string;
-  model?: string;
-  mileage?: number;
-  condition?: string; // Changed to string to allow any condition string
-  zipCode?: string;
-  features?: string[];
-  trim?: string;
-  photoScore?: number;
-  aiConditionOverride?: AICondition;
-}
-
-export interface ValuationResult {
-  finalValue: number;
-  adjustments: {
-    name: string;
-    description: string;
-    impact: number;
-    percentage: number;
-    factor: string;
-    value: number;
-    percentAdjustment: number;
-    adjustment?: number;
-    impactPercentage?: number;
-  }[];
-  confidenceScore: number;
-  baseValue: number;
-  estimatedValue: number;
-  priceRange: [number, number];
-}
 
 export function calculateFinalValuation(params: ValuationParams): ValuationResult {
   if (params.baseMarketValue === undefined || params.baseMarketValue <= 0) {
@@ -111,7 +79,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Handle feature adjustments properly by checking the return type
+    // Fix: Handle feature adjustments properly
     const featureResult = getFeatureAdjustments(params.features, baseValue);
     
     let featureAdjustmentValue = 0;

@@ -66,7 +66,9 @@ export interface FinalValuationResult {
 }
 
 // Add ValuationParams and ValuationResult for backwards compatibility
-export type ValuationParams = EnhancedValuationParams;
+export type ValuationParams = EnhancedValuationParams & { 
+  baseMarketValue: number; // Make this required here
+};
 export type ValuationResult = FinalValuationResult;
 
 // Add ValuationOutput for backward compatibility with existing code
