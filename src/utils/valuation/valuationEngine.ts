@@ -256,7 +256,7 @@ export const calculateValuation = (params: ValuationParams): ValuationResult => 
   return {
     estimatedValue: 25000,
     confidenceScore: 90,
-    price_range: [23500, 26500],
+    priceRange: [23500, 26500],
     base_price: 24000,
     zip_demand_factor: 1.05,
     adjustments: []
@@ -357,7 +357,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   return {
     estimatedValue: estimatedValue,
     confidenceScore: confidenceScore,
-    price_range: priceRange,
+    priceRange: priceRange,
     base_price: baseValue,
     zip_demand_factor: 1.0,
     adjustments,
