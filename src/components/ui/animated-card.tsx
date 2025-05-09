@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from './card';
-import { motion, MotionProps } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { shouldReduceMotion } from '@/utils/animations';
 
 interface AnimatedCardProps extends React.ComponentPropsWithRef<typeof Card> {
@@ -11,8 +11,10 @@ interface AnimatedCardProps extends React.ComponentPropsWithRef<typeof Card> {
   children?: React.ReactNode;
 }
 
-// Create a properly typed motion component
-const MotionCard = motion(Card);
+// Create a motion component with proper typing
+const MotionCard = motion(Card) as React.ForwardRefExoticComponent<
+  HTMLMotionProps<"div"> & React.RefAttributes<HTMLDivElement>
+>;
 
 export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
   ({ children, animate = true, hoverEffect = 'lift', delay = 0, ...props }, ref) => {
@@ -22,7 +24,7 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
       return <Card ref={ref} {...props}>{children}</Card>;
     }
     
-    let hoverAnimation: Partial<MotionProps> = {};
+    let hoverAnimation: any = {};
     
     switch (hoverEffect) {
       case 'lift':
@@ -50,7 +52,7 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
         hoverAnimation = {};
     }
     
-    const initialAnimation: Partial<MotionProps> = {
+    const initialAnimation: any = {
       initial: { opacity: 0, y: 20 },
       animate: { opacity: 1, y: 0 },
       transition: { 

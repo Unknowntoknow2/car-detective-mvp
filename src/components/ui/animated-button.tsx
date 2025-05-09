@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button, ButtonProps } from './button';
-import { motion, MotionProps } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { shouldReduceMotion } from '@/utils/animations';
 
 interface AnimatedButtonProps extends ButtonProps {
@@ -11,7 +11,10 @@ interface AnimatedButtonProps extends ButtonProps {
   children?: React.ReactNode;
 }
 
-const MotionButton = motion(Button);
+// Create a motion component with proper typing
+const MotionButton = motion(Button) as React.ForwardRefExoticComponent<
+  HTMLMotionProps<"button"> & React.RefAttributes<HTMLButtonElement>
+>;
 
 export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   ({ children, scaleOnHover = true, pulseOnHover = false, iconAnimation = 'none', ...props }, ref) => {
@@ -29,7 +32,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
       child => !React.isValidElement(child) || typeof child.type === 'string'
     );
     
-    let iconAnimationProps: Partial<MotionProps> = {};
+    let iconAnimationProps: any = {};
     
     if (iconChild && iconAnimation !== 'none') {
       switch (iconAnimation) {
@@ -60,7 +63,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
       }
     }
     
-    const motionProps: Partial<MotionProps> = {
+    const motionProps: any = {
       whileHover: scaleOnHover ? { scale: 1.05 } : undefined,
       whileTap: { scale: 0.98 },
       transition: { duration: 0.2 }
