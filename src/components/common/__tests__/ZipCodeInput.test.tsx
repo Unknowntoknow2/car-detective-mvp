@@ -1,11 +1,12 @@
-
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { ZipCodeInput } from '../ZipCodeInput';
 import { validateZipCode } from '@/utils/validation/zipCodeValidator';
 import { vi } from 'vitest';
 import '@testing-library/jest-dom'; // Import Jest DOM extensions correctly
+import * as rtl from '@testing-library/react';
+const { screen, fireEvent, waitFor } = rtl;
 
 // Mock the validateZipCode function
 vi.mock('@/utils/validation/zipCodeValidator', () => ({
