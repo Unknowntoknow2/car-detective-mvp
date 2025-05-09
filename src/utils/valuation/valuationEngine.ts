@@ -1,4 +1,3 @@
-
 import { AdjustmentBreakdown } from '@/types/photo';
 import { ValuationResult, ValuationParams } from './types';
 import { supabase } from '@/integrations/supabase/client';
@@ -257,7 +256,7 @@ export const calculateValuation = (params: ValuationParams): ValuationResult => 
     estimatedValue: 25000,
     confidenceScore: 90,
     priceRange: [23500, 26500],
-    base_price: 24000,
+    basePrice: 24000,
     zip_demand_factor: 1.05,
     adjustments: []
   };
@@ -358,7 +357,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
     estimatedValue: estimatedValue,
     confidenceScore: confidenceScore,
     priceRange: priceRange,
-    base_price: baseValue,
+    basePrice: baseValue,
     zip_demand_factor: 1.0,
     adjustments,
     finalValue,
