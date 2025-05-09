@@ -1,4 +1,3 @@
-
 // src/types/photo.ts
 
 export interface Photo {
@@ -9,35 +8,21 @@ export interface Photo {
   uploading?: boolean;
   uploaded?: boolean;
   error?: string | null;
-  size?: number;
+  score?: number;
+  isPrimary?: boolean;
+  valuationId?: string;
   type?: string;
-  explanation?: string;
+  angle?: string;
+  fileName?: string;
+  size?: number;
 }
 
 export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
-  issues?: string[];
-}
-
-export interface PhotoScoringResult {
-  overallScore: number;
-  individualScores: PhotoScore[];
-  score?: number; // For backward compatibility
-  photoUrl?: string; // For backward compatibility
-  condition?: string;
-  confidenceScore?: number;
-  error?: string;
-  aiCondition?: AICondition;
-}
-
-export interface PhotoAnalysisResult {
-  photoUrls: string[];
-  score: number;
-  overallScore?: number;
-  individualScores?: PhotoScore[];
-  aiCondition?: AICondition;
+  factor?: string;
+  impact?: number;
 }
 
 export interface AICondition {
@@ -47,6 +32,12 @@ export interface AICondition {
   aiSummary?: string;
 }
 
-// Constants
-export const MAX_FILES = 6;
-export const MIN_FILES = 1;
+export interface PhotoScoringResult {
+  photoScore: number;
+  bestPhotoUrl?: string;
+  aiCondition?: AICondition;
+  explanation?: string;
+  individualScores?: PhotoScore[];
+  photoUrls?: string[];
+  score?: number;
+}
