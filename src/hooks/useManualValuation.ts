@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { calculateFinalValuation } from '@/utils/valuationEngine';
@@ -29,9 +28,8 @@ export function useManualValuation() {
   const calculateValuationData = async (data: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'>) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      // Pass required parameters to calculateFinalValuation (input and basePrice)
       const result = await calculateFinalValuation(
         {
           make: data.make,
@@ -42,22 +40,22 @@ export function useManualValuation() {
           zipCode: data.zipCode || '90210',
           trim: data.trim,
           accidentCount: data.accidentCount,
-          // Pass the array directly
           features: data.premiumFeatures
-        }, 
-        25000 // Add a basePrice parameter with a default value
+        },
+        25000
       );
-      
-      // Map the result adjustments to the correct format with all required fields
+
       const adjustments: AdjustmentBreakdown[] = (result.adjustments || []).map(adj => ({
         factor: adj.factor || adj.name || 'Unknown',
-        impact: adj.impact || adj.value || 0,
+        impact: typeof adj.impact === 'number' ? adj.impact : adj.value || 0,
         name: adj.name || adj.factor || 'Unknown',
         value: adj.value || adj.impact || 0,
         description: adj.description || '',
-        percentAdjustment: adj.percentAdjustment || 0
+        percentAdjustment: adj.percentAdjustment || 0,
+        adjustment: adj.adjustment,
+        impactPercentage: adj.impactPercentage
       }));
-      
+
       const valuationResult: ManualVehicleInfo = {
         ...data,
         valuation: result.estimatedValue,
@@ -65,7 +63,7 @@ export function useManualValuation() {
         adjustments: adjustments,
         priceRange: result.priceRange
       };
-      
+
       setVehicleInfo(valuationResult);
       toast.success("Vehicle valuation completed");
       return valuationResult;
