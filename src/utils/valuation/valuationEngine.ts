@@ -1,3 +1,4 @@
+
 import { AdjustmentBreakdown } from '@/types/photo';
 import { ValuationResult, ValuationParams } from './types';
 import { supabase } from '@/integrations/supabase/client';
@@ -253,7 +254,7 @@ export function calculateMarketTrendAdjustment(baseValue: number, vehicleYear: n
 export const calculateValuation = (params: ValuationParams): ValuationResult => {
   // Mock implementation to match the interface
   return {
-    estimated_value: 25000,
+    estimatedValue: 25000,
     confidence_score: 90,
     price_range: [23500, 26500],
     base_price: 24000,
@@ -354,14 +355,13 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   ];
 
   return {
-    estimated_value: estimatedValue,
+    estimatedValue: estimatedValue,
     confidence_score: confidenceScore,
     price_range: priceRange,
     base_price: baseValue,
     zip_demand_factor: 1.0,
     adjustments,
     finalValue,
-    estimatedValue,
     baseValue
   };
 }
