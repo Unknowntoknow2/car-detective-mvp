@@ -1,3 +1,4 @@
+// src/utils/valuationCalculator.ts
 
 import { mileageAdjustmentCurve } from './adjustments/mileageAdjustments';
 import { getConditionMultiplier } from './adjustments/conditionAdjustments';
@@ -11,7 +12,7 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   mileage?: number;
-  condition?: string; // Changed to string to accept any condition string
+  condition?: string;
   zipCode?: string;
   features?: string[];
 }
@@ -79,10 +80,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Handle feature adjustments correctly
     const featureResult = getFeatureAdjustments(params.features, baseValue);
     let featureImpact: number;
-    
+
     if (typeof featureResult === 'number') {
       featureImpact = featureResult;
     } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
@@ -90,7 +90,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
     } else {
       featureImpact = 0;
     }
-    
+
     adjustments.push({
       name: 'Premium Features',
       description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
@@ -117,10 +117,8 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   const finalValue = Math.round(baseValue + totalAdjustment);
-  confidenceScore = Math.min(98, confidenceScore);
-  confidenceScore = Math.max(75, confidenceScore);
+  confidenceScore = Math.min(98, Math.max(75, confidenceScore));
 
-  // Add estimatedValue and priceRange for compatibility with newer interfaces
   const estimatedValue = finalValue;
   const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
   const priceRange: [number, number] = [
@@ -175,17 +173,15 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
   return baseValue * trendMultiplier;
 }
 
-// Import correct types from valuation/types and export them
-import { 
+// --- Add compatibility exports ---
+import {
   ValuationParams as EnterpriseValuationParams,
-  ValuationResult as EnterpriseValuationResult
+  ValuationResult as EnterpriseValuationResult,
 } from './valuation/types';
 
-// Export the corrected types and functions
 export type ValuationInput = ValuationParams;
 export type FinalValuationResult = ValuationResult;
 export type EnterpriseValuationInput = EnterpriseValuationParams;
 export type EnterpriseValuationOutput = EnterpriseValuationResult;
 
-// Export the function from valuationEngine as enterpriseCalculateFinalValuation
 export { calculateFinalValuation as enterpriseCalculateFinalValuation };
