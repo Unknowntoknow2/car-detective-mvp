@@ -17,7 +17,7 @@ import type { AICondition } from '@/types/photo';
 import type {
   ValuationInput as EnterpriseValuationInput,
   FinalValuationResult as EnterpriseValuationOutput
-} from './calculateFinalValuation';
+} from './valuation/types';
 
 export interface ValuationParams {
   baseMarketValue: number;

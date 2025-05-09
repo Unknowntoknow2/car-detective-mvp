@@ -179,7 +179,6 @@ function getRegionalMarketDescription(zipCode: string, multiplier: number): stri
 function calculateMakeModelTrend(make: string, model: string, year: number, baseValue: number): number {
   const currentYear = new Date().getFullYear();
   const vehicleAge = currentYear - year;
-
   const luxuryBrands = ['BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Porsche'];
   const electricModels = ['Model 3', 'Model Y', 'Leaf', 'Bolt', 'ID.4', 'Ioniq'];
   const classicModels = ['Mustang', 'Corvette', 'Bronco', 'Defender', 'Wrangler'];
