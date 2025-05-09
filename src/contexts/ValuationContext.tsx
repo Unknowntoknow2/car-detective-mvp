@@ -1,9 +1,6 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { 
-  calculateFinalValuation, 
-  enterpriseCalculateFinalValuation 
-} from '@/utils/valuation/calculateFinalValuation';
+import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
 import { ValuationInput } from '@/types/valuation';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,8 +56,8 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       // Calculate base market value - premium users get a more accurate base value
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
-      // Use the enterprise-level valuation algorithm with more advanced features
-      const result = await enterpriseCalculateFinalValuation({
+      // For the premium valuation, we'll use the same calculation function but with premium options
+      const result = await calculateFinalValuation({
         ...valuationData,
         baseMarketValue,
         isPremium: true,
