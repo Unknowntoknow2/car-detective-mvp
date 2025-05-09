@@ -8,4 +8,5 @@
  * import { getFeatureAdjustments, standardizeFeatureNames, getFeatureInfo } from './features';
  */
 
+// Re-export all from features.ts to maintain backward compatibility
 export * from './features';

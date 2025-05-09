@@ -1,9 +1,11 @@
 
-import { type ValuationInput } from '@/types/valuation';
+// src/utils/valuation/types.ts
+
+import { type ValuationInput as BaseValuationInput } from '@/types/valuation';
 import { AdjustmentBreakdown } from '@/types/photo';
 import { AICondition } from '@/types/photo';
 
-export interface EnhancedValuationParams extends ValuationInput {
+export interface EnhancedValuationParams extends BaseValuationInput {
   // Original fields from ValuationInput plus additional fields
   identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
   trim?: string;
@@ -74,3 +76,6 @@ export type ValuationResult = FinalValuationResult;
 
 // Add ValuationOutput for backward compatibility with existing code
 export type ValuationOutput = FinalValuationResult;
+
+// Export ValuationInput for compatibility with other modules
+export type ValuationInput = ValuationParams;

@@ -1,4 +1,3 @@
-
 // src/utils/valuation/valuationEngine.ts
 
 import {
@@ -18,7 +17,8 @@ import type {
   EnhancedValuationParams,
   FinalValuationResult as EnterpriseValuationOutput,
   ValuationParams,
-  ValuationResult
+  ValuationResult,
+  ValuationInput
 } from './types';
 
 export function calculateFinalValuation(params: ValuationParams): ValuationResult {
@@ -79,8 +79,9 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Handle feature adjustments properly, passing only necessary arguments
-    const featureResult = getFeatureAdjustments(params.features, baseValue);
+    // Fix: Handle getFeatureAdjustments properly, passing only one argument
+    // The function is expected to handle the baseValue internally
+    const featureResult = getFeatureAdjustments(params.features);
     
     let featureAdjustmentValue = 0;
     if (typeof featureResult === 'number') {
@@ -123,12 +124,8 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   const finalValue = Math.round(baseValue + totalAdjustment);
   confidenceScore = Math.max(75, Math.min(98, confidenceScore));
 
-  const estimatedValue = finalValue;
-  const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
-  const priceRange: [number, number] = [
-    Math.floor(estimatedValue - margin),
-    Math.ceil(estimatedValue + margin)
-  ];
+  const estimatedValue = Math.round(baseValue + totalAdjustment);
+  const priceRange = calculatePriceRange(estimatedValue, confidenceScore);
 
   return {
     finalValue,
@@ -138,6 +135,14 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
     estimatedValue,
     priceRange
   };
+}
+
+function calculatePriceRange(estimatedValue: number, confidenceScore: number): [number, number] {
+  const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
+  return [
+    Math.floor(estimatedValue - margin),
+    Math.ceil(estimatedValue + margin)
+  ];
 }
 
 function getMileageAdjustmentDescription(mileage: number): string {
@@ -172,7 +177,7 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
 }
 
 // Export types from current file
-export type ValuationInput = ValuationParams;
+export type { ValuationInput };
 export type EnterpriseValuationInput = ValuationParams;
 export type { EnterpriseValuationOutput };
 

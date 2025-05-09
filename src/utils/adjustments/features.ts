@@ -1,4 +1,3 @@
-
 import { RulesEngineInput } from '../rules/types';
 
 // Mapping of features to their impact values
@@ -30,13 +29,27 @@ export const featureDescriptions = {
   'performance_package': 'Performance Package'
 };
 
-export const getFeatureAdjustments = (input: RulesEngineInput): { 
+// Modified to accept either a RulesEngineInput or just features array
+export const getFeatureAdjustments = (input: RulesEngineInput | string[]): { 
   totalAdjustment: number;
   featuresApplied: Array<{name: string; impact: number}>;
 } => {
-  // Use premiumFeatures if provided or fall back to features
-  const features = Array.isArray(input.premiumFeatures) ? input.premiumFeatures : 
-                  (Array.isArray(input.features) ? input.features : []);
+  // Handle both input types - either RulesEngineInput object or direct features array
+  let features: string[] = [];
+  let basePrice = 0;
+  
+  if (Array.isArray(input)) {
+    // If input is a string array, it's the features directly
+    features = input;
+    basePrice = 20000; // Default base price if not provided
+  } else {
+    // If input is a RulesEngineInput object
+    // Use premiumFeatures if provided or fall back to features
+    features = Array.isArray(input.premiumFeatures) ? input.premiumFeatures : 
+              (Array.isArray(input.features) ? input.features : []);
+    
+    basePrice = input.basePrice;
+  }
   
   let totalAdjustment = 0;
   const featuresApplied = [];
@@ -46,7 +59,7 @@ export const getFeatureAdjustments = (input: RulesEngineInput): {
       feature.toLowerCase().replace(/\s+/g, '_') : '';
       
     if (featureKey && featureImpacts[featureKey as keyof typeof featureImpacts]) {
-      const impact = featureImpacts[featureKey as keyof typeof featureImpacts] * input.basePrice;
+      const impact = featureImpacts[featureKey as keyof typeof featureImpacts] * basePrice;
       totalAdjustment += impact;
       featuresApplied.push({
         name: featureDescriptions[featureKey as keyof typeof featureDescriptions] || featureKey,
@@ -56,7 +69,7 @@ export const getFeatureAdjustments = (input: RulesEngineInput): {
   }
   
   // Apply cap to total adjustment (max 15% of base price)
-  const maxAdjustment = input.basePrice * 0.15;
+  const maxAdjustment = basePrice * 0.15;
   if (totalAdjustment > maxAdjustment) {
     const ratio = maxAdjustment / totalAdjustment;
     totalAdjustment = maxAdjustment;

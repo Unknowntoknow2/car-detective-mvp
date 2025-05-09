@@ -1,3 +1,4 @@
+
 // src/utils/valuationCalculator.ts
 
 import { mileageAdjustmentCurve } from './adjustments/mileageAdjustments';
@@ -84,6 +85,7 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   }
 
   if (params.features && params.features.length > 0) {
+    // Fix: Pass only one argument to getFeatureAdjustments
     const featureResult = getFeatureAdjustments(params.features);
     let featureImpact: number;
 
