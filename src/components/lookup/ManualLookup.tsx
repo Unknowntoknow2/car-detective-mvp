@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ManualEntryForm from '@/components/lookup/ManualEntryForm';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ManualLookupProps {
   onSubmit: (data: any) => void;
@@ -16,13 +17,15 @@ export function ManualLookup({
   isPremium = false
 }: ManualLookupProps) {
   return (
-    <div>
-      <ManualEntryForm
-        onSubmit={onSubmit}
-        isLoading={isLoading}
-        submitButtonText={submitButtonText}
-        isPremium={isPremium}
-      />
-    </div>
+    <Card className="shadow-sm border-2">
+      <CardContent className="p-5">
+        <ManualEntryForm
+          onSubmit={onSubmit}
+          isLoading={isLoading}
+          submitButtonText={submitButtonText}
+          isPremium={isPremium}
+        />
+      </CardContent>
+    </Card>
   );
 }
