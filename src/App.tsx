@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 import OffersPage from './pages/OffersPage';
 import UpgradePage from './pages/UpgradePage';
 import AuditPage from './pages/AuditPage';
+import AuthPage from './pages/AuthPage';
 
 function App() {
   return (
@@ -28,17 +29,17 @@ function App() {
             <MainLayout>
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/auth" element={<AuthPage />} />
                 <Route path="/valuation" element={<ValuationPage />} />
                 <Route path="/valuation/:valuationId" element={<ValuationDetailPage />} />
                 <Route path="/valuation/:valuationId/premium" element={<PremiumValuationPage />} />
-                <Route path="/valuation/premium" element={<PremiumPage />} />
+                <Route path="/premium" element={<PremiumPage />} />
                 <Route path="/valuation/:valuationId/upgrade" element={<UpgradePage />} />
                 <Route path="/results" element={<ResultPage />} />
                 <Route path="/my-valuations" element={<MyValuationsPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/payment-success" element={<PaymentSuccessPage />} />
                 <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
-                <Route path="/valuation/premium" element={<PremiumValuationPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/offers" element={<OffersPage />} />
                 <Route path="/audit" element={<AuditPage />} />

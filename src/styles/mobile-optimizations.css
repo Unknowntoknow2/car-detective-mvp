@@ -1,192 +1,65 @@
 
-/* Mobile scroll optimizations */
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-.scroll-container {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-}
-
-.scroll-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
-}
-
-/* Horizontal scroll with snap points */
-.scroll-snap-x {
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  display: flex;
-  gap: 1rem;
-  padding-bottom: 1rem;
-}
-
-.scroll-snap-x > * {
-  scroll-snap-align: start;
-  flex-shrink: 0;
-}
-
-/* Scroll margin for section navigation */
-section[id] {
-  scroll-margin-top: 80px; /* Height of fixed header */
-}
-
-/* Improved touch targets for mobile */
+/* Mobile optimizations for premium page */
 @media (max-width: 768px) {
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
+  .premium-hero {
+    padding: 2rem 1rem;
   }
   
-  button, 
-  a,
-  [role="button"],
-  input,
-  select,
-  textarea {
-    min-height: 44px;
-    min-width: 44px;
+  .premium-feature-card {
+    padding: 1rem;
   }
   
-  label {
-    padding: 10px 0;
-  }
-  
-  /* Improved spacing for mobile */
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  /* Ensure cards don't overflow on mobile */
-  .card {
-    max-width: 100%;
+  .premium-pricing-card {
+    margin: 0 1rem;
   }
 }
 
-/* Focus styles that work for both mouse and keyboard */
-:focus-visible {
-  outline: 2px solid #0062FF;
-  outline-offset: 2px;
+/* Animation delays for premium feature cards */
+.premium-feature-delay-1 {
+  animation-delay: 0.1s;
 }
 
-/* Base 8px spacing system utilities */
-.space-grid {
-  --space-grid: 8px;
-  --space-1: calc(var(--space-grid) * 1);
-  --space-2: calc(var(--space-grid) * 2);
-  --space-3: calc(var(--space-grid) * 3);
-  --space-4: calc(var(--space-grid) * 4);
-  --space-5: calc(var(--space-grid) * 5);
-  --space-6: calc(var(--space-grid) * 6);
+.premium-feature-delay-2 {
+  animation-delay: 0.2s;
 }
 
-/* Animation utilities */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+.premium-feature-delay-3 {
+  animation-delay: 0.3s;
 }
 
-/* Button hover animations */
-button:not(:disabled),
-[role="button"]:not(:disabled) {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.premium-feature-delay-4 {
+  animation-delay: 0.4s;
 }
 
-button:not(:disabled):hover,
-[role="button"]:not(:disabled):hover {
-  transform: translateY(-1px);
+/* Gradient backgrounds */
+.premium-gradient-bg {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
 }
 
-button:not(:disabled):active,
-[role="button"]:not(:disabled):active {
-  transform: translateY(1px);
+/* Hover effects */
+.premium-card-hover {
+  transition: all 0.3s ease;
 }
 
-/* Card hover effect */
-.card.interactive {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card.interactive:hover {
-  transform: translateY(-3px);
+.premium-card-hover:hover {
+  transform: translateY(-5px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Hardware acceleration for smoother animations */
-.hardware-accelerated {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+/* Custom scrollbar for premium page */
+.premium-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* Accessibility utilities */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+.premium-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-/* Shimmer effect for loading states */
-.shimmer {
-  position: relative;
-  overflow: hidden;
+.premium-scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
 }
 
-.shimmer::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmerAnimation 2s infinite;
-}
-
-@keyframes shimmerAnimation {
-  0% {
-    background-position: -100% 0;
-  }
-  100% {
-    background-position: 100% 0;
-  }
-}
-
-/* Focus ring animation */
-@keyframes focusPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(59, 130,, 246, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-  }
-}
-
-.focus-animation:focus-visible {
-  animation: focusPulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.premium-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

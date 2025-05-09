@@ -1,93 +1,56 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut, FileText, Settings } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext'; // Make sure this is imported
 
 export function Navbar() {
-  const { user, signOut } = useAuth();
-  
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-  
+  const { user, signOut } = useAuth?.() || {}; // Optional chaining in case AuthContext isn't fully set up
+
   return (
-    <header className="border-b bg-background">
+    <header className="border-b bg-white">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-8">
-          <Link to="/" className="text-xl font-bold">Car Detective</Link>
-          
-          <nav className="hidden md:flex space-x-6">
-            <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link to="/lookup/vin" className="text-sm font-medium hover:text-primary transition-colors">
+        <div className="flex items-center space-x-6">
+          <Link to="/" className="font-bold text-xl">CarDetective</Link>
+          <nav className="hidden md:flex items-center space-x-4">
+            <Link to="/valuation" className="text-sm font-medium hover:text-primary transition-colors">
               Valuation
+            </Link>
+            <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
+              Premium
             </Link>
             {user && (
               <Link to="/my-valuations" className="text-sm font-medium hover:text-primary transition-colors">
                 My Valuations
               </Link>
             )}
-            <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
-              Premium
-            </Link>
           </nav>
         </div>
         
-        <div>
+        <div className="flex items-center space-x-3">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative rounded-full h-8 w-8">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || ''} />
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
+            <>
+              <Button variant="outline" size="sm" onClick={() => signOut?.()}>
+                Logout
+              </Button>
+              <Link to="/profile">
+                <Button variant="ghost" size="sm">
+                  Profile
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/my-valuations">
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>My Valuations</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </Link>
+            </>
           ) : (
-            <Button asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
+            <Link to="/auth">
+              <Button variant="outline" size="sm">
+                Login
+              </Button>
+            </Link>
           )}
+          <Link to="/premium">
+            <Button size="sm" className="bg-primary hover:bg-primary-hover text-white">
+              Try Premium
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

@@ -1,26 +1,62 @@
 
-import { useLocation } from 'react-router-dom';
-import AuthForm from '@/components/auth/AuthForm';
-import { AuthMode } from '@/types/auth';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { LoginForm } from '@/components/auth/forms/LoginForm';
+import { SignupForm } from '@/components/auth/forms/SignupForm';
+import { useAuth } from '@/contexts/AuthContext';
 
-export default function AuthPage() {
-  const location = useLocation();
+const AuthPage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth?.() || {};
   
-  // Determine authentication mode based on the URL
-  const getAuthMode = (): AuthMode => {
-    const path = location.pathname;
-    
-    if (path.includes('/auth/signup')) return 'signup';
-    if (path.includes('/auth/forgot-password')) return 'forgot-password';
-    if (path.includes('/auth/reset-password')) return 'reset-password';
-    if (path.includes('/auth/forgot-email')) return 'forgot-email';
-    
-    return 'login'; // Default mode
-  };
+  // Redirect already logged in users
+  React.useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50/50">
-      <AuthForm mode={getAuthMode()} />
+    <div className="container mx-auto py-10 px-4 flex items-center justify-center min-h-[80vh]">
+      <div className="w-full max-w-md">
+        <Card className="border-2">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
+            <CardDescription>
+              Sign in to your account or create a new one
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="login">
+                <LoginForm />
+              </TabsContent>
+              
+              <TabsContent value="signup">
+                <SignupForm />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4 border-t pt-4">
+            <div className="text-sm text-center text-muted-foreground">
+              Interested in our premium features?
+            </div>
+            <Button variant="outline" asChild className="w-full">
+              <Link to="/premium">View Premium Features</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default AuthPage;
