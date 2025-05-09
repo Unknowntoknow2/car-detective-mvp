@@ -1,23 +1,9 @@
-
 // src/utils/valuationEngine.ts
 
-import {
-  mileageAdjustmentCurve
-} from './adjustments/mileageAdjustments';
-import {
-  getConditionMultiplier
-} from './adjustments/conditionAdjustments';
-import {
-  getRegionalMarketMultiplier
-} from './adjustments/locationAdjustments';
-import {
-  getFeatureAdjustments
-} from './adjustments/featureAdjustments';
-import type { AICondition } from '@/types/photo';
-import type {
-  ValuationInput as EnterpriseValuationInput,
-  FinalValuationResult as EnterpriseValuationOutput
-} from './valuation/types';
+import { mileageAdjustmentCurve } from './adjustments/mileageAdjustments';
+import { getConditionMultiplier } from './adjustments/conditionAdjustments';
+import { getRegionalMarketMultiplier } from './adjustments/locationAdjustments';
+import { getFeatureAdjustments } from './adjustments/featureAdjustments';
 
 export interface ValuationParams {
   baseMarketValue: number;
@@ -26,12 +12,9 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   mileage?: number;
-  condition?: string; // Changed from 'Excellent' | 'Good' | 'Fair' | 'Poor' to allow any string
+  condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor';
   zipCode?: string;
   features?: string[];
-  trim?: string;
-  photoScore?: number;
-  aiConditionOverride?: AICondition;
 }
 
 export interface ValuationResult {
@@ -42,15 +25,11 @@ export interface ValuationResult {
     impact: number;
     percentage: number;
     factor: string;
-    value: number;
-    percentAdjustment: number;
-    adjustment?: number;
-    impactPercentage?: number;
   }[];
   confidenceScore: number;
   baseValue: number;
-  estimatedValue: number;
-  priceRange: [number, number];
+  estimatedValue?: number;
+  priceRange?: [number, number];
 }
 
 export function calculateFinalValuation(params: ValuationParams): ValuationResult {
@@ -64,103 +43,94 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
   let totalAdjustment = 0;
 
   if (params.mileage !== undefined && params.mileage >= 0) {
-    const mileageImpact = baseValue * mileageAdjustmentCurve(params.mileage);
+    const mileageImpact = calculateMileageImpact(params.mileage, baseValue);
     adjustments.push({
       name: 'Mileage',
       description: getMileageAdjustmentDescription(params.mileage),
       impact: mileageImpact,
       percentage: (mileageImpact / baseValue) * 100,
       factor: 'Mileage',
-      value: mileageImpact,
-      percentAdjustment: (mileageImpact / baseValue) * 100
     });
     totalAdjustment += mileageImpact;
     confidenceScore += 3;
   }
 
   if (params.condition) {
-    const multiplier = getConditionMultiplier(params.condition);
-    const impact = baseValue * multiplier;
+    const conditionMultiplier = getConditionMultiplier(params.condition);
+    const conditionImpact = baseValue * conditionMultiplier;
     adjustments.push({
       name: 'Condition',
       description: `Vehicle in ${params.condition} condition`,
-      impact,
-      percentage: multiplier * 100,
+      impact: conditionImpact,
+      percentage: conditionMultiplier * 100,
       factor: 'Condition',
-      value: impact,
-      percentAdjustment: multiplier * 100
     });
-    totalAdjustment += impact;
+    totalAdjustment += conditionImpact;
     confidenceScore += 2;
   }
 
   if (params.zipCode) {
-    const multiplier = getRegionalMarketMultiplier(params.zipCode);
-    const impact = baseValue * multiplier;
+    const regionalMultiplier = getRegionalMarketMultiplier(params.zipCode);
+    const regionalImpact = baseValue * regionalMultiplier;
     adjustments.push({
       name: 'Regional Market',
-      description: getRegionalMarketDescription(params.zipCode, multiplier),
-      impact,
-      percentage: multiplier * 100,
+      description: getRegionalMarketDescription(params.zipCode, regionalMultiplier),
+      impact: regionalImpact,
+      percentage: regionalMultiplier * 100,
       factor: 'Regional Market',
-      value: impact,
-      percentAdjustment: multiplier * 100
     });
-    totalAdjustment += impact;
+    totalAdjustment += regionalImpact;
     confidenceScore += 3;
   }
 
   if (params.features && params.features.length > 0) {
-    // Fix: Handle getFeatureAdjustments properly, only passing features and baseValue
-    const featureImpact = getFeatureAdjustments(params.features, baseValue);
-    
-    // Handle different return types of getFeatureAdjustments
-    let featureAdjustmentValue = 0;
-    if (typeof featureImpact === 'number') {
-      featureAdjustmentValue = featureImpact;
-    } else if (featureImpact && typeof featureImpact === 'object' && 'totalAdjustment' in featureImpact) {
-      featureAdjustmentValue = featureImpact.totalAdjustment;
+    const stringFeatures = params.features.filter(f => typeof f === 'string') as string[];
+    const featureResult = getFeatureAdjustments(stringFeatures);
+    let featureImpact: number;
+
+    if (typeof featureResult === 'number') {
+      featureImpact = featureResult;
+    } else if (featureResult && typeof featureResult === 'object' && 'totalAdjustment' in featureResult) {
+      featureImpact = featureResult.totalAdjustment;
+    } else {
+      featureImpact = 0;
     }
-    
+
     adjustments.push({
       name: 'Premium Features',
-      description: `${params.features.length} premium features including ${params.features.slice(0, 2).join(', ')}${params.features.length > 2 ? '...' : ''}`,
-      impact: featureAdjustmentValue,
-      percentage: (featureAdjustmentValue / baseValue) * 100,
+      description: `${stringFeatures.length} premium features including ${stringFeatures.slice(0, 2).join(', ')}${stringFeatures.length > 2 ? '...' : ''}`,
+      impact: featureImpact,
+      percentage: (featureImpact / baseValue) * 100,
       factor: 'Premium Features',
-      value: featureAdjustmentValue,
-      percentAdjustment: (featureAdjustmentValue / baseValue) * 100
     });
-    totalAdjustment += featureAdjustmentValue;
+    totalAdjustment += featureImpact;
     confidenceScore += 2;
   }
 
-  if (params.make && params.model && (params.year || params.vehicleYear)) {
+  if (params.make && params.model && (params.vehicleYear || params.year)) {
     const year = params.year || params.vehicleYear || 0;
-    const trendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
-    if (trendImpact !== 0) {
+    const marketTrendImpact = calculateMakeModelTrend(params.make, params.model, year, baseValue);
+    if (marketTrendImpact !== 0) {
       adjustments.push({
         name: 'Market Trends',
         description: `Current market trends for ${year} ${params.make} ${params.model}`,
-        impact: trendImpact,
-        percentage: (trendImpact / baseValue) * 100,
+        impact: marketTrendImpact,
+        percentage: (marketTrendImpact / baseValue) * 100,
         factor: 'Market Trends',
-        value: trendImpact,
-        percentAdjustment: (trendImpact / baseValue) * 100
       });
-      totalAdjustment += trendImpact;
+      totalAdjustment += marketTrendImpact;
       confidenceScore += 2;
     }
   }
 
   const finalValue = Math.round(baseValue + totalAdjustment);
-  confidenceScore = Math.max(75, Math.min(98, confidenceScore));
+  confidenceScore = Math.min(98, Math.max(75, confidenceScore));
 
   const estimatedValue = finalValue;
   const margin = ((100 - confidenceScore) / 100) * 0.15 * estimatedValue;
   const priceRange: [number, number] = [
     Math.floor(estimatedValue - margin),
-    Math.ceil(estimatedValue + margin)
+    Math.ceil(estimatedValue + margin),
   ];
 
   return {
@@ -169,8 +139,13 @@ export function calculateFinalValuation(params: ValuationParams): ValuationResul
     confidenceScore,
     baseValue,
     estimatedValue,
-    priceRange
+    priceRange,
   };
+}
+
+function calculateMileageImpact(mileage: number, baseValue: number): number {
+  const multiplier = mileageAdjustmentCurve(mileage);
+  return baseValue * multiplier;
 }
 
 function getMileageAdjustmentDescription(mileage: number): string {
@@ -190,22 +165,30 @@ function getRegionalMarketDescription(zipCode: string, multiplier: number): stri
 
 function calculateMakeModelTrend(make: string, model: string, year: number, baseValue: number): number {
   const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-  const luxury = ['BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Porsche'];
-  const electric = ['Model 3', 'Model Y', 'Leaf', 'Bolt', 'ID.4', 'Ioniq'];
-  const classics = ['Mustang', 'Corvette', 'Bronco', 'Defender', 'Wrangler'];
+  const vehicleAge = currentYear - year;
 
-  let multiplier = 0;
-  if (luxury.includes(make) && age < 5) multiplier -= 0.02;
-  if (electric.includes(model) || make === 'Tesla') multiplier += 0.04;
-  if (classics.includes(model)) multiplier += 0.02;
-  if (['Toyota', 'Honda', 'Lexus'].includes(make)) multiplier += 0.015;
+  const luxuryBrands = ['BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Porsche'];
+  const electricModels = ['Model 3', 'Model Y', 'Leaf', 'Bolt', 'ID.4', 'Ioniq'];
+  const classicModels = ['Mustang', 'Corvette', 'Bronco', 'Defender', 'Wrangler'];
 
-  return baseValue * multiplier;
+  let trendMultiplier = 0;
+  if (luxuryBrands.includes(make) && vehicleAge < 5) trendMultiplier -= 0.02;
+  if (electricModels.includes(model) || make === 'Tesla') trendMultiplier += 0.04;
+  if (classicModels.includes(model)) trendMultiplier += 0.02;
+  if (['Toyota', 'Honda', 'Lexus'].includes(make)) trendMultiplier += 0.015;
+
+  return baseValue * trendMultiplier;
 }
 
-export { calculateFinalValuation as enterpriseCalculateFinalValuation };
-export type { EnterpriseValuationInput, EnterpriseValuationOutput };
+// --- Add compatibility exports ---
+import {
+  ValuationParams as EnterpriseValuationParams,
+  ValuationResult as EnterpriseValuationResult,
+} from './valuation/types';
 
-export const calculateValuation = calculateFinalValuation;
-export const getBaseValue = (params: any) => params.baseMarketValue || 0;
+export type ValuationInput = ValuationParams;
+export type FinalValuationResult = ValuationResult;
+export type EnterpriseValuationInput = EnterpriseValuationParams;
+export type EnterpriseValuationOutput = EnterpriseValuationResult;
+
+export { calculateFinalValuation as enterpriseCalculateFinalValuation };
