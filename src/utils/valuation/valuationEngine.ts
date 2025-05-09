@@ -1,18 +1,22 @@
+// src/utils/valuationEngine.ts
 
 import {
   mileageAdjustmentCurve
-} from '../adjustments/mileageAdjustments';
+} from './adjustments/mileageAdjustments';
 import {
   getConditionMultiplier
-} from '../adjustments/conditionAdjustments';
+} from './adjustments/conditionAdjustments';
 import {
   getRegionalMarketMultiplier
-} from '../adjustments/locationAdjustments';
+} from './adjustments/locationAdjustments';
 import {
   getFeatureAdjustments
-} from '../adjustments/featureAdjustments';
+} from './adjustments/featureAdjustments';
 import type { AICondition } from '@/types/photo';
-import { ValuationParams, ValuationResult } from './types';
+import type {
+  ValuationInput as EnterpriseValuationInput,
+  FinalValuationResult as EnterpriseValuationOutput
+} from './calculateFinalValuation';
 
 export interface ValuationParams {
   baseMarketValue: number;
@@ -163,18 +167,8 @@ function calculateMakeModelTrend(make: string, model: string, year: number, base
   return baseValue * multiplier;
 }
 
-// Re-exported version
-import {
-  calculateFinalValuation as enterpriseCalculateFinalValuation,
-} from './calculateFinalValuation';
-import type {
-  ValuationInput as EnterpriseValuationInput,
-  FinalValuationResult as EnterpriseValuationOutput
-} from './calculateFinalValuation';
-
-export { enterpriseCalculateFinalValuation };
+export { calculateFinalValuation as enterpriseCalculateFinalValuation };
 export type { EnterpriseValuationInput, EnterpriseValuationOutput };
 
-// Add these exports for test compatibility
 export const calculateValuation = calculateFinalValuation;
 export const getBaseValue = (params: any) => params.baseMarketValue || 0;
