@@ -7,17 +7,17 @@ import { toast } from 'sonner';
 
 // Export the User type for use in other files
 export type User = SupabaseUser & {
-  email: string;
-  app_metadata: {
-    provider: string;
+  email?: string;
+  app_metadata?: {
+    provider?: string;
     [key: string]: any;
   };
-  user_metadata: {
+  user_metadata?: {
     full_name?: string;
     [key: string]: any;
   };
-  aud: string;
-  created_at: string;
+  aud?: string;
+  created_at?: string;
 };
 
 type AuthContextType = {
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", _event, session ? "session exists" : "no session");
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(session?.user as User | null);
       setIsLoading(false);
     });
 
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session check:", session ? "session exists" : "no session");
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(session?.user as User | null);
       setIsLoading(false);
     });
 
