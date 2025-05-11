@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export default function DealerDashboard() {
   useEffect(() => {
     const fetchDealerProfile = async () => {
       if (!user) {
-        navigate('/login-dealer');
+        navigate('/login');
         return;
       }
 
@@ -36,56 +36,34 @@ export default function DealerDashboard() {
           .eq('id', user.id)
           .single();
 
-        // Handle database errors
         if (error) {
-          console.error('Database error:', error);
-          
-          // Handle missing column error specifically
-          if (error.message.includes("column 'dealership_name' does not exist")) {
-            toast.error('Database setup error: Missing dealership_name column in profiles table.');
-            navigate('/');
-            return;
-          } else if (error.message.includes("column 'user_role' does not exist")) {
-            toast.error('Database setup error: Missing user_role column in profiles table.');
-            navigate('/');
-            return;
-          } else if (error.message.includes("column 'full_name' does not exist")) {
-            toast.error('Database setup error: Missing full_name column in profiles table.');
-            navigate('/');
-            return;
-          } else {
-            toast.error('Could not load profile.');
-            navigate('/');
-            return;
-          }
-        }
-
-        if (!data) {
-          toast.error('Could not load profile.');
+          console.error('Error fetching profile:', error);
+          toast.error('Could not load profile');
           navigate('/');
           return;
         }
 
-        // Safely access properties with defaults if they don't exist
-        const userRole = typeof data.user_role === 'string' ? data.user_role : null;
-        const fullName = typeof data.full_name === 'string' ? data.full_name : 'Dealer';
-        const dealershipName = typeof data.dealership_name === 'string' ? data.dealership_name : 'Your Dealership';
-        
-        // Check if user_role exists and is a dealer
-        if (!userRole || userRole !== 'dealer') {
-          toast.error('Access denied — Dealer only.');
+        if (!data) {
+          toast.error('Could not load profile');
+          navigate('/');
+          return;
+        }
+
+        // Check if user is a dealer
+        if (data.user_role !== 'dealer') {
+          toast.error('Access denied — Dealer only');
           navigate('/dashboard');
           return;
         }
 
         setDealerProfile({
-          full_name: fullName,
-          dealership_name: dealershipName,
-          user_role: userRole
+          full_name: data.full_name || 'Dealer',
+          dealership_name: data.dealership_name || 'Your Dealership',
+          user_role: data.user_role
         });
       } catch (error: any) {
         console.error('Error fetching dealer profile:', error);
-        toast.error(error.message || 'Could not load profile.');
+        toast.error(error.message || 'Could not load profile');
         navigate('/');
       } finally {
         setIsLoading(false);
