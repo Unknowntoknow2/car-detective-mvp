@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,15 +56,15 @@ export const SharedLoginForm = ({
 
   // Redirect if user is already authenticated
   useEffect(() => {
-    console.log(`Auth state changed. User:`, user);
     if (user) {
+      console.log(`Auth state changed. User:`, user);
       // Add a small delay to ensure navigation happens after render
       const timer = setTimeout(() => {
         checkUserRoleAndRedirect(user.id);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [user, navigate, from]);
+  }, [user, navigate]);
 
   // Check user role and redirect accordingly
   const checkUserRoleAndRedirect = async (userId: string) => {
@@ -80,17 +79,17 @@ export const SharedLoginForm = ({
         toast.error('Could not verify your account type', {
           description: 'Redirecting to default dashboard'
         });
-        navigate(redirectPath, { replace: true });
+        navigate('/dashboard', { replace: true });
       }, 8000); // 8 second safety timeout
       
       setSafetyTimer(timeoutId);
       
-      // Query the profiles table to check if the user has the expected role
+      // Query the profiles table to get user role
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_role')
+        .select('user_role, full_name')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single to prevent errors if no data
+        .maybeSingle();
 
       // Clear the safety timeout since we got a response
       if (safetyTimer) {
@@ -100,15 +99,15 @@ export const SharedLoginForm = ({
 
       if (error) {
         console.error('Error checking user role:', error);
-        toast.error('Could not verify your account role', { 
+        toast.error('Could not verify your account', { 
           description: 'Redirecting to default dashboard' 
         });
-        navigate(redirectPath, { replace: true });
+        navigate('/dashboard', { replace: true });
         setIsLoading(false);
         return;
       }
 
-      console.log('User role data:', data);
+      console.log('User profile data:', data);
       
       // If no profile data found, create a basic one with default role
       if (!data) {
@@ -130,29 +129,27 @@ export const SharedLoginForm = ({
         }
       }
       
-      const userRole = data?.user_role as UserRole;
+      const userRole = data?.user_role as UserRole || 'user';
       
       if (userRole === expectedRole) {
         console.log(`Verified role ${userRole}, redirecting to ${from}`);
         navigate(from, { replace: true });
       } else {
         console.warn(`User has incorrect role: ${userRole}, expected: ${expectedRole}`);
-        toast.error(`This account is not registered as a ${expectedRole}. Please use the appropriate login page.`);
         
-        // Sign out since the user logged into the wrong portal
-        await supabase.auth.signOut();
-        
-        // Redirect to the appropriate login page
+        // Decide where to redirect based on the actual role
         if (userRole === 'dealer') {
-          navigate('/login-dealer');
+          toast.info('Redirecting to dealer dashboard');
+          navigate('/dealer-dashboard', { replace: true });
         } else {
-          navigate('/login-user');
+          toast.info('Redirecting to user dashboard');
+          navigate('/dashboard', { replace: true });
         }
       }
     } catch (err) {
       console.error('Error in role verification:', err);
       toast.error('An error occurred during role verification');
-      navigate(redirectPath, { replace: true }); // Fallback navigation
+      navigate('/dashboard', { replace: true }); // Fallback navigation
     } finally {
       setIsLoading(false);
     }

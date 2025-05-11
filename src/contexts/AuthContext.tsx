@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState, ReactNode, useContext } from
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 // Define our own User type based on what's available in Supabase
 export type User = {
@@ -41,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // First set up auth state listener
@@ -63,6 +65,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (email: string, password: string) => {
     try {
       console.log(`Attempting to sign in user: ${email}`);
+      setIsLoading(true);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -71,12 +75,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         console.error('Error signing in:', error);
         toast.error(error.message || 'Failed to sign in');
-      } else {
-        console.log('Sign in successful');
-        toast.success('Successfully signed in!');
+        return { data: null, error };
       }
       
-      return { data, error };
+      console.log('Sign in successful, checking user role');
+      
+      // After successful login, check user role to determine redirection
+      // We don't navigate here - we let the auth state change trigger the navigation
+      // in SharedLoginForm or other components watching the auth state
+      
+      toast.success('Successfully signed in!');
+      return { data, error: null };
     } catch (err) {
       console.error('Unexpected error in signIn:', err);
       toast.error('An unexpected error occurred');
@@ -84,6 +93,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         data: null, 
         error: new Error('Failed to sign in. Please try again later.') 
       };
+    } finally {
+      setIsLoading(false);
     }
   };
 

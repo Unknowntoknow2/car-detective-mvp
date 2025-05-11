@@ -42,6 +42,7 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
           setIsDealer(data?.user_role === 'dealer');
           if (data?.user_role !== 'dealer') {
             console.warn(`User ${user.id} attempted to access dealer area without proper permissions`);
+            toast.error('You need dealer access for this page');
           }
         }
       } catch (err) {

@@ -1,14 +1,16 @@
+
 import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthRouteProps {
   children: ReactNode;
 }
 
 const AuthRoute = ({ children }: AuthRouteProps) => {
-  const { user, isLoading, getUserRole } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
   const [isCheckingRole, setIsCheckingRole] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -26,9 +28,19 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
         setIsCheckingRole(true);
         console.log('Checking user role for user:', user.id);
         
-        const role = await getUserRole();
-        console.log('User role data:', role);
-        setUserRole(role);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('user_role')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error checking user role:', error);
+          setUserRole(null);
+        } else {
+          console.log('User role data:', data);
+          setUserRole(data?.user_role || 'user');
+        }
       } catch (err) {
         console.error('Error checking user role:', err);
         toast.error('An unexpected error occurred');
@@ -44,7 +56,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
     } else {
       setRoleCheckCompleted(true);
     }
-  }, [user, getUserRole]);
+  }, [user]);
 
   // Add a safety timeout to prevent infinite loading
   useEffect(() => {
@@ -79,6 +91,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
   // Redirect dealers to dealer dashboard if they try to access regular dashboard
   if (userRole === 'dealer' && location.pathname === '/dashboard') {
     console.log('Dealer tried to access user dashboard, redirecting to dealer dashboard');
+    toast.info('Redirecting to dealer dashboard');
     return <Navigate to="/dealer-dashboard" replace />;
   }
 
