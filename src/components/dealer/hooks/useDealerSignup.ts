@@ -21,7 +21,7 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
-  // Use explicit type and resolve the schema separately
+  // Use an explicit type without relying on the schema
   const form = useForm<DealerSignupFormData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
