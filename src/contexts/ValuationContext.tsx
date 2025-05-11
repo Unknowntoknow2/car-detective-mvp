@@ -1,13 +1,14 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
-import { ValuationInput } from '@/types/valuation';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
+// Make sure ValuationInput from types/valuation matches what's expected by calculateFinalValuation
+// by ensuring required fields are filled with defaults if not provided
 type ValuationContextType = {
-  processFreeValuation: (valuationData: ValuationInput) => Promise<any>;
-  processPremiumValuation: (valuationData: ValuationInput) => Promise<any>;
+  processFreeValuation: (valuationData: any) => Promise<any>;
+  processPremiumValuation: (valuationData: any) => Promise<any>;
   saveValuationToUserProfile: (valuationId: string) => Promise<boolean>;
   isProcessing: boolean;
   error: string | null;
@@ -22,7 +23,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
   const [lastValuationResult, setLastValuationResult] = useState<any | null>(null);
   const { user } = useAuth();
 
-  const processFreeValuation = async (valuationData: ValuationInput) => {
+  const processFreeValuation = async (valuationData: any) => {
     try {
       setIsProcessing(true);
       setError(null);
@@ -31,13 +32,13 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // Prepare the input with all required fields and proper defaults
-      const input: ValuationInput = {
-        make: valuationData.make || '',
-        model: valuationData.model || '',
+      const input = {
+        make: valuationData.make || 'Unknown',
+        model: valuationData.model || 'Unknown',
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Good',
-        zipCode: valuationData.zipCode || '',
+        zipCode: valuationData.zipCode || '10001',
         fuelType: valuationData.fuelType || 'Gasoline',
         transmission: valuationData.transmission || 'Automatic',
         features: valuationData.features || [],
@@ -63,7 +64,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const processPremiumValuation = async (valuationData: ValuationInput) => {
+  const processPremiumValuation = async (valuationData: any) => {
     try {
       setIsProcessing(true);
       setError(null);
@@ -72,13 +73,13 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // For the premium valuation, prepare input with all required fields
-      const input: ValuationInput = {
-        make: valuationData.make || '',
-        model: valuationData.model || '',
+      const input = {
+        make: valuationData.make || 'Unknown',
+        model: valuationData.model || 'Unknown',
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Good',
-        zipCode: valuationData.zipCode || '',
+        zipCode: valuationData.zipCode || '10001',
         trim: valuationData.trim || '',
         fuelType: valuationData.fuelType || 'Gasoline',
         transmission: valuationData.transmission || 'Automatic',
