@@ -32,8 +32,9 @@ export default function App() {
         <ValuationProvider>
           <Toaster position="top-center" richColors />
           <Routes>
-            {/* Use the Home component as the root path */}
-            <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+            {/* Public pages */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/free-valuation" element={<MainLayout><FreeValuationPage /></MainLayout>} />
             <Route path="/auth" element={<MainLayout><AuthPage /></MainLayout>} />
             <Route path="/auth/signup" element={<MainLayout><RegisterPage /></MainLayout>} />

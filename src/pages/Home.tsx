@@ -1,106 +1,97 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, Search, DollarSign, Car } from 'lucide-react';
+import { useState, useRef } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { EnhancedHeroSection } from "@/components/home/EnhancedHeroSection";
+import { KeyFeatures } from "@/components/home/KeyFeatures";
+import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { ComparisonTable } from "@/components/home/ComparisonTable";
+import { ValuePropositionSection } from "@/components/home/ValuePropositionSection";
+import { PremiumServicesGrid } from "@/components/home/PremiumServicesGrid";
+import { PremiumTabs } from "@/components/premium/PremiumTabs";
+import { MarketingBanner } from "@/components/marketing/MarketingBanner";
+import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
+import { LookupTabs } from "@/components/home/LookupTabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useValuation } from "@/contexts/ValuationContext";
 
-const Home = () => {
+export default function Home() {
+  const valuationRef = useRef<HTMLDivElement>(null);
+  const [valuationType, setValuationType] = useState<'free' | 'premium'>('free');
+  const { processFreeValuation, processPremiumValuation } = useValuation();
+  
+  const scrollToValuation = () => {
+    valuationRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleValuationTypeChange = (value: string) => {
+    setValuationType(value as 'free' | 'premium');
+    
+    // Track user selection for analytics purposes
+    try {
+      // Analytics tracking would go here
+      console.log(`User selected ${value} valuation type`);
+    } catch (error) {
+      console.error("Error tracking valuation type selection:", error);
+    }
+  };
+
   return (
-    <div className="container mx-auto py-12 flex-grow">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold mb-4">Vehicle Valuation Platform</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Get accurate valuations, decode VINs, track service history, and manage your vehicle's records in one place.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5 text-primary" />
-              VIN Lookup
-            </CardTitle>
-            <CardDescription>
-              Decode your vehicle's VIN to get detailed information
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">
-              Enter your 17-character Vehicle Identification Number to get complete details about your vehicle's make, model, year, and specifications.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Link to="/vin-lookup" className="w-full">
-              <Button className="w-full">Decode VIN</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              Premium Valuation
-            </CardTitle>
-            <CardDescription>
-              Get an accurate valuation with detailed market analysis
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">
-              Our premium valuation considers condition, mileage, features, market trends, and more for the most accurate estimate of your vehicle's worth.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Link to="/premium-valuation" className="w-full">
-              <Button className="w-full">Get Valuation</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Vehicle History
-            </CardTitle>
-            <CardDescription>
-              Track service history, title status, and ownership
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">
-              Document your vehicle's service history, manage title information, and track ownership details to maintain accurate records and improve resale value.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Link to="/vehicle-history" className="w-full">
-              <Button className="w-full">Manage History</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
-
-      <div className="bg-muted p-6 rounded-lg">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Ready to get started?</h2>
-            <p className="text-muted-foreground">
-              Choose a service above or explore our premium features for in-depth analysis and reporting.
-            </p>
-          </div>
-          <Link to="/premium">
-            <Button size="lg" className="whitespace-nowrap">
-              <Car className="mr-2 h-4 w-4" />
-              Explore Premium Features
-            </Button>
-          </Link>
+    <div className="flex min-h-screen flex-col bg-surface">
+      <AnnouncementBar />
+      <Navbar />
+      <main className="flex-1 animate-fade-in">
+        <EnhancedHeroSection onFreeValuationClick={scrollToValuation} />
+        <KeyFeatures />
+        <ValuePropositionSection />
+        <div className="container mx-auto px-4 py-8 sm:py-12">
+          <MarketingBanner 
+            headline="Experience Premium Valuation with CARFAX® Reports"
+            subtext="Get dealer-competitive offers, full vehicle history, and pricing forecasts not available in the free version."
+            ctaText="Try Premium for $29.99"
+            ctaHref="/premium"
+          />
         </div>
-      </div>
+        <PremiumServicesGrid />
+        <TestimonialsSection />
+        <ComparisonTable />
+        <div ref={valuationRef} className="py-16 bg-slate-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Get Your Vehicle Valuation</h2>
+            
+            <Tabs 
+              defaultValue="free" 
+              value={valuationType} 
+              onValueChange={handleValuationTypeChange}
+              className="w-full max-w-3xl mx-auto mb-8"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="free">Free Valuation</TabsTrigger>
+                <TabsTrigger value="premium">Premium Report</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="free" className="mt-6">
+                <div className="text-center mb-6">
+                  <p className="text-lg text-slate-600">
+                    Get a quick, AI-powered estimate based on market data.
+                  </p>
+                </div>
+                <LookupTabs defaultTab="vin" />
+              </TabsContent>
+              
+              <TabsContent value="premium" className="mt-6">
+                <div className="text-center mb-6">
+                  <p className="text-lg text-slate-600">
+                    Get comprehensive analysis with CARFAX® report and dealer-competitive offers.
+                  </p>
+                </div>
+                <PremiumTabs showFreeValuation={false} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
-};
-
-export default Home;
+}
