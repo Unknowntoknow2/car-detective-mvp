@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, KeyRound, User, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface SignupFormProps {
   isLoading: boolean;
@@ -19,6 +20,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const navigate = useNavigate();
   const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +48,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         return;
       }
       
-      // Success handled by AuthProvider
+      // Navigate to login page after successful signup
+      navigate('/login');
     } catch (err) {
       setError('An unexpected error occurred');
       console.error('Signup error:', err);
