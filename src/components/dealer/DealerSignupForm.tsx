@@ -26,18 +26,22 @@ const dealerFormSchema = z.object({
     .max(100, 'Full name cannot exceed 100 characters'),
   email: z.string()
     .min(1, 'Email is required')
-    .refine(isValidEmail, 'Invalid email format'),
+    .refine((value) => isValidEmail(value), {
+      message: 'Invalid email format',
+    }),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .refine((value) => validatePassword(value) === '', {
-      message: (val) => validatePassword(val)
+      message: (val) => validatePassword(val),
     }),
   dealershipName: z.string()
     .min(2, 'Dealership name must be at least 2 characters')
     .max(100, 'Dealership name cannot exceed 100 characters'),
   phone: z.string()
     .optional()
-    .refine((val) => !val || isValidPhone(val), 'Please enter a valid phone number (e.g. +1234567890)'),
+    .refine((val) => !val || isValidPhone(val), {
+      message: 'Please enter a valid phone number (e.g. +1234567890)',
+    }),
 });
 
 // Define the dealer signup data type
