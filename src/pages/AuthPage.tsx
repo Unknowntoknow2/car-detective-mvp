@@ -16,7 +16,7 @@ const AuthPage = () => {
   // Redirect already logged in users
   React.useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
