@@ -20,6 +20,7 @@ import DealerSignup from './pages/DealerSignup';
 import { AuthProvider } from './contexts/AuthContext';
 import { ValuationProvider } from './contexts/ValuationContext';
 import DealerGuard from './guards/DealerGuard';
+import AuthRoute from './components/auth/AuthRoute';
 import { Toaster } from 'sonner';
 
 export default function App() {
@@ -39,8 +40,19 @@ export default function App() {
             <Route path="/login-user" element={<LoginUserPage />} />
             <Route path="/login-dealer" element={<LoginDealerPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/user-dashboard" element={<UserDashboardPage />} />
+            
+            {/* Redirect dashboard to the proper dashboard based on role */}
+            <Route path="/dashboard" element={
+              <AuthRoute>
+                <DashboardPage />
+              </AuthRoute>
+            } />
+            
+            <Route path="/user-dashboard" element={
+              <AuthRoute>
+                <UserDashboardPage />
+              </AuthRoute>
+            } />
             <Route path="/premium" element={<PremiumPage />} />
             <Route path="/premium-valuation" element={<PremiumValuationPage />} />
             <Route path="/access-denied" element={<AccessDeniedPage />} />
