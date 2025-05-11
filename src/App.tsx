@@ -19,12 +19,14 @@ import DealerDashboard from './pages/DealerDashboard';
 import { AuthProvider } from './contexts/AuthContext';
 import { ValuationProvider } from './contexts/ValuationContext';
 import DealerGuard from './guards/DealerGuard';
+import { Toaster } from 'sonner';
 
 export default function App() {
   return (
     <Router>
       <AuthProvider>
         <ValuationProvider>
+          <Toaster position="top-center" richColors />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/free-valuation" element={<FreeValuationPage />} />
