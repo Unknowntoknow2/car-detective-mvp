@@ -21,16 +21,19 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
+  // Define defaultValues separately to reduce type inference complexity
+  const defaultValues: DealerSignupFormData = {
+    fullName: '',
+    email: '',
+    password: '',
+    dealershipName: '',
+    phone: '',
+  };
+
   // Use the explicit type instead of inferring from schema
   const form = useForm<DealerSignupFormData>({
     resolver: zodResolver(dealerFormSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      dealershipName: '',
-      phone: '',
-    },
+    defaultValues,
   });
 
   const checkDealershipName = async (name: string): Promise<boolean> => {
