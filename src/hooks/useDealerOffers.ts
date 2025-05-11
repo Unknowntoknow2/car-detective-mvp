@@ -1,50 +1,61 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DealerOffer } from '@/types/dealer';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
-export function useDealerOffers(reportId?: string) {
+export interface DealerOffer {
+  id: string;
+  lead_id: string;
+  dealer_id: string;
+  offer_price: number;
+  notes?: string;
+  status: 'sent' | 'accepted' | 'rejected';
+  created_at: string;
+  updated_at: string;
+}
+
+export function useDealerOffers(leadId?: string) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const { data: offers, isLoading } = useQuery({
-    queryKey: ['dealer-offers', reportId],
+    queryKey: ['dealer-offers', leadId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('dealer_offers')
         .select('*')
-        .eq('report_id', reportId)
+        .eq('lead_id', leadId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data as DealerOffer[];
     },
-    enabled: !!reportId
+    enabled: !!leadId
   });
 
   const { mutate: submitOffer, isPending: isSubmitting } = useMutation({
     mutationFn: async ({ 
-      reportId, 
-      userId, 
-      amount, 
-      message 
+      leadId, 
+      offerPrice, 
+      notes 
     }: { 
-      reportId: string; 
-      userId: string;
-      amount: number; 
-      message?: string;
+      leadId: string; 
+      offerPrice: number; 
+      notes?: string;
     }) => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('dealer_offers')
         .insert({
-          report_id: reportId,
-          user_id: userId,
-          dealer_id: user?.id,
-          offer_amount: amount,
-          message: message || null,
-          status: 'pending'
+          lead_id: leadId,
+          dealer_id: user.id,
+          offer_price: offerPrice,
+          notes: notes || null,
+          status: 'sent'
         })
         .select()
         .single();
