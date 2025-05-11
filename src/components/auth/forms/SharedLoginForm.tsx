@@ -69,21 +69,54 @@ export const SharedLoginForm = ({
   const checkUserRoleAndRedirect = async (userId: string) => {
     try {
       console.log(`Checking role for user: ${userId}`);
+      setIsLoading(true);
+      
+      // Set a safety timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn('Profile check timeout exceeded - proceeding with default redirection');
+        setIsLoading(false);
+        navigate(redirectPath, { replace: true });
+      }, 10000); // 10 second safety timeout
       
       // Query the profiles table to check if the user has the expected role
       const { data, error } = await supabase
         .from('profiles')
         .select('user_role')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to prevent errors if no data
+
+      // Clear the safety timeout since we got a response
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('Error checking user role:', error);
-        toast.error('Could not verify your account role. Please try again.');
+        toast.error('Could not verify your account role', { 
+          description: 'Redirecting to default dashboard' 
+        });
+        navigate(redirectPath, { replace: true });
         return;
       }
 
       console.log('User role data:', data);
+      
+      // If no profile data found, create a basic one with default role
+      if (!data) {
+        console.warn('No profile found for user, creating with default role');
+        try {
+          await supabase.from('profiles').insert({
+            id: userId,
+            user_role: 'user',
+            created_at: new Date().toISOString()
+          });
+          
+          // Default to user dashboard for new profiles
+          navigate('/dashboard', { replace: true });
+          return;
+        } catch (insertError) {
+          console.error('Error creating default profile:', insertError);
+          // Continue with default routing
+        }
+      }
       
       const userRole = data?.user_role as UserRole;
       
@@ -107,6 +140,7 @@ export const SharedLoginForm = ({
     } catch (err) {
       console.error('Error in role verification:', err);
       toast.error('An error occurred during role verification');
+      navigate(redirectPath, { replace: true }); // Fallback navigation
     } finally {
       setIsLoading(false);
     }

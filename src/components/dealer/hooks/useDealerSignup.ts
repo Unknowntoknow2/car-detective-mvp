@@ -93,10 +93,10 @@ export function useDealerSignup() {
         throw signUpError;
       }
 
-      if (authData.user) {
+      if (authData?.user) {
         console.log('User created successfully, updating profile');
         
-        // Update the profile with dealer role and dealership name
+        // Create or update the profile with dealer role and dealership name
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({ 
@@ -126,6 +126,12 @@ export function useDealerSignup() {
           toast.info('Please check your email to confirm your account before logging in');
           setTimeout(() => navigate('/login-dealer'), 2000);
         }
+      } else {
+        // Handle the case where user is undefined
+        console.error('User object is undefined after signup');
+        toast.error('Registration failed', {
+          description: 'User creation was not completed. Please try again.',
+        });
       }
     } catch (error: any) {
       console.error('Registration error:', error);

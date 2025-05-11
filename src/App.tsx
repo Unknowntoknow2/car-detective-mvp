@@ -41,7 +41,8 @@ export default function App() {
             <Route path="/login-dealer" element={<LoginDealerPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
-            {/* Use only one route for dealer signup */}
+            {/* Fix both dealer signup routes to ensure consistency */}
+            <Route path="/dealer-signup" element={<DealerSignup />} />
             <Route path="/signup-dealer" element={<DealerSignup />} />
             
             {/* Redirect dashboard to the proper dashboard based on role */}
