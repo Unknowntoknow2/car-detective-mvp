@@ -8,8 +8,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { DealerSignupData } from '../schemas/dealerSignupSchema';
 import { UseFormReturn } from 'react-hook-form';
+
+// Define the type locally to match with useDealerSignup.ts
+type DealerSignupData = {
+  fullName: string;
+  email: string;
+  password: string;
+  dealershipName: string;
+  phone?: string;
+};
 
 // Full Name Field
 export const FullNameField = ({ 
