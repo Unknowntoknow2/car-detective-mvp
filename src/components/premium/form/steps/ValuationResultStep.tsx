@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { FormData } from '@/types/premium-valuation';
-import { ValuationResults } from '@/components/premium/common/ValuationResults';
+import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, Download, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -105,23 +105,22 @@ export function ValuationResultStep({
         </p>
       </div>
 
-      <ValuationResults
+      <UnifiedValuationResult
+        valuationId={valuationId}
         estimatedValue={result.estimatedValue}
         confidenceScore={result.confidenceScore}
         priceRange={priceRange}
         adjustments={result.adjustments}
+        onDownloadPdf={handleDownloadPdf}
+        onEmailReport={handleEmailPdf}
+        vehicleInfo={{
+          year: result.year,
+          make: result.make,
+          model: result.model,
+          mileage: result.mileage,
+          condition: result.condition
+        }}
       />
-
-      <div className="flex flex-col sm:flex-row gap-4 mt-8">
-        <Button onClick={handleDownloadPdf} className="flex-1 h-11 text-sm font-medium transition-all">
-          <Download className="h-4 w-4 mr-2" />
-          Download PDF Report
-        </Button>
-        <Button variant="outline" onClick={handleEmailPdf} className="flex-1 h-11 text-sm font-medium transition-all">
-          <Mail className="h-4 w-4 mr-2" />
-          Email Me the Report
-        </Button>
-      </div>
     </div>
   );
 }

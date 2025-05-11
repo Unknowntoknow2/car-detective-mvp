@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { PredictionResult } from '@/components/valuation/PredictionResult';
+import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 
 interface ValuationResultProps {
   valuationId?: string;
@@ -30,7 +30,10 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
-      <PredictionResult valuationId={hydratedId} />
+      <UnifiedValuationResult 
+        valuationId={hydratedId} 
+        displayMode="simple"
+      />
     </div>
   );
 }

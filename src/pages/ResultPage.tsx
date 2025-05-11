@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { ArrowLeft, Download, AlertCircle, Share2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Import components
-import { ValuationResults } from '@/components/valuation/ValuationResults';
+import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { ValuationTabContent } from '@/components/result/ValuationTabContent';
 import { VehicleDetailsCard } from '@/components/result/VehicleDetailsCard';
 import { NextStepsCard } from '@/components/result/NextStepsCard';
@@ -190,7 +189,8 @@ const ResultPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <ValuationResults
+          <UnifiedValuationResult
+            valuationId={valuationId}
             estimatedValue={valuationData.estimated_value || 0}
             confidenceScore={valuationData.confidence_score || 85}
             basePrice={valuationData.base_price}
@@ -205,6 +205,8 @@ const ResultPage = () => {
               mileage: valuationData.mileage,
               condition: valuationData.condition
             }}
+            onDownloadPdf={handleDownloadReport}
+            onEmailReport={() => toast.success("Email functionality coming soon")}
           />
           
           <Tabs value={activeTab} onValueChange={setActiveTab}>
