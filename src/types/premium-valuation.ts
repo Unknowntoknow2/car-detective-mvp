@@ -69,6 +69,9 @@ export interface FormData {
     issuesDetected?: string[];
     aiSummary?: string;
   };
+  
+  // Additional properties needed
+  drivetrain?: string;
 }
 
 // Add FeatureOption interface used by component files

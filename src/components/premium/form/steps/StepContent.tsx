@@ -1,7 +1,13 @@
+
 import React from 'react';
 import { VehicleIdentificationStep } from './VehicleIdentificationStep';
 import { FormData } from '@/types/premium-valuation';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
+import { VehicleDetailsStep } from './VehicleDetailsStep';
+import { FeatureSelectionStep } from './FeatureSelectionStep';
+import { ConditionStep } from './ConditionStep';
+import { ReviewSubmitStep } from './ReviewSubmitStep';
+import { DrivingBehaviorInput } from '@/components/valuation/DrivingBehaviorInput';
 
 interface StepContentProps {
   currentStep: number;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -158,8 +157,8 @@ export function VehicleIdentificationStep({
                 <p className="text-gray-600">
                   {formData.trim && `${formData.trim} • `}
                   {formData.bodyType && `${formData.bodyType} • `}
-                  {formData.transmission && `${formData.transmission} • `}
-                  {formData.drivetrain}
+                  {formData.transmissionType && `${formData.transmissionType} • `}
+                  {formData.bodyStyle}
                 </p>
               </div>
             </div>
