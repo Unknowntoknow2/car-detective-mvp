@@ -7,13 +7,13 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { dealerFormSchema } from '../schemas/dealerSignupSchema';
 
-// Define the form data type explicitly to avoid circular references
+// Define the form data type explicitly with no schema references
 export type DealerSignupFormData = {
   fullName: string;
   email: string;
   password: string;
   dealershipName: string;
-  phone?: string; // Make phone optional to match the form fields component
+  phone?: string;
 };
 
 export function useDealerSignup() {

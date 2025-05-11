@@ -66,8 +66,10 @@ export default function DealerDashboard() {
           return;
         }
 
-        // Type safety check for user_role
-        const userRole = data.user_role;
+        // Safely access properties with defaults if they don't exist
+        const userRole = typeof data.user_role === 'string' ? data.user_role : null;
+        const fullName = typeof data.full_name === 'string' ? data.full_name : 'Dealer';
+        const dealershipName = typeof data.dealership_name === 'string' ? data.dealership_name : 'Your Dealership';
         
         // Check if user_role exists and is a dealer
         if (!userRole || userRole !== 'dealer') {
@@ -77,8 +79,8 @@ export default function DealerDashboard() {
         }
 
         setDealerProfile({
-          full_name: data.full_name || 'Dealer',
-          dealership_name: data.dealership_name || 'Your Dealership',
+          full_name: fullName,
+          dealership_name: dealershipName,
           user_role: userRole
         });
       } catch (error: any) {
