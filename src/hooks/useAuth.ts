@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.ts
 import { useContext, createContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
