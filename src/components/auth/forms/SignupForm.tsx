@@ -53,7 +53,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       // Navigate to login page after successful signup
       toast.success("Account created successfully! Please sign in.");
       setTimeout(() => {
-        navigate('/login');
+        navigate('/auth', { state: { tab: 'login' } });
       }, 1000);
     } catch (err) {
       setError('An unexpected error occurred');

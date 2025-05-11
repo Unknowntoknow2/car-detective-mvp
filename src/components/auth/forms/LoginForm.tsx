@@ -43,7 +43,11 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
   useEffect(() => {
     console.log("Auth state changed. User:", user);
     if (user) {
-      navigate(from, { replace: true });
+      // Add a small delay to ensure navigation happens after render
+      const timer = setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [user, navigate, from]);
 
@@ -71,19 +75,22 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
         return;
       }
       
+      // If sign-in was successful but no immediate user state update
+      toast.success("Login successful!");
+      
       // Set a fallback timeout to redirect if authStateChange doesn't trigger
       const timer = setTimeout(() => {
         console.log("Fallback redirect timer triggered");
         navigate(from, { replace: true });
         setIsLoading(false);
-      }, 3000);
+      }, 2000); // 2 seconds should be enough for auth state to update
       
       setRedirectTimer(timer);
-      toast.success("Login successful!");
       
     } catch (err) {
       console.error('Login error:', err);
       setFormError('An unexpected error occurred');
+      toast.error('Login failed. Please try again.');
       setIsLoading(false);
     }
   };
