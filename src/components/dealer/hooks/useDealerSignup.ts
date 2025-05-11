@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { dealerFormSchema } from '../schemas/dealerSignupSchema';
 
-// Define the type locally to avoid deep type instantiation issues
+// Define the type locally with primitive types only, no references to Zod schema
 type DealerSignupData = {
   fullName: string;
   email: string;
@@ -21,7 +21,7 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
-  // Create defaultValues without any type inference
+  // Create defaultValues as a plain object with no type annotation
   const defaultValues = {
     fullName: '',
     email: '',
@@ -30,10 +30,10 @@ export function useDealerSignup() {
     phone: '',
   };
 
-  // Use explicit type annotation for form and avoid using inference
+  // Use explicit type annotation for form without any complex type inference
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   const checkDealershipName = async (name: string): Promise<boolean> => {
@@ -52,13 +52,13 @@ export function useDealerSignup() {
     }
   };
 
-  // Define function parameter explicitly without relying on type inference
-  const onSubmit = async (data: { 
-    fullName: string; 
-    email: string; 
-    password: string; 
-    dealershipName: string; 
-    phone?: string; 
+  // Define function parameter with a plain object type, avoiding any schema inference
+  const onSubmit = async (data: {
+    fullName: string;
+    email: string;
+    password: string;
+    dealershipName: string;
+    phone?: string;
   }) => {
     try {
       setIsLoading(true);
