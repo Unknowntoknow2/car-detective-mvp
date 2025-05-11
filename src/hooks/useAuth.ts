@@ -201,6 +201,6 @@ export function useAuth() {
     resetPassword: context.resetPassword || resetPassword,
     updatePassword: context.updatePassword || updatePassword,
     getUserRole: context.getUserRole || getUserRole,
-    isLoading: context.isLoading || context.loading || false, // Handle both property names
+    isLoading: context.isLoading || false, // Fixed: removed reference to context.loading
   };
 }
