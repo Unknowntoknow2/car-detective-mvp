@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import { UnifiedValuationHeader } from '@/components/valuation/header/UnifiedValuationHeader';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import type { ManualVehicleInfo } from '@/hooks/useManualValuation';
@@ -33,24 +34,39 @@ export function ValuationResult({ valuationData, valuationId }: ValuationResultP
     );
   }
 
-  // Fall back to the simplified display if no valuationId is provided
+  // Fall back to displaying with our header if no valuationId
   return (
-    <UnifiedValuationResult
-      estimatedValue={valuationData.valuation || 0}
-      confidenceScore={valuationData.confidenceScore || 75}
-      vehicleInfo={{
-        year: valuationData.year,
-        make: valuationData.make,
-        model: valuationData.model,
-        mileage: valuationData.mileage,
-        condition: valuationData.condition
-      }}
-      // For simplicity, setting a price range based on the valuation
-      priceRange={[
-        Math.round((valuationData.valuation || 0) * 0.95),
-        Math.round((valuationData.valuation || 0) * 1.05)
-      ]}
-      manualValuation={valuationData}
-    />
+    <div className="space-y-6">
+      <UnifiedValuationHeader
+        vehicleInfo={{
+          make: valuationData.make,
+          model: valuationData.model,
+          year: valuationData.year,
+          mileage: valuationData.mileage,
+          condition: valuationData.condition
+        }}
+        estimatedValue={valuationData.valuation || 0}
+        confidenceScore={valuationData.confidenceScore || 75}
+        displayMode="card"
+      />
+      
+      <UnifiedValuationResult
+        estimatedValue={valuationData.valuation || 0}
+        confidenceScore={valuationData.confidenceScore || 75}
+        vehicleInfo={{
+          year: valuationData.year,
+          make: valuationData.make,
+          model: valuationData.model,
+          mileage: valuationData.mileage,
+          condition: valuationData.condition
+        }}
+        priceRange={[
+          Math.round((valuationData.valuation || 0) * 0.95),
+          Math.round((valuationData.valuation || 0) * 1.05)
+        ]}
+        manualValuation={valuationData}
+        displayMode="simple"
+      />
+    </div>
   );
 }

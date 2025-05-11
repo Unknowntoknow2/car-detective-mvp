@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { UnifiedValuationHeader } from '@/components/valuation/header/UnifiedValuationHeader';
 
 interface ValuationResultProps {
   valuationId?: string;

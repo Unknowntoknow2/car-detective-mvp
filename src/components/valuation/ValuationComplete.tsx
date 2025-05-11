@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -7,10 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { ValuationHeader, NextStepsCard } from './valuation-complete';
+import { NextStepsCard } from './valuation-complete';
 import { calculateFinalValuation } from '@/utils/valuationEngine';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { getBestPhotoAssessment } from '@/utils/valuationService';
+import { UnifiedValuationHeader } from './header/UnifiedValuationHeader';
 
 // Add this interface to handle audit trail type
 export interface AuditTrail {
@@ -193,17 +193,20 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
 
   return (
     <div className="space-y-8">
-      <ValuationHeader
-        valuationData={valuationData}
-        photoSubmitted={photoSubmitted}
-        photoScore={photoScore}
-        aiCondition={aiCondition}
+      <UnifiedValuationHeader
+        vehicleInfo={valuationData}
         estimatedValue={estimatedValue}
+        confidenceScore={photoSubmitted ? 92 : 85}
+        photoSubmitted={photoSubmitted}
+        photoCondition={aiCondition}
         calculationInProgress={calculationInProgress}
+        bestPhotoUrl={bestPhotoUrl}
+        isPremium={true}
         onShareValuation={shareValuation}
         onSaveToAccount={saveToAccount}
         isSaving={isSaving}
-        bestPhotoUrl={bestPhotoUrl}
+        onShare={shareValuation}
+        onDownload={() => {}}
       />
 
       {auditTrail && (
