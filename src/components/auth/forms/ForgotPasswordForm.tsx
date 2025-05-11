@@ -42,7 +42,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
     try {
       const result = await resetPassword(values.email);
       
-      if (result.error) {
+      if (result?.error) {
         setFormError(result.error.message || 'Failed to send password reset email');
         return;
       }

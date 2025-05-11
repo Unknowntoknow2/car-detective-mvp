@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import AuthForm from '@/components/auth/AuthForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ResetPasswordForm } from '@/components/auth/forms/ResetPasswordForm';
 import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
   const [isValidToken, setIsValidToken] = useState(false);
   const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,7 +62,14 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50/50">
-      <AuthForm mode="reset-password" />
+      <Card className="w-full max-w-md shadow-sm">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResetPasswordForm isLoading={isLoading} setIsLoading={setIsLoading} />
+        </CardContent>
+      </Card>
     </div>
   );
 }
