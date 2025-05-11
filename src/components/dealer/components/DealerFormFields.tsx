@@ -10,8 +10,7 @@ import {
 } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 
-// Define the type locally to match with useDealerSignup.ts
-type DealerSignupData = {
+type DealerSignupFormData = {
   fullName: string;
   email: string;
   password: string;
@@ -24,7 +23,7 @@ export const FullNameField = ({
   form, 
   isLoading 
 }: { 
-  form: UseFormReturn<DealerSignupData>,
+  form: UseFormReturn<DealerSignupFormData>,
   isLoading: boolean 
 }) => (
   <FormField
@@ -53,7 +52,7 @@ export const DealershipNameField = ({
   dealershipError,
   setDealershipError 
 }: { 
-  form: UseFormReturn<DealerSignupData>,
+  form: UseFormReturn<DealerSignupFormData>,
   isLoading: boolean,
   dealershipError: string,
   setDealershipError: (error: string) => void
@@ -89,7 +88,7 @@ export const PhoneField = ({
   form, 
   isLoading 
 }: { 
-  form: UseFormReturn<DealerSignupData>,
+  form: UseFormReturn<DealerSignupFormData>,
   isLoading: boolean 
 }) => (
   <FormField
@@ -120,7 +119,7 @@ export const EmailField = ({
   form, 
   isLoading 
 }: { 
-  form: UseFormReturn<DealerSignupData>,
+  form: UseFormReturn<DealerSignupFormData>,
   isLoading: boolean 
 }) => (
   <FormField
@@ -148,7 +147,7 @@ export const PasswordField = ({
   form, 
   isLoading 
 }: { 
-  form: UseFormReturn<DealerSignupData>,
+  form: UseFormReturn<DealerSignupFormData>,
   isLoading: boolean 
 }) => (
   <FormField
