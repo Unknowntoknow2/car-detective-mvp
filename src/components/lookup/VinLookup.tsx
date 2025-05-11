@@ -41,6 +41,7 @@ export function VinLookup({
       const result = await lookupVehicle('vin', vin);
       
       if (onLookup) {
+        // Fix: Call onLookup without arguments as it expects none
         onLookup();
       }
       
