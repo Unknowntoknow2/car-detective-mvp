@@ -41,8 +41,14 @@ const dealerFormSchema = z.object({
     .refine((val) => !val || isValidPhone(val), 'Please enter a valid phone number (e.g. +1234567890)'),
 });
 
-// Define the dealer signup data type
-type DealerSignupData = z.infer<typeof dealerFormSchema>;
+// Define the dealer signup data type explicitly to avoid deep type instantiation
+type DealerSignupData = {
+  fullName: string;
+  email: string;
+  password: string;
+  dealershipName: string;
+  phone?: string;
+};
 
 export function DealerSignupForm() {
   const [isLoading, setIsLoading] = useState(false);
