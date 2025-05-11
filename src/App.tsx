@@ -12,8 +12,13 @@ import DashboardPage from './pages/DashboardPage';
 import PremiumPage from './pages/PremiumPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
+import LoginUserPage from './pages/LoginUserPage';
+import LoginDealerPage from './pages/LoginDealerPage';
+import AccessDeniedPage from './pages/AccessDeniedPage';
+import DealerDashboard from './pages/DealerDashboard';
 import { AuthProvider } from './contexts/AuthContext';
 import { ValuationProvider } from './contexts/ValuationContext';
+import DealerGuard from './guards/DealerGuard';
 
 export default function App() {
   return (
@@ -28,11 +33,22 @@ export default function App() {
             <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/login-user" element={<LoginUserPage />} />
+            <Route path="/login-dealer" element={<LoginDealerPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/user-dashboard" element={<UserDashboardPage />} />
             <Route path="/premium" element={<PremiumPage />} />
             <Route path="/premium-valuation" element={<PremiumValuationPage />} />
+            <Route path="/access-denied" element={<AccessDeniedPage />} />
+            <Route 
+              path="/dealer-dashboard" 
+              element={
+                <DealerGuard>
+                  <DealerDashboard />
+                </DealerGuard>
+              } 
+            />
           </Routes>
         </ValuationProvider>
       </AuthProvider>
