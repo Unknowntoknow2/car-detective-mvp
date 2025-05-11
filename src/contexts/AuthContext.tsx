@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
@@ -14,6 +13,7 @@ export type User = SupabaseUser & {
   };
   user_metadata?: {
     full_name?: string;
+    user_role?: 'user' | 'dealer';
     [key: string]: any;
   };
   aud?: string;
@@ -83,8 +83,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (error) throw error;
       
       if (data.user) {
+        // After successful login, check if user is a dealer
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('user_role')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileData?.user_role === 'dealer') {
+          navigate('/dealer-dashboard');
+        } else {
+          // Default navigation for regular users
+          toast.success('Successfully signed in!');
+        }
+        
         // Successful login will trigger the onAuthStateChange listener
-        toast.success('Successfully signed in!');
       }
     } catch (err: any) {
       setError(err.message);

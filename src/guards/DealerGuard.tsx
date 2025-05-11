@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,12 +25,11 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
       }
       
       try {
-        // Query the user_roles table to check for dealer role
+        // Check if the user has the dealer role in their profile
         const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'dealer')
+          .from('profiles')
+          .select('user_role')
+          .eq('id', user.id)
           .single();
           
         if (error) {
@@ -38,8 +37,8 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
           toast.error('Failed to verify your access permissions');
           setIsDealer(false);
         } else {
-          setIsDealer(!!data);
-          if (!data) {
+          setIsDealer(data?.user_role === 'dealer');
+          if (data?.user_role !== 'dealer') {
             console.warn(`User ${user.id} attempted to access dealer area without proper permissions`);
           }
         }
@@ -67,7 +66,7 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
   }
   
   if (!user) {
-    // Redirect to dealer login if not authenticated
+    // Redirect to login if not authenticated
     return <Navigate to="/login-dealer" state={{ from: location.pathname }} replace />;
   }
   

@@ -118,6 +118,42 @@ export type Database = {
         }
         Relationships: []
       }
+      dealer_applications: {
+        Row: {
+          contact_name: string
+          created_at: string | null
+          dealership_name: string
+          email: string
+          id: string
+          phone: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string | null
+          dealership_name: string
+          email: string
+          id?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string | null
+          dealership_name?: string
+          email?: string
+          id?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       dealer_leads: {
         Row: {
           created_at: string | null
@@ -813,6 +849,7 @@ export type Database = {
           full_name: string | null
           id: string
           updated_at: string | null
+          user_role: string | null
           username: string | null
           website: string | null
         }
@@ -823,6 +860,7 @@ export type Database = {
           full_name?: string | null
           id: string
           updated_at?: string | null
+          user_role?: string | null
           username?: string | null
           website?: string | null
         }
@@ -833,6 +871,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+          user_role?: string | null
           username?: string | null
           website?: string | null
         }

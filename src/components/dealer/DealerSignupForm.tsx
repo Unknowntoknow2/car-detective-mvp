@@ -14,11 +14,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { DealerSignupData } from '@/types/dealer';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate, Link } from 'react-router-dom';
 import { isValidEmail, isValidPhone, validatePassword } from '@/components/auth/forms/signup/validation';
 
+// Define the dealer signup form schema
 const dealerFormSchema = z.object({
   email: z.string()
     .min(1, 'Email is required')
@@ -28,25 +29,30 @@ const dealerFormSchema = z.object({
     .refine((value) => validatePassword(value) === '', {
       message: validatePassword('dummy') // This triggers the validation message
     }),
-  business_name: z.string()
-    .min(2, 'Business name must be at least 2 characters')
-    .max(100, 'Business name cannot exceed 100 characters'),
+  dealership_name: z.string()
+    .min(2, 'Dealership name must be at least 2 characters')
+    .max(100, 'Dealership name cannot exceed 100 characters'),
   contact_name: z.string()
     .min(2, 'Contact name must be at least 2 characters')
     .max(100, 'Contact name cannot exceed 100 characters'),
   phone: z.string()
-    .refine(isValidPhone, 'Please enter a valid phone number (e.g. +1234567890)'),
+    .optional()
+    .refine((val) => !val || isValidPhone(val), 'Please enter a valid phone number (e.g. +1234567890)'),
 });
+
+// Define the dealer signup data type
+type DealerSignupData = z.infer<typeof dealerFormSchema>;
 
 export function DealerSignupForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
       email: '',
       password: '',
-      business_name: '',
+      dealership_name: '',
       contact_name: '',
       phone: '',
     },
@@ -55,30 +61,68 @@ export function DealerSignupForm() {
   const onSubmit = async (data: DealerSignupData) => {
     setIsLoading(true);
     try {
+      // First register the user with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        options: {
+          data: {
+            full_name: data.contact_name,
+            user_role: 'dealer',
+          },
+        },
       });
 
       if (signUpError) throw signUpError;
 
-      const { error: dealerError } = await supabase.from('dealers').insert({
-        id: authData.user!.id,
-        business_name: data.business_name,
-        contact_name: data.contact_name,
-        phone: data.phone,
-        email: data.email,
-      });
+      if (authData.user) {
+        // Create the dealer application
+        const { error: applicationError } = await supabase
+          .from('dealer_applications')
+          .insert({
+            user_id: authData.user.id,
+            dealership_name: data.dealership_name,
+            contact_name: data.contact_name,
+            phone: data.phone || null,
+            email: data.email,
+          });
 
-      if (dealerError) throw dealerError;
+        if (applicationError) {
+          // If there was an error with the application, rollback by deleting the user
+          await supabase.auth.admin.deleteUser(authData.user.id);
+          throw applicationError;
+        }
 
-      toast.success('Registration successful', {
-        description: 'Your application has been submitted and is pending approval.',
-      });
-      form.reset();
+        // Update the user's profile with the dealer role
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ user_role: 'dealer' })
+          .eq('id', authData.user.id);
+
+        if (profileError) {
+          console.error('Error updating profile:', profileError);
+          // Continue anyway as this is not critical
+        }
+
+        toast.success('Registration successful', {
+          description: 'Your dealer application has been submitted and is pending review.',
+        });
+        
+        // Redirect to the dealer dashboard
+        navigate('/dealer-dashboard');
+      }
     } catch (error: any) {
-      toast.error('Registration failed', {
-        description: error.message || 'Please try again later',
+      let errorMessage = 'Registration failed';
+      
+      // Handle specific error cases
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'This email is already registered';
+      } else if (error.message?.includes('unique constraint')) {
+        errorMessage = 'This dealership name is already registered';
+      }
+      
+      toast.error(errorMessage, {
+        description: error.message || 'Please try again',
       });
     } finally {
       setIsLoading(false);
@@ -90,13 +134,13 @@ export function DealerSignupForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="business_name"
+          name="dealership_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Business Name</FormLabel>
+              <FormLabel>Dealership Name</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="Enter your business name"
+                  placeholder="Enter your dealership name"
                   {...field}
                   disabled={isLoading}
                 />
@@ -129,7 +173,7 @@ export function DealerSignupForm() {
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel>Phone Number (Optional)</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Enter phone number (e.g. +1234567890)"
@@ -139,7 +183,7 @@ export function DealerSignupForm() {
                 />
               </FormControl>
               <FormDescription>
-                Please include country code (e.g. +1 for US)
+                Include country code (e.g. +1 for US)
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -190,10 +234,16 @@ export function DealerSignupForm() {
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={isLoading || !form.formState.isValid}
+          disabled={isLoading}
         >
           {isLoading ? 'Processing...' : 'Submit Application'}
         </Button>
+
+        <div className="text-center mt-4">
+          <Link to="/login-dealer" className="text-primary hover:underline text-sm">
+            Already have a dealer account? Login here
+          </Link>
+        </div>
       </form>
     </Form>
   );
