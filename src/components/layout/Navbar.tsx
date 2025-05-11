@@ -1,24 +1,25 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext'; // Make sure this is imported
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Navbar() {
-  const { user, signOut } = useAuth?.() || {}; // Optional chaining in case AuthContext isn't fully set up
+  const { user, signOut } = useAuth?.() || {};
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center space-x-6">
           <Link to="/" className="font-bold text-xl">CarDetective</Link>
-          <nav className="flex items-center gap-4">
+          <nav className="hidden md:flex items-center gap-4">
             <Link to="/valuation" className="text-sm font-medium hover:text-primary transition-colors">
               Valuation
             </Link>
             <Link to="/premium" className="text-sm font-medium hover:text-primary transition-colors">
               Premium
             </Link>
-            <Link to="/dealer/signup" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            <Link to="/signup-dealer" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Dealer Signup
             </Link>
             {user && (

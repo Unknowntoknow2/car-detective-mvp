@@ -16,7 +16,7 @@ import LoginUserPage from './pages/LoginUserPage';
 import LoginDealerPage from './pages/LoginDealerPage';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 import DealerDashboard from './pages/DealerDashboard';
-import DealerSignup from './pages/dealer/signup';
+import DealerSignup from './pages/DealerSignup';
 import { AuthProvider } from './contexts/AuthContext';
 import { ValuationProvider } from './contexts/ValuationContext';
 import DealerGuard from './guards/DealerGuard';
@@ -44,6 +44,7 @@ export default function App() {
             <Route path="/premium" element={<PremiumPage />} />
             <Route path="/premium-valuation" element={<PremiumValuationPage />} />
             <Route path="/access-denied" element={<AccessDeniedPage />} />
+            <Route path="/signup-dealer" element={<DealerSignup />} />
             <Route path="/dealer/signup" element={<DealerSignup />} />
             <Route 
               path="/dealer-dashboard" 
