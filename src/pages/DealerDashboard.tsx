@@ -1,151 +1,120 @@
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
+import { MessageSquare, BarChart3 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-// Define the dealer profile type
-interface DealerProfile {
-  full_name: string;
-  dealership_name: string;
-  user_role?: string;
-}
-
-export default function DealerDashboard() {
-  const navigate = useNavigate();
+const DealerDashboard = () => {
   const { user } = useAuth();
-  const [dealerProfile, setDealerProfile] = useState<DealerProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDealerProfile = async () => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
       try {
         const { data, error } = await supabase
           .from('profiles')
           .select('full_name, user_role, dealership_name')
           .eq('id', user.id)
           .single();
-
-        if (error) {
-          console.error('Error fetching profile:', error);
-          toast.error('Could not load profile');
-          navigate('/');
-          return;
-        }
-
-        if (!data) {
-          toast.error('Could not load profile');
-          navigate('/');
-          return;
-        }
-
-        // Check if user is a dealer
-        if (data.user_role !== 'dealer') {
-          toast.error('Access denied — Dealer only');
-          navigate('/dashboard');
-          return;
-        }
-
-        setDealerProfile({
-          full_name: data.full_name || 'Dealer',
-          dealership_name: data.dealership_name || 'Your Dealership',
-          user_role: data.user_role
-        });
-      } catch (error: any) {
-        console.error('Error fetching dealer profile:', error);
-        toast.error(error.message || 'Could not load profile');
-        navigate('/');
+        
+        if (error) throw error;
+        
+        setProfile(data);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
+    
+    fetchUserProfile();
+  }, [user]);
 
-    fetchDealerProfile();
-  }, [user, navigate]);
-
-  if (isLoading || !dealerProfile) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="max-w-5xl mx-auto mt-8 space-y-6">
-            <Skeleton className="h-8 w-3/4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-            </div>
-            <Skeleton className="h-48" />
+      <div className="container max-w-5xl mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-3/4 mb-2" />
+          <Skeleton className="h-6 w-1/2 mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full rounded-xl" />
           </div>
-        </main>
-        <Footer />
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <Skeleton className="h-10 w-full sm:w-40" />
+            <Skeleton className="h-10 w-full sm:w-40" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto mt-8 space-y-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold">
-              Welcome, {dealerProfile.full_name}
-            </h1>
-            <p className="text-muted-foreground">
-              Dealership: {dealerProfile.dealership_name}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Valuations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  No recent valuations yet.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Incoming Leads</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  No leads available yet.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
+    <div className="container max-w-5xl mx-auto px-4 py-8">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Welcome, {profile?.full_name || 'Dealer'}</h1>
+          <p className="text-muted-foreground text-lg">
+            Dealership: {profile?.dealership_name || 'Your Dealership'}
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Recent Valuations</CardTitle>
+              <CardDescription>Customer valuations in your area</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <button className="w-full bg-primary text-white py-2 rounded">
-                Respond to Lead
-              </button>
-              <button className="w-full bg-secondary text-black py-2 rounded">
-                View Valuations
-              </button>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No recent valuations found</p>
+                <p className="text-sm mt-2">Valuations from your area will appear here</p>
+              </div>
             </CardContent>
+            <CardFooter>
+              <Button variant="outline">View All Valuations</Button>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Incoming Leads</CardTitle>
+              <CardDescription>Potential customers interested in offers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No active leads at the moment</p>
+                <p className="text-sm mt-2">New customer leads will appear here</p>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline">Manage Leads</Button>
+            </CardFooter>
           </Card>
         </div>
-      </main>
-      <Footer />
+        
+        <div className="bg-slate-50 rounded-xl p-6 mt-8">
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Respond to Lead
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              View Valuations
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default DealerDashboard;

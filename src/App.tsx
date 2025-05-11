@@ -22,6 +22,8 @@ import { ValuationProvider } from './contexts/ValuationContext';
 import DealerGuard from './guards/DealerGuard';
 import AuthRoute from './components/auth/AuthRoute';
 import { Toaster } from 'sonner';
+import MainLayout from './layouts/MainLayout';
+import Home from './pages/Home';
 
 export default function App() {
   return (
@@ -30,43 +32,44 @@ export default function App() {
         <ValuationProvider>
           <Toaster position="top-center" richColors />
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/free-valuation" element={<FreeValuationPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/auth/signup" element={<RegisterPage />} />
-            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/login-user" element={<LoginUserPage />} />
-            <Route path="/login-dealer" element={<LoginDealerPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            {/* Use the Home component as the root path */}
+            <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+            <Route path="/free-valuation" element={<MainLayout><FreeValuationPage /></MainLayout>} />
+            <Route path="/auth" element={<MainLayout><AuthPage /></MainLayout>} />
+            <Route path="/auth/signup" element={<MainLayout><RegisterPage /></MainLayout>} />
+            <Route path="/auth/forgot-password" element={<MainLayout><ForgotPasswordPage /></MainLayout>} />
+            <Route path="/auth/reset-password" element={<MainLayout><ResetPasswordPage /></MainLayout>} />
+            <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
+            <Route path="/login-user" element={<MainLayout><LoginUserPage /></MainLayout>} />
+            <Route path="/login-dealer" element={<MainLayout><LoginDealerPage /></MainLayout>} />
+            <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
             
             {/* Consolidate dealer signup routes to one clear route */}
-            <Route path="/dealer-signup" element={<DealerSignup />} />
-            <Route path="/signup-dealer" element={<DealerSignup />} />
+            <Route path="/dealer-signup" element={<MainLayout><DealerSignup /></MainLayout>} />
+            <Route path="/signup-dealer" element={<MainLayout><DealerSignup /></MainLayout>} />
             
             {/* Dashboard for regular users */}
             <Route path="/dashboard" element={
               <AuthRoute>
-                <Dashboard />
+                <MainLayout><Dashboard /></MainLayout>
               </AuthRoute>
             } />
             
             <Route path="/user-dashboard" element={
               <AuthRoute>
-                <UserDashboardPage />
+                <MainLayout><UserDashboardPage /></MainLayout>
               </AuthRoute>
             } />
-            <Route path="/premium" element={<PremiumPage />} />
-            <Route path="/premium-valuation" element={<PremiumValuationPage />} />
-            <Route path="/access-denied" element={<AccessDeniedPage />} />
+            <Route path="/premium" element={<MainLayout><PremiumPage /></MainLayout>} />
+            <Route path="/premium-valuation" element={<MainLayout><PremiumValuationPage /></MainLayout>} />
+            <Route path="/access-denied" element={<MainLayout><AccessDeniedPage /></MainLayout>} />
             
             {/* Dashboard for dealers with appropriate guard */}
             <Route 
               path="/dealer-dashboard" 
               element={
                 <DealerGuard>
-                  <DealerDashboard />
+                  <MainLayout><DealerDashboard /></MainLayout>
                 </DealerGuard>
               } 
             />
