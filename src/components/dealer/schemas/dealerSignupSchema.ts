@@ -2,6 +2,15 @@
 import * as z from 'zod';
 import { isValidPhone, validatePassword } from '@/components/auth/forms/signup/validation';
 
+// Define the dealer signup data type explicitly without using z.infer
+export type DealerSignupData = {
+  fullName: string;
+  email: string;
+  password: string;
+  dealershipName: string;
+  phone?: string;
+};
+
 // Define the dealer signup form schema - simplified to avoid deep type instantiation
 export const dealerFormSchema = z.object({
   fullName: z.string()
@@ -23,12 +32,3 @@ export const dealerFormSchema = z.object({
     .optional()
     .refine((val) => !val || isValidPhone(val), 'Please enter a valid phone number (e.g. +1234567890)'),
 });
-
-// Define the dealer signup data type explicitly to avoid deep type instantiation
-export type DealerSignupData = {
-  fullName: string;
-  email: string;
-  password: string;
-  dealershipName: string;
-  phone?: string;
-};

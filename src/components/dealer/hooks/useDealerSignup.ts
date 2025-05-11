@@ -12,6 +12,7 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
+  // Use the explicit DealerSignupData type instead of z.infer
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
