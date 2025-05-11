@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useEffect, useState } from 'react';
 import { UnifiedValuationResult } from './UnifiedValuationResult';
 
 interface ValuationResultProps {
@@ -14,9 +15,35 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   manualValuation,
   photoCondition 
 }) => {
+  const [hydratedId, setHydratedId] = useState<string | undefined>(valuationId);
+
+  useEffect(() => {
+    // If no valuationId is provided as prop, try to get it from localStorage
+    if (!valuationId) {
+      const localId = localStorage.getItem('latest_valuation_id');
+      if (localId) {
+        console.log("Retrieved valuationId from localStorage:", localId);
+        setHydratedId(localId);
+      }
+    }
+  }, [valuationId]);
+
+  if (!hydratedId && !manualValuation) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-muted-foreground mb-2">
+          No valuation result found. Please try submitting your vehicle details again.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          If you just completed a VIN lookup, the results may still be processing.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <UnifiedValuationResult
-      valuationId={valuationId}
+      valuationId={hydratedId}
       manualValuation={manualValuation}
       photoCondition={photoCondition}
       displayMode="simple"

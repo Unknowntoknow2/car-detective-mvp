@@ -5,10 +5,28 @@ import { Button } from '@/components/ui/button';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
-export function VinLookup() {
-  const [vin, setVin] = useState('');
-  const { lookupVehicle, isLoading, error } = useVehicleLookup();
+export function VinLookup({ 
+  value = '', 
+  onChange = () => {}, 
+  onLookup = () => {}, 
+  isLoading = false,
+  standalone = true
+}) {
+  const [vin, setVin] = useState(value);
+  const navigate = useNavigate();
+  const { lookupVehicle, isLoading: isLookingUp, error, vehicle } = useVehicleLookup();
+  
+  const loading = isLoading || isLookingUp;
+
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVin = e.target.value.toUpperCase();
+    setVin(newVin);
+    if (onChange) {
+      onChange(newVin);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +38,20 @@ export function VinLookup() {
 
     try {
       // Lookup VIN using the hook
-      await lookupVehicle('vin', vin);
+      const result = await lookupVehicle('vin', vin);
+      
+      if (onLookup) {
+        onLookup();
+      }
+      
+      // If this is a standalone component (not part of a larger form)
+      // navigate to the results page
+      if (standalone && result?.id) {
+        localStorage.setItem('latest_valuation_id', result.id);
+        navigate(`/result?id=${result.id}`);
+      } else if (standalone && result) {
+        toast.success('VIN lookup successful!');
+      }
     } catch (err) {
       console.error('Error in VIN lookup:', err);
       toast.error('Failed to process VIN');
@@ -33,13 +64,13 @@ export function VinLookup() {
         <div className="flex items-center gap-3">
           <Input
             value={vin}
-            onChange={(e) => setVin(e.target.value.toUpperCase())}
+            onChange={handleVinChange}
             placeholder="Enter 17-character VIN"
             className="font-mono"
             maxLength={17}
           />
-          <Button type="submit" disabled={isLoading || vin.length !== 17}>
-            {isLoading ? (
+          <Button type="submit" disabled={loading || vin.length !== 17}>
+            {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Decoding...
