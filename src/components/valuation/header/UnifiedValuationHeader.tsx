@@ -37,6 +37,7 @@ export interface UnifiedValuationHeaderProps {
   
   // Actions
   onShare?: () => void;
+  onShareValuation?: () => void; // Added to support backward compatibility
   onDownload?: () => void;
   onSaveToAccount?: () => void;
   isSaving?: boolean;
@@ -59,12 +60,16 @@ export function UnifiedValuationHeader({
   photoSubmitted = false,
   isPremium = false,
   onShare,
+  onShareValuation,
   onDownload,
   onSaveToAccount,
   isSaving = false,
   displayMode = 'detailed',
   location,
 }: UnifiedValuationHeaderProps) {
+  // Use onShareValuation as a fallback for onShare
+  const handleShare = onShare || onShareValuation;
+  
   // Construct vehicle name string
   const vehicleName = `${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`;
   
@@ -175,17 +180,17 @@ export function UnifiedValuationHeader({
         </div>
       </div>
       
-      {(onShare || onDownload || onSaveToAccount) && (
+      {(handleShare || onDownload || onSaveToAccount) && (
         <>
           <Separator className="my-4" />
           
           <div className="flex flex-wrap gap-2">
-            {onShare && (
+            {handleShare && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="flex items-center gap-1"
-                onClick={onShare}
+                onClick={handleShare}
               >
                 <Share className="h-4 w-4" />
                 <span>Share</span>

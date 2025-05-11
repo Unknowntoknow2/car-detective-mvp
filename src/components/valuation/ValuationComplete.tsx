@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { PhotoUploadAndScore } from './PhotoUploadAndScore';
 import { PredictionResult } from './PredictionResult';
@@ -202,10 +203,9 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         calculationInProgress={calculationInProgress}
         bestPhotoUrl={bestPhotoUrl}
         isPremium={true}
-        onShareValuation={shareValuation}
+        onShare={shareValuation}
         onSaveToAccount={saveToAccount}
         isSaving={isSaving}
-        onShare={shareValuation}
         onDownload={() => {}}
       />
 
