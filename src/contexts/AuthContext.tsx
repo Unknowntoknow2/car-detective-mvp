@@ -1,9 +1,24 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+
+// Export the User type for use in other files
+export type User = SupabaseUser & {
+  email: string;
+  app_metadata: {
+    provider: string;
+    [key: string]: any;
+  };
+  user_metadata: {
+    full_name?: string;
+    [key: string]: any;
+  };
+  aud: string;
+  created_at: string;
+};
 
 type AuthContextType = {
   session: Session | null;
