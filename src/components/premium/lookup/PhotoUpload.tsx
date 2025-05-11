@@ -119,7 +119,8 @@ export function PhotoUpload({ onPhotoAnalysisComplete }: PhotoUploadProps) {
       toast.info("Analyzing vehicle photos...");
       
       // Call the lookupVehicle function with 'photo' type and image data
-      const result = await lookupVehicle('photo', 'photo-analysis', undefined, undefined, imageData);
+      // Fixed: Removed the extra argument, passing imageData as manualData
+      const result = await lookupVehicle('photo', 'photo-analysis', undefined, imageData);
       
       if (result) {
         toast.success("Photo analysis complete!");

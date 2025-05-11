@@ -10,6 +10,12 @@ export function useVehicleLookup() {
   const [vehicle, setVehicle] = useState<any>(null);
   const { lookupVin } = useVinDecoder();
 
+  // Add a reset function to clear vehicle data
+  const reset = () => {
+    setVehicle(null);
+    setError(null);
+  };
+
   const lookupVehicle = async (
     identifierType: 'vin' | 'plate' | 'manual' | 'photo',
     identifier: string,
@@ -85,6 +91,7 @@ export function useVehicleLookup() {
     lookupVehicle,
     isLoading,
     error,
-    vehicle
+    vehicle,
+    reset // Export the reset function
   };
 }
