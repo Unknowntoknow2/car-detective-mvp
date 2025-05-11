@@ -40,18 +40,20 @@ export const SharedLoginForm = ({
   const { signIn, user } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
+  const [safetyTimer, setSafetyTimer] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Get the redirect path from location state or use the provided default
   const from = location.state?.from || redirectPath;
 
-  // Clear any redirect timer when component unmounts
+  // Clear any timers when component unmounts
   useEffect(() => {
     return () => {
       if (redirectTimer) clearTimeout(redirectTimer);
+      if (safetyTimer) clearTimeout(safetyTimer);
     };
-  }, [redirectTimer]);
+  }, [redirectTimer, safetyTimer]);
 
   // Redirect if user is already authenticated
   useEffect(() => {
@@ -75,8 +77,13 @@ export const SharedLoginForm = ({
       const timeoutId = setTimeout(() => {
         console.warn('Profile check timeout exceeded - proceeding with default redirection');
         setIsLoading(false);
+        toast.error('Could not verify your account type', {
+          description: 'Redirecting to default dashboard'
+        });
         navigate(redirectPath, { replace: true });
-      }, 10000); // 10 second safety timeout
+      }, 8000); // 8 second safety timeout
+      
+      setSafetyTimer(timeoutId);
       
       // Query the profiles table to check if the user has the expected role
       const { data, error } = await supabase
@@ -86,7 +93,10 @@ export const SharedLoginForm = ({
         .maybeSingle(); // Use maybeSingle instead of single to prevent errors if no data
 
       // Clear the safety timeout since we got a response
-      clearTimeout(timeoutId);
+      if (safetyTimer) {
+        clearTimeout(safetyTimer);
+        setSafetyTimer(null);
+      }
 
       if (error) {
         console.error('Error checking user role:', error);
@@ -94,6 +104,7 @@ export const SharedLoginForm = ({
           description: 'Redirecting to default dashboard' 
         });
         navigate(redirectPath, { replace: true });
+        setIsLoading(false);
         return;
       }
 
@@ -111,6 +122,7 @@ export const SharedLoginForm = ({
           
           // Default to user dashboard for new profiles
           navigate('/dashboard', { replace: true });
+          setIsLoading(false);
           return;
         } catch (insertError) {
           console.error('Error creating default profile:', insertError);
@@ -173,9 +185,16 @@ export const SharedLoginForm = ({
       // If sign-in was successful but no immediate user state update
       toast.success("Login successful! Verifying account type...");
       
-      // The user effect will handle the role check and redirection
+      // Set a fallback timeout to redirect if auth state doesn't change
+      const fallbackTimer = setTimeout(() => {
+        console.log("Fallback redirect timer triggered");
+        setIsLoading(false);
+        navigate(redirectPath, { replace: true });
+      }, 5000); // 5 second fallback
       
-    } catch (err) {
+      setRedirectTimer(fallbackTimer);
+      
+    } catch (err: any) {
       console.error('Login error:', err);
       setFormError('An unexpected error occurred');
       toast.error('Login failed. Please try again.');
