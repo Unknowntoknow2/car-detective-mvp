@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +12,7 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
+  // Explicitly use DealerSignupData type with useForm to avoid deep type inference
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
@@ -38,6 +40,7 @@ export function useDealerSignup() {
     }
   };
 
+  // Explicitly type the data parameter to avoid type inference issues
   const onSubmit = async (data: DealerSignupData) => {
     try {
       setIsLoading(true);
