@@ -53,7 +53,7 @@ export default function DealerDashboard() {
           return;
         }
 
-        // Now we know data exists, so we can check user_role
+        // Now we know data exists, so we can safely check user_role
         if (data.user_role !== 'dealer') {
           toast.error('Access denied — Dealer only.');
           navigate('/dashboard');
