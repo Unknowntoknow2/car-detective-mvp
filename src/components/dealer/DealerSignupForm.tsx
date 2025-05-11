@@ -19,7 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, Link } from 'react-router-dom';
 import { isValidEmail, isValidPhone, validatePassword } from '@/components/auth/forms/signup/validation';
 
-// Define the dealer signup form schema - simplified to avoid deep type instantiation
+// Define the dealer signup form schema - completely simplified to avoid deep type instantiation
 const dealerFormSchema = z.object({
   fullName: z.string()
     .min(2, 'Full name must be at least 2 characters')
@@ -29,19 +29,16 @@ const dealerFormSchema = z.object({
     .email('Invalid email format'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .refine(
-      (value) => validatePassword(value) === '', 
-      { message: 'Password must contain uppercase, lowercase, and numbers' }
-    ),
+    .refine((value) => {
+      const result = validatePassword(value);
+      return result === '';
+    }, 'Password must contain uppercase, lowercase, and numbers'),
   dealershipName: z.string()
     .min(2, 'Dealership name must be at least 2 characters')
     .max(100, 'Dealership name cannot exceed 100 characters'),
   phone: z.string()
     .optional()
-    .refine(
-      (val) => !val || isValidPhone(val), 
-      { message: 'Please enter a valid phone number (e.g. +1234567890)' }
-    ),
+    .refine((val) => !val || isValidPhone(val), 'Please enter a valid phone number (e.g. +1234567890)'),
 });
 
 // Define the dealer signup data type
