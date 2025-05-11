@@ -40,11 +40,12 @@ export default function DealerDashboard() {
           if (error.message.includes("column 'dealership_name' does not exist")) {
             toast.error('Database setup error: Missing dealership_name column in profiles table.');
             navigate('/');
+            return;
           } else {
             toast.error('Could not load profile.');
             navigate('/');
+            return;
           }
-          return;
         }
 
         if (!data) {
