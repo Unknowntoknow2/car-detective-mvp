@@ -41,7 +41,7 @@ export function VinLookup({
       const result = await lookupVehicle('vin', vin);
       
       if (onLookup) {
-        // Call onLookup without arguments to fix TS2554 error
+        // Call onLookup without arguments
         onLookup();
       }
       

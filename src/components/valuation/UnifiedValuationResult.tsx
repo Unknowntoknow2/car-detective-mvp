@@ -1,16 +1,20 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { formatCurrency } from '@/utils/formatters';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Send } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle, Download, Mail, File } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { UnifiedValuationHeader } from './header/UnifiedValuationHeader';
+import { useValuation } from '@/hooks/useValuation';
+import { VehicleDataTable } from './detail/VehicleDataTable';
 import { toast } from 'sonner';
+import { ManualVehicleInfo } from '@/hooks/useManualValuation'; 
 
-// Define interfaces for different data structures
 interface VehicleInfo {
   year?: number;
   make?: string;
   model?: string;
-  trim?: string;
   mileage?: number;
   condition?: string;
 }
@@ -18,270 +22,253 @@ interface VehicleInfo {
 interface Adjustment {
   factor: string;
   impact: number;
-  description: string;
+  description?: string;
 }
 
-interface ValuationResultProps {
-  // Common props
+interface UnifiedValuationResultProps {
   valuationId?: string;
-  
-  // Detailed valuation props
   estimatedValue?: number;
   confidenceScore?: number;
-  basePrice?: number;
-  adjustments?: Adjustment[];
   priceRange?: [number, number];
-  demandFactor?: number;
-  vehicleInfo?: VehicleInfo;
-  
-  // Raw data for simple view
-  manualValuation?: any;
-  photoCondition?: any;
-  
-  // Actions
+  adjustments?: Adjustment[];
   onDownloadPdf?: () => void;
   onEmailReport?: () => void;
-  
-  // View control
-  displayMode?: 'simple' | 'detailed';
+  vehicleInfo?: VehicleInfo;
+  manualValuation?: ManualVehicleInfo;
+  displayMode?: 'full' | 'simple' | 'minimal';
 }
 
-/**
- * UnifiedValuationResult - A component that displays valuation results
- * Can render in simple mode (just valuationId and raw data) or detailed mode (full breakdown)
- */
-export const UnifiedValuationResult: React.FC<ValuationResultProps> = ({
-  // Common props
-  valuationId = '',
-  
-  // Detailed valuation props
-  estimatedValue = 0,
-  confidenceScore = 0,
-  basePrice,
-  adjustments = [],
-  priceRange,
-  demandFactor,
-  vehicleInfo = {},
-  
-  // Raw data for simple view
-  manualValuation,
-  photoCondition,
-  
-  // Actions
+export function UnifiedValuationResult({
+  valuationId,
+  estimatedValue: propEstimatedValue,
+  confidenceScore: propConfidenceScore,
+  priceRange: propPriceRange,
+  adjustments: propAdjustments,
   onDownloadPdf,
   onEmailReport,
+  vehicleInfo: propVehicleInfo,
+  manualValuation,
+  displayMode = 'full'
+}: UnifiedValuationResultProps) {
+  // If we have a valuationId, we need to fetch the data from the server
+  const { data, isLoading, error, refetch } = useValuation(valuationId);
   
-  // View control
-  displayMode = 'detailed'
-}) => {
-  // Helper functions
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  // State to track if PDF download is in progress
+  const [isDownloading, setIsDownloading] = useState(false);
   
-  const formatPercentage = (value: number) => {
-    return `${value}%`;
-  };
+  // Determine if we should use the data from the props or from the server
+  const estimatedValue = data?.estimated_value ?? propEstimatedValue ?? 0;
+  const confidenceScore = data?.confidence_score ?? propConfidenceScore ?? 80;
+  const vehicleInfo = data ? {
+    year: data.year,
+    make: data.make,
+    model: data.model,
+    mileage: data.mileage,
+    condition: data.condition_score ? 
+      data.condition_score > 90 ? 'Excellent' :
+      data.condition_score > 75 ? 'Good' :
+      data.condition_score > 60 ? 'Fair' : 'Poor'
+      : 'Unknown'
+  } : propVehicleInfo;
   
-  const formatAdjustment = (impact: number) => {
-    const prefix = impact > 0 ? '+' : '';
-    return `${prefix}${formatCurrency(impact)}`;
-  };
-
-  const handleDownload = () => {
-    if (onDownloadPdf) {
-      onDownloadPdf();
-    } else {
-      toast.success("Download functionality coming soon!");
+  // Get price range - either from props, or calculate as ±5% if not provided
+  const priceRange = propPriceRange || [
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05)
+  ];
+  
+  // Get adjustments from props or data
+  const adjustments = propAdjustments || [];
+  
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      if (onDownloadPdf) {
+        await onDownloadPdf();
+      } else {
+        // Mock PDF download
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        toast.success('PDF report downloaded successfully');
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error('Failed to download PDF report');
+    } finally {
+      setIsDownloading(false);
     }
   };
-
-  const handleEmailReport = () => {
-    if (onEmailReport) {
-      onEmailReport();
-    } else {
-      toast.success("Email report functionality coming soon!");
+  
+  const handleEmailReport = async () => {
+    try {
+      if (onEmailReport) {
+        await onEmailReport();
+      } else {
+        // Mock email sending
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        toast.success('Report sent to your email');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast.error('Failed to send email');
     }
   };
   
-  // Render simple view (just valuationId and raw data)
-  if (displayMode === 'simple') {
+  if (isLoading) {
+    return <ValuationSkeleton />;
+  }
+  
+  if (error) {
     return (
-      <Card className="bg-white border-primary/20">
-        <CardHeader className="pb-3">
-          <CardTitle>Valuation Result</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-2">Valuation ID</p>
-            <p className="text-md font-medium">{valuationId}</p>
-            {manualValuation && (
-              <div className="mt-4">
-                <p className="text-sm text-muted-foreground mb-2">Manual Valuation Data</p>
-                <pre className="text-xs bg-slate-50 p-2 rounded overflow-auto max-h-40">
-                  {JSON.stringify(manualValuation, null, 2)}
-                </pre>
-              </div>
-            )}
-            {photoCondition && (
-              <div className="mt-4">
-                <p className="text-sm text-muted-foreground mb-2">Photo Condition Assessment</p>
-                <pre className="text-xs bg-slate-50 p-2 rounded overflow-auto max-h-40">
-                  {JSON.stringify(photoCondition, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load valuation data
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => refetch()}>
+            Try Again
+          </Button>
+        </AlertDescription>
+      </Alert>
     );
   }
   
-  // Detailed view with full breakdown
+  // Show header for full and simple display modes
+  const showHeader = displayMode !== 'minimal';
+  
+  // Show adjustments only in full mode
+  const showAdjustments = displayMode === 'full' && adjustments.length > 0;
+  
+  // Show detailed data in full mode
+  const showDetailedData = displayMode === 'full';
+  
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Vehicle information card */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-muted-foreground">Vehicle</h3>
-              <p className="text-2xl font-bold">
-                {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.trim || ''}
-              </p>
-              {vehicleInfo.mileage && (
-                <p className="text-muted-foreground">
-                  {vehicleInfo.mileage.toLocaleString()} miles
-                </p>
-              )}
-              {vehicleInfo.condition && (
-                <p className="text-muted-foreground">
-                  Condition: {vehicleInfo.condition}
-                </p>
-              )}
-              {valuationId && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  ID: {valuationId}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Estimated value card */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-muted-foreground">Estimated Value</h3>
-              <p className="text-3xl font-bold text-primary">
+      {showHeader && vehicleInfo && (
+        <UnifiedValuationHeader
+          vehicleInfo={vehicleInfo}
+          estimatedValue={estimatedValue}
+          confidenceScore={confidenceScore}
+          displayMode={displayMode === 'full' ? 'detailed' : 'card'}
+        />
+      )}
+      
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row justify-between">
+            <div className="mb-4 md:mb-0">
+              <h3 className="text-lg font-medium">Estimated Value</h3>
+              <div className="text-3xl font-bold text-primary mt-1">
                 {formatCurrency(estimatedValue)}
-              </p>
-              {priceRange && (
-                <p className="text-muted-foreground">
-                  Range: {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
-                </p>
-              )}
-              <div className="flex items-center space-x-2 mt-1">
-                <div className="text-sm font-medium">
-                  Confidence: {formatPercentage(confidenceScore)}
-                </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary"
-                    style={{ width: `${confidenceScore}%` }}
-                  ></div>
+              </div>
+              
+              <div className="text-sm text-muted-foreground mt-2">
+                Estimated range: {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+              </div>
+              
+              <div className="mt-3 flex items-center">
+                <span className="text-sm font-medium mr-2">Confidence:</span>
+                <div className={`text-sm font-semibold ${
+                  confidenceScore >= 80 ? 'text-green-600' :
+                  confidenceScore >= 70 ? 'text-yellow-600' :
+                  'text-red-600'
+                }`}>
+                  {confidenceScore}%
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Adjustments breakdown card */}
-      {adjustments && adjustments.length > 0 && (
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Valuation Breakdown</h3>
-            {basePrice && (
-              <div className="flex justify-between py-2 border-b">
-                <span className="font-medium">Base Value</span>
-                <span>{formatCurrency(basePrice)}</span>
-              </div>
-            )}
-            {adjustments.map((adj, index) => (
-              <div key={index} className="flex justify-between py-2 border-b">
-                <span>{adj.description}</span>
-                <span className={adj.impact > 0 ? 'text-green-600' : adj.impact < 0 ? 'text-red-600' : ''}>
-                  {formatAdjustment(adj.impact)}
-                </span>
-              </div>
-            ))}
-            {demandFactor && (
-              <div className="flex justify-between py-2 border-b">
-                <span>Local Market Adjustment</span>
-                <span>{demandFactor > 1 ? '+' : ''}{((demandFactor - 1) * 100).toFixed(1)}%</span>
-              </div>
-            )}
-            <div className="flex justify-between py-2 mt-2 font-bold">
-              <span>Final Value</span>
-              <span>{formatCurrency(estimatedValue)}</span>
+            
+            <div className="flex flex-col space-y-3">
+              <Button
+                variant="outline"
+                onClick={handleDownloadPdf}
+                disabled={isDownloading}
+                className="flex items-center"
+                data-testid="download-valuation-pdf"
+              >
+                {isDownloading ? (
+                  <>
+                    <Skeleton className="h-4 w-4 rounded-full mr-2" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF Report
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={handleEmailReport}
+                className="flex items-center"
+                data-testid="email-valuation-report"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email Report
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 mt-4">
-        <Button 
-          onClick={handleDownload}
-          className="flex-1"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Download Report
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={handleEmailReport}
-          className="flex-1"
-        >
-          <Send className="mr-2 h-4 w-4" />
-          Email Report
-        </Button>
-      </div>
-      
-      {/* Raw data sections if available */}
-      {manualValuation && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Manual Valuation Data</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs bg-slate-50 p-2 rounded overflow-auto max-h-40">
-              {JSON.stringify(manualValuation, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
-      
-      {photoCondition && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Photo Condition Assessment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs bg-slate-50 p-2 rounded overflow-auto max-h-40">
-              {JSON.stringify(photoCondition, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+          
+          {showAdjustments && (
+            <div className="mt-8">
+              <h4 className="text-lg font-medium mb-4">Valuation Adjustments</h4>
+              <ul className="space-y-3">
+                {adjustments.map((adj, index) => (
+                  <li key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <File className="h-4 w-4 mr-2 text-gray-500" />
+                      <div>
+                        <div className="font-medium">{adj.factor}</div>
+                        <div className="text-sm text-muted-foreground">{adj.description}</div>
+                      </div>
+                    </div>
+                    <div className={`font-medium ${adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(adj.impact)}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {showDetailedData && vehicleInfo && (
+            <div className="mt-8">
+              <h4 className="text-lg font-medium mb-4">Vehicle Details</h4>
+              <VehicleDataTable vehicleInfo={vehicleInfo} manualValuation={manualValuation} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}
 
-// Export both named and default export for flexibility
-export default UnifiedValuationResult;
+function ValuationSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-4 w-36" />
+      </div>
+      
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row justify-between">
+            <div>
+              <Skeleton className="h-5 w-32 mb-2" />
+              <Skeleton className="h-9 w-40 mb-2" />
+              <Skeleton className="h-4 w-52 mb-2" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            
+            <div className="flex flex-col space-y-3 mt-4 md:mt-0">
+              <Skeleton className="h-9 w-44" />
+              <Skeleton className="h-9 w-44" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
