@@ -1,14 +1,7 @@
-
 import React from 'react';
-import { FormData } from '@/types/premium-valuation';
 import { VehicleIdentificationStep } from './VehicleIdentificationStep';
-import { VehicleDetailsStep } from './VehicleDetailsStep';
-import { FeatureSelectionStep } from './FeatureSelectionStep';
-import { ConditionStep } from './ConditionStep';
-import { ReviewSubmitStep } from './ReviewSubmitStep';
-import { ValuationResultStep } from './ValuationResultStep';
+import { FormData } from '@/types/premium-valuation';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
-import { DrivingBehaviorInput } from '@/components/valuation/DrivingBehaviorInput';
 
 interface StepContentProps {
   currentStep: number;
@@ -18,7 +11,9 @@ interface StepContentProps {
   isFormValid: boolean;
   handleSubmit: () => void;
   handleReset: () => void;
-  valuationId?: string;
+  valuationId: string | null;
+  goToNextStep: () => void;
+  goToPreviousStep: () => void;
 }
 
 export function StepContent({
@@ -29,11 +24,13 @@ export function StepContent({
   isFormValid,
   handleSubmit,
   handleReset,
-  valuationId
+  valuationId,
+  goToNextStep,
+  goToPreviousStep
 }: StepContentProps) {
-  // Get the vehicle lookup functions and loading state
   const { isLoading, lookupVehicle } = useVehicleLookup();
-  
+
+  // Render appropriate step based on currentStep
   switch (currentStep) {
     case 1:
       return (
@@ -44,6 +41,7 @@ export function StepContent({
           updateValidity={updateStepValidity}
           lookupVehicle={lookupVehicle}
           isLoading={isLoading}
+          goToNextStep={goToNextStep}
         />
       );
     case 2:
@@ -104,6 +102,6 @@ export function StepContent({
         </div>
       );
     default:
-      return null;
+      return <div>Step not implemented</div>;
   }
 }

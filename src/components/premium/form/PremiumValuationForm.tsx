@@ -97,6 +97,8 @@ export function PremiumValuationForm() {
             handleSubmit={handleSubmit}
             handleReset={handleFullReset}
             valuationId={valuationId}
+            goToNextStep={goToNextStep}
+            goToPreviousStep={goToPreviousStep}
           />
         </motion.div>
       </FormStepLayout>

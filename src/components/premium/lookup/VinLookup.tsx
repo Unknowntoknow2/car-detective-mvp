@@ -2,24 +2,28 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2, Car } from 'lucide-react';
 import { validateVin } from '@/utils/validation/vin-validation';
 import { useState, useEffect } from 'react';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface VinLookupProps {
   value?: string;
   onChange?: (value: string) => void;
   onLookup?: () => void;
   isLoading?: boolean;
+  existingVehicle?: any;
 }
 
-export function VinLookup({ value = "", onChange, onLookup, isLoading = false }: VinLookupProps) {
+export function VinLookup({ value = "", onChange, onLookup, isLoading = false, existingVehicle }: VinLookupProps) {
   const [validationResult, setValidationResult] = useState<{ isValid: boolean; error: string | null }>({
     isValid: false,
     error: null
   });
+  
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (value) {
@@ -33,6 +37,16 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
     }
   }, [value]);
 
+  // If there's existing vehicle data and VIN matches, mark as valid
+  useEffect(() => {
+    if (existingVehicle?.vin && existingVehicle.vin === value) {
+      setValidationResult({
+        isValid: true,
+        error: null
+      });
+    }
+  }, [existingVehicle, value]);
+
   const handleLookupClick = () => {
     if (!validationResult.isValid) {
       toast.error(validationResult.error || 'Invalid VIN');
@@ -43,6 +57,31 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
 
   return (
     <div className="space-y-6">
+      {existingVehicle && existingVehicle.make && existingVehicle.model && (
+        <Card className="border-green-100 bg-green-50/50 mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-green-100 p-2 rounded-full">
+                <Car className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900">
+                  {existingVehicle.year} {existingVehicle.make} {existingVehicle.model}
+                </h3>
+                <p className="text-gray-600">
+                  {existingVehicle.trim && `${existingVehicle.trim} • `}
+                  {existingVehicle.bodyType && `${existingVehicle.bodyType} • `}
+                  {existingVehicle.transmission && `${existingVehicle.transmission}`}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  You can continue with this vehicle or enter a new VIN
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    
       <div className="flex items-center gap-2 mb-3">
         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-medium px-2.5 py-1">
           Recommended
@@ -57,6 +96,7 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
             onChange={(e) => {
               const newValue = e.target.value.toUpperCase();
               onChange?.(newValue);
+              setTouched(true);
             }}
             placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
             className={`text-lg font-mono tracking-wide h-12 pr-10 transition-all ${

@@ -1,13 +1,15 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { FormData } from '@/types/premium-valuation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Check, Car, ArrowRight } from 'lucide-react';
 import { EnhancedVinLookup } from '@/components/premium/lookup/EnhancedVinLookup';
 import { toast } from 'sonner';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface VehicleIdentificationStepProps {
   step: number;
@@ -16,6 +18,7 @@ interface VehicleIdentificationStepProps {
   updateValidity: (step: number, isValid: boolean) => void;
   lookupVehicle: (identifierType: 'vin' | 'plate' | 'manual' | 'photo', identifier: string, state?: string, manualData?: any, imageData?: any) => Promise<any>;
   isLoading: boolean;
+  goToNextStep: () => void;
 }
 
 export function VehicleIdentificationStep({
@@ -24,10 +27,22 @@ export function VehicleIdentificationStep({
   setFormData,
   updateValidity,
   lookupVehicle,
-  isLoading
+  isLoading,
+  goToNextStep
 }: VehicleIdentificationStepProps) {
   const [state, setState] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [hasExistingVehicle, setHasExistingVehicle] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if we already have vehicle information
+    if (formData.make && formData.model && formData.year > 0) {
+      setHasExistingVehicle(true);
+      updateValidity(step, true);
+    } else {
+      setHasExistingVehicle(false);
+    }
+  }, [formData.make, formData.model, formData.year, step, updateValidity]);
 
   const handleInputChange = (value: string) => {
     setFormData(prev => ({ ...prev, identifier: value }));
@@ -50,10 +65,14 @@ export function VehicleIdentificationStep({
       setFormData(prev => ({ 
         ...prev, 
         identifierType: value as 'vin' | 'plate',
-        identifier: '' // Clear identifier when changing type
+        identifier: hasExistingVehicle && value === 'vin' && prev.vin ? prev.vin : '' // Keep VIN if available
       }));
+      
       // Reset validity when changing identifier type
-      updateValidity(step, false);
+      if (!hasExistingVehicle) {
+        updateValidity(step, false);
+      }
+      
       // Reset any errors
       setError('');
     }
@@ -86,6 +105,9 @@ export function VehicleIdentificationStep({
         setError(formData.identifierType === 'vin' 
           ? 'Vehicle not found with this VIN. Please check and try again.' 
           : 'Vehicle not found with this plate. Please check and try again.');
+      } else {
+        toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
+        updateValidity(step, true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to lookup vehicle');
@@ -107,8 +129,61 @@ export function VehicleIdentificationStep({
     show: { opacity: 1, y: 0 }
   };
 
+  // If we already have vehicle data, show a simplified continue UI
+  if (hasExistingVehicle) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-6"
+      >
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Vehicle Information</h2>
+          <p className="text-gray-600 mb-6">
+            We already have your vehicle details. You can continue with this vehicle or change it.
+          </p>
+        </div>
+        
+        <Card className="border-green-100 bg-green-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-green-100 p-2 rounded-full">
+                <Car className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900">
+                  {formData.year} {formData.make} {formData.model}
+                </h3>
+                <p className="text-gray-600">
+                  {formData.trim && `${formData.trim} • `}
+                  {formData.bodyType && `${formData.bodyType} • `}
+                  {formData.transmission && `${formData.transmission} • `}
+                  {formData.drivetrain}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="flex justify-between pt-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setHasExistingVehicle(false)}
+          >
+            Change Vehicle
+          </Button>
+          
+          <Button onClick={goToNextStep}>
+            Continue to Next Step
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
-    
     <motion.div 
       className="space-y-6"
       variants={container}
@@ -161,11 +236,31 @@ export function VehicleIdentificationStep({
               onLookup={handleFindVehicle}
               isLoading={isLoading}
               error={error}
+              existingVehicle={formData}
             />
           ) : formData.identifierType === 'plate' ? (
-            null
+            null // Would implement plate lookup component here
           ) : null}
         </motion.div>
+      </motion.div>
+      
+      <motion.div variants={item} className="pt-4">
+        <Button 
+          onClick={handleFindVehicle}
+          disabled={isLoading || !formData.identifier || 
+            (formData.identifierType === 'vin' && formData.identifier.length !== 17) ||
+            (formData.identifierType === 'plate' && (!formData.identifier || !state))}
+          className="w-full md:w-auto"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Looking up vehicle...
+            </>
+          ) : (
+            "Look up Vehicle"
+          )}
+        </Button>
       </motion.div>
       
       {formData.make && formData.model && formData.year > 0 && (
@@ -183,13 +278,22 @@ export function VehicleIdentificationStep({
           </h3>
           <p className="mt-1 text-sm text-green-700">
             {formData.year} {formData.make} {formData.model}
+            {formData.trim && ` • ${formData.trim}`}
             {formData.mileage && ` • ${formData.mileage.toLocaleString()} miles`}
             {formData.fuelType && ` • ${formData.fuelType}`}
           </p>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mt-2 text-green-700 hover:text-green-800 hover:bg-green-100"
+            onClick={goToNextStep}
+          >
+            Continue to Next Step
+            <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
         </motion.div>
       )}
     </motion.div>
   );
 }
-
-import { Check } from 'lucide-react';
