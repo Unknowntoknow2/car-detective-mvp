@@ -65,8 +65,9 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
         console.error('[PasswordReset] Error sending reset email:', {
           message: result.error.message,
           details: result.error,
-          code: result.error.code,
-          status: result.error.status
+          // Use optional chaining and type assertion for potentially missing properties
+          code: (result.error as any)?.code,
+          status: (result.error as any)?.status
         });
         
         setFormError(result.error.message || 'Failed to send password reset email');
@@ -114,8 +115,9 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
         console.error('[PasswordReset] Error resending reset email:', {
           message: result.error.message,
           details: result.error,
-          code: result.error.code,
-          status: result.error.status
+          // Use optional chaining and type assertion for potentially missing properties
+          code: (result.error as any)?.code,
+          status: (result.error as any)?.status
         });
         
         toast.error('Failed to resend email', {

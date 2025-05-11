@@ -1,4 +1,3 @@
-
 // src/hooks/useAuth.ts
 import { useContext, createContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
@@ -104,7 +103,8 @@ export function useAuth() {
       // Make sure to include the redirectTo parameter with the correct URL
       const redirectUrl = `${window.location.origin}/auth/reset-password`;
       console.log(`[PasswordReset] Sending reset password email to ${email} with redirect to ${redirectUrl}`);
-      console.log(`[PasswordReset] Supabase URL being used: ${supabase.auth.url}`);
+      // Remove the access to the protected 'url' property
+      console.log(`[PasswordReset] Using Supabase auth service`);
       
       // Log additional information that might be useful for debugging
       console.log(`[PasswordReset] Browser location: ${window.location.href}`);
