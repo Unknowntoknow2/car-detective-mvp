@@ -6,14 +6,12 @@ import { UnifiedValuationResult } from './UnifiedValuationResult';
 interface ValuationResultProps {
   valuationId?: string;
   manualValuation?: any;
-  photoCondition?: any;
 }
 
 // This is a compatibility layer for the old component
 export const ValuationResult: React.FC<ValuationResultProps> = ({ 
   valuationId, 
-  manualValuation,
-  photoCondition 
+  manualValuation
 }) => {
   const [hydratedId, setHydratedId] = useState<string | undefined>(valuationId);
 
@@ -45,7 +43,6 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     <UnifiedValuationResult
       valuationId={hydratedId}
       manualValuation={manualValuation}
-      photoCondition={photoCondition}
       displayMode="simple"
     />
   );
