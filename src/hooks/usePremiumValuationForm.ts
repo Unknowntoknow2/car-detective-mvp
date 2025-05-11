@@ -188,8 +188,9 @@ export const usePremiumValuationForm = () => {
       // Create a complete user object to satisfy the User type
       const validUser: User = {
         ...user,
+        email: user.email || '', // Ensure email is always present
         app_metadata: user.app_metadata || { provider: 'email' },
-        user_metadata: user.user_metadata || { full_name: user.email.split('@')[0] },
+        user_metadata: user.user_metadata || { full_name: user.email?.split('@')[0] || 'User' },
         aud: user.aud || 'authenticated', // Provide a default value for aud if it's missing
         created_at: user.created_at || new Date().toISOString() // Ensure created_at is always present
       };
