@@ -26,13 +26,13 @@ const dealerFormSchema = z.object({
     .max(100, 'Full name cannot exceed 100 characters'),
   email: z.string()
     .min(1, 'Email is required')
-    .refine((value) => isValidEmail(value), {
+    .refine(isValidEmail, {
       message: 'Invalid email format',
     }),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .refine((value) => validatePassword(value) === '', {
-      message: (val) => validatePassword(val),
+      message: validatePassword,
     }),
   dealershipName: z.string()
     .min(2, 'Dealership name must be at least 2 characters')
