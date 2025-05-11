@@ -43,6 +43,7 @@ export function useDealerSignup() {
     }
   };
 
+  // Explicitly use DealerSignupData as the parameter type
   const onSubmit = async (data: DealerSignupData) => {
     try {
       setIsLoading(true);
