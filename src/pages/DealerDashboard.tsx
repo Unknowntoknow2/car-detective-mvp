@@ -9,13 +9,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
+// Define the dealer profile type
+interface DealerProfile {
+  full_name: string;
+  dealership_name: string;
+  user_role?: string;
+}
+
 export default function DealerDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [dealerProfile, setDealerProfile] = useState<{
-    full_name: string;
-    dealership_name: string;
-  } | null>(null);
+  const [dealerProfile, setDealerProfile] = useState<DealerProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,6 +45,14 @@ export default function DealerDashboard() {
             toast.error('Database setup error: Missing dealership_name column in profiles table.');
             navigate('/');
             return;
+          } else if (error.message.includes("column 'user_role' does not exist")) {
+            toast.error('Database setup error: Missing user_role column in profiles table.');
+            navigate('/');
+            return;
+          } else if (error.message.includes("column 'full_name' does not exist")) {
+            toast.error('Database setup error: Missing full_name column in profiles table.');
+            navigate('/');
+            return;
           } else {
             toast.error('Could not load profile.');
             navigate('/');
@@ -54,8 +66,11 @@ export default function DealerDashboard() {
           return;
         }
 
+        // Type safety check for user_role
+        const userRole = data.user_role;
+        
         // Check if user_role exists and is a dealer
-        if (!data.user_role || data.user_role !== 'dealer') {
+        if (!userRole || userRole !== 'dealer') {
           toast.error('Access denied — Dealer only.');
           navigate('/dashboard');
           return;
@@ -64,6 +79,7 @@ export default function DealerDashboard() {
         setDealerProfile({
           full_name: data.full_name || 'Dealer',
           dealership_name: data.dealership_name || 'Your Dealership',
+          user_role: userRole
         });
       } catch (error: any) {
         console.error('Error fetching dealer profile:', error);
