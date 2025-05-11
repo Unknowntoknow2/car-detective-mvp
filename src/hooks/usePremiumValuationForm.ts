@@ -186,20 +186,14 @@ export const usePremiumValuationForm = () => {
     handleSubmit: () => {
       if (!user) return;
       
-      // Create a complete user object to satisfy the User type
-      const validUser: User = {
-        ...user,
-        email: user.email || '', 
-        app_metadata: {
-          ...(user.app_metadata || {}),
-          provider: user.app_metadata?.provider || 'email'
-        },
+      // Instead of trying to convert our custom User type to Supabase User type,
+      // pass along the required properties that the submitValuation function needs
+      return submitValuation(formData, {
+        id: user.id,
+        email: user.email || '',
+        app_metadata: user.app_metadata || {},
         user_metadata: user.user_metadata || {},
-        aud: user.aud || 'authenticated',
-        created_at: user.created_at || new Date().toISOString()
-      };
-      
-      return submitValuation(formData, validUser, isFormValid);
+      }, isFormValid);
     },
     validateStep
   };
