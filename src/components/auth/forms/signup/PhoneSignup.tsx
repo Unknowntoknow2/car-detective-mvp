@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Phone } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import { validatePhone } from './validation';
+import { isValidPhone } from './validation';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PhoneSignupProps {
@@ -21,7 +20,7 @@ export const PhoneSignup = ({ isLoading, onSignup, phoneError, setPhoneError }: 
   const [isCheckingPhone, setIsCheckingPhone] = useState(false);
 
   const checkPhoneExists = (phone: string) => {
-    if (!validatePhone(phone)) {
+    if (!isValidPhone(phone)) {
       setPhoneError('');
       return;
     }
@@ -57,7 +56,7 @@ export const PhoneSignup = ({ isLoading, onSignup, phoneError, setPhoneError }: 
   };
 
   const handleSubmit = async () => {
-    const phoneValidation = validatePhone(phone);
+    const phoneValidation = isValidPhone(phone);
     if (!phoneValidation && !phoneError) {
       await onSignup(phone);
     }

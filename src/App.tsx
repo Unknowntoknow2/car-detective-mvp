@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -15,7 +16,7 @@ import LoginUserPage from './pages/LoginUserPage';
 import LoginDealerPage from './pages/LoginDealerPage';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 import DealerDashboard from './pages/DealerDashboard';
-import DealerSignup from './pages/DealerSignup';
+import DealerSignup from './pages/dealer/signup';
 import { AuthProvider } from './contexts/AuthContext';
 import { ValuationProvider } from './contexts/ValuationContext';
 import DealerGuard from './guards/DealerGuard';
