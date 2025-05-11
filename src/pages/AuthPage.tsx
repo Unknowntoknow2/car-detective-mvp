@@ -42,24 +42,62 @@ const AuthPage = () => {
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one
+              Choose how you want to sign in
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <Button 
+                variant="outline" 
+                className="p-6 flex flex-col items-center space-y-2 h-auto" 
+                onClick={() => navigate('/login-user')}
+              >
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <h3 className="font-medium">Individual User</h3>
+                  <p className="text-sm text-muted-foreground">Sign in to your personal account</p>
+                </div>
+              </Button>
               
-              <TabsContent value="login">
-                <LoginForm isLoading={isLoading} setIsLoading={setIsLoading} />
-              </TabsContent>
-              
-              <TabsContent value="signup">
-                <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
-              </TabsContent>
-            </Tabs>
+              <Button 
+                variant="outline" 
+                className="p-6 flex flex-col items-center space-y-2 h-auto border-blue-200 hover:bg-blue-50/50" 
+                onClick={() => navigate('/login-dealer')}
+              >
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                    <path d="M3 9h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
+                    <path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"></path>
+                    <path d="M12 3v6"></path>
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <h3 className="font-medium">Car Dealership</h3>
+                  <p className="text-sm text-muted-foreground">Sign in to your dealership account</p>
+                </div>
+              </Button>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t"></span>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">Or</span>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Don't have an account?</p>
+              <Button variant="default" className="w-full" onClick={() => navigate('/auth/signup')}>
+                Create an Account
+              </Button>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 border-t pt-4">
             <div className="text-sm text-center text-muted-foreground">
@@ -73,6 +111,6 @@ const AuthPage = () => {
       </div>
     </div>
   );
-};
+}
 
 export default AuthPage;

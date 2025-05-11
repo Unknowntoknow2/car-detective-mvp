@@ -70,11 +70,11 @@ export const SharedLoginForm = ({
     try {
       console.log(`Checking role for user: ${userId}`);
       
-      // Query the user_roles table to check if the user has the expected role
+      // Query the profiles table to check if the user has the expected role
       const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
+        .from('profiles')
+        .select('user_role')
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -85,7 +85,7 @@ export const SharedLoginForm = ({
 
       console.log('User role data:', data);
       
-      const userRole = data?.role as UserRole;
+      const userRole = data?.user_role as UserRole;
       
       if (userRole === expectedRole) {
         console.log(`Verified role ${userRole}, redirecting to ${from}`);
