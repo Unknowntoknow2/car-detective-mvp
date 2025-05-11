@@ -34,6 +34,8 @@ export function useVehicleLookup() {
         result = await lookupVin(identifier);
         
         if (result) {
+          console.log("VIN lookup successful:", result);
+          
           // Create a valuation record to return to the user
           const { data: valuationData, error: valuationError } = await supabase
             .from('valuations')

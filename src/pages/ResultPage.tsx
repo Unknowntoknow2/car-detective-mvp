@@ -8,34 +8,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useValuationId } from '@/components/result/useValuationId';
 
 export default function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [valuationId, setValuationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const params = new URLSearchParams(location.search);
+  const idFromUrl = params.get('id');
+  
+  // Use the custom hook to get the valuation ID from various sources
+  const { valuationId, manualData } = useValuationId(idFromUrl);
 
   useEffect(() => {
-    // Get valuation ID from URL or state
-    const params = new URLSearchParams(location.search);
-    const idFromUrl = params.get('id');
-    const idFromState = location.state?.valuationId;
+    // Log the valuation ID for debugging
+    console.log("ResultPage: Found valuation ID:", valuationId);
     
-    // Get valuation ID from localStorage as a fallback
-    const idFromStorage = localStorage.getItem('latest_valuation_id');
-    
-    const id = idFromUrl || idFromState || idFromStorage;
-    
-    if (id) {
-      console.log("Found valuation ID:", id);
-      setValuationId(id);
-    } else {
-      console.log("No valuation ID found");
+    if (!valuationId && !manualData) {
+      console.log("No valuation ID or manual data found");
       toast.error("No valuation ID found. Please try looking up your vehicle again.");
     }
     
     setIsLoading(false);
-  }, [location]);
+  }, [valuationId, manualData]);
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -62,6 +58,8 @@ export default function ResultPage() {
                 </div>
               ) : valuationId ? (
                 <ValuationResult valuationId={valuationId} />
+              ) : manualData ? (
+                <ValuationResult manualValuation={manualData} />
               ) : (
                 <div className="text-center text-muted-foreground p-6">
                   <p>No valuation information found. Please try again or start a new valuation.</p>
