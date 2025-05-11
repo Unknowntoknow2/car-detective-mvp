@@ -21,8 +21,8 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
-  // Use explicitly typed defaultValues object to avoid inference issues
-  const defaultValues: DealerSignupData = {
+  // Create defaultValues without any type inference
+  const defaultValues = {
     fullName: '',
     email: '',
     password: '',
@@ -30,10 +30,10 @@ export function useDealerSignup() {
     phone: '',
   };
 
-  // Use explicit type annotation and separate defaultValues object
+  // Use explicit type annotation for form and avoid using inference
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
-    defaultValues,
+    defaultValues: defaultValues,
   });
 
   const checkDealershipName = async (name: string): Promise<boolean> => {
@@ -52,8 +52,14 @@ export function useDealerSignup() {
     }
   };
 
-  // Explicitly type the parameter to avoid inference issues
-  const onSubmit = async (data: DealerSignupData) => {
+  // Define function parameter explicitly without relying on type inference
+  const onSubmit = async (data: { 
+    fullName: string; 
+    email: string; 
+    password: string; 
+    dealershipName: string; 
+    phone?: string; 
+  }) => {
     try {
       setIsLoading(true);
       setDealershipError('');
