@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FormData } from '@/types/premium-valuation';
@@ -183,7 +182,18 @@ export const usePremiumValuationForm = () => {
     handleReset,
     isSubmitting,
     submitError,
-    handleSubmit: () => submitValuation(formData, user as User, isFormValid),
+    handleSubmit: () => {
+      if (!user) return;
+      
+      // Create a complete user object to satisfy the User type
+      const validUser: User = {
+        ...user,
+        app_metadata: user.app_metadata || { provider: 'email' },
+        user_metadata: user.user_metadata || { full_name: user.email.split('@')[0] }
+      };
+      
+      return submitValuation(formData, validUser, isFormValid);
+    },
     validateStep
   };
 };

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Extended User type to match what's expected in components
@@ -7,7 +8,7 @@ export type User = {
   name?: string;
   created_at?: string;
   app_metadata: Record<string, any>; // Make this required
-  user_metadata?: Record<string, any>;
+  user_metadata: Record<string, any>; // Make this required instead of optional
   aud?: string;
 } | null;
 
