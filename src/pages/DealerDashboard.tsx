@@ -32,11 +32,11 @@ export default function DealerDashboard() {
           .eq('id', user.id)
           .single();
 
-        // Handle specific database error for missing column
+        // Handle database errors
         if (error) {
           console.error('Database error:', error);
           
-          // Check if it's a missing column error
+          // Handle missing column error specifically
           if (error.message.includes("column 'dealership_name' does not exist")) {
             toast.error('Database setup error: Missing dealership_name column in profiles table.');
             navigate('/');
@@ -54,7 +54,8 @@ export default function DealerDashboard() {
           return;
         }
 
-        // Now we know data exists, so we can safely check user_role
+        // Access properties on data object, not error
+        // Safe to check user_role now because we know data exists and error is null
         if (data.user_role !== 'dealer') {
           toast.error('Access denied — Dealer only.');
           navigate('/dashboard');
