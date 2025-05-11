@@ -6,9 +6,10 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Mail, ArrowLeft } from 'lucide-react';
+import { Loader2, Mail, ArrowLeft, RefreshCcw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Define form schema
 const formSchema = z.object({
@@ -25,6 +26,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [lastEmail, setLastEmail] = useState<string>('');
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,15 +46,52 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       
       if (result?.error) {
         setFormError(result.error.message || 'Failed to send password reset email');
+        toast.error('Failed to send password reset email', {
+          description: 'Please try again or contact support if the issue persists.'
+        });
         return;
       }
       
       // Show success message
       setSuccess(true);
+      setLastEmail(values.email);
+      toast.success('Reset link sent!', {
+        description: 'Please check your email inbox and spam folder.'
+      });
       form.reset();
     } catch (err: any) {
       setFormError('An unexpected error occurred');
+      toast.error('An unexpected error occurred', {
+        description: 'Our team has been notified. Please try again later.'
+      });
       console.error('Password reset error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!lastEmail) return;
+    setIsLoading(true);
+    
+    try {
+      const result = await resetPassword(lastEmail);
+      
+      if (result?.error) {
+        toast.error('Failed to resend email', {
+          description: result.error.message || 'Please try again or contact support.'
+        });
+        return;
+      }
+      
+      toast.success('Email sent again!', {
+        description: 'Please check your inbox and spam folder.'
+      });
+    } catch (err) {
+      toast.error('Failed to resend email', {
+        description: 'Please try again later or contact support.'
+      });
+      console.error('Email resend error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -66,16 +105,50 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
         </div>
         <h3 className="text-lg font-semibold text-green-800 mb-2">Reset Link Sent</h3>
         <p className="text-sm text-green-700 mb-4">
-          Check your email for a link to reset your password. The link will expire in 24 hours.
+          We've sent a password reset link to <strong>{lastEmail}</strong>. The link will expire in 24 hours.
         </p>
-        <Button
-          variant="outline"
-          onClick={() => navigate('/auth')}
-          className="inline-flex items-center"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Login
-        </Button>
+        <p className="text-sm text-gray-600 mb-6">
+          If you don't see the email, check your spam folder or try these options:
+        </p>
+        <div className="space-y-3">
+          <Button
+            variant="outline"
+            onClick={handleResendEmail}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Resend Email
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/auth')}
+            className="inline-flex items-center w-full justify-center"
+            disabled={isLoading}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Login
+          </Button>
+          
+          <div className="pt-3 border-t border-gray-200 mt-3">
+            <a
+              href="mailto:support@cardetective.com?subject=Password%20Reset%20Help"
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Contact Support for Help
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
