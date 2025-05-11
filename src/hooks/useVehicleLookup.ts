@@ -36,49 +36,57 @@ export function useVehicleLookup() {
         if (result) {
           console.log("VIN lookup successful:", result);
           
-          // Create a valuation record to return to the user
-          const { data: valuationData, error: valuationError } = await supabase
-            .from('valuations')
-            .insert({
-              user_id: (await supabase.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000',
-              vin: result.vin,
-              make: result.make,
-              model: result.model,
-              year: result.year,
-              is_vin_lookup: true,
-              confidence_score: 85,
-              condition_score: 7
-            })
-            .select('id')
-            .single();
-            
-          if (valuationError) {
-            console.error('Error creating valuation record:', valuationError);
-            throw new Error('Failed to create valuation record');
+          try {
+            // Create a valuation record to return to the user
+            const { data: valuationData, error: valuationError } = await supabase
+              .from('valuations')
+              .insert({
+                user_id: (await supabase.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000',
+                vin: result.vin,
+                make: result.make,
+                model: result.model,
+                year: result.year,
+                is_vin_lookup: true,
+                confidence_score: 85,
+                condition_score: 7
+              })
+              .select('id')
+              .single();
+              
+            if (valuationError) {
+              console.error('Error creating valuation record:', valuationError);
+              // Create a fallback ID if we can't save to the database
+              valuationId = crypto.randomUUID();
+              console.log('Using fallback ID due to database error:', valuationId);
+            } else {
+              valuationId = valuationData?.id;
+              console.log('Created valuation record with ID:', valuationId);
+            }
+          } catch (dbError) {
+            console.error('Database operation failed:', dbError);
+            // Create a fallback ID if the database operation fails
+            valuationId = crypto.randomUUID();
+            console.log('Using fallback ID due to database error:', valuationId);
           }
-          
-          valuationId = valuationData?.id;
           
           if (valuationId) {
             localStorage.setItem('latest_valuation_id', valuationId);
-            console.log('Created valuation record:', valuationId);
+            console.log('Saved valuation ID to localStorage:', valuationId);
             toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
           }
           
-          setVehicle({
-            ...result,
-            id: valuationId
-          });
-          
-          return {
+          const vehicleWithId = {
             ...result,
             id: valuationId
           };
+          
+          setVehicle(vehicleWithId);
+          return vehicleWithId;
         }
       }
       // Add handling for other lookup types here
       
-      return result;
+      return null;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to lookup vehicle';
       setError(message);

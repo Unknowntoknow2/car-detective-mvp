@@ -48,7 +48,6 @@ export function VinLookup({
       // If this is a standalone component (not part of a larger form)
       // navigate to the results page
       if (standalone && result?.id) {
-        localStorage.setItem('latest_valuation_id', result.id);
         navigate(`/result?id=${result.id}`);
       } else if (standalone && result) {
         toast.success('VIN lookup successful!');

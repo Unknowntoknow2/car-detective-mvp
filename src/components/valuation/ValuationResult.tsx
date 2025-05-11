@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { UnifiedValuationResult } from './UnifiedValuationResult';
 
 interface ValuationResultProps {
-  valuationId: string;
+  valuationId?: string;
   manualValuation?: any;
   photoCondition?: any;
 }
@@ -19,14 +19,14 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
 
   useEffect(() => {
     // If no valuationId is provided as prop, try to get it from localStorage
-    if (!valuationId) {
+    if (!valuationId && !manualValuation) {
       const localId = localStorage.getItem('latest_valuation_id');
       if (localId) {
         console.log("Retrieved valuationId from localStorage:", localId);
         setHydratedId(localId);
       }
     }
-  }, [valuationId]);
+  }, [valuationId, manualValuation]);
 
   if (!hydratedId && !manualValuation) {
     return (

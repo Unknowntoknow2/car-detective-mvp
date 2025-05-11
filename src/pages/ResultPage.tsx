@@ -16,7 +16,8 @@ export default function ResultPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   const params = new URLSearchParams(location.search);
-  const idFromUrl = params.get('id');
+  // Check for both 'id' and 'valuationId' to support different URL formats
+  const idFromUrl = params.get('id') || params.get('valuationId');
   
   // Use the custom hook to get the valuation ID from various sources
   const { valuationId, manualData } = useValuationId(idFromUrl);

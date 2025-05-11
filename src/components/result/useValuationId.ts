@@ -12,6 +12,7 @@ export function useValuationId(searchParamsId?: string | null) {
     const getValuationId = () => {
       // First check URL query param (highest priority)
       if (searchParamsId) {
+        console.log('Using ID from URL parameters:', searchParamsId);
         return searchParamsId;
       }
       
@@ -28,9 +29,23 @@ export function useValuationId(searchParamsId?: string | null) {
         try {
           const parsedData = JSON.parse(manualData);
           setManualData(parsedData);
+          console.log('Retrieved manual valuation data from localStorage');
           return parsedData.valuationId;
         } catch (e) {
           console.error('Error parsing manual valuation data:', e);
+        }
+      }
+      
+      // Also check temp_valuation_data as last resort
+      const tempData = localStorage.getItem('temp_valuation_data');
+      if (tempData) {
+        try {
+          const parsedTempData = JSON.parse(tempData);
+          setManualData(parsedTempData);
+          console.log('Retrieved temporary valuation data');
+          return parsedTempData.id;
+        } catch (e) {
+          console.error('Error parsing temp valuation data:', e);
         }
       }
       
