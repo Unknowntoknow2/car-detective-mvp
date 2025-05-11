@@ -31,6 +31,7 @@ type AuthContextType = {
   updatePassword: (password: string) => Promise<void>;
   isLoading: boolean;
   error: string | null;
+  getUserRole: () => Promise<string | null>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,6 +71,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const getUserRole = async (): Promise<string | null> => {
+    if (!user) return null;
+    
+    try {
+      console.log("Fetching user role for:", user.id);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('id', user.id)
+        .maybeSingle(); // using maybeSingle to avoid errors if no profile
+      
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return null;
+      }
+      
+      console.log("User role data:", data);
+      return data?.user_role || null;
+    } catch (err) {
+      console.error("Error in getUserRole:", err);
+      return null;
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -188,6 +213,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     updatePassword,
     isLoading,
     error,
+    getUserRole,
   };
 
   return (

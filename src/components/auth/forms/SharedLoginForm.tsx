@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, Mail, KeyRound } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +70,7 @@ export const SharedLoginForm = ({
   // Check user role and redirect accordingly
   const checkUserRoleAndRedirect = async (userId: string) => {
     try {
-      console.log(`Checking role for user: ${userId}`);
+      console.log(`Checking role for user: ${userId}, expected role: ${expectedRole}`);
       setIsLoading(true);
       
       // Set a safety timeout to prevent infinite loading

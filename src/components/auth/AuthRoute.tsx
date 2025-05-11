@@ -1,8 +1,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface AuthRouteProps {
@@ -10,7 +9,7 @@ interface AuthRouteProps {
 }
 
 const AuthRoute = ({ children }: AuthRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, isLoading, getUserRole } = useAuth();
   const location = useLocation();
   const [isCheckingRole, setIsCheckingRole] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -28,22 +27,9 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
         setIsCheckingRole(true);
         console.log('Checking user role for user:', user.id);
         
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('user_role')
-          .eq('id', user.id)
-          .maybeSingle(); // Use maybeSingle instead of single to avoid error if no data
-          
-        if (error) {
-          console.error('Error fetching user role:', error);
-          // Don't block UI progress on error, just log it
-          toast.error('Error verifying user profile', { 
-            description: 'Please try logging in again' 
-          });
-        }
-        
-        console.log('User role data:', data);
-        setUserRole(data?.user_role || null);
+        const role = await getUserRole();
+        console.log('User role data:', role);
+        setUserRole(role);
       } catch (err) {
         console.error('Error checking user role:', err);
         toast.error('An unexpected error occurred');
@@ -59,7 +45,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
     } else {
       setRoleCheckCompleted(true);
     }
-  }, [user]);
+  }, [user, getUserRole]);
 
   // Add a safety timeout to prevent infinite loading
   useEffect(() => {
@@ -75,7 +61,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
   }, [isCheckingRole, roleCheckCompleted]);
 
   // Show loading state while authentication is being checked
-  if ((loading || isCheckingRole) && !roleCheckCompleted) {
+  if ((isLoading || isCheckingRole) && !roleCheckCompleted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
