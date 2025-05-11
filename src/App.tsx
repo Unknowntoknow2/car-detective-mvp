@@ -41,6 +41,9 @@ export default function App() {
             <Route path="/login-dealer" element={<LoginDealerPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
+            {/* Use only one route for dealer signup */}
+            <Route path="/signup-dealer" element={<DealerSignup />} />
+            
             {/* Redirect dashboard to the proper dashboard based on role */}
             <Route path="/dashboard" element={
               <AuthRoute>
@@ -56,8 +59,7 @@ export default function App() {
             <Route path="/premium" element={<PremiumPage />} />
             <Route path="/premium-valuation" element={<PremiumValuationPage />} />
             <Route path="/access-denied" element={<AccessDeniedPage />} />
-            <Route path="/signup-dealer" element={<DealerSignup />} />
-            <Route path="/dealer/signup" element={<DealerSignup />} />
+            
             <Route 
               path="/dealer-dashboard" 
               element={

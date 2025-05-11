@@ -44,7 +44,11 @@ export function useDealerSignup() {
         .eq('dealership_name', name)
         .limit(1);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking dealership name:', error);
+        throw error;
+      }
+      
       return data && data.length > 0;
     } catch (err) {
       console.error('Error checking dealership name:', err);
@@ -53,10 +57,14 @@ export function useDealerSignup() {
   };
 
   const onSubmit = async (data: DealerSignupFormData) => {
+    if (isLoading) return; // Prevent multiple submissions
+    
     try {
       setIsLoading(true);
       setDealershipError('');
+      console.log('Starting dealer signup process for:', data.email);
 
+      // Check if dealership name already exists
       const dealershipExists = await checkDealershipName(data.dealershipName);
       if (dealershipExists) {
         setDealershipError('This dealership name is already registered');
@@ -64,6 +72,9 @@ export function useDealerSignup() {
         return;
       }
 
+      console.log('Dealership name check passed, proceeding with signup');
+      
+      // Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -77,9 +88,15 @@ export function useDealerSignup() {
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        console.error('Signup error:', signUpError);
+        throw signUpError;
+      }
 
       if (authData.user) {
+        console.log('User created successfully, updating profile');
+        
+        // Update the profile with dealer role and dealership name
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({ 
@@ -89,15 +106,30 @@ export function useDealerSignup() {
             dealership_name: data.dealershipName,
           });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          throw profileError;
+        }
 
         toast.success('Registration successful', {
           description: 'Your dealer account has been created.',
         });
 
-        navigate('/dealer-dashboard');
+        // Check for email confirmation requirements
+        if (authData.session) {
+          // If we have a session, user was auto-confirmed
+          console.log('User has active session, redirecting to dealer dashboard');
+          navigate('/dealer-dashboard');
+        } else {
+          // If no session, they may need to confirm email
+          console.log('Email confirmation may be required');
+          toast.info('Please check your email to confirm your account before logging in');
+          setTimeout(() => navigate('/login-dealer'), 2000);
+        }
       }
     } catch (error: any) {
+      console.error('Registration error:', error);
+      
       let errorMessage = 'Registration failed';
       if (error.message?.includes('already registered')) {
         errorMessage = 'This email is already registered';
