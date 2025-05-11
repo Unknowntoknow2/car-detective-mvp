@@ -9,7 +9,7 @@ export type User = {
   created_at?: string;
   app_metadata: Record<string, any>; // Make this required
   user_metadata: Record<string, any>; // Make this required instead of optional
-  aud?: string;
+  aud: string; // Make this required instead of optional
 } | null;
 
 // Define a standard error type

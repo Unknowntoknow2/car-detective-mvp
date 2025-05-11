@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { FormData } from '@/types/premium-valuation';
@@ -189,7 +190,8 @@ export const usePremiumValuationForm = () => {
       const validUser: User = {
         ...user,
         app_metadata: user.app_metadata || { provider: 'email' },
-        user_metadata: user.user_metadata || { full_name: user.email.split('@')[0] }
+        user_metadata: user.user_metadata || { full_name: user.email.split('@')[0] },
+        aud: user.aud || 'authenticated' // Provide a default value for aud if it's missing
       };
       
       return submitValuation(formData, validUser, isFormValid);
