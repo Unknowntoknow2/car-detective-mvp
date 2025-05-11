@@ -1,12 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Mail, ArrowLeft, RefreshCcw } from 'lucide-react';
+import { Loader2, Mail, ArrowLeft, RefreshCcw, Mail as MailIcon, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [lastEmail, setLastEmail] = useState<string>('');
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -35,6 +36,19 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       email: '',
     },
   });
+
+  // Handle resend cooldown timer
+  useEffect(() => {
+    let timer: number | undefined;
+    if (resendCooldown > 0) {
+      timer = window.setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [resendCooldown]);
 
   // Form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -47,7 +61,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       if (result?.error) {
         setFormError(result.error.message || 'Failed to send password reset email');
         toast.error('Failed to send password reset email', {
-          description: 'Please try again or contact support if the issue persists.'
+          description: result.error.message || 'Please try again or contact support if the issue persists.'
         });
         return;
       }
@@ -59,6 +73,9 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
         description: 'Please check your email inbox and spam folder.'
       });
       form.reset();
+
+      // Set cooldown for resend button
+      setResendCooldown(60); // 60 seconds cooldown
     } catch (err: any) {
       setFormError('An unexpected error occurred');
       toast.error('An unexpected error occurred', {
@@ -71,8 +88,9 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
   };
 
   const handleResendEmail = async () => {
-    if (!lastEmail) return;
+    if (!lastEmail || resendCooldown > 0) return;
     setIsLoading(true);
+    setResendCooldown(60); // Set cooldown to prevent spam
     
     try {
       const result = await resetPassword(lastEmail);
@@ -108,19 +126,24 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
           We've sent a password reset link to <strong>{lastEmail}</strong>. The link will expire in 24 hours.
         </p>
         <p className="text-sm text-gray-600 mb-6">
-          If you don't see the email, check your spam folder or try these options:
+          If you don't see the email in your inbox, please check your spam folder or try these options:
         </p>
         <div className="space-y-3">
           <Button
             variant="outline"
             onClick={handleResendEmail}
-            disabled={isLoading}
+            disabled={isLoading || resendCooldown > 0}
             className="w-full flex items-center justify-center"
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Sending...
+              </>
+            ) : resendCooldown > 0 ? (
+              <>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Resend Email ({resendCooldown}s)
               </>
             ) : (
               <>
@@ -140,11 +163,17 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
             Back to Login
           </Button>
           
-          <div className="pt-3 border-t border-gray-200 mt-3">
+          <div className="pt-3 border-t border-gray-200 mt-3 space-y-3">
+            <p className="text-sm text-amber-700 mb-2 flex items-center justify-center">
+              <MailIcon className="h-4 w-4 mr-2 text-amber-500" />
+              Check your spam/junk folder for the reset email
+            </p>
+            
             <a
               href="mailto:support@cardetective.com?subject=Password%20Reset%20Help"
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center"
             >
+              <HelpCircle className="h-4 w-4 mr-2 text-blue-500" />
               Contact Support for Help
             </a>
           </div>
