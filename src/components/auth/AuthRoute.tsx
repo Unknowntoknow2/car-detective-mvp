@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,7 +73,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
   if (!user) {
     console.log('No authenticated user, redirecting to login');
     // Redirect to login with the location they tried to access
-    return <Navigate to="/login-user" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // Redirect dealers to dealer dashboard if they try to access regular dashboard

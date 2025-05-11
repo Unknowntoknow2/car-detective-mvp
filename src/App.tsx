@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
+import Dashboard from './pages/Dashboard';
 import PremiumPage from './pages/PremiumPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
@@ -45,10 +45,10 @@ export default function App() {
             <Route path="/dealer-signup" element={<DealerSignup />} />
             <Route path="/signup-dealer" element={<DealerSignup />} />
             
-            {/* Redirect dashboard to the proper dashboard based on role */}
+            {/* Dashboard for regular users */}
             <Route path="/dashboard" element={
               <AuthRoute>
-                <DashboardPage />
+                <Dashboard />
               </AuthRoute>
             } />
             
@@ -61,6 +61,7 @@ export default function App() {
             <Route path="/premium-valuation" element={<PremiumValuationPage />} />
             <Route path="/access-denied" element={<AccessDeniedPage />} />
             
+            {/* Dashboard for dealers with appropriate guard */}
             <Route 
               path="/dealer-dashboard" 
               element={
