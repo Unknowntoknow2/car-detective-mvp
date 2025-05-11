@@ -12,7 +12,7 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
-  // Explicitly use DealerSignupData type with useForm to avoid deep type inference
+  // Use explicit DealerSignupData type to avoid type inference recursion
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
@@ -40,7 +40,7 @@ export function useDealerSignup() {
     }
   };
 
-  // Explicitly type the data parameter to avoid type inference issues
+  // Use explicit parameter type to avoid inference issues
   const onSubmit = async (data: DealerSignupData) => {
     try {
       setIsLoading(true);
