@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, Link } from 'react-router-dom';
 import { isValidEmail, isValidPhone, validatePassword } from '@/components/auth/forms/signup/validation';
 
-// Define the dealer signup form schema
+// Define the dealer signup form schema - simplified to avoid deep type instantiation
 const dealerFormSchema = z.object({
   fullName: z.string()
     .min(2, 'Full name must be at least 2 characters')
@@ -29,11 +30,7 @@ const dealerFormSchema = z.object({
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .refine(
-      (value) => {
-        // Using a standalone function to check the password
-        const result = validatePassword(value);
-        return result === '';
-      }, 
+      (value) => validatePassword(value) === '', 
       { message: 'Password must contain uppercase, lowercase, and numbers' }
     ),
   dealershipName: z.string()
