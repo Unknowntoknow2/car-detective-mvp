@@ -31,7 +31,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // Prepare the input with all required fields and proper defaults
-      const input = {
+      const input: ValuationInput = {
         make: valuationData.make || '',
         model: valuationData.model || '',
         year: valuationData.year || new Date().getFullYear(),
@@ -72,7 +72,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
       // For the premium valuation, prepare input with all required fields
-      const input = {
+      const input: ValuationInput = {
         make: valuationData.make || '',
         model: valuationData.model || '',
         year: valuationData.year || new Date().getFullYear(),
@@ -83,7 +83,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
         fuelType: valuationData.fuelType || 'Gasoline',
         transmission: valuationData.transmission || 'Automatic',
         features: valuationData.features || [],
-        baseMarketValue: valuationData.baseMarketValue,
+        baseMarketValue: baseMarketValue,
         accidentCount: valuationData.accidentCount
       };
 

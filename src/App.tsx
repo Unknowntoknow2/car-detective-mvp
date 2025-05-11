@@ -1,46 +1,20 @@
-
-import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoadingComponent from './components/ui/loading-component';
-import { Toaster } from 'sonner';
-import { ThemeProvider } from './components/ui/theme-provider';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import FreeValuationPage from './pages/FreeValuationPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { ValuationProvider } from './contexts/ValuationContext';
 
-// Lazy-loaded pages
-const Index = lazy(() => import('./pages/Index'));
-const ValuationPage = lazy(() => import('./pages/ValuationPage'));
-const PremiumPage = lazy(() => import('./pages/PremiumPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const PremiumValuationPage = lazy(() => import('./pages/PremiumValuationPage'));
-const MyValuationsPage = lazy(() => import('./pages/MyValuationsPage'));
-const AuthPage = lazy(() => import('./pages/AuthPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-
-function App() {
+export default function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <Router>
-        <AuthProvider>
-          <ValuationProvider>
-            <Suspense fallback={<LoadingComponent />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/valuation" element={<ValuationPage />} />
-                <Route path="/premium" element={<PremiumPage />} />
-                <Route path="/premium-valuation" element={<PremiumValuationPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/my-valuations" element={<MyValuationsPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Suspense>
-          </ValuationProvider>
-        </AuthProvider>
-      </Router>
-      <Toaster position="top-right" />
-    </ThemeProvider>
+    <AuthProvider>
+      <ValuationProvider>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/free-valuation" element={<FreeValuationPage />} />
+          {/* Add other routes as needed */}
+        </Routes>
+      </ValuationProvider>
+    </AuthProvider>
   );
 }
-
-export default App;
