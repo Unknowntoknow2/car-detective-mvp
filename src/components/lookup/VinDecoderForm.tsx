@@ -30,36 +30,69 @@ export function VinDecoderForm() {
         return;
       }
       
-      // Create a valuation entry
-      const { data: valuationData, error: insertError } = await supabase
-        .from('valuations')
-        .insert({
+      try {
+        // Create a valuation entry as an anonymous user
+        const { data: valuationData, error: insertError } = await supabase
+          .from('valuations')
+          .insert({
+            vin,
+            make: result.make,
+            model: result.model,
+            year: result.year,
+            mileage: 50000, // Default mileage
+            user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
+            is_vin_lookup: true,
+            condition_score: 70,
+            estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000), // Mock value for demo
+            confidence_score: 85
+          })
+          .select('*')
+          .single();
+        
+        if (insertError) {
+          console.error('Error saving valuation:', insertError);
+          
+          // If there's an error with the DB insert, we still want to show results
+          // Store minimal data in localStorage
+          const tempValuationData = {
+            id: crypto.randomUUID(),
+            vin,
+            make: result.make,
+            model: result.model,
+            year: result.year,
+            estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000)
+          };
+          
+          localStorage.setItem('latest_valuation_id', tempValuationData.id);
+          localStorage.setItem('temp_valuation_data', JSON.stringify(tempValuationData));
+          
+          toast.success('VIN decoded successfully');
+          navigate(`/result?valuationId=${tempValuationData.id}&temp=true`);
+          return;
+        }
+        
+        // Save the valuation ID to localStorage
+        localStorage.setItem('latest_valuation_id', valuationData.id);
+        
+        // Navigate to the results page
+        navigate(`/result?valuationId=${valuationData.id}`);
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        toast.error('Error saving results, but VIN was decoded');
+        
+        // Fallback to showing results without saving to DB
+        const tempValuationData = {
+          id: crypto.randomUUID(),
           vin,
           make: result.make,
           model: result.model,
           year: result.year,
-          mileage: 50000, // Default mileage
-          user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
-          is_vin_lookup: true,
-          condition_score: 70,
-          estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000), // Mock value for demo
-          confidence_score: 85
-        })
-        .select()
-        .single();
-      
-      if (insertError) {
-        console.error('Error saving valuation:', insertError);
-        toast.error('Failed to save valuation data');
-        return;
+          estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000)
+        };
+        
+        localStorage.setItem('temp_valuation_data', JSON.stringify(tempValuationData));
+        navigate(`/result?valuationId=${tempValuationData.id}&temp=true`);
       }
-      
-      // Save the valuation ID to localStorage
-      localStorage.setItem('latest_valuation_id', valuationData.id);
-      
-      // Navigate to the results page
-      navigate(`/result?valuationId=${valuationData.id}`);
-      
     } catch (err) {
       console.error('Error in VIN lookup:', err);
       toast.error('Failed to process VIN');

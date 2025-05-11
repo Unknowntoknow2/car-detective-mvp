@@ -7,6 +7,7 @@ import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
 import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { CarFront, Search, FileText } from "lucide-react";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+import { toast } from "sonner";
 
 interface LookupTabsProps {
   defaultTab?: string;
@@ -15,13 +16,41 @@ interface LookupTabsProps {
 export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
-  // Add debugging logs for component mounting
-  console.log("LookupTabs rendering with activeTab:", activeTab);
-
-  // Add a mock onSubmit function for ManualEntryForm
+  // Handle manual entry form submission
   const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log("Manual entry form submitted:", data);
-    // Here you would typically handle the form submission
+    
+    try {
+      // Save form data to localStorage for use in results page
+      localStorage.setItem('manual_entry_data', JSON.stringify(data));
+      
+      // Generate a temporary ID for the valuation
+      const tempId = crypto.randomUUID();
+      localStorage.setItem('latest_valuation_id', tempId);
+      
+      // Create a temp valuation object
+      const tempValuation = {
+        id: tempId,
+        make: data.make,
+        model: data.model,
+        year: parseInt(data.year.toString()),
+        mileage: parseInt(data.mileage.toString()),
+        estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000),
+        condition_score: 70,
+        is_manual_entry: true
+      };
+      
+      localStorage.setItem('temp_valuation_data', JSON.stringify(tempValuation));
+      
+      // Show success message
+      toast.success('Vehicle information submitted successfully');
+      
+      // Navigate to results page
+      window.location.href = `/result?valuationId=${tempId}&temp=true`;
+    } catch (error) {
+      console.error('Error processing manual entry:', error);
+      toast.error('Error processing your information');
+    }
   };
 
   return (

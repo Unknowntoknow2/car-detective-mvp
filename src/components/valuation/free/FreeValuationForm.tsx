@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/card';
 import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { Loader2 } from 'lucide-react';
 import { useManualValuation, type ManualVehicleInfo } from '@/hooks/useManualValuation';
+import { toast } from 'sonner';
+import { useVinDecoder } from '@/hooks/useVinDecoder';
 
 interface FreeValuationFormProps {
   onValuationComplete: (data: ManualVehicleInfo) => void;
@@ -24,10 +26,11 @@ export function FreeValuationForm({
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
   const { decode, isLoading: decoderLoading } = useUnifiedDecoder();
+  const { lookupVin, isLoading: vinDecoderLoading } = useVinDecoder();
   const { calculateValuation, isLoading: calculationLoading } = useManualValuation();
   const [activeTab, setActiveTab] = useState('vin');
   
-  const isLoading = externalLoading || decoderLoading || calculationLoading;
+  const isLoading = externalLoading || decoderLoading || calculationLoading || vinDecoderLoading;
 
   const handleSubmit = async (e: React.FormEvent, type: 'vin' | 'plate' | 'manual') => {
     e.preventDefault();
@@ -36,35 +39,94 @@ export function FreeValuationForm({
       onStartLoading();
     }
     
-    try {
-      const params = type === 'vin' 
-        ? { vin } 
-        : { licensePlate: plate, state };
-      
-      const decodedVehicle = await decode(type, params);
-      
-      if (decodedVehicle) {
-        // Convert the decoded vehicle to manual vehicle info format
-        const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
-          make: decodedVehicle.make || '',
-          model: decodedVehicle.model || '',
-          year: decodedVehicle.year || new Date().getFullYear(),
-          mileage: 50000, // Default mileage
-          fuelType: decodedVehicle.fuelType || 'gasoline',
-          condition: 'Good',
-          zipCode: '10001', // Default zip
-          trim: decodedVehicle.trim
-        };
-        
-        // Calculate valuation for the decoded vehicle
-        const valuationResult = await calculateValuation(vehicleData);
-        
-        if (valuationResult) {
-          onValuationComplete(valuationResult);
-        }
+    if (type === 'vin') {
+      if (!vin || vin.length !== 17) {
+        toast.error('Please enter a valid 17-character VIN');
+        return;
       }
-    } catch (error) {
-      console.error('Valuation error:', error);
+      
+      try {
+        // First, try the VIN decoder
+        const result = await lookupVin(vin);
+        
+        if (result) {
+          // Convert the decoded vehicle to manual vehicle info format
+          const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+            make: result.make || '',
+            model: result.model || '',
+            year: result.year || new Date().getFullYear(),
+            mileage: 50000, // Default mileage
+            fuelType: result.fuelType || 'gasoline',
+            condition: 'Good',
+            zipCode: '10001', // Default zip
+            trim: result.trim
+          };
+          
+          // Calculate valuation for the decoded vehicle
+          const valuationResult = await calculateValuation(vehicleData);
+          
+          if (valuationResult) {
+            onValuationComplete(valuationResult);
+            return;
+          }
+        }
+        
+        // Fallback to unified decoder if VIN decoder fails
+        const decodedVehicle = await decode('vin', { vin });
+        
+        if (decodedVehicle) {
+          // Convert the decoded vehicle to manual vehicle info format
+          const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+            make: decodedVehicle.make || '',
+            model: decodedVehicle.model || '',
+            year: decodedVehicle.year || new Date().getFullYear(),
+            mileage: 50000, // Default mileage
+            fuelType: decodedVehicle.fuelType || 'gasoline',
+            condition: 'Good',
+            zipCode: '10001', // Default zip
+            trim: decodedVehicle.trim
+          };
+          
+          // Calculate valuation for the decoded vehicle
+          const valuationResult = await calculateValuation(vehicleData);
+          
+          if (valuationResult) {
+            onValuationComplete(valuationResult);
+          }
+        }
+      } catch (error) {
+        console.error('VIN lookup error:', error);
+        toast.error('Error looking up VIN. Please try again or use manual entry.');
+      }
+    } else if (type === 'plate') {
+      try {
+        const params = { licensePlate: plate, state };
+        const decodedVehicle = await decode('plate', params);
+        
+        if (decodedVehicle) {
+          // Convert the decoded vehicle to manual vehicle info format
+          const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+            make: decodedVehicle.make || '',
+            model: decodedVehicle.model || '',
+            year: decodedVehicle.year || new Date().getFullYear(),
+            mileage: 50000, // Default mileage
+            fuelType: decodedVehicle.fuelType || 'gasoline',
+            condition: 'Good',
+            zipCode: '10001', // Default zip
+            trim: decodedVehicle.trim
+          };
+          
+          // Calculate valuation for the decoded vehicle
+          const valuationResult = await calculateValuation(vehicleData);
+          
+          if (valuationResult) {
+            onValuationComplete(valuationResult);
+          }
+        }
+      } catch (error) {
+        console.error('Plate lookup error:', error);
+        toast.error('Error looking up license plate. Please try again or use manual entry.');
+      }
     }
   };
 
@@ -95,6 +157,7 @@ export function FreeValuationForm({
       }
     } catch (error) {
       console.error('Manual valuation error:', error);
+      toast.error('Error processing manual entry. Please try again.');
     }
   };
 
@@ -118,7 +181,7 @@ export function FreeValuationForm({
                 value={vin}
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
                 placeholder="Enter 17-character VIN"
-                className="mt-1"
+                className="mt-1 font-mono"
                 maxLength={17}
               />
             </div>

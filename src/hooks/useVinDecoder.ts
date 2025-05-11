@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { DecodedVehicleInfo } from '@/types/vehicle';
+import { toast } from 'sonner';
 
 interface VinDecoderResult {
   vin: string;
@@ -22,16 +23,11 @@ export function useVinDecoder() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VinDecoderResult | null>(null);
-  const { toast } = useToast();
 
   const lookupVin = async (vin: string): Promise<VinDecoderResult | null> => {
     if (!vin || vin.length !== 17) {
       setError('Invalid VIN. Must be a 17-character string.');
-      toast({
-        title: "Invalid VIN",
-        description: "Please enter a valid 17-character VIN.",
-        variant: "destructive"
-      });
+      toast.error("Please enter a valid 17-character VIN.");
       return null;
     }
     
@@ -62,24 +58,17 @@ export function useVinDecoder() {
         engine: data.engine,
         transmission: data.transmission || 'Unknown',
         drivetrain: data.drivetrain,
-        bodyType: data.bodyType
+        bodyType: data.bodyType || data.body_type
       };
       
       setResult(decodedVehicle);
-      toast({
-        title: "VIN Decoded Successfully",
-        description: `${decodedVehicle.year} ${decodedVehicle.make} ${decodedVehicle.model}`,
-      });
+      toast.success(`VIN Decoded: ${decodedVehicle.year} ${decodedVehicle.make} ${decodedVehicle.model}`);
       
       return decodedVehicle;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error during VIN lookup';
       setError(errorMessage);
-      toast({
-        title: "VIN Decode Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      toast.error(errorMessage);
       
       console.error('VIN decode error:', err);
       return null;

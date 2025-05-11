@@ -6,6 +6,7 @@ import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { validateVin } from '@/utils/validation/vin-validation';
 import { useState, useEffect } from 'react';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
+import { toast } from 'sonner';
 
 interface VinLookupProps {
   value?: string;
@@ -31,6 +32,14 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
       setValidationResult({ isValid: false, error: null });
     }
   }, [value]);
+
+  const handleLookupClick = () => {
+    if (!validationResult.isValid) {
+      toast.error(validationResult.error || 'Invalid VIN');
+      return;
+    }
+    onLookup?.();
+  };
 
   return (
     <div className="space-y-6">
@@ -73,7 +82,7 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false }:
       
       <div className="flex justify-end">
         <Button 
-          onClick={onLookup}
+          onClick={handleLookupClick}
           disabled={isLoading || !validationResult.isValid}
           className="px-6 h-11 font-medium transition-all"
         >
