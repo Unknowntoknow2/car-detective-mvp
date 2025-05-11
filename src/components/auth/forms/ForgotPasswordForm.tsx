@@ -1,12 +1,20 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Mail, ArrowLeft, RefreshCcw, Mail as MailIcon, HelpCircle } from 'lucide-react';
+import { 
+  Loader2, 
+  Mail, 
+  ArrowLeft, 
+  RefreshCcw, 
+  Mail as MailIcon, 
+  HelpCircle, 
+  AlertTriangle 
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -21,6 +29,11 @@ interface ForgotPasswordFormProps {
   setIsLoading: (loading: boolean) => void;
 }
 
+// Maximum number of email sends allowed within the rate limit window
+const MAX_EMAIL_SENDS = 3;
+// Rate limit window in milliseconds (30 minutes)
+const RATE_LIMIT_WINDOW = 30 * 60 * 1000;
+
 export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFormProps) => {
   const { resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +41,14 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
   const [success, setSuccess] = useState<boolean>(false);
   const [lastEmail, setLastEmail] = useState<string>('');
   const [resendCooldown, setResendCooldown] = useState<number>(0);
+  
+  // Rate limiting state
+  const [emailSendCount, setEmailSendCount] = useState<number>(0);
+  const [rateLimit, setRateLimit] = useState<boolean>(false);
+  const [rateLimitReset, setRateLimitReset] = useState<number>(0);
+  
+  // Reference to store when the rate limit window started
+  const rateLimitStartRef = useRef<number>(0);
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -50,9 +71,87 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
     };
   }, [resendCooldown]);
 
+  // Handle rate limit countdown timer
+  useEffect(() => {
+    let timer: number | undefined;
+    if (rateLimit && rateLimitReset > 0) {
+      timer = window.setTimeout(() => {
+        setRateLimitReset(prev => {
+          const newValue = prev - 1;
+          if (newValue <= 0) {
+            // Reset rate limit when timer reaches zero
+            setRateLimit(false);
+            setEmailSendCount(0);
+            return 0;
+          }
+          return newValue;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [rateLimit, rateLimitReset]);
+
+  // Check and update rate limit status
+  const checkRateLimit = (): boolean => {
+    const now = Date.now();
+    
+    // Initialize rate limit window if this is the first email
+    if (emailSendCount === 0) {
+      rateLimitStartRef.current = now;
+    }
+    
+    // Check if we're still within the rate limit window
+    const timeElapsed = now - rateLimitStartRef.current;
+    if (timeElapsed > RATE_LIMIT_WINDOW) {
+      // Reset the counter if the window has elapsed
+      setEmailSendCount(1);
+      rateLimitStartRef.current = now;
+      return false;
+    }
+    
+    // Increment and check if we've hit the limit
+    const newCount = emailSendCount + 1;
+    setEmailSendCount(newCount);
+    
+    if (newCount >= MAX_EMAIL_SENDS) {
+      const resetTimeInSeconds = Math.ceil((RATE_LIMIT_WINDOW - timeElapsed) / 1000);
+      setRateLimit(true);
+      setRateLimitReset(resetTimeInSeconds);
+      return true;
+    }
+    
+    return false;
+  };
+
+  // Format time remaining for display
+  const formatTimeRemaining = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   // Form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setFormError(null);
+    
+    // Check if we've hit the rate limit
+    if (rateLimit) {
+      toast.error('Rate limit exceeded', {
+        description: `Please wait ${formatTimeRemaining(rateLimitReset)} before requesting another password reset email.`
+      });
+      return;
+    }
+    
+    // Check if this would exceed the rate limit
+    if (checkRateLimit()) {
+      toast.error('Rate limit reached', {
+        description: `You've reached the maximum number of password reset requests. Please try again in ${formatTimeRemaining(rateLimitReset)}.`
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -102,6 +201,23 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
 
   const handleResendEmail = async () => {
     if (!lastEmail || resendCooldown > 0) return;
+    
+    // Check if we've hit the rate limit
+    if (rateLimit) {
+      toast.error('Rate limit exceeded', {
+        description: `Please wait ${formatTimeRemaining(rateLimitReset)} before requesting another password reset email.`
+      });
+      return;
+    }
+    
+    // Check if this would exceed the rate limit
+    if (checkRateLimit()) {
+      toast.error('Rate limit reached', {
+        description: `You've reached the maximum number of password reset requests. Please try again in ${formatTimeRemaining(rateLimitReset)}.`
+      });
+      return;
+    }
+    
     setIsLoading(true);
     setResendCooldown(60); // Set cooldown to prevent spam
     
@@ -151,6 +267,18 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
         <p className="text-sm text-green-700 mb-4">
           We've sent a password reset link to <strong>{lastEmail}</strong>. The link will expire in 24 hours.
         </p>
+        
+        {rateLimit && (
+          <div className="p-3 mb-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm">
+            <div className="flex items-center">
+              <AlertTriangle className="h-4 w-4 mr-2 text-amber-500 flex-shrink-0" />
+              <span>
+                Rate limit reached. Please wait {formatTimeRemaining(rateLimitReset)} before requesting another reset email.
+              </span>
+            </div>
+          </div>
+        )}
+        
         <p className="text-sm text-gray-600 mb-6">
           If you don't see the email in your inbox, please check your spam folder or try these options:
         </p>
@@ -158,7 +286,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
           <Button
             variant="outline"
             onClick={handleResendEmail}
-            disabled={isLoading || resendCooldown > 0}
+            disabled={isLoading || resendCooldown > 0 || rateLimit}
             className="w-full flex items-center justify-center"
           >
             {isLoading ? (
@@ -170,6 +298,11 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
               <>
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 Resend Email ({resendCooldown}s)
+              </>
+            ) : rateLimit ? (
+              <>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Resend Limit Reached
               </>
             ) : (
               <>
@@ -217,6 +350,16 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
           </div>
         )}
         
+        {rateLimit && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm flex items-start">
+            <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 text-amber-500 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Rate limit reached</p>
+              <p>Please wait {formatTimeRemaining(rateLimitReset)} before requesting another reset email.</p>
+            </div>
+          </div>
+        )}
+        
         <div className="mb-4">
           <h2 className="text-lg font-medium">Reset Your Password</h2>
           <p className="text-sm text-muted-foreground">
@@ -238,7 +381,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
                     placeholder="Enter your email"
                     type="email"
                     className="pl-10"
-                    disabled={isLoading}
+                    disabled={isLoading || rateLimit}
                     autoComplete="email"
                   />
                 </div>
@@ -252,12 +395,17 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
           <Button 
             type="submit" 
             className="w-full"
-            disabled={isLoading}
+            disabled={isLoading || rateLimit}
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Sending reset link...
+              </>
+            ) : rateLimit ? (
+              <>
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Rate Limit Reached
               </>
             ) : (
               'Send Reset Link'
@@ -275,6 +423,14 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
             Back to Login
           </Button>
         </div>
+        
+        {emailSendCount > 0 && !rateLimit && (
+          <div className="pt-2 text-xs text-muted-foreground">
+            <p className="text-center">
+              You've used {emailSendCount} of {MAX_EMAIL_SENDS} reset email requests
+            </p>
+          </div>
+        )}
       </form>
     </Form>
   );
