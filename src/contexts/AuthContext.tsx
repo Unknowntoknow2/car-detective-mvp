@@ -6,7 +6,7 @@ export type User = {
   id: string;
   email: string;
   name?: string;
-  created_at?: string;
+  created_at: string; // Make this required instead of optional
   app_metadata: Record<string, any>; // Make this required
   user_metadata: Record<string, any>; // Make this required instead of optional
   aud: string; // Make this required instead of optional
@@ -72,7 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         app_metadata: {
           provider: 'email'
-        }
+        },
+        aud: 'authenticated' // Add the required aud property
       };
       
       setUser(mockUser);
@@ -114,7 +115,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         app_metadata: {
           provider: 'email'
-        }
+        },
+        aud: 'authenticated' // Add the required aud property
       };
       
       setUser(mockUser);
