@@ -34,7 +34,7 @@ export function ValuationCard({ valuation, aiCondition, onDownload }: ValuationC
                 />
               ) : (
                 <span className="text-xs text-muted-foreground">
-                  {valuation.condition || 'Condition unknown'}
+                  {valuation.aiCondition ? valuation.aiCondition.condition : 'Condition unknown'}
                 </span>
               )}
               <span className="text-xs text-muted-foreground">•</span>
