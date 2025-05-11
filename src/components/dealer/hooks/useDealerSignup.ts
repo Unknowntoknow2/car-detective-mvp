@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +11,6 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
-  // Use the explicit DealerSignupData type instead of z.infer
   const form = useForm<DealerSignupData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
@@ -24,7 +22,6 @@ export function useDealerSignup() {
     },
   });
 
-  // Check if dealership name already exists
   const checkDealershipName = async (name: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
@@ -34,22 +31,18 @@ export function useDealerSignup() {
         .limit(1);
       
       if (error) throw error;
-      
-      // Return true if dealership exists (data has at least one item)
       return data && data.length > 0;
     } catch (err) {
       console.error('Error checking dealership name:', err);
-      return false; // Default to allowing submit on error
+      return false;
     }
   };
 
-  // Explicitly use DealerSignupData as the parameter type
   const onSubmit = async (data: DealerSignupData) => {
     try {
       setIsLoading(true);
       setDealershipError('');
 
-      // Check if dealership name already exists
       const dealershipExists = await checkDealershipName(data.dealershipName);
       if (dealershipExists) {
         setDealershipError('This dealership name is already registered');
@@ -57,7 +50,6 @@ export function useDealerSignup() {
         return;
       }
 
-      // Register the user with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -74,7 +66,6 @@ export function useDealerSignup() {
       if (signUpError) throw signUpError;
 
       if (authData.user) {
-        // Update the profile with dealer role and dealership name
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({ 
@@ -84,26 +75,20 @@ export function useDealerSignup() {
             dealership_name: data.dealershipName,
           });
 
-        if (profileError) {
-          console.error('Error updating profile:', profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
         toast.success('Registration successful', {
           description: 'Your dealer account has been created.',
         });
-        
-        // Redirect to the dealer dashboard
+
         navigate('/dealer-dashboard');
       }
     } catch (error: any) {
       let errorMessage = 'Registration failed';
-      
-      // Handle specific error cases
       if (error.message?.includes('already registered')) {
         errorMessage = 'This email is already registered';
       }
-      
+
       toast.error(errorMessage, {
         description: error.message || 'Please try again',
       });
