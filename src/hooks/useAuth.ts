@@ -7,12 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 type AuthContextType = {
   session: Session | null;
   user: User | null;
-  loading: boolean;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: Error | null; } | undefined>;
   signUp: (email: string, password: string) => Promise<{ data: any; error: Error | null; } | undefined>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ data: any; error: Error | null; } | undefined>;
   updatePassword: (password: string) => Promise<{ data: any; error: Error | null; } | undefined>;
+  getUserRole: () => Promise<string | null>;
 };
 
 // This creates a custom hook for accessing auth functionality
@@ -20,12 +21,13 @@ export function useAuth() {
   const context = useContext(createContext<AuthContextType>({
     session: null,
     user: null,
-    loading: true,
+    isLoading: true,
     signIn: async () => undefined,
     signUp: async () => undefined,
     signOut: async () => undefined,
     resetPassword: async () => undefined,
     updatePassword: async () => undefined,
+    getUserRole: async () => null,
   }));
 
   if (!context) {
@@ -165,6 +167,31 @@ export function useAuth() {
     }
   };
 
+  // Implementation of getUserRole if it doesn't exist in context
+  const getUserRole = async (): Promise<string | null> => {
+    if (!context.user) return null;
+    
+    try {
+      console.log("Fetching user role for:", context.user.id);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('id', context.user.id)
+        .maybeSingle(); // using maybeSingle to avoid errors if no profile
+      
+      if (error) {
+        console.error("Error fetching user role:", error);
+        return null;
+      }
+      
+      console.log("User role data:", data);
+      return data?.user_role || null;
+    } catch (err) {
+      console.error("Error in getUserRole:", err);
+      return null;
+    }
+  };
+
   // Return the context with the added functions if they don't exist
   return {
     ...context,
@@ -173,5 +200,7 @@ export function useAuth() {
     signOut: context.signOut || signOut,
     resetPassword: context.resetPassword || resetPassword,
     updatePassword: context.updatePassword || updatePassword,
+    getUserRole: context.getUserRole || getUserRole,
+    isLoading: context.isLoading || context.loading || false, // Handle both property names
   };
 }
