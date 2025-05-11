@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,18 +7,33 @@ import { Button } from '@/components/ui/button';
 import { LoginForm } from '@/components/auth/forms/LoginForm';
 import { SignupForm } from '@/components/auth/forms/SignupForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth?.() || {};
+  const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   
   // Redirect already logged in users
-  React.useEffect(() => {
+  useEffect(() => {
+    console.log("AuthPage: Current user state:", user);
     if (user) {
+      console.log("AuthPage: User is authenticated, redirecting to dashboard");
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  // Show loading spinner while checking authentication status
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-10 px-4 flex items-center justify-center min-h-[80vh]">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+          <p className="mt-4 text-muted-foreground">Checking authentication status...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-10 px-4 flex items-center justify-center min-h-[80vh]">

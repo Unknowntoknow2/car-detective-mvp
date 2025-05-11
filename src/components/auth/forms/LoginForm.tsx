@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Mail, KeyRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Define form schema
 const formSchema = z.object({
@@ -22,13 +23,29 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
+  const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Get the redirect path from location state, defaulting to dashboard
   const from = location.state?.from || '/dashboard';
+
+  // Clear any redirect timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
+  }, [redirectTimer]);
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    console.log("Auth state changed. User:", user);
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,6 +62,7 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
     setIsLoading(true);
     
     try {
+      console.log("Attempting to sign in with:", values.email);
       const result = await signIn(values.email, values.password);
       
       if (result?.error) {
@@ -53,10 +71,19 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
         return;
       }
       
-      // Navigation is handled by AuthProvider
+      // Set a fallback timeout to redirect if authStateChange doesn't trigger
+      const timer = setTimeout(() => {
+        console.log("Fallback redirect timer triggered");
+        navigate(from, { replace: true });
+        setIsLoading(false);
+      }, 3000);
+      
+      setRedirectTimer(timer);
+      toast.success("Login successful!");
+      
     } catch (err) {
-      setFormError('An unexpected error occurred');
       console.error('Login error:', err);
+      setFormError('An unexpected error occurred');
       setIsLoading(false);
     }
   };

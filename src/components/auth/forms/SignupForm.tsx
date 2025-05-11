@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Mail, KeyRound, User, Check } from 'lucide-react';
+import { Loader2, Mail, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface SignupFormProps {
   isLoading: boolean;
@@ -40,6 +41,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     setIsLoading(true);
     
     try {
+      console.log("SignupForm: Attempting signup with", email);
       const result = await signUp(email, password);
       
       if (result?.error) {
@@ -49,7 +51,10 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       }
       
       // Navigate to login page after successful signup
-      navigate('/login');
+      toast.success("Account created successfully! Please sign in.");
+      setTimeout(() => {
+        navigate('/login');
+      }, 1000);
     } catch (err) {
       setError('An unexpected error occurred');
       console.error('Signup error:', err);
