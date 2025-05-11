@@ -1,8 +1,22 @@
 
 import React, { createContext, useEffect, useState, ReactNode, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+
+// Define our own User type based on what's available in Supabase
+export type User = {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    full_name?: string;
+    [key: string]: any;
+  };
+  app_metadata?: {
+    [key: string]: any;
+  };
+  [key: string]: any;
+};
 
 // Define the AuthContextType
 export type AuthContextType = {
@@ -229,6 +243,3 @@ export const useAuth = () => {
   
   return context;
 };
-
-// Also export the User type for components that need it
-export { User };

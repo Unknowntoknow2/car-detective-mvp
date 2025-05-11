@@ -1,6 +1,6 @@
 
 // This file re-exports the useAuth hook from the AuthContext for backward compatibility
-import { useAuth as useAuthFromContext, AuthContextType, User } from '@/contexts/AuthContext';
+import { useAuth as useAuthFromContext, AuthContextType, type User } from '@/contexts/AuthContext';
 
 /**
  * Custom hook for accessing authentication context
