@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,20 +28,23 @@ const dealerFormSchema = z.object({
     .email('Invalid email format'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .refine((value) => {
-      const validationResult = validatePassword(value);
-      return validationResult === '';
-    }, {
-      message: 'Password must contain uppercase, lowercase, and numbers'
-    }),
+    .refine(
+      (value) => {
+        // Using a standalone function to check the password
+        const result = validatePassword(value);
+        return result === '';
+      }, 
+      { message: 'Password must contain uppercase, lowercase, and numbers' }
+    ),
   dealershipName: z.string()
     .min(2, 'Dealership name must be at least 2 characters')
     .max(100, 'Dealership name cannot exceed 100 characters'),
   phone: z.string()
     .optional()
-    .refine((val) => !val || isValidPhone(val), {
-      message: 'Please enter a valid phone number (e.g. +1234567890)',
-    }),
+    .refine(
+      (val) => !val || isValidPhone(val), 
+      { message: 'Please enter a valid phone number (e.g. +1234567890)' }
+    ),
 });
 
 // Define the dealer signup data type
