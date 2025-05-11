@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, Mail, ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 // Define form schema
@@ -40,17 +40,17 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
     setIsLoading(true);
     
     try {
-      const { error } = await resetPassword(values.email);
+      const result = await resetPassword(values.email);
       
-      if (error) {
-        setFormError(error.message || 'Failed to send password reset email');
+      if (result.error) {
+        setFormError(result.error.message || 'Failed to send password reset email');
         return;
       }
       
       // Show success message
       setSuccess(true);
       form.reset();
-    } catch (err) {
+    } catch (err: any) {
       setFormError('An unexpected error occurred');
       console.error('Password reset error:', err);
     } finally {

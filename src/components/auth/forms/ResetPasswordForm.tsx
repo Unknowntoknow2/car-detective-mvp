@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, KeyRound, Check } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 // Define form schema
@@ -45,10 +45,10 @@ export const ResetPasswordForm = ({ isLoading, setIsLoading }: ResetPasswordForm
     setIsLoading(true);
     
     try {
-      const { error } = await updatePassword(values.password);
+      const result = await updatePassword(values.password);
       
-      if (error) {
-        setFormError(error.message || 'Failed to update password');
+      if (result.error) {
+        setFormError(result.error.message || 'Failed to update password');
         return;
       }
       

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Extended User type to match what's expected in components
@@ -7,21 +6,27 @@ export type User = {
   email: string;
   name?: string;
   created_at?: string;
-  app_metadata?: Record<string, any>;
+  app_metadata: Record<string, any>; // Make this required
   user_metadata?: Record<string, any>;
   aud?: string;
 } | null;
+
+// Define a standard error type
+type AuthError = {
+  message: string;
+  [key: string]: any;
+};
 
 type AuthContextType = {
   user: User;
   session: any | null; // Add session property
   isLoading: boolean;
   error: string | null; // Add error property
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string) => Promise<{ error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ error?: AuthError }>;
+  signUp: (email: string, password: string) => Promise<{ error?: AuthError }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error?: string }>;
-  updatePassword: (password: string) => Promise<{ error?: string }>; // Add updatePassword method
+  resetPassword: (email: string) => Promise<{ error?: AuthError }>;
+  updatePassword: (password: string) => Promise<{ error?: AuthError }>; // Add updatePassword method
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -85,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to sign in';
       setError(errorMessage);
-      return { error: errorMessage };
+      return { error: { message: errorMessage } };
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to sign up';
       setError(errorMessage);
-      return { error: errorMessage };
+      return { error: { message: errorMessage } };
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to reset password';
       setError(errorMessage);
-      return { error: errorMessage };
+      return { error: { message: errorMessage } };
     } finally {
       setIsLoading(false);
     }
@@ -179,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to update password';
       setError(errorMessage);
-      return { error: errorMessage };
+      return { error: { message: errorMessage } };
     } finally {
       setIsLoading(false);
     }

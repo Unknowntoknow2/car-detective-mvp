@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { FormData } from '@/types/premium-valuation';
 import { useFormValidation } from './useFormValidation';
 import { useStepNavigation } from './useStepNavigation';
 import { useValuationSubmit } from './useValuationSubmit';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { User } from '@/contexts/AuthContext';
 
 // Number of minutes to auto-save form data
 const AUTO_SAVE_INTERVAL = 1; // minutes
@@ -182,7 +183,7 @@ export const usePremiumValuationForm = () => {
     handleReset,
     isSubmitting,
     submitError,
-    handleSubmit: () => submitValuation(formData, user, isFormValid),
+    handleSubmit: () => submitValuation(formData, user as User, isFormValid),
     validateStep
   };
 };

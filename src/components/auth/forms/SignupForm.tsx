@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, Mail, KeyRound, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Checkbox } from '@/components/ui/checkbox';
 
 // Define form schema
@@ -54,10 +54,10 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(values.email, values.password);
+      const result = await signUp(values.email, values.password);
       
-      if (error) {
-        setFormError(error.message || 'Failed to create account');
+      if (result.error) {
+        setFormError(result.error.message || 'Failed to create account');
         return;
       }
       
