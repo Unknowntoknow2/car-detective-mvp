@@ -47,17 +47,16 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
     try {
       const result = await signIn(values.email, values.password);
       
-      if (result.error) {
+      if (result?.error) {
         setFormError(result.error.message || 'Invalid email or password');
+        setIsLoading(false);
         return;
       }
       
-      // Navigate to the intended destination
-      navigate(from, { replace: true });
+      // Navigation is handled by AuthProvider
     } catch (err) {
       setFormError('An unexpected error occurred');
       console.error('Login error:', err);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -87,6 +86,7 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
                     className="pl-10"
                     disabled={isLoading}
                     autoComplete="email"
+                    name="email"
                   />
                 </div>
               </FormControl>
@@ -119,6 +119,7 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
                     className="pl-10"
                     disabled={isLoading}
                     autoComplete="current-password"
+                    name="password"
                   />
                 </div>
               </FormControl>

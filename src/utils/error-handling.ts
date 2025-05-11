@@ -32,6 +32,15 @@ class ErrorHandler {
       context
     };
   }
+
+  // Add report method for compatibility with EnhancedErrorBoundary
+  report(error: unknown, context?: string): void {
+    const details = this.handle(error, context);
+    console.error('Error reported:', details);
+    
+    // Here you would typically send the error to a monitoring service
+    // For now, we just log it to the console
+  }
 }
 
 export const errorHandler = new ErrorHandler();
