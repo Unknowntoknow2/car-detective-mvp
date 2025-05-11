@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
@@ -23,7 +24,7 @@ export type User = SupabaseUser & {
 type AuthContextType = {
   session: Session | null;
   user: User | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error?: any; data?: any }>;
   signUp: (email: string, password: string, phone?: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -80,28 +81,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         password,
       });
 
-      if (error) throw error;
-      
-      if (data.user) {
-        // After successful login, check if user is a dealer
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('user_role')
-          .eq('id', data.user.id)
-          .single();
-          
-        if (profileData?.user_role === 'dealer') {
-          navigate('/dealer-dashboard');
-        } else {
-          // Default navigation for regular users
-          toast.success('Successfully signed in!');
-        }
-        
-        // Successful login will trigger the onAuthStateChange listener
+      if (error) {
+        console.error("Sign in error:", error.message);
+        throw error;
       }
+      
+      console.log("Sign in successful", data);
+      return { data };
     } catch (err: any) {
+      console.error('Auth error during sign in:', err);
       setError(err.message);
       toast.error(err.message || 'An error occurred during sign in');
+      return { error: err };
     } finally {
       setIsLoading(false);
     }

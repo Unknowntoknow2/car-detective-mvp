@@ -25,6 +25,7 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
       }
       
       try {
+        console.log('Checking dealer role for user:', user.id);
         // Check if the user has the dealer role in their profile
         const { data, error } = await supabase
           .from('profiles')
@@ -37,6 +38,7 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
           toast.error('Failed to verify your access permissions');
           setIsDealer(false);
         } else {
+          console.log('Found user role:', data?.user_role);
           setIsDealer(data?.user_role === 'dealer');
           if (data?.user_role !== 'dealer') {
             console.warn(`User ${user.id} attempted to access dealer area without proper permissions`);
@@ -51,7 +53,19 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
       }
     };
     
+    // Set a timeout to prevent indefinite loading
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Dealer role check is taking too long, stopping...');
+        setIsLoading(false);
+        setIsDealer(false);
+        toast.error('Verification timeout exceeded');
+      }
+    }, 5000); // 5 second timeout
+    
     checkDealerRole();
+    
+    return () => clearTimeout(timeoutId);
   }, [user]);
   
   if (isLoading) {
