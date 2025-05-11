@@ -54,17 +54,16 @@ export default function DealerDashboard() {
           return;
         }
 
-        // Access properties on data object, not error
-        // Safe to check user_role now because we know data exists and error is null
-        if (data.user_role !== 'dealer') {
+        // Check if user_role exists and is a dealer
+        if (!data.user_role || data.user_role !== 'dealer') {
           toast.error('Access denied — Dealer only.');
           navigate('/dashboard');
           return;
         }
 
         setDealerProfile({
-          full_name: data.full_name,
-          dealership_name: data.dealership_name,
+          full_name: data.full_name || 'Dealer',
+          dealership_name: data.dealership_name || 'Your Dealership',
         });
       } catch (error: any) {
         console.error('Error fetching dealer profile:', error);
