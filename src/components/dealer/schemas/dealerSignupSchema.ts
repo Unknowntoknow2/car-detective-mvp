@@ -8,12 +8,3 @@ export const dealerFormSchema = z.object({
   dealershipName: z.string().min(2, 'Dealership name is required'),
   phone: z.string().optional(),
 });
-
-// ✅ Manually define the type to avoid deep Zod inference
-export type DealerSignupData = {
-  fullName: string;
-  email: string;
-  password: string;
-  dealershipName: string;
-  phone?: string;
-};

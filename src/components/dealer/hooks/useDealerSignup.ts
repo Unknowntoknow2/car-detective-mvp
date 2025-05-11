@@ -5,7 +5,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { dealerFormSchema, DealerSignupData } from '../schemas/dealerSignupSchema';
+import { dealerFormSchema } from '../schemas/dealerSignupSchema';
+
+// Define the type locally to avoid deep type instantiation issues
+type DealerSignupData = {
+  fullName: string;
+  email: string;
+  password: string;
+  dealershipName: string;
+  phone?: string;
+};
 
 export function useDealerSignup() {
   const [isLoading, setIsLoading] = useState(false);
