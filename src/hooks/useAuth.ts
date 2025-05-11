@@ -103,21 +103,36 @@ export function useAuth() {
     try {
       // Make sure to include the redirectTo parameter with the correct URL
       const redirectUrl = `${window.location.origin}/auth/reset-password`;
-      console.log(`Sending reset password email to ${email} with redirect to ${redirectUrl}`);
+      console.log(`[PasswordReset] Sending reset password email to ${email} with redirect to ${redirectUrl}`);
+      console.log(`[PasswordReset] Supabase URL being used: ${supabase.auth.url}`);
+      
+      // Log additional information that might be useful for debugging
+      console.log(`[PasswordReset] Browser location: ${window.location.href}`);
+      console.log(`[PasswordReset] Browser origin: ${window.location.origin}`);
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
       });
       
       if (error) {
-        console.error('Error sending reset password email:', error);
+        console.error('[PasswordReset] Error sending reset password email:', error);
+        console.error('[PasswordReset] Error details:', {
+          message: error.message,
+          name: error.name,
+          code: (error as any).code,
+          status: (error as any).status,
+          hint: (error as any).hint,
+          details: error
+        });
       } else {
-        console.log('Reset password email sent successfully');
+        console.log('[PasswordReset] Reset password email sent successfully');
+        console.log('[PasswordReset] Response data:', data);
       }
       
       return { data, error };
     } catch (err) {
-      console.error('Unexpected error in resetPassword:', err);
+      console.error('[PasswordReset] Unexpected error in resetPassword:', err);
+      console.error('[PasswordReset] Error stack:', (err as Error).stack);
       return { 
         data: null, 
         error: new Error('Failed to send reset password email. Please try again later.') 

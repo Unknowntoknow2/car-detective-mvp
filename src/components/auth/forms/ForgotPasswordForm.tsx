@@ -56,9 +56,19 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
     setIsLoading(true);
     
     try {
+      console.log(`[PasswordReset] Sending reset email to: ${values.email}`);
+      console.log(`[PasswordReset] Redirect URL: ${window.location.origin}/auth/reset-password`);
+      
       const result = await resetPassword(values.email);
       
       if (result?.error) {
+        console.error('[PasswordReset] Error sending reset email:', {
+          message: result.error.message,
+          details: result.error,
+          code: result.error.code,
+          status: result.error.status
+        });
+        
         setFormError(result.error.message || 'Failed to send password reset email');
         toast.error('Failed to send password reset email', {
           description: result.error.message || 'Please try again or contact support if the issue persists.'
@@ -67,6 +77,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       }
       
       // Show success message
+      console.log('[PasswordReset] Reset email sent successfully');
       setSuccess(true);
       setLastEmail(values.email);
       toast.success('Reset link sent!', {
@@ -77,6 +88,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       // Set cooldown for resend button
       setResendCooldown(60); // 60 seconds cooldown
     } catch (err: any) {
+      console.error('[PasswordReset] Unexpected error sending reset email:', err);
       setFormError('An unexpected error occurred');
       toast.error('An unexpected error occurred', {
         description: 'Our team has been notified. Please try again later.'
@@ -93,19 +105,31 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
     setResendCooldown(60); // Set cooldown to prevent spam
     
     try {
+      console.log(`[PasswordReset] Resending reset email to: ${lastEmail}`);
+      console.log(`[PasswordReset] Redirect URL: ${window.location.origin}/auth/reset-password`);
+      
       const result = await resetPassword(lastEmail);
       
       if (result?.error) {
+        console.error('[PasswordReset] Error resending reset email:', {
+          message: result.error.message,
+          details: result.error,
+          code: result.error.code,
+          status: result.error.status
+        });
+        
         toast.error('Failed to resend email', {
           description: result.error.message || 'Please try again or contact support.'
         });
         return;
       }
       
+      console.log('[PasswordReset] Reset email resent successfully');
       toast.success('Email sent again!', {
         description: 'Please check your inbox and spam folder.'
       });
     } catch (err) {
+      console.error('[PasswordReset] Unexpected error resending reset email:', err);
       toast.error('Failed to resend email', {
         description: 'Please try again later or contact support.'
       });
