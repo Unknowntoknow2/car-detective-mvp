@@ -9,14 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-
-type DealerSignupFormData = {
-  fullName: string;
-  email: string;
-  password: string;
-  dealershipName: string;
-  phone?: string;
-};
+import { DealerSignupFormData } from '../hooks/useDealerSignup';
 
 // Full Name Field
 export const FullNameField = ({ 

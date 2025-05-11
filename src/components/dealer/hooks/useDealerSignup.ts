@@ -7,12 +7,13 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { dealerFormSchema } from '../schemas/dealerSignupSchema';
 
-type DealerSignupFormData = {
+// Define the form data type explicitly to avoid circular references
+export type DealerSignupFormData = {
   fullName: string;
   email: string;
   password: string;
   dealershipName: string;
-  phone?: string;
+  phone?: string; // Make phone optional to match the form fields component
 };
 
 export function useDealerSignup() {
@@ -20,7 +21,7 @@ export function useDealerSignup() {
   const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
 
-  const form = useForm({
+  const form = useForm<DealerSignupFormData>({
     resolver: zodResolver(dealerFormSchema),
     defaultValues: {
       fullName: '',
