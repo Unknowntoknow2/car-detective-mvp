@@ -41,9 +41,9 @@ export function ReplyToLeadModal({ isOpen, onClose, lead }: ReplyToLeadModalProp
     
     submitOffer(
       { 
-        leadId: lead.id, 
-        offerPrice, 
-        notes 
+        reportId: lead.id, 
+        amount: offerPrice, 
+        message: notes 
       },
       {
         onSuccess: () => {

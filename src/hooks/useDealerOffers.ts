@@ -6,44 +6,55 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface DealerOffer {
   id: string;
-  lead_id: string;
+  report_id: string; // Changed from lead_id to match DB schema
   dealer_id: string;
-  offer_price: number;
+  offer_price: number; // Changed from offer_amount to match interface expectations
   notes?: string;
   status: 'sent' | 'accepted' | 'rejected';
   created_at: string;
   updated_at: string;
+  user_id?: string;
 }
 
-export function useDealerOffers(leadId?: string) {
+// Type for submitOffer parameters
+export interface SubmitOfferParams {
+  reportId: string;  // Using reportId for consistency
+  userId?: string;
+  amount: number;
+  message?: string;
+}
+
+export function useDealerOffers(reportId?: string) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const { data: offers, isLoading } = useQuery({
-    queryKey: ['dealer-offers', leadId],
+  const { data, isLoading } = useQuery({
+    queryKey: ['dealer-offers', reportId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('dealer_offers')
         .select('*')
-        .eq('lead_id', leadId)
+        .eq('report_id', reportId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as DealerOffer[];
+      
+      // Transform the data to match our DealerOffer interface
+      return (data as any[]).map(item => ({
+        ...item,
+        offer_price: item.offer_amount // Map offer_amount to offer_price
+      })) as DealerOffer[];
     },
-    enabled: !!leadId
+    enabled: !!reportId
   });
 
   const { mutate: submitOffer, isPending: isSubmitting } = useMutation({
     mutationFn: async ({ 
-      leadId, 
-      offerPrice, 
-      notes 
-    }: { 
-      leadId: string; 
-      offerPrice: number; 
-      notes?: string;
-    }) => {
+      reportId, 
+      amount, 
+      message,
+      userId
+    }: SubmitOfferParams) => {
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
@@ -51,11 +62,12 @@ export function useDealerOffers(leadId?: string) {
       const { data, error } = await supabase
         .from('dealer_offers')
         .insert({
-          lead_id: leadId,
+          report_id: reportId,
           dealer_id: user.id,
-          offer_price: offerPrice,
-          notes: notes || null,
-          status: 'sent'
+          offer_amount: amount, // Using offer_amount for DB
+          message: message || null,
+          status: 'sent',
+          user_id: userId
         })
         .select()
         .single();
@@ -96,7 +108,7 @@ export function useDealerOffers(leadId?: string) {
   });
 
   return {
-    offers,
+    offers: data || [],
     isLoading,
     isSubmitting,
     submitOffer,

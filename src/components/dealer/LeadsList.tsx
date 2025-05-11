@@ -20,11 +20,11 @@ interface LeadsListProps {
 
 export function LeadsList({ leads, isLoading = false }: LeadsListProps) {
   // Get all dealer offers to check which leads already have offers
-  const { data: allOffers, isLoading: offersLoading } = useDealerOffers();
+  const { offers, isLoading: offersLoading } = useDealerOffers();
   
   // Create a set of lead IDs that already have offers
   const leadsWithOffers = new Set(
-    allOffers?.map(offer => offer.lead_id) || []
+    offers?.map(offer => offer.report_id) || []
   );
   
   if (isLoading || offersLoading) {

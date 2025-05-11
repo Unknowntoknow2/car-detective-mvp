@@ -1,3 +1,4 @@
+
 import { TabContentWrapper } from "./TabContentWrapper";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { DealerOfferForm } from "@/components/dealer/DealerOfferForm";
 import { DealerOffersList } from "@/components/dealer/DealerOffersList";
-import { useDealerOffers } from "@/hooks/useDealerOffers";
+import { useDealerOffers, SubmitOfferParams } from "@/hooks/useDealerOffers";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DealerOffersTabProps {
@@ -97,6 +98,7 @@ export function DealerOffersTab({ vehicleData, valuationId = "mock-id" }: Dealer
         return;
       }
       
+      // Use the correct parameter names based on our updated interface
       submitOffer({
         reportId: valuationId,
         userId: valuationData?.user_id,
