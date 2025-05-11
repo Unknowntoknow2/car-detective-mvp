@@ -26,6 +26,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
       
       try {
         setIsCheckingRole(true);
+        console.log('Checking user role for user:', user.id);
         
         const { data, error } = await supabase
           .from('profiles')
@@ -41,6 +42,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
           });
         }
         
+        console.log('User role data:', data);
         setUserRole(data?.user_role || null);
       } catch (err) {
         console.error('Error checking user role:', err);
@@ -48,6 +50,7 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
       } finally {
         setIsCheckingRole(false);
         setRoleCheckCompleted(true);
+        console.log('Role check completed, state updated');
       }
     };
     
@@ -76,22 +79,26 @@ const AuthRoute = ({ children }: AuthRouteProps) => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <p className="ml-2 text-sm text-muted-foreground">Verifying your account...</p>
       </div>
     );
   }
 
   // Redirect to login if not authenticated
   if (!user) {
+    console.log('No authenticated user, redirecting to login');
     // Redirect to login with the location they tried to access
     return <Navigate to="/login-user" state={{ from: location.pathname }} replace />;
   }
 
   // Redirect dealers to dealer dashboard if they try to access regular dashboard
   if (userRole === 'dealer' && location.pathname === '/dashboard') {
+    console.log('Dealer tried to access user dashboard, redirecting to dealer dashboard');
     return <Navigate to="/dealer-dashboard" replace />;
   }
 
   // Allow access to the protected route
+  console.log('Authentication check passed, rendering protected route');
   return <>{children}</>;
 };
 

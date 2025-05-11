@@ -41,7 +41,7 @@ export default function App() {
             <Route path="/login-dealer" element={<LoginDealerPage />} />
             <Route path="/register" element={<RegisterPage />} />
             
-            {/* Fix both dealer signup routes to ensure consistency */}
+            {/* Consolidate dealer signup routes to one clear route */}
             <Route path="/dealer-signup" element={<DealerSignup />} />
             <Route path="/signup-dealer" element={<DealerSignup />} />
             
