@@ -194,9 +194,12 @@ export type Database = {
           created_at: string | null
           dealer_id: string | null
           id: string
+          insight: string | null
+          label: string | null
           message: string | null
           offer_amount: number
           report_id: string
+          score: number | null
           status: string
           updated_at: string | null
           user_id: string | null
@@ -205,9 +208,12 @@ export type Database = {
           created_at?: string | null
           dealer_id?: string | null
           id?: string
+          insight?: string | null
+          label?: string | null
           message?: string | null
           offer_amount: number
           report_id: string
+          score?: number | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
@@ -216,9 +222,12 @@ export type Database = {
           created_at?: string | null
           dealer_id?: string | null
           id?: string
+          insight?: string | null
+          label?: string | null
           message?: string | null
           offer_amount?: number
           report_id?: string
+          score?: number | null
           status?: string
           updated_at?: string | null
           user_id?: string | null

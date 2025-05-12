@@ -15,6 +15,10 @@ export interface DealerOffer {
   created_at: string;
   user_id?: string;
   updated_at?: string;
+  // New AI scoring fields
+  score?: number;
+  label?: string;
+  insight?: string;
 }
 
 export interface SubmitOfferParams {
@@ -173,6 +177,14 @@ export function useDealerOffers(reportId?: string) {
     }
   };
 
+  // Get the best offer based on score
+  const getBestOffer = (): DealerOffer | null => {
+    if (!offers || offers.length === 0) return null;
+    
+    // Sort by score (highest first) and return the top offer
+    return [...offers].sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  };
+
   const isSubmitting = false; // This would be state if we tracked loading state
 
   return {
@@ -182,6 +194,7 @@ export function useDealerOffers(reportId?: string) {
     refetch,
     updateOfferStatus,
     submitOffer,
-    isSubmitting
+    isSubmitting,
+    getBestOffer
   };
 }

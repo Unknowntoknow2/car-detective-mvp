@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Phone, ThumbsUp } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Phone, ThumbsUp, Award, TrendingUp, TrendingDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useValuationResult } from '@/hooks/useValuationResult';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const OffersPage = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ const OffersPage = () => {
   const [offers, setOffers] = useState<any[]>([]);
   const [isLoadingOffers, setIsLoadingOffers] = useState(false);
   const [errorOffers, setErrorOffers] = useState<Error | null>(null);
+  const [bestOffer, setBestOffer] = useState<any | null>(null);
 
   // Fetch valuation data based on ID
   const { 
@@ -67,7 +69,14 @@ const OffersPage = () => {
           
         if (error) throw error;
         
+        // Set offers
         setOffers(data || []);
+        
+        // Find the best offer (highest score)
+        if (data && data.length > 0) {
+          const sortedOffers = [...data].sort((a, b) => (b.score || 0) - (a.score || 0));
+          setBestOffer(sortedOffers[0]);
+        }
       } catch (err) {
         console.error('Error fetching offers:', err);
         setErrorOffers(err instanceof Error ? err : new Error('Failed to fetch offers'));
@@ -83,17 +92,20 @@ const OffersPage = () => {
   useEffect(() => {
     if (!valuationData || offers.length > 0 || isLoadingOffers) return;
     
-    // Create mock offers for demo purposes
+    // Create mock offers for demo purposes with AI scoring data
     const estimatedValue = valuationData.estimatedValue || 15000;
     const mockOffers = [
       {
         id: '1',
         dealer_id: 'dealer1',
         message: 'Great vehicle! We are interested in making a competitive offer.',
-        offer_amount: Math.round(estimatedValue * 0.95),
+        offer_amount: Math.round(estimatedValue * 1.05),
         status: 'pending',
         dealer_name: 'City Auto Group',
-        dealer_phone: '(555) 123-4567'
+        dealer_phone: '(555) 123-4567',
+        score: 90,
+        label: 'Good Deal',
+        insight: 'This offer is 5% above estimated market value.'
       },
       {
         id: '2',
@@ -102,21 +114,91 @@ const OffersPage = () => {
         offer_amount: Math.round(estimatedValue * 1.02),
         status: 'pending',
         dealer_name: 'Premium Motors',
-        dealer_phone: '(555) 987-6543'
+        dealer_phone: '(555) 987-6543',
+        score: 75,
+        label: 'Fair Offer',
+        insight: 'This offer is 2% above estimated market value.'
       },
       {
         id: '3',
         dealer_id: 'dealer3',
         message: 'Interested in your vehicle. Please contact us to discuss.',
-        offer_amount: Math.round(estimatedValue * 0.98),
+        offer_amount: Math.round(estimatedValue * 0.95),
         status: 'pending',
         dealer_name: 'Valley Car Center',
-        dealer_phone: '(555) 456-7890'
+        dealer_phone: '(555) 456-7890',
+        score: 45,
+        label: 'Below Market',
+        insight: 'This offer is 5% below estimated market value.'
       }
     ];
     
     setOffers(mockOffers);
+    setBestOffer(mockOffers[0]); // Set the best offer
   }, [valuationData, offers, isLoadingOffers]);
+
+  const getOfferBadge = (offer: any) => {
+    if (!offer.label) return null;
+    
+    switch (offer.label) {
+      case 'Good Deal':
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200 flex items-center gap-1">
+                  {offer.id === bestOffer?.id && <Award className="h-3 w-3" />}
+                  {offer.label}
+                  <TrendingUp className="h-3 w-3 ml-1" />
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{offer.insight}</p>
+                {offer.id === bestOffer?.id && <p className="font-semibold mt-1">This is the best offer available!</p>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      case 'Fair Offer':
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
+                  {offer.label}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{offer.insight}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      case 'Below Market':
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200 flex items-center gap-1">
+                  {offer.label}
+                  <TrendingDown className="h-3 w-3 ml-1" />
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{offer.insight}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      default:
+        return (
+          <Badge variant={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'secondary' : 'default'} 
+                className={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''}>
+            {offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'Above Market' : 'Market Offer'}
+          </Badge>
+        );
+    }
+  };
 
   if (isLoadingValuation || isLoadingOffers) {
     return (
@@ -153,6 +235,11 @@ const OffersPage = () => {
       </div>
     );
   }
+
+  // Helper function to sort offers by score (best first)
+  const sortOffersByScore = (offerList: any[]) => {
+    return [...offerList].sort((a, b) => (b.score || 0) - (a.score || 0));
+  };
 
   return (
     <div className="container mx-auto py-12">
@@ -196,8 +283,17 @@ const OffersPage = () => {
         </Card>
       ) : (
         <div className="space-y-6">
-          {offers.map((offer) => (
-            <Card key={offer.id} className={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'border-green-200 bg-green-50' : ''}>
+          {sortOffersByScore(offers).map((offer) => (
+            <Card 
+              key={offer.id} 
+              className={
+                offer.id === bestOffer?.id && offer.score && offer.score > 80
+                  ? "border-green-300 bg-green-50"
+                  : offer.label === "Good Deal"
+                  ? "border-green-200 bg-green-50/50"
+                  : ""
+              }
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
@@ -206,10 +302,7 @@ const OffersPage = () => {
                       Offer ID: {offer.id.slice(0, 8)}
                     </CardDescription>
                   </div>
-                  <Badge variant={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'secondary' : 'default'} 
-                         className={offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''}>
-                    {offer.offer_amount > (valuationData?.estimatedValue || 0) ? 'Above Market' : 'Market Offer'}
-                  </Badge>
+                  {getOfferBadge(offer)}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -225,6 +318,12 @@ const OffersPage = () => {
                 <div className="bg-slate-100 p-4 rounded-md">
                   <p className="italic text-slate-600">"{offer.message}"</p>
                 </div>
+                {offer.insight && (
+                  <div className="flex items-start text-sm text-slate-600 bg-white p-3 rounded border">
+                    <AlertCircle className="h-4 w-4 text-slate-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <p>{offer.insight}</p>
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
                 <div>
@@ -239,7 +338,7 @@ const OffersPage = () => {
                     <Phone className="mr-2 h-4 w-4" />
                     Call
                   </Button>
-                  <Button className="flex-1 sm:flex-auto">
+                  <Button className={`flex-1 sm:flex-auto ${offer.id === bestOffer?.id ? "bg-green-600 hover:bg-green-700" : ""}`}>
                     <ThumbsUp className="mr-2 h-4 w-4" />
                     Accept
                   </Button>
