@@ -8,7 +8,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function VinDecoderForm() {
+interface VinDecoderFormProps {
+  onSubmit?: (vin: string) => void;
+}
+
+export function VinDecoderForm({ onSubmit }: VinDecoderFormProps) {
   const [vin, setVin] = useState('');
   const { lookupVin, isLoading, error } = useVinDecoder();
   const navigate = useNavigate();
@@ -18,6 +22,12 @@ export function VinDecoderForm() {
     
     if (!vin || vin.length !== 17) {
       toast.error('Please enter a valid 17-character VIN');
+      return;
+    }
+
+    // If onSubmit prop is provided, use it
+    if (onSubmit) {
+      onSubmit(vin);
       return;
     }
 

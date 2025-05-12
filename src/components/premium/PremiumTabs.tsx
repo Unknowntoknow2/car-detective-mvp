@@ -47,8 +47,19 @@ export function PremiumTabs({
     if (onSubmit) {
       onSubmit(type, value, state);
     } else {
-      // Default handling if no onSubmit provided - Fix error #3 by ensuring only relevant args are passed
-      processPremiumValuation(type, value, state)
+      // Default handling if no onSubmit provided - We need to create a valuationData object
+      const valuationData = {
+        type,
+        value,
+        state,
+        // Add any other required fields for the valuation context
+        make: type === 'manual' ? JSON.parse(value).make : undefined,
+        model: type === 'manual' ? JSON.parse(value).model : undefined,
+        year: type === 'manual' ? JSON.parse(value).year : undefined,
+        zipCode: type === 'manual' ? JSON.parse(value).zipCode : undefined,
+      };
+      
+      processPremiumValuation(valuationData)
         .then(result => {
           console.log(`PREMIUM ${type.toUpperCase()}: Result:`, result);
           if (result?.valuationId) {

@@ -44,8 +44,19 @@ export default function Index() {
     console.log(`HOME FREE ${type.toUpperCase()}: Form submitted with value:`, value);
     if (state) console.log(`HOME FREE ${type.toUpperCase()}: State:`, state);
     
-    // Process valuation through context - Fix error #4: Match argument count
-    processFreeValuation(type, value, state)
+    // Process valuation through context - Create valuationData object
+    const valuationData = {
+      type,
+      value,
+      state,
+      // Add any other required fields for the valuation context
+      make: type === 'manual' ? JSON.parse(value).make : undefined,
+      model: type === 'manual' ? JSON.parse(value).model : undefined,
+      year: type === 'manual' ? JSON.parse(value).year : undefined,
+      zipCode: type === 'manual' ? JSON.parse(value).zipCode : undefined,
+    };
+    
+    processFreeValuation(valuationData)
       .then(result => {
         console.log(`HOME FREE ${type.toUpperCase()}: Valuation result:`, result);
         if (result?.valuationId) {
@@ -63,8 +74,21 @@ export default function Index() {
     if (state) console.log(`HOME PREMIUM ${type.toUpperCase()}: State:`, state);
     if (data) console.log(`HOME PREMIUM ${type.toUpperCase()}: Data:`, data);
     
-    // Process premium valuation - Fix error #5: Match argument count
-    processPremiumValuation(type, value, state)
+    // Process premium valuation - Create valuationData object
+    const valuationData = {
+      type,
+      value,
+      state,
+      // Add any other required fields for the valuation context
+      make: type === 'manual' ? JSON.parse(value).make : undefined,
+      model: type === 'manual' ? JSON.parse(value).model : undefined,
+      year: type === 'manual' ? JSON.parse(value).year : undefined,
+      zipCode: type === 'manual' ? JSON.parse(value).zipCode : undefined,
+      // Include any additional data
+      ...data
+    };
+    
+    processPremiumValuation(valuationData)
       .then(result => {
         console.log(`HOME PREMIUM ${type.toUpperCase()}: Premium valuation result:`, result);
       })

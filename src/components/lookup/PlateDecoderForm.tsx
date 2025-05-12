@@ -12,9 +12,10 @@ import { validateStatePlate } from '@/utils/validation/plate-validation-helpers'
 
 interface PlateDecoderFormProps {
   onManualEntryClick?: () => void;
+  onSubmit?: (plate: string, state: string) => void;
 }
 
-export default function PlateDecoderForm({ onManualEntryClick }: PlateDecoderFormProps) {
+export default function PlateDecoderForm({ onManualEntryClick, onSubmit }: PlateDecoderFormProps) {
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
   const [validationErrors, setValidationErrors] = useState<{ plate?: string, state?: string }>({});
@@ -50,6 +51,12 @@ export default function PlateDecoderForm({ onManualEntryClick }: PlateDecoderFor
     e.preventDefault();
     
     if (!validatePlate()) {
+      return;
+    }
+
+    // If onSubmit prop is provided, use it
+    if (onSubmit) {
+      onSubmit(plate, state);
       return;
     }
 
@@ -133,8 +140,15 @@ export default function PlateDecoderForm({ onManualEntryClick }: PlateDecoderFor
           <Input
             id="plate"
             value={plate}
-            onChange={handlePlateChange}
-            onBlur={handlePlateBlur}
+            onChange={(e) => {
+              setPlate(e.target.value.toUpperCase());
+              setTouched({ ...touched, plate: true });
+              if (touched.plate) validatePlate();
+            }}
+            onBlur={() => {
+              setTouched({ ...touched, plate: true });
+              validatePlate();
+            }}
             placeholder="License Plate"
             className={`w-full ${validationErrors.plate && touched.plate ? 'border-red-500' : ''}`}
           />
@@ -152,8 +166,15 @@ export default function PlateDecoderForm({ onManualEntryClick }: PlateDecoderFor
           <Input
             id="state"
             value={state}
-            onChange={handleStateChange}
-            onBlur={handleStateBlur}
+            onChange={(e) => {
+              setState(e.target.value.toUpperCase());
+              setTouched({ ...touched, state: true });
+              if (touched.state) validatePlate();
+            }}
+            onBlur={() => {
+              setTouched({ ...touched, state: true });
+              validatePlate();
+            }}
             placeholder="State (e.g., CA)"
             maxLength={2}
             className={`w-full ${validationErrors.state && touched.state ? 'border-red-500' : ''}`}
