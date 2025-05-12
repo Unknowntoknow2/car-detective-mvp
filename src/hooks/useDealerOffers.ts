@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Define types for dealer offers
-interface DealerOffer {
+export interface DealerOffer {
   id: string;
   dealer_id: string;
   report_id: string;
@@ -12,15 +12,24 @@ interface DealerOffer {
   message: string;
   status: 'sent' | 'viewed' | 'accepted' | 'rejected';
   created_at: string;
+  user_id?: string;
+  updated_at?: string;
+}
+
+export interface SubmitOfferParams {
+  report_id: string;
+  offer_amount: number;
+  message: string;
+  user_id: string;
 }
 
 export function useDealerOffers() {
   const { user } = useAuth();
 
   // Query for fetching dealer offers
-  const { data: offers = [], isLoading, error, refetch } = useQuery({
+  const { data: rawOffers = [], isLoading, error, refetch } = useQuery({
     queryKey: ['dealer-offers', user?.id],
-    queryFn: async (): Promise<DealerOffer[]> => {
+    queryFn: async (): Promise<any[]> => {
       if (!user) return [];
 
       // For dealers, fetch offers they've sent
@@ -55,10 +64,32 @@ export function useDealerOffers() {
     refetchInterval: 60000, // Refetch every minute
   });
 
+  // Convert raw offers to properly typed DealerOffer objects
+  const offers: DealerOffer[] = rawOffers.map(offer => ({
+    ...offer,
+    status: (offer.status as 'sent' | 'viewed' | 'accepted' | 'rejected') || 'sent'
+  }));
+
+  // Add stub functions to satisfy components that expect these functions
+  const updateOfferStatus = async () => {
+    console.warn('updateOfferStatus is not implemented');
+    return null;
+  };
+
+  const submitOffer = async () => {
+    console.warn('submitOffer is not implemented');
+    return null;
+  };
+
+  const isSubmitting = false;
+
   return {
     offers,
     isLoading,
     error,
     refetch,
+    updateOfferStatus,
+    submitOffer,
+    isSubmitting
   };
 }

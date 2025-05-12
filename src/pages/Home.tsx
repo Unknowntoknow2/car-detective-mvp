@@ -14,11 +14,36 @@ import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { LookupTabs } from "@/components/home/LookupTabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useValuation } from "@/contexts/ValuationContext";
+import { toast } from "sonner";
 
 export default function Home() {
   const valuationRef = useRef<HTMLDivElement>(null);
   const [valuationType, setValuationType] = useState<'free' | 'premium'>('free');
-  const { processFreeValuation, processPremiumValuation } = useValuation();
+  
+  // Create mockValuationFunctions in case ValuationProvider is not available
+  const defaultValuationFunctions = {
+    processFreeValuation: async (data: any) => {
+      console.log("Mock process free valuation", data);
+      toast.error("Valuation service unavailable");
+      return { error: "Valuation service unavailable" };
+    },
+    processPremiumValuation: async (data: any) => {
+      console.log("Mock process premium valuation", data);
+      toast.error("Premium valuation service unavailable");
+      return { error: "Premium valuation service unavailable" };
+    }
+  };
+  
+  // Try to use the real valuation context, but fall back to mock if it's not available
+  let valuationContext;
+  try {
+    valuationContext = useValuation();
+  } catch (error) {
+    console.error("ValuationContext not available:", error);
+    valuationContext = defaultValuationFunctions;
+  }
+  
+  const { processFreeValuation, processPremiumValuation } = valuationContext;
   
   const scrollToValuation = () => {
     valuationRef.current?.scrollIntoView({ behavior: 'smooth' });

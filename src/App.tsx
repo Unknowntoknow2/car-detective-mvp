@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
+import { ValuationProvider } from './contexts/ValuationContext';
 import { DealerOffersTracker } from './components/dealer/DealerOffersTracker';
 import MainLayout from './layouts/MainLayout';
 import ValuationDetailPage from './pages/ValuationDetailPage';
@@ -27,18 +28,20 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
-            <Route path="/valuation/:valuationId" element={<MainLayout><ValuationDetailPage /></MainLayout>} />
-            <Route path="/auth/*" element={<AuthLayout />} />
-            <Route path="/dashboard/*" element={<DashboardLayout />} />
-            <Route path="/dealer-dashboard" element={<MainLayout><DealerDashboard /></MainLayout>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          
-          {/* Global notifications components */}
-          <Toaster richColors position="top-right" />
-          <DealerOffersTracker />
+          <ValuationProvider>
+            <Routes>
+              <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
+              <Route path="/valuation/:valuationId" element={<MainLayout><ValuationDetailPage /></MainLayout>} />
+              <Route path="/auth/*" element={<AuthLayout />} />
+              <Route path="/dashboard/*" element={<DashboardLayout />} />
+              <Route path="/dealer-dashboard" element={<MainLayout><DealerDashboard /></MainLayout>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            
+            {/* Global notifications components */}
+            <Toaster richColors position="top-right" />
+            <DealerOffersTracker />
+          </ValuationProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
