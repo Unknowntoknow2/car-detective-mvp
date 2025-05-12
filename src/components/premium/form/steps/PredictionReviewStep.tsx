@@ -55,15 +55,22 @@ export function PredictionReviewStep({
 
   const handleGetValuation = async () => {
     try {
-      const result = await fetchValuationPrediction({
-        make: formData.make,
-        model: formData.model,
-        year: formData.year,
-        mileage: formData.mileage,
-        condition: formData.condition,
-        zipCode: formData.zipCode,
-        features: formData.features
-      });
+      // Create a complete FormData object by spreading the existing formData
+      // and only overriding the specific properties we need to update
+      const valuationFormData: FormData = {
+        ...formData,
+        // Ensure required properties are set with sensible defaults if not already present
+        identifierType: formData.identifierType || 'manual',
+        identifier: formData.identifier || '',
+        vin: formData.vin || '',
+        hasAccident: formData.hasAccident || 'no',
+        accidentDescription: formData.accidentDescription || '',
+        fuelType: formData.fuelType || '',
+        transmission: formData.transmission || '',
+        drivingProfile: formData.drivingProfile || 'average'
+      };
+      
+      const result = await fetchValuationPrediction(valuationFormData);
       
       if (result) {
         // Update the form data with the valuation results
