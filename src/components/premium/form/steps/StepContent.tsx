@@ -9,7 +9,7 @@ import { ConditionStep } from './ConditionStep';
 import { PhotoUploadStep } from './PhotoUploadStep';
 import { DrivingBehaviorStep } from './DrivingBehaviorStep';
 import { ReviewSubmitStep } from './ReviewSubmitStep';
-import { ValuationResult } from '../../ValuationResult';
+import { ValuationResult } from './ValuationResult';
 
 interface StepContentProps {
   currentStep: number;
