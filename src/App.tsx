@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy, ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,10 +17,12 @@ import SharedValuationPage from './pages/share/[token]';
 import { EnhancedErrorBoundary } from './components/common/EnhancedErrorBoundary';
 import NotFound from './pages/NotFound';
 import MyValuationsPage from './pages/MyValuationsPage';
+import PremiumValuationPage from './pages/PremiumValuationPage';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
 const LazyPremiumPage = lazy(() => import('./pages/PremiumPage'));
+const LazyPremiumValuationPage = lazy(() => import('./pages/PremiumValuationPage'));
 const LazyPaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
 const LazyPaymentCancelledPage = lazy(() => import('./pages/PaymentCancelledPage'));
 
@@ -52,6 +55,7 @@ export const appRoutes = [
   { path: '/dealer-dashboard', element: <DealerDashboard /> },
   { path: '/dealer-insights', element: <LazyDealerInsightsPage /> },
   { path: '/premium', element: <LazyPremiumPage /> },
+  { path: '/premium-valuation', element: <LazyPremiumValuationPage /> },
   { path: '/view-offer/:token', element: <ViewOfferPage /> },
   { path: '/share/:token', element: <SharedValuationPage /> },
   { path: '/payment/success', element: <LazyPaymentSuccessPage /> },
@@ -108,6 +112,14 @@ function App() {
                     {wrapWithErrorBoundary(
                       wrapWithSuspense(<LazyPremiumPage />),
                       "premium-page"
+                    )}
+                  </MainLayout>
+                } />
+                <Route path="/premium-valuation" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(
+                      wrapWithSuspense(<LazyPremiumValuationPage />),
+                      "premium-valuation"
                     )}
                   </MainLayout>
                 } />

@@ -6,6 +6,7 @@
   "/dealer-dashboard",
   "/dealer-insights",
   "/premium",
+  "/premium-valuation",
   "/view-offer/:token",
   "/share/:token",
   "/payment/success",

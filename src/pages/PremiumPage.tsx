@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -31,7 +32,22 @@ export default function PremiumPage() {
     if (vehicle) {
       console.log("PREMIUM PAGE: Vehicle data updated:", vehicle);
     }
-  }, [vehicle]);
+
+    // Check if we already have vehicle data in localStorage from a previous lookup
+    const storedVehicle = localStorage.getItem('premium_vehicle');
+    if (storedVehicle && !vehicle) {
+      try {
+        const parsedVehicle = JSON.parse(storedVehicle);
+        // If we have stored vehicle data and we're on the initial premium page,
+        // we should redirect to the premium-valuation page
+        if (parsedVehicle && window.location.pathname === '/premium') {
+          navigate('/premium-valuation');
+        }
+      } catch (error) {
+        console.error('Error parsing stored vehicle data:', error);
+      }
+    }
+  }, [vehicle, navigate]);
 
   // Load existing valuation if ID is provided
   useEffect(() => {
@@ -128,6 +144,7 @@ export default function PremiumPage() {
   const handleProceedToValuation = () => {
     if (!vehicle && !existingValuation) {
       console.warn('PREMIUM PAGE: Cannot proceed to valuation - no vehicle data');
+      toast.error('No vehicle information available. Please look up a vehicle first.');
       return;
     }
     

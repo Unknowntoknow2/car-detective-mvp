@@ -24,7 +24,7 @@ export default function PremiumValuationPage() {
         console.log("Loaded vehicle data from localStorage:", parsedData);
       } else {
         console.log("No vehicle data found in localStorage");
-        toast.error("No vehicle information found. Please start with a VIN lookup.");
+        toast.error("No vehicle information found. Please start with a vehicle lookup.");
         navigate('/premium', { replace: true });
       }
     } catch (error) {
@@ -44,7 +44,7 @@ export default function PremiumValuationPage() {
           onClick={() => navigate('/premium')}
           className="mb-6"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Lookup
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Vehicle Selection
         </Button>
 
         <div className="max-w-5xl mx-auto">
@@ -97,11 +97,11 @@ export default function PremiumValuationPage() {
             <Card>
               <CardContent className="p-6">
                 <p className="text-center text-muted-foreground">
-                  No vehicle information found. Please go back and start with a VIN lookup.
+                  No vehicle information found. Please go back and start with a vehicle lookup.
                 </p>
                 <div className="flex justify-center mt-4">
                   <Button onClick={() => navigate('/premium')}>
-                    Go to VIN Lookup
+                    Go to Vehicle Lookup
                   </Button>
                 </div>
               </CardContent>
