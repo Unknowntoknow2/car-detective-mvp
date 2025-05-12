@@ -30,6 +30,8 @@ export const VinLookup = () => {
     <div className="w-full">
       {!result ? (
         <VINLookupForm 
+          value={vinNumber}
+          onChange={handleVinChange}
           onSubmit={handleLookup}
           isLoading={isLoading}
           error={error}

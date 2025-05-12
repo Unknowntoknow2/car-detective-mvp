@@ -7,17 +7,21 @@ import { isValidVIN } from '@/utils/validation/vin-validation-helpers';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 
 interface VINLookupFormProps {
+  value?: string;
+  onChange?: (vin: string) => void;
   onSubmit: (vin: string) => void;
   isLoading?: boolean;
   error?: string | null;
 }
 
 export const VINLookupForm: React.FC<VINLookupFormProps> = ({ 
+  value = "",
+  onChange,
   onSubmit, 
   isLoading = false,
   error = null
 }) => {
-  const [vin, setVin] = useState('');
+  const [vin, setVin] = useState(value);
   const [touched, setTouched] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -46,6 +50,9 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVin = e.target.value.toUpperCase();
     setVin(newVin);
+    if (onChange) {
+      onChange(newVin);
+    }
     setTouched(true);
     if (touched) {
       validateVin(newVin);
