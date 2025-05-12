@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
@@ -29,6 +28,11 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   isManualValuation = false,
   manualValuationData
 }) => {
+  useEffect(() => {
+    console.log('PREMIUM RESULT: ValuationResult component mounted');
+    console.log('PREMIUM RESULT: Props:', { valuationId, isManualValuation, hasManualData: !!manualValuationData });
+  }, [valuationId, isManualValuation, manualValuationData]);
+
   const [isEmailSending, setIsEmailSending] = useState(false);
   
   // Fetch valuation data
@@ -37,6 +41,16 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     isLoading, 
     error 
   } = useValuationResult(valuationId || '');
+
+  useEffect(() => {
+    if (isLoading) {
+      console.log('PREMIUM RESULT: Loading valuation data...');
+    } else if (error) {
+      console.error('PREMIUM RESULT: Error loading valuation data:', error);
+    } else if (valuation) {
+      console.log('PREMIUM RESULT: Valuation data loaded:', valuation);
+    }
+  }, [isLoading, valuation, error]);
   
   // Check premium status
   const { 
@@ -44,6 +58,10 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     isLoading: isPremiumLoading, 
     createCheckoutSession
   } = usePremiumStatus(valuationId);
+
+  useEffect(() => {
+    console.log('PREMIUM RESULT: Premium status:', { isPremium, isLoading: isPremiumLoading });
+  }, [isPremium, isPremiumLoading]);
   
   // Combine manual data with fetched data
   const valuationData = isManualValuation && manualValuationData
@@ -59,6 +77,14 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     confidenceLevel,
     confidenceColor
   } = useValuationLogic(valuationData);
+
+  useEffect(() => {
+    if (valuationData) {
+      console.log('PREMIUM RESULT: Derived valuation logic:', { 
+        priceRange, marketTrend, recommendation, confidenceLevel 
+      });
+    }
+  }, [valuationData, priceRange, marketTrend, recommendation, confidenceLevel]);
   
   // PDF generation logic
   const { 
@@ -71,23 +97,30 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
 
   const handleUpgrade = async () => {
     if (!valuationId) {
+      console.error('PREMIUM RESULT: Cannot upgrade - missing valuationId');
       toast.error("Unable to process premium upgrade without a valuation ID");
       return;
     }
     
     try {
+      console.log('PREMIUM RESULT: Initiating premium upgrade for valuationId:', valuationId);
       const result = await createCheckoutSession(valuationId);
+      console.log('PREMIUM RESULT: Checkout session result:', result);
+      
       if (result.success && result.url) {
+        console.log('PREMIUM RESULT: Redirecting to checkout URL:', result.url);
         window.location.href = result.url;
       } else if (result.alreadyUnlocked) {
+        console.log('PREMIUM RESULT: Premium features already unlocked');
         toast.success("Premium features are already unlocked!");
         // Refresh the page to show premium content
         window.location.reload();
       } else {
+        console.error('PREMIUM RESULT: Failed to create checkout session:', result.error);
         toast.error(result.error || "Failed to create checkout session");
       }
     } catch (error) {
-      console.error("Error creating checkout:", error);
+      console.error("PREMIUM RESULT: Error creating checkout:", error);
       toast.error("An error occurred while processing your request");
     }
   };

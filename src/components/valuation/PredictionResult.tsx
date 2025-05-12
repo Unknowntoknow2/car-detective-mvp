@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,14 @@ export function PredictionResult({
   manualValuation,
   photoCondition
 }: PredictionResultProps) {
+  useEffect(() => {
+    console.log('PREDICTION: Component mounted with props:', { 
+      valuationId, 
+      hasManualValuation: !!manualValuation,
+      hasPhotoCondition: !!photoCondition 
+    });
+  }, [valuationId, manualValuation, photoCondition]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any | null>(null);
@@ -27,6 +36,7 @@ export function PredictionResult({
   useEffect(() => {
     // If we have manual valuation data, use it directly
     if (manualValuation) {
+      console.log('PREDICTION: Using manual valuation data:', manualValuation);
       setData({
         make: manualValuation.make,
         model: manualValuation.model,
@@ -45,20 +55,25 @@ export function PredictionResult({
     
     // Otherwise, fetch valuation data from the API
     async function fetchValuationData() {
-      if (!valuationId) return;
+      if (!valuationId) {
+        console.warn('PREDICTION: No valuationId provided, cannot fetch data');
+        return;
+      }
       
       try {
+        console.log('PREDICTION: Fetching valuation data for ID:', valuationId);
         setIsLoading(true);
         setError(null);
         
         const result = await getValuationById(valuationId);
+        console.log('PREDICTION: Valuation data received:', result);
         
         setData({
           ...result,
           aiCondition: photoCondition
         });
       } catch (err) {
-        console.error('Error fetching valuation data:', err);
+        console.error('PREDICTION: Error fetching valuation data:', err);
         setError('Failed to load valuation data. Please try again.');
       } finally {
         setIsLoading(false);
@@ -67,22 +82,33 @@ export function PredictionResult({
     
     fetchValuationData();
   }, [valuationId, manualValuation, photoCondition]);
+
+  useEffect(() => {
+    if (data) {
+      console.log('PREDICTION: Data state updated:', data);
+    }
+  }, [data]);
   
   const handleRefresh = async () => {
-    if (!valuationId) return;
+    if (!valuationId) {
+      console.warn('PREDICTION: Cannot refresh - missing valuationId');
+      return;
+    }
     
     try {
+      console.log('PREDICTION: Refreshing valuation data for ID:', valuationId);
       setIsLoading(true);
       setError(null);
       
       const result = await getValuationById(valuationId);
+      console.log('PREDICTION: Refreshed data received:', result);
       
       setData({
         ...result,
         aiCondition: photoCondition
       });
     } catch (err) {
-      console.error('Error refreshing valuation data:', err);
+      console.error('PREDICTION: Error refreshing valuation data:', err);
       setError('Failed to refresh valuation data. Please try again.');
     } finally {
       setIsLoading(false);

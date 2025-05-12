@@ -16,17 +16,24 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   const [hydratedId, setHydratedId] = useState<string | undefined>(valuationId);
 
   useEffect(() => {
+    console.log('ValuationResult component loaded');
+    console.log('Initial valuationId from props:', valuationId);
+    console.log('Initial manualValuation:', manualValuation);
+    
     // If no valuationId is provided as prop, try to get it from localStorage
     if (!valuationId && !manualValuation) {
       const localId = localStorage.getItem('latest_valuation_id');
       if (localId) {
         console.log("Retrieved valuationId from localStorage:", localId);
         setHydratedId(localId);
+      } else {
+        console.warn("No valuationId found in localStorage");
       }
     }
   }, [valuationId, manualValuation]);
 
   if (!hydratedId && !manualValuation) {
+    console.warn("No valuationId or manualValuation available for rendering results");
     return (
       <div className="p-6 text-center">
         <p className="text-muted-foreground mb-2">
@@ -38,6 +45,11 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
       </div>
     );
   }
+
+  console.log("Rendering UnifiedValuationResult with:", {
+    valuationId: hydratedId,
+    hasManualValuation: !!manualValuation
+  });
 
   return (
     <UnifiedValuationResult

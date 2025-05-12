@@ -21,8 +21,10 @@ export default function PremiumPage() {
   
   // Debugging logs to track vehicle data
   useEffect(() => {
+    console.log('PREMIUM PAGE: Component mounted');
+    
     if (vehicle) {
-      console.log("Vehicle data updated:", vehicle);
+      console.log("PREMIUM PAGE: Vehicle data updated:", vehicle);
     }
   }, [vehicle]);
   
@@ -35,6 +37,7 @@ export default function PremiumPage() {
   };
 
   const handleLookupChange = (value: 'vin' | 'plate' | 'manual') => {
+    console.log(`PREMIUM PAGE: Lookup method changed to ${value}`);
     setLookup(value);
     // Reset vehicle data when changing lookup method
     reset();
@@ -42,24 +45,36 @@ export default function PremiumPage() {
 
   const handleLookupSubmit = async (type: 'vin' | 'plate' | 'manual', identifier: string, state?: string, data?: any) => {
     try {
+      console.log(`PREMIUM ${type.toUpperCase()}: Submitting form with identifier:`, identifier);
+      if (state) console.log(`PREMIUM ${type.toUpperCase()}: State:`, state);
+      if (data) console.log(`PREMIUM ${type.toUpperCase()}: Form data:`, data);
+      
       // Call lookupVehicle and handle the result
       const result = await lookupVehicle(type, identifier, state, data);
       
       if (result) {
-        console.log("Lookup successful:", result);
+        console.log(`PREMIUM ${type.toUpperCase()}: Lookup successful:`, result);
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
+      } else {
+        console.warn(`PREMIUM ${type.toUpperCase()}: No result returned from lookup`);
       }
     } catch (error) {
-      console.error("Lookup error:", error);
+      console.error(`PREMIUM ${type.toUpperCase()}: Lookup error:`, error);
     }
   };
 
   const handleManualSubmit = (data: ManualEntryFormData) => {
+    console.log('PREMIUM MANUAL: Submitting manual entry form with data:', data);
     lookupVehicle('manual', 'manual-entry', undefined, data);
   };
 
   const handleProceedToValuation = () => {
-    if (!vehicle) return;
+    if (!vehicle) {
+      console.warn('PREMIUM PAGE: Cannot proceed to valuation - no vehicle data');
+      return;
+    }
+    
+    console.log('PREMIUM PAGE: Proceeding to valuation with vehicle:', vehicle);
     
     // Save vehicle details to localStorage for the premium valuation process
     localStorage.setItem("premium_vehicle", JSON.stringify({
@@ -76,6 +91,7 @@ export default function PremiumPage() {
     }));
     
     toast.success("Vehicle information saved. Continuing to premium valuation.");
+    console.log('PREMIUM PAGE: Navigating to /premium-valuation');
     navigate("/premium-valuation");
   };
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
@@ -25,30 +25,43 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
   const [touched, setTouched] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  useEffect(() => {
+    console.log('VIN FORM: Component mounted with initial value:', value);
+  }, [value]);
+
   const validateVin = (value: string) => {
+    console.log('VIN FORM: Validating VIN:', value);
     if (!value) {
+      console.log('VIN FORM: Validation failed - VIN is empty');
       setValidationError('VIN is required');
       return false;
     }
     
     if (!isValidVIN(value)) {
+      console.log('VIN FORM: Validation failed - Invalid VIN format');
       setValidationError('VIN must be 17 characters, alphanumeric, and cannot contain I, O, or Q');
       return false;
     }
     
+    console.log('VIN FORM: Validation passed');
     setValidationError(null);
     return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('VIN FORM: Form submitted with VIN:', vin);
     if (validateVin(vin)) {
+      console.log('VIN FORM: VIN is valid, calling onSubmit');
       onSubmit(vin);
+    } else {
+      console.log('VIN FORM: VIN is invalid, submission prevented');
     }
   };
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVin = e.target.value.toUpperCase();
+    console.log('VIN FORM: VIN input changed:', newVin);
     setVin(newVin);
     if (onChange) {
       onChange(newVin);
@@ -60,6 +73,12 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
   };
 
   const isValid = vin.length === 17 && !validationError;
+
+  useEffect(() => {
+    if (error) {
+      console.error('VIN FORM: External error received:', error);
+    }
+  }, [error]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

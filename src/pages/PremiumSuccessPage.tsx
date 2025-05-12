@@ -24,14 +24,23 @@ export default function PremiumSuccessPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
+  useEffect(() => {
+    console.log('PREMIUM SUCCESS: Page loaded');
+    const sessionId = searchParams.get('session_id');
+    const valId = searchParams.get('valuation_id');
+    console.log('PREMIUM SUCCESS: URL parameters:', { sessionId, valuationId: valId });
+  }, [searchParams]);
+  
   const verifyPayment = async () => {
     try {
+      console.log('PREMIUM SUCCESS: Verifying payment...');
       setIsVerifying(true);
       // Get session ID from URL
       const sessionId = searchParams.get('session_id');
       const valId = searchParams.get('valuation_id');
       
       if (!sessionId) {
+        console.error('PREMIUM SUCCESS: Missing session_id parameter');
         setError("Missing payment session information");
         toast.error("Missing payment information");
         setIsVerifying(false);
@@ -39,6 +48,7 @@ export default function PremiumSuccessPage() {
       }
       
       // First, check if the order exists and is confirmed paid in the database
+      console.log('PREMIUM SUCCESS: Checking order status in database');
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('status, valuation_id, updated_at')
@@ -46,7 +56,7 @@ export default function PremiumSuccessPage() {
         .maybeSingle();
       
       if (orderError) {
-        console.error("Error checking order status:", orderError);
+        console.error("PREMIUM SUCCESS: Error checking order status:", orderError);
         setError(`Error verifying payment: ${orderError.message}`);
         setIsVerifying(false);
         return;
@@ -54,11 +64,13 @@ export default function PremiumSuccessPage() {
       
       // If order exists, use that data
       if (orderData) {
+        console.log('PREMIUM SUCCESS: Order found in database:', orderData);
         setPaymentStatus(orderData.status);
         setValuationId(orderData.valuation_id);
         
         // If order is marked as paid, check the valuation premium_unlocked status
         if (orderData.status === 'paid') {
+          console.log('PREMIUM SUCCESS: Order is marked as paid, checking premium_unlocked status');
           const { data: valData, error: valError } = await supabase
             .from('valuations')
             .select('premium_unlocked')
@@ -66,13 +78,16 @@ export default function PremiumSuccessPage() {
             .maybeSingle();
           
           if (valError) {
-            console.error("Error checking valuation premium status:", valError);
+            console.error("PREMIUM SUCCESS: Error checking valuation premium status:", valError);
           } else if (valData) {
+            console.log('PREMIUM SUCCESS: Valuation data:', valData);
             // Payment confirmed and premium unlocked, show success
             if (valData.premium_unlocked) {
+              console.log('PREMIUM SUCCESS: Premium is unlocked, showing success');
               setVerificationSuccess(true);
               toast.success("Premium access confirmed!");
             } else {
+              console.log('PREMIUM SUCCESS: Payment confirmed but premium not unlocked yet, forcing update');
               // Payment confirmed but premium not unlocked yet (webhook might be delayed)
               setIsProcessing(true);
               // Call verify-payment edge function to force an update 
@@ -80,20 +95,22 @@ export default function PremiumSuccessPage() {
             }
           }
         } else if (orderData.status === 'pending') {
+          console.log('PREMIUM SUCCESS: Payment is still processing, checking with edge function');
           // Payment is still processing, let's double-check with the edge function
           setIsProcessing(true);
           await verifyWithEdgeFunction(sessionId, orderData.valuation_id);
         } else {
           // Failed or other status
+          console.warn(`PREMIUM SUCCESS: Payment unsuccessful, status: ${orderData.status}`);
           setError(`Payment was not successful. Status: ${orderData.status}`);
         }
       } else {
         // No order found in database, use the edge function to verify with Stripe API
-        console.log("No order found in database, verifying with Stripe");
+        console.log("PREMIUM SUCCESS: No order found in database, verifying with Stripe");
         await verifyWithEdgeFunction(sessionId, valId);
       }
     } catch (error) {
-      console.error("Error in payment verification:", error);
+      console.error("PREMIUM SUCCESS: Error in payment verification:", error);
       setError("An unexpected error occurred while verifying your payment");
       toast.error("An unexpected error occurred");
     } finally {
