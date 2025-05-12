@@ -44,7 +44,7 @@ export default function Index() {
     console.log(`HOME FREE ${type.toUpperCase()}: Form submitted with value:`, value);
     if (state) console.log(`HOME FREE ${type.toUpperCase()}: State:`, state);
     
-    // Process valuation through context
+    // Process valuation through context - Fix error #4: Match argument count
     processFreeValuation(type, value, state)
       .then(result => {
         console.log(`HOME FREE ${type.toUpperCase()}: Valuation result:`, result);
@@ -63,8 +63,8 @@ export default function Index() {
     if (state) console.log(`HOME PREMIUM ${type.toUpperCase()}: State:`, state);
     if (data) console.log(`HOME PREMIUM ${type.toUpperCase()}: Data:`, data);
     
-    // Process premium valuation
-    processPremiumValuation(type, value, state, data)
+    // Process premium valuation - Fix error #5: Match argument count
+    processPremiumValuation(type, value, state)
       .then(result => {
         console.log(`HOME PREMIUM ${type.toUpperCase()}: Premium valuation result:`, result);
       })

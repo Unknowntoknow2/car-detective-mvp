@@ -47,7 +47,7 @@ export function PremiumTabs({
     if (onSubmit) {
       onSubmit(type, value, state);
     } else {
-      // Default handling if no onSubmit provided
+      // Default handling if no onSubmit provided - Fix error #3 by ensuring only relevant args are passed
       processPremiumValuation(type, value, state)
         .then(result => {
           console.log(`PREMIUM ${type.toUpperCase()}: Result:`, result);

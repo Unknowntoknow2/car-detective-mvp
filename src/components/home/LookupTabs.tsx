@@ -131,7 +131,8 @@ export function LookupTabs({ defaultTab = "vin", onSubmit }: LookupTabsProps) {
             <CardDescription>Enter your Vehicle Identification Number for a detailed analysis</CardDescription>
           </CardHeader>
           <CardContent>
-            <VinDecoderForm onSubmit={handleVinSubmit} />
+            {/* Fix for error #1: Correct props for VinDecoderForm */}
+            <VinDecoderForm onSubmit={(vin: string) => handleVinSubmit(vin)} />
           </CardContent>
         </Card>
       </TabsContent>
@@ -143,7 +144,8 @@ export function LookupTabs({ defaultTab = "vin", onSubmit }: LookupTabsProps) {
             <CardDescription>Look up your vehicle using license plate information</CardDescription>
           </CardHeader>
           <CardContent>
-            <PlateDecoderForm onSubmit={handlePlateSubmit} />
+            {/* Fix for error #2: Correct props for PlateDecoderForm */}
+            <PlateDecoderForm onSubmit={(plate: string, state: string) => handlePlateSubmit(plate, state)} />
           </CardContent>
         </Card>
       </TabsContent>
