@@ -1,9 +1,17 @@
 
-export { truncateString } from './stringFormatters';
-export { 
+// Re-export formatters from the main formatters.ts file
+import { 
   formatCurrency,
   formatDate,
   formatNumber,
   formatRelativeTime,
   manualEntryToJson
-} from '../formatters';
+} from '@/utils/formatters';
+
+export {
+  formatCurrency,
+  formatDate,
+  formatNumber,
+  formatRelativeTime,
+  manualEntryToJson
+};

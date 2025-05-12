@@ -1,138 +1,64 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { showDealerOfferNotification } from '@/components/notifications/DealerOfferNotification';
 
-export interface DealerOffer {
+// Define types for dealer offers
+interface DealerOffer {
   id: string;
-  report_id: string; // Changed from lead_id to match DB schema
   dealer_id: string;
-  offer_amount: number; // Changed from offer_price to match interface expectations
-  message?: string;
-  status: 'sent' | 'accepted' | 'rejected';
+  report_id: string;
+  offer_amount: number;
+  message: string;
+  status: 'sent' | 'viewed' | 'accepted' | 'rejected';
   created_at: string;
-  updated_at: string;
-  user_id?: string;
 }
 
-// Type for submitOffer parameters
-export interface SubmitOfferParams {
-  reportId: string;  // Using reportId for consistency
-  userId?: string;
-  amount: number;
-  message?: string;
-}
-
-export function useDealerOffers(reportId?: string) {
-  const queryClient = useQueryClient();
+export function useDealerOffers() {
   const { user } = useAuth();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['dealer-offers', reportId],
-    queryFn: async () => {
-      let query = supabase
+  // Query for fetching dealer offers
+  const { data: offers = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['dealer-offers', user?.id],
+    queryFn: async (): Promise<DealerOffer[]> => {
+      if (!user) return [];
+
+      // For dealers, fetch offers they've sent
+      const { data: dealerData, error: dealerError } = await supabase
         .from('dealer_offers')
         .select('*')
+        .eq('dealer_id', user.id)
         .order('created_at', { ascending: false });
-      
-      // If reportId is provided, filter by it
-      if (reportId) {
-        query = query.eq('report_id', reportId);
-      } else if (user?.id) {
-        // If no reportId but user is logged in, get offers related to their valuations
-        const { data: valuations } = await supabase
-          .from('valuations')
-          .select('id')
-          .eq('user_id', user.id);
-        
-        if (valuations && valuations.length > 0) {
-          const valuationIds = valuations.map(v => v.id);
-          query = query.in('report_id', valuationIds);
-        }
+
+      if (dealerError) {
+        console.error('Error fetching dealer offers:', dealerError);
+        throw dealerError;
       }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
       
-      // Transform the data to match our DealerOffer interface
-      return (data as any[]).map(item => ({
-        ...item,
-        offer_price: item.offer_amount // Map offer_amount to offer_price
-      })) as DealerOffer[];
-    },
-    enabled: !!reportId || !!user?.id
-  });
+      // For regular users, fetch offers sent to them
+      const { data: userData, error: userError } = await supabase
+        .from('dealer_offers')
+        .select('*, valuations!inner(*)')
+        .eq('valuations.user_id', user.id)
+        .order('created_at', { ascending: false });
 
-  const { mutate: submitOffer, isPending: isSubmitting } = useMutation({
-    mutationFn: async ({ 
-      reportId, 
-      amount, 
-      message,
-      userId
-    }: SubmitOfferParams) => {
-      if (!user?.id) {
-        throw new Error('User not authenticated');
+      if (userError) {
+        console.error('Error fetching user offers:', userError);
+        throw userError;
       }
-
-      const { data, error } = await supabase
-        .from('dealer_offers')
-        .insert({
-          report_id: reportId,
-          dealer_id: user.id,
-          offer_amount: amount, // Using offer_amount for DB
-          message: message || null,
-          status: 'sent',
-          user_id: userId
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dealer-offers'] });
-      toast.success('Offer submitted successfully');
       
-      // No need to show notification to the dealer
-      // The notification will be sent to the customer via email
+      // Return appropriate data based on user role
+      // For simplicity, we're returning all offers for now
+      return [...(dealerData || []), ...(userData || [])];
     },
-    onError: (error) => {
-      toast.error('Failed to submit offer');
-      console.error('Error submitting offer:', error);
-    }
-  });
-
-  const { mutate: updateOfferStatus } = useMutation({
-    mutationFn: async ({ offerId, status }: { offerId: string; status: 'accepted' | 'rejected' }) => {
-      const { data, error } = await supabase
-        .from('dealer_offers')
-        .update({ status })
-        .eq('id', offerId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dealer-offers'] });
-      toast.success('Offer status updated');
-    },
-    onError: (error) => {
-      toast.error('Failed to update offer status');
-      console.error('Error updating offer status:', error);
-    }
+    enabled: !!user,
+    refetchInterval: 60000, // Refetch every minute
   });
 
   return {
-    offers: data || [],
+    offers,
     isLoading,
-    isSubmitting,
-    submitOffer,
-    updateOfferStatus
+    error,
+    refetch,
   };
 }

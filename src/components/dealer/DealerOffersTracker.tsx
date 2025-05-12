@@ -23,7 +23,7 @@ export function DealerOffersTracker() {
   
   // Track seen offers to avoid showing duplicates
   useEffect(() => {
-    if (!user || !offers.length || !navigate) return;
+    if (!user || !offers.length) return;
     
     // Get previously seen offers from localStorage
     const seenOfferIds = JSON.parse(localStorage.getItem('seen_offer_ids') || '[]');
@@ -45,7 +45,13 @@ export function DealerOffersTracker() {
             make: "Vehicle", 
             model: "Details"
           },
-          onViewOffer: () => navigate(`/valuation/${offer.report_id}`)
+          onViewOffer: () => {
+            if (navigate) {
+              navigate(`/valuation/${offer.report_id}`);
+            } else {
+              window.location.href = `/valuation/${offer.report_id}`;
+            }
+          }
         });
       } catch (error) {
         console.error('Error displaying notification:', error);
