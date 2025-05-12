@@ -5,18 +5,32 @@ import { Button } from '@/components/ui/button';
 import { FileText, Loader2 } from 'lucide-react';
 
 interface ValuationResultCardProps {
-  predictionResult: any;
-  isLoading: boolean;
-  isFormValid: boolean;
-  handleSubmit: () => void;
+  predictionResult?: any;
+  estimatedValue?: number; // Add direct props for supporting both usage patterns
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  isLoading?: boolean;
+  isFormValid?: boolean;
+  handleSubmit?: () => void;
 }
 
 export function ValuationResultCard({ 
   predictionResult, 
-  isLoading, 
-  isFormValid, 
+  estimatedValue,
+  confidenceScore,
+  priceRange,
+  isLoading = false, 
+  isFormValid = true, 
   handleSubmit 
 }: ValuationResultCardProps) {
+  // Use either direct props or predictionResult
+  const value = estimatedValue || (predictionResult ? predictionResult.estimatedValue : 0);
+  const confidence = confidenceScore || (predictionResult ? predictionResult.confidenceScore : 80);
+  const range = priceRange || (predictionResult ? predictionResult.priceRange : [
+    Math.floor(value * 0.9), 
+    Math.ceil(value * 1.1)
+  ]);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
@@ -50,23 +64,23 @@ export function ValuationResultCard({
         </div>
         
         <div className="text-4xl font-bold text-primary">
-          {formatCurrency(predictionResult.estimatedValue)}
+          {formatCurrency(value)}
         </div>
         
-        {predictionResult.priceRange && (
+        {range && (
           <div className="text-sm text-gray-600">
-            Estimated range: {formatCurrency(predictionResult.priceRange[0])} - {formatCurrency(predictionResult.priceRange[1])}
+            Estimated range: {formatCurrency(range[0])} - {formatCurrency(range[1])}
           </div>
         )}
         
         <div className="flex items-center mt-2">
           <div className="text-sm font-medium mr-2">Confidence:</div>
-          <div className={`text-sm font-bold ${getConfidenceColorClass(predictionResult.confidenceScore)}`}>
-            {formatConfidenceLabel(predictionResult.confidenceScore)} ({Math.round(predictionResult.confidenceScore)}%)
+          <div className={`text-sm font-bold ${getConfidenceColorClass(confidence)}`}>
+            {formatConfidenceLabel(confidence)} ({Math.round(confidence)}%)
           </div>
         </div>
         
-        {predictionResult.valuationFactors && (
+        {predictionResult?.valuationFactors && (
           <div className="mt-4">
             <h4 className="text-sm font-medium mb-2">Valuation Factors:</h4>
             <ul className="text-sm space-y-1">
@@ -82,25 +96,27 @@ export function ValuationResultCard({
           </div>
         )}
         
-        <div className="pt-4 border-t border-gray-200 mt-4 text-center">
-          <Button
-            onClick={handleSubmit}
-            className="w-full"
-            disabled={isLoading || !isFormValid}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <FileText className="mr-2 h-4 w-4" />
-                Generate Full Premium Report
-              </>
-            )}
-          </Button>
-        </div>
+        {handleSubmit && (
+          <div className="pt-4 border-t border-gray-200 mt-4 text-center">
+            <Button
+              onClick={handleSubmit}
+              className="w-full"
+              disabled={isLoading || !isFormValid}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Generate Full Premium Report
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );

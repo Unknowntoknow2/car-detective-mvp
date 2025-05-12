@@ -28,10 +28,10 @@ export function PredictionReviewStep({
   handleReset
 }: PredictionReviewStepProps) {
   const { 
-    isLoading, 
+    isProcessing: isLoading, 
     error, 
-    predictionResult, 
-    fetchValuationPrediction 
+    lastValuationResult: predictionResult, 
+    processPremiumValuation: fetchValuationPrediction 
   } = useValuation();
   
   // Automatically set this step as valid
@@ -54,17 +54,29 @@ export function PredictionReviewStep({
   }, [formData]);
 
   const handleGetValuation = async () => {
-    const result = await fetchValuationPrediction(formData);
-    
-    if (result) {
-      // Update the form data with the valuation results
-      setFormData(prev => ({
-        ...prev,
-        estimatedValue: result.estimatedValue,
-        confidenceScore: result.confidenceScore,
-        valuationId: result.id,
-        priceRange: result.priceRange
-      }));
+    try {
+      const result = await fetchValuationPrediction({
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        mileage: formData.mileage,
+        condition: formData.condition,
+        zipCode: formData.zipCode,
+        features: formData.features
+      });
+      
+      if (result) {
+        // Update the form data with the valuation results
+        setFormData(prev => ({
+          ...prev,
+          estimatedValue: result.estimatedValue,
+          confidenceScore: result.confidenceScore,
+          valuationId: result.valuationId,
+          priceRange: result.priceRange
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to get valuation prediction:', error);
     }
   };
 
@@ -100,9 +112,10 @@ export function PredictionReviewStep({
           />
         ) : (
           <GetValuationButton
+            onClick={handleGetValuation}
             isLoading={isLoading}
             isFormValid={isFormValid}
-            onGetValuation={handleGetValuation}
+            disabled={!isFormValid}
           />
         )}
       </div>

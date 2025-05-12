@@ -12,10 +12,17 @@ export function useFormSteps(totalSteps: number) {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   }, []);
 
+  const goToStep = useCallback((step: number) => {
+    if (step >= 1 && step <= totalSteps) {
+      setCurrentStep(step);
+    }
+  }, [totalSteps]);
+
   return {
     currentStep,
     totalSteps,
     goToNextStep,
-    goToPreviousStep
+    goToPreviousStep,
+    goToStep
   };
 }
