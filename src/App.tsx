@@ -12,6 +12,8 @@ import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import HomePage from './pages/HomePage';
 import DealerDashboard from './pages/DealerDashboard';
+import ViewOfferPage from './pages/view-offer/[token]';
+import SharedValuationPage from './pages/share/[token]';
 
 // Initialize the React Query client
 const queryClient = new QueryClient({
@@ -35,6 +37,8 @@ function App() {
               <Route path="/auth/*" element={<AuthLayout />} />
               <Route path="/dashboard/*" element={<DashboardLayout />} />
               <Route path="/dealer-dashboard" element={<MainLayout><DealerDashboard /></MainLayout>} />
+              <Route path="/view-offer/:token" element={<MainLayout><ViewOfferPage /></MainLayout>} />
+              <Route path="/share/:token" element={<MainLayout><SharedValuationPage /></MainLayout>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             

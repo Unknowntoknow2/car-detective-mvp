@@ -11,6 +11,8 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import { AdminAnalyticsDashboard } from '@/components/admin/dashboard/AdminAnalyticsDashboard';
 import SettingsPage from '@/pages/SettingsPage';
+import ViewOfferPage from '@/pages/view-offer/[token]';
+import SharedValuationPage from '@/pages/share/[token]';
 
 // Since we now use Router in App.tsx, we'll create the router configuration differently
 // This file is useful if you want to use Data Routers with createBrowserRouter instead
@@ -72,6 +74,15 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  // Public routes
+  {
+    path: '/view-offer/:token',
+    element: <ViewOfferPage />,
+  },
+  {
+    path: '/share/:token',
+    element: <SharedValuationPage />,
   },
 ]);
 

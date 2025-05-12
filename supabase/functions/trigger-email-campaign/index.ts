@@ -33,7 +33,7 @@ const emailTemplates = {
     preheader: "Get a comprehensive valuation report with premium features",
   },
   dealer_offer_followup: {
-    subject: "New Dealer Offers for Your Vehicle",
+    subject: "🚘 You've received a new dealer offer!",
     fromName: "Car Detective Marketplace",
     preheader: "Dealers are interested in your vehicle",
   },
@@ -50,11 +50,12 @@ const emailTemplates = {
 };
 
 // Helper to generate email content
-function generateEmailContent(
+async function generateEmailContent(
   emailType: EmailType, 
   userData: any, 
-  valuationData?: any
-): { html: string; text: string } {
+  valuationData?: any,
+  req?: Request
+): Promise<{ html: string; text: string }> {
   // Default fallback values
   const userName = userData?.full_name || userData?.email?.split('@')[0] || "there";
   
@@ -109,7 +110,21 @@ function generateEmailContent(
       break;
       
     case 'dealer_offer_followup':
-      const offersUrl = `https://car-detective.app/offers?id=${valuationData?.id}`;
+      // Check if we have a secure token for this valuation
+      let offerViewUrl = `https://car-detective.app/my-valuations`;
+      
+      // Try to find a secure token for this valuation in dealer_leads
+      if (valuationData?.id && req?.supabaseClient) {
+        const { data: leadData, error: leadError } = await req.supabaseClient
+          .from('dealer_leads')
+          .select('secure_token')
+          .eq('valuation_id', valuationData.id)
+          .single();
+          
+        if (!leadError && leadData?.secure_token) {
+          offerViewUrl = `https://car-detective.app/view-offer/${leadData.secure_token}`;
+        }
+      }
       
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -118,13 +133,14 @@ function generateEmailContent(
           <p>Good news! Dealers in your area have expressed interest in your ${valuationData?.year} ${valuationData?.make} ${valuationData?.model}.</p>
           <p>You have new offers waiting to be reviewed.</p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${offersUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">View Dealer Offers</a>
+            <a href="${offerViewUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">View Dealer Offers</a>
           </div>
+          <p>No account is required to view these offers. Simply click the button above.</p>
           <p>Best regards,<br>The Car Detective Team</p>
         </div>
       `;
       
-      text = `Hi ${userName},\n\nGood news! Dealers in your area have expressed interest in your ${valuationData?.year} ${valuationData?.make} ${valuationData?.model}.\n\nYou have new offers waiting to be reviewed.\n\nView offers here: ${offersUrl}\n\nBest regards,\nThe Car Detective Team`;
+      text = `Hi ${userName},\n\nGood news! Dealers in your area have expressed interest in your ${valuationData?.year} ${valuationData?.make} ${valuationData?.model}.\n\nYou have new offers waiting to be reviewed.\n\nView offers here: ${offerViewUrl}\n\nNo account is required to view these offers.\n\nBest regards,\nThe Car Detective Team`;
       break;
       
     case 'photo_upload_prompt':
@@ -174,11 +190,12 @@ async function sendEmail(
   emailType: EmailType,
   userEmail: string,
   userData: any,
-  valuationData?: any
+  valuationData?: any,
+  req?: Request
 ) {
   try {
     const template = emailTemplates[emailType];
-    const { html, text } = generateEmailContent(emailType, userData, valuationData);
+    const { html, text } = await generateEmailContent(emailType, userData, valuationData, req);
     
     const { data, error } = await resend.emails.send({
       from: `${template.fromName} <noreply@car-detective.app>`,
@@ -243,7 +260,7 @@ serve(async (req) => {
     }
     
     // Send email
-    const result = await sendEmail(emailType, email, userData || { email }, valuationData);
+    const result = await sendEmail(emailType, email, userData || { email }, valuationData, req);
     
     // Log the email send
     await req.supabaseClient
