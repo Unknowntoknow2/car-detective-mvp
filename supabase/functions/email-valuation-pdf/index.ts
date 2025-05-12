@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,27 +14,36 @@ serve(async (req) => {
   }
 
   try {
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
     const { email, formData, pdfBase64 } = await req.json();
     
-    // In a real implementation, we would use an email service like Resend
-    // For now, just log the request
-    console.log(`Sending email to ${email} with valuation report for ${formData.year} ${formData.make} ${formData.model}`);
+    if (!email) {
+      throw new Error("Email is required");
+    }
     
-    // In production, replace with actual email sending logic:
-    // const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-    // await resend.emails.send({
-    //   from: "Valuation <noreply@yourapp.com>",
-    //   to: email,
-    //   subject: `Your ${formData.year} ${formData.make} ${formData.model} Valuation Report`,
-    //   html: `<p>Your valuation report is attached.</p>`,
-    //   attachments: [
-    //     {
-    //       filename: "valuation-report.pdf",
-    //       content: pdfBase64,
-    //     },
-    //   ],
-    // });
+    const result = await resend.emails.send({
+      from: "Car Detective <notifications@car-detective.app>",
+      to: email,
+      subject: `Your ${formData.year} ${formData.make} ${formData.model} Valuation Report`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #4F46E5;">Your Car Detective Valuation Report</h1>
+          <p>Hello,</p>
+          <p>Thank you for using Car Detective to value your ${formData.year} ${formData.make} ${formData.model}.</p>
+          <p>Please find your comprehensive valuation report attached to this email.</p>
+          <p>Best regards,<br>The Car Detective Team</p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `${formData.year}_${formData.make}_${formData.model}_valuation.pdf`,
+          content: pdfBase64,
+        },
+      ],
+    });
 
+    console.log("Email sent successfully:", result);
+    
     return new Response(
       JSON.stringify({ success: true, message: "Email sent successfully" }),
       { 

@@ -372,6 +372,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          email: string
+          email_type: string
+          error: string | null
+          id: string
+          offer_id: string | null
+          status: string
+          user_id: string | null
+          valuation_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_type: string
+          error?: string | null
+          id?: string
+          offer_id?: string | null
+          status: string
+          user_id?: string | null
+          valuation_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_type?: string
+          error?: string | null
+          id?: string
+          offer_id?: string | null
+          status?: string
+          user_id?: string | null
+          valuation_id?: string | null
+        }
+        Relationships: []
+      }
       equipment_options: {
         Row: {
           created_at: string | null

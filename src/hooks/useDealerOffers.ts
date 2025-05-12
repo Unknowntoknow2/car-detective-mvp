@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { showDealerOfferNotification } from '@/components/notifications/DealerOfferNotification';
 
 export interface DealerOffer {
   id: string;
@@ -95,6 +96,9 @@ export function useDealerOffers(reportId?: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dealer-offers'] });
       toast.success('Offer submitted successfully');
+      
+      // No need to show notification to the dealer
+      // The notification will be sent to the customer via email
     },
     onError: (error) => {
       toast.error('Failed to submit offer');
