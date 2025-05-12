@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -18,6 +17,7 @@ import DealerDashboard from '@/pages/DealerDashboard';
 import PremiumDealerManagementPage from '@/pages/admin/PremiumDealerManagement';
 import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
 import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
+import DealerInsightsPage from '@/pages/DealerInsightsPage';
 
 // Since we now use Router in App.tsx, we'll create the router configuration differently
 // This file is useful if you want to use Data Routers with createBrowserRouter instead
@@ -83,6 +83,14 @@ const router = createBrowserRouter([
         element: (
           <AuthGuard>
             <SettingsPage />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'dealer-insights',
+        element: (
+          <AuthGuard>
+            <DealerInsightsPage />
           </AuthGuard>
         ),
       },

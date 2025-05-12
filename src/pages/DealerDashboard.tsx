@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,10 +12,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { PremiumDealerBadge } from '@/components/dealer/PremiumDealerBadge';
 import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BadgeCheck, Info, TrendingUp, Star } from 'lucide-react';
+import { BadgeCheck, Info, TrendingUp, Star, ChartBarIcon, BarChart } from 'lucide-react';
 
 const DealerDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [leads, setLeads] = useState<any[]>([]);
@@ -102,6 +104,10 @@ const DealerDashboard = () => {
     }
   };
 
+  const handleInsightsClick = () => {
+    navigate('/dealer-insights');
+  };
+
   if (loading || premiumLoading) {
     return (
       <div className="container max-w-5xl mx-auto px-4 py-8">
@@ -131,12 +137,19 @@ const DealerDashboard = () => {
             </div>
           </div>
           
-          {!isPremium && (
-            <Button variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100" onClick={handleUpgradeClick}>
-              <Star className="h-4 w-4 mr-2 fill-amber-500 text-amber-500" />
-              Upgrade to Premium
+          <div className="flex gap-2">
+            {!isPremium && (
+              <Button variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100" onClick={handleUpgradeClick}>
+                <Star className="h-4 w-4 mr-2 fill-amber-500 text-amber-500" />
+                Upgrade to Premium
+              </Button>
+            )}
+            
+            <Button variant="outline" onClick={handleInsightsClick}>
+              <BarChart className="h-4 w-4 mr-2" />
+              View Insights
             </Button>
-          )}
+          </div>
         </div>
         
         {isPremium && (
@@ -229,9 +242,14 @@ const DealerDashboard = () => {
           {isPremium && (
             <TabsContent value="analytics">
               <Card>
-                <CardHeader>
-                  <CardTitle>Performance Analytics</CardTitle>
-                  <CardDescription>Track your offer conversion metrics</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Performance Overview</CardTitle>
+                    <CardDescription>Quick summary of your dealer metrics</CardDescription>
+                  </div>
+                  <Button variant="outline" onClick={handleInsightsClick}>
+                    Full Insights
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -252,8 +270,11 @@ const DealerDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className="h-[200px] flex items-center justify-center bg-slate-50 rounded-lg">
-                    <p className="text-muted-foreground">Detailed analytics charts coming soon</p>
+                  <div className="flex items-center justify-center">
+                    <Button variant="default" onClick={handleInsightsClick}>
+                      <BarChart className="h-4 w-4 mr-2" />
+                      View Detailed Insights
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
