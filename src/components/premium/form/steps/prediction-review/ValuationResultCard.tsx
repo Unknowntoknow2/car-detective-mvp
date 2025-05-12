@@ -4,21 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ValuationResultCardProps {
-  predictionResult: {
+  predictionResult?: {
     estimatedValue?: number;
     confidenceScore?: number;
     priceRange?: [number, number];
     [key: string]: any;
   };
-  isLoading: boolean;
-  isFormValid: boolean;
-  handleSubmit: () => void;
+  estimatedValue?: number;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  isLoading?: boolean;
+  isFormValid?: boolean;
+  handleSubmit?: () => void;
 }
 
 export function ValuationResultCard({
   predictionResult,
-  isLoading,
-  isFormValid,
+  estimatedValue: propEstimatedValue,
+  confidenceScore: propConfidenceScore,
+  priceRange: propPriceRange,
+  isLoading = false,
+  isFormValid = true,
   handleSubmit
 }: ValuationResultCardProps) {
   const formatCurrency = (value: number) => {
@@ -29,9 +35,18 @@ export function ValuationResultCard({
     }).format(value);
   };
 
-  const estimatedValue = predictionResult.estimatedValue || 0;
-  const confidenceScore = predictionResult.confidenceScore || 0;
-  const priceRange = predictionResult.priceRange || [0, 0];
+  // Use props directly if provided, otherwise try to get from predictionResult
+  const estimatedValue = propEstimatedValue !== undefined 
+    ? propEstimatedValue 
+    : (predictionResult?.estimatedValue || 0);
+    
+  const confidenceScore = propConfidenceScore !== undefined 
+    ? propConfidenceScore 
+    : (predictionResult?.confidenceScore || 0);
+    
+  const priceRange = propPriceRange !== undefined 
+    ? propPriceRange 
+    : (predictionResult?.priceRange || [0, 0]);
 
   return (
     <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
@@ -68,25 +83,27 @@ export function ValuationResultCard({
         </div>
       </div>
       
-      <div className="p-4 bg-gray-50 flex justify-end">
-        <Button
-          onClick={handleSubmit}
-          disabled={isLoading || !isFormValid}
-          className="px-6"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Complete Valuation
-            </>
-          )}
-        </Button>
-      </div>
+      {handleSubmit && (
+        <div className="p-4 bg-gray-50 flex justify-end">
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading || !isFormValid}
+            className="px-6"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Complete Valuation
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
