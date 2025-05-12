@@ -897,6 +897,8 @@ export type Database = {
           dealership_name: string | null
           full_name: string | null
           id: string
+          is_premium_dealer: boolean | null
+          premium_expires_at: string | null
           updated_at: string | null
           user_role: string | null
           username: string | null
@@ -909,6 +911,8 @@ export type Database = {
           dealership_name?: string | null
           full_name?: string | null
           id: string
+          is_premium_dealer?: boolean | null
+          premium_expires_at?: string | null
           updated_at?: string | null
           user_role?: string | null
           username?: string | null
@@ -921,6 +925,8 @@ export type Database = {
           dealership_name?: string | null
           full_name?: string | null
           id?: string
+          is_premium_dealer?: boolean | null
+          premium_expires_at?: string | null
           updated_at?: string | null
           user_role?: string | null
           username?: string | null
@@ -1727,6 +1733,10 @@ export type Database = {
         Returns: boolean
       }
       is_dealer: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      is_premium_dealer: {
         Args: { user_id: string }
         Returns: boolean
       }

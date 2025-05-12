@@ -13,6 +13,7 @@ import { AdminAnalyticsDashboard } from '@/components/admin/dashboard/AdminAnaly
 import SettingsPage from '@/pages/SettingsPage';
 import ViewOfferPage from '@/pages/view-offer/[token]';
 import SharedValuationPage from '@/pages/share/[token]';
+import DealerManagement from '@/pages/admin/DealerManagement';
 
 // Since we now use Router in App.tsx, we'll create the router configuration differently
 // This file is useful if you want to use Data Routers with createBrowserRouter instead
@@ -70,6 +71,14 @@ const router = createBrowserRouter([
         element: (
           <AuthGuard>
             <SettingsPage />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'admin/dealers',
+        element: (
+          <AuthGuard>
+            <DealerManagement />
           </AuthGuard>
         ),
       },
