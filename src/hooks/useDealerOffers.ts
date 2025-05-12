@@ -31,11 +31,28 @@ export function useDealerOffers(reportId?: string) {
   const { data, isLoading } = useQuery({
     queryKey: ['dealer-offers', reportId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('dealer_offers')
         .select('*')
-        .eq('report_id', reportId)
         .order('created_at', { ascending: false });
+      
+      // If reportId is provided, filter by it
+      if (reportId) {
+        query = query.eq('report_id', reportId);
+      } else if (user?.id) {
+        // If no reportId but user is logged in, get offers related to their valuations
+        const { data: valuations } = await supabase
+          .from('valuations')
+          .select('id')
+          .eq('user_id', user.id);
+        
+        if (valuations && valuations.length > 0) {
+          const valuationIds = valuations.map(v => v.id);
+          query = query.in('report_id', valuationIds);
+        }
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -45,7 +62,7 @@ export function useDealerOffers(reportId?: string) {
         offer_price: item.offer_amount // Map offer_amount to offer_price
       })) as DealerOffer[];
     },
-    enabled: !!reportId
+    enabled: !!reportId || !!user?.id
   });
 
   const { mutate: submitOffer, isPending: isSubmitting } = useMutation({

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { getValuationById } from '@/services/valuationService';
 import { AICondition } from '@/types/photo';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationResults } from './ValuationResults';
+import { DealerOffersList } from '@/components/DealerOffersList';
 
 interface PredictionResultProps {
   valuationId: string;
@@ -205,22 +205,31 @@ export function PredictionResult({
   }
   
   return (
-    <ValuationResults
-      estimatedValue={data.estimated_value || data.valuation || 25000}
-      confidenceScore={data.confidence_score || data.confidenceScore || 85}
-      basePrice={data.base_price || data.basePrice}
-      adjustments={adjustments}
-      priceRange={data.price_range || data.priceRange}
-      demandFactor={data.zip_demand_factor}
-      vehicleInfo={{
-        year: data.year,
-        make: data.make,
-        model: data.model,
-        trim: data.trim,
-        mileage: data.mileage,
-        condition: data.condition
-      }}
-    />
+    <>
+      <ValuationResults
+        estimatedValue={data.estimated_value || data.valuation || 25000}
+        confidenceScore={data.confidence_score || data.confidenceScore || 85}
+        basePrice={data.base_price || data.basePrice}
+        adjustments={adjustments}
+        priceRange={data.price_range || data.priceRange}
+        demandFactor={data.zip_demand_factor}
+        vehicleInfo={{
+          year: data.year,
+          make: data.make,
+          model: data.model,
+          trim: data.trim,
+          mileage: data.mileage,
+          condition: data.condition
+        }}
+      />
+      
+      {valuationId && (
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold mb-4">Dealer Offers</h3>
+          <DealerOffersList reportId={valuationId} showActions={true} />
+        </div>
+      )}
+    </>
   );
 }
 

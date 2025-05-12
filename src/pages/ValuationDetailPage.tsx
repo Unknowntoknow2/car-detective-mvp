@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { PredictionResult } from '@/components/valuation/PredictionResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
+import { DealerOffersList } from '@/components/valuation/DealerOffersList';
 
 export default function ValuationDetailPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
@@ -75,6 +76,15 @@ export default function ValuationDetailPage() {
         </CardHeader>
         <CardContent>
           <PredictionResult valuationId={valuationId || ''} />
+        </CardContent>
+      </Card>
+      
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Dealer Offers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DealerOffersList reportId={valuationId || ''} showActions={true} />
         </CardContent>
       </Card>
       

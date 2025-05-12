@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useValuationId } from '@/components/result/useValuationId';
+import { DealerOffersList } from '@/components/dealer/DealerOffersList';
 
 export default function ResultPage() {
   const location = useLocation();
@@ -74,6 +74,17 @@ export default function ResultPage() {
               )}
             </CardContent>
           </Card>
+          
+          {valuationId && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Dealer Offers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DealerOffersList reportId={valuationId} showActions={true} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       <Footer />
