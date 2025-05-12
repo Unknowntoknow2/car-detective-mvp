@@ -33,6 +33,26 @@ export interface FormData {
   interiorColor?: string;
   colorMultiplier?: number;
   saleDate?: Date;
+  explanation?: string; // Add explanation property for the PDF generation
+}
+
+// Add the ValidationRules and FieldValidation interfaces
+export interface ValidationRule {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  minValue?: number;
+  maxValue?: number;
+  pattern?: RegExp;
+  validate?: (value: any) => boolean | string;
+}
+
+export interface ValidationRules {
+  [key: string]: ValidationRule;
+}
+
+export interface FieldValidation {
+  [key: string]: ValidationRule;
 }
 
 // Add the FeatureOption interface

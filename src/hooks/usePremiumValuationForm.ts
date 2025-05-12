@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { useStepNavigation } from './useStepNavigation';
@@ -25,9 +24,8 @@ const initialFormData: FormData = {
   transmission: '',
   bodyType: '',
   features: [],
-  photos: [],
+  photos: [], // Removed duplicate photos property
   drivingProfile: 'average',
-  photos: [],
   isPremium: true
 };
 

@@ -57,7 +57,7 @@ describe('PDF Export', () => {
       bodyType: vehicle.bodyType,
       fuelType: vehicle.fuelType,
       valuationId: '123e4567-e89b-12d3-a456-426614174000'
-    });
+    } as any); // Cast to any to avoid TypeScript errors
 
     // Assert
     expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -131,7 +131,7 @@ describe('PDF Export', () => {
       },
       bestPhotoUrl: 'https://example.com/photos/123.jpg',
       valuationId: '123e4567-e89b-12d3-a456-426614174001'
-    });
+    } as any); // Cast to any to avoid TypeScript errors
 
     // Assert
     expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -172,7 +172,7 @@ describe('PDF Export', () => {
       features: [],
       adjustments: [],
       vin: 'Unknown'
-    });
+    } as any); // Cast to any to avoid TypeScript errors
 
     // Assert
     expect(generatePdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -220,6 +220,6 @@ describe('PDF Export', () => {
       features: [],
       adjustments: [],
       vin: vehicle.vin
-    })).rejects.toThrow('PDF generation failed');
+    } as any)).rejects.toThrow('PDF generation failed'); // Cast to any to avoid TypeScript errors
   });
 });
