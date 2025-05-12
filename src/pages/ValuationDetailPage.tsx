@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { PredictionResult } from '@/components/valuation/PredictionResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
-import { DealerOffersList } from '@/components/valuation/DealerOffersList';
+import { DealerOffersList } from '@/components/dealer/DealerOffersList';
 
 export default function ValuationDetailPage() {
   const { valuationId } = useParams<{ valuationId: string }>();

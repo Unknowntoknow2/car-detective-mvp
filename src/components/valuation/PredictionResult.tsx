@@ -8,7 +8,7 @@ import { getValuationById } from '@/services/valuationService';
 import { AICondition } from '@/types/photo';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationResults } from './ValuationResults';
-import { DealerOffersList } from '@/components/DealerOffersList';
+import { DealerOffersList } from '@/components/dealer/DealerOffersList';
 
 interface PredictionResultProps {
   valuationId: string;
