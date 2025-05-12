@@ -1,10 +1,5 @@
 
-export interface State {
-  value: string;
-  label: string;
-}
-
-export const states: State[] = [
+export const states = [
   { value: 'AL', label: 'Alabama' },
   { value: 'AK', label: 'Alaska' },
   { value: 'AZ', label: 'Arizona' },
