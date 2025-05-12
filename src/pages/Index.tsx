@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EnhancedHeroSection } from "@/components/home/EnhancedHeroSection";
@@ -20,6 +20,10 @@ export default function Index() {
   const [valuationType, setValuationType] = useState<'free' | 'premium'>('free');
   const { processFreeValuation, processPremiumValuation } = useValuation();
   
+  useEffect(() => {
+    console.log("HOME PAGE: Component mounted");
+  }, []);
+  
   const scrollToValuation = () => {
     valuationRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -30,9 +34,9 @@ export default function Index() {
     // Track user selection for analytics purposes
     try {
       // Analytics tracking would go here
-      console.log(`User selected ${value} valuation type`);
+      console.log(`HOME PAGE: User selected ${value} valuation type`);
     } catch (error) {
-      console.error("Error tracking valuation type selection:", error);
+      console.error("HOME PAGE: Error tracking valuation type selection:", error);
     }
   };
 
@@ -76,7 +80,21 @@ export default function Index() {
                     Get a quick, AI-powered estimate based on market data.
                   </p>
                 </div>
-                <LookupTabs defaultTab="vin" />
+                <LookupTabs defaultTab="vin" onSubmit={(type, value, state) => {
+                  console.log(`HOME FREE ${type.toUpperCase()}: Form submitted with value:`, value);
+                  if (state) console.log(`HOME FREE ${type.toUpperCase()}: State:`, state);
+                  
+                  // Process valuation through context
+                  processFreeValuation(type, value, state).then(result => {
+                    console.log(`HOME FREE ${type.toUpperCase()}: Valuation result:`, result);
+                    if (result?.valuationId) {
+                      console.log(`HOME FREE ${type.toUpperCase()}: Got valuationId:`, result.valuationId);
+                      localStorage.setItem('latest_valuation_id', result.valuationId);
+                    }
+                  }).catch(error => {
+                    console.error(`HOME FREE ${type.toUpperCase()}: Error:`, error);
+                  });
+                }} />
               </TabsContent>
               
               <TabsContent value="premium" className="mt-6">
@@ -86,7 +104,18 @@ export default function Index() {
                   </p>
                 </div>
                 {/* Show only the Premium component, not free valuation */}
-                <PremiumTabs showFreeValuation={false} />
+                <PremiumTabs showFreeValuation={false} onSubmit={(type, value, state, data) => {
+                  console.log(`HOME PREMIUM ${type.toUpperCase()}: Form submitted with value:`, value);
+                  if (state) console.log(`HOME PREMIUM ${type.toUpperCase()}: State:`, state);
+                  if (data) console.log(`HOME PREMIUM ${type.toUpperCase()}: Data:`, data);
+                  
+                  // Process premium valuation
+                  processPremiumValuation(type, value, state, data).then(result => {
+                    console.log(`HOME PREMIUM ${type.toUpperCase()}: Premium valuation result:`, result);
+                  }).catch(error => {
+                    console.error(`HOME PREMIUM ${type.toUpperCase()}: Error:`, error);
+                  });
+                }} />
               </TabsContent>
             </Tabs>
           </div>

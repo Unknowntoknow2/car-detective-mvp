@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { UnifiedValuationHeader } from '@/components/valuation/header/UnifiedValuationHeader';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -12,7 +12,20 @@ interface ValuationResultProps {
 }
 
 export function ValuationResult({ valuationData, valuationId }: ValuationResultProps) {
+  useEffect(() => {
+    console.log('FREE VALUATION RESULT: Component loaded');
+    console.log('FREE VALUATION RESULT: Props:', { 
+      hasData: !!valuationData, 
+      valuationId 
+    });
+    
+    if (valuationData) {
+      console.log('FREE VALUATION RESULT: Valuation data:', valuationData);
+    }
+  }, [valuationData, valuationId]);
+
   if (!valuationData) {
+    console.warn('FREE VALUATION RESULT: No valuation data provided');
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
@@ -26,6 +39,7 @@ export function ValuationResult({ valuationData, valuationId }: ValuationResultP
 
   // If we have a valuationId, use the unified component
   if (valuationId) {
+    console.log('FREE VALUATION RESULT: Using UnifiedValuationResult with valuationId:', valuationId);
     return (
       <UnifiedValuationResult 
         valuationId={valuationId}
@@ -35,6 +49,7 @@ export function ValuationResult({ valuationData, valuationId }: ValuationResultP
   }
 
   // Fall back to displaying with our header if no valuationId
+  console.log('FREE VALUATION RESULT: Using fallback display without valuationId');
   return (
     <div className="space-y-6">
       <UnifiedValuationHeader

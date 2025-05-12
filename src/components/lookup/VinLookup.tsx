@@ -17,11 +17,24 @@ export const VinLookup = () => {
   
   const handleLookup = useCallback(() => {
     if (vinNumber) {
-      lookupVin(vinNumber);
+      console.log('FREE VIN: Submitting form with VIN:', vinNumber);
+      lookupVin(vinNumber).then(response => {
+        console.log('FREE VIN: Response from API:', response);
+        if (response) {
+          console.log('FREE VIN: Lookup successful, result available');
+          localStorage.setItem('latest_valuation_id', response.valuationId || '');
+          console.log('FREE VIN: Stored valuationId in localStorage:', response.valuationId);
+        } else {
+          console.warn('FREE VIN: No response or error occurred during lookup');
+        }
+      }).catch(error => {
+        console.error('FREE VIN: Error during lookup:', error);
+      });
     }
   }, [vinNumber, lookupVin]);
   
   const onReset = useCallback(() => {
+    console.log('FREE VIN: Reset form triggered');
     // Reset the form
     setVinNumber('');
   }, []);
