@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import USStates from '@/data/us-states';
+import { states } from '@/data/us-states';
 
 interface PlateDecoderFormProps {
   onSubmit?: (plate: string, state: string) => void;
@@ -65,9 +65,9 @@ export default function PlateDecoderForm({ onSubmit, onManualEntryClick }: Plate
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
             <SelectContent>
-              {USStates.map((state) => (
-                <SelectItem key={state.abbreviation} value={state.abbreviation}>
-                  {state.name}
+              {states.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label}
                 </SelectItem>
               ))}
             </SelectContent>

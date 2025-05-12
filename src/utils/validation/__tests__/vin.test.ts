@@ -36,13 +36,13 @@ describe('VIN Validation', () => {
   test('validateVin fails if VIN contains I, O, or Q', () => {
     const result = validateVin('1HGCM82I33A004352');
     expect(result.isValid).toBe(false);
-    expect(result.error).toBe('VIN cannot contain letters I, O, or Q');
+    expect(result.error).toBe('VIN contains invalid characters (only letters A-Z except O,I,Q and numbers 0-9 are allowed)');
   });
 
   test('validateVin fails if VIN has invalid characters', () => {
     const result = validateVin('1HGCM826#3A004352');
     expect(result.isValid).toBe(false);
-    expect(result.error).toContain('VIN can only contain letters');
+    expect(result.error).toContain('VIN contains invalid characters');
   });
 
   // ✅ validateVinCheckDigit

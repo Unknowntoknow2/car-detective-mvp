@@ -81,24 +81,28 @@ export function EnhancedVinLookup({
         )}
       </div>
 
-      {validationResult.error && (
-        <div className="text-sm text-red-500 flex items-start gap-1">
-          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span>{validationResult.error}</span>
+      {validationResult.error ? (
+        <div className="flex items-start gap-2 text-xs text-red-500">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <p>{validationResult.error}</p>
         </div>
-      )}
-
-      {error && (
-        <div className="text-sm text-red-500 flex items-start gap-1">
-          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span>{error}</span>
+      ) : error ? (
+        <div className="flex items-start gap-2 text-xs text-red-500">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <p>{error}</p>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2 text-xs text-slate-500">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <p>Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.</p>
         </div>
       )}
 
       <div className="flex justify-end">
-        <Button
+        <Button 
           onClick={onLookup}
           disabled={isLoading || !validationResult.isValid}
+          className="px-6"
         >
           {isLoading ? (
             <>
@@ -106,7 +110,7 @@ export function EnhancedVinLookup({
               Looking up VIN...
             </>
           ) : (
-            'Lookup Vehicle'
+            "Look up Vehicle"
           )}
         </Button>
       </div>

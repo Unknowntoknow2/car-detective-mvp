@@ -30,19 +30,13 @@ describe('VIN Validation', () => {
   test('validateVin fails VIN with incorrect length', () => {
     const result = validateVin('1HGCM8263');
     expect(result.isValid).toBe(false);
-    expect(result.error).toBe('VIN must be exactly 17 characters');
-  });
-
-  test('validateVin fails VIN with I, O, or Q', () => {
-    const result = validateVin('1HGCM82I33A004352');
-    expect(result.isValid).toBe(false);
-    expect(result.error).toBe('VIN cannot contain letters I, O, or Q');
+    expect(result.error).toBe('VIN must be exactly 17 characters (currently 9)');
   });
 
   test('validateVin fails VIN with invalid characters', () => {
     const result = validateVin('1HGCM826#3A004352');
     expect(result.isValid).toBe(false);
-    expect(result.error).toBe('VIN can only contain letters A-H, J-N, P, R-Z and numbers 0-9');
+    expect(result.error).toBe('VIN contains invalid characters (only letters A-Z except O,I,Q and numbers 0-9 are allowed)');
   });
 
   // Check digit validation tests

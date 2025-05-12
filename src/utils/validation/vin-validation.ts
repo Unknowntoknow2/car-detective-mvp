@@ -99,3 +99,20 @@ function isValidYearChar(char: string): boolean {
   const validYearChars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
   return validYearChars.includes(char.toUpperCase());
 }
+
+/**
+ * Simple VIN validation function (without detailed error messages)
+ * @param vin The VIN to validate
+ * @returns Boolean indicating if the VIN is valid
+ */
+export function isValidVIN(vin: string): boolean {
+  if (!vin || vin.length !== 17) return false;
+  
+  // Check for valid characters (exclude O, I, Q as they're not valid in modern VINs)
+  const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
+  if (!vinRegex.test(vin)) return false;
+  
+  // For basic validation, we could just check the format,
+  // but for enhanced security, also validate the check digit
+  return validateVinCheckDigit(vin);
+}
