@@ -44,69 +44,86 @@ serve(async (req) => {
     console.log(`Processing webhook event: ${event.type}`);
 
     // Handle the event type
+    let userId = null;
+    let expiresAt = null;
+    
+    // For subscriptions and invoices, we need to lookup by customer id
+    let customerId = null;
+    
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
         
-        // Get the valuationId from the session metadata
-        const valuationId = session.metadata?.valuationId;
-        const sessionId = session.id;
+        // Get the user ID from the session metadata
+        userId = session.metadata?.user_id;
+        customerId = session.customer;
         
-        console.log(`Payment successful for valuation: ${valuationId}`);
+        console.log(`Checkout completed for user: ${userId}, customer: ${customerId}`);
         
-        if (valuationId && sessionId) {
-          // Update the order status to 'paid'
-          const { error: orderError } = await req.supabaseClient
-            .from('orders')
-            .update({ 
-              status: 'paid',
-              updated_at: new Date().toISOString()
-            })
-            .eq('stripe_session_id', sessionId);
-          
-          if (orderError) {
-            console.error("Error updating order:", orderError);
-            throw new Error(orderError.message);
-          }
-          
-          console.log(`Updated order status to paid for session: ${sessionId}`);
-          
-          // Update the valuation's premium_unlocked status
-          const { error: valuationError } = await req.supabaseClient
-            .from('valuations')
-            .update({ premium_unlocked: true })
-            .eq('id', valuationId);
-          
-          if (valuationError) {
-            console.error("Error updating valuation:", valuationError);
-            throw new Error(valuationError.message);
-          }
-          
-          console.log(`Set premium_unlocked to true for valuation: ${valuationId}`);
+        // If we have a subscription, let's get the current period end
+        if (session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
         } else {
-          console.error("Missing valuationId or sessionId in webhook data");
+          // Default to 30 days if no subscription (for one-time purchases)
+          expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         }
         
         break;
       }
-      case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object;
-        const sessionId = paymentIntent.metadata?.stripe_session_id;
+      case "customer.subscription.updated": {
+        const subscription = event.data.object;
+        customerId = subscription.customer;
         
-        console.error(`Payment failed: ${paymentIntent.last_payment_error?.message}`);
-        
-        if (sessionId) {
-          // Update order status to 'failed'
-          const { error: orderError } = await req.supabaseClient
-            .from('orders')
-            .update({ 
-              status: 'failed',
-              updated_at: new Date().toISOString()
-            })
-            .eq('stripe_session_id', sessionId);
+        // Get the user ID from the customer ID
+        const { data, error } = await req.supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('stripe_customer_id', customerId)
+          .maybeSingle();
           
-          if (orderError) {
-            console.error("Error updating order status to failed:", orderError);
+        if (error) {
+          console.error("Error finding user by customer ID:", error);
+        } else if (data) {
+          userId = data.id;
+          console.log(`Subscription updated for user: ${userId}`);
+          
+          // Get the new expiration date
+          expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+        }
+        
+        break;
+      }
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object;
+        customerId = subscription.customer;
+        
+        // Get the user ID from the customer ID
+        const { data, error } = await req.supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('stripe_customer_id', customerId)
+          .maybeSingle();
+          
+        if (error) {
+          console.error("Error finding user by customer ID:", error);
+        } else if (data) {
+          userId = data.id;
+          console.log(`Subscription canceled for user: ${userId}`);
+          
+          // Update the profile to remove premium status
+          const { error: updateError } = await req.supabaseClient
+            .from('profiles')
+            .update({
+              is_premium_dealer: false,
+              premium_expires_at: null
+            })
+            .eq('id', userId);
+            
+          if (updateError) {
+            console.error("Error updating user profile:", updateError);
+          } else {
+            console.log(`Successfully removed premium status for user: ${userId}`);
           }
         }
         
@@ -115,6 +132,31 @@ serve(async (req) => {
       default:
         // Unexpected event type
         console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    // Update the user's premium status if we have a user ID and expiration date
+    if (userId && expiresAt) {
+      // Store customer ID if available, to link future webhook events
+      const updateData: any = {
+        is_premium_dealer: true,
+        premium_expires_at: expiresAt
+      };
+      
+      if (customerId) {
+        updateData.stripe_customer_id = customerId;
+      }
+      
+      const { error } = await req.supabaseClient
+        .from('profiles')
+        .update(updateData)
+        .eq('id', userId);
+        
+      if (error) {
+        console.error("Error updating user profile:", error);
+        throw error;
+      }
+      
+      console.log(`Successfully updated premium status for user: ${userId}, expires: ${expiresAt}`);
     }
 
     return new Response(JSON.stringify({ received: true }), {

@@ -14,6 +14,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import ViewOfferPage from '@/pages/view-offer/[token]';
 import SharedValuationPage from '@/pages/share/[token]';
 import DealerManagement from '@/pages/admin/DealerManagement';
+import DealerDashboard from '@/pages/DealerDashboard';
 
 // Since we now use Router in App.tsx, we'll create the router configuration differently
 // This file is useful if you want to use Data Routers with createBrowserRouter instead
@@ -63,6 +64,14 @@ const router = createBrowserRouter([
         element: (
           <AuthGuard>
             <AdminAnalyticsDashboard />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: 'dealer-dashboard',
+        element: (
+          <AuthGuard>
+            <DealerDashboard />
           </AuthGuard>
         ),
       },

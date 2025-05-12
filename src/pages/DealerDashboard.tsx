@@ -82,6 +82,26 @@ const DealerDashboard = () => {
     fetchLeads();
   }, [user, isPremium]);
 
+  const handleUpgradeClick = async () => {
+    try {
+      // Call the Stripe Checkout function
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { plan: 'monthly' } // Can be 'monthly' or 'yearly'
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error('Error creating checkout session:', err);
+    }
+  };
+
   if (loading || premiumLoading) {
     return (
       <div className="container max-w-5xl mx-auto px-4 py-8">
@@ -112,7 +132,7 @@ const DealerDashboard = () => {
           </div>
           
           {!isPremium && (
-            <Button variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100">
+            <Button variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-100" onClick={handleUpgradeClick}>
               <Star className="h-4 w-4 mr-2 fill-amber-500 text-amber-500" />
               Upgrade to Premium
             </Button>
