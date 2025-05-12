@@ -1,5 +1,5 @@
 
-import { z } from 'zod';
+import * as z from 'zod';
 import { isValidVIN } from './vin-validation';
 
 export const VinSchema = z.string()
