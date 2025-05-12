@@ -125,7 +125,7 @@ export default function PremiumDealerManagement() {
                     <TableCell>
                       {dealer.is_premium_dealer ? (
                         <div className="flex flex-col gap-1">
-                          <Badge variant="success" className="w-fit">Premium</Badge>
+                          <Badge className="w-fit bg-green-500 hover:bg-green-600">Premium</Badge>
                           {dealer.premium_expires_at && (
                             <span className="text-xs text-muted-foreground">
                               Expires: {new Date(dealer.premium_expires_at).toLocaleDateString()}
