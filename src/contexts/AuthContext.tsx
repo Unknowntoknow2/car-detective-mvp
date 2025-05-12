@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useState, ReactNode, useContext } from
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Define our own User type based on what's available in Supabase
 export type User = {
@@ -42,7 +42,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  
+  // Safe access to router hooks - wrap in try/catch to handle cases where router context isn't available
+  let navigate: ReturnType<typeof useNavigate> | undefined;
+  let location: ReturnType<typeof useLocation> | undefined;
+  
+  try {
+    navigate = useNavigate();
+    location = useLocation();
+  } catch (error) {
+    console.log("Router context not available - navigation functions will be limited");
+  }
 
   useEffect(() => {
     // First set up auth state listener
@@ -81,8 +91,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Sign in successful, checking user role');
       
       // After successful login, check user role to determine redirection
-      // We don't navigate here - we let the auth state change trigger the navigation
-      // in SharedLoginForm or other components watching the auth state
+      // Only navigate if navigate function is available
+      if (navigate) {
+        navigate('/dashboard');
+      }
       
       toast.success('Successfully signed in!');
       return { data, error: null };
@@ -136,6 +148,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.error(error.message || 'Failed to sign out');
       } else {
         console.log('Sign out successful');
+        // Only navigate if navigate function is available
+        if (navigate) {
+          navigate('/');
+        }
         toast.success('Successfully signed out!');
       }
     } catch (err) {

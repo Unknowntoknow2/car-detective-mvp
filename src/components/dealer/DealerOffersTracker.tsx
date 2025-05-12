@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDealerOffers } from '@/hooks/useDealerOffers';
 import { useAuth } from '@/contexts/AuthContext';
-import { useValuationResult } from '@/hooks/useValuationResult';
 import { showDealerOfferNotification } from '@/components/notifications/DealerOfferNotification';
 
 /**
@@ -12,12 +11,19 @@ import { showDealerOfferNotification } from '@/components/notifications/DealerOf
  */
 export function DealerOffersTracker() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  let navigate;
+  
+  try {
+    navigate = useNavigate();
+  } catch (error) {
+    console.log("Router context not available for DealerOffersTracker");
+  }
+  
   const { offers } = useDealerOffers();
   
   // Track seen offers to avoid showing duplicates
   useEffect(() => {
-    if (!user || !offers.length) return;
+    if (!user || !offers.length || !navigate) return;
     
     // Get previously seen offers from localStorage
     const seenOfferIds = JSON.parse(localStorage.getItem('seen_offer_ids') || '[]');
@@ -30,23 +36,19 @@ export function DealerOffersTracker() {
     // Show notifications for new offers
     newOffers.forEach(async (offer) => {
       try {
-        // Fetch valuation details for this offer
-        const { data: valuation } = await useValuationResult(offer.report_id);
-        
-        if (valuation) {
-          showDealerOfferNotification({
-            offerId: offer.id,
-            amount: offer.offer_amount,
-            vehicle: {
-              year: valuation.year,
-              make: valuation.make,
-              model: valuation.model
-            },
-            onViewOffer: () => navigate(`/valuation/${offer.report_id}`)
-          });
-        }
+        // Since we don't have immediate access to valuation details, we'll use what we know
+        showDealerOfferNotification({
+          offerId: offer.id,
+          amount: offer.offer_amount,
+          vehicle: {
+            year: 2021, // Default values as placeholders
+            make: "Vehicle", 
+            model: "Details"
+          },
+          onViewOffer: () => navigate(`/valuation/${offer.report_id}`)
+        });
       } catch (error) {
-        console.error('Error fetching valuation details for notification:', error);
+        console.error('Error displaying notification:', error);
       }
     });
     

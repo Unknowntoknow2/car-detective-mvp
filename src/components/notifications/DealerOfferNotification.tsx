@@ -16,7 +16,7 @@ interface DealerOfferNotificationProps {
     model: string;
   };
   onViewOffer: () => void;
-  onDismiss: () => void;
+  onDismiss?: () => void;
 }
 
 export function DealerOfferNotification({
@@ -30,6 +30,14 @@ export function DealerOfferNotification({
   const vehicleText = vehicle 
     ? `your ${vehicle.year} ${vehicle.make} ${vehicle.model}` 
     : 'your vehicle';
+
+  const handleDismiss = () => {
+    if (onDismiss) {
+      onDismiss();
+    } else {
+      toast.dismiss();
+    }
+  };
 
   return (
     <Card className="w-full max-w-md border-primary/20">
@@ -46,7 +54,7 @@ export function DealerOfferNotification({
         </p>
       </CardContent>
       <CardFooter className="flex justify-between pt-2 pb-3">
-        <Button variant="outline" size="sm" onClick={onDismiss} className="gap-1">
+        <Button variant="outline" size="sm" onClick={handleDismiss} className="gap-1">
           <BellOff className="h-4 w-4" />
           Dismiss
         </Button>
