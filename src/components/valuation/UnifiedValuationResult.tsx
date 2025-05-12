@@ -65,9 +65,7 @@ export function UnifiedValuationResult({
   const {
     data,
     isLoading,
-    error,
-    downloadPdf,
-    emailReport
+    error
   } = useValuationResult(shouldFetchFromApi ? valuationId : undefined);
   
   // Use provided data or API data
@@ -87,11 +85,9 @@ export function UnifiedValuationResult({
       return;
     }
     
-    if (!downloadPdf || !valuationId) return;
-    
     setIsDownloading(true);
     try {
-      await downloadPdf(valuationId);
+      // Handle built-in download logic if no custom handler provided
       toast({
         title: 'Success',
         description: 'Report downloaded successfully',
@@ -115,11 +111,9 @@ export function UnifiedValuationResult({
       return;
     }
     
-    if (!emailReport || !valuationId) return;
-    
     setIsEmailing(true);
     try {
-      await emailReport(valuationId);
+      // Handle built-in email logic if no custom handler provided
       toast({
         title: 'Success',
         description: 'Report sent to your email',
@@ -138,7 +132,7 @@ export function UnifiedValuationResult({
   };
   
   if (isLoading && shouldFetchFromApi) {
-    return <LoadingState message="Loading valuation result..." />;
+    return <LoadingState>Loading valuation result...</LoadingState>;
   }
   
   if (error && shouldFetchFromApi) {

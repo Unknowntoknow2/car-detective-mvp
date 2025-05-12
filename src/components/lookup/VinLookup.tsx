@@ -1,15 +1,15 @@
 
 import React, { useState, useCallback } from 'react';
 import { VINLookupForm } from './vin/VINLookupForm';
-import VinDecoderResults from './vin/VinDecoderResults';
+import { VinDecoderResults } from './vin/VinDecoderResults';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
-import CarfaxErrorAlert from './vin/CarfaxErrorAlert';
+import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState('');
-  const { data, isLoading, error, decodeVin, resetDecoder } = useVinDecoder();
+  const { isLoading, error, result, lookupVin } = useVinDecoder();
   
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
@@ -17,27 +17,26 @@ export const VinLookup = () => {
   
   const handleLookup = useCallback(() => {
     if (vinNumber) {
-      decodeVin(vinNumber);
+      lookupVin(vinNumber);
     }
-  }, [vinNumber, decodeVin]);
+  }, [vinNumber, lookupVin]);
   
   const onReset = useCallback(() => {
-    resetDecoder();
+    // Reset the form
     setVinNumber('');
-  }, [resetDecoder]);
+  }, []);
   
   return (
     <div className="w-full">
-      {!data ? (
+      {!result ? (
         <VINLookupForm 
-          vinNumber={vinNumber} 
-          onVinChange={handleVinChange} 
-          onLookup={handleLookup}
+          onSubmit={handleLookup}
           isLoading={isLoading}
+          error={error}
         />
       ) : (
         <>
-          <VinDecoderResults decodedVin={data} />
+          <VinDecoderResults decodedVin={result} />
           <Button 
             variant="outline" 
             className="mt-4" 
@@ -48,16 +47,14 @@ export const VinLookup = () => {
         </>
       )}
       
-      {error && (
-        error.message.includes('Carfax') ? (
-          <CarfaxErrorAlert onReset={onReset} />
-        ) : (
-          <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-md flex items-center gap-2 text-red-700">
-            <AlertTriangle className="h-5 w-5" />
-            <p className="text-sm">{error.message}</p>
-          </div>
-        )
-      )}
+      {error && error.includes('Carfax') ? (
+        <CarfaxErrorAlert error="Unable to retrieve Carfax vehicle history report." />
+      ) : error ? (
+        <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-md flex items-center gap-2 text-red-700">
+          <AlertTriangle className="h-5 w-5" />
+          <p className="text-sm">{error}</p>
+        </div>
+      ) : null}
     </div>
   );
 };
