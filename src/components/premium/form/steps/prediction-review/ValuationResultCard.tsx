@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export interface ValuationResultCardProps {
   estimatedValue?: number;
@@ -69,14 +70,20 @@ export function ValuationResultCard({
         )}
         
         {handleSubmit && (
-          <div className="mt-4">
-            <button
+          <div className="mt-6">
+            <Button
               onClick={handleSubmit}
               disabled={!isFormValid}
-              className="w-full px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
+              className="w-full gap-2 h-12 text-base"
             >
-              Continue to Report
-            </button>
+              {isFormValid ? (
+                <>
+                  Continue to Report <ArrowRight className="h-4 w-4" />
+                </>
+              ) : (
+                'Please complete all required fields'
+              )}
+            </Button>
           </div>
         )}
       </CardContent>
