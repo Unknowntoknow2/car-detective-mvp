@@ -9,5 +9,6 @@
   "/view-offer/:token",
   "/share/:token",
   "/payment/success",
-  "/payment/cancelled"
+  "/payment/cancelled",
+  "/my-valuations"
 ]

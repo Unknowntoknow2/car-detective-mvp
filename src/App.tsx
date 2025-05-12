@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy, ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,6 +15,7 @@ import ViewOfferPage from './pages/view-offer/[token]';
 import SharedValuationPage from './pages/share/[token]';
 import { EnhancedErrorBoundary } from './components/common/EnhancedErrorBoundary';
 import NotFound from './pages/NotFound';
+import MyValuationsPage from './pages/MyValuationsPage';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
@@ -56,6 +56,7 @@ export const appRoutes = [
   { path: '/share/:token', element: <SharedValuationPage /> },
   { path: '/payment/success', element: <LazyPaymentSuccessPage /> },
   { path: '/payment/cancelled', element: <LazyPaymentCancelledPage /> },
+  { path: '/my-valuations', element: <MyValuationsPage /> },
   { path: '*', element: <NotFound /> }
 ];
 
@@ -108,6 +109,11 @@ function App() {
                       wrapWithSuspense(<LazyPremiumPage />),
                       "premium-page"
                     )}
+                  </MainLayout>
+                } />
+                <Route path="/my-valuations" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<MyValuationsPage />, "my-valuations")}
                   </MainLayout>
                 } />
                 <Route path="/view-offer/:token" element={
