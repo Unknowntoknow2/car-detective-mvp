@@ -21,7 +21,7 @@ export default function VpicDecoderPage() {
   const [submittedVin, setSubmittedVin] = useState('');
   
   const {
-    value: vin,
+    vin,
     handleInputChange,
     validationError,
     touched,

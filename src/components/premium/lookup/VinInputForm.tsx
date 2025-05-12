@@ -21,7 +21,7 @@ export function VinInputForm({
   error
 }: VinInputFormProps) {
   const {
-    value: vinValue,
+    vin: vinValue,
     touched,
     validationError,
     handleInputChange,

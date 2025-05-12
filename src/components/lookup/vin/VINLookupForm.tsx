@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,11 +14,42 @@ interface VINLookupFormProps {
     model?: string;
     year?: number;
   };
+  value?: string;
+  onChange?: (vin: string) => void;
+  error?: string | null;
 }
 
-export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, isLoading, existingVehicle }) => {
-  const [vin, setVin] = useState('');
-  const [error, setError] = useState<string | null>(null);
+export const VINLookupForm: React.FC<VINLookupFormProps> = ({ 
+  onSubmit, 
+  isLoading, 
+  existingVehicle,
+  value: externalValue,
+  onChange: externalOnChange,
+  error: externalError
+}) => {
+  const [vin, setVin] = useState(externalValue || '');
+  const [error, setError] = useState<string | null>(externalError || null);
+
+  // Update local state when external value changes
+  React.useEffect(() => {
+    if (externalValue !== undefined && externalValue !== vin) {
+      setVin(externalValue);
+    }
+  }, [externalValue]);
+
+  // Update local error when external error changes
+  React.useEffect(() => {
+    if (externalError !== undefined) {
+      setError(externalError);
+    }
+  }, [externalError]);
+
+  const handleVinChange = (newVin: string) => {
+    setVin(newVin);
+    if (externalOnChange) {
+      externalOnChange(newVin);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +76,7 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, isLoadin
           type="text"
           placeholder="Enter 17-character VIN"
           value={vin}
-          onChange={(e) => setVin(e.target.value.toUpperCase())}
+          onChange={(e) => handleVinChange(e.target.value.toUpperCase())}
           disabled={isLoading}
         />
         {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
