@@ -1,0 +1,42 @@
+
+name: Route Integrity Check
+
+on:
+  push:
+    branches: [ main, master, staging ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  route-integrity:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+        
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps
+      
+    - name: Run route integrity tests
+      run: npx playwright test e2e/route-integrity.spec.ts
+      
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30

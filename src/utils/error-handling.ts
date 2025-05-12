@@ -1,8 +1,9 @@
-
 interface ErrorDetails {
   message: string;
   code?: string;
   context?: string;
+  severity?: 'warning' | 'error' | 'critical';
+  timestamp?: Date;
 }
 
 class ErrorHandler {
@@ -33,13 +34,30 @@ class ErrorHandler {
     };
   }
 
-  // Add report method for compatibility with EnhancedErrorBoundary
-  report(error: unknown, context?: string): void {
-    const details = this.handle(error, context);
+  // Reporting method for centralized error tracking
+  report(details: ErrorDetails): void {
     console.error('Error reported:', details);
     
     // Here you would typically send the error to a monitoring service
-    // For now, we just log it to the console
+    // For example: Sentry, LogRocket, etc.
+    
+    try {
+      // Save error to localStorage for debugging
+      const errors = JSON.parse(localStorage.getItem('app_errors') || '[]');
+      errors.push({
+        ...details,
+        timestamp: details.timestamp || new Date()
+      });
+      
+      // Keep only the last 20 errors
+      if (errors.length > 20) {
+        errors.splice(0, errors.length - 20);
+      }
+      
+      localStorage.setItem('app_errors', JSON.stringify(errors));
+    } catch (e) {
+      // Ignore localStorage errors
+    }
   }
 }
 

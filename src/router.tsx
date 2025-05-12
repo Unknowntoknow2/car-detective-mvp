@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -18,6 +18,20 @@ import PremiumDealerManagementPage from '@/pages/admin/PremiumDealerManagement';
 import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
 import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
 import DealerInsightsPage from '@/pages/DealerInsightsPage';
+import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
+
+// Lazy-loaded components
+const LazyDealerInsightsPage = lazy(() => import('@/pages/DealerInsightsPage'));
+
+// Page loading fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <p className="mt-4 text-muted-foreground">Loading page...</p>
+    </div>
+  </div>
+);
 
 // Since we now use Router in App.tsx, we'll create the router configuration differently
 // This file is useful if you want to use Data Routers with createBrowserRouter instead
@@ -74,7 +88,9 @@ const router = createBrowserRouter([
         path: 'dealer-dashboard',
         element: (
           <AuthGuard>
-            <DealerDashboard />
+            <EnhancedErrorBoundary context="dealer-dashboard">
+              <DealerDashboard />
+            </EnhancedErrorBoundary>
           </AuthGuard>
         ),
       },
@@ -90,7 +106,11 @@ const router = createBrowserRouter([
         path: 'dealer-insights',
         element: (
           <AuthGuard>
-            <DealerInsightsPage />
+            <EnhancedErrorBoundary context="dealer-insights">
+              <Suspense fallback={<PageLoader />}>
+                <LazyDealerInsightsPage />
+              </Suspense>
+            </EnhancedErrorBoundary>
           </AuthGuard>
         ),
       },
@@ -115,19 +135,35 @@ const router = createBrowserRouter([
   // Public routes
   {
     path: '/view-offer/:token',
-    element: <ViewOfferPage />,
+    element: (
+      <EnhancedErrorBoundary context="view-offer">
+        <ViewOfferPage />
+      </EnhancedErrorBoundary>
+    ),
   },
   {
     path: '/share/:token',
-    element: <SharedValuationPage />,
+    element: (
+      <EnhancedErrorBoundary context="shared-valuation">
+        <SharedValuationPage />
+      </EnhancedErrorBoundary>
+    ),
   },
   {
     path: '/payment/success',
-    element: <PaymentSuccessPage />,
+    element: (
+      <EnhancedErrorBoundary context="payment-success">
+        <PaymentSuccessPage />
+      </EnhancedErrorBoundary>
+    ),
   },
   {
     path: '/payment/cancelled',
-    element: <PaymentCancelledPage />,
+    element: (
+      <EnhancedErrorBoundary context="payment-cancelled">
+        <PaymentCancelledPage />
+      </EnhancedErrorBoundary>
+    ),
   },
 ]);
 
