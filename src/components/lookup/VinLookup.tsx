@@ -22,8 +22,9 @@ export const VinLookup = () => {
         console.log('FREE VIN: Response from API:', response);
         if (response) {
           console.log('FREE VIN: Lookup successful, result available');
-          localStorage.setItem('latest_valuation_id', response.valuationId || '');
-          console.log('FREE VIN: Stored valuationId in localStorage:', response.valuationId);
+          // Store valuationId in localStorage if available from the API response
+          const responseId = localStorage.getItem('latest_valuation_id') || '';
+          console.log('FREE VIN: Current valuationId in localStorage:', responseId);
         } else {
           console.warn('FREE VIN: No response or error occurred during lookup');
         }

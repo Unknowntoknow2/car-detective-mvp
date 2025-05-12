@@ -11,36 +11,73 @@ import { toast } from "sonner";
 
 interface LookupTabsProps {
   defaultTab?: string;
+  onSubmit?: (type: string, value: string, state?: string) => void;
 }
 
-export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
+export function LookupTabs({ defaultTab = "vin", onSubmit }: LookupTabsProps) {
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
+
+  // Handle VIN submission
+  const handleVinSubmit = (vin: string) => {
+    console.log("VIN form submitted:", vin);
+    if (onSubmit) {
+      onSubmit("vin", vin);
+    } else {
+      handleDefaultSubmit("vin", vin);
+    }
+  };
+
+  // Handle plate submission
+  const handlePlateSubmit = (plate: string, state: string) => {
+    console.log("Plate form submitted:", { plate, state });
+    if (onSubmit) {
+      onSubmit("plate", plate, state);
+    } else {
+      handleDefaultSubmit("plate", plate, state);
+    }
+  };
 
   // Handle manual entry form submission
   const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log("Manual entry form submitted:", data);
     
+    if (onSubmit) {
+      onSubmit("manual", JSON.stringify(data));
+    } else {
+      handleDefaultSubmit("manual", JSON.stringify(data));
+    }
+  };
+
+  // Default submission handler when no onSubmit prop is provided
+  const handleDefaultSubmit = (type: string, value: string, state?: string) => {
+    console.log(`Default ${type} submission handler:`, { value, state });
+    
     try {
       // Save form data to localStorage for use in results page
-      localStorage.setItem('manual_entry_data', JSON.stringify(data));
+      if (type === "manual") {
+        localStorage.setItem('manual_entry_data', value);
+      }
       
       // Generate a temporary ID for the valuation
       const tempId = crypto.randomUUID();
       localStorage.setItem('latest_valuation_id', tempId);
       
-      // Create a temp valuation object
-      const tempValuation = {
-        id: tempId,
-        make: data.make,
-        model: data.model,
-        year: parseInt(data.year.toString()),
-        mileage: parseInt(data.mileage.toString()),
-        estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000),
-        condition_score: 70,
-        is_manual_entry: true
-      };
-      
-      localStorage.setItem('temp_valuation_data', JSON.stringify(tempValuation));
+      // Create a temp valuation object if this is manual data
+      if (type === "manual") {
+        const data = JSON.parse(value);
+        const tempValuation = {
+          id: tempId,
+          make: data.make,
+          model: data.model,
+          year: parseInt(data.year.toString()),
+          mileage: parseInt(data.mileage.toString()),
+          estimated_value: Math.floor(Math.random() * (35000 - 15000) + 15000),
+          condition_score: 70,
+          is_manual_entry: true
+        };
+        
+        localStorage.setItem('temp_valuation_data', JSON.stringify(tempValuation));
+      }
       
       // Show success message
       toast.success('Vehicle information submitted successfully');
@@ -48,7 +85,7 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
       // Navigate to results page
       window.location.href = `/result?valuationId=${tempId}&temp=true`;
     } catch (error) {
-      console.error('Error processing manual entry:', error);
+      console.error(`Error processing ${type} entry:`, error);
       toast.error('Error processing your information');
     }
   };
@@ -94,7 +131,7 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
             <CardDescription>Enter your Vehicle Identification Number for a detailed analysis</CardDescription>
           </CardHeader>
           <CardContent>
-            <VinDecoderForm />
+            <VinDecoderForm onSubmit={handleVinSubmit} />
           </CardContent>
         </Card>
       </TabsContent>
@@ -106,7 +143,7 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
             <CardDescription>Look up your vehicle using license plate information</CardDescription>
           </CardHeader>
           <CardContent>
-            <PlateDecoderForm />
+            <PlateDecoderForm onSubmit={handlePlateSubmit} />
           </CardContent>
         </Card>
       </TabsContent>

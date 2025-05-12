@@ -2,7 +2,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { LookupTabs } from "@/components/home/LookupTabs";
 import { useValuation } from "@/contexts/ValuationContext";
@@ -11,15 +10,20 @@ import { toast } from "sonner";
 
 interface PremiumTabsProps {
   showFreeValuation?: boolean;
+  onSubmit?: (type: string, value: string, state?: string, data?: any) => void;
 }
 
-export function PremiumTabs({ showFreeValuation = true }: PremiumTabsProps) {
+export function PremiumTabs({ 
+  showFreeValuation = true,
+  onSubmit
+}: PremiumTabsProps) {
   // If showFreeValuation is false, we'll default to premium tab
   const defaultTab = showFreeValuation ? "basic" : "premium";
   const { processPremiumValuation, isProcessing } = useValuation();
   const [upgrading, setUpgrading] = useState(false);
   
   const handlePremiumUpgrade = async () => {
+    console.log("PREMIUM: Upgrade button clicked");
     setUpgrading(true);
     try {
       // Here we would typically handle the payment flow
@@ -27,11 +31,32 @@ export function PremiumTabs({ showFreeValuation = true }: PremiumTabsProps) {
       toast.success("Redirecting to premium checkout...");
       // Simulate delay
       await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("PREMIUM: Redirecting to premium checkout page");
       window.location.href = "/premium";
     } catch (error) {
+      console.error("PREMIUM: Error during upgrade:", error);
       toast.error("Failed to process premium upgrade");
     } finally {
       setUpgrading(false);
+    }
+  };
+
+  const handleLookupSubmit = (type: string, value: string, state?: string) => {
+    console.log(`PREMIUM ${type.toUpperCase()}: Form submitted:`, { value, state });
+    
+    if (onSubmit) {
+      onSubmit(type, value, state);
+    } else {
+      // Default handling if no onSubmit provided
+      processPremiumValuation(type, value, state).then(result => {
+        console.log(`PREMIUM ${type.toUpperCase()}: Result:`, result);
+        if (result?.valuationId) {
+          console.log(`PREMIUM ${type.toUpperCase()}: Valuation ID:`, result.valuationId);
+          localStorage.setItem('latest_valuation_id', result.valuationId);
+        }
+      }).catch(err => {
+        console.error(`PREMIUM ${type.toUpperCase()}: Error:`, err);
+      });
     }
   };
   
@@ -65,7 +90,7 @@ export function PremiumTabs({ showFreeValuation = true }: PremiumTabsProps) {
               <CardDescription>Get a quick, AI-powered estimate based on market data.</CardDescription>
             </CardHeader>
             <CardContent>
-              <LookupTabs />
+              <LookupTabs onSubmit={handleLookupSubmit} />
             </CardContent>
           </Card>
         </TabsContent>
