@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { FileDown, Loader2, Mail, Share2 } from 'lucide-react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { LoadingState } from '@/components/premium/common/LoadingState';
-import { ErrorState } from '@/components/premium/common/ErrorState';
+import { ErrorState } from '@/components/valuation/result/ErrorState';
 import { FeaturesDisplay } from '@/components/premium/form/steps/prediction-review/FeaturesDisplay';
 
 // Define a common VehicleInfo type to avoid conflicts
@@ -64,7 +65,8 @@ export function UnifiedValuationResult({
   const {
     data,
     isLoading,
-    error
+    error,
+    refetch
   } = useValuationResult(shouldFetchFromApi ? valuationId : undefined);
   
   // Use provided data or API data
@@ -135,7 +137,7 @@ export function UnifiedValuationResult({
   }
   
   if (error && shouldFetchFromApi) {
-    return <ErrorState message="Failed to load valuation result" />;
+    return <ErrorState message="Failed to load valuation result" onRetry={() => refetch()} />;
   }
   
   if (!valuationData) {
