@@ -4,6 +4,6 @@ export {
   formatCurrency,
   formatDate,
   formatNumber,
-  formatRelativeTime 
+  formatRelativeTime,
+  manualEntryToJson
 } from '../formatters';
-
