@@ -28,10 +28,10 @@ export function PredictionReviewStep({
   handleReset
 }: PredictionReviewStepProps) {
   const { 
-    isProcessing: isLoading, 
+    isLoading, 
     error, 
-    lastValuationResult: predictionResult, 
-    processPremiumValuation: fetchValuationPrediction 
+    predictionResult, 
+    fetchValuationPrediction 
   } = useValuation();
   
   // Automatically set this step as valid
@@ -114,7 +114,6 @@ export function PredictionReviewStep({
           <GetValuationButton
             onClick={handleGetValuation}
             isLoading={isLoading}
-            isFormValid={isFormValid}
             disabled={!isFormValid}
           />
         )}

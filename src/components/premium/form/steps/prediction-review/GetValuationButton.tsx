@@ -8,20 +8,18 @@ interface GetValuationButtonProps {
   disabled?: boolean;
   isLoading?: boolean;
   isPremium?: boolean;
-  isFormValid?: boolean; // Add isFormValid prop
 }
 
 export function GetValuationButton({
   onClick,
   disabled = false,
   isLoading = false,
-  isPremium = true,
-  isFormValid = true // Default to true
+  isPremium = true
 }: GetValuationButtonProps) {
   return (
     <Button
       onClick={onClick}
-      disabled={disabled || !isFormValid}
+      disabled={disabled}
       variant={isPremium ? "premium" : "default"}
       className="flex items-center gap-2"
     >
