@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,22 @@ import { PremiumDealerBadge } from '@/components/dealer/PremiumDealerBadge';
 import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BadgeCheck, Info, TrendingUp, Star, ChartBarIcon, BarChart } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-const DealerDashboard = () => {
+const LoadingState = () => (
+  <div className="container max-w-5xl mx-auto px-4 py-8">
+    <div className="space-y-6">
+      <Skeleton className="h-12 w-3/4 mb-2" />
+      <Skeleton className="h-6 w-1/2 mb-8" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
+
+const DealerDashboardContent = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
@@ -109,18 +122,7 @@ const DealerDashboard = () => {
   };
 
   if (loading || premiumLoading) {
-    return (
-      <div className="container max-w-5xl mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <Skeleton className="h-12 w-3/4 mb-2" />
-          <Skeleton className="h-6 w-1/2 mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Skeleton className="h-64 w-full rounded-xl" />
-            <Skeleton className="h-64 w-full rounded-xl" />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -283,6 +285,31 @@ const DealerDashboard = () => {
         </Tabs>
       </div>
     </div>
+  );
+};
+
+const DealerDashboard = () => {
+  return (
+    <ErrorBoundary fallback={
+      <div className="container p-8">
+        <div className="p-6 rounded-lg bg-red-50 border border-red-200 text-center">
+          <h2 className="text-xl font-semibold text-red-700 mb-4">Dashboard Error</h2>
+          <p className="text-red-600 mb-6">
+            We encountered an issue loading the dealer dashboard. Please try again or contact support.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="destructive"
+          >
+            Reload Dashboard
+          </Button>
+        </div>
+      </div>
+    }>
+      <Suspense fallback={<LoadingState />}>
+        <DealerDashboardContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 
