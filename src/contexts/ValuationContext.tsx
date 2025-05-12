@@ -76,10 +76,15 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Prepare the input with all required fields and proper defaults
+      // Ensure year is converted to a number
+      const parsedYear = typeof valuationData.year === 'string' 
+        ? parseInt(valuationData.year, 10) 
+        : valuationData.year || new Date().getFullYear();
+      
       const input = {
         make: valuationData.make || 'Unknown',
         model: valuationData.model || 'Unknown',
-        year: valuationData.year || new Date().getFullYear(),
+        year: parsedYear,
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Good',
         zipCode: valuationData.zipCode || '10001',
@@ -144,11 +149,16 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
       // Calculate base market value - premium users get a more accurate base value
       const baseMarketValue = valuationData.baseMarketValue || 25000;
       
+      // Ensure year is converted to a number for premium valuation
+      const parsedYear = typeof valuationData.year === 'string' 
+        ? parseInt(valuationData.year, 10) 
+        : valuationData.year || new Date().getFullYear();
+      
       // For the premium valuation, prepare input with all required fields
       const input = {
         make: valuationData.make || 'Unknown',
         model: valuationData.model || 'Unknown',
-        year: valuationData.year || new Date().getFullYear(),
+        year: parsedYear,
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Good',
         zipCode: valuationData.zipCode || '10001',
