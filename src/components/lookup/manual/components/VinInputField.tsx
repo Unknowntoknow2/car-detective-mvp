@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
-import { isValidVIN, validateVin } from '@/utils/validation/vin-validation';
+import { validateVin } from '@/utils/validation/vin-validation';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 import { AlertCircle } from 'lucide-react';
 
