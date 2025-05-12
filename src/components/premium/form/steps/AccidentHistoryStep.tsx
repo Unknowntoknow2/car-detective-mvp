@@ -29,7 +29,7 @@ export function AccidentHistoryStep({
     updateValidity(step, isValid);
   }, [formData.hasAccident, formData.accidentDescription, step, updateValidity]);
 
-  const handleAccidentChange = (value: string) => {
+  const handleAccidentChange = (value: 'yes' | 'no') => {
     setFormData(prev => ({
       ...prev,
       hasAccident: value,
@@ -65,7 +65,7 @@ export function AccidentHistoryStep({
           </Label>
           <RadioGroup
             value={hasAccidentStr}
-            onValueChange={handleAccidentChange}
+            onValueChange={(val) => handleAccidentChange(val as 'yes' | 'no')}
             className="flex space-x-4 mt-2"
           >
             <div className="flex items-center space-x-2">

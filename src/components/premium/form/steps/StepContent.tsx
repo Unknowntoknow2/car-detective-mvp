@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { VehicleIdentificationStep } from './VehicleIdentificationStep';
-import { FormData } from '@/types/premium-valuation';
+import type { FormData } from '@/types/premium-valuation';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { VehicleDetailsStep } from './VehicleDetailsStep';
 import { FeatureSelectionStep } from './FeatureSelectionStep';
@@ -81,11 +81,11 @@ export function StepContent({
       }
       
       // Upload photos and trigger AI analysis
-      const formData = new FormData();
+      const formDataObj = new FormData();
       photos.forEach(photo => {
-        formData.append('photos', photo);
+        formDataObj.append('photos', photo);
       });
-      formData.append('valuationId', currentValuationId);
+      formDataObj.append('valuationId', currentValuationId);
       
       // Call edge function to process photos
       const result = await supabase.functions.invoke('score-image', {
@@ -145,6 +145,7 @@ export function StepContent({
         setFormData(prev => ({
           ...prev,
           estimatedValue: data.estimatedValue,
+          valuation: data.estimatedValue, // Set both for compatibility
           confidenceScore: data.confidenceScore || 85,
           priceRange: data.priceRange || [data.estimatedValue * 0.9, data.estimatedValue * 1.1],
           adjustments: data.adjustments || []
@@ -177,7 +178,6 @@ export function StepContent({
           formData={formData}
           setFormData={setFormData}
           updateValidity={updateStepValidity}
-          onComplete={triggerPricePrediction}
         />
       );
     case 3:
@@ -187,7 +187,6 @@ export function StepContent({
           formData={formData}
           setFormData={setFormData}
           updateValidity={updateStepValidity}
-          onFeaturesChange={triggerPricePrediction}
         />
       );
     case 4:
@@ -197,7 +196,6 @@ export function StepContent({
           formData={formData}
           setFormData={setFormData}
           updateValidity={updateStepValidity}
-          onConditionChange={triggerPricePrediction}
         />
       );
     case 5:

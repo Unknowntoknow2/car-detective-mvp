@@ -13,7 +13,7 @@ interface AccidentHistorySectionProps {
 }
 
 export function AccidentHistorySection({ formData, setFormData, errors }: AccidentHistorySectionProps) {
-  const toggleAccidentHistory = (hasAccident: string) => {
+  const toggleAccidentHistory = (hasAccident: 'yes' | 'no') => {
     setFormData(prev => ({
       ...prev,
       hasAccident,

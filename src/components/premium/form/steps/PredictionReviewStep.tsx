@@ -41,10 +41,10 @@ export function PredictionReviewStep({
 
   // Check if we already have valuation data
   useEffect(() => {
-    if (formData.valuation && formData.confidenceScore && formData.valuationId) {
+    if (formData.estimatedValue && formData.confidenceScore && formData.valuationId) {
       // Already have prediction data, no need to fetch
       const existingResult = {
-        estimatedValue: formData.valuation,
+        estimatedValue: formData.estimatedValue,
         confidenceScore: formData.confidenceScore,
         id: formData.valuationId,
         priceRange: formData.priceRange
@@ -60,7 +60,7 @@ export function PredictionReviewStep({
       // Update the form data with the valuation results
       setFormData(prev => ({
         ...prev,
-        valuation: result.estimatedValue,
+        estimatedValue: result.estimatedValue,
         confidenceScore: result.confidenceScore,
         valuationId: result.id,
         priceRange: result.priceRange

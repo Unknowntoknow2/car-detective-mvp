@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Label } from '@/components/ui/label';
@@ -94,7 +95,8 @@ export function FeatureSelectionStep({
     setFormData(prev => ({
       ...prev,
       saleDate: values.saleDate,
-      bodyStyle: values.bodyStyle
+      bodyStyle: values.bodyStyle, // Using bodyStyle as defined in FormData interface
+      bodyType: values.bodyStyle  // Also set bodyType for compatibility
     }));
   };
   
@@ -118,7 +120,7 @@ export function FeatureSelectionStep({
           <SeasonalAdjustment 
             onChange={handleSeasonalChange}
             defaultDate={formData.saleDate || new Date()}
-            defaultBodyStyle={formData.bodyStyle}
+            defaultBodyStyle={formData.bodyStyle || formData.bodyType}
           />
         </CardContent>
       </Card>

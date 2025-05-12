@@ -4,7 +4,7 @@ import { Check, AlertTriangle } from 'lucide-react';
 
 interface AccidentToggleProps {
   hasAccident: string | boolean;
-  onToggle: (hasAccident: string) => void;
+  onToggle: (hasAccident: 'yes' | 'no') => void;
 }
 
 export function AccidentToggle({ hasAccident, onToggle }: AccidentToggleProps) {

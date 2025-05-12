@@ -24,7 +24,7 @@ export function DrivingBehaviorStep({
     if (!formData.drivingProfile) {
       setFormData(prev => ({
         ...prev,
-        drivingProfile: 'Normal'
+        drivingProfile: 'average' // Changed from "Normal" to "average" to match the type
       }));
     }
     
@@ -33,9 +33,15 @@ export function DrivingBehaviorStep({
   }, [step, formData.drivingProfile, setFormData, updateValidity]);
   
   const handleDrivingProfileChange = (value: string) => {
+    // Ensure we're only setting allowed values
+    let validValue = value;
+    if (value !== 'light' && value !== 'average' && value !== 'heavy') {
+      validValue = 'average'; // Default to average if not a valid option
+    }
+    
     setFormData(prev => ({
       ...prev,
-      drivingProfile: value
+      drivingProfile: validValue as 'light' | 'average' | 'heavy'
     }));
   };
   
@@ -52,12 +58,12 @@ export function DrivingBehaviorStep({
       <Card>
         <CardContent className="pt-6">
           <RadioGroup 
-            value={formData.drivingProfile || 'Normal'} 
+            value={formData.drivingProfile} 
             onValueChange={handleDrivingProfileChange}
             className="space-y-4"
           >
             <div className="flex items-start space-x-2">
-              <RadioGroupItem value="Careful" id="careful" className="mt-1" />
+              <RadioGroupItem value="light" id="careful" className="mt-1" />
               <div className="grid gap-1.5">
                 <Label htmlFor="careful" className="font-medium flex items-center">
                   <ShieldCheck className="h-4 w-4 text-blue-500 mr-2" />
@@ -71,7 +77,7 @@ export function DrivingBehaviorStep({
             </div>
             
             <div className="flex items-start space-x-2">
-              <RadioGroupItem value="Normal" id="normal" className="mt-1" />
+              <RadioGroupItem value="average" id="normal" className="mt-1" />
               <div className="grid gap-1.5">
                 <Label htmlFor="normal" className="font-medium flex items-center">
                   <Car className="h-4 w-4 text-green-500 mr-2" />
@@ -85,7 +91,7 @@ export function DrivingBehaviorStep({
             </div>
             
             <div className="flex items-start space-x-2">
-              <RadioGroupItem value="Spirited" id="spirited" className="mt-1" />
+              <RadioGroupItem value="heavy" id="spirited" className="mt-1" />
               <div className="grid gap-1.5">
                 <Label htmlFor="spirited" className="font-medium flex items-center">
                   <Gauge className="h-4 w-4 text-amber-500 mr-2" />

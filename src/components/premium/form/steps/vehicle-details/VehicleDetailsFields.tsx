@@ -19,14 +19,14 @@ interface VehicleDetailsFieldsProps {
 }
 
 export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleDetailsFieldsProps) {
-  const [colorMultiplier, setColorMultiplier] = useState<number>(1);
+  const [colorMultiplier, setColorMultiplier] = useState<number>(formData.colorMultiplier || 1);
   const [isZipValid, setIsZipValid] = useState<boolean | undefined>(undefined);
   
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      mileage: value === '' ? null : Number(value)
+      mileage: value === '' ? undefined : Number(value)
     }));
   };
 
@@ -73,7 +73,8 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
   const handleBodyStyleChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      bodyStyle: value
+      bodyStyle: value,
+      bodyType: value // Setting both for compatibility
     }));
   };
 
@@ -181,7 +182,7 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
       <div className="space-y-2">
         <Label htmlFor="bodyStyle" className="text-sm font-medium block">Body Style</Label>
         <Select
-          value={formData.bodyStyle || ''}
+          value={formData.bodyStyle || formData.bodyType || ''}
           onValueChange={handleBodyStyleChange}
         >
           <SelectTrigger id="bodyStyle" className="h-12">

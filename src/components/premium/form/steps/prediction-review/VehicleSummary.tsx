@@ -62,17 +62,17 @@ export function VehicleSummary({ formData, aiConditionUsed }: VehicleSummaryProp
             <span className="font-medium">{formData.interiorColor}</span>
           </div>
         )}
-        {formData.bodyStyle && (
+        {(formData.bodyStyle || formData.bodyType) && (
           <div>
             <span className="text-gray-500 block">Body Style</span>
-            <span className="font-medium">{formData.bodyStyle}</span>
+            <span className="font-medium">{formData.bodyStyle || formData.bodyType}</span>
           </div>
         )}
         <div>
           <span className="text-gray-500 block">Accident History</span>
           <span className="font-medium">{hasAccidentDisplay}</span>
         </div>
-        {formData.features.length > 0 && (
+        {formData.features && formData.features.length > 0 && (
           <div className="col-span-2">
             <span className="text-gray-500 block">Features</span>
             <span className="font-medium">{formData.features.length} premium features selected</span>
