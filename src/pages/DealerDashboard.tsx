@@ -113,6 +113,7 @@ const DealerDashboard = () => {
           
           <TabsContent value="offers">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Remove the dealerId prop */}
               <DealerOffersTracker />
               
               <Card>
