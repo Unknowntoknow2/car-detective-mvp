@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,7 +131,7 @@ export function UnifiedValuationResult({
   };
   
   if (isLoading && shouldFetchFromApi) {
-    return <LoadingState>Loading valuation result...</LoadingState>;
+    return <LoadingState text="Loading valuation result..." />;
   }
   
   if (error && shouldFetchFromApi) {

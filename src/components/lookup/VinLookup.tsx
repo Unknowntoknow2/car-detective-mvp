@@ -36,7 +36,19 @@ export const VinLookup = () => {
         />
       ) : (
         <>
-          <VinDecoderResults decodedVin={result} />
+          <VinDecoderResults 
+            stage="initial" 
+            result={result} 
+            pipelineVehicle={null}
+            requiredInputs={null}
+            valuationResult={null}
+            valuationError={null}
+            pipelineLoading={false}
+            submitValuation={async () => {}}
+            vin={vinNumber}
+            carfaxData={null}
+            onDownloadPdf={() => {}}
+          />
           <Button 
             variant="outline" 
             className="mt-4" 
