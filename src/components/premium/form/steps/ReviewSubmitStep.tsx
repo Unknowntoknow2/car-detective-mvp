@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileText, RotateCcw } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { FormData } from '@/types/premium-valuation';
-import { ValuationResultCard } from './prediction-review/ValuationResultCard';
-import { VehicleSummaryCard } from './prediction-review/VehicleSummaryCard';
+import { motion } from 'framer-motion';
+import { VehicleSummary } from './prediction-review/VehicleSummary';
 import { FeaturesDisplay } from './prediction-review/FeaturesDisplay';
+import { GetValuationButton } from './prediction-review/GetValuationButton';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { ValuationResultCard } from './prediction-review/ValuationResultCard';
 
 interface ReviewSubmitStepProps {
   step: number;
@@ -14,6 +15,9 @@ interface ReviewSubmitStepProps {
   isFormValid: boolean;
   handleSubmit: () => void;
   handleReset: () => void;
+  isSubmitting?: boolean;
+  submitError?: string | null;
+  isFreeVersion?: boolean; // Add this prop
 }
 
 export function ReviewSubmitStep({
@@ -21,102 +25,75 @@ export function ReviewSubmitStep({
   formData,
   isFormValid,
   handleSubmit,
-  handleReset
+  handleReset,
+  isSubmitting = false,
+  submitError = null,
+  isFreeVersion = false // Default to false
 }: ReviewSubmitStepProps) {
-  // Create a simple prediction of the valuation for display
-  const estimatedValue = calculateEstimatedValue(formData);
+  const hasEstimatedValue = formData.estimatedValue !== undefined;
   
-  // Mock prediction result for display
-  const predictionResult = {
-    estimatedValue,
-    priceRange: [Math.round(estimatedValue * 0.95), Math.round(estimatedValue * 1.05)],
-    confidenceScore: 85,
-    valuationFactors: [
-      { factor: 'Mileage', impact: -3, description: 'Higher than average' },
-      { factor: 'Condition', impact: 2, description: formData.conditionLabel || 'Good' },
-      { factor: 'Location', impact: 1, description: 'High demand area' },
-      { factor: 'Features', impact: formData.features?.length > 2 ? 2 : 1, description: 'Popular options' }
-    ]
-  };
-
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">Review Information</h2>
-        <p className="text-muted-foreground mt-1">
-          Please review your information before getting your valuation
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <VehicleSummaryCard formData={formData} />
+      <div className="rounded-lg border p-6 space-y-6 bg-white shadow-sm">
+        <h3 className="text-xl font-semibold">Review Your Vehicle Information</h3>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <VehicleSummary formData={formData} />
           
-          {formData.features && formData.features.length > 0 && (
+          {!isFreeVersion && formData.features && formData.features.length > 0 && (
             <FeaturesDisplay features={formData.features} />
           )}
-          
-          <Card className="p-4">
-            <h3 className="font-medium mb-2">Driving Profile</h3>
-            <p>{formData.drivingProfile || 'Normal'}</p>
-          </Card>
-          
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className="w-full"
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset Form
-          </Button>
         </div>
+
+        {hasEstimatedValue && (
+          <ValuationResultCard 
+            estimatedValue={formData.estimatedValue}
+            confidenceScore={formData.confidenceScore}
+            priceRange={formData.priceRange}
+          />
+        )}
         
-        <ValuationResultCard
-          predictionResult={predictionResult}
-          isLoading={false}
-          isFormValid={isFormValid}
-          handleSubmit={handleSubmit}
-        />
-      </div>
-      
-      <div className="pt-4 text-center">
-        <Button
-          onClick={handleSubmit}
-          size="lg"
-          className="w-full md:w-auto"
-          disabled={!isFormValid}
-          data-testid="submit-valuation"
-        >
-          <FileText className="mr-2 h-4 w-4" />
-          Get Premium Valuation
-        </Button>
+        {submitError && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-start gap-3 text-red-700">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+            <p>{submitError}</p>
+          </div>
+        )}
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-between pt-4">
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            disabled={isSubmitting}
+          >
+            Start Over
+          </Button>
+          
+          {!hasEstimatedValue ? (
+            <GetValuationButton 
+              onClick={handleSubmit}
+              disabled={!isFormValid || isSubmitting}
+              isLoading={isSubmitting}
+              isPremium={!isFreeVersion} // Premium button for premium valuation, standard for free
+            />
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                isFreeVersion ? "Get Free Valuation" : "Download Premium Report"
+              )}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
-}
-
-// Helper function to calculate a simple estimated value based on form data
-function calculateEstimatedValue(formData: FormData): number {
-  // Base values by year (newer = higher value)
-  const currentYear = new Date().getFullYear();
-  const yearDifference = currentYear - (formData.year || currentYear);
-  let baseValue = 30000 - (yearDifference * 1500);
-  
-  // Adjust for mileage (higher mileage = lower value)
-  const mileage = formData.mileage || 0;
-  const mileageDeduction = mileage > 50000 ? 
-    ((mileage - 50000) / 10000) * 500 : 0;
-  
-  // Adjust for condition (better condition = higher value)
-  const conditionValue = formData.condition ? parseInt(formData.condition) : 50;
-  const conditionMultiplier = conditionValue / 50;
-  
-  // Features add value
-  const featuresBonus = (formData.features?.length || 0) * 250;
-  
-  // Calculate final value
-  let estimatedValue = (baseValue - mileageDeduction) * conditionMultiplier + featuresBonus;
-  
-  // Set minimum value
-  return Math.max(5000, Math.round(estimatedValue));
 }

@@ -1,42 +1,39 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2 } from 'lucide-react';
+import { Loader2, TrendingUp } from 'lucide-react';
 
 interface GetValuationButtonProps {
-  isLoading: boolean;
-  isFormValid: boolean;
-  onGetValuation: () => void;
+  onClick: () => void;
+  disabled?: boolean;
+  isLoading?: boolean;
+  isPremium?: boolean; // Add isPremium prop
 }
 
-export function GetValuationButton({ 
-  isLoading, 
-  isFormValid, 
-  onGetValuation 
+export function GetValuationButton({
+  onClick,
+  disabled = false,
+  isLoading = false,
+  isPremium = true // Default to premium
 }: GetValuationButtonProps) {
   return (
-    <div className="text-center py-8">
-      <Button
-        onClick={onGetValuation}
-        size="lg"
-        disabled={isLoading || !isFormValid}
-        className="relative"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Calculating Valuation...
-          </>
-        ) : (
-          <>
-            <Check className="mr-2 h-4 w-4" />
-            Get Premium Valuation
-          </>
-        )}
-      </Button>
-      <p className="text-sm text-gray-500 mt-2">
-        Our AI will analyze your vehicle details and provide an accurate valuation
-      </p>
-    </div>
+    <Button
+      onClick={onClick}
+      disabled={disabled}
+      variant={isPremium ? "premium" : "default"}
+      className="flex items-center gap-2"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Processing...
+        </>
+      ) : (
+        <>
+          <TrendingUp className="h-4 w-4" />
+          {isPremium ? "Get Premium Valuation" : "Get Free Valuation"}
+        </>
+      )}
+    </Button>
   );
 }
