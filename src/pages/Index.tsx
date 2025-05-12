@@ -45,15 +45,17 @@ export default function Index() {
     if (state) console.log(`HOME FREE ${type.toUpperCase()}: State:`, state);
     
     // Process valuation through context
-    processFreeValuation(type, value, state).then(result => {
-      console.log(`HOME FREE ${type.toUpperCase()}: Valuation result:`, result);
-      if (result?.valuationId) {
-        console.log(`HOME FREE ${type.toUpperCase()}: Got valuationId:`, result.valuationId);
-        localStorage.setItem('latest_valuation_id', result.valuationId);
-      }
-    }).catch(error => {
-      console.error(`HOME FREE ${type.toUpperCase()}: Error:`, error);
-    });
+    processFreeValuation(type, value, state)
+      .then(result => {
+        console.log(`HOME FREE ${type.toUpperCase()}: Valuation result:`, result);
+        if (result?.valuationId) {
+          console.log(`HOME FREE ${type.toUpperCase()}: Got valuationId:`, result.valuationId);
+          localStorage.setItem('latest_valuation_id', result.valuationId);
+        }
+      })
+      .catch(error => {
+        console.error(`HOME FREE ${type.toUpperCase()}: Error:`, error);
+      });
   };
 
   const handlePremiumFormSubmit = (type: string, value: string, state?: string, data?: any) => {
@@ -62,11 +64,13 @@ export default function Index() {
     if (data) console.log(`HOME PREMIUM ${type.toUpperCase()}: Data:`, data);
     
     // Process premium valuation
-    processPremiumValuation(type, value, state, data).then(result => {
-      console.log(`HOME PREMIUM ${type.toUpperCase()}: Premium valuation result:`, result);
-    }).catch(error => {
-      console.error(`HOME PREMIUM ${type.toUpperCase()}: Error:`, error);
-    });
+    processPremiumValuation(type, value, state, data)
+      .then(result => {
+        console.log(`HOME PREMIUM ${type.toUpperCase()}: Premium valuation result:`, result);
+      })
+      .catch(error => {
+        console.error(`HOME PREMIUM ${type.toUpperCase()}: Error:`, error);
+      });
   };
 
   return (

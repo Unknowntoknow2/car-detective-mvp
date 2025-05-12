@@ -48,15 +48,17 @@ export function PremiumTabs({
       onSubmit(type, value, state);
     } else {
       // Default handling if no onSubmit provided
-      processPremiumValuation(type, value, state).then(result => {
-        console.log(`PREMIUM ${type.toUpperCase()}: Result:`, result);
-        if (result?.valuationId) {
-          console.log(`PREMIUM ${type.toUpperCase()}: Valuation ID:`, result.valuationId);
-          localStorage.setItem('latest_valuation_id', result.valuationId);
-        }
-      }).catch(err => {
-        console.error(`PREMIUM ${type.toUpperCase()}: Error:`, err);
-      });
+      processPremiumValuation(type, value, state)
+        .then(result => {
+          console.log(`PREMIUM ${type.toUpperCase()}: Result:`, result);
+          if (result?.valuationId) {
+            console.log(`PREMIUM ${type.toUpperCase()}: Valuation ID:`, result.valuationId);
+            localStorage.setItem('latest_valuation_id', result.valuationId);
+          }
+        })
+        .catch(err => {
+          console.error(`PREMIUM ${type.toUpperCase()}: Error:`, err);
+        });
     }
   };
   
