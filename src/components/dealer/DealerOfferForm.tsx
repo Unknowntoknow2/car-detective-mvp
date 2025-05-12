@@ -2,82 +2,110 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, DollarSign, MessageSquare } from 'lucide-react';
 
 interface DealerOfferFormProps {
   onSubmit: (data: { amount: number; message: string }) => void;
-  isLoading?: boolean;
+  isLoading: boolean;
   valuationDetails?: {
-    make: string;
-    model: string;
-    year: number;
+    make?: string;
+    model?: string;
+    year?: number;
+    trim?: string;
   };
+  initialAmount?: number;
 }
 
 export function DealerOfferForm({ 
   onSubmit, 
-  isLoading = false,
-  valuationDetails
+  isLoading, 
+  valuationDetails,
+  initialAmount = 0 
 }: DealerOfferFormProps) {
-  const [amount, setAmount] = useState<number>(0);
+  const [amount, setAmount] = useState(initialAmount);
   const [message, setMessage] = useState('');
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (amount <= 0) {
-      toast.error("Please enter a valid offer amount");
+    if (!amount || amount <= 0) {
       return;
     }
     
     onSubmit({
-      amount: Number(amount),
+      amount,
       message
     });
   };
-
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {valuationDetails && (
-        <div className="p-4 bg-muted rounded-md mb-4">
-          <p className="font-medium">Vehicle Details:</p>
-          <p className="text-sm text-muted-foreground">
-            {valuationDetails.year} {valuationDetails.make} {valuationDetails.model}
-          </p>
-        </div>
-      )}
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {valuationDetails ? (
+            <>Make an Offer for {valuationDetails.year} {valuationDetails.make} {valuationDetails.model}</>
+          ) : (
+            <>Create Your Offer</>
+          )}
+        </CardTitle>
+      </CardHeader>
       
-      <div>
-        <Label htmlFor="amount">Offer Amount ($)</Label>
-        <Input
-          id="amount"
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          min={1}
-          required
-          className="mt-1"
-          placeholder="Enter your offer amount"
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="message">Message (Optional)</Label>
-        <Textarea
-          id="message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Add a personalized message about your offer..."
-          className="mt-1 resize-y"
-          rows={3}
-        />
-      </div>
-      
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? 'Submitting...' : 'Submit Offer'}
-      </Button>
-    </form>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="flex items-center">
+              <DollarSign className="h-4 w-4 mr-1" />
+              Offer Amount
+            </Label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount || ''}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              placeholder="Enter your offer amount"
+              required
+              min={1}
+            />
+            <p className="text-xs text-muted-foreground">
+              Your best offer for this vehicle
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="message" className="flex items-center">
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Message to Owner (Optional)
+            </Label>
+            <Textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Add any details or notes about your offer..."
+              rows={4}
+            />
+          </div>
+        </CardContent>
+        
+        <CardFooter>
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isLoading || !amount || amount <= 0}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Offer'
+            )}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

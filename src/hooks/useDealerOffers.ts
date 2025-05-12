@@ -8,8 +8,8 @@ export interface DealerOffer {
   id: string;
   report_id: string; // Changed from lead_id to match DB schema
   dealer_id: string;
-  offer_price: number; // Changed from offer_amount to match interface expectations
-  notes?: string;
+  offer_amount: number; // Changed from offer_price to match interface expectations
+  message?: string;
   status: 'sent' | 'accepted' | 'rejected';
   created_at: string;
   updated_at: string;
