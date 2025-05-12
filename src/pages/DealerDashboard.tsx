@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -114,7 +113,7 @@ const DealerDashboard = () => {
           
           <TabsContent value="offers">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DealerOffersTracker dealerId={user?.id || ''} />
+              <DealerOffersTracker />
               
               <Card>
                 <CardHeader>
