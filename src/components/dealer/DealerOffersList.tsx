@@ -63,7 +63,7 @@ export function DealerOffersList({ reportId, showActions = false }: DealerOffers
       case 'sent':
         return <Badge variant="outline">Pending</Badge>;
       case 'accepted':
-        return <Badge variant="success">Accepted</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">Accepted</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rejected</Badge>;
       default:

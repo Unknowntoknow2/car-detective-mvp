@@ -71,7 +71,7 @@ export function DealerOffersTracker({ dealerId }: OfferTrackerProps) {
           {offers.slice(0, 5).map(offer => (
             <div key={offer.id} className="flex justify-between items-center p-2 border-b">
               <div>
-                <p className="font-medium">${offer.offer_price.toLocaleString()}</p>
+                <p className="font-medium">${offer.offer_amount.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(offer.created_at), { addSuffix: true })}
                 </p>
