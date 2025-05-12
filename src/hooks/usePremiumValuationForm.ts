@@ -1,198 +1,234 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { FormData } from '@/types/premium-valuation';
-import { useFormValidation } from './useFormValidation';
 import { useStepNavigation } from './useStepNavigation';
-import { useValuationSubmit } from './useValuationSubmit';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/contexts/AuthContext';
 
-// Number of minutes to auto-save form data
-const AUTO_SAVE_INTERVAL = 1; // minutes
+// Initial form data
+const initialFormData: FormData = {
+  identifierType: 'vin',
+  identifier: '',
+  vin: '',
+  make: '',
+  model: '',
+  year: 0,
+  trim: '',
+  mileage: undefined,
+  zipCode: '',
+  condition: 'Good',
+  conditionLabel: 'Good',
+  conditionScore: 75,
+  hasAccident: 'no',
+  accidentDescription: '',
+  fuelType: '',
+  transmission: '',
+  bodyType: '',
+  features: [],
+  photos: [],
+  drivingProfile: 'average',
+  photos: [],
+  isPremium: true
+};
 
-export const usePremiumValuationForm = () => {
-  const { user } = useAuth();
-  const [formData, setFormData] = useState<FormData>({
-    make: '',
-    model: '',
-    year: 0,
-    mileage: undefined,
-    fuelType: null,
-    features: [],
-    condition: '50',  // Store as string
-    conditionLabel: 'Fair',
-    hasAccident: 'no',  // Store as string instead of boolean
-    accidentDescription: '',
-    zipCode: '',
-    identifierType: 'vin',
-    identifier: '',
-    drivingProfile: 'Normal',  // Default driving profile
-    bestPhotoUrl: undefined
+export function usePremiumValuationForm() {
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [stepValidities, setStepValidities] = useState<Record<number, boolean>>({
+    1: false, // Vehicle Identification
+    2: false, // Vehicle Details
+    3: true,  // Feature Selection (optional)
+    4: true,  // Condition (default value provided)
+    5: true,  // Photo Upload (optional)
+    6: true,  // Driving Behavior (default value provided)
+    7: true   // Review & Submit
   });
+  
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [valuationId, setValuationId] = useState<string | null>(null);
+  
+  const { 
+    currentStep,
+    totalSteps,
+    goToNextStep,
+    goToPreviousStep,
+    goToStep
+  } = useStepNavigation(formData);
 
-  const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);  // 7 steps total
-  const { currentStep, totalSteps, goToNextStep, goToPreviousStep, goToStep } = useStepNavigation(formData);
-  const { valuationId, handleSubmit: submitValuation, isSubmitting, submitError } = useValuationSubmit();
-
-  // Load saved form data from sessionStorage on component mount
+  // Set a vehicleData if it's available in localStorage
   useEffect(() => {
-    try {
-      const savedFormData = sessionStorage.getItem('premium_form_data');
-      if (savedFormData) {
-        const parsedData = JSON.parse(savedFormData) as FormData;
-        setFormData(parsedData);
-        toast.info("Restored your previously entered information", {
-          duration: 3000,
-          position: 'bottom-center'
-        });
-      }
-    } catch (error) {
-      console.error("Error loading saved form data:", error);
-    }
-  }, []);
-
-  // Auto-save form data to sessionStorage periodically
-  useEffect(() => {
-    const saveFormData = () => {
+    const storedVehicle = localStorage.getItem('premium_vehicle');
+    if (storedVehicle) {
       try {
-        sessionStorage.setItem('premium_form_data', JSON.stringify(formData));
-      } catch (error) {
-        console.error("Error saving form data:", error);
-      }
-    };
-
-    // Save immediately when formData changes
-    saveFormData();
-    
-    // Also set up periodic saving
-    const intervalId = setInterval(saveFormData, AUTO_SAVE_INTERVAL * 60 * 1000);
-    
-    return () => clearInterval(intervalId);
-  }, [formData]);
-
-  // Validation rules for each step
-  const validateStep = (step: number, data: FormData): boolean => {
-    switch (step) {
-      case 1: // Vehicle Identification
-        return !!data.make && !!data.model && !!data.year;
-      
-      case 2: // Vehicle Details
-        return data.mileage !== undefined && data.mileage > 0 && !!data.fuelType && !!data.zipCode;
-      
-      case 3: // Features
-        return true; // Features are optional
-      
-      case 4: // Condition
-        // Convert string to number for comparison
-        const conditionValue = data.condition ? Number(data.condition) : 0;
-        return conditionValue >= 0 && conditionValue <= 100 && !!data.conditionLabel;
-      
-      case 5: // Photo Upload
-        return true; // Photos are optional but helpful
-      
-      case 6: // Driving Profile
-        return !!data.drivingProfile; // Must have a driving profile
-      
-      case 7: // Review and Submit
-        // Check if all required fields are present
-        return !!data.make && 
-               !!data.model && 
-               !!data.year && 
-               data.mileage !== undefined && 
-               data.mileage > 0 && 
-               !!data.fuelType && 
-               !!data.zipCode && 
-               !!data.condition && 
-               !!data.conditionLabel;
-      
-      default:
-        return false;
-    }
-  };
-
-  // Update step validity whenever form data changes
-  useEffect(() => {
-    updateStepValidity(currentStep, validateStep(currentStep, formData));
-  }, [formData, currentStep, updateStepValidity]);
-
-  // Load any vehicle data that was identified from lookup tabs
-  useEffect(() => {
-    const savedVehicleData = localStorage.getItem("premium_vehicle");
-    if (savedVehicleData) {
-      try {
-        const vehicleData = JSON.parse(savedVehicleData);
-        setFormData(prev => ({
-          ...prev,
-          ...vehicleData
+        const vehicleData = JSON.parse(storedVehicle);
+        setFormData(prevData => ({
+          ...prevData,
+          ...vehicleData,
+          identifier: vehicleData.identifier || vehicleData.vin || '',
+          identifierType: vehicleData.identifierType || 'vin'
         }));
         
-        // Mark the first step as valid since we have vehicle identification
+        // Mark step 1 as valid if we have vehicle data
         if (vehicleData.make && vehicleData.model && vehicleData.year) {
           updateStepValidity(1, true);
         }
-        
-        toast.success("Vehicle information loaded from previous lookup");
-        
-        // Only clear from localStorage after we've loaded it successfully
-        localStorage.removeItem("premium_vehicle");
-      } catch (error) {
-        console.error("Error parsing saved vehicle data:", error);
+      } catch (err) {
+        console.error('Error parsing stored vehicle data:', err);
       }
     }
-  }, [updateStepValidity]);
+  }, []);
 
-  const handleReset = () => {
-    const confirmReset = window.confirm("Are you sure you want to reset all form data? This action cannot be undone.");
-    
-    if (confirmReset) {
-      // Clear form data
-      setFormData({
-        make: '',
-        model: '',
-        year: 0,
-        mileage: undefined,
-        fuelType: null,
-        features: [],
-        condition: '50',  // Store as string
-        conditionLabel: 'Fair',
-        hasAccident: 'no',  // Store as string
-        accidentDescription: '',
-        zipCode: '',
-        identifierType: 'vin',
-        identifier: '',
-        drivingProfile: 'Normal',
-        bestPhotoUrl: undefined
-      });
-      
-      // Clear any cached data
-      localStorage.removeItem("premium_vehicle");
-      sessionStorage.removeItem("analyzed_vehicle");
-      sessionStorage.removeItem("premium_form_data");
-      sessionStorage.removeItem("premium_current_step");
-      
-      // Reset to first step
-      goToStep(1);
-      
-      toast.info("Form data has been reset");
-    }
+  // Update form validity when step validities change
+  useEffect(() => {
+    const isValid = Object.values(stepValidities).every(valid => valid);
+    setIsFormValid(isValid);
+  }, [stepValidities]);
+
+  // Update a specific step's validity
+  const updateStepValidity = (step: number, isValid: boolean) => {
+    setStepValidities(prev => ({
+      ...prev,
+      [step]: isValid
+    }));
   };
 
-  const handleSubmit = () => {
-    if (!user) {
-      toast.error("Please sign in to submit your valuation");
+  // Reset the form
+  const handleReset = () => {
+    setFormData(initialFormData);
+    setStepValidities({
+      1: false,
+      2: false,
+      3: true,
+      4: true,
+      5: true,
+      6: true,
+      7: true
+    });
+    setValuationId(null);
+    localStorage.removeItem('premium_valuation_form');
+    localStorage.removeItem('premium_vehicle');
+    goToStep(1);
+  };
+
+  // Submit the form
+  const handleSubmit = async () => {
+    if (!isFormValid) {
+      toast.error('Please complete all required fields');
       return;
     }
-    
-    // Instead of trying to convert our custom User type to Supabase User type,
-    // pass along the required properties that the submitValuation function needs
-    return submitValuation(formData, {
-      id: user.id,
-      email: user.email || '',
-      app_metadata: user.app_metadata || {},
-      user_metadata: user.user_metadata || {},
-    }, isFormValid);
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Call the car-price-prediction function to get final valuation
+      const { data: predictionData, error: predictionError } = await supabase.functions.invoke('car-price-prediction', {
+        body: {
+          make: formData.make,
+          model: formData.model,
+          year: formData.year,
+          mileage: formData.mileage || 0,
+          condition: formData.conditionLabel || formData.condition || 'Good',
+          zipCode: formData.zipCode,
+          features: formData.features || [],
+          fuelType: formData.fuelType,
+          transmission: formData.transmission,
+          bodyType: formData.bodyType,
+          hasAccident: formData.hasAccident === 'yes',
+          drivingProfile: formData.drivingProfile
+        }
+      });
+      
+      if (predictionError) {
+        throw new Error(`Prediction error: ${predictionError.message}`);
+      }
+      
+      // Create valuation entry in database or update existing one
+      const valuationPayload = {
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        mileage: formData.mileage,
+        fuel_type: formData.fuelType,
+        condition_score: formData.conditionScore || 75,
+        accident_count: formData.hasAccident === 'yes' ? 1 : 0,
+        body_type: formData.bodyType,
+        state: formData.zipCode,
+        vin: formData.vin,
+        is_vin_lookup: formData.identifierType === 'vin',
+        estimated_value: predictionData?.estimatedValue || 0,
+        confidence_score: predictionData?.confidenceScore || 85,
+        base_price: predictionData?.baseValue || 0,
+        premium_unlocked: true
+      };
+      
+      let valId = formData.valuationId;
+      
+      if (valId) {
+        // Update existing valuation
+        const { error: updateError } = await supabase
+          .from('valuations')
+          .update(valuationPayload)
+          .eq('id', valId);
+          
+        if (updateError) {
+          throw new Error(`Update error: ${updateError.message}`);
+        }
+      } else {
+        // Create new valuation
+        const { data: newValuation, error: insertError } = await supabase
+          .from('valuations')
+          .insert(valuationPayload)
+          .select('id')
+          .single();
+        
+        if (insertError) {
+          throw new Error(`Insert error: ${insertError.message}`);
+        }
+        
+        valId = newValuation.id;
+      }
+      
+      // Store vehicle features if any
+      if (formData.features && formData.features.length > 0) {
+        // First delete any existing features
+        await supabase
+          .from('vehicle_features')
+          .delete()
+          .eq('valuation_id', valId);
+          
+        // Then insert new features
+        for (const feature of formData.features) {
+          await supabase
+            .from('vehicle_features')
+            .insert({
+              valuation_id: valId,
+              feature_id: feature
+            });
+        }
+      }
+      
+      setValuationId(valId);
+      toast.success('Premium valuation completed successfully!');
+      
+      // Clear localStorage after successful submission
+      localStorage.removeItem('premium_valuation_form');
+      localStorage.removeItem('premium_vehicle');
+      
+      return valId;
+    } catch (error: any) {
+      console.error('Error submitting premium valuation:', error);
+      toast.error(error.message || 'Failed to submit valuation');
+      setSubmitError(error.message || 'Failed to submit valuation');
+      return null;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {
@@ -210,7 +246,6 @@ export const usePremiumValuationForm = () => {
     handleReset,
     isSubmitting,
     submitError,
-    handleSubmit,
-    validateStep
+    handleSubmit
   };
-};
+}

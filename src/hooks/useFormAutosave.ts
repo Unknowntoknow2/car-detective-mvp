@@ -1,44 +1,58 @@
 
 import { useEffect, useCallback } from 'react';
 import { FormData } from '@/types/premium-valuation';
-import { toast } from 'sonner';
 
-export function useFormAutosave(formData: FormData, formKey: string = 'valuationForm') {
-  // Save form data on changes
-  useEffect(() => {
-    // Only save if we have some meaningful data
-    if (formData.make || formData.model || formData.identifierType) {
-      localStorage.setItem(formKey, JSON.stringify(formData));
-      console.log('Saved form data to localStorage');
-    }
-  }, [formData, formKey]);
-
-  // Load saved form data on initial mount
+export function useFormAutosave(formData: FormData) {
+  // Load saved form data from localStorage
   const loadSavedData = useCallback(() => {
     try {
-      const savedData = localStorage.getItem(formKey);
+      const savedData = localStorage.getItem('premium_valuation_form');
       if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        // Check if the saved data is complete and valid before using it
-        if (parsedData && (parsedData.make || parsedData.identifierType)) {
-          console.log('Loaded saved form data from localStorage');
-          toast.info('Your previous form progress has been restored.');
-          return parsedData;
-        }
+        return JSON.parse(savedData) as FormData;
       }
+      return null;
     } catch (error) {
-      console.error('Error parsing saved form data:', error);
-      localStorage.removeItem(formKey);
+      console.error('Error loading saved form data:', error);
+      return null;
     }
-    return null;
-  }, [formKey]);
+  }, []);
 
-  // Function to clear saved form data
+  // Save form data to localStorage
+  const saveFormData = useCallback((data: FormData) => {
+    try {
+      localStorage.setItem('premium_valuation_form', JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving form data:', error);
+    }
+  }, []);
+
+  // Clear saved form data
   const clearSavedForm = useCallback(() => {
-    localStorage.removeItem(formKey);
-    console.log('Cleared saved form data from localStorage');
-    toast.success('Form data has been reset.');
-  }, [formKey]);
+    try {
+      localStorage.removeItem('premium_valuation_form');
+    } catch (error) {
+      console.error('Error clearing saved form data:', error);
+    }
+  }, []);
 
-  return { loadSavedData, clearSavedForm };
+  // Autosave form data when it changes
+  useEffect(() => {
+    // Don't save if we're at initial state
+    if (!formData.make && !formData.model && !formData.year) {
+      return;
+    }
+    
+    // Don't save if we have a valuation ID (form is submitted)
+    if (formData.valuationId) {
+      return;
+    }
+    
+    saveFormData(formData);
+  }, [formData, saveFormData]);
+
+  return {
+    loadSavedData,
+    saveFormData,
+    clearSavedForm
+  };
 }

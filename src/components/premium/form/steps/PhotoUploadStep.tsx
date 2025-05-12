@@ -1,230 +1,250 @@
 
-import React, { useState } from 'react';
-import { FormData } from '@/types/premium-valuation';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { FormData } from '@/types/premium-valuation';
+import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Upload, X, Camera, ImageIcon, Check } from 'lucide-react';
-import { Photo, MAX_FILES, MIN_FILES } from '@/types/photo';
-import { motion } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, Upload, X, Camera, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { MAX_FILES, MIN_FILES, Photo } from '@/types/photo';
 
 interface PhotoUploadStepProps {
   step: number;
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   updateValidity: (step: number, isValid: boolean) => void;
+  onPhotoUpload?: (photos: File[]) => Promise<void>;
+  isProcessing?: boolean;
 }
 
 export function PhotoUploadStep({
   step,
   formData,
   setFormData,
-  updateValidity
+  updateValidity,
+  onPhotoUpload,
+  isProcessing = false
 }: PhotoUploadStepProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Always mark this step as valid since photos are optional
   React.useEffect(() => {
-    // Photos are optional but helpful, so mark step as valid by default
     updateValidity(step, true);
   }, [step, updateValidity]);
-  
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      return;
-    }
-    
-    const filesArray = Array.from(e.target.files);
-    
-    if (photos.length + filesArray.length > MAX_FILES) {
-      toast.error(`You can upload a maximum of ${MAX_FILES} photos`);
-      return;
-    }
-    
-    setIsUploading(true);
-    
-    // Simulate upload process
-    const newPhotos: Photo[] = filesArray.map((file) => {
-      const id = Math.random().toString(36).substring(2, 15);
-      const photo: Photo = {
-        id,
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) return;
+
+      // Limit to MAX_FILES
+      const filesToAdd = acceptedFiles.slice(0, MAX_FILES - photos.length);
+      
+      if (filesToAdd.length === 0) {
+        toast.error(`Maximum ${MAX_FILES} photos allowed`);
+        return;
+      }
+
+      // Create preview URLs and add to photos array
+      const newPhotos = filesToAdd.map((file) => ({
+        id: crypto.randomUUID(),
         file,
         name: file.name,
         size: file.size,
         type: file.type,
         preview: URL.createObjectURL(file),
-        uploading: true,
-      };
-      return photo;
-    });
-    
-    setPhotos([...photos, ...newPhotos]);
-    
-    // Simulate upload completion
-    setTimeout(() => {
-      setPhotos(prev => 
-        prev.map(p => ({
-          ...p,
-          uploading: false,
-          uploaded: true,
-          url: p.preview, // In a real app, this would be the server URL
-          score: Math.random() * 0.3 + 0.7 // Simulate a score between 0.7 and 1.0
-        }))
-      );
+        uploading: false,
+        uploaded: false
+      }));
+
+      const updatedPhotos = [...photos, ...newPhotos];
+      setPhotos(updatedPhotos);
       
-      // Update form data with the best photo URL
-      const bestPhoto = [...photos, ...newPhotos].sort((a, b) => 
-        (b.score || 0) - (a.score || 0)
-      )[0];
-      
-      if (bestPhoto?.preview) {
-        setFormData(prev => ({
-          ...prev,
-          bestPhotoUrl: bestPhoto.preview
-        }));
-      }
-      
-      setIsUploading(false);
-    }, 1500);
-    
-    // Reset file input
-    e.target.value = '';
-  };
-  
-  const removePhoto = (id: string) => {
-    const photoToRemove = photos.find(p => p.id === id);
-    if (photoToRemove?.preview) {
-      URL.revokeObjectURL(photoToRemove.preview);
-    }
-    
-    setPhotos(photos.filter(p => p.id !== id));
-    
-    // If we removed the best photo, update the form data
-    if (formData.bestPhotoUrl === photoToRemove?.preview) {
-      const remainingPhotos = photos.filter(p => p.id !== id);
-      const newBestPhoto = remainingPhotos.sort((a, b) => 
-        (b.score || 0) - (a.score || 0)
-      )[0];
-      
+      // Update formData with new photos
+      const photoFiles = updatedPhotos
+        .filter(p => p.file)
+        .map(p => p.file as File);
+        
       setFormData(prev => ({
         ...prev,
-        bestPhotoUrl: newBestPhoto?.preview || undefined
+        photos: photoFiles
       }));
-    }
+
+      // If there are enough photos, trigger AI analysis
+      if (photoFiles.length >= MIN_FILES && onPhotoUpload) {
+        setUploadProgress(25);
+        await onPhotoUpload(photoFiles);
+        setUploadProgress(100);
+        
+        // Update all photos to uploaded status
+        setPhotos(prev => 
+          prev.map(photo => ({
+            ...photo,
+            uploading: false,
+            uploaded: true
+          }))
+        );
+      }
+    },
+    [photos, setFormData, onPhotoUpload]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/heic': ['.heic'],
+      'image/heif': ['.heif']
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    maxFiles: MAX_FILES,
+    disabled: photos.length >= MAX_FILES || isProcessing
+  });
+
+  const removePhoto = (id: string) => {
+    setPhotos(photos.filter(photo => photo.id !== id));
+    
+    // Update formData.photos
+    const updatedPhotos = photos
+      .filter(photo => photo.id !== id)
+      .filter(p => p.file)
+      .map(p => p.file as File);
+      
+    setFormData(prev => ({
+      ...prev,
+      photos: updatedPhotos
+    }));
   };
-  
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Vehicle Photos</h2>
-        <p className="text-muted-foreground">
-          Upload photos of your vehicle to get a more accurate valuation. Photos of the 
-          exterior, interior, and any damage will help us provide the most precise estimate.
+    <Card className="animate-in fade-in duration-500">
+      <CardContent className="pt-6">
+        <h2 className="text-2xl font-semibold mb-4">Upload Vehicle Photos</h2>
+        <p className="text-muted-foreground mb-6">
+          Photos help our AI provide a more accurate valuation. Upload at least {MIN_FILES} photo of your vehicle.
         </p>
-      </div>
-      
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {photos.map((photo) => (
-              <motion.div
-                key={photo.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative aspect-square rounded-md overflow-hidden border border-gray-200 group"
-              >
-                <img
-                  src={photo.preview}
-                  alt={photo.name}
-                  className="w-full h-full object-cover"
-                />
-                
-                {photo.uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-primary animate-pulse" />
-                    </div>
+
+        <div className="space-y-6">
+          {/* Dropzone area */}
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer transition-colors ${
+              isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary/50'
+            } ${photos.length >= MAX_FILES || isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <input {...getInputProps()} />
+            <div className="flex flex-col items-center justify-center gap-2">
+              {isDragActive ? (
+                <>
+                  <Upload className="h-10 w-10 text-primary" />
+                  <p>Drop your photos here</p>
+                </>
+              ) : (
+                <>
+                  <Camera className="h-10 w-10 text-muted-foreground" />
+                  <p>Drag & drop photos here, or click to select files</p>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG • Up to 10MB • Max {MAX_FILES} photos
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Processing indicator */}
+          {isProcessing && (
+            <div className="p-4 bg-blue-50 text-blue-700 rounded-md flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <div>
+                <p className="font-medium">Analyzing photos with AI...</p>
+                <p className="text-sm">We're processing your photos to assess vehicle condition</p>
+              </div>
+              <Progress value={uploadProgress} className="h-2 ml-auto w-1/4" />
+            </div>
+          )}
+
+          {/* Photo thumbnails */}
+          {photos.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+              {photos.map(photo => (
+                <div key={photo.id} className="relative group">
+                  <div className="aspect-square bg-gray-100 rounded-md overflow-hidden border">
+                    <img
+                      src={photo.preview}
+                      alt={photo.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                )}
-                
-                {!photo.uploading && (
-                  <>
+                  
+                  {/* Remove button */}
+                  {!isProcessing && (
                     <button
+                      type="button"
                       onClick={() => removePhoto(photo.id)}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 p-1 bg-white/80 hover:bg-white rounded-full text-gray-700 hover:text-red-500 transition-colors"
                     >
-                      <X className="w-4 h-4 text-white" />
+                      <X className="h-4 w-4" />
                     </button>
-                    
-                    {photo.score && (
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                        {Math.round(photo.score * 100)}%
-                      </div>
-                    )}
-                  </>
-                )}
-              </motion.div>
-            ))}
-            
-            {photos.length < MAX_FILES && (
-              <motion.label
-                htmlFor="photo-upload"
-                className="aspect-square rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">Add Photo</span>
-                <input
-                  id="photo-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  disabled={isUploading}
-                  className="hidden"
-                  multiple
-                />
-              </motion.label>
-            )}
-          </div>
-          
-          <div className="mt-6">
-            <Label className="text-sm font-medium">Photo Tips:</Label>
-            <ul className="mt-2 text-sm text-muted-foreground space-y-1">
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                Take photos in good lighting
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                Include all sides of the vehicle (front, back, sides)
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                Add photos of the interior, including dashboard and seats
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                Document any damage or scratches clearly
-              </li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="bg-blue-50 border border-blue-100 rounded-md p-4 text-blue-800">
-        <div className="flex items-start">
-          <ImageIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2" />
-          <div>
-            <p className="text-sm font-medium">Better photos = more accurate valuation</p>
-            <p className="text-xs mt-1">
-              Photos help us verify the condition of your vehicle and can increase your valuation
-              by up to 12% if they show your vehicle in excellent condition.
+                  )}
+                  
+                  {/* Upload status */}
+                  {photo.uploaded && (
+                    <div className="absolute bottom-2 right-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Photo count and help text */}
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <p>
+              {photos.length} of {MAX_FILES} photos added
+              {photos.length >= MIN_FILES ? (
+                <span className="text-green-600 ml-2">(Minimum met)</span>
+              ) : (
+                <span className="text-amber-600 ml-2">
+                  (Add at least {MIN_FILES - photos.length} more)
+                </span>
+              )}
             </p>
           </div>
+          
+          {formData.photoAnalysisResult && (
+            <div className="p-4 bg-green-50 text-green-700 rounded-md">
+              <h3 className="font-semibold flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                AI Analysis Complete
+              </h3>
+              <p className="mt-1 text-sm">
+                Condition: <span className="font-medium">{formData.photoAnalysisResult.aiCondition?.condition || 'Good'}</span> •
+                Confidence: <span className="font-medium">{formData.photoAnalysisResult.aiCondition?.confidenceScore || 80}%</span>
+              </p>
+              {formData.photoAnalysisResult.aiCondition?.issuesDetected?.length > 0 && (
+                <p className="mt-1 text-sm">
+                  Issues detected: {formData.photoAnalysisResult.aiCondition.issuesDetected.join(', ')}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* Skip button */}
+          {!formData.photoAnalysisResult && !isProcessing && photos.length === 0 && (
+            <div className="text-center pt-4">
+              <Button variant="outline" type="button" onClick={() => {}}>
+                Skip Photo Analysis
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Photos are recommended for accurate valuations, but optional.
+              </p>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
