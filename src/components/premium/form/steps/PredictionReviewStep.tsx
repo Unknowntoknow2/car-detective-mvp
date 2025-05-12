@@ -43,31 +43,44 @@ export function PredictionReviewStep({
   useEffect(() => {
     if (formData.estimatedValue && formData.confidenceScore && formData.valuationId) {
       // Already have prediction data, no need to fetch
-      const existingResult = {
+      console.log("Using existing valuation data:", {
         estimatedValue: formData.estimatedValue,
         confidenceScore: formData.confidenceScore,
-        id: formData.valuationId,
+        valuationId: formData.valuationId,
         priceRange: formData.priceRange
-      };
-      // This would update the predictionResult state in the useValuation hook
+      });
     }
   }, [formData]);
 
   const handleGetValuation = async () => {
     try {
-      // Create a complete FormData object by spreading the existing formData
-      // and only overriding the specific properties we need to update
+      // Create a complete FormData object with all required properties
       const valuationFormData: FormData = {
-        ...formData,
-        // Ensure required properties are set with sensible defaults if not already present
+        // Required properties that must be included
         identifierType: formData.identifierType || 'manual',
         identifier: formData.identifier || '',
         vin: formData.vin || '',
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        zipCode: formData.zipCode || '',
         hasAccident: formData.hasAccident || 'no',
         accidentDescription: formData.accidentDescription || '',
+        condition: formData.condition || 'Good',
+        conditionLabel: formData.conditionLabel || 'Good',
+        drivingProfile: formData.drivingProfile || 'average',
+        
+        // Optional properties
+        mileage: formData.mileage,
         fuelType: formData.fuelType || '',
         transmission: formData.transmission || '',
-        drivingProfile: formData.drivingProfile || 'average'
+        bodyType: formData.bodyType || '',
+        bodyStyle: formData.bodyStyle || '',
+        trim: formData.trim || '',
+        features: formData.features || [],
+        valuationId: formData.valuationId,
+        exteriorColor: formData.exteriorColor,
+        interiorColor: formData.interiorColor
       };
       
       const result = await fetchValuationPrediction(valuationFormData);

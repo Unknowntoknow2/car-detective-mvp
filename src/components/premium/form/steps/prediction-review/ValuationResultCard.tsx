@@ -1,109 +1,85 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
-interface ValuationResultCardProps {
-  predictionResult?: {
-    estimatedValue?: number;
-    confidenceScore?: number;
-    priceRange?: [number, number];
-    [key: string]: any;
-  };
+export interface ValuationResultCardProps {
   estimatedValue?: number;
   confidenceScore?: number;
   priceRange?: [number, number];
+  predictionResult?: any;
   isLoading?: boolean;
   isFormValid?: boolean;
   handleSubmit?: () => void;
 }
 
 export function ValuationResultCard({
+  estimatedValue,
+  confidenceScore,
+  priceRange,
   predictionResult,
-  estimatedValue: propEstimatedValue,
-  confidenceScore: propConfidenceScore,
-  priceRange: propPriceRange,
-  isLoading = false,
-  isFormValid = true,
+  isLoading,
+  isFormValid,
   handleSubmit
 }: ValuationResultCardProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  // If we have a prediction result object, extract its properties
+  const value = predictionResult?.estimatedValue || estimatedValue;
+  const score = predictionResult?.confidenceScore || confidenceScore;
+  const range = predictionResult?.priceRange || priceRange;
 
-  // Use props directly if provided, otherwise try to get from predictionResult
-  const estimatedValue = propEstimatedValue !== undefined 
-    ? propEstimatedValue 
-    : (predictionResult?.estimatedValue || 0);
-    
-  const confidenceScore = propConfidenceScore !== undefined 
-    ? propConfidenceScore 
-    : (predictionResult?.confidenceScore || 0);
-    
-  const priceRange = propPriceRange !== undefined 
-    ? propPriceRange 
-    : (predictionResult?.priceRange || [0, 0]);
+  if (isLoading) {
+    return (
+      <Card className="p-6 text-center">
+        <CardContent className="pt-6 flex flex-col items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+          <p className="text-muted-foreground">Calculating valuation...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
-      <div className="p-6 border-b">
-        <h3 className="text-lg font-semibold mb-2">Premium Valuation Result</h3>
-        
-        <div className="space-y-4">
+    <Card className="p-6">
+      <CardContent className="pt-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Estimated Value</p>
+            <h3 className="text-lg font-semibold mb-1">Estimated Value</h3>
             <p className="text-3xl font-bold text-primary">
-              {formatCurrency(estimatedValue)}
+              ${value?.toLocaleString()}
             </p>
           </div>
-          
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Price Range</p>
-            <p className="text-md font-medium">
-              {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
-            </p>
-          </div>
-          
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Confidence Score</p>
-            <div className="flex items-center">
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                <div 
-                  className="bg-primary h-2.5 rounded-full" 
-                  style={{ width: `${confidenceScore}%` }}
-                ></div>
+          {score && (
+            <div className="mt-4 md:mt-0 flex items-center">
+              <div className="bg-primary/10 px-4 py-2 rounded-full">
+                <span className="text-primary font-medium">{score}% Confidence</span>
               </div>
-              <span className="text-sm font-medium">{confidenceScore}%</span>
+            </div>
+          )}
+        </div>
+        
+        {range && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-500 mb-2">Estimated Price Range</h4>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium">${range[0]?.toLocaleString()}</span>
+              <span className="text-gray-400">to</span>
+              <span className="font-medium">${range[1]?.toLocaleString()}</span>
             </div>
           </div>
-        </div>
-      </div>
-      
-      {handleSubmit && (
-        <div className="p-4 bg-gray-50 flex justify-end">
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading || !isFormValid}
-            className="px-6"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Complete Valuation
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-    </div>
+        )}
+        
+        {handleSubmit && (
+          <div className="mt-4">
+            <button
+              onClick={handleSubmit}
+              disabled={!isFormValid}
+              className="w-full px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
+            >
+              Continue to Report
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
