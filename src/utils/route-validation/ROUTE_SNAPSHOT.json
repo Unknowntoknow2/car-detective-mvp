@@ -1,0 +1,13 @@
+
+[
+  "/",
+  "/login",
+  "/register",
+  "/dealer-dashboard",
+  "/dealer-insights",
+  "/premium",
+  "/view-offer/:token",
+  "/share/:token",
+  "/payment/success",
+  "/payment/cancelled"
+]

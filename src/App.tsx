@@ -15,9 +15,13 @@ import DealerDashboard from './pages/DealerDashboard';
 import ViewOfferPage from './pages/view-offer/[token]';
 import SharedValuationPage from './pages/share/[token]';
 import { EnhancedErrorBoundary } from './components/common/EnhancedErrorBoundary';
+import NotFound from './pages/NotFound';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
+const LazyPremiumPage = lazy(() => import('./pages/PremiumPage'));
+const LazyPaymentSuccessPage = lazy(() => import('./pages/PaymentSuccessPage'));
+const LazyPaymentCancelledPage = lazy(() => import('./pages/PaymentCancelledPage'));
 
 // Loading component for Suspense fallbacks
 const PageLoader = () => (
@@ -39,7 +43,37 @@ const queryClient = new QueryClient({
   },
 });
 
+// Define the route configuration for validation
+export const appRoutes = [
+  { path: '/', element: <HomePage /> },
+  { path: '/valuation/:valuationId', element: <ValuationDetailPage /> },
+  { path: '/auth/*', element: <AuthLayout /> },
+  { path: '/dashboard/*', element: <DashboardLayout /> },
+  { path: '/dealer-dashboard', element: <DealerDashboard /> },
+  { path: '/dealer-insights', element: <LazyDealerInsightsPage /> },
+  { path: '/premium', element: <LazyPremiumPage /> },
+  { path: '/view-offer/:token', element: <ViewOfferPage /> },
+  { path: '/share/:token', element: <SharedValuationPage /> },
+  { path: '/payment/success', element: <LazyPaymentSuccessPage /> },
+  { path: '/payment/cancelled', element: <LazyPaymentCancelledPage /> },
+  { path: '*', element: <NotFound /> }
+];
+
 function App() {
+  // Wrap all routes with error boundary to prevent crashes
+  const wrapWithErrorBoundary = (Component: React.ReactNode, context: string) => (
+    <EnhancedErrorBoundary context={context}>
+      <Component />
+    </EnhancedErrorBoundary>
+  );
+
+  // Wrap lazy-loaded components with Suspense
+  const wrapWithSuspense = (Component: React.ReactNode) => (
+    <Suspense fallback={<PageLoader />}>
+      {Component}
+    </Suspense>
+  );
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -47,47 +81,62 @@ function App() {
           <ValuationProvider>
             <EnhancedErrorBoundary context="app-root">
               <Routes>
-                <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
+                <Route path="/" element={<MainLayout>{wrapWithErrorBoundary(<HomePage />, "home-page")}</MainLayout>} />
                 <Route path="/valuation/:valuationId" element={
                   <MainLayout>
-                    <EnhancedErrorBoundary context="valuation-detail">
-                      <ValuationDetailPage />
-                    </EnhancedErrorBoundary>
+                    {wrapWithErrorBoundary(<ValuationDetailPage />, "valuation-detail")}
                   </MainLayout>
                 } />
                 <Route path="/auth/*" element={<AuthLayout />} />
                 <Route path="/dashboard/*" element={<DashboardLayout />} />
                 <Route path="/dealer-dashboard" element={
                   <MainLayout>
-                    <EnhancedErrorBoundary context="dealer-dashboard">
-                      <DealerDashboard />
-                    </EnhancedErrorBoundary>
+                    {wrapWithErrorBoundary(<DealerDashboard />, "dealer-dashboard")}
                   </MainLayout>
                 } />
                 <Route path="/dealer-insights" element={
                   <MainLayout>
-                    <EnhancedErrorBoundary context="dealer-insights">
-                      <Suspense fallback={<PageLoader />}>
-                        <LazyDealerInsightsPage />
-                      </Suspense>
-                    </EnhancedErrorBoundary>
+                    {wrapWithErrorBoundary(
+                      wrapWithSuspense(<LazyDealerInsightsPage />),
+                      "dealer-insights"
+                    )}
+                  </MainLayout>
+                } />
+                <Route path="/premium" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(
+                      wrapWithSuspense(<LazyPremiumPage />),
+                      "premium-page"
+                    )}
                   </MainLayout>
                 } />
                 <Route path="/view-offer/:token" element={
                   <MainLayout>
-                    <EnhancedErrorBoundary context="view-offer">
-                      <ViewOfferPage />
-                    </EnhancedErrorBoundary>
+                    {wrapWithErrorBoundary(<ViewOfferPage />, "view-offer")}
                   </MainLayout>
                 } />
                 <Route path="/share/:token" element={
                   <MainLayout>
-                    <EnhancedErrorBoundary context="share-valuation">
-                      <SharedValuationPage />
-                    </EnhancedErrorBoundary>
+                    {wrapWithErrorBoundary(<SharedValuationPage />, "share-valuation")}
                   </MainLayout>
                 } />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/payment/success" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(
+                      wrapWithSuspense(<LazyPaymentSuccessPage />),
+                      "payment-success"
+                    )}
+                  </MainLayout>
+                } />
+                <Route path="/payment/cancelled" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(
+                      wrapWithSuspense(<LazyPaymentCancelledPage />),
+                      "payment-cancelled"
+                    )}
+                  </MainLayout>
+                } />
+                <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
               </Routes>
               
               {/* Global notifications components */}
@@ -99,6 +148,13 @@ function App() {
       </BrowserRouter>
     </QueryClientProvider>
   );
+}
+
+// In development environment, perform route validation
+if (process.env.NODE_ENV === 'development') {
+  import('./utils/route-validation-system').then(({ RouteIntegritySystem }) => {
+    RouteIntegritySystem.initialize(appRoutes);
+  }).catch(console.error);
 }
 
 export default App;
