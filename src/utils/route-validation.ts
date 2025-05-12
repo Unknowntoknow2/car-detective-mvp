@@ -1,31 +1,49 @@
 
 /**
- * Route validation utility to ensure critical routes exist
- * and detect potential breaking changes to routing
+ * Extracts route paths from the route configuration
+ * 
+ * @param routes Array of route objects or route configuration
+ * @returns Array of route paths
  */
-
-// Define the critical routes that must exist
-const CRITICAL_ROUTES = [
-  '/',
-  '/login',
-  '/register',
-  '/dealer-dashboard',
-  '/dealer-insights',
-  '/premium',
-  '/view-offer/:token',
-  '/share/:token',
-  '/payment/success',
-  '/payment/cancelled',
-];
+export function extractRoutePaths(routes: any): string[] {
+  const paths: string[] = [];
+  
+  if (Array.isArray(routes)) {
+    routes.forEach(route => {
+      if (typeof route === 'object' && route !== null) {
+        // Check if route is a direct route object with path
+        if ('path' in route && typeof route.path === 'string') {
+          paths.push(route.path);
+        }
+        
+        // Recursively check children or nested routes
+        if ('children' in route && Array.isArray(route.children)) {
+          const childPaths = extractRoutePaths(route.children);
+          paths.push(...childPaths);
+        }
+      }
+    });
+  }
+  
+  return paths;
+}
 
 /**
- * Validates that all critical routes are present in the application
- * @param currentRoutes Array of current route paths
+ * Validates that all critical routes exist in the application
+ * 
+ * @param routes Array of route objects or route configuration
+ * @param criticalRoutes Array of critical route paths that must exist
  * @returns Object with validation status and missing routes if any
  */
-export function validateCriticalRoutes(currentRoutes: string[]): { valid: boolean; missing: string[] } {
-  const missingRoutes = CRITICAL_ROUTES.filter(
-    criticalRoute => !currentRoutes.some(route => {
+export function validateCriticalRoutes(routes: any, criticalRoutes: string[]): { 
+  valid: boolean; 
+  missing: string[];
+} {
+  const currentRoutePaths = extractRoutePaths(routes);
+  
+  // Check if all critical routes exist
+  const missingRoutes = criticalRoutes.filter(
+    criticalRoute => !currentRoutePaths.some(route => {
       // Handle parameterized routes by checking prefix up to ':'
       if (criticalRoute.includes(':') && route.includes(':')) {
         const criticalPrefix = criticalRoute.split(':')[0];
@@ -40,41 +58,4 @@ export function validateCriticalRoutes(currentRoutes: string[]): { valid: boolea
     valid: missingRoutes.length === 0,
     missing: missingRoutes
   };
-}
-
-/**
- * Takes a route configuration and extracts all route paths
- * for validation purposes
- * @param routeConfig React Router route configuration object
- * @returns Array of route paths
- */
-export function extractRoutePaths(routeConfig: any): string[] {
-  // Implementation would depend on your router structure
-  // This is a simplistic example
-  const paths: string[] = [];
-  
-  function extractPaths(routes: any, prefix = '') {
-    if (!routes) return;
-    
-    if (Array.isArray(routes)) {
-      routes.forEach(route => {
-        if (route.path) {
-          paths.push(`${prefix}${route.path}`);
-        }
-        if (route.children) {
-          extractPaths(route.children, `${prefix}${route.path}/`);
-        }
-      });
-    } else if (typeof routes === 'object') {
-      if (routes.path) {
-        paths.push(`${prefix}${routes.path}`);
-      }
-      if (routes.children) {
-        extractPaths(routes.children, `${prefix}${routes.path}/`);
-      }
-    }
-  }
-  
-  extractPaths(routeConfig);
-  return paths;
 }

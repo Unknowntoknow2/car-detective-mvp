@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -61,16 +61,16 @@ export const appRoutes = [
 
 function App() {
   // Wrap all routes with error boundary to prevent crashes
-  const wrapWithErrorBoundary = (Component: React.ReactNode, context: string) => (
+  const wrapWithErrorBoundary = (component: ReactElement, context: string) => (
     <EnhancedErrorBoundary context={context}>
-      <Component />
+      {component}
     </EnhancedErrorBoundary>
   );
 
   // Wrap lazy-loaded components with Suspense
-  const wrapWithSuspense = (Component: React.ReactNode) => (
+  const wrapWithSuspense = (component: ReactElement) => (
     <Suspense fallback={<PageLoader />}>
-      {Component}
+      {component}
     </Suspense>
   );
 
