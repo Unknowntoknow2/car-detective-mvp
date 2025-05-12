@@ -7,55 +7,44 @@ export function usePremiumDealer() {
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [expiresAt, setExpiresAt] = useState<Date | null>(null);
+  const [expiryDate, setExpiryDate] = useState<Date | null>(null);
 
   useEffect(() => {
     async function checkPremiumStatus() {
       if (!user) {
-        setIsPremium(false);
         setIsLoading(false);
         return;
       }
 
       try {
-        setIsLoading(true);
-        
-        // First check the profile table
         const { data, error } = await supabase
           .from('profiles')
-          .select('is_premium_dealer, premium_expires_at, user_role')
+          .select('is_premium_dealer, premium_expires_at')
           .eq('id', user.id)
           .single();
-          
+
         if (error) {
           console.error('Error checking premium status:', error);
-          setIsPremium(false);
+          setIsLoading(false);
           return;
         }
-        
-        // User must be a dealer and have premium access
-        const isDealer = data?.user_role === 'dealer';
-        const hasPremium = data?.is_premium_dealer === true;
-        const premiumExpired = data?.premium_expires_at 
-          ? new Date(data.premium_expires_at) < new Date() 
-          : false;
-        
-        if (isDealer && hasPremium && !premiumExpired) {
-          setIsPremium(true);
-          setExpiresAt(data?.premium_expires_at ? new Date(data.premium_expires_at) : null);
-        } else {
-          setIsPremium(false);
-        }
+
+        // Check if user is premium and if premium hasn't expired
+        const isPremiumUser = data?.is_premium_dealer === true;
+        const expiryDateValue = data?.premium_expires_at ? new Date(data.premium_expires_at) : null;
+        const hasValidSubscription = expiryDateValue ? expiryDateValue > new Date() : false;
+
+        setIsPremium(isPremiumUser && hasValidSubscription);
+        setExpiryDate(expiryDateValue);
       } catch (err) {
-        console.error('Error in premium dealer check:', err);
-        setIsPremium(false);
+        console.error('Error in premium check:', err);
       } finally {
         setIsLoading(false);
       }
     }
-    
+
     checkPremiumStatus();
   }, [user]);
 
-  return { isPremium, isLoading, expiresAt };
+  return { isPremium, isLoading, expiryDate };
 }
