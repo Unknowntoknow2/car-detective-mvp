@@ -54,8 +54,8 @@ export function PremiumValuationForm() {
       case 2: return "Great! Now let's gather some key details";
       case 3: return "Almost halfway there! Every detail helps with accuracy";
       case 4: return "You're making great progress! Let's assess condition now";
-      case 5: return "Just a couple more steps to go!";
-      case 6: return "Almost done! Let's finalize with features";
+      case 5: return "Great! Now share some photos for a more accurate valuation";
+      case 6: return "Almost done! Let's finalize with driving behavior";
       case 7: return "Perfect! Review your information and get your valuation";
       default: return "";
     }

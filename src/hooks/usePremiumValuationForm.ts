@@ -18,7 +18,7 @@ export const usePremiumValuationForm = () => {
     make: '',
     model: '',
     year: 0,
-    mileage: null,
+    mileage: undefined,
     fuelType: null,
     features: [],
     condition: '50',  // Store as string
@@ -28,10 +28,11 @@ export const usePremiumValuationForm = () => {
     zipCode: '',
     identifierType: 'vin',
     identifier: '',
-    drivingProfile: 'Normal'  // Default driving profile
+    drivingProfile: 'Normal',  // Default driving profile
+    bestPhotoUrl: undefined
   });
 
-  const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);  // Updated to include driving profile step
+  const { isFormValid, stepValidities, updateStepValidity } = useFormValidation(7);  // 7 steps total
   const { currentStep, totalSteps, goToNextStep, goToPreviousStep, goToStep } = useStepNavigation(formData);
   const { valuationId, handleSubmit: submitValuation, isSubmitting, submitError } = useValuationSubmit();
 
@@ -77,25 +78,34 @@ export const usePremiumValuationForm = () => {
       case 1: // Vehicle Identification
         return !!data.make && !!data.model && !!data.year;
       
-      case 2: // Mileage
-        return data.mileage !== null && data.mileage > 0;
+      case 2: // Vehicle Details
+        return data.mileage !== undefined && data.mileage > 0 && !!data.fuelType && !!data.zipCode;
       
-      case 3: // Fuel Type
-        return data.fuelType !== null && data.fuelType !== '';
-      
-      case 4: // Features
+      case 3: // Features
         return true; // Features are optional
       
-      case 5: // Condition
+      case 4: // Condition
         // Convert string to number for comparison
         const conditionValue = data.condition ? Number(data.condition) : 0;
         return conditionValue >= 0 && conditionValue <= 100 && !!data.conditionLabel;
+      
+      case 5: // Photo Upload
+        return true; // Photos are optional but helpful
       
       case 6: // Driving Profile
         return !!data.drivingProfile; // Must have a driving profile
       
       case 7: // Review and Submit
-        return isFormValid;
+        // Check if all required fields are present
+        return !!data.make && 
+               !!data.model && 
+               !!data.year && 
+               data.mileage !== undefined && 
+               data.mileage > 0 && 
+               !!data.fuelType && 
+               !!data.zipCode && 
+               !!data.condition && 
+               !!data.conditionLabel;
       
       default:
         return false;
@@ -125,7 +135,7 @@ export const usePremiumValuationForm = () => {
         
         toast.success("Vehicle information loaded from previous lookup");
         
-        // Remove the data from localStorage to prevent reloading
+        // Only clear from localStorage after we've loaded it successfully
         localStorage.removeItem("premium_vehicle");
       } catch (error) {
         console.error("Error parsing saved vehicle data:", error);
@@ -142,7 +152,7 @@ export const usePremiumValuationForm = () => {
         make: '',
         model: '',
         year: 0,
-        mileage: null,
+        mileage: undefined,
         fuelType: null,
         features: [],
         condition: '50',  // Store as string
@@ -152,7 +162,8 @@ export const usePremiumValuationForm = () => {
         zipCode: '',
         identifierType: 'vin',
         identifier: '',
-        drivingProfile: 'Normal'
+        drivingProfile: 'Normal',
+        bestPhotoUrl: undefined
       });
       
       // Clear any cached data
@@ -166,6 +177,22 @@ export const usePremiumValuationForm = () => {
       
       toast.info("Form data has been reset");
     }
+  };
+
+  const handleSubmit = () => {
+    if (!user) {
+      toast.error("Please sign in to submit your valuation");
+      return;
+    }
+    
+    // Instead of trying to convert our custom User type to Supabase User type,
+    // pass along the required properties that the submitValuation function needs
+    return submitValuation(formData, {
+      id: user.id,
+      email: user.email || '',
+      app_metadata: user.app_metadata || {},
+      user_metadata: user.user_metadata || {},
+    }, isFormValid);
   };
 
   return {
@@ -183,18 +210,7 @@ export const usePremiumValuationForm = () => {
     handleReset,
     isSubmitting,
     submitError,
-    handleSubmit: () => {
-      if (!user) return;
-      
-      // Instead of trying to convert our custom User type to Supabase User type,
-      // pass along the required properties that the submitValuation function needs
-      return submitValuation(formData, {
-        id: user.id,
-        email: user.email || '',
-        app_metadata: user.app_metadata || {},
-        user_metadata: user.user_metadata || {},
-      }, isFormValid);
-    },
+    handleSubmit,
     validateStep
   };
 };

@@ -25,27 +25,27 @@ export function useStepTransition(
         props: { lookupVehicle, isLoading }
       },
       2: {
-        component: 'MileageStep',
+        component: 'VehicleDetailsStep',
         shouldShow: !!formData.make && !!formData.model && !!formData.year
       },
       3: {
-        component: 'FuelTypeStep',
-        shouldShow: formData.mileage !== null && formData.mileage > 0
+        component: 'FeatureSelectionStep',
+        shouldShow: formData.mileage !== undefined && formData.mileage > 0
       },
       4: {
-        component: 'FeatureSelectionStep',
+        component: 'ConditionStep',
         shouldShow: !!formData.fuelType
       },
       5: {
-        component: 'ConditionStep',
-        shouldShow: true
+        component: 'PhotoUploadStep',
+        shouldShow: !!formData.condition
       },
       6: {
-        component: 'VehicleDetailsStep', 
+        component: 'DrivingBehaviorStep',
         shouldShow: true
       },
       7: {
-        component: 'PredictionReviewStep',
+        component: 'ReviewSubmitStep',
         shouldShow: true
       },
       8: {
@@ -53,7 +53,7 @@ export function useStepTransition(
         shouldShow: !!formData.valuationId
       }
     });
-  }, [formData.make, formData.model, formData.year, formData.mileage, formData.fuelType, formData.valuationId, isLoading, lookupVehicle]);
+  }, [formData.make, formData.model, formData.year, formData.mileage, formData.fuelType, formData.condition, formData.valuationId, isLoading, lookupVehicle]);
 
   const getStepConfig = useCallback((step: number): StepConfig | null => {
     return stepConfigs[step] || null;

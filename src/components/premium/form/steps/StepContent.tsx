@@ -6,8 +6,10 @@ import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { VehicleDetailsStep } from './VehicleDetailsStep';
 import { FeatureSelectionStep } from './FeatureSelectionStep';
 import { ConditionStep } from './ConditionStep';
+import { PhotoUploadStep } from './PhotoUploadStep';
+import { DrivingBehaviorStep } from './DrivingBehaviorStep';
 import { ReviewSubmitStep } from './ReviewSubmitStep';
-import { DrivingBehaviorInput } from '@/components/valuation/DrivingBehaviorInput';
+import { ValuationResult } from '../../ValuationResult';
 
 interface StepContentProps {
   currentStep: number;
@@ -35,6 +37,11 @@ export function StepContent({
   goToPreviousStep
 }: StepContentProps) {
   const { isLoading, lookupVehicle } = useVehicleLookup();
+
+  // If we have a valuation ID, show the result instead of the form
+  if (valuationId) {
+    return <ValuationResult valuationId={valuationId} />;
+  }
 
   // Render appropriate step based on currentStep
   switch (currentStep) {
@@ -79,6 +86,24 @@ export function StepContent({
       );
     case 5:
       return (
+        <PhotoUploadStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    case 6:
+      return (
+        <DrivingBehaviorStep
+          step={currentStep}
+          formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
+        />
+      );
+    case 7:
+      return (
         <ReviewSubmitStep
           step={currentStep}
           formData={formData}
@@ -86,26 +111,6 @@ export function StepContent({
           handleSubmit={handleSubmit}
           handleReset={handleReset}
         />
-      );
-    case 6:
-      return (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Driving Behavior Analysis</h2>
-          <p className="text-muted-foreground">
-            Your driving habits can affect vehicle value. Upload telematics data or use the slider to indicate your driving style.
-          </p>
-          
-          <DrivingBehaviorInput
-            value={formData.drivingProfile || 'Normal'}
-            onChange={(value) => setFormData({ ...formData, drivingProfile: value })}
-          />
-          
-          <div className="mt-4 text-sm text-muted-foreground">
-            <p>
-              Conservative driving tends to preserve vehicle components, while aggressive driving may increase wear and tear.
-            </p>
-          </div>
-        </div>
       );
     default:
       return <div>Step not implemented</div>;
