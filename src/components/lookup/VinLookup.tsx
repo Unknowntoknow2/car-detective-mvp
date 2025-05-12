@@ -1,92 +1,65 @@
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState, useCallback } from 'react';
+import { VINLookupForm } from './vin/VINLookupForm';
+import VinDecoderResults from './vin/VinDecoderResults';
+import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { Button } from '@/components/ui/button';
-import { useVehicleLookup } from '@/hooks/useVehicleLookup';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
+import CarfaxErrorAlert from './vin/CarfaxErrorAlert';
 
-export function VinLookup({ 
-  value = '', 
-  onChange = () => {}, 
-  onLookup = () => {}, 
-  isLoading = false,
-  standalone = true
-}) {
-  const [vin, setVin] = useState(value);
-  const navigate = useNavigate();
-  const { lookupVehicle, isLoading: isLookingUp, error, vehicle } = useVehicleLookup();
+export const VinLookup = () => {
+  const [vinNumber, setVinNumber] = useState('');
+  const { data, isLoading, error, decodeVin, resetDecoder } = useVinDecoder();
   
-  const loading = isLoading || isLookingUp;
-
-  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVin = e.target.value.toUpperCase();
-    setVin(newVin);
-    if (onChange) {
-      onChange(newVin);
+  const handleVinChange = useCallback((vin: string) => {
+    setVinNumber(vin);
+  }, []);
+  
+  const handleLookup = useCallback(() => {
+    if (vinNumber) {
+      decodeVin(vinNumber);
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!vin || vin.length !== 17) {
-      toast.error('Please enter a valid 17-character VIN');
-      return;
-    }
-
-    try {
-      // Lookup VIN using the hook
-      const result = await lookupVehicle('vin', vin);
-      
-      if (onLookup) {
-        // Call onLookup without arguments
-        onLookup();
-      }
-      
-      // If this is a standalone component (not part of a larger form)
-      // navigate to the results page
-      if (standalone && result?.id) {
-        navigate(`/result?id=${result.id}`);
-      } else if (standalone && result) {
-        toast.success('VIN lookup successful!');
-      }
-    } catch (err) {
-      console.error('Error in VIN lookup:', err);
-      toast.error('Failed to process VIN');
-    }
-  };
-
+  }, [vinNumber, decodeVin]);
+  
+  const onReset = useCallback(() => {
+    resetDecoder();
+    setVinNumber('');
+  }, [resetDecoder]);
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <div className="flex items-center gap-3">
-          <Input
-            value={vin}
-            onChange={handleVinChange}
-            placeholder="Enter 17-character VIN"
-            className="font-mono"
-            maxLength={17}
-          />
-          <Button type="submit" disabled={loading || vin.length !== 17}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Decoding...
-              </>
-            ) : (
-              'Lookup'
-            )}
+    <div className="w-full">
+      {!data ? (
+        <VINLookupForm 
+          vinNumber={vinNumber} 
+          onVinChange={handleVinChange} 
+          onLookup={handleLookup}
+          isLoading={isLoading}
+        />
+      ) : (
+        <>
+          <VinDecoderResults decodedVin={data} />
+          <Button 
+            variant="outline" 
+            className="mt-4" 
+            onClick={onReset}
+          >
+            Lookup Another VIN
           </Button>
-        </div>
-        {error && (
-          <div className="flex items-center gap-2 mt-2 text-red-500 text-sm">
-            <AlertCircle className="h-4 w-4" />
-            <span>{error}</span>
+        </>
+      )}
+      
+      {error && (
+        error.message.includes('Carfax') ? (
+          <CarfaxErrorAlert onReset={onReset} />
+        ) : (
+          <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-md flex items-center gap-2 text-red-700">
+            <AlertTriangle className="h-5 w-5" />
+            <p className="text-sm">{error.message}</p>
           </div>
-        )}
-      </div>
-    </form>
+        )
+      )}
+    </div>
   );
-}
+};
+
+export default VinLookup;

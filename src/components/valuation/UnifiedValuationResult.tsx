@@ -1,286 +1,270 @@
 
-import React, { useState } from 'react';
-import { formatCurrency } from '@/utils/formatters';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Download, Mail, File } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { UnifiedValuationHeader } from './header/UnifiedValuationHeader';
-import { VehicleDataTable } from './detail/VehicleDataTable';
-import { toast } from 'sonner';
-import { ManualVehicleInfo } from '@/hooks/useManualValuation'; 
+import { useToast } from '@/components/ui/use-toast';
+import { FileDown, Loader2, Mail, Share2 } from 'lucide-react';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { LoadingState } from '@/components/premium/common/LoadingState';
+import { ErrorState } from '@/components/premium/common/ErrorState';
+import { FeaturesDisplay } from '@/components/premium/form/steps/prediction-review/FeaturesDisplay';
 
-interface VehicleInfo {
-  year?: number;
-  make?: string;
-  model?: string;
+// Define a common VehicleInfo type to avoid conflicts
+interface CommonVehicleInfo {
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
   mileage?: number;
   condition?: string;
 }
 
+// Use the common type in the Adjustment interface
 interface Adjustment {
   factor: string;
   impact: number;
-  description?: string;
+  description: string;
 }
 
 interface UnifiedValuationResultProps {
   valuationId?: string;
   estimatedValue?: number;
   confidenceScore?: number;
-  priceRange?: [number, number];
+  basePrice?: number;
   adjustments?: Adjustment[];
+  priceRange?: [number, number];
+  demandFactor?: number;
+  vehicleInfo?: CommonVehicleInfo;
+  manualValuation?: any;
+  displayMode: 'full' | 'simple';
   onDownloadPdf?: () => void;
   onEmailReport?: () => void;
-  vehicleInfo?: VehicleInfo;
-  manualValuation?: ManualVehicleInfo;
-  displayMode?: 'full' | 'simple' | 'minimal';
 }
 
 export function UnifiedValuationResult({
   valuationId,
-  estimatedValue: propEstimatedValue,
-  confidenceScore: propConfidenceScore,
-  priceRange: propPriceRange,
-  adjustments: propAdjustments,
-  onDownloadPdf,
-  onEmailReport,
-  vehicleInfo: propVehicleInfo,
+  estimatedValue,
+  confidenceScore,
+  basePrice,
+  adjustments,
+  priceRange,
+  demandFactor,
+  vehicleInfo,
   manualValuation,
-  displayMode = 'full'
+  displayMode = 'full',
+  onDownloadPdf,
+  onEmailReport
 }: UnifiedValuationResultProps) {
-  // Mock data for when valuationId is provided but we don't have a real API connection
-  const mockData = valuationId ? {
-    estimated_value: 15000,
-    confidence_score: 85,
-    year: manualValuation?.year || 2018,
-    make: manualValuation?.make || "Toyota",
-    model: manualValuation?.model || "Camry",
-    mileage: manualValuation?.mileage || 45000,
-    condition_score: 75,
-    isLoading: false,
-    error: null
-  } : null;
-  
-  // State to track if PDF download is in progress
+  const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isEmailing, setIsEmailing] = useState(false);
   
-  // Determine if we should use the data from the props or from the mock
-  const estimatedValue = mockData?.estimated_value ?? propEstimatedValue ?? 0;
-  const confidenceScore = mockData?.confidence_score ?? propConfidenceScore ?? 80;
-  const vehicleInfo = mockData ? {
-    year: mockData.year,
-    make: mockData.make,
-    model: mockData.model,
-    mileage: mockData.mileage,
-    condition: mockData.condition_score ? 
-      mockData.condition_score > 90 ? 'Excellent' :
-      mockData.condition_score > 75 ? 'Good' :
-      mockData.condition_score > 60 ? 'Fair' : 'Poor'
-      : 'Unknown'
-  } : propVehicleInfo;
+  // Only fetch from API if we're not provided with the data directly
+  const shouldFetchFromApi = !manualValuation && valuationId && !estimatedValue;
   
-  // Get price range - either from props, or calculate as ±5% if not provided
-  const priceRange = propPriceRange || [
-    Math.round(estimatedValue * 0.95),
-    Math.round(estimatedValue * 1.05)
-  ];
+  const {
+    data,
+    isLoading,
+    error,
+    downloadPdf,
+    emailReport
+  } = useValuationResult(shouldFetchFromApi ? valuationId : undefined);
   
-  // Get adjustments from props or data
-  const adjustments = propAdjustments || [];
+  // Use provided data or API data
+  const valuationData = manualValuation || data || {
+    estimatedValue,
+    confidenceScore,
+    basePrice,
+    adjustments,
+    priceRange,
+    demandFactor,
+    vehicleInfo
+  };
   
-  const handleDownloadPdf = async () => {
+  const handleDownload = async () => {
+    if (onDownloadPdf) {
+      onDownloadPdf();
+      return;
+    }
+    
+    if (!downloadPdf || !valuationId) return;
+    
     setIsDownloading(true);
     try {
-      if (onDownloadPdf) {
-        await onDownloadPdf();
-      } else {
-        // Mock PDF download
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success('PDF report downloaded successfully');
-      }
+      await downloadPdf(valuationId);
+      toast({
+        title: 'Success',
+        description: 'Report downloaded successfully',
+        variant: 'default',
+      });
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      toast.error('Failed to download PDF report');
+      toast({
+        title: 'Error',
+        description: 'Failed to download report',
+        variant: 'destructive',
+      });
     } finally {
       setIsDownloading(false);
     }
   };
   
   const handleEmailReport = async () => {
+    if (onEmailReport) {
+      onEmailReport();
+      return;
+    }
+    
+    if (!emailReport || !valuationId) return;
+    
+    setIsEmailing(true);
     try {
-      if (onEmailReport) {
-        await onEmailReport();
-      } else {
-        // Mock email sending
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success('Report sent to your email');
-      }
+      await emailReport(valuationId);
+      toast({
+        title: 'Success',
+        description: 'Report sent to your email',
+        variant: 'default',
+      });
     } catch (error) {
-      console.error('Error sending email:', error);
-      toast.error('Failed to send email');
+      console.error('Error emailing report:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send report',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsEmailing(false);
     }
   };
   
-  // Loading state
-  if (mockData?.isLoading) {
-    return <ValuationSkeleton />;
+  if (isLoading && shouldFetchFromApi) {
+    return <LoadingState message="Loading valuation result..." />;
   }
   
-  // Error state
-  if (mockData?.error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load valuation data
-          <Button variant="outline" size="sm" className="mt-2">
-            Try Again
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
+  if (error && shouldFetchFromApi) {
+    return <ErrorState message="Failed to load valuation result" />;
   }
   
-  // Show header for full and simple display modes
-  const showHeader = displayMode !== 'minimal';
-  
-  // Show adjustments only in full mode
-  const showAdjustments = displayMode === 'full' && adjustments.length > 0;
-  
-  // Show detailed data in full mode
-  const showDetailedData = displayMode === 'full';
+  if (!valuationData) {
+    return <ErrorState message="No valuation data available" />;
+  }
   
   return (
     <div className="space-y-6">
-      {showHeader && vehicleInfo && (
-        <UnifiedValuationHeader
-          vehicleInfo={vehicleInfo}
-          estimatedValue={estimatedValue}
-          confidenceScore={confidenceScore}
-          displayMode={displayMode === 'full' ? 'detailed' : 'card'}
-        />
-      )}
-      
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-lg font-medium">Estimated Value</h3>
-              <div className="text-3xl font-bold text-primary mt-1">
-                {formatCurrency(estimatedValue)}
+      <Card className="overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {valuationData.vehicleInfo && (
+                    `${valuationData.vehicleInfo.year} ${valuationData.vehicleInfo.make} ${valuationData.vehicleInfo.model}`
+                  )}
+                </h2>
+                {valuationData.vehicleInfo?.trim && (
+                  <p className="text-muted-foreground">{valuationData.vehicleInfo.trim}</p>
+                )}
               </div>
               
-              <div className="text-sm text-muted-foreground mt-2">
-                Estimated range: {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+              <div className="flex flex-col items-start md:items-end">
+                <span className="text-sm text-muted-foreground">Estimated Value</span>
+                <span className="text-3xl font-bold">
+                  ${valuationData.estimatedValue?.toLocaleString() || 'N/A'}
+                </span>
+                {valuationData.priceRange && (
+                  <span className="text-sm text-muted-foreground">
+                    Range: ${valuationData.priceRange[0].toLocaleString()} - ${valuationData.priceRange[1].toLocaleString()}
+                  </span>
+                )}
               </div>
-              
-              <div className="mt-3 flex items-center">
-                <span className="text-sm font-medium mr-2">Confidence:</span>
-                <div className={`text-sm font-semibold ${
-                  confidenceScore >= 80 ? 'text-green-600' :
-                  confidenceScore >= 70 ? 'text-yellow-600' :
-                  'text-red-600'
-                }`}>
-                  {confidenceScore}%
+            </div>
+            
+            {valuationData.confidenceScore !== undefined && (
+              <div className="bg-muted p-3 rounded-md">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Confidence Score</span>
+                  <span className="text-sm font-bold">{valuationData.confidenceScore}%</span>
+                </div>
+                <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary" 
+                    style={{ width: `${valuationData.confidenceScore}%` }}
+                  />
                 </div>
               </div>
-            </div>
-            
-            <div className="flex flex-col space-y-3">
-              <Button
-                variant="outline"
-                onClick={handleDownloadPdf}
-                disabled={isDownloading}
-                className="flex items-center"
-                data-testid="download-valuation-pdf"
-              >
-                {isDownloading ? (
-                  <>
-                    <Skeleton className="h-4 w-4 rounded-full mr-2" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF Report
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleEmailReport}
-                className="flex items-center"
-                data-testid="email-valuation-report"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Email Report
-              </Button>
-            </div>
+            )}
           </div>
-          
-          {showAdjustments && (
-            <div className="mt-8">
-              <h4 className="text-lg font-medium mb-4">Valuation Adjustments</h4>
-              <ul className="space-y-3">
-                {adjustments.map((adj, index) => (
-                  <li key={index} className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <File className="h-4 w-4 mr-2 text-gray-500" />
-                      <div>
-                        <div className="font-medium">{adj.factor}</div>
-                        <div className="text-sm text-muted-foreground">{adj.description}</div>
-                      </div>
-                    </div>
-                    <div className={`font-medium ${adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(adj.impact)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {showDetailedData && vehicleInfo && (
-            <div className="mt-8">
-              <h4 className="text-lg font-medium mb-4">Vehicle Details</h4>
-              <VehicleDataTable vehicleInfo={vehicleInfo} manualValuation={manualValuation} />
-            </div>
-          )}
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function ValuationSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-4 w-36" />
-      </div>
       
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div>
-              <Skeleton className="h-5 w-32 mb-2" />
-              <Skeleton className="h-9 w-40 mb-2" />
-              <Skeleton className="h-4 w-52 mb-2" />
-              <Skeleton className="h-4 w-24" />
+      {valuationData.adjustments && valuationData.adjustments.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="font-medium mb-3">Valuation Factors</h3>
+            <div className="space-y-2">
+              {valuationData.adjustments.map((adjustment, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-sm">{adjustment.factor}</span>
+                  <span className={`text-sm font-medium ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {adjustment.impact >= 0 ? '+' : ''}{adjustment.impact}%
+                  </span>
+                </div>
+              ))}
             </div>
-            
-            <div className="flex flex-col space-y-3 mt-4 md:mt-0">
-              <Skeleton className="h-9 w-44" />
-              <Skeleton className="h-9 w-44" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+      
+      {valuationData.features && (
+        <FeaturesDisplay features={valuationData.features} />
+      )}
+      
+      {displayMode === 'full' && (
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button 
+            onClick={handleDownload} 
+            className="flex-1"
+            disabled={isDownloading}
+            data-testid="download-pdf-button"
+          >
+            {isDownloading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Downloading...
+              </>
+            ) : (
+              <>
+                <FileDown className="mr-2 h-4 w-4" />
+                Download PDF
+              </>
+            )}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleEmailReport}
+            className="flex-1"
+            disabled={isEmailing}
+          >
+            {isEmailing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Mail className="mr-2 h-4 w-4" />
+                Email Report
+              </>
+            )}
+          </Button>
+          
+          <Button variant="outline" className="flex-1">
+            <Share2 className="mr-2 h-4 w-4" />
+            Share Report
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
