@@ -14,11 +14,14 @@ import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { LookupTabs } from "@/components/home/LookupTabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useValuation } from "@/contexts/ValuationContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Index() {
   const valuationRef = useRef<HTMLDivElement>(null);
   const [valuationType, setValuationType] = useState<'free' | 'premium'>('free');
   const { processFreeValuation, processPremiumValuation } = useValuation();
+  const navigate = useNavigate();
   
   useEffect(() => {
     console.log("HOME PAGE: Component mounted");
@@ -62,10 +65,13 @@ export default function Index() {
         if (result?.valuationId) {
           console.log(`HOME FREE ${type.toUpperCase()}: Got valuationId:`, result.valuationId);
           localStorage.setItem('latest_valuation_id', result.valuationId);
+          toast.success("Vehicle valuation complete!");
+          navigate(`/result?valuationId=${result.valuationId}`);
         }
       })
       .catch(error => {
         console.error(`HOME FREE ${type.toUpperCase()}: Error:`, error);
+        toast.error("Failed to process valuation");
       });
   };
 
@@ -91,9 +97,16 @@ export default function Index() {
     processPremiumValuation(valuationData)
       .then(result => {
         console.log(`HOME PREMIUM ${type.toUpperCase()}: Premium valuation result:`, result);
+        if (result?.valuationId) {
+          toast.success("Premium valuation complete!");
+          navigate(`/result?valuationId=${result.valuationId}&premium=true`);
+        } else {
+          navigate('/premium');
+        }
       })
       .catch(error => {
         console.error(`HOME PREMIUM ${type.toUpperCase()}: Error:`, error);
+        toast.error("Failed to process premium valuation");
       });
   };
 
@@ -139,6 +152,7 @@ export default function Index() {
                 </div>
                 <LookupTabs 
                   defaultTab="vin" 
+                  onSubmit={handleFreeFormSubmit}
                 />
               </TabsContent>
               
@@ -149,7 +163,10 @@ export default function Index() {
                   </p>
                 </div>
                 {/* Show only the Premium component, not free valuation */}
-                <PremiumTabs showFreeValuation={false} />
+                <PremiumTabs 
+                  showFreeValuation={false} 
+                  onSubmit={handlePremiumFormSubmit}
+                />
               </TabsContent>
             </Tabs>
           </div>

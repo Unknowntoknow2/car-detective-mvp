@@ -1,81 +1,115 @@
 
-import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, CheckCircle2, AlertCircle, Car } from 'lucide-react';
 import { validateVin } from '@/utils/validation/vin-validation';
-import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
+import { toast } from 'sonner';
 
 interface EnhancedVinLookupProps {
   value: string;
   onChange: (value: string) => void;
   onLookup: () => void;
-  isLoading?: boolean;
+  isLoading: boolean;
   error?: string;
   existingVehicle?: any;
 }
 
-export function EnhancedVinLookup({ 
-  value, 
-  onChange, 
-  onLookup, 
-  isLoading = false, 
+export function EnhancedVinLookup({
+  value,
+  onChange,
+  onLookup,
+  isLoading,
   error,
   existingVehicle
 }: EnhancedVinLookupProps) {
-  const [touched, setTouched] = React.useState(false);
-  
-  const validationResult = React.useMemo(() => {
-    if (!value) return { isValid: false, error: null };
-    return {
-      isValid: validateVin(value).valid,
-      error: validateVin(value).message
-    };
+  const [validationResult, setValidationResult] = useState<{ isValid: boolean; error: string | null }>({
+    isValid: false,
+    error: null
+  });
+
+  useEffect(() => {
+    if (value) {
+      const result = validateVin(value);
+      setValidationResult(result);
+    } else {
+      setValidationResult({ isValid: false, error: null });
+    }
   }, [value]);
 
-  // If there's existing vehicle data, use that VIN and mark as valid
-  useEffect(() => {
-    if (existingVehicle?.vin && !value) {
-      onChange(existingVehicle.vin);
-      setTouched(true);
-    }
-  }, [existingVehicle, value, onChange]);
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {existingVehicle && existingVehicle.make && existingVehicle.model && (
+        <Card className="border-green-100 bg-green-50/50 mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-green-100 p-2 rounded-full">
+                <Car className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900">
+                  {existingVehicle.year} {existingVehicle.make} {existingVehicle.model}
+                </h3>
+                <p className="text-gray-600">
+                  {existingVehicle.trim && `${existingVehicle.trim} • `}
+                  {existingVehicle.bodyType && `${existingVehicle.bodyType} • `}
+                  {existingVehicle.transmission && `${existingVehicle.transmission}`}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  You can continue with this vehicle or enter a new VIN
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="relative">
-        <Input 
+        <Input
           value={value}
-          onChange={(e) => {
-            const newValue = e.target.value.toUpperCase();
-            onChange(newValue);
-            setTouched(true);
-          }}
-          placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
-          className={`text-lg font-mono tracking-wide h-12 pr-10 transition-all ${
-            (touched && !validationResult.isValid) || error ? 'border-red-300 focus-visible:ring-red-200 bg-red-50/30' : 
-            validationResult.isValid ? 'border-green-300 focus-visible:ring-green-200 bg-green-50/30' : 
-            'border-input/60 hover:border-input'
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          placeholder="Enter 17-character VIN"
+          className={`font-mono text-base tracking-wider h-12 ${
+            error ? 'border-red-300 focus-visible:ring-red-200' :
+            validationResult.isValid ? 'border-green-300 focus-visible:ring-green-200' : ''
           }`}
-          disabled={isLoading || (existingVehicle && !touched)}
+          maxLength={17}
         />
-        {validationResult.isValid && !isLoading && !error && (
+        {validationResult.isValid && !isLoading && (
           <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
         )}
       </div>
-      
-      {touched && !validationResult.isValid && validationResult.error ? (
-        <div className="flex items-start gap-2 text-xs text-red-500 animate-fade-in">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <p>{validationResult.error}</p>
+
+      {validationResult.error && (
+        <div className="text-sm text-red-500 flex items-start gap-1">
+          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>{validationResult.error}</span>
         </div>
-      ) : error ? (
-        <div className="flex items-start gap-2 text-xs text-red-500 animate-fade-in">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <p>{error}</p>
-        </div>
-      ) : (
-        <VinInfoMessage />
       )}
+
+      {error && (
+        <div className="text-sm text-red-500 flex items-start gap-1">
+          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="flex justify-end">
+        <Button
+          onClick={onLookup}
+          disabled={isLoading || !validationResult.isValid}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Looking up VIN...
+            </>
+          ) : (
+            'Lookup Vehicle'
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
