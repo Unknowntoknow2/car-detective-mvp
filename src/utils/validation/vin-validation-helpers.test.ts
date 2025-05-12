@@ -17,32 +17,32 @@ describe('VIN Validation', () => {
 
   // validateVin test cases
   test('validateVin passes valid VINs', () => {
-    expect(validateVin('1HGCM82633A004352').valid).toBe(true);
-    expect(validateVin('5TFEV54198X063405').valid).toBe(true);
+    expect(validateVin('1HGCM82633A004352').isValid).toBe(true);
+    expect(validateVin('5TFEV54198X063405').isValid).toBe(true);
   });
 
   test('validateVin fails empty VIN', () => {
     const result = validateVin('');
-    expect(result.valid).toBe(false);
-    expect(result.message).toBe('VIN is required');
+    expect(result.isValid).toBe(false);
+    expect(result.error).toBe('VIN is required');
   });
 
   test('validateVin fails VIN with incorrect length', () => {
     const result = validateVin('1HGCM8263');
-    expect(result.valid).toBe(false);
-    expect(result.message).toBe('VIN must be exactly 17 characters');
+    expect(result.isValid).toBe(false);
+    expect(result.error).toBe('VIN must be exactly 17 characters');
   });
 
   test('validateVin fails VIN with I, O, or Q', () => {
     const result = validateVin('1HGCM82I33A004352');
-    expect(result.valid).toBe(false);
-    expect(result.message).toBe('VIN cannot contain letters I, O, or Q');
+    expect(result.isValid).toBe(false);
+    expect(result.error).toBe('VIN cannot contain letters I, O, or Q');
   });
 
   test('validateVin fails VIN with invalid characters', () => {
     const result = validateVin('1HGCM826#3A004352');
-    expect(result.valid).toBe(false);
-    expect(result.message).toBe('VIN can only contain letters A-H, J-N, P, R-Z and numbers 0-9');
+    expect(result.isValid).toBe(false);
+    expect(result.error).toBe('VIN can only contain letters A-H, J-N, P, R-Z and numbers 0-9');
   });
 
   // Check digit validation tests

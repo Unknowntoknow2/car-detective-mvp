@@ -19,8 +19,8 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, isLoadin
     
     // Validate VIN format
     const result = validateVin(vin);
-    if (!result.valid) {
-      setError(result.message || 'Invalid VIN format');
+    if (!result.isValid) {
+      setError(result.error || 'Invalid VIN format');
       return;
     }
     

@@ -25,7 +25,7 @@ export const VinInputField: React.FC<VinInputFieldProps> = ({ form }) => {
     }
     
     const result = validateVin(vinValue);
-    setVinError(result.valid ? null : result.message || null);
+    setVinError(result.isValid ? null : result.error || null);
   }, [vinValue]);
 
   return (

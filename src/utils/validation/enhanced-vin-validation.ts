@@ -10,8 +10,8 @@ import { validateVin as baseValidateVin } from './vin-validation';
 export function validateVinEnhanced(vin: string): { isValid: boolean; error: string | null } {
   const result = baseValidateVin(vin);
   return { 
-    isValid: result.valid, 
-    error: result.valid ? null : result.message || null 
+    isValid: result.isValid, 
+    error: result.isValid ? null : result.error || null 
   };
 }
 

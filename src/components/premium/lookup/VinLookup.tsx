@@ -29,8 +29,8 @@ export function VinLookup({ value = "", onChange, onLookup, isLoading = false, e
     if (value) {
       const result = validateVin(value);
       setValidationResult({
-        isValid: result.valid,
-        error: result.valid ? null : result.message || null
+        isValid: result.isValid,
+        error: result.isValid ? null : result.error || null
       });
     } else {
       setValidationResult({ isValid: false, error: null });

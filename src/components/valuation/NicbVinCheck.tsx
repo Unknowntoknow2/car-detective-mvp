@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNicbVinCheck } from '@/hooks/useNicbVinCheck';
 import { Button } from '@/components/ui/button';
@@ -21,8 +20,8 @@ export const NicbVinCheck: React.FC = () => {
     
     // Validate VIN
     const validation = validateVin(vinInput);
-    if (!validation.valid) {
-      setValidationError(validation.message || 'Invalid VIN');
+    if (!validation.isValid) {
+      setValidationError(validation.error || 'Invalid VIN');
       return;
     }
     

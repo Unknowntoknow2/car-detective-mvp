@@ -57,7 +57,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     // Only check VIN validation if a value is provided
     if (values.vin && values.vin.trim() !== '') {
       const validation = validateVin(values.vin);
-      if (!validation.valid) {
+      if (!validation.isValid) {
         // We don't need to set error state here as it's handled in the VinInputField component
         return;
       }
