@@ -15,7 +15,7 @@ interface FormStepsProps {
 
 export function FormSteps({ currentStep, children }: FormStepsProps) {
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
         key={currentStep}
         initial="enter"

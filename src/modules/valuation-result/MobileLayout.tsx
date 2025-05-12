@@ -30,7 +30,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       {children}
       
       {/* Mobile Action Bar */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {!isLoading && (
           <motion.div
             className={styles.mobile.actionBar}

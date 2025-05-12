@@ -6,6 +6,7 @@ import { StepContent } from './steps/StepContent';
 import { usePremiumValuationForm } from '@/hooks/usePremiumValuationForm';
 import { useFormAutosave } from '@/hooks/useFormAutosave';
 import { motion } from 'framer-motion';
+import { FormSteps } from './FormSteps';
 
 const fadeVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -80,14 +81,7 @@ export function PremiumValuationForm() {
           updateStepValidity={updateStepValidity}
         />
         
-        <motion.div
-          key={`step-${currentStep}`}
-          variants={fadeVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="w-full"
-        >
+        <FormSteps currentStep={currentStep}>
           <StepContent
             currentStep={currentStep}
             formData={formData}
@@ -100,7 +94,7 @@ export function PremiumValuationForm() {
             goToNextStep={goToNextStep}
             goToPreviousStep={goToPreviousStep}
           />
-        </motion.div>
+        </FormSteps>
       </FormStepLayout>
     </div>
   );
