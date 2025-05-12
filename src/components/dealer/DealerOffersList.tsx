@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, User, DollarSign, Clock, AlertCircle, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { OfferScoreBadge } from './OfferScoreBadge';
 
 interface DealerOffersListProps {
   reportId: string;
@@ -74,74 +75,6 @@ export function DealerOffersList({ reportId, showActions = false }: DealerOffers
     }
   };
   
-  const getScoreBadge = (offer: any) => {
-    if (!offer.label) return null;
-    
-    switch (offer.label) {
-      case 'Good Deal':
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-200 border-green-200">
-                  {offer.label} {offer.id === bestOffer?.id && <Award className="h-3 w-3 ml-1" />}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{offer.insight}</p>
-                {offer.id === bestOffer?.id && <p className="font-semibold mt-1">Best offer available!</p>}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      case 'Fair Offer':
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="ml-2 bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
-                  {offer.label}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{offer.insight}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      case 'Below Market':
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
-                  {offer.label}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{offer.insight}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      default:
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="ml-2 bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-200">
-                  {offer.label}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{offer.insight || "No additional information available."}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-    }
-  };
-  
   return (
     <div className="space-y-6">
       {offers.map((offer) => (
@@ -173,7 +106,12 @@ export function DealerOffersList({ reportId, showActions = false }: DealerOffers
                 <span className="text-2xl font-bold">${offer.offer_amount.toLocaleString()}</span>
                 <div className="ml-4 flex">
                   {getStatusBadge(offer.status)}
-                  {getScoreBadge(offer)}
+                  <OfferScoreBadge 
+                    label={offer.label} 
+                    insight={offer.insight} 
+                    score={offer.score} 
+                    isBestOffer={offer.id === bestOffer?.id}
+                  />
                 </div>
               </div>
               
