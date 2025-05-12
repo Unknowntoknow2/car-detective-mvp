@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,11 +9,16 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, Car, AlertCircle } from 'lucide-react';
+import { Loader2, Car, AlertCircle, ArrowRight, Upload, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VehicleSelectorWrapper } from '@/components/lookup/form-parts/vehicle-selector/VehicleSelectorWrapper';
 import { useValuationPipeline } from '@/hooks/valuation-pipeline';
+import { PhotoUploader } from '@/components/valuation/photo-upload/PhotoUploader';
+import { Stepper } from '@/components/ui/stepper';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 
 // Define form schema with validation
 const formSchema = z.object({
@@ -26,22 +32,39 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Steps for the valuation flow
+const STEPS = [
+  { id: 'vehicle', label: 'Vehicle Info' },
+  { id: 'details', label: 'Details' },
+  { id: 'photos', label: 'Photos' },
+  { id: 'review', label: 'Review' }
+];
+
 const ValuationPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [selectedMake, setSelectedMake] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
+  const [photoScore, setPhotoScore] = useState<number | null>(null);
+  const [bestPhoto, setBestPhoto] = useState<string | undefined>(undefined);
+  const [aiCondition, setAiCondition] = useState<any | null>(null);
+  const [valuationId, setValuationId] = useState<string | null>(searchParams.get('valuationId'));
   
-  // Use the valuation pipeline hook
+  // Initialize the valuation pipeline hook
   const {
     stage,
+    vehicle,
+    requiredInputs,
+    valuationResult,
     error: pipelineError,
     isLoading: pipelineLoading,
     runLookup,
     submitValuation,
-    valuationResult
+    reset
   } = useValuationPipeline();
 
   // Initialize the form
@@ -58,7 +81,7 @@ const ValuationPage = () => {
   });
 
   // Update the form when make/model selection changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedMake) {
       form.setValue('make', selectedMake, { shouldValidate: true });
     }
@@ -66,6 +89,36 @@ const ValuationPage = () => {
       form.setValue('model', selectedModel, { shouldValidate: true });
     }
   }, [selectedMake, selectedModel, form]);
+
+  // Effect to update form when vehicle data is available
+  useEffect(() => {
+    if (vehicle) {
+      setSelectedMake(vehicle.make || '');
+      setSelectedModel(vehicle.model || '');
+      setSelectedYear(vehicle.year);
+      form.setValue('make', vehicle.make || '', { shouldValidate: true });
+      form.setValue('model', vehicle.model || '', { shouldValidate: true });
+      form.setValue('year', vehicle.year || undefined, { shouldValidate: true });
+      
+      // Move to the next step automatically when vehicle data is loaded
+      if (currentStep === 0 && stage === 'details_required') {
+        setCurrentStep(1);
+      }
+    }
+  }, [vehicle, form, currentStep, stage]);
+
+  // Effect to handle valuation result
+  useEffect(() => {
+    if (valuationResult && valuationResult.id) {
+      setValuationId(valuationResult.id);
+      localStorage.setItem('latest_valuation_id', valuationResult.id);
+      
+      // Move to photo upload step if we have a valuation ID
+      if (currentStep < 2) {
+        setCurrentStep(2);
+      }
+    }
+  }, [valuationResult, currentStep]);
 
   // Helper to convert condition string to number
   const getConditionNumber = (condition: string): number => {
@@ -95,15 +148,8 @@ const ValuationPage = () => {
       });
       
       if (success && valuationResult) {
-        toast.success('Valuation completed successfully!');
-        
-        // Store ID in localStorage for persistence
-        if (valuationResult.id) {
-          localStorage.setItem('latest_valuation_id', valuationResult.id);
-        }
-        
-        // Navigate to the results page with the valuation ID
-        navigate(`/results?valuationId=${valuationResult.id}`);
+        toast.success('Vehicle details submitted successfully!');
+        setCurrentStep(2); // Move to photo upload step
       } else {
         setSubmissionError('Could not calculate valuation. Please try again.');
       }
@@ -146,110 +192,178 @@ const ValuationPage = () => {
     }
   };
 
-  // Check if first step is complete
-  const isFirstStepComplete = selectedMake && selectedModel && form.getValues('year');
+  // Handle next step
+  const handleNextStep = () => {
+    if (currentStep === 0) {
+      if (!vehicle) {
+        handleInitialLookup();
+        return;
+      }
+    }
+    
+    if (currentStep === 1) {
+      form.handleSubmit(onSubmit)();
+      return;
+    }
+    
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  // Handle previous step
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  // Handle photo score update
+  const handlePhotoScoreUpdate = (score: number, bestPhotoUrl?: string, condition?: any) => {
+    setPhotoScore(score);
+    setBestPhoto(bestPhotoUrl);
+    setAiCondition(condition);
+    toast.success("Photos analyzed successfully!");
+    
+    // Move to review step after photo analysis
+    setCurrentStep(3);
+  };
+
+  // Check if vehicle identification step is complete
+  const isVehicleStepComplete = !!vehicle || (selectedMake && selectedModel && form.getValues('year'));
+
+  // Check if details step is complete
+  const isDetailsStepComplete = form.getValues('mileage') && form.getValues('zipCode') && form.getValues('condition');
+
+  // Check if photo step is complete 
+  const isPhotoStepComplete = !!photoScore;
+
+  // Handle final submission to go to results
+  const handleFinalSubmit = () => {
+    if (valuationId) {
+      navigate(`/results?valuationId=${valuationId}`);
+    } else {
+      toast.error("No valuation ID found. Please try again.");
+    }
+  };
+
+  // Handle upgrade to premium
+  const handleUpgradeToPremium = () => {
+    if (valuationId) {
+      navigate(`/premium?valuationId=${valuationId}`);
+    } else {
+      toast.error("No valuation ID found. Please try again.");
+    }
+  };
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Vehicle Valuation</h1>
-        <p className="mb-8 text-muted-foreground">
-          Get an accurate market value for your vehicle in seconds. Just enter some basic details below.
-        </p>
-        
-        {/* Error display */}
-        {(submissionError || pipelineError) && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {submissionError || pipelineError}
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Information</CardTitle>
-            <CardDescription>
-              Please provide accurate information to get the most precise valuation.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <div className="container mx-auto py-8 px-4 flex-grow">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold mb-2">Free Vehicle Valuation</h1>
+          <p className="mb-8 text-muted-foreground">
+            Get an accurate market value for your vehicle in minutes.
+          </p>
+          
+          {/* Step indicator */}
+          <div className="mb-8">
+            <Stepper 
+              steps={STEPS} 
+              currentStep={currentStep}
+              onStepClick={(step) => {
+                // Only allow navigation to completed steps
+                if (
+                  (step === 0) || 
+                  (step === 1 && isVehicleStepComplete) ||
+                  (step === 2 && isDetailsStepComplete) ||
+                  (step === 3 && isPhotoStepComplete)
+                ) {
+                  setCurrentStep(step);
+                }
+              }}
+            />
+          </div>
+          
+          {/* Error display */}
+          {(submissionError || pipelineError) && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                {submissionError || pipelineError}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {STEPS[currentStep].label}
+              </CardTitle>
+              <CardDescription>
+                {currentStep === 0 && "Provide basic information about your vehicle."}
+                {currentStep === 1 && "Let's add some specifics about your vehicle condition."}
+                {currentStep === 2 && "Upload photos for more accurate valuation."}
+                {currentStep === 3 && "Review your information before getting results."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
                 {/* Step 1: Vehicle Selection */}
-                <div className={`space-y-4 ${stage !== 'initial' && 'opacity-50 pointer-events-none'}`}>
-                  <h3 className="text-lg font-medium">Step 1: Identify Your Vehicle</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-4 col-span-2">
-                      <FormLabel>Make & Model</FormLabel>
-                      <VehicleSelectorWrapper
-                        selectedMake={selectedMake}
-                        setSelectedMake={setSelectedMake}
-                        selectedModel={selectedModel}
-                        setSelectedModel={setSelectedModel}
-                        disabled={stage !== 'initial'}
-                        required={true}
+                {currentStep === 0 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-4 col-span-2">
+                        <FormLabel>Make & Model</FormLabel>
+                        <VehicleSelectorWrapper
+                          selectedMake={selectedMake}
+                          setSelectedMake={setSelectedMake}
+                          selectedModel={selectedModel}
+                          setSelectedModel={setSelectedModel}
+                          disabled={pipelineLoading}
+                          required={true}
+                        />
+                      </div>
+                    
+                      <FormField
+                        control={form.control}
+                        name="year"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Year</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                placeholder="e.g. 2019" 
+                                {...field} 
+                                disabled={pipelineLoading}
+                                onChange={e => {
+                                  field.onChange(e.target.valueAsNumber || undefined);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                     </div>
-                  
-                    <FormField
-                      control={form.control}
-                      name="year"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Year</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="e.g. 2019" 
-                              {...field} 
-                              disabled={stage !== 'initial'}
-                              onChange={e => {
-                                field.onChange(e.target.valueAsNumber || undefined)
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="flex items-end">
-                      <Button 
-                        type="button" 
-                        onClick={handleInitialLookup}
-                        disabled={!isFirstStepComplete || stage !== 'initial' || pipelineLoading}
-                        className="h-10 w-full"
-                      >
-                        {pipelineLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Loading...
-                          </>
-                        ) : (
-                          'Continue'
-                        )}
-                      </Button>
-                    </div>
                   </div>
-                </div>
+                )}
                 
                 {/* Step 2: Additional Details */}
-                {stage === 'details_required' && (
+                {currentStep === 1 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Step 2: Additional Details</h3>
-                    
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-center">
-                        <Car className="h-5 w-5 text-green-500 mr-2" />
-                        <p className="text-green-800">
-                          {selectedYear} {selectedMake} {selectedModel} verified!
-                        </p>
+                    {vehicle && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                        <div className="flex items-center">
+                          <Car className="h-5 w-5 text-green-500 mr-2" />
+                          <p className="text-green-800">
+                            {vehicle.year} {vehicle.make} {vehicle.model} verified!
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
@@ -325,30 +439,188 @@ const ValuationPage = () => {
                         )}
                       />
                     </div>
+                  </div>
+                )}
+                
+                {/* Step 3: Photo Upload */}
+                {currentStep === 2 && valuationId && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start">
+                        <Info className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
+                        <div>
+                          <p className="text-blue-800 font-medium mb-1">
+                            Photo Analysis Improves Accuracy
+                          </p>
+                          <p className="text-blue-700 text-sm">
+                            Upload photos of your vehicle to get a more accurate valuation. Our AI will analyze the condition from your photos.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                     
-                    <div className="flex justify-end space-x-4 pt-4">
-                      <Button
-                        type="submit"
-                        disabled={!form.formState.isValid || isSubmitting}
-                        className="w-full md:w-auto"
+                    <PhotoUploader 
+                      valuationId={valuationId} 
+                      onScoreUpdate={handlePhotoScoreUpdate} 
+                    />
+                    
+                    <div className="mt-4 text-sm text-muted-foreground">
+                      <p>Don't have photos? You can <button 
+                        type="button"
+                        onClick={() => setCurrentStep(3)} 
+                        className="text-primary underline"
                       >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Calculating...
-                          </>
-                        ) : (
-                          'Get Valuation'
-                        )}
-                      </Button>
+                        continue without photos
+                      </button> but your valuation may be less accurate.</p>
                     </div>
                   </div>
                 )}
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                
+                {/* Step 4: Review */}
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">Vehicle Information</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between border-b pb-1">
+                            <span className="text-muted-foreground">Year:</span>
+                            <span className="font-medium">{form.getValues('year') || vehicle?.year}</span>
+                          </div>
+                          <div className="flex justify-between border-b pb-1">
+                            <span className="text-muted-foreground">Make:</span>
+                            <span className="font-medium">{form.getValues('make') || vehicle?.make}</span>
+                          </div>
+                          <div className="flex justify-between border-b pb-1">
+                            <span className="text-muted-foreground">Model:</span>
+                            <span className="font-medium">{form.getValues('model') || vehicle?.model}</span>
+                          </div>
+                          <div className="flex justify-between border-b pb-1">
+                            <span className="text-muted-foreground">Mileage:</span>
+                            <span className="font-medium">{form.getValues('mileage')?.toLocaleString()} miles</span>
+                          </div>
+                          <div className="flex justify-between border-b pb-1">
+                            <span className="text-muted-foreground">Condition:</span>
+                            <span className="font-medium">{form.getValues('condition')?.charAt(0).toUpperCase() + form.getValues('condition')?.slice(1)}</span>
+                          </div>
+                          <div className="flex justify-between pb-1">
+                            <span className="text-muted-foreground">ZIP Code:</span>
+                            <span className="font-medium">{form.getValues('zipCode')}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">Photo Assessment</h3>
+                        {photoScore ? (
+                          <div className="space-y-3">
+                            {bestPhoto && (
+                              <div className="aspect-video relative bg-slate-100 rounded-lg overflow-hidden">
+                                <img 
+                                  src={bestPhoto} 
+                                  alt="Vehicle" 
+                                  className="object-cover w-full h-full"
+                                />
+                              </div>
+                            )}
+                            <div className="space-y-2 text-sm mt-2">
+                              <div className="flex justify-between border-b pb-1">
+                                <span className="text-muted-foreground">Photo Score:</span>
+                                <span className="font-medium">{Math.round(photoScore * 100)}%</span>
+                              </div>
+                              {aiCondition && (
+                                <>
+                                  <div className="flex justify-between border-b pb-1">
+                                    <span className="text-muted-foreground">AI Assessment:</span>
+                                    <span className="font-medium">{aiCondition.condition}</span>
+                                  </div>
+                                  {aiCondition.issuesDetected?.length > 0 && (
+                                    <div className="flex justify-between pb-1">
+                                      <span className="text-muted-foreground">Issues Detected:</span>
+                                      <span className="font-medium text-right">{aiCondition.issuesDetected.join(', ')}</span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 rounded-lg p-4 text-center h-full flex flex-col items-center justify-center">
+                            <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                            <p className="text-gray-500">No photos submitted</p>
+                            <p className="text-xs text-gray-400 mt-1">Valuation will be based on reported condition only</p>
+                            <Button 
+                              variant="link" 
+                              className="mt-2"
+                              onClick={() => setCurrentStep(2)}
+                            >
+                              Add photos for better accuracy
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Form>
+              
+              {/* Navigation buttons */}
+              <div className="flex justify-between mt-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevStep}
+                  disabled={currentStep === 0 || isSubmitting || pipelineLoading}
+                >
+                  Back
+                </Button>
+                
+                {currentStep < STEPS.length - 1 ? (
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    disabled={
+                      isSubmitting || 
+                      pipelineLoading || 
+                      (currentStep === 0 && !isVehicleStepComplete) ||
+                      (currentStep === 1 && !isDetailsStepComplete)
+                    }
+                  >
+                    {isSubmitting || pipelineLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        Continue
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleUpgradeToPremium}
+                    >
+                      Upgrade to Premium
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleFinalSubmit}
+                    >
+                      See Results
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };
