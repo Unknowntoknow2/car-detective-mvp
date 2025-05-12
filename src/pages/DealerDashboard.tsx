@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PremiumDealerBadge } from '@/components/dealer/PremiumDealerBadge';
 import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoCircle, TrendingUp, Star } from 'lucide-react';
+import { BadgeCheck, Info, TrendingUp, Star } from 'lucide-react';
 
 const DealerDashboard = () => {
   const { user } = useAuth();
@@ -144,7 +144,7 @@ const DealerDashboard = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <InfoCircle className="h-5 w-5 text-amber-700 mt-0.5" />
+                  <Info className="h-5 w-5 text-amber-700 mt-0.5" />
                   <div>
                     <p className="font-medium text-amber-900">Advanced Analytics</p>
                     <p className="text-sm text-amber-700">Track performance metrics</p>
