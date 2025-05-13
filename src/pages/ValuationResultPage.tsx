@@ -1,454 +1,329 @@
+
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, AlertTriangle, RotateCcw, FileDown, Share2, Mail, Navigation, Tag } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ValuationComplete } from '@/components/valuation/ValuationComplete';
+import { Button } from '@/components/ui/button';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
-import { useToast } from '@/components/ui/use-toast';
-import { usePdfDownload } from '@/components/valuation/result/usePdfDownload';
-import { useEmailPdf } from '@/components/valuation/result/useEmailPdf';
-import EmailPdfModal from '@/components/valuation/result/EmailPdfModal';
-import { DealerOfferList } from '@/components/valuation/offers/DealerOfferList';
-import { formatCurrency } from '@/utils/formatters';
-import { ValuationResult } from '@/types/valuation';
+import NotFound from './NotFound';
+import { downloadPdf } from '@/utils/pdf';
+import { toast } from '@/components/ui/use-toast';
 
-// Helper function to map database fields to ValuationResult type
-const mapDbToValuationResult = (data: any): ValuationResult => {
-  return {
-    id: data.id,
-    make: data.make || '',
-    model: data.model || '',
-    year: data.year || 0,
-    mileage: data.mileage || 0,
-    condition: data.condition_score ? 
-              (data.condition_score >= 90 ? 'Excellent' : 
-               data.condition_score >= 75 ? 'Good' : 
-               data.condition_score >= 60 ? 'Fair' : 'Poor') : 
-              'Good',
-    zipCode: data.state || '',
-    estimatedValue: data.estimated_value || 0,
-    confidenceScore: data.confidence_score || 75,
-    priceRange: [
-      Math.round((data.estimated_value || 0) * 0.95),
-      Math.round((data.estimated_value || 0) * 1.05)
-    ] as [number, number],
-    adjustments: [
-      { 
-        factor: 'Base Condition', 
-        impact: 0, 
-        description: 'Baseline vehicle value' 
-      },
-      { 
-        factor: 'Market Demand', 
-        impact: 1.5, 
-        description: 'Current market conditions' 
-      }
-    ],
-    // Add properties that are now correctly defined in the ValuationResult type
-    color: data.color || '',
-    bodyStyle: data.body_style || '',
-    bodyType: data.body_type || '',
-    fuelType: data.fuel_type || '',
-    transmission: data.transmission || '',
-    explanation: '',
-    bestPhotoUrl: data.photo_url || undefined,
-    photoScore: data.photo_score,
-    photoExplanation: data.photo_explanation || '',
-    aiCondition: null,
-    features: [],
-    vin: data.vin,
-    created_at: data.created_at,
-    isPremium: data.premium_unlocked || false
-  };
-};
-
-const ValuationResultPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+export default function ValuationResultPage() {
+  const [loading, setLoading] = useState(true);
+  const [valuation, setValuation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [valuationData, setValuationData] = useState<ValuationResult | null>(null);
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [hasDealerOffers, setHasDealerOffers] = useState(false);
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [notFoundState, setNotFoundState] = useState(false);
   
-  // Use the PDF download hook
-  const { downloadValuationPdf, isDownloading } = usePdfDownload();
+  // Parse the ID from the URL query parameters
+  const getValuationId = () => {
+    const queryParams = new URLSearchParams(location.search);
+    const id = queryParams.get('id');
+    
+    // If no ID in URL, check localStorage for latest_valuation_id
+    if (!id) {
+      const storedId = localStorage.getItem('latest_valuation_id');
+      if (storedId) {
+        // Update URL with the stored ID
+        queryParams.set('id', storedId);
+        navigate(`${location.pathname}?${queryParams.toString()}`, { replace: true });
+        return storedId;
+      }
+    }
+    
+    return id;
+  };
   
-  // Use the email PDF hook
-  const { emailValuationPdf, isEmailing, userEmail } = useEmailPdf({ 
-    valuationId: id 
-  });
-
+  const valuationId = getValuationId();
+  
+  // Load condition values from localStorage if available
+  const getConditionValues = () => {
+    const storedValues = localStorage.getItem('condition_values');
+    if (storedValues) {
+      try {
+        return JSON.parse(storedValues);
+      } catch (e) {
+        console.error('Error parsing stored condition values:', e);
+      }
+    }
+    return null;
+  };
+  
   useEffect(() => {
-    const fetchValuationData = async () => {
-      if (!id) {
-        setError('No valuation ID provided');
-        setIsLoading(false);
+    const fetchValuation = async () => {
+      if (!valuationId) {
+        setLoading(false);
+        setNotFoundState(true);
         return;
       }
-
+      
       try {
-        setIsLoading(true);
-        
-        // Fetch the valuation data from Supabase
-        const { data, error: fetchError } = await supabase
+        const { data, error } = await supabase
           .from('valuations')
           .select('*')
-          .eq('id', id)
+          .eq('id', valuationId)
           .single();
         
-        if (fetchError) {
-          console.error('Error fetching valuation:', fetchError);
-          setError('Failed to load valuation data. Please try again later.');
-          setIsLoading(false);
-          return;
+        if (error) {
+          throw error;
         }
         
         if (!data) {
+          setNotFoundState(true);
           setError('Valuation not found');
-          setIsLoading(false);
-          return;
-        }
-        
-        console.log('Fetched valuation data:', data);
-        
-        // Map database response to ValuationResult type
-        setValuationData(mapDbToValuationResult(data));
-        
-        // Check if there are any dealer offers for this valuation
-        const { data: dealerOffers, error: offersError } = await supabase
-          .from('dealer_offers')
-          .select('id')
-          .eq('report_id', id)
-          .limit(1);
+        } else {
+          // Apply condition values from localStorage if available
+          const conditionValues = getConditionValues();
+          if (conditionValues) {
+            // Apply any condition adjustments to the valuation data
+            data.adjustments = [
+              ...(data.adjustments || []),
+              {
+                factor: 'Mileage',
+                impact: conditionValues.mileage * -100, // Example calculation
+                description: `Adjusted for ${conditionValues.mileage === 0 ? 'low' : 'high'} mileage`
+              },
+              {
+                factor: 'Accidents',
+                impact: conditionValues.accidents * -250, // Example calculation
+                description: `${conditionValues.accidents} accidents reported`
+              }
+            ];
+          }
           
-        if (!offersError && dealerOffers && dealerOffers.length > 0) {
-          setHasDealerOffers(true);
+          setValuation(data);
         }
+      } catch (error: any) {
+        console.error('Error fetching valuation:', error);
+        setError(error.message);
         
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Unexpected error:', err);
-        setError('An unexpected error occurred');
-        setIsLoading(false);
+        // If the valuation wasn't found, show NotFound
+        if (error.code === 'PGRST116') {
+          setNotFoundState(true);
+        }
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchValuationData();
-  }, [id]);
-
-  const handleStartNew = () => {
-    navigate('/free');
-  };
+    
+    fetchValuation();
+  }, [valuationId, navigate]);
   
   const handleDownloadPdf = async () => {
-    if (!valuationData) {
-      toast({
-        title: "Error",
-        description: "No valuation data available to generate PDF",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!valuation) return;
+    
+    toast({
+      title: "Generating PDF",
+      description: "Your valuation report is being generated and will download shortly.",
+    });
     
     try {
-      // Use the valuationData directly since it's already in the correct format
-      await downloadValuationPdf(valuationData);
+      const pdfData = {
+        vehicleInfo: {
+          make: valuation.make,
+          model: valuation.model,
+          year: valuation.year,
+          vin: valuation.vin,
+          mileage: valuation.mileage,
+          condition: valuation.condition,
+        },
+        valuationDetails: {
+          estimatedValue: valuation.estimated_value,
+          basePrice: valuation.base_price,
+          confidenceScore: valuation.confidence_score,
+          adjustments: valuation.adjustments || [],
+        },
+        explanation: valuation.explanation,
+      };
+      
+      await downloadPdf(pdfData, `${valuation.make}-${valuation.model}-valuation-report.pdf`);
       
       toast({
-        title: "Success",
-        description: "Valuation report downloaded successfully",
+        title: "PDF Downloaded",
+        description: "Your valuation report has been downloaded successfully.",
       });
     } catch (error) {
       console.error('Error downloading PDF:', error);
       toast({
-        title: "Error",
-        description: "Failed to download valuation report. Please try again.",
-        variant: "destructive"
+        title: "Download Failed",
+        description: "There was an error generating your PDF. Please try again.",
+        variant: "destructive",
       });
     }
   };
   
-  const handleEmailPdf = async (email?: string) => {
-    if (!valuationData || !id) {
-      toast({
-        title: "Error",
-        description: "No valuation data available to email",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (email) {
-      await emailValuationPdf(email);
-    } else {
-      // Open email modal if no email is provided
-      setIsEmailModalOpen(true);
-    }
-  };
-  
-  const handleShareValuation = () => {
-    if (!valuationData || !id) {
-      toast({
-        title: "Error",
-        description: "No valuation data available to share",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Generate a shareable URL for this valuation
-    const shareUrl = `${window.location.origin}/valuation-result/${id}`;
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(shareUrl)
-      .then(() => {
-        toast({
-          title: "Link copied",
-          description: "Shareable link copied to clipboard",
-        });
-      })
-      .catch((err) => {
-        console.error('Error copying to clipboard:', err);
-        toast({
-          title: "Error",
-          description: "Failed to copy link to clipboard",
-          variant: "destructive"
-        });
-      });
-  };
-  
-  const handleRequestOffers = () => {
-    if (!valuationData || !id) return;
-    
-    // Either redirect to premium or show a toast about dealer notifications
-    if (valuationData.isPremium) {
-      toast({
-        title: "Dealers notified",
-        description: "Local dealers have been notified about your vehicle.",
-      });
-    } else {
-      navigate('/premium');
-    }
-  };
-  
-  // Show loading state
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="container mx-auto py-12 px-4 flex justify-center">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
-          <h2 className="text-xl font-medium">Loading Valuation Results</h2>
-          <p className="text-muted-foreground mt-2">Please wait while we retrieve your valuation</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Show error state
-  if (error) {
-    return (
-      <div className="container mx-auto py-12 px-4">
-        <Alert variant="destructive" className="max-w-xl mx-auto">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription className="mt-2">{error}</AlertDescription>
-          <div className="mt-4">
-            <Button variant="outline" onClick={handleStartNew}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Start New Valuation
-            </Button>
-          </div>
-        </Alert>
-      </div>
-    );
-  }
-  
-  // Ensure we have valuation data
-  if (!valuationData) {
-    return (
-      <div className="container mx-auto py-12 px-4">
-        <Alert variant="destructive" className="max-w-xl mx-auto">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>No Data Available</AlertTitle>
-          <AlertDescription className="mt-2">
-            We couldn't find valuation data for this ID. It may have been deleted or expired.
-          </AlertDescription>
-          <div className="mt-4">
-            <Button variant="outline" onClick={handleStartNew}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Start New Valuation
-            </Button>
-          </div>
-        </Alert>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-8">Your Vehicle Valuation Result</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
-          <Card className="mb-6">
-            <CardHeader className="pb-2">
-              <CardTitle>Valuation Details</CardTitle>
-              <CardDescription>
-                Based on your vehicle information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <UnifiedValuationResult 
-                vehicleInfo={{
-                  make: valuationData.make,
-                  model: valuationData.model,
-                  year: valuationData.year,
-                  mileage: valuationData.mileage,
-                  condition: valuationData.condition
-                }}
-                estimatedValue={valuationData.estimatedValue}
-                confidenceScore={valuationData.confidenceScore}
-                priceRange={valuationData.priceRange}
-                displayMode="detailed"
-              />
-            </CardContent>
-          </Card>
-          
-          {/* Add Dealer Offers Section */}
-          <div className="mb-6">
-            <DealerOfferList valuationId={id} />
-          </div>
-          
-          {/* Smart Action Footer */}
-          <Card className="mb-6 bg-primary/5 border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center">
-                <Navigation className="mr-2 h-5 w-5" />
-                What's Next?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!hasDealerOffers ? (
-                <div>
-                  <p className="mb-4">Want to see what dealers would offer for your vehicle?</p>
-                  <Button onClick={handleRequestOffers}>
-                    <Tag className="mr-2 h-4 w-4" />
-                    Request Dealer Offers
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <p className="mb-4">You have dealer offers available. You can respond to them or request updated offers at any time.</p>
-                  <Button onClick={() => navigate('/my-valuations')}>
-                    <Navigation className="mr-2 h-4 w-4" />
-                    View All My Valuations
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
-            <Button variant="outline" onClick={handleStartNew}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Start New Valuation
-            </Button>
-            
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button variant="outline" onClick={handleShareValuation}>
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => handleEmailPdf()}
-                disabled={isEmailing}
-              >
-                {isEmailing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email PDF
-                  </>
-                )}
-              </Button>
-              
-              <Button 
-                onClick={handleDownloadPdf} 
-                disabled={isDownloading}
-              >
-                {isDownloading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Downloading...
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <div>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto py-12 px-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Premium Features</CardTitle>
-              <CardDescription>
-                Unlock additional insights
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 mb-4">
-                <li className="flex items-start">
-                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
-                  <span>Market comparison analysis</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
-                  <span>Receive dealer offers</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
-                  <span>12-month value forecast</span>
-                </li>
-                <li className="flex items-start">
-                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
-                  <span>Detailed PDF report</span>
-                </li>
-              </ul>
-              
-              <Button className="w-full" onClick={() => navigate('/premium')}>
-                Upgrade to Premium
-              </Button>
+            <CardContent className="pt-6">
+              <div className="space-y-8">
+                <Skeleton className="h-12 w-3/4" />
+                <Skeleton className="h-64 w-full" />
+                <div className="grid grid-cols-2 gap-4">
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </div>
+        </main>
+        <Footer />
       </div>
-      
-      {/* Email Modal */}
-      <EmailPdfModal
-        isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
-        onSubmit={emailValuationPdf}
-        isLoading={isEmailing}
-        defaultEmail={userEmail}
-      />
+    );
+  }
+  
+  // Only show NotFound component if we've explicitly determined this valuation doesn't exist
+  if (notFoundState) {
+    return <NotFound />;
+  }
+  
+  // If we have a valuation, render the result
+  if (valuation) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto py-8 px-4">
+          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+            <div className="flex justify-between items-center mb-6">
+              <TabsList>
+                <TabsTrigger value="overview">Valuation Overview</TabsTrigger>
+                <TabsTrigger value="details">Vehicle Details</TabsTrigger>
+                {valuation.photos && valuation.photos.length > 0 && (
+                  <TabsTrigger value="photos">Photos</TabsTrigger>
+                )}
+              </TabsList>
+              
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleDownloadPdf}>
+                  Download PDF
+                </Button>
+                <Button onClick={() => navigate('/free')}>
+                  New Valuation
+                </Button>
+              </div>
+            </div>
+            
+            <TabsContent value="overview" className="mt-0">
+              <UnifiedValuationResult
+                valuationId={valuationId!}
+                displayMode="full"
+                isPremium={valuation.premium_unlocked}
+                onUpgrade={() => {}}
+                valuation={{
+                  make: valuation.make,
+                  model: valuation.model,
+                  year: valuation.year,
+                  trim: valuation.trim,
+                  estimatedValue: valuation.estimated_value,
+                  confidenceScore: valuation.confidence_score,
+                  mileage: valuation.mileage,
+                  condition: valuation.condition,
+                  zipCode: valuation.zip,
+                  basePrice: valuation.base_price,
+                  adjustments: valuation.adjustments,
+                  priceRange: valuation.price_range
+                }}
+              />
+            </TabsContent>
+            
+            <TabsContent value="details" className="mt-0">
+              <Card>
+                <CardContent className="pt-6">
+                  <h2 className="text-2xl font-bold mb-4">Vehicle Details</h2>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div>
+                      <p className="text-sm text-gray-500">Make</p>
+                      <p className="font-medium">{valuation.make}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Model</p>
+                      <p className="font-medium">{valuation.model}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Year</p>
+                      <p className="font-medium">{valuation.year}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Mileage</p>
+                      <p className="font-medium">{valuation.mileage?.toLocaleString()} miles</p>
+                    </div>
+                    {valuation.vin && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-500">VIN</p>
+                        <p className="font-medium font-mono">{valuation.vin}</p>
+                      </div>
+                    )}
+                    {valuation.trim && (
+                      <div>
+                        <p className="text-sm text-gray-500">Trim</p>
+                        <p className="font-medium">{valuation.trim}</p>
+                      </div>
+                    )}
+                    {valuation.condition && (
+                      <div>
+                        <p className="text-sm text-gray-500">Condition</p>
+                        <p className="font-medium capitalize">{valuation.condition}</p>
+                      </div>
+                    )}
+                    {valuation.zip && (
+                      <div>
+                        <p className="text-sm text-gray-500">ZIP Code</p>
+                        <p className="font-medium">{valuation.zip}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {valuation.photos && valuation.photos.length > 0 && (
+              <TabsContent value="photos" className="mt-0">
+                <Card>
+                  <CardContent className="pt-6">
+                    <h2 className="text-2xl font-bold mb-4">Vehicle Photos</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {valuation.photos.map((photo: string, index: number) => (
+                        <div key={index} className="aspect-video bg-gray-100 rounded-md overflow-hidden">
+                          <img 
+                            src={photo} 
+                            alt={`Vehicle photo ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+          </Tabs>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  // If we have an error but not the notFoundState, show an error message
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <main className="container max-w-md mx-auto py-20 px-4 text-center">
+        <h1 className="text-2xl font-bold mb-4">Error Loading Valuation</h1>
+        <p className="text-muted-foreground mb-6">{error}</p>
+        <Button onClick={() => navigate('/free')}>Start New Valuation</Button>
+      </main>
+      <Footer />
     </div>
   );
-};
-
-export default ValuationResultPage;
+}

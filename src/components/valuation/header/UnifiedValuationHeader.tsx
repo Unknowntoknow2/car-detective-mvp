@@ -1,18 +1,18 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Share, Download } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 export interface UnifiedValuationHeaderProps {
-  year: number;
-  make: string;
-  model: string;
-  valuation: number;
+  displayMode?: 'simple' | 'detailed' | 'full';
+  estimatedValue: number;
   confidenceScore?: number;
-  condition?: string;
-  location?: string;
-  mileage?: number;
+  year?: number;
+  make?: string;
+  model?: string;
+  trim?: string;
   vehicleInfo?: {
     make: string;
     model: string;
@@ -23,107 +23,104 @@ export interface UnifiedValuationHeaderProps {
     estimatedValue?: number;
     condition?: string;
   };
-  photoSubmitted?: boolean;
-  photoCondition?: any;
-  calculationInProgress?: boolean;
-  bestPhotoUrl?: string;
-  isPremium?: boolean;
-  onDownloadPdf?: () => void;
-  onShareReport?: () => void;
-  onShare?: () => void;
-  onSaveToAccount?: () => void;
-  isSaving?: boolean;
   onDownload?: () => void;
 }
 
 export function UnifiedValuationHeader({
+  displayMode = 'simple',
+  estimatedValue,
+  confidenceScore,
   year,
   make,
   model,
-  valuation,
-  confidenceScore,
-  condition,
-  location,
-  mileage,
+  trim,
   vehicleInfo,
-  onDownloadPdf,
-  onShareReport,
-  onShare,
-  onSaveToAccount,
-  isSaving,
   onDownload
 }: UnifiedValuationHeaderProps) {
-  // Use vehicleInfo props if provided, otherwise use individual props
-  const displayYear = vehicleInfo?.year || year;
-  const displayMake = vehicleInfo?.make || make;
-  const displayModel = vehicleInfo?.model || model;
-  const displayValuation = vehicleInfo?.estimatedValue || valuation;
-  const displayCondition = vehicleInfo?.condition || condition;
-  const displayMileage = vehicleInfo?.mileage || mileage;
+  // Extract vehicle info from the vehicleInfo object if provided
+  const vehicleMake = vehicleInfo?.make || make || '';
+  const vehicleModel = vehicleInfo?.model || model || '';
+  const vehicleYear = vehicleInfo?.year || year || 0;
+  const vehicleTrim = vehicleInfo?.trim || trim || '';
+  
+  const getConfidenceLabel = (score: number) => {
+    if (score >= 85) return 'Very High';
+    if (score >= 70) return 'High';
+    if (score >= 50) return 'Moderate';
+    return 'Low';
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <h1 className="text-2xl font-bold">{displayYear} {displayMake} {displayModel}</h1>
-        
-        <div className="flex space-x-2 mt-2 md:mt-0">
-          {(onShareReport || onShare) && (
-            <Button variant="outline" size="sm" onClick={onShareReport || onShare}>
-              <Share className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-          )}
+    <Card className="border-primary/10 bg-primary/5">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row justify-between gap-6">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-primary/90">
+              {vehicleYear} {vehicleMake} {vehicleModel}
+              {vehicleTrim && ` ${vehicleTrim}`}
+            </h2>
+            
+            {displayMode !== 'simple' && vehicleInfo?.mileage && (
+              <p className="text-muted-foreground">
+                Mileage: {vehicleInfo.mileage.toLocaleString()} miles
+              </p>
+            )}
+            
+            {displayMode === 'full' && vehicleInfo?.condition && (
+              <p className="text-muted-foreground capitalize">
+                Condition: {vehicleInfo.condition}
+              </p>
+            )}
+            
+            {displayMode === 'full' && vehicleInfo?.vin && (
+              <p className="text-xs text-muted-foreground font-mono">
+                VIN: {vehicleInfo.vin}
+              </p>
+            )}
+          </div>
           
-          {(onDownloadPdf || onDownload) && (
-            <Button variant="outline" size="sm" onClick={onDownloadPdf || onDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-          )}
-          
-          {onSaveToAccount && (
-            <Button variant="outline" size="sm" onClick={onSaveToAccount} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save"}
-            </Button>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="bg-primary/10 p-4 rounded-lg">
-          <p className="text-sm text-muted-foreground">Estimated Value</p>
-          <p className="text-3xl font-bold text-primary">{formatCurrency(displayValuation)}</p>
-          {confidenceScore && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {confidenceScore >= 80 ? 'High' : confidenceScore >= 60 ? 'Medium' : 'Low'} confidence
-            </p>
-          )}
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          {displayCondition && (
-            <div>
-              <p className="text-muted-foreground">Condition</p>
-              <p className="font-medium capitalize">{displayCondition}</p>
+          <div className="text-right">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Estimated Value</p>
+              <h1 className="text-3xl font-bold text-primary">
+                {formatCurrency(estimatedValue)}
+              </h1>
+              
+              {confidenceScore !== undefined && (
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    Confidence: {getConfidenceLabel(confidenceScore)}
+                  </span>
+                  <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${
+                        confidenceScore >= 85 ? 'bg-green-500' :
+                        confidenceScore >= 70 ? 'bg-green-400' :
+                        confidenceScore >= 50 ? 'bg-yellow-500' :
+                        'bg-red-500'
+                      }`}
+                      style={{ width: `${confidenceScore}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {displayMode === 'full' && onDownload && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onDownload}
+                  className="mt-2"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download Report
+                </Button>
+              )}
             </div>
-          )}
-          
-          {location && (
-            <div>
-              <p className="text-muted-foreground">Location</p>
-              <p className="font-medium">{location}</p>
-            </div>
-          )}
-          
-          {displayMileage && (
-            <div>
-              <p className="text-muted-foreground">Mileage</p>
-              <p className="font-medium">{displayMileage.toLocaleString()} miles</p>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -8,11 +8,19 @@ import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
+import { useState as useReactState } from 'react';
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState('');
   const { isLoading, error, result, lookupVin } = useVinDecoder();
   const navigate = useNavigate();
+  const [conditionValues, setConditionValues] = useReactState({
+    accidents: 0,
+    mileage: 50,
+    year: 0,
+    titleStatus: 'Clean'
+  });
   
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
@@ -29,13 +37,6 @@ export const VinLookup = () => {
           // Store valuationId in localStorage if available from the API response
           const responseId = localStorage.getItem('latest_valuation_id');
           console.log('FREE VIN: Current valuationId in localStorage:', responseId);
-          
-          // Instead of navigating immediately, we'll wait to confirm we have the result displayed
-          setTimeout(() => {
-            if (document.querySelector('.valuation-result')) {
-              console.log('FREE VIN: Valuation result component found, no navigation needed');
-            }
-          }, 500);
         } else {
           console.warn('FREE VIN: No response or error occurred during lookup');
         }
@@ -64,9 +65,16 @@ export const VinLookup = () => {
     });
     // Implementation for PDF download would go here
   }, []);
+
+  const handleConditionChange = (id: string, value: any) => {
+    setConditionValues(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
   
   return (
-    <div className="w-full">
+    <div className="w-full space-y-8">
       {!result ? (
         <VINLookupForm 
           value={vinNumber}
@@ -76,7 +84,7 @@ export const VinLookup = () => {
           error={error}
         />
       ) : (
-        <>
+        <div className="space-y-8">
           <VinDecoderResults 
             stage="initial" 
             result={result} 
@@ -90,14 +98,50 @@ export const VinLookup = () => {
             carfaxData={null}
             onDownloadPdf={handleDownloadPdf}
           />
-          <Button 
-            variant="outline" 
-            className="mt-4" 
-            onClick={onReset}
-          >
-            Lookup Another VIN
-          </Button>
-        </>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <h2 className="text-2xl font-semibold mb-6">Vehicle Condition Factors</h2>
+            <p className="text-muted-foreground mb-6">
+              Adjust these factors to get a more accurate valuation for your vehicle.
+            </p>
+            
+            <ValuationFactorsGrid 
+              values={conditionValues}
+              onChange={handleConditionChange}
+            />
+            
+            <div className="mt-8 flex gap-4">
+              <Button 
+                className="flex-1" 
+                onClick={() => {
+                  // Store the condition values in localStorage
+                  localStorage.setItem('condition_values', JSON.stringify(conditionValues));
+                  
+                  // Get the valuation ID
+                  const valuationId = localStorage.getItem('latest_valuation_id');
+                  if (valuationId) {
+                    navigate(`/result?id=${valuationId}`);
+                  } else {
+                    toast({ 
+                      title: "Error", 
+                      description: "Missing valuation ID. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+              >
+                Calculate Value
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={onReset}
+              >
+                Lookup Another VIN
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
       
       {error && error.includes('Carfax') ? (

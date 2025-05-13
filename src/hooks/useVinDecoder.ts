@@ -29,8 +29,8 @@ export function useVinDecoder() {
         const valuationId = crypto.randomUUID();
         
         // Get user if logged in, otherwise use null
-        const userResponse = await supabase.auth.getUser();
-        const userId = userResponse.data.user?.id;
+        const { data } = await supabase.auth.getUser();
+        const userId = data.user?.id;
         
         // Store valuation result
         const { data: valuationData, error: valuationError } = await supabase
