@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
-import { AIConditionAssessment } from './AIConditionAssessment';
+import { Progress } from '@/components/ui/progress';
 import { ConditionTips } from './condition/ConditionTips';
 import { useAICondition } from '@/hooks/useAICondition';
 import { getConditionValueImpact, getConditionTips } from '@/utils/valuation/conditionHelpers';
@@ -12,12 +13,12 @@ interface ValuationResultsProps {
   estimatedValue: number;
   confidenceScore: number;
   basePrice?: number;
+  priceRange?: [number, number];
   adjustments?: Array<{
     factor: string;
     impact: number;
-    description: string;
+    description?: string;
   }>;
-  priceRange?: [number, number];
   demandFactor?: number;
   vehicleInfo: {
     year: number;
@@ -27,37 +28,43 @@ interface ValuationResultsProps {
     mileage?: number;
     condition?: string;
   };
-  valuationId?: string;
-  onEmailReport?: () => void;
 }
 
-export function ValuationResults({
+export const ValuationResults: React.FC<ValuationResultsProps> = ({
   estimatedValue,
   confidenceScore,
   basePrice,
-  adjustments = [],
-  priceRange = [0, 0],
-  demandFactor = 1,
-  vehicleInfo,
-  valuationId,
-  onEmailReport
-}: ValuationResultsProps) {
-  // Use AI condition hook if we have a valuation ID
-  const { conditionData, isLoading } = useAICondition(valuationId);
+  priceRange,
+  adjustments,
+  demandFactor,
+  vehicleInfo
+}) => {
+  const { conditionData } = useAICondition(vehicleInfo.trim || '');
   
-  // Generate condition tips based on vehicle condition
-  const conditionTipText = vehicleInfo.condition ? getConditionTips(vehicleInfo.condition) : '';
+  // Calculate price range if not provided
+  const calculatedPriceRange = useMemo(() => {
+    if (priceRange && Array.isArray(priceRange) && priceRange.length === 2) {
+      return priceRange;
+    }
+    
+    // Calculate range based on confidence score
+    const margin = ((100 - (confidenceScore || 80)) / 100) * 0.2;
+    const min = Math.floor(estimatedValue * (1 - margin));
+    const max = Math.ceil(estimatedValue * (1 + margin));
+    return [min, max] as [number, number];
+  }, [estimatedValue, confidenceScore, priceRange]);
   
-  // Calculate adjusted price range if not provided
-  const calculatedPriceRange: [number, number] = priceRange[0] === 0 ? 
-    [
-      Math.round(estimatedValue * 0.95),
-      Math.round(estimatedValue * 1.05)
-    ] : priceRange;
+  // Generate condition tip text
+  const conditionTipText = useMemo(() => {
+    if (vehicleInfo.condition) {
+      return getConditionTips(vehicleInfo.condition);
+    }
+    return 'Vehicle appears to be in average condition based on age and mileage.';
+  }, [vehicleInfo.condition]);
   
-  // Create condition rating option for ConditionTips that matches the required interface
+  // Create a condition rating object that matches the ConditionRatingOption type
   const conditionRating: ConditionRatingOption = {
-    id: 'condition',
+    id: 'overall-condition',
     name: 'Overall Condition',
     category: 'Vehicle Condition',
     tip: conditionTipText,
@@ -72,90 +79,62 @@ export function ValuationResults({
     condition: conditionRating
   };
   
-  // Add condition adjustment if not already in the adjustments array
-  if (vehicleInfo.condition && !adjustments.some(adj => adj.factor === 'Condition')) {
-    const conditionImpact = getConditionValueImpact(vehicleInfo.condition);
-    adjustments.push({
-      factor: 'Condition',
-      impact: conditionImpact,
-      description: `${vehicleInfo.condition} condition`
-    });
-  }
-  
   return (
-    <div className="space-y-6">
-      {/* AI Condition Assessment */}
-      {valuationId && (
-        <AIConditionAssessment 
-          conditionData={conditionData}
-          isLoading={isLoading}
-          bestPhotoUrl={conditionData?.photoUrl}
-        />
-      )}
-      
-      {/* Valuation Breakdown */}
+    <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Valuation Breakdown</CardTitle>
+          <CardTitle>Value Estimate</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium">Estimated Value</h3>
-              <p className="text-3xl font-bold text-primary">${estimatedValue.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">
-                Price range: ${calculatedPriceRange[0].toLocaleString()} - ${calculatedPriceRange[1].toLocaleString()}
-              </p>
+          <div className="flex flex-col">
+            <div className="mb-4">
+              <div className="text-3xl font-bold text-primary mb-1">
+                {formatCurrency(estimatedValue)}
+              </div>
+              {priceRange && (
+                <div className="text-sm text-muted-foreground">
+                  Estimated value range: {formatCurrency(calculatedPriceRange[0])} - {formatCurrency(calculatedPriceRange[1])}
+                </div>
+              )}
+            </div>
+            
+            <div className="mb-4">
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium">Confidence Score</span>
+                <span className="text-sm">{confidenceScore}%</span>
+              </div>
+              <Progress value={confidenceScore} />
             </div>
             
             {basePrice && (
-              <div>
-                <h3 className="text-sm font-medium">Base Price</h3>
-                <p className="text-lg font-semibold">${basePrice.toLocaleString()}</p>
+              <div className="mb-3">
+                <div className="text-sm text-muted-foreground flex justify-between">
+                  <span>Base Value:</span>
+                  <span>{formatCurrency(basePrice)}</span>
+                </div>
               </div>
             )}
             
-            {adjustments.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium mb-2">Value Adjustments</h3>
-                <ul className="space-y-2">
-                  {adjustments.map((adj, index) => (
-                    <li key={index} className="flex justify-between text-sm border-b pb-2">
-                      <div>
-                        <span className="font-medium">{adj.factor}</span>
-                        <p className="text-xs text-muted-foreground">{adj.description}</p>
-                      </div>
-                      <span className={adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {adj.impact > 0 ? '+' : ''}{typeof adj.impact === 'number' && !isNaN(adj.impact) ? 
-                          (isNaN(parseInt(adj.impact.toString())) ? adj.impact : formatCurrency(adj.impact)) : 
-                          adj.impact}
+            {adjustments && adjustments.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <h4 className="text-sm font-medium">Value Factors</h4>
+                <ul className="space-y-1">
+                  {adjustments.map((adjustment, index) => (
+                    <li key={index} className="text-sm flex justify-between">
+                      <span>{adjustment.factor}</span>
+                      <span className={adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        {adjustment.impact > 0 ? '+' : ''}{adjustment.impact}%
                       </span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-            
-            <div>
-              <h3 className="text-sm font-medium flex items-center gap-2">
-                Confidence Score
-                <span className="bg-primary-light px-2 py-0.5 rounded-full text-xs font-normal">
-                  {confidenceScore}%
-                </span>
-              </h3>
-              <div className="mt-1 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full" 
-                  style={{ width: `${confidenceScore}%` }}
-                ></div>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
       
-      {/* Condition Tips */}
       <ConditionTips selectedRatings={selectedRatings} />
     </div>
   );
-}
+};

@@ -4,5 +4,5 @@ export interface ConditionRatingOption {
   name: string;
   category: string;
   tip: string;
-  value: number; // Changed from string to number to match the other definition
+  value: number; // Ensure this is a number to be consistent with the component definition
 }
