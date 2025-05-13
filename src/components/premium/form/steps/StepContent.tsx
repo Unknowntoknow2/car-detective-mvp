@@ -223,6 +223,8 @@ export function StepContent({
         <ReviewSubmitStep
           step={currentStep}
           formData={formData}
+          setFormData={setFormData}
+          updateValidity={updateStepValidity}
           isFormValid={isFormValid}
           handleSubmit={handleSubmit}
           handleReset={handleReset}

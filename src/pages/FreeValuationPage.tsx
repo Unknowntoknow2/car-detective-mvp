@@ -209,6 +209,8 @@ export default function FreeValuationPage() {
           <ReviewSubmitStep
             step={currentStep}
             formData={formData}
+            setFormData={setFormData}
+            updateValidity={updateStepValidity}
             isFormValid={isFormValid}
             handleSubmit={handleSubmit}
             handleReset={handleReset}

@@ -11,12 +11,13 @@ interface ReviewSubmitStepProps {
   step: number;
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  updateValidity: (step: number, isValid: boolean) => void;
+  updateValidity?: (step: number, isValid: boolean) => void;
   isFormValid: boolean;
   handleSubmit: () => void;
   handleReset: () => void;
   isSubmitting?: boolean;
   submitError?: string | null;
+  isFreeVersion?: boolean;
 }
 
 export function ReviewSubmitStep({
@@ -28,7 +29,8 @@ export function ReviewSubmitStep({
   handleSubmit,
   handleReset,
   isSubmitting = false,
-  submitError = null
+  submitError = null,
+  isFreeVersion = false
 }: ReviewSubmitStepProps) {
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
@@ -42,7 +44,7 @@ export function ReviewSubmitStep({
     try {
       setSubmitted(true);
       await handleSubmit();
-      toast.success("Premium valuation completed successfully!");
+      toast.success(`${isFreeVersion ? 'Free' : 'Premium'} valuation completed successfully!`);
       
       // The form data should now include the valuation ID
       if (formData.valuationId) {
@@ -61,7 +63,7 @@ export function ReviewSubmitStep({
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Review & Submit</h2>
         <p className="text-gray-600 mb-6">
-          Please review all information before submitting your premium valuation request.
+          Please review all information before submitting your {isFreeVersion ? 'free' : 'premium'} valuation request.
         </p>
       </div>
       
@@ -156,7 +158,7 @@ export function ReviewSubmitStep({
             </>
           ) : (
             <>
-              Submit Premium Valuation
+              Submit {isFreeVersion ? 'Free' : 'Premium'} Valuation
               <ArrowRight className="ml-2 h-5 w-5" />
             </>
           )}
