@@ -67,7 +67,8 @@ export function UnifiedValuationResult({
           mileage: vehicleInfo.mileage,
           condition: vehicleInfo.condition,
           vin: vehicleInfo.vin,
-          price_range: priceRange
+          price_range: priceRange,
+          trim: vehicleInfo.trim
         });
         setIsLoading(false);
         return;
@@ -168,12 +169,15 @@ export function UnifiedValuationResult({
         year={valuationData.year}
         make={valuationData.make}
         model={valuationData.model}
-        trim={valuationData.trim}
         mileage={valuationData.mileage}
         condition={valuationData.condition}
+        trim={valuationData.trim}
+        vin={valuationData.vin}
+        zipCode={valuationData.zip}
         onDownloadPdf={onDownloadPdf}
         onShareReport={onEmailReport}
-        displayMode={displayMode}
+        headerType={displayMode === 'simple' ? 'basic' : 'detailed'}
+        isPremium={isPremium}
       />
       
       {displayMode !== 'simple' && (

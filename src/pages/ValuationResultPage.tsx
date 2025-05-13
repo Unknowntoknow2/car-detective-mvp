@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -131,7 +132,7 @@ export default function ValuationResultPage() {
     
     try {
       // Format the data according to the ReportData interface
-      const pdfData = {
+      const reportData = {
         make: valuation.make,
         model: valuation.model,
         year: valuation.year,
@@ -145,12 +146,12 @@ export default function ValuationResultPage() {
         ],
         adjustments: valuation.adjustments || [],
         generatedAt: new Date().toISOString(),
-        vin: valuation.vin,
         zipCode: valuation.zip,
+        vin: valuation.vin,
         explanation: valuation.explanation,
       };
       
-      await downloadPdf(pdfData);
+      await downloadPdf(reportData);
       
       toast({
         title: "PDF Downloaded",
@@ -236,7 +237,6 @@ export default function ValuationResultPage() {
                 estimatedValue={valuation.estimated_value}
                 confidenceScore={valuation.confidence_score}
                 priceRange={valuation.price_range}
-                basePrice={valuation.base_price}
                 adjustments={valuation.adjustments || []}
               />
             </TabsContent>

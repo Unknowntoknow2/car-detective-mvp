@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CalendarDays, Activity, Gauge, Car, MapPin, Road } from 'lucide-react';
+import { CalendarDays, Activity, Gauge, Car, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export interface UnifiedValuationHeaderProps {
@@ -13,13 +13,23 @@ export interface UnifiedValuationHeaderProps {
   zipCode?: string; // Changed from location to zipCode for consistency
   mileage?: number;
   vin?: string;
+  trim?: string; // Added trim property
   onDownloadPdf?: () => void;
   onShareReport?: () => void;
+  onShare?: () => void; // Added onShare property
+  onDownload?: () => void; // Added onDownload property
   onSaveToAccount?: () => Promise<void>;
   isLoading?: boolean;
   headerType?: 'basic' | 'detailed';
   isSaved?: boolean;
   isPremium?: boolean;
+  photoSubmitted?: boolean;
+  photoCondition?: any;
+  calculationInProgress?: boolean;
+  bestPhotoUrl?: string;
+  isSaving?: boolean;
+  vehicleInfo?: any;
+  displayMode?: string;
 }
 
 export function UnifiedValuationHeader({
@@ -32,6 +42,7 @@ export function UnifiedValuationHeader({
   zipCode,
   mileage,
   vin,
+  trim,
   headerType = 'detailed',
   isSaved,
   isPremium
@@ -61,7 +72,7 @@ export function UnifiedValuationHeader({
           {mileage !== undefined && (
             <div className="flex items-center gap-2">
               <div className="p-2 bg-gray-100 rounded-md">
-                <Road className="h-4 w-4 text-gray-600" />
+                <Car className="h-4 w-4 text-gray-600" />
               </div>
               <div>
                 <p className="text-xs text-gray-500">Mileage</p>

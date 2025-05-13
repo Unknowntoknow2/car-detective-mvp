@@ -36,6 +36,8 @@ export default function ManualLookupPage() {
     // Process the manual entry form submission
     setManualEntryResult(vehicleInfo);
     toast.success(`Details received for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`);
+    // Return true to indicate success
+    return true;
   };
 
   const handleDownloadPdf = async () => {
