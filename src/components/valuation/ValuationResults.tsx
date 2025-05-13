@@ -55,13 +55,18 @@ export function ValuationResults({
       Math.round(estimatedValue * 1.05)
     ] : priceRange;
   
-  // Create mock selected ratings for ConditionTips if not available from adjustments
-  const selectedRatings = {
-    condition: {
-      category: 'Overall Condition',
-      tip: conditionTipText,
-      value: vehicleInfo.condition || 'Good'
-    }
+  // Create condition rating option for ConditionTips that matches the required interface
+  const conditionRating: ConditionRatingOption = {
+    id: 'condition',
+    name: 'Overall Condition',
+    category: 'Vehicle Condition',
+    tip: conditionTipText,
+    value: vehicleInfo.condition || 'Good'
+  };
+  
+  // Create selectedRatings object that matches the Record<string, ConditionRatingOption> type
+  const selectedRatings: Record<string, ConditionRatingOption> = {
+    condition: conditionRating
   };
   
   // Add condition adjustment if not already in the adjustments array
@@ -73,17 +78,6 @@ export function ValuationResults({
       description: `${vehicleInfo.condition} condition`
     });
   }
-  
-  // Update the condition options to match ConditionRatingOption interface
-  const CONDITIONS: Record<string, ConditionRatingOption> = {
-    condition: {
-      id: 'condition',
-      name: 'Condition',
-      category: 'Vehicle Condition',
-      tip: 'Vehicle condition significantly impacts value',
-      value: 'Good'
-    }
-  };
   
   return (
     <div className="space-y-6">
