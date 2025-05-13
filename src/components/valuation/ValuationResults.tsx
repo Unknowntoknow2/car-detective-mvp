@@ -6,7 +6,7 @@ import { AIConditionAssessment } from './AIConditionAssessment';
 import { ConditionTips } from './condition/ConditionTips';
 import { useAICondition } from '@/hooks/useAICondition';
 import { getConditionValueImpact, getConditionTips } from '@/utils/valuation/conditionHelpers';
-import { ConditionRatingOption } from '@/types/condition';
+import { ConditionRatingOption } from './condition/types';
 
 interface ValuationResultsProps {
   estimatedValue: number;
@@ -61,7 +61,10 @@ export function ValuationResults({
     name: 'Overall Condition',
     category: 'Vehicle Condition',
     tip: conditionTipText,
-    value: vehicleInfo.condition || 'Good'
+    value: vehicleInfo.condition ? 
+      (vehicleInfo.condition === 'Excellent' ? 90 :
+       vehicleInfo.condition === 'Good' ? 75 :
+       vehicleInfo.condition === 'Fair' ? 60 : 40) : 75 // Convert string condition to numeric value
   };
   
   // Create selectedRatings object that matches the Record<string, ConditionRatingOption> type
