@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,14 +80,17 @@ export default function ValuationResultPage() {
           setNotFoundState(true);
           setError('Valuation not found');
         } else {
+          // Initialize adjustments array if it doesn't exist
+          const processedData = {
+            ...data,
+            adjustments: []
+          };
+          
           // Apply condition values from localStorage if available
           const conditionValues = getConditionValues();
           if (conditionValues) {
-            // Create adjustments array if it doesn't exist
-            data.adjustments = data.adjustments || [];
-            
             // Apply any condition adjustments to the valuation data
-            data.adjustments.push(
+            processedData.adjustments.push(
               {
                 factor: 'Mileage',
                 impact: conditionValues.mileage * -100, // Example calculation
@@ -100,7 +104,7 @@ export default function ValuationResultPage() {
             );
           }
           
-          setValuation(data);
+          setValuation(processedData);
         }
       } catch (error: any) {
         console.error('Error fetching valuation:', error);
@@ -145,7 +149,7 @@ export default function ValuationResultPage() {
         explanation: valuation.explanation,
       };
       
-      await downloadPdf(pdfData, `${valuation.make}-${valuation.model}-valuation-report.pdf`);
+      await downloadPdf(pdfData);
       
       toast({
         title: "PDF Downloaded",
@@ -231,6 +235,8 @@ export default function ValuationResultPage() {
                 estimatedValue={valuation.estimated_value}
                 confidenceScore={valuation.confidence_score}
                 priceRange={valuation.price_range}
+                basePrice={valuation.base_price}
+                adjustments={valuation.adjustments || []}
               />
             </TabsContent>
             
