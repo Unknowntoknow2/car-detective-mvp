@@ -1,45 +1,57 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ConditionSlider } from './ConditionSlider';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 import { ConditionRating } from './types';
 
 interface ConditionCategoryProps {
   title: string;
   description: string;
   ratings: ConditionRating[];
-  onChange: (id: string, value: number) => void;
+  selectedRating: string;
+  onSelect: (rating: ConditionRating) => void;
 }
 
-export function ConditionCategory({ title, description, ratings, onChange }: ConditionCategoryProps) {
+export function ConditionCategory({
+  title,
+  description,
+  ratings,
+  selectedRating,
+  onSelect
+}: ConditionCategoryProps) {
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium">{title}</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion type="single" collapsible defaultValue="items" className="w-full">
-          <AccordionItem value="items" className="border-none">
-            <AccordionTrigger className="py-2 text-sm">
-              View All Items ({ratings.length})
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-5 pt-2">
-                {ratings.map((rating) => (
-                  <ConditionSlider
-                    key={rating.id}
-                    id={rating.id}
-                    name={rating.name}
-                    value={rating.value}
-                    onChange={(value) => onChange(rating.id, value)}
-                  />
-                ))}
+        <div className="space-y-2">
+          {ratings.map((rating) => (
+            <div
+              key={rating.id}
+              className={`p-3 rounded-md cursor-pointer transition-colors ${
+                selectedRating === rating.id
+                  ? 'bg-primary/10 border border-primary/50'
+                  : 'hover:bg-muted border border-transparent'
+              }`}
+              onClick={() => onSelect(rating)}
+            >
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{rating.name}</span>
+                <span className="text-sm text-muted-foreground">{rating.value}</span>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+              {rating.description && (
+                <p className="text-sm text-muted-foreground mt-1">{rating.description}</p>
+              )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

@@ -184,3 +184,6 @@ export default function ValuationResult({
     </div>
   );
 }
+
+// Also export as a named export for compatibility
+export { ValuationResult };

@@ -22,6 +22,8 @@ export interface ConditionOption {
   value: number;
   label: string;
   description?: string;
+  tip?: string;
+  multiplier?: number;
 }
 
 export interface FactorSliderProps {
@@ -30,7 +32,7 @@ export interface FactorSliderProps {
   options: ConditionOption[];
   value: number;
   onChange: (value: number) => void;
-  ariaLabel: string;
+  ariaLabel?: string;
 }
 
 export interface ConditionRating {

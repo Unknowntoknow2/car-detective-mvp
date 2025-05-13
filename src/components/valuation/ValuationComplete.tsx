@@ -245,7 +245,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         isPremium={true}
       />
 
-      <NextStepsCard />
+      <NextStepsCard valuationId={valuationId} />
 
       {/* Add Car Detective Chat Bubble */}
       <ChatBubble 

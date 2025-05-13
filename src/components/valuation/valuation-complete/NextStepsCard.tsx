@@ -6,10 +6,12 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Download, Printer, Share2, History } from 'lucide-react';
 
 export interface NextStepsCardProps {
-  valuationId: string;
+  valuationId?: string;
+  onShareClick?: () => void;
+  isPremium?: boolean;
 }
 
-export function NextStepsCard({ valuationId }: NextStepsCardProps) {
+export function NextStepsCard({ valuationId = '', onShareClick, isPremium = false }: NextStepsCardProps) {
   return (
     <Card className="shadow-md">
       <CardHeader>
@@ -27,7 +29,11 @@ export function NextStepsCard({ valuationId }: NextStepsCardProps) {
             Print Report
           </Button>
           
-          <Button variant="outline" className="flex items-center justify-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center justify-center gap-2"
+            onClick={onShareClick}
+          >
             <Share2 className="h-4 w-4" />
             Share Report
           </Button>

@@ -4,28 +4,45 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CircleCheck, CircleAlert } from 'lucide-react';
 
-interface VehicleInfo {
+export interface ValuationHeaderProps {
+  vehicleInfo?: {
+    make?: string;
+    model?: string;
+    year?: number;
+    mileage?: number;
+    condition?: string;
+  };
   make?: string;
   model?: string;
   year?: number;
   mileage?: number;
   condition?: string;
-}
-
-export interface ValuationHeaderProps {
-  vehicleInfo: VehicleInfo;
   estimatedValue: number;
   confidenceScore?: number;
   displayMode?: 'card' | 'inline';
+  isPremium?: boolean;
+  additionalInfo?: Record<string, string>;
 }
 
 export function ValuationHeader({
   vehicleInfo,
+  make: propMake,
+  model: propModel,
+  year: propYear,
+  mileage: propMileage,
+  condition: propCondition,
   estimatedValue,
   confidenceScore = 75,
-  displayMode = 'card'
+  displayMode = 'card',
+  isPremium = false,
+  additionalInfo = {}
 }: ValuationHeaderProps) {
-  const { make, model, year, mileage, condition } = vehicleInfo;
+  // Use either vehicleInfo object or individual props
+  const make = vehicleInfo?.make || propMake;
+  const model = vehicleInfo?.model || propModel;
+  const year = vehicleInfo?.year || propYear;
+  const mileage = vehicleInfo?.mileage || propMileage;
+  const condition = vehicleInfo?.condition || propCondition;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -65,6 +82,17 @@ export function ValuationHeader({
           <div className="text-sm text-muted-foreground space-x-2">
             {mileage && <span>{formatNumber(mileage)} miles</span>}
             {condition && <span>• {condition} condition</span>}
+            
+            {/* Show additional vehicle details if available */}
+            {Object.entries(additionalInfo).map(([key, value]) => (
+              <span key={key}>• {value}</span>
+            ))}
+            
+            {isPremium && (
+              <Badge variant="outline" className="ml-2 bg-yellow-50 text-yellow-800 border-yellow-300">
+                Premium
+              </Badge>
+            )}
           </div>
         </div>
         
