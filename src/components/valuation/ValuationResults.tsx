@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
@@ -5,6 +6,7 @@ import { AIConditionAssessment } from './AIConditionAssessment';
 import { ConditionTips } from './condition/ConditionTips';
 import { useAICondition } from '@/hooks/useAICondition';
 import { getConditionValueImpact, getConditionTips } from '@/utils/valuation/conditionHelpers';
+import { ConditionRatingOption } from '@/types/condition';
 
 interface ValuationResultsProps {
   estimatedValue: number;
@@ -26,6 +28,7 @@ interface ValuationResultsProps {
     condition?: string;
   };
   valuationId?: string;
+  onEmailReport?: () => void;
 }
 
 export function ValuationResults({
@@ -36,7 +39,8 @@ export function ValuationResults({
   priceRange = [0, 0],
   demandFactor = 1,
   vehicleInfo,
-  valuationId
+  valuationId,
+  onEmailReport
 }: ValuationResultsProps) {
   // Use AI condition hook if we have a valuation ID
   const { conditionData, isLoading } = useAICondition(valuationId);

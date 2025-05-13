@@ -32,6 +32,8 @@ interface UnifiedValuationResultProps {
     impact: number;
     description: string;
   }>;
+  onDownloadPdf?: () => Promise<void> | void;
+  onEmailReport?: () => Promise<void> | void;
 }
 
 export function UnifiedValuationResult({
@@ -41,7 +43,9 @@ export function UnifiedValuationResult({
   estimatedValue,
   confidenceScore = 75,
   priceRange: propsPriceRange,
-  adjustments = []
+  adjustments = [],
+  onDownloadPdf,
+  onEmailReport
 }: UnifiedValuationResultProps) {
   const { conditionData, isLoading: isLoadingCondition } = useAICondition(valuationId);
   const [explanation, setExplanation] = useState<string>('');
@@ -142,6 +146,7 @@ export function UnifiedValuationResult({
             priceRange={priceRange}
             vehicleInfo={vehicleInfo}
             valuationId={valuationId}
+            onEmailReport={onEmailReport}
           />
           
           <ExplanationSection

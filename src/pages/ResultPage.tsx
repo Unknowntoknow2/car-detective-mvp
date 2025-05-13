@@ -1,22 +1,37 @@
+
 import React from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSearchParams } from 'react-router-dom';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import { useValuationResult } from '@/hooks/useValuationResult';
 
 export default function ResultPage() {
-  const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const valuationId = id || searchParams.get('valuationId');
-  
+  const id = searchParams.get('id');
+  const { data, isLoading } = useValuationResult(id || '');
+
+  // Default vehicle info if data is not available
+  const vehicleInfo = data ? {
+    make: data.make,
+    model: data.model,
+    year: data.year,
+    mileage: data.mileage,
+    condition: data.condition
+  } : {
+    make: 'Unknown',
+    model: 'Vehicle',
+    year: new Date().getFullYear(),
+    mileage: 0,
+    condition: 'Good'
+  };
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 py-8">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-6">Your Valuation Result</h1>
-          
+      <main className="flex-1 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
             <CardHeader>
               <CardTitle>Vehicle Valuation</CardTitle>
@@ -24,15 +39,11 @@ export default function ResultPage() {
             <CardContent>
               <UnifiedValuationResult 
                 valuationId={id || ''} 
-                vehicleInfo={{
-                  year: 0,
-                  make: '',
-                  model: '',
-                  trim: '',
-                  mileage: 0,
-                  condition: ''
-                }}
-                estimatedValue={0}
+                vehicleInfo={vehicleInfo}
+                estimatedValue={data?.estimatedValue || 0}
+                confidenceScore={data?.confidenceScore || 85}
+                priceRange={data?.priceRange}
+                adjustments={data?.adjustments}
               />
             </CardContent>
           </Card>

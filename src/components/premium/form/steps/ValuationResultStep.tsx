@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { FormData } from '@/types/premium-valuation';
@@ -27,7 +28,7 @@ export function ValuationResultStep({
     error,
     isError,
     refetch,
-  } = useValuationResult(valuationId);
+  } = useValuationResult(valuationId || '');
 
   // Set step validity
   useEffect(() => {
@@ -92,7 +93,7 @@ export function ValuationResultStep({
     ? [result.priceRange[0], result.priceRange[1]] 
     : [
         Math.round(result.estimatedValue * 0.95),
-        Math.round(result.estimatedValue * 1.05)
+        Math.ceil(result.estimatedValue * 1.05)
       ];
 
   return (
@@ -105,14 +106,12 @@ export function ValuationResultStep({
       </div>
 
       <UnifiedValuationResult
-        valuationId={valuationId}
+        valuationId={valuationId || ''}
         displayMode="full"
         estimatedValue={result.estimatedValue}
         confidenceScore={result.confidenceScore}
         priceRange={priceRange}
         adjustments={result.adjustments}
-        onDownloadPdf={handleDownloadPdf}
-        onEmailReport={handleEmailPdf}
         vehicleInfo={{
           year: result.year,
           make: result.make,
@@ -120,6 +119,8 @@ export function ValuationResultStep({
           mileage: result.mileage,
           condition: result.condition
         }}
+        onDownloadPdf={handleDownloadPdf}
+        onEmailReport={handleEmailPdf}
       />
     </div>
   );

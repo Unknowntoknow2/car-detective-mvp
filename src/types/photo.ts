@@ -18,6 +18,8 @@ export interface Photo {
   uploaded?: boolean;
   uploading?: boolean;
   error?: string;
+  score?: number;
+  isPrimary?: boolean;
 }
 
 export interface PhotoScore {
@@ -54,7 +56,12 @@ export const MAX_FILES = 5;
 export const MIN_FILES = 1;
 
 export interface AdjustmentBreakdown {
+  name: string;
   description: string;
   value: number;
   percentAdjustment?: number;
+  factor: string;
+  impact: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }
