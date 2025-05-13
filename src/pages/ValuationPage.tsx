@@ -54,25 +54,18 @@ const ValuationPage = () => {
   const [valuationId, setValuationId] = useState<string | null>(searchParams.get('valuationId'));
   
   // Initialize the valuation pipeline hook
-  const pipeline = useValuationPipeline();
-  
-  // Destructure values from the pipeline for easier access
   const {
-    state: {
-      stage,
-      vehicle,
-      requiredInputs,
-      valuationResult,
-      error: pipelineError,
-      isLoading: pipelineLoading,
-    },
-    actions: {
-      runLookup,
-      submitValuation,
-      reset
-    }
-  } = pipeline;
-
+    stage,
+    vehicle,
+    requiredInputs,
+    valuationResult,
+    error: pipelineError,
+    isLoading: pipelineLoading,
+    runLookup,
+    submitValuation,
+    reset
+  } = useValuationPipeline();
+  
   // Initialize the form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

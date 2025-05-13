@@ -2,116 +2,76 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency } from '@/utils/formatters/formatCurrency';
+import { formatNumber } from '@/utils/formatters/formatNumber';
+import { CarFront, Award } from 'lucide-react';
 
-export interface ValuationHeaderProps {
-  // Allow either individual props or a vehicleInfo object
-  vehicleInfo?: {
-    make: string;
-    model: string;
-    year: number;
-    mileage?: number;
-    condition?: string;
-    trim?: string;
-  };
-  // Individual props
+interface VehicleInfo {
   make?: string;
   model?: string;
   year?: number;
   mileage?: number;
   condition?: string;
-  // Value props
-  estimatedValue: number;
-  isPremium?: boolean;
-  confidenceScore?: number;
-  calculationInProgress?: boolean;
-  additionalInfo?: Record<string, string>;
-  // Action props
-  onShare?: () => void;
-  onSaveToAccount?: () => void;
-  isSaving?: boolean;
-  onDownload?: () => void;
 }
 
-export function ValuationHeader({
-  vehicleInfo,
-  make,
-  model,
-  year,
-  mileage,
-  condition,
-  estimatedValue,
-  isPremium = false,
-  confidenceScore,
-  calculationInProgress = false,
-  additionalInfo = {},
-  onShare,
-  onSaveToAccount,
-  isSaving = false,
-  onDownload
-}: ValuationHeaderProps) {
-  // Get values either from vehicleInfo or individual props
-  const vehicleMake = vehicleInfo?.make || make || 'Unknown';
-  const vehicleModel = vehicleInfo?.model || model || 'Unknown';
-  const vehicleYear = vehicleInfo?.year || year || new Date().getFullYear();
-  const vehicleMileage = vehicleInfo?.mileage || mileage;
-  const vehicleCondition = vehicleInfo?.condition || condition;
+interface ValuationHeaderProps {
+  vehicleInfo: VehicleInfo;
+  estimatedValue: number;
+  isPremium?: boolean;
+  additionalInfo?: Record<string, string>;
+}
 
+export function ValuationHeader({ 
+  vehicleInfo, 
+  estimatedValue, 
+  isPremium = false,
+  additionalInfo = {}
+}: ValuationHeaderProps) {
+  const { make, model, year, mileage, condition } = vehicleInfo;
+  
   return (
     <Card className="overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-2">
-              {vehicleYear} {vehicleMake} {vehicleModel}
-            </h2>
-            
-            <div className="flex flex-wrap gap-2 mb-4">
-              {vehicleMileage && (
-                <Badge variant="outline" className="font-normal">
-                  {vehicleMileage.toLocaleString()} miles
+      <div className={`p-6 ${isPremium ? 'bg-primary/10' : 'bg-muted/50'}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center">
+              <CarFront className="mr-2 h-5 w-5" />
+              {year} {make} {model}
+            </h1>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {isPremium && (
+                <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">
+                  <Award className="h-3 w-3 mr-1" /> Premium Valuation
                 </Badge>
               )}
-              
-              {vehicleCondition && (
-                <Badge variant="outline" className="font-normal">
-                  {vehicleCondition}
+              {condition && (
+                <Badge variant="outline">
+                  Condition: {condition}
                 </Badge>
               )}
-              
+              {mileage && (
+                <Badge variant="outline">
+                  {formatNumber(mileage)} miles
+                </Badge>
+              )}
               {Object.entries(additionalInfo).map(([key, value]) => (
-                <Badge key={key} variant="outline" className="font-normal">
-                  {value}
+                <Badge key={key} variant="outline">
+                  {key}: {value}
                 </Badge>
               ))}
-              
-              {isPremium && (
-                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
-                  Premium
-                </Badge>
-              )}
             </div>
           </div>
-          
-          <div className="flex flex-col items-center justify-center bg-slate-50 p-4 rounded-lg">
-            <div className="text-sm text-muted-foreground mb-1">Estimated Value</div>
-            {calculationInProgress ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-muted-foreground">Calculating...</span>
-              </div>
-            ) : (
-              <div className="text-3xl font-bold text-center">
-                {formatCurrency(estimatedValue)}
-              </div>
-            )}
-            {!calculationInProgress && confidenceScore && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {confidenceScore}% confidence
-              </div>
-            )}
-          </div>
+        </div>
+      </div>
+      <CardContent className="p-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground mb-1">Estimated Value</p>
+          <h2 className="text-4xl font-bold text-primary">
+            {formatCurrency(estimatedValue)}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Based on {isPremium ? 'premium' : 'standard'} evaluation
+          </p>
         </div>
       </CardContent>
     </Card>

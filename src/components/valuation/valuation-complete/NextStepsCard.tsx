@@ -1,94 +1,95 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileDown, Share2, Car } from 'lucide-react';
+import { Share, Download, ArrowRight, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export interface NextStepsCardProps {
+interface NextStepsCardProps {
   valuationId?: string;
-  isPremium?: boolean;
   onShareClick?: () => void;
-  onDownloadClick?: () => void;
+  isPremium?: boolean;
 }
 
-export function NextStepsCard({ 
-  valuationId, 
-  isPremium = false,
-  onShareClick,
-  onDownloadClick
-}: NextStepsCardProps) {
+export function NextStepsCard({ valuationId, onShareClick, isPremium = false }: NextStepsCardProps) {
   const navigate = useNavigate();
-
-  const handleShareClick = () => {
+  
+  const handleUpgrade = () => {
+    if (valuationId) {
+      navigate(`/premium?valuationId=${valuationId}`);
+    } else {
+      navigate('/premium');
+    }
+  };
+  
+  const handleShare = () => {
     if (onShareClick) {
       onShareClick();
-    } else {
-      // Default share behavior
-      if (navigator.share) {
-        navigator.share({
-          title: 'My Car Valuation',
-          text: 'Check out the valuation for my car!',
-          url: window.location.href,
-        });
-      } else {
-        // Fallback for browsers that don't support navigator.share
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-      }
     }
   };
-
-  const handleDownloadClick = () => {
-    if (onDownloadClick) {
-      onDownloadClick();
-    } else if (isPremium) {
-      // Default premium download behavior
-      navigate(`/download-report?valuationId=${valuationId}`);
-    } else {
-      // Prompt to upgrade
-      navigate(`/premium?valuationId=${valuationId}`);
+  
+  const handleDealerOffers = () => {
+    if (valuationId) {
+      navigate(`/dealer-offers?valuationId=${valuationId}`);
     }
   };
-
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>Next Steps</CardTitle>
+        <CardDescription>What would you like to do with your valuation?</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button 
-              variant="outline" 
-              className="flex items-center justify-center gap-2"
-              onClick={handleShareClick}
-            >
-              <Share2 className="h-4 w-4" />
-              Share Valuation
-            </Button>
-            
-            <Button 
-              variant={isPremium ? "default" : "outline"}
-              className="flex items-center justify-center gap-2"
-              onClick={handleDownloadClick}
-            >
-              <FileDown className="h-4 w-4" />
-              {isPremium ? "Download PDF Report" : "Upgrade to Download"}
-            </Button>
-          </div>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Button 
+            variant="outline"
+            className="flex items-center justify-start gap-2 h-auto py-3"
+            onClick={handleShare}
+          >
+            <Share className="h-4 w-4" />
+            <div className="text-left">
+              <div className="font-medium">Share Valuation</div>
+              <div className="text-sm text-muted-foreground">Send to friends or dealers</div>
+            </div>
+          </Button>
           
-          {!isPremium && (
+          {isPremium ? (
             <Button 
-              variant="default" 
-              className="w-full flex items-center justify-center gap-2"
-              onClick={() => navigate(`/premium?valuationId=${valuationId}`)}
+              variant="outline"
+              className="flex items-center justify-start gap-2 h-auto py-3"
+              onClick={() => navigate(`/download?valuationId=${valuationId}`)}
             >
-              <Car className="h-4 w-4" />
-              Get Premium Valuation
+              <Download className="h-4 w-4" />
+              <div className="text-left">
+                <div className="font-medium">Download Report</div>
+                <div className="text-sm text-muted-foreground">Get a detailed PDF</div>
+              </div>
+            </Button>
+          ) : (
+            <Button 
+              variant="outline"
+              className="flex items-center justify-start gap-2 h-auto py-3"
+              onClick={handleUpgrade}
+            >
+              <ArrowRight className="h-4 w-4" />
+              <div className="text-left">
+                <div className="font-medium">Upgrade to Premium</div>
+                <div className="text-sm text-muted-foreground">Get detailed report & more</div>
+              </div>
             </Button>
           )}
         </div>
+        
+        {isPremium && (
+          <Button 
+            className="w-full flex items-center justify-center gap-2 mt-2"
+            onClick={handleDealerOffers}
+          >
+            <Car className="h-4 w-4" />
+            Get Dealer Offers
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
