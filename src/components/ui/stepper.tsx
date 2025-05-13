@@ -3,20 +3,33 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
+// Define a type for the step data
+type StepItem = string | { id: string; label: string };
+
 interface StepperProps {
-  steps: string[];
+  steps: StepItem[];
   currentStep: number;
   className?: string;
+  onStepClick?: (index: number) => void;
 }
 
-export function Stepper({ steps, currentStep, className }: StepperProps) {
+export function Stepper({ steps, currentStep, className, onStepClick }: StepperProps) {
+  // Function to get the display text for a step
+  const getStepText = (step: StepItem): string => {
+    return typeof step === 'string' ? step : step.label;
+  };
+
   return (
     <div className={cn("w-full", className)}>
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <React.Fragment key={index}>
             {/* Step circle with number or check */}
-            <div className="relative">
+            <div 
+              className="relative"
+              onClick={() => onStepClick && onStepClick(index)}
+              style={{ cursor: onStepClick ? 'pointer' : 'default' }}
+            >
               <div
                 className={cn(
                   "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors",
@@ -43,7 +56,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
                     : "text-muted-foreground"
                 )}
               >
-                {step}
+                {getStepText(step)}
               </span>
             </div>
             
