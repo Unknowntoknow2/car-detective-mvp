@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,14 +82,14 @@ export default function ValuationResultPage() {
           // Initialize adjustments array if it doesn't exist
           const processedData = {
             ...data,
-            adjustments: []
+            adjustments: data.adjustments || []
           };
           
           // Apply condition values from localStorage if available
           const conditionValues = getConditionValues();
-          if (conditionValues) {
+          if (conditionValues && (!processedData.adjustments || processedData.adjustments.length === 0)) {
             // Apply any condition adjustments to the valuation data
-            processedData.adjustments.push(
+            processedData.adjustments = [
               {
                 factor: 'Mileage',
                 impact: conditionValues.mileage * -100, // Example calculation
@@ -101,7 +100,7 @@ export default function ValuationResultPage() {
                 impact: conditionValues.accidents * -250, // Example calculation
                 description: `${conditionValues.accidents} accidents reported`
               }
-            );
+            ];
           }
           
           setValuation(processedData);
