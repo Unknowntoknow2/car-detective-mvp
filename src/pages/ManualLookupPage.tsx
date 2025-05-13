@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
@@ -10,7 +11,14 @@ const ManualLookupPage: React.FC = () => {
   const handleManualSubmit = (vehicleInfo: ManualEntryFormData) => {
     // Process the manual entry form submission
     setManualEntryResult(vehicleInfo);
-    toast.success(`Details received for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`);
+    
+    // Use toast without the .success method, as it doesn't exist in the type
+    toast({
+      title: "Success",
+      description: `Details received for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`,
+      variant: "success",
+    });
+    
     // Explicitly return a boolean instead of void
     return true;
   };

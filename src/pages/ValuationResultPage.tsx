@@ -130,6 +130,15 @@ const handleDownloadPdf = async () => {
   });
   
   try {
+    // Ensure we have an adjustments array even if it doesn't exist in the database result
+    const adjustments = valuation.adjustments || [
+      {
+        factor: 'Base Value',
+        impact: 0,
+        description: 'Starting vehicle value'
+      }
+    ];
+    
     // Format the data according to the ReportData interface
     const reportData = {
       make: valuation.make,
@@ -143,7 +152,7 @@ const handleDownloadPdf = async () => {
         Math.floor(valuation.estimated_value * 0.95),
         Math.ceil(valuation.estimated_value * 1.05)
       ],
-      adjustments: valuation.adjustments || [],
+      adjustments: adjustments,
       generatedAt: new Date().toISOString(),
       zipCode: valuation.zip,
       vin: valuation.vin,
