@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 // Define the interface for the valuation data
 interface ValuationData {
@@ -18,6 +19,9 @@ interface ValuationData {
   valuationDate?: string;
   valuationId?: string;
   isPremium?: boolean;
+  type?: string;
+  value?: string;
+  state?: string;
 }
 
 // Define the context type
@@ -29,6 +33,10 @@ interface ValuationContextType {
   valuationHistory: ValuationData[];
   loadingHistory: boolean;
   fetchValuationHistory: () => Promise<void>;
+  // Add the missing properties
+  processFreeValuation: (data: any) => Promise<any>;
+  processPremiumValuation: (data: any) => Promise<any>;
+  isProcessing: boolean;
 }
 
 // Create the context
@@ -40,10 +48,153 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [valuation, setValuation] = useState<ValuationData>({});
   const [valuationHistory, setValuationHistory] = useState<ValuationData[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Reset the valuation data
   const resetValuation = () => {
     setValuation({});
+  };
+
+  // Process a free valuation
+  const processFreeValuation = async (data: any) => {
+    setIsProcessing(true);
+    console.log("Processing free valuation:", data);
+    
+    try {
+      // Generate a mock valuation ID
+      const valuationId = `val_free_${Date.now()}`;
+      
+      // Create a simple valuation object
+      const valuationData = {
+        vehicleDetails: {
+          make: data.make || (data.type === 'manual' ? JSON.parse(data.value)?.make : undefined),
+          model: data.model || (data.type === 'manual' ? JSON.parse(data.value)?.model : undefined),
+          year: data.year || (data.type === 'manual' ? JSON.parse(data.value)?.year : undefined),
+          zipCode: data.zipCode || (data.type === 'manual' ? JSON.parse(data.value)?.zipCode : undefined),
+          condition: data.condition || 'Good',
+          vin: data.vin || '',
+        },
+        marketValue: Math.floor(5000 + Math.random() * 20000), // Random value for demo
+        valuationDate: new Date().toISOString(),
+        valuationId,
+        isPremium: false,
+        type: data.type,
+        value: data.value,
+        state: data.state,
+      };
+      
+      // Save the valuation
+      setValuation(valuationData);
+      
+      // Add to history
+      const existingValuationsString = localStorage.getItem('valuationHistory');
+      const existingValuations = existingValuationsString 
+        ? JSON.parse(existingValuationsString) 
+        : [];
+      
+      const updatedValuations = [valuationData, ...existingValuations];
+      localStorage.setItem('valuationHistory', JSON.stringify(updatedValuations));
+      setValuationHistory(updatedValuations);
+      
+      // Return the result
+      return {
+        valuationId,
+        estimatedValue: valuationData.marketValue,
+        ...valuationData,
+      };
+    } catch (error) {
+      console.error("Error processing free valuation:", error);
+      toast.error("Failed to process free valuation");
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Process a premium valuation
+  const processPremiumValuation = async (data: any) => {
+    setIsProcessing(true);
+    console.log("Processing premium valuation:", data);
+    
+    try {
+      // For demo purposes, we'll check if this is an upgrade request
+      const isPremiumUpgrade = data.isPremiumUpgrade || false;
+      
+      if (isPremiumUpgrade && valuation.valuationId) {
+        // Just upgrade the existing valuation
+        const upgradedValuation = {
+          ...valuation,
+          isPremium: true,
+        };
+        
+        setValuation(upgradedValuation);
+        
+        // Update in history
+        const existingValuationsString = localStorage.getItem('valuationHistory');
+        const existingValuations = existingValuationsString 
+          ? JSON.parse(existingValuationsString) 
+          : [];
+        
+        const updatedValuations = existingValuations.map((v: ValuationData) => 
+          v.valuationId === valuation.valuationId ? upgradedValuation : v
+        );
+        
+        localStorage.setItem('valuationHistory', JSON.stringify(updatedValuations));
+        setValuationHistory(updatedValuations);
+        
+        return upgradedValuation;
+      } else {
+        // Generate a mock valuation ID
+        const valuationId = `val_premium_${Date.now()}`;
+        
+        // Create a premium valuation object with some extra data
+        const valuationData = {
+          vehicleDetails: {
+            make: data.make || (data.type === 'manual' ? JSON.parse(data.value)?.make : undefined),
+            model: data.model || (data.type === 'manual' ? JSON.parse(data.value)?.model : undefined),
+            year: data.year || (data.type === 'manual' ? JSON.parse(data.value)?.year : undefined),
+            zipCode: data.zipCode || (data.type === 'manual' ? JSON.parse(data.value)?.zipCode : undefined),
+            condition: data.condition || 'Good',
+            vin: data.vin || '',
+            trim: data.trim || '',
+            mileage: data.mileage || 0,
+          },
+          marketValue: Math.floor(8000 + Math.random() * 25000), // Higher random value for premium
+          valuationDate: new Date().toISOString(),
+          valuationId,
+          isPremium: true,
+          type: data.type,
+          value: data.value,
+          state: data.state,
+        };
+        
+        // Save the valuation
+        setValuation(valuationData);
+        
+        // Add to history
+        const existingValuationsString = localStorage.getItem('valuationHistory');
+        const existingValuations = existingValuationsString 
+          ? JSON.parse(existingValuationsString) 
+          : [];
+        
+        const updatedValuations = [valuationData, ...existingValuations];
+        localStorage.setItem('valuationHistory', JSON.stringify(updatedValuations));
+        setValuationHistory(updatedValuations);
+        
+        // Return the result
+        return {
+          valuationId,
+          estimatedValue: valuationData.marketValue,
+          ...valuationData,
+        };
+      }
+    } catch (error) {
+      console.error("Error processing premium valuation:", error);
+      toast.error("Failed to process premium valuation");
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Save the valuation to local storage or database
@@ -121,6 +272,9 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
         valuationHistory,
         loadingHistory,
         fetchValuationHistory,
+        processFreeValuation,
+        processPremiumValuation,
+        isProcessing,
       }}
     >
       {children}
