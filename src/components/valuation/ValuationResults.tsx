@@ -1,8 +1,13 @@
+
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAICondition } from '@/hooks/useAICondition';
 import { ConditionTips } from './condition/ConditionTips';
+import { formatCurrency } from '@/utils/formatters/formatCurrency';
+import { Progress } from '@/components/ui/progress';
+import { ConditionRatingOption } from './condition/types';
+import { getConditionTips } from '@/utils/valuation/conditionHelpers';
 
 interface ValuationResultsProps {
   estimatedValue: number;
@@ -30,7 +35,7 @@ interface ValuationResultsProps {
 
 export const ValuationResults: React.FC<ValuationResultsProps> = ({
   estimatedValue,
-  confidenceScore,
+  confidenceScore = 80,
   basePrice,
   priceRange,
   adjustments,
