@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy, ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,6 +24,8 @@ import AuthPage from './pages/AuthPage';
 import LoginUserPage from './pages/LoginUserPage';
 import LoginDealerPage from './pages/LoginDealerPage';
 import DealerSignup from './pages/DealerSignup';
+import FreeValuationPage from './pages/FreeValuationPage';
+import ValuationResultPage from './pages/ValuationResultPage';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
@@ -72,6 +75,8 @@ export const appRoutes = [
   { path: '/login-user', element: <LoginUserPage /> },
   { path: '/login-dealer', element: <LoginDealerPage /> },
   { path: '/dealer-signup', element: <DealerSignup /> },
+  { path: '/free', element: <FreeValuationPage /> },
+  { path: '/valuation-result/:id', element: <ValuationResultPage /> },
   { path: '*', element: <NotFound /> }
 ];
 
@@ -102,6 +107,18 @@ function App() {
                 <Route path="/valuation/:valuationId" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<ValuationDetailPage />, "valuation-detail")}
+                  </MainLayout>
+                } />
+                
+                {/* Free Valuation Routes */}
+                <Route path="/free" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<FreeValuationPage />, "free-valuation")}
+                  </MainLayout>
+                } />
+                <Route path="/valuation-result/:id" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<ValuationResultPage />, "valuation-result")}
                   </MainLayout>
                 } />
                 

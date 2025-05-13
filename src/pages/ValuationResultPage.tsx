@@ -1,39 +1,57 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Download, Share2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertTriangle, RotateCcw, FileDown, Share2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 
-const ValuationResultPage = () => {
+const ValuationResultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [valuationData, setValuationData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [valuationData, setValuationData] = useState<any | null>(null);
 
   useEffect(() => {
-    // Simulating API call to fetch valuation data
     const fetchValuationData = async () => {
-      setIsLoading(true);
+      if (!id) {
+        setError('No valuation ID provided');
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        // In a real app, this would be an API call
-        // await api.getValuation(id)
-        setTimeout(() => {
-          setValuationData({
-            id,
-            make: 'Toyota',
-            model: 'Camry',
-            year: 2019,
-            estimatedValue: 22500,
-            confidenceScore: 87,
-            condition: 'Good',
-            mileage: 42000,
-            priceRange: [21000, 24000],
-            isPremium: false
-          });
+        setIsLoading(true);
+        
+        // Fetch the valuation data from Supabase
+        const { data, error: fetchError } = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (fetchError) {
+          console.error('Error fetching valuation:', fetchError);
+          setError('Failed to load valuation data. Please try again later.');
           setIsLoading(false);
-        }, 1000);
+          return;
+        }
+        
+        if (!data) {
+          setError('Valuation not found');
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('Fetched valuation data:', data);
+        setValuationData(data);
+        setIsLoading(false);
       } catch (err) {
-        setError('Failed to load valuation data');
+        console.error('Unexpected error:', err);
+        setError('An unexpected error occurred');
         setIsLoading(false);
       }
     };
@@ -41,102 +59,168 @@ const ValuationResultPage = () => {
     fetchValuationData();
   }, [id]);
 
+  const handleStartNew = () => {
+    navigate('/free');
+  };
+  
+  // Show loading state
   if (isLoading) {
     return (
       <div className="container mx-auto py-12 px-4 flex justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg font-medium">Loading valuation results...</p>
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
+          <h2 className="text-xl font-medium">Loading Valuation Results</h2>
+          <p className="text-muted-foreground mt-2">Please wait while we retrieve your valuation</p>
         </div>
       </div>
     );
   }
-
+  
+  // Show error state
   if (error) {
     return (
       <div className="container mx-auto py-12 px-4">
-        <div className="bg-red-50 border border-red-200 rounded-md p-6 text-center">
-          <h2 className="text-xl font-bold text-red-700 mb-2">Error</h2>
-          <p className="text-red-600">{error}</p>
-          <Button 
-            variant="outline" 
-            className="mt-4"
-            onClick={() => window.location.href = '/'}
-          >
-            Return Home
-          </Button>
-        </div>
+        <Alert variant="destructive" className="max-w-xl mx-auto">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="mt-2">{error}</AlertDescription>
+          <div className="mt-4">
+            <Button variant="outline" onClick={handleStartNew}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Start New Valuation
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
+  
+  // Ensure we have valuation data
+  if (!valuationData) {
+    return (
+      <div className="container mx-auto py-12 px-4">
+        <Alert variant="destructive" className="max-w-xl mx-auto">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>No Data Available</AlertTitle>
+          <AlertDescription className="mt-2">
+            We couldn't find valuation data for this ID. It may have been deleted or expired.
+          </AlertDescription>
+          <div className="mt-4">
+            <Button variant="outline" onClick={handleStartNew}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Start New Valuation
+            </Button>
+          </div>
+        </Alert>
       </div>
     );
   }
 
-  if (!valuationData) {
-    return null;
-  }
+  // Determine condition from condition score
+  const condition = valuationData.condition_score ? 
+                  (valuationData.condition_score >= 90 ? 'Excellent' : 
+                   valuationData.condition_score >= 75 ? 'Good' : 
+                   valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
+                  'Good';
+  
+  // Format the data for the UnifiedValuationResult component
+  const formattedData = {
+    id: valuationData.id,
+    vehicleInfo: {
+      make: valuationData.make,
+      model: valuationData.model,
+      year: valuationData.year,
+      mileage: valuationData.mileage,
+      condition: condition
+    },
+    estimatedValue: valuationData.estimated_value,
+    confidenceScore: valuationData.confidence_score,
+    priceRange: [
+      Math.round((valuationData.estimated_value || 0) * 0.95),
+      Math.round((valuationData.estimated_value || 0) * 1.05)
+    ],
+    isPremium: valuationData.premium_unlocked || false
+  };
 
   return (
     <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Your Vehicle Valuation Result</h1>
+      <h1 className="text-3xl font-bold mb-8">Your Vehicle Valuation Result</h1>
       
-      <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-semibold">
-              {valuationData.year} {valuationData.make} {valuationData.model}
-            </h2>
-            <p className="text-gray-600">{valuationData.condition} Condition · {valuationData.mileage.toLocaleString()} miles</p>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
+          <Card className="mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle>Valuation Details</CardTitle>
+              <CardDescription>
+                Based on your vehicle information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UnifiedValuationResult 
+                vehicleInfo={formattedData.vehicleInfo}
+                estimatedValue={formattedData.estimatedValue}
+                confidenceScore={formattedData.confidenceScore}
+                priceRange={formattedData.priceRange}
+                displayMode="full"
+              />
+            </CardContent>
+          </Card>
           
-          <div className="mt-4 md:mt-0">
-            <span className="text-sm text-gray-500">Confidence Score</span>
-            <div className="flex items-center">
-              <div className="w-24 h-2 bg-gray-200 rounded-full mr-2">
-                <div 
-                  className="h-2 bg-green-500 rounded-full" 
-                  style={{ width: `${valuationData.confidenceScore}%` }}
-                ></div>
-              </div>
-              <span className="font-medium">{valuationData.confidenceScore}%</span>
+          <div className="flex justify-between mt-8">
+            <Button variant="outline" onClick={handleStartNew}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Start New Valuation
+            </Button>
+            
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+              
+              <Button>
+                <FileDown className="mr-2 h-4 w-4" />
+                Download PDF
+              </Button>
             </div>
           </div>
         </div>
         
-        <div className="border-t border-b py-6 my-6">
-          <div className="text-center">
-            <div className="text-gray-500 text-sm">Estimated Value</div>
-            <div className="text-4xl font-bold text-primary my-2">
-              ${valuationData.estimatedValue.toLocaleString()}
-            </div>
-            <div className="text-sm text-gray-600">
-              Range: ${valuationData.priceRange[0].toLocaleString()} - ${valuationData.priceRange[1].toLocaleString()}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Button className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Download Report
-          </Button>
-          
-          <Button variant="outline" className="flex items-center gap-2">
-            <Share2 className="h-4 w-4" />
-            Share Valuation
-          </Button>
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Premium Features</CardTitle>
+              <CardDescription>
+                Unlock additional insights
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 mb-4">
+                <li className="flex items-start">
+                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
+                  <span>Market comparison analysis</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
+                  <span>Receive dealer offers</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
+                  <span>12-month value forecast</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">✓</div>
+                  <span>Detailed PDF report</span>
+                </li>
+              </ul>
+              
+              <Button className="w-full" onClick={() => navigate('/premium')}>
+                Upgrade to Premium
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
-      
-      {!valuationData.isPremium && (
-        <div className="bg-blue-50 rounded-lg p-6 text-center">
-          <h3 className="text-xl font-semibold text-blue-800 mb-2">Want a more detailed valuation?</h3>
-          <p className="text-blue-600 mb-4">
-            Upgrade to our premium valuation for advanced market analysis, dealer insights, and more.
-          </p>
-          <Button variant="premium" onClick={() => window.location.href = '/premium'}>
-            Upgrade to Premium Valuation
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
