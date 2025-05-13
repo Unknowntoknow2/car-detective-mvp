@@ -91,7 +91,11 @@ const calculateValuation = async (params: EnhancedValuationParams): Promise<Fina
   // Return the expected result format with all required fields
   return {
     baseValue,
-    adjustments: auditTrail || [], 
+    adjustments: auditTrail ? auditTrail.map((item: any) => ({
+      ...item,
+      // Ensure description is always present
+      description: item.description || `Adjustment based on ${item.factor}`
+    })) : [], 
     finalValue,
     confidenceScore,
     priceRange,
