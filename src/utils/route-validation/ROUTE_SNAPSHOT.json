@@ -12,6 +12,7 @@
   "/payment/success",
   "/payment/cancelled",
   "/my-valuations",
-  "/sign-in",
-  "/sign-up"
+  "/auth",
+  "/login-user",
+  "/login-dealer"
 ]

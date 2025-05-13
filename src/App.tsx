@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy, ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,6 +19,9 @@ import MyValuationsPage from './pages/MyValuationsPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AuthPage from './pages/AuthPage';
+import LoginUserPage from './pages/LoginUserPage';
+import LoginDealerPage from './pages/LoginDealerPage';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
@@ -52,6 +54,7 @@ const queryClient = new QueryClient({
 export const appRoutes = [
   { path: '/', element: <HomePage /> },
   { path: '/valuation/:valuationId', element: <ValuationDetailPage /> },
+  { path: '/auth', element: <AuthPage /> },
   { path: '/auth/*', element: <AuthLayout /> },
   { path: '/dashboard/*', element: <DashboardLayout /> },
   { path: '/dealer-dashboard', element: <DealerDashboard /> },
@@ -65,6 +68,8 @@ export const appRoutes = [
   { path: '/my-valuations', element: <MyValuationsPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
+  { path: '/login-user', element: <LoginUserPage /> },
+  { path: '/login-dealer', element: <LoginDealerPage /> },
   { path: '*', element: <NotFound /> }
 ];
 
@@ -96,8 +101,14 @@ function App() {
                     {wrapWithErrorBoundary(<ValuationDetailPage />, "valuation-detail")}
                   </MainLayout>
                 } />
+                <Route path="/auth" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<AuthPage />, "auth-page")}
+                  </MainLayout>
+                } />
                 <Route path="/auth/*" element={<AuthLayout />} />
                 <Route path="/dashboard/*" element={<DashboardLayout />} />
+                
                 <Route path="/dealer-dashboard" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<DealerDashboard />, "dealer-dashboard")}
@@ -166,6 +177,16 @@ function App() {
                 <Route path="/register" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<RegisterPage />, "register")}
+                  </MainLayout>
+                } />
+                <Route path="/login-user" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<LoginUserPage />, "login-user")}
+                  </MainLayout>
+                } />
+                <Route path="/login-dealer" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<LoginDealerPage />, "login-dealer")}
                   </MainLayout>
                 } />
                 <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
