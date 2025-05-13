@@ -47,7 +47,7 @@ const mapDbToValuationResult = (data: any): ValuationResult => {
         description: 'Current market conditions' 
       }
     ],
-    // Include color and other properties only if they are defined in the ValuationResult type
+    // Add properties that are now correctly defined in the ValuationResult type
     color: data.color || '',
     bodyStyle: data.body_style || '',
     bodyType: data.body_type || '',
@@ -60,7 +60,8 @@ const mapDbToValuationResult = (data: any): ValuationResult => {
     aiCondition: null,
     features: [],
     vin: data.vin,
-    created_at: data.created_at
+    created_at: data.created_at,
+    isPremium: data.premium_unlocked || false
   };
 };
 
