@@ -68,7 +68,7 @@ export function drawValuationSection(
     const { renderAdjustmentTable } = require('./adjustmentTable');
     
     // Get the base price (can be derived from the final value minus adjustments)
-    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + (adj.value || adj.impact || 0), 0);
+    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + (adj.impact || 0), 0);
     const basePrice = data.estimatedValue - totalAdjustment;
     
     // Render the adjustment table and get the new Y position

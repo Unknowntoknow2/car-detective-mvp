@@ -12,7 +12,10 @@ export interface ReportData {
   adjustments?: Array<{
     factor: string;
     impact: number;
+    name?: string;
+    value?: number;
     description?: string;
+    percentAdjustment?: number;
   }>;
   generatedAt: string;
   vin?: string;
@@ -29,6 +32,7 @@ export interface ReportData {
   photoExplanation?: string;
   valuationId?: string;
   narrative?: string;
+  trim?: string;
 }
 
 export interface ReportOptions {
@@ -40,16 +44,37 @@ export interface ReportOptions {
   theme: 'light' | 'dark';
   logoUrl?: string;
   customStyles?: Record<string, any>;
+  format?: string;
+  orientation?: 'portrait' | 'landscape';
+  margin?: number;
+  includeBranding?: boolean;
+  includeTimestamp?: boolean;
+  includePhotoAssessment?: boolean;
+  includeAIScore?: boolean;
+  isPremium?: boolean;
+  title?: string;
+  printBackground?: boolean;
+  landscape?: boolean;
+  showWholesaleValue?: boolean;
+  dealerName?: string;
+  userName?: string;
 }
 
 export interface SectionParams {
   doc: any;
   page: any;
-  fonts: {
+  width?: number;
+  height?: number;
+  margin?: number;
+  pageWidth?: number;
+  contentWidth?: number;
+  fonts?: {
     regular: any;
     bold: any;
   };
-  constants: {
+  regularFont?: any;
+  boldFont?: any;
+  constants?: {
     margin: number;
     width: number;
     height: number;

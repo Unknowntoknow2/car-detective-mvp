@@ -38,7 +38,11 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
       Math.round(additionalData.estimatedValue * 0.90), 
       Math.round(additionalData.estimatedValue * 1.10)
     ],
-    adjustments: additionalData.adjustments,
+    adjustments: additionalData.adjustments.map(adj => ({
+      factor: adj.factor || '',
+      impact: adj.impact || 0,
+      description: adj.description
+    })),
     generatedAt: new Date().toISOString()
   };
 }
@@ -50,20 +54,13 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
  */
 export function convertValuationToReportData(valuation: any): ReportData {
   // Extract adjustments or create empty array
-  const adjustments: Array<{
-    factor?: string;
-    impact?: number;
-    name?: string;
-    value?: number;
-    description?: string;
-    percentAdjustment?: number;
-  }> = valuation.adjustments?.map((adj: any) => ({
-    name: adj.factor || adj.name,
-    value: adj.impact || adj.value || 0,
+  const adjustments = valuation.adjustments?.map((adj: any) => ({
+    factor: adj.factor || adj.name || '',
+    impact: adj.impact || adj.value || 0,
     description: adj.description || '',
     percentAdjustment: adj.impactPercentage || adj.percentAdjustment || 0,
-    factor: adj.factor || adj.name,
-    impact: adj.impact || adj.value || 0
+    name: adj.factor || adj.name || '',
+    value: adj.impact || adj.value || 0
   })) || [];
 
   // Calculate price range if not provided
@@ -96,6 +93,7 @@ export function convertValuationToReportData(valuation: any): ReportData {
     bodyType: valuation.bodyType || valuation.bodyStyle || '',
     fuelType: valuation.fuelType || valuation.fuel_type || '',
     transmission: valuation.transmission || '',
-    photoExplanation: valuation.photoExplanation || ''
+    photoExplanation: valuation.photoExplanation || '',
+    trim: valuation.trim || ''
   };
 }
