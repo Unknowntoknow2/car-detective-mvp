@@ -2,18 +2,14 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { InfoIcon } from 'lucide-react';
-import { ConditionRatingOption } from '@/types/condition';
-
-export interface ConditionTipsProps {
-  category: string;
-  tip: string;
-  selectedRatings?: Record<string, ConditionRatingOption>;
-}
+import { ConditionTipsProps } from './types';
 
 export function ConditionTips({ category, tip, selectedRatings }: ConditionTipsProps) {
   // Use the passed tip or get from selected ratings if available
   const tipText = tip || 
-    (selectedRatings && Object.values(selectedRatings).find(r => r?.category === category)?.tip) || 
+    (selectedRatings && 
+     selectedRatings[category.toLowerCase()] && 
+     selectedRatings[category.toLowerCase()].description) || 
     "No tips available for this condition.";
   
   if (!tipText) return null;

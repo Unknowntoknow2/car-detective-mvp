@@ -1,81 +1,93 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 
 export interface ConditionOption {
-  id: string;
+  id?: string;
   label: string;
   value: number;
   tip?: string;
+  multiplier?: number;
 }
 
-interface FactorSliderProps {
+export interface FactorSliderProps {
   id: string;
-  label: string;
+  label?: string;
   options: ConditionOption[];
   value: number;
-  onChange: (id: string, value: number) => void;
+  onChange: (value: number) => void;
+  ariaLabel?: string;
 }
 
-export function FactorSlider({
+export const FactorSlider = ({
   id,
   label,
   options,
   value,
-  onChange
-}: FactorSliderProps) {
-  const [sliderValue, setSliderValue] = useState<number>(value);
-  
-  // Update the internal value when the prop changes
-  useEffect(() => {
-    setSliderValue(value);
-  }, [value]);
-  
-  // Get min and max from options
-  const min = 0;
-  const max = options.length - 1;
-  
-  // Handle slider change
-  const handleSliderChange = (values: number[]) => {
-    const newValue = Math.round(values[0]);
-    setSliderValue(newValue);
-    onChange(id, newValue);
+  onChange,
+  ariaLabel
+}: FactorSliderProps) => {
+  // Find the closest option
+  const findClosestOption = (val: number) => {
+    return options.reduce((prev, curr) => {
+      return Math.abs(curr.value - val) < Math.abs(prev.value - val) ? curr : prev;
+    });
   };
-  
-  // Handle option button click
-  const handleOptionClick = (index: number) => {
-    setSliderValue(index);
-    onChange(id, index);
-  };
-  
+
+  const closestOption = findClosestOption(value);
+
   return (
-    <div className="space-y-4">
-      <Label htmlFor={id}>{label}</Label>
+    <div className="space-y-3">
+      {label && <Label htmlFor={id}>{label}</Label>}
       
-      <Slider
-        id={id}
-        value={[sliderValue]}
-        min={min}
-        max={max}
-        step={1}
-        onValueChange={handleSliderChange}
-      />
-      
-      <div className="flex justify-between">
-        {options.map((option, index) => (
-          <Button
-            key={option.id}
-            variant={sliderValue === index ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleOptionClick(index)}
-            className="text-xs px-2 py-1 h-auto min-w-[60px]"
-          >
-            {option.label}
-          </Button>
-        ))}
+      <div className="mt-1 space-y-3">
+        <Slider
+          id={id}
+          min={0}
+          max={100}
+          step={1}
+          value={[value]}
+          onValueChange={(values) => onChange(values[0])}
+          aria-label={ariaLabel || `Adjustment for ${label || ''}`}
+        />
+        
+        <div className="flex justify-between text-xs">
+          {options.map((option, idx) => (
+            <div 
+              key={idx} 
+              className={`relative ${
+                Math.abs(option.value - value) < 10 ? 'text-primary font-medium' : 'text-muted-foreground'
+              }`}
+              style={{ 
+                left: `${option.value === 0 ? '0%' : 
+                      option.value === 100 ? '0%' : 
+                      '-10px'}`,
+                textAlign: option.value === 0 ? 'left' : 
+                          option.value === 100 ? 'right' : 'center' 
+              }}
+            >
+              {option.tip ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="text-xs flex items-center">
+                      {option.label}
+                      <Info className="h-3 w-3 ml-0.5 inline" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">{option.tip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                option.label
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
-}
+};

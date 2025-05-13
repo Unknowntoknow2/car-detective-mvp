@@ -1,13 +1,21 @@
 
 import React from 'react';
-import { FactorSlider, ConditionOption } from '../FactorSlider';
+import { FactorSlider } from '../FactorSlider';
 
-const accidentOptions: ConditionOption[] = [
-  { value: 0, label: 'No Accidents', tip: 'No accidents – full value', multiplier: 1.00 },
-  { value: 25, label: '1 Accident', tip: '1 accident (approximately -5% value)', multiplier: 0.95 },
-  { value: 50, label: '2 Accidents', tip: '2 accidents (approximately -10% value)', multiplier: 0.90 },
-  { value: 75, label: '3 Accidents', tip: '3 accidents (approximately -15% value)', multiplier: 0.85 },
-  { value: 100, label: '4+ Accidents', tip: '4+ accidents (approximately -25% value)', multiplier: 0.75 },
+// Define local option type matching the FactorSlider requirements
+interface FactorOption {
+  id?: string;
+  label: string;
+  value: number;
+  tip?: string;
+}
+
+const accidentOptions: FactorOption[] = [
+  { value: 0, label: 'None', tip: 'No accidents or damage reported' },
+  { value: 25, label: '1 Minor', tip: 'One minor accident with cosmetic damage only' },
+  { value: 50, label: '1 Major', tip: 'One major accident with structural or airbag deployment' },
+  { value: 75, label: '2+ Minor', tip: 'Multiple minor accidents or damages' },
+  { value: 100, label: '2+ Major', tip: 'Multiple major accidents, significant impact on value' },
 ];
 
 interface AccidentFactorCardProps {
@@ -16,16 +24,21 @@ interface AccidentFactorCardProps {
 }
 
 export function AccidentFactorCard({ value, onChange }: AccidentFactorCardProps) {
+  // Wrapper function to match the expected signature
+  const handleChange = (newValue: number) => {
+    onChange(newValue);
+  };
+
   return (
     <div className="rounded-2xl shadow p-4 bg-white">
       <h3 className="text-xl font-semibold mb-4">Accident History</h3>
       <FactorSlider
         id="accident-factor"
-        label="Accident Count"
+        label="Accident Severity"
         options={accidentOptions}
         value={value}
-        onChange={onChange}
-        ariaLabel="Accident count factor"
+        onChange={handleChange}
+        ariaLabel="Accident history factor"
       />
     </div>
   );

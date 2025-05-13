@@ -1,191 +1,215 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ConditionCategory } from './ConditionCategory';
 import { ConditionTips } from './ConditionTips';
-import { ConditionValues, ConditionEvaluationFormProps, ConditionRatingOption } from './types';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ConditionSlider } from './ConditionSlider';
+import { ConditionEvaluationFormProps, ConditionValues } from './types';
+import { ConditionRatingOption } from '@/types/condition';
 
-const conditionCategories = {
-  exterior: {
-    title: 'Exterior Condition',
-    description: 'Paint, body, glass, and trim condition',
-    ratings: [
-      { id: 'exterior_poor', name: 'Poor', category: 'Exterior', value: 70, description: 'Visible damage, rust, or paint issues', tip: 'Consider addressing visible paint and body damage before selling' },
-      { id: 'exterior_fair', name: 'Fair', category: 'Exterior', value: 80, description: 'Some minor issues or wear visible' },
-      { id: 'exterior_good', name: 'Good', category: 'Exterior', value: 90, description: 'Minor wear, but no significant issues' },
-      { id: 'exterior_excellent', name: 'Excellent', category: 'Exterior', value: 100, description: 'Like new condition with minimal wear' }
-    ]
-  },
-  interior: {
-    title: 'Interior Condition',
-    description: 'Seats, dashboard, carpet, and electronics',
-    ratings: [
-      { id: 'interior_poor', name: 'Poor', category: 'Interior', value: 70, description: 'Visible damage, stains, or non-working components', tip: 'A professional interior detail could improve value' },
-      { id: 'interior_fair', name: 'Fair', category: 'Interior', value: 80, description: 'Some wear or minor issues' },
-      { id: 'interior_good', name: 'Good', category: 'Interior', value: 90, description: 'Minor wear, but clean and functioning' },
-      { id: 'interior_excellent', name: 'Excellent', category: 'Interior', value: 100, description: 'Like new condition with minimal wear' }
-    ]
-  },
-  mechanical: {
-    title: 'Mechanical Condition',
-    description: 'Engine, transmission, suspension, and brakes',
-    ratings: [
-      { id: 'mechanical_poor', name: 'Poor', category: 'Mechanical', value: 70, description: 'Has issues that affect driveability', tip: 'Fixing major mechanical issues typically has a good ROI for valuation' },
-      { id: 'mechanical_fair', name: 'Fair', category: 'Mechanical', value: 80, description: 'Some maintenance needed soon' },
-      { id: 'mechanical_good', name: 'Good', category: 'Mechanical', value: 90, description: 'Regular maintenance up to date, no issues' },
-      { id: 'mechanical_excellent', name: 'Excellent', category: 'Mechanical', value: 100, description: 'Perfect mechanical condition, all service records' }
-    ]
-  },
-  tires: {
-    title: 'Tire Condition',
-    description: 'Tread depth and overall tire condition',
-    ratings: [
-      { id: 'tires_poor', name: 'Poor', category: 'Tires', value: 70, description: 'Need immediate replacement', tip: 'New tires can improve the valuation and help sell faster' },
-      { id: 'tires_fair', name: 'Fair', category: 'Tires', value: 80, description: 'Will need replacement soon' },
-      { id: 'tires_good', name: 'Good', category: 'Tires', value: 90, description: 'Good tread life remaining' },
-      { id: 'tires_excellent', name: 'Excellent', category: 'Tires', value: 100, description: 'Like new with 80%+ tread life' }
-    ]
-  }
-};
+const exteriorRatings = [
+  { id: 'exterior-excellent', name: 'Excellent', category: 'Exterior', value: 4, description: 'Like new condition with no visible damage or wear.' },
+  { id: 'exterior-good', name: 'Good', category: 'Exterior', value: 3, description: 'Minor wear consistent with age, no significant damage.' },
+  { id: 'exterior-fair', name: 'Fair', category: 'Exterior', value: 2, description: 'Noticeable wear and tear, may have minor damage.' },
+  { id: 'exterior-poor', name: 'Poor', category: 'Exterior', value: 1, description: 'Significant damage, rust, or cosmetic issues.' },
+  { id: 'exterior-salvage', name: 'Salvage', category: 'Exterior', value: 0, description: 'Major damage affecting structure and appearance.' }
+];
 
-export function ConditionEvaluationForm({ onSubmit, onCancel, initialValues }: ConditionEvaluationFormProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('exterior');
+const interiorRatings = [
+  { id: 'interior-excellent', name: 'Excellent', category: 'Interior', value: 4, description: 'Pristine interior with no wear or damage.' },
+  { id: 'interior-good', name: 'Good', category: 'Interior', value: 3, description: 'Minor wear on seats and surfaces, all features functional.' },
+  { id: 'interior-fair', name: 'Fair', category: 'Interior', value: 2, description: 'Visible wear on high-touch areas, may have minor damage.' },
+  { id: 'interior-poor', name: 'Poor', category: 'Interior', value: 1, description: 'Significant wear, stains, or damage to interior components.' },
+  { id: 'interior-salvage', name: 'Salvage', category: 'Interior', value: 0, description: 'Major interior damage requiring extensive repair.' }
+];
+
+const mechanicalRatings = [
+  { id: 'mechanical-excellent', name: 'Excellent', category: 'Mechanical', value: 4, description: 'Perfect mechanical condition, no issues.' },
+  { id: 'mechanical-good', name: 'Good', category: 'Mechanical', value: 3, description: 'Well-maintained, no known issues, all systems functional.' },
+  { id: 'mechanical-fair', name: 'Fair', category: 'Mechanical', value: 2, description: 'Some minor issues may exist, but still reliable.' },
+  { id: 'mechanical-poor', name: 'Poor', category: 'Mechanical', value: 1, description: 'Known mechanical issues affecting reliability.' },
+  { id: 'mechanical-salvage', name: 'Salvage', category: 'Mechanical', value: 0, description: 'Major mechanical issues requiring significant repair.' }
+];
+
+export function ConditionEvaluationForm({ 
+  initialValues = {}, 
+  onSubmit,
+  isLoading = false,
+  onCancel
+}: ConditionEvaluationFormProps) {
+  const [values, setValues] = useState<ConditionValues>({
+    accidents: initialValues.accidents || 0,
+    mileage: initialValues.mileage || 0,
+    year: initialValues.year || 0,
+    titleStatus: initialValues.titleStatus || 'Clean',
+    exteriorGrade: initialValues.exteriorGrade || 3,
+    interiorGrade: initialValues.interiorGrade || 3,
+    mechanicalGrade: initialValues.mechanicalGrade || 3
+  });
+
   const [selectedRatings, setSelectedRatings] = useState<Record<string, ConditionRatingOption>>({
-    exterior: conditionCategories.exterior.ratings[2], // Default to "Good"
-    interior: conditionCategories.interior.ratings[2],
-    mechanical: conditionCategories.mechanical.ratings[2],
-    tires: conditionCategories.tires.ratings[2]
+    exterior: exteriorRatings[values.exteriorGrade],
+    interior: interiorRatings[values.interiorGrade],
+    mechanical: mechanicalRatings[values.mechanicalGrade]
   });
-  
-  const [conditionValues, setConditionValues] = useState<ConditionValues>({
-    accidents: initialValues?.accidents || 0,
-    mileage: initialValues?.mileage || 0,
-    year: initialValues?.year || new Date().getFullYear(),
-    titleStatus: initialValues?.titleStatus || 'Clean',
-    exteriorGrade: 90,
-    interiorGrade: 90,
-    mechanicalGrade: 90,
-    tireCondition: 90
-  });
-  
-  // Update condition values when ratings change
-  useEffect(() => {
-    setConditionValues(prev => ({
+
+  const handleChange = (id: string, value: any) => {
+    setValues(prev => ({
       ...prev,
-      exteriorGrade: selectedRatings.exterior?.value || 90,
-      interiorGrade: selectedRatings.interior?.value || 90,
-      mechanicalGrade: selectedRatings.mechanical?.value || 90,
-      tireCondition: selectedRatings.tires?.value || 90
+      [id]: value
     }));
-  }, [selectedRatings]);
-  
-  const handleRatingSelect = (category: string, rating: ConditionRatingOption) => {
+
+    // Update selected ratings when slider values change
+    if (id === 'exteriorGrade') {
+      setSelectedRatings(prev => ({
+        ...prev,
+        exterior: exteriorRatings[value]
+      }));
+    } else if (id === 'interiorGrade') {
+      setSelectedRatings(prev => ({
+        ...prev,
+        interior: interiorRatings[value]
+      }));
+    } else if (id === 'mechanicalGrade') {
+      setSelectedRatings(prev => ({
+        ...prev,
+        mechanical: mechanicalRatings[value]
+      }));
+    }
+  };
+
+  const handleRatingSelect = (rating: ConditionRatingOption) => {
+    const category = rating.category.toLowerCase();
+    const gradeField = `${category}Grade`;
+    
+    // Update the grade value based on the selected rating
+    setValues(prev => ({
+      ...prev,
+      [gradeField]: rating.value
+    }));
+    
+    // Update selected rating
     setSelectedRatings(prev => ({
       ...prev,
       [category]: rating
     }));
   };
-  
-  const handleNext = () => {
-    const categories = Object.keys(conditionCategories);
-    const currentIndex = categories.indexOf(activeCategory);
-    
-    if (currentIndex < categories.length - 1) {
-      setActiveCategory(categories[currentIndex + 1]);
-    } else {
-      handleSubmit();
-    }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(values);
   };
-  
-  const handlePrevious = () => {
-    const categories = Object.keys(conditionCategories);
-    const currentIndex = categories.indexOf(activeCategory);
-    
-    if (currentIndex > 0) {
-      setActiveCategory(categories[currentIndex - 1]);
-    } else if (onCancel) {
-      onCancel();
-    }
-  };
-  
-  const handleSubmit = () => {
-    // Calculate overall score based on selected ratings
-    const values = Object.values(selectedRatings).map(r => r.value);
-    const overallScore = values.reduce((sum, value) => sum + value, 0) / values.length;
-    
-    if (onSubmit) {
-      onSubmit(conditionValues, overallScore);
-    }
-  };
-  
-  const isLastCategory = activeCategory === Object.keys(conditionCategories)[Object.keys(conditionCategories).length - 1];
-  
+
   return (
-    <div className="space-y-6">
-      {/* Navigation Tabs */}
-      <div className="flex space-x-2 overflow-x-auto pb-2">
-        {Object.keys(conditionCategories).map((category) => (
-          <Button
-            key={category}
-            variant={activeCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveCategory(category)}
-            className="whitespace-nowrap"
-          >
-            {conditionCategories[category as keyof typeof conditionCategories].title}
-          </Button>
-        ))}
-      </div>
-      
-      {/* Active Category */}
-      <div>
-        <ConditionCategory
-          title={conditionCategories[activeCategory as keyof typeof conditionCategories].title}
-          description={conditionCategories[activeCategory as keyof typeof conditionCategories].description}
-          ratings={conditionCategories[activeCategory as keyof typeof conditionCategories].ratings}
-          selectedRating={selectedRatings[activeCategory]?.id}
-          onSelect={(rating) => handleRatingSelect(activeCategory, rating)}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <ConditionCategory
+        title="Exterior Condition"
+        description="Rate the overall exterior condition of the vehicle"
+      >
+        <ConditionSlider
+          id="exteriorGrade"
+          value={values.exteriorGrade}
+          onChange={(value) => handleChange('exteriorGrade', value)}
+          min={0}
+          max={4}
+          step={1}
         />
-      </div>
-      
-      {/* Condition Tips */}
-      <ConditionTips selectedRatings={selectedRatings} />
-      
-      {/* Selected Ratings Summary */}
-      <Card className="bg-muted/50">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {Object.entries(selectedRatings).map(([category, rating]) => (
-              <div key={category} className="flex justify-between">
-                <span className="text-muted-foreground">{conditionCategories[category as keyof typeof conditionCategories].title}:</span>
-                <span className="font-medium">{rating.name}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-2">
-        <Button 
-          variant="outline"
-          onClick={handlePrevious}
-          className="flex items-center gap-1"
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <span>Salvage</span>
+          <span>Poor</span>
+          <span>Fair</span>
+          <span>Good</span>
+          <span>Excellent</span>
+        </div>
+        <ConditionTips
+          category="Exterior"
+          tip={selectedRatings.exterior?.description || ''}
+        />
+      </ConditionCategory>
+
+      <ConditionCategory
+        title="Interior Condition"
+        description="Rate the overall interior condition of the vehicle"
+      >
+        <ConditionSlider
+          id="interiorGrade"
+          value={values.interiorGrade}
+          onChange={(value) => handleChange('interiorGrade', value)}
+          min={0}
+          max={4}
+          step={1}
+        />
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <span>Salvage</span>
+          <span>Poor</span>
+          <span>Fair</span>
+          <span>Good</span>
+          <span>Excellent</span>
+        </div>
+        <ConditionTips
+          category="Interior"
+          tip={selectedRatings.interior?.description || ''}
+        />
+      </ConditionCategory>
+
+      <ConditionCategory
+        title="Mechanical Condition"
+        description="Rate the overall mechanical condition of the vehicle"
+      >
+        <ConditionSlider
+          id="mechanicalGrade"
+          value={values.mechanicalGrade}
+          onChange={(value) => handleChange('mechanicalGrade', value)}
+          min={0}
+          max={4}
+          step={1}
+        />
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <span>Salvage</span>
+          <span>Poor</span>
+          <span>Fair</span>
+          <span>Good</span>
+          <span>Excellent</span>
+        </div>
+        <ConditionTips
+          category="Mechanical"
+          tip={selectedRatings.mechanical?.description || ''}
+        />
+      </ConditionCategory>
+
+      <ConditionCategory
+        title="Title Status"
+        description="Select the current title status of the vehicle"
+      >
+        <Select
+          value={values.titleStatus}
+          onValueChange={(value) => handleChange('titleStatus', value)}
         >
-          <ArrowLeft className="h-4 w-4" />
-          {activeCategory === Object.keys(conditionCategories)[0] ? 'Cancel' : 'Previous'}
-        </Button>
-        
-        <Button 
-          onClick={handleNext}
-          className="flex items-center gap-1"
-        >
-          {isLastCategory ? 'Submit' : 'Next'}
-          {!isLastCategory && <ArrowRight className="h-4 w-4" />}
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select title status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Clean">Clean</SelectItem>
+            <SelectItem value="Rebuilt">Rebuilt/Reconstructed</SelectItem>
+            <SelectItem value="Salvage">Salvage</SelectItem>
+            <SelectItem value="Lemon">Lemon Law/Manufacturer Buyback</SelectItem>
+            <SelectItem value="Flood">Flood/Water Damage</SelectItem>
+          </SelectContent>
+        </Select>
+      </ConditionCategory>
+
+      <div className="flex justify-end gap-3 pt-4">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : 'Update Condition'}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }

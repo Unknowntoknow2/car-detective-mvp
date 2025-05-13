@@ -3,79 +3,81 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 
 export function useValuationResult(valuationId: string) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const refetch = async () => {
+  const [error, setError] = useState<string>('');
+  const [isError, setIsError] = useState<boolean>(false);
+
+  const fetchData = async () => {
     if (!valuationId) {
-      setError('No valuation ID provided');
       setIsLoading(false);
+      setIsError(true);
+      setError('No valuation ID provided');
       return;
     }
-    
+
     setIsLoading(true);
-    setError(null);
-    
+    setIsError(false);
+    setError('');
+
     try {
-      // First try to get from Supabase
-      const { data: valuationData, error: valuationError } = await supabase
+      const { data: result, error: apiError } = await supabase
         .from('valuations')
         .select('*')
         .eq('id', valuationId)
-        .maybeSingle();
-      
-      if (valuationError) {
-        throw new Error(valuationError.message);
+        .single();
+
+      if (apiError) {
+        throw apiError;
       }
-      
-      if (valuationData) {
-        // Transform data structure to match expected format
-        const transformedData = {
-          ...valuationData,
-          estimatedValue: valuationData.estimated_value,
-          confidenceScore: valuationData.confidence_score,
-          priceRange: [
-            valuationData.estimated_value * 0.9,
-            valuationData.estimated_value * 1.1
-          ],
-          make: valuationData.make,
-          model: valuationData.model,
-          year: valuationData.year
-        };
-        
-        setData(transformedData);
-      } else {
-        // If not in Supabase, try localStorage
-        const tempData = localStorage.getItem('temp_valuation_data');
-        if (tempData) {
-          const parsedData = JSON.parse(tempData);
-          if (parsedData.id === valuationId) {
-            setData(parsedData);
-          } else {
-            throw new Error('Valuation not found');
+
+      if (result) {
+        // Convert adjustments from string to array if needed
+        if (result.adjustments && typeof result.adjustments === 'string') {
+          try {
+            result.adjustments = JSON.parse(result.adjustments);
+          } catch (e) {
+            console.error('Failed to parse adjustments:', e);
+            result.adjustments = [];
           }
-        } else {
-          throw new Error('Valuation not found');
         }
+
+        // Convert price range from string to array if needed
+        if (result.price_range && typeof result.price_range === 'string') {
+          try {
+            result.price_range = JSON.parse(result.price_range);
+          } catch (e) {
+            console.error('Failed to parse price range:', e);
+            result.price_range = [
+              Math.round(result.estimated_value * 0.9),
+              Math.round(result.estimated_value * 1.1)
+            ];
+          }
+        }
+
+        setData(result);
+      } else {
+        setError('Valuation not found');
+        setIsError(true);
       }
     } catch (err: any) {
-      console.error('Error fetching valuation:', err);
-      setError(err.message);
+      console.error('Error fetching valuation result:', err);
+      setError(err.message || 'Failed to fetch valuation data');
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Initial data fetch
   useEffect(() => {
-    refetch();
+    fetchData();
   }, [valuationId]);
 
-  return { 
-    data, 
-    isLoading, 
-    error,
-    isError: !!error,
-    refetch 
+  // Refetch function for manually triggering a refresh
+  const refetch = () => {
+    fetchData();
   };
+
+  return { data, isLoading, error, isError, refetch };
 }

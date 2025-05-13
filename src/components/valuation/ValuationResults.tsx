@@ -133,7 +133,7 @@ export function ValuationResults({
                 {demandFactor && demandFactor !== 1 && (
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Market Demand</span>
-                    <Badge variant={demandFactor > 1 ? "success" : "destructive"}>
+                    <Badge variant={demandFactor > 1 ? "secondary" : "outline"}>
                       {demandFactor > 1 ? '+' : ''}{((demandFactor - 1) * 100).toFixed(1)}%
                     </Badge>
                   </div>
@@ -169,7 +169,7 @@ export function ValuationResults({
                         )}
                       </div>
                       <Badge 
-                        variant={adjustment.impact > 0 ? "success" : adjustment.impact < 0 ? "destructive" : "outline"}
+                        variant={adjustment.impact > 0 ? "secondary" : adjustment.impact < 0 ? "destructive" : "outline"}
                       >
                         {adjustment.impact > 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
                       </Badge>

@@ -1,61 +1,63 @@
 
 /**
- * Helper functions for vehicle condition-related operations
+ * Returns descriptive tips for each condition level
  */
-
-// Map condition to value impact percentages
-export const getConditionValueImpact = (condition: string): number => {
-  const conditionMap: Record<string, number> = {
-    'Excellent': 10,
-    'Very Good': 5,
-    'Good': 0,
-    'Fair': -5,
-    'Poor': -15,
-    // Add fallbacks for different casing or alternative condition names
-    'excellent': 10,
-    'very good': 5,
-    'good': 0,
-    'fair': -5,
-    'poor': -15
-  };
-  
-  return conditionMap[condition] || 0;
-};
-
-// Map condition to color classes for UI
-export const getConditionColorClass = (condition: string): string => {
-  const conditionColorMap: Record<string, string> = {
-    'Excellent': 'text-green-600',
-    'Very Good': 'text-green-500',
-    'Good': 'text-blue-500',
-    'Fair': 'text-yellow-500',
-    'Poor': 'text-red-500',
-    // Add fallbacks for different casing or alternative condition names
-    'excellent': 'text-green-600',
-    'very good': 'text-green-500',
-    'good': 'text-blue-500',
-    'fair': 'text-yellow-500',
-    'poor': 'text-red-500'
-  };
-  
-  return conditionColorMap[condition] || 'text-gray-500';
-};
-
-// Get condition tips based on condition level
 export const getConditionTips = (condition: string): string => {
-  const conditionTipsMap: Record<string, string> = {
-    'Excellent': 'Vehicle is in exceptional condition with minimal wear.',
-    'Very Good': 'Vehicle shows minor signs of wear but is well maintained.',
-    'Good': 'Vehicle has normal wear for its age and mileage.',
-    'Fair': 'Vehicle has noticeable wear and may need minor repairs.',
-    'Poor': 'Vehicle shows significant wear and likely needs repairs.',
-    // Add fallbacks for different casing or alternative condition names
-    'excellent': 'Vehicle is in exceptional condition with minimal wear.',
-    'very good': 'Vehicle shows minor signs of wear but is well maintained.',
-    'good': 'Vehicle has normal wear for its age and mileage.',
-    'fair': 'Vehicle has noticeable wear and may need minor repairs.',
-    'poor': 'Vehicle shows significant wear and likely needs repairs.'
-  };
+  switch (condition.toLowerCase()) {
+    case 'excellent':
+      return 'Vehicle is in exceptional condition with minimal wear. Like-new appearance inside and out with no mechanical issues.';
+    case 'very good':
+      return 'Vehicle shows minimal wear and tear. Minor cosmetic imperfections but no mechanical issues.';
+    case 'good':
+      return 'Vehicle shows normal wear for age and mileage. May have minor cosmetic issues and possibly minor mechanical issues that don\'t affect reliability.';
+    case 'fair':
+      return 'Vehicle has noticeable cosmetic defects and/or mechanical issues that may need attention but is still reliable for regular use.';
+    case 'poor':
+      return 'Vehicle has significant cosmetic damage and/or mechanical problems that affect reliability and safety.';
+    default:
+      return 'No specific condition information available.';
+  }
+};
+
+/**
+ * Returns value impact percentage based on condition
+ */
+export const getConditionValueImpact = (condition: string | undefined): number => {
+  if (!condition) return 0;
   
-  return conditionTipsMap[condition] || 'No tips available for this condition.';
+  switch (condition.toLowerCase()) {
+    case 'excellent':
+      return 5.0;
+    case 'very good':
+      return 2.5;
+    case 'good':
+      return 0;
+    case 'fair':
+      return -2.5;
+    case 'poor':
+      return -7.5;
+    default:
+      return 0;
+  }
+};
+
+/**
+ * Returns CSS color class based on condition
+ */
+export const getConditionColorClass = (condition: string | undefined): string => {
+  if (!condition) return 'text-gray-600';
+  
+  switch (condition.toLowerCase()) {
+    case 'excellent':
+      return 'text-green-600';
+    case 'very good':
+    case 'good':
+      return 'text-blue-600';
+    case 'fair':
+      return 'text-amber-600';
+    case 'poor':
+      return 'text-red-600';
+    default:
+      return 'text-gray-600';
+  }
 };

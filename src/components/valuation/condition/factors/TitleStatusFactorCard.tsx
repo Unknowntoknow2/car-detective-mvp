@@ -1,25 +1,9 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
-
-interface TitleStatusOption {
-  value: string;
-  label: string;
-  multiplier: number;
-  description: string;
-}
-
-const titleStatusOptions: TitleStatusOption[] = [
-  { value: 'Clean', label: 'Clean', multiplier: 1.00, description: 'Clean title – full market value' },
-  { value: 'Rebuilt', label: 'Rebuilt', multiplier: 0.70, description: 'Rebuilt/Revived title (approximately -30% value)' },
-  { value: 'Lemon', label: 'Lemon', multiplier: 0.75, description: 'Lemon/Buyback title (approximately -25% value)' },
-  { value: 'Flood', label: 'Flood', multiplier: 0.50, description: 'Flood damaged title (approximately -50% value)' },
-  { value: 'Salvage', label: 'Salvage', multiplier: 0.50, description: 'Salvage title (approximately -50% value)' },
-];
 
 interface TitleStatusFactorCardProps {
   value: string;
@@ -27,66 +11,86 @@ interface TitleStatusFactorCardProps {
 }
 
 export function TitleStatusFactorCard({ value, onChange }: TitleStatusFactorCardProps) {
-  // Default to 'Clean' if no value provided
-  const [selectedValue, setSelectedValue] = useState<string>(value || 'Clean');
-
-  const handleChange = (newValue: string) => {
-    setSelectedValue(newValue);
-    onChange(newValue);
+  const getTitleStatusInfo = (status: string) => {
+    switch (status) {
+      case 'Clean':
+        return {
+          description: 'Vehicle has no title issues, accidents, or major damage',
+          icon: <CheckCircle className="h-4 w-4 text-green-500" />,
+          impact: 'No negative impact on value'
+        };
+      case 'Rebuilt':
+        return {
+          description: 'Vehicle was previously damaged and has been rebuilt',
+          icon: <AlertCircle className="h-4 w-4 text-amber-500" />,
+          impact: 'Reduces value by approximately 20-30%'
+        };
+      case 'Salvage':
+        return {
+          description: 'Vehicle was declared a total loss by insurance',
+          icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+          impact: 'Reduces value by approximately 50% or more'
+        };
+      case 'Lemon':
+        return {
+          description: 'Vehicle had significant defects and was bought back by manufacturer',
+          icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+          impact: 'Reduces value by approximately 25-40%'
+        };
+      case 'Flood':
+        return {
+          description: 'Vehicle sustained water damage from flooding',
+          icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+          impact: 'Reduces value by approximately 40-60%'
+        };
+      default:
+        return {
+          description: 'No specific title status information available',
+          icon: <Info className="h-4 w-4 text-gray-500" />,
+          impact: 'Impact unknown'
+        };
+    }
   };
 
-  const selectedOption = titleStatusOptions.find(option => option.value === selectedValue) || titleStatusOptions[0];
+  const statusInfo = getTitleStatusInfo(value);
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-base font-semibold">Title Status</Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>The title status affects vehicle value. Salvage/rebuilt titles can significantly reduce value.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          <Select value={selectedValue} onValueChange={handleChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select title status" />
-            </SelectTrigger>
-            <SelectContent>
-              {titleStatusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>{option.label}</span>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {option.value !== 'Clean' ? `${Math.round((option.multiplier - 1) * 100)}%` : 'baseline'}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{option.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="text-xs text-muted-foreground mt-2">
-            {selectedOption.description}
-          </div>
+    <div className="rounded-2xl shadow p-4 bg-white">
+      <h3 className="text-xl font-semibold mb-4">Title Status</h3>
+      
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select title status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="Clean">Clean Title</SelectItem>
+          <SelectItem value="Rebuilt">Rebuilt/Reconstructed</SelectItem>
+          <SelectItem value="Salvage">Salvage Title</SelectItem>
+          <SelectItem value="Lemon">Lemon Law/Manufacturer Buyback</SelectItem>
+          <SelectItem value="Flood">Flood/Water Damage</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      <div className="mt-4 bg-muted/40 p-3 rounded-md">
+        <div className="flex items-center gap-2 mb-2">
+          {statusInfo.icon}
+          <span className="font-medium">{value} Title</span>
         </div>
-      </CardContent>
-    </Card>
+        
+        <p className="text-sm text-muted-foreground mb-2">{statusInfo.description}</p>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="text-sm flex items-center text-muted-foreground underline underline-offset-2">
+              <Info className="h-3.5 w-3.5 mr-1" />
+              Value Impact
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-sm">{statusInfo.impact}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
   );
 }

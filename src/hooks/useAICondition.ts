@@ -1,68 +1,73 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
+import { AICondition } from '@/types/photo';
 
-export interface GeneratedCondition {
-  condition: string;
-  confidenceScore: number;
-  issuesDetected?: string[];
-  summary?: string;
-  photoUrl?: string;
+interface UseAIConditionResult {
+  conditionData: AICondition | null;
+  isLoading: boolean;
+  error: string;
 }
 
-export function useAICondition(valuationId: string) {
-  const [generatedCondition, setGeneratedCondition] = useState<GeneratedCondition | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export function useAICondition(valuationId: string): UseAIConditionResult {
+  const [conditionData, setConditionData] = useState<AICondition | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  
+
   useEffect(() => {
     async function fetchConditionData() {
-      if (!valuationId) {
-        setIsLoading(false);
-        return;
-      }
+      if (!valuationId) return;
+      
+      setIsLoading(true);
+      setError('');
       
       try {
-        setIsLoading(true);
-        // Fetch from photo_condition_scores table
-        const { data, error: fetchError } = await supabase
-          .from('photo_condition_scores')
+        // First try to fetch from photo_condition table
+        const { data, error } = await supabase
+          .from('photo_condition')
           .select('*')
           .eq('valuation_id', valuationId)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
         
-        if (fetchError) {
-          console.error('Error fetching condition data:', fetchError);
-          setError(fetchError.message);
-          return;
-        }
-        
-        if (data) {
-          // Fetch best photo URL as well
-          const { data: photoData } = await supabase
-            .from('valuation_photos')
-            .select('photo_url, score')
-            .eq('valuation_id', valuationId)
-            .order('score', { ascending: false })
-            .limit(1)
-            .single();
-          
-          setGeneratedCondition({
-            condition: mapScoreToCondition(data.condition_score),
-            confidenceScore: data.confidence_score,
-            issuesDetected: data.issues || [],
-            summary: data.summary,
-            photoUrl: photoData?.photo_url
-          });
-        } else {
-          // If no data in database, try localStorage
-          const tempData = localStorage.getItem('temp_ai_condition');
-          if (tempData) {
-            setGeneratedCondition(JSON.parse(tempData));
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // No data found, this is not an error case
+            setConditionData(null);
+          } else {
+            throw error;
           }
+        } else if (data) {
+          // Normalize the condition to ensure it's one of the allowed values
+          let normalizedCondition: "Excellent" | "Good" | "Fair" | "Poor" = "Good";
+          
+          if (data.condition === "Excellent" || 
+              data.condition === "Good" || 
+              data.condition === "Fair" || 
+              data.condition === "Poor") {
+            normalizedCondition = data.condition;
+          } else if (data.condition?.toLowerCase().includes('excellent')) {
+            normalizedCondition = "Excellent";
+          } else if (data.condition?.toLowerCase().includes('good')) {
+            normalizedCondition = "Good";
+          } else if (data.condition?.toLowerCase().includes('fair')) {
+            normalizedCondition = "Fair";
+          } else if (data.condition?.toLowerCase().includes('poor')) {
+            normalizedCondition = "Poor";
+          }
+          
+          setConditionData({
+            condition: normalizedCondition,
+            confidenceScore: data.confidence_score || 75,
+            aiSummary: data.ai_summary || '',
+            issuesDetected: data.issues_detected || [],
+            photoUrl: data.photo_url,
+            bestPhotoUrl: data.best_photo_url
+          });
         }
       } catch (err: any) {
-        console.error('Error in useAICondition:', err);
+        console.error('Error fetching AI condition data:', err);
         setError(err.message || 'Failed to fetch condition data');
       } finally {
         setIsLoading(false);
@@ -72,19 +77,5 @@ export function useAICondition(valuationId: string) {
     fetchConditionData();
   }, [valuationId]);
   
-  // Map numeric score to condition string
-  function mapScoreToCondition(score: number): string {
-    if (score >= 90) return 'Excellent';
-    if (score >= 80) return 'Very Good';
-    if (score >= 70) return 'Good';
-    if (score >= 50) return 'Fair';
-    return 'Poor';
-  }
-  
-  return { 
-    generatedCondition, 
-    isLoading, 
-    error,
-    conditionData: generatedCondition  // Add this to make it compatible with existing code
-  };
+  return { conditionData, isLoading, error };
 }
