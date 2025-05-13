@@ -1,94 +1,136 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
-export interface DBMake {
-  id: string;
-  make_name: string;
-}
-
-export interface DBModel {
-  id: string;
-  model_name: string;
-  make_id: string;
+export interface MakeModel {
+  id: number;
+  name: string;
 }
 
 export function useVehicleDBData() {
-  const [makes, setMakes] = useState<DBMake[]>([]);
-  const [models, setModels] = useState<DBModel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [makes, setMakes] = useState<MakeModel[]>([]);
+  const [models, setModels] = useState<MakeModel[]>([]);
+  const [years, setYears] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch makes from Supabase
+  const [selectedMake, setSelectedMake] = useState<number | null>(null);
+  
+  // Fetch makes
   useEffect(() => {
     async function fetchMakes() {
       try {
-        setIsLoading(true);
+        setLoading(true);
         setError(null);
         
         const { data, error } = await supabase
           .from('makes')
-          .select('id, make_name')
-          .order('make_name');
-        
+          .select('id, name')
+          .order('name');
+          
         if (error) throw error;
         
         setMakes(data || []);
-        console.log(`Loaded ${data?.length || 0} makes from Supabase`);
       } catch (err) {
         console.error('Error fetching makes:', err);
-        setError('Failed to load vehicle makes from database');
-        setMakes([]);
+        setError('Failed to load vehicle makes');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     }
     
     fetchMakes();
   }, []);
-
-  // Function to fetch models by make ID
-  const getModelsByMakeId = async (makeId: string) => {
+  
+  // Fetch models when make changes
+  useEffect(() => {
+    async function fetchModels() {
+      if (!selectedMake) {
+        setModels([]);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data, error } = await supabase
+          .from('models')
+          .select('id, name')
+          .eq('make_id', selectedMake)
+          .order('name');
+          
+        if (error) throw error;
+        
+        setModels(data || []);
+      } catch (err) {
+        console.error('Error fetching models:', err);
+        setError('Failed to load vehicle models');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchModels();
+  }, [selectedMake]);
+  
+  // Fetch years (this could be based on make/model or static range)
+  useEffect(() => {
+    function generateYears() {
+      const currentYear = new Date().getFullYear();
+      const yearsList = [];
+      for (let year = currentYear; year >= currentYear - 20; year--) {
+        yearsList.push(year);
+      }
+      setYears(yearsList);
+    }
+    
+    generateYears();
+  }, []);
+  
+  // Function to get make name by ID
+  const getMakeName = async (makeId: number): Promise<string> => {
     try {
-      setIsLoading(true);
-      
       const { data, error } = await supabase
-        .from('models')
-        .select('id, model_name, make_id')
-        .eq('make_id', makeId)
-        .order('model_name');
-      
+        .from('makes')
+        .select('name')
+        .eq('id', makeId)
+        .single();
+        
       if (error) throw error;
       
-      setModels(data || []);
-      console.log(`Loaded ${data?.length || 0} models for make ID ${makeId}`);
-      return data;
+      return data?.name || 'Unknown Make';
     } catch (err) {
-      console.error('Error fetching models:', err);
-      setError('Failed to load vehicle models for selected make');
-      setModels([]);
-      return [];
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching make name:', err);
+      return 'Unknown Make';
     }
   };
-
-  // Generate years (from current year back to 1990)
-  const getYears = () => {
-    const currentYear = new Date().getFullYear() + 1; // Include next year's models
-    const years: number[] = [];
-    for (let year = currentYear; year >= 1990; year--) {
-      years.push(year);
+  
+  // Function to get model name by ID
+  const getModelName = async (modelId: number): Promise<string> => {
+    try {
+      const { data, error } = await supabase
+        .from('models')
+        .select('name')
+        .eq('id', modelId)
+        .single();
+        
+      if (error) throw error;
+      
+      return data?.name || 'Unknown Model';
+    } catch (err) {
+      console.error('Error fetching model name:', err);
+      return 'Unknown Model';
     }
-    return years;
   };
-
+  
   return {
     makes,
     models,
-    getModelsByMakeId,
-    getYears,
-    isLoading,
-    error
+    years,
+    loading,
+    error,
+    setSelectedMake,
+    getMakeName,
+    getModelName
   };
 }
