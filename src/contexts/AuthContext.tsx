@@ -1,10 +1,8 @@
-import React, { createContext, useEffect, useState, ReactNode, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@supabase/supabase-js';
-import { toast } from 'sonner';
-import { useNavigate, useLocation } from 'react-router-dom';
 
-// Define our own User type based on what's available in Supabase
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { toast } from 'sonner';
+
+// Define User type
 export type User = {
   id: string;
   email?: string;
@@ -20,7 +18,7 @@ export type User = {
 
 // Define the AuthContextType
 export type AuthContextType = {
-  session: Session | null;
+  session: any | null;
   user: User | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ data: any; error: Error | null; } | undefined>;
@@ -39,205 +37,108 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Safe access to router hooks - wrap in try/catch to handle cases where router context isn't available
-  let navigate: ReturnType<typeof useNavigate> | undefined;
-  let location: ReturnType<typeof useLocation> | undefined;
-  
-  try {
-    navigate = useNavigate();
-    location = useLocation();
-  } catch (error) {
-    console.log("Router context not available - navigation functions will be limited");
-  }
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // First set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
+  // Mock implementation for testing
   const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    console.log(`Mock sign in with ${email}`);
+    
     try {
-      console.log(`Attempting to sign in user: ${email}`);
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        console.error('Error signing in:', error);
-        toast.error(error.message || 'Failed to sign in');
-        return { data: null, error };
-      }
-      
-      console.log('Sign in successful, checking user role');
-      
-      // After successful login, check user role to determine redirection
-      // Only navigate if navigate function is available
-      if (navigate) {
-        navigate('/dashboard');
-      }
-      
-      toast.success('Successfully signed in!');
-      return { data, error: null };
-    } catch (err) {
-      console.error('Unexpected error in signIn:', err);
-      toast.error('An unexpected error occurred');
-      return { 
-        data: null, 
-        error: new Error('Failed to sign in. Please try again later.') 
+      // For test/demo purposes
+      const mockUser = {
+        id: '123456',
+        email: email,
+        user_metadata: {
+          full_name: 'Test User'
+        },
+        created_at: new Date().toISOString()
       };
+      
+      // Simulate successful login
+      setUser(mockUser);
+      setSession({ user: mockUser });
+      toast.success('Successfully signed in!');
+      
+      return { data: { user: mockUser }, error: null };
+    } catch (err) {
+      console.error('Sign in error:', err);
+      toast.error('Failed to sign in');
+      return { data: null, error: err as Error };
     } finally {
       setIsLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string) => {
+    setIsLoading(true);
+    console.log(`Mock sign up with ${email}`);
+    
     try {
-      console.log(`Attempting to sign up user: ${email}`);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (error) {
-        console.error('Error signing up:', error);
-        toast.error(error.message || 'Failed to sign up');
-      } else {
-        console.log('Sign up successful');
-        toast.success('Sign up successful! Please check your email for confirmation.');
-      }
-      
-      return { data, error };
+      toast.success('Sign up successful!');
+      return { data: {}, error: null };
     } catch (err) {
-      console.error('Unexpected error in signUp:', err);
-      toast.error('An unexpected error occurred');
-      return { 
-        data: null, 
-        error: new Error('Failed to sign up. Please try again later.') 
-      };
+      console.error('Sign up error:', err);
+      toast.error('Failed to sign up');
+      return { data: null, error: err as Error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
+    setIsLoading(true);
+    console.log('Mock sign out');
+    
     try {
-      console.log('Attempting to sign out');
-      setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Error signing out:', error);
-        toast.error(error.message || 'Failed to sign out');
-      } else {
-        console.log('Sign out successful');
-        // Only navigate if navigate function is available
-        if (navigate) {
-          navigate('/');
-        }
-        toast.success('Successfully signed out!');
-      }
+      setUser(null);
+      setSession(null);
+      toast.success('Successfully signed out!');
     } catch (err) {
-      console.error('Unexpected error in signOut:', err);
-      toast.error('An unexpected error occurred');
+      console.error('Sign out error:', err);
+      toast.error('Failed to sign out');
     } finally {
       setIsLoading(false);
     }
   };
 
   const resetPassword = async (email: string) => {
+    setIsLoading(true);
+    console.log(`Mock reset password for ${email}`);
+    
     try {
-      const redirectUrl = `${window.location.origin}/auth/reset-password`;
-      console.log(`[PasswordReset] Sending reset password email to ${email} with redirect to ${redirectUrl}`);
-      
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
-      
-      if (error) {
-        console.error('[PasswordReset] Error sending reset password email:', error);
-        toast.error(error.message || 'Failed to send reset password email');
-      } else {
-        console.log('[PasswordReset] Reset password email sent successfully');
-        toast.success('Password reset email sent! Check your inbox.');
-      }
-      
-      return { data, error };
+      toast.success('Password reset instructions sent to your email');
+      return { data: {}, error: null };
     } catch (err) {
-      console.error('[PasswordReset] Unexpected error in resetPassword:', err);
-      toast.error('An unexpected error occurred');
-      return { 
-        data: null, 
-        error: new Error('Failed to send reset password email. Please try again later.') 
-      };
+      console.error('Reset password error:', err);
+      toast.error('Failed to reset password');
+      return { data: null, error: err as Error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const updatePassword = async (password: string) => {
+    setIsLoading(true);
+    console.log('Mock update password');
+    
     try {
-      console.log('Attempting to update password');
-      const { data, error } = await supabase.auth.updateUser({ 
-        password 
-      });
-      
-      if (error) {
-        console.error('Error updating password:', error);
-        toast.error(error.message || 'Failed to update password');
-      } else {
-        console.log('Password updated successfully');
-        toast.success('Password updated successfully!');
-      }
-      
-      return { data, error };
+      toast.success('Password updated successfully!');
+      return { data: {}, error: null };
     } catch (err) {
-      console.error('Unexpected error in updatePassword:', err);
-      toast.error('An unexpected error occurred');
-      return { 
-        data: null, 
-        error: new Error('Failed to update password. Please try again later.') 
-      };
+      console.error('Update password error:', err);
+      toast.error('Failed to update password');
+      return { data: null, error: err as Error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const getUserRole = async (): Promise<string | null> => {
-    if (!user) return null;
-    
-    try {
-      console.log("Fetching user role for:", user.id);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_role')
-        .eq('id', user.id)
-        .maybeSingle(); // using maybeSingle to avoid errors if no profile
-      
-      if (error) {
-        console.error("Error fetching user role:", error);
-        return null;
-      }
-      
-      console.log("User role data:", data);
-      return data?.user_role || null;
-    } catch (err) {
-      console.error("Error in getUserRole:", err);
-      return null;
-    }
+    console.log('Mock get user role');
+    return user ? 'user' : null;
   };
 
   return (

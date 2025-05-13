@@ -1,8 +1,8 @@
 
 import { useContext } from 'react';
-import { AuthContext } from '@/components/auth/AuthContext';
+import { AuthContext, AuthContextType } from '@/contexts/AuthContext';
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
     // Provide a more detailed error message
@@ -10,3 +10,7 @@ export function useAuth() {
   }
   return context;
 }
+
+// Re-export types for convenience
+export type { AuthContextType } from '@/contexts/AuthContext';
+export type { User } from '@/contexts/AuthContext';

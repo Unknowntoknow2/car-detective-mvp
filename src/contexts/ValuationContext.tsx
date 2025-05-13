@@ -1,229 +1,138 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
-import { toast } from 'sonner';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
-type ValuationInputData = {
-  type?: string;
-  value?: string;
-  state?: string;
-  make?: string;
-  model?: string;
-  year?: number | string;
-  mileage?: number;
-  condition?: string;
-  zipCode?: string;
-  fuelType?: string;
-  transmission?: string;
-  features?: string[];
-  trim?: string;
-  baseMarketValue?: number;
-  accidentCount?: number;
-  [key: string]: any;
-};
+// Define the interface for the valuation data
+interface ValuationData {
+  vehicleDetails?: {
+    make?: string;
+    model?: string;
+    year?: number;
+    mileage?: number;
+    zipCode?: string;
+    vin?: string;
+    condition?: string;
+    trim?: string;
+  };
+  marketValue?: number;
+  valuationDate?: string;
+  valuationId?: string;
+  isPremium?: boolean;
+}
 
-type ValuationContextType = {
-  processFreeValuation: (valuationData: ValuationInputData) => Promise<any>;
-  processPremiumValuation: (valuationData: ValuationInputData) => Promise<any>;
-  saveValuationToUserProfile: (valuationId: string) => Promise<boolean>;
-  isProcessing: boolean;
-  error: string | null;
-  lastValuationResult: any | null;
-};
+// Define the context type
+interface ValuationContextType {
+  valuation: ValuationData;
+  setValuation: React.Dispatch<React.SetStateAction<ValuationData>>;
+  resetValuation: () => void;
+  saveValuation: () => Promise<string | undefined>;
+  valuationHistory: ValuationData[];
+  loadingHistory: boolean;
+  fetchValuationHistory: () => Promise<void>;
+}
 
+// Create the context
 const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
 
-export function ValuationProvider({ children }: { children: React.ReactNode }) {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastValuationResult, setLastValuationResult] = useState<any | null>(null);
-  // Remove useAuth dependency
-  const user = null; // Default to null instead of using useAuth
+// Provider component
+export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const [valuation, setValuation] = useState<ValuationData>({});
+  const [valuationHistory, setValuationHistory] = useState<ValuationData[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const processFreeValuation = async (valuationData: ValuationInputData) => {
-    try {
-      setIsProcessing(true);
-      setError(null);
-      console.log("ValuationContext: Processing free valuation with data:", valuationData);
-
-      // Calculate base market value - this would typically come from a database or API
-      const baseMarketValue = valuationData.baseMarketValue || 25000;
-      
-      // If this is a VIN or plate lookup, we need to handle it differently
-      if (valuationData.type) {
-        console.log(`ValuationContext: Processing ${valuationData.type} lookup`);
-        
-        // For manual entry, parse the JSON if it's a string
-        let manualData = {};
-        if (valuationData.type === 'manual' && typeof valuationData.value === 'string') {
-          try {
-            manualData = JSON.parse(valuationData.value);
-            console.log("ValuationContext: Parsed manual data:", manualData);
-          } catch (e) {
-            console.error("ValuationContext: Failed to parse manual data:", e);
-          }
-        }
-        
-        // Generate a temporary ID for the valuation
-        const valuationId = crypto.randomUUID();
-        console.log("ValuationContext: Generated valuationId:", valuationId);
-        
-        return {
-          valuationId,
-          // Include any other relevant information
-          estimatedValue: Math.floor(Math.random() * (35000 - 15000) + 15000),
-        };
-      }
-      
-      // Prepare the input with all required fields and proper defaults
-      // Ensure year is converted to a number
-      const parsedYear = typeof valuationData.year === 'string' 
-        ? parseInt(valuationData.year, 10) 
-        : valuationData.year || new Date().getFullYear();
-      
-      const input = {
-        make: valuationData.make || 'Unknown',
-        model: valuationData.model || 'Unknown',
-        year: parsedYear,
-        mileage: valuationData.mileage || 0,
-        condition: valuationData.condition || 'Good',
-        zipCode: valuationData.zipCode || '10001',
-        fuelType: valuationData.fuelType || 'Gasoline',
-        transmission: valuationData.transmission || 'Automatic',
-        features: valuationData.features || [],
-        trim: valuationData.trim || '',
-        baseMarketValue: baseMarketValue
-      };
-      
-      // Use the standard valuation algorithm for free users
-      const result = await calculateFinalValuation(
-        input,
-        baseMarketValue
-      );
-
-      setLastValuationResult(result);
-      return result;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to process free valuation';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      throw err;
-    } finally {
-      setIsProcessing(false);
-    }
+  // Reset the valuation data
+  const resetValuation = () => {
+    setValuation({});
   };
 
-  const processPremiumValuation = async (valuationData: ValuationInputData) => {
+  // Save the valuation to local storage or database
+  const saveValuation = async (): Promise<string | undefined> => {
+    // Generate a unique ID for the valuation
+    const valuationId = `val_${Date.now()}`;
+    
+    // Add date and ID to the valuation
+    const valuationToSave = {
+      ...valuation,
+      valuationDate: new Date().toISOString(),
+      valuationId,
+    };
+    
+    // Save to local storage for now
     try {
-      setIsProcessing(true);
-      setError(null);
-      console.log("ValuationContext: Processing premium valuation with data:", valuationData);
-
-      // If this is a VIN or plate lookup, we need to handle it differently
-      if (valuationData.type) {
-        console.log(`ValuationContext: Processing premium ${valuationData.type} lookup`);
-        
-        // For manual entry, parse the JSON if it's a string
-        let manualData = {};
-        if (valuationData.type === 'manual' && typeof valuationData.value === 'string') {
-          try {
-            manualData = JSON.parse(valuationData.value);
-            console.log("ValuationContext: Parsed manual data:", manualData);
-          } catch (e) {
-            console.error("ValuationContext: Failed to parse manual data:", e);
-          }
-        }
-        
-        // Generate a temporary ID for the premium valuation
-        const valuationId = crypto.randomUUID();
-        console.log("ValuationContext: Generated premium valuationId:", valuationId);
-        
-        return {
-          valuationId,
-          isPremium: true,
-          // Include any other relevant premium information
-          estimatedValue: Math.floor(Math.random() * (40000 - 20000) + 20000),
-        };
+      // Get existing valuations
+      const existingValuationsString = localStorage.getItem('valuationHistory');
+      const existingValuations = existingValuationsString 
+        ? JSON.parse(existingValuationsString) 
+        : [];
+      
+      // Add new valuation
+      const updatedValuations = [valuationToSave, ...existingValuations];
+      
+      // Save back to local storage
+      localStorage.setItem('valuationHistory', JSON.stringify(updatedValuations));
+      
+      // Update state
+      setValuationHistory(updatedValuations);
+      setValuation(valuationToSave);
+      
+      // If user is logged in, save to user profile
+      if (user) {
+        await saveValuationToUserProfile(valuationToSave);
       }
-
-      // Calculate base market value - premium users get a more accurate base value
-      const baseMarketValue = valuationData.baseMarketValue || 25000;
       
-      // Ensure year is converted to a number for premium valuation
-      const parsedYear = typeof valuationData.year === 'string' 
-        ? parseInt(valuationData.year, 10) 
-        : valuationData.year || new Date().getFullYear();
-      
-      // For the premium valuation, prepare input with all required fields
-      const input = {
-        make: valuationData.make || 'Unknown',
-        model: valuationData.model || 'Unknown',
-        year: parsedYear,
-        mileage: valuationData.mileage || 0,
-        condition: valuationData.condition || 'Good',
-        zipCode: valuationData.zipCode || '10001',
-        trim: valuationData.trim || '',
-        fuelType: valuationData.fuelType || 'Gasoline',
-        transmission: valuationData.transmission || 'Automatic',
-        features: valuationData.features || [],
-        baseMarketValue: baseMarketValue,
-        accidentCount: valuationData.accidentCount
-      };
-
-      const result = await calculateFinalValuation(
-        input,
-        baseMarketValue,
-        // Optionally pass the AI condition as the third parameter if available
-        valuationData.aiConditionOverride || null
-      );
-
-      setLastValuationResult(result);
-      return result;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to process premium valuation';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      throw err;
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const saveValuationToUserProfile = async (valuationId: string) => {
-    // For now, we'll just mock this functionality without requiring authentication
-    try {
-      console.log("ValuationContext: Saving valuation to user profile:", valuationId);
-      
-      // Mock successful save
-      toast.success("Valuation saved to your profile!");
-      return true;
+      return valuationId;
     } catch (error) {
-      console.error("Error saving valuation:", error);
-      toast.error("Failed to save valuation to your profile");
-      return false;
+      console.error('Error saving valuation:', error);
+      return undefined;
+    }
+  };
+
+  // Mock function to save valuation to user profile
+  const saveValuationToUserProfile = async (valuationData: ValuationData) => {
+    console.log('Saving valuation to user profile:', user?.id, valuationData);
+    // This would normally save to a database
+    return Promise.resolve();
+  };
+
+  // Fetch valuation history
+  const fetchValuationHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      // In a real app, we'd fetch from a database if the user is logged in
+      const historyString = localStorage.getItem('valuationHistory');
+      const history = historyString ? JSON.parse(historyString) : [];
+      setValuationHistory(history);
+    } catch (error) {
+      console.error('Error fetching valuation history:', error);
+      setValuationHistory([]);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
   return (
     <ValuationContext.Provider
       value={{
-        processFreeValuation,
-        processPremiumValuation,
-        saveValuationToUserProfile,
-        isProcessing,
-        error,
-        lastValuationResult
+        valuation,
+        setValuation,
+        resetValuation,
+        saveValuation,
+        valuationHistory,
+        loadingHistory,
+        fetchValuationHistory,
       }}
     >
       {children}
     </ValuationContext.Provider>
   );
-}
+};
 
-export function useValuation() {
+// Custom hook to use the valuation context
+export const useValuation = () => {
   const context = useContext(ValuationContext);
   if (context === undefined) {
-    throw new Error("useValuation must be used within a ValuationProvider");
+    throw new Error('useValuation must be used within a ValuationProvider');
   }
   return context;
-}
+};

@@ -1,43 +1,35 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Index from './pages/Index';
-import NotFound from './pages/NotFound';
-import Premium from './pages/Premium';
-import PremiumValuationPage from './pages/PremiumValuationPage';
-import MyValuationsPage from './pages/MyValuationsPage';
-import Contact from './pages/Contact';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
-import VinLookupPage from './pages/VinLookupPage';
-import ValuationResultPage from './pages/ValuationResultPage';
-import FreeValuationPage from './pages/FreeValuationPage';
-import { ValuationProvider } from './contexts/ValuationContext';
-import { AuthProvider } from './components/auth/AuthContext';
-import Layout from './components/layout/Layout';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ValuationProvider } from '@/contexts/ValuationContext';
+import Layout from '@/components/layout/Layout';
+import Index from '@/pages/Index';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import SettingsPage from '@/pages/SettingsPage';
+import Dashboard from '@/pages/Dashboard';
+import AccessDeniedPage from '@/pages/AccessDeniedPage';
+import { Toaster } from 'sonner';
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ValuationProvider>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/free" element={<FreeValuationPage />} />
-              <Route path="/free-valuation" element={<FreeValuationPage />} />
-              <Route path="/premium" element={<Premium />} />
-              <Route path="/premium-valuation" element={<PremiumValuationPage />} />
-              <Route path="/my-valuations" element={<MyValuationsPage />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/vin-lookup" element={<VinLookupPage />} />
-              <Route path="/result" element={<ValuationResultPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </ValuationProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <ValuationProvider>
+        <Toaster position="top-center" richColors />
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/access-denied" element={<AccessDeniedPage />} />
+          </Route>
+        </Routes>
+      </ValuationProvider>
+    </AuthProvider>
   );
 }
+
+export default App;
