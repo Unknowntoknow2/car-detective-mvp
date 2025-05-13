@@ -12,5 +12,5 @@ export * from './ConditionTips';
 export * from './conditionTips';
 export * from './types';
 
-// Re-export FactorSlider but not its interfaces which are already exported from types.ts
+// Re-export FactorSlider but explicitly export its component only (not interfaces)
 export { FactorSlider } from './FactorSlider';

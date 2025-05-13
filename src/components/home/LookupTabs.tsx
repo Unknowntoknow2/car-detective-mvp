@@ -49,7 +49,7 @@ export function LookupTabs({
     console.log(`LOOKUP TABS MANUAL: Form submitted with data:`, data);
     
     // Convert the form data to a JSON string
-    const jsonData = manualEntryToJson(data);
+    const jsonData = JSON.stringify(data); // Use JSON.stringify instead of manualEntryToJson
     console.log(`LOOKUP TABS MANUAL: Converted to JSON:`, jsonData);
     
     if (onSubmit) {
