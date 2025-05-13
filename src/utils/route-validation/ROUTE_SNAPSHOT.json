@@ -15,5 +15,7 @@
   "/auth",
   "/login-user",
   "/login-dealer",
-  "/dealer-signup"
+  "/dealer-signup",
+  "/free",
+  "/valuation-result/:id"
 ]
