@@ -1,72 +1,47 @@
 
-import { ConditionValues } from '@/components/valuation/condition/types';
+import { ConditionValues } from "@/components/valuation/condition/types";
 
-/**
- * Maps a numeric condition score to a descriptive string
- */
-export function getConditionLabel(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' {
-  if (score >= 85) return 'Excellent';
-  if (score >= 70) return 'Good';
-  if (score >= 50) return 'Fair';
-  return 'Poor';
-}
-
-/**
- * Returns a tailwind class for coloring based on condition
- */
-export function getConditionColorClass(condition: string): string {
-  switch (condition) {
-    case 'Excellent': return 'text-green-600';
-    case 'Good': return 'text-blue-600';
-    case 'Fair': return 'text-amber-600';
-    case 'Poor': return 'text-red-600';
-    default: return 'text-gray-600';
-  }
-}
-
-/**
- * Returns tips for improving the vehicle condition
- */
-export function getConditionTips(condition: string): string {
-  switch (condition) {
-    case 'Excellent': 
-      return 'Continue meticulous maintenance to preserve top-tier condition.';
-    case 'Good': 
-      return 'Regular maintenance and minor detailing can maintain current condition.';
-    case 'Fair': 
-      return 'Minor repairs and maintenance can significantly improve vehicle value.';
-    case 'Poor': 
-      return 'Major repairs needed: address significant mechanical or body damage, prioritize essential fixes.';
-    default: 
-      return 'Regular maintenance is recommended for all vehicles.';
-  }
-}
-
-/**
- * Gets the impact value of a condition on valuation
- */
-export function getConditionValueImpact(condition: string): number {
-  switch (condition) {
-    case 'Excellent': return 15;
-    case 'Good': return 5;
-    case 'Fair': return -5;
-    case 'Poor': return -15;
-    default: return 0;
-  }
-}
-
-/**
- * Generates default condition values
- */
-export function getDefaultConditionValues(): ConditionValues {
-  return {
-    accidents: 0,
-    mileage: 0,
-    year: new Date().getFullYear(),
-    titleStatus: 'Clean',
-    exteriorGrade: 80,
-    interiorGrade: 80,
-    mechanicalGrade: 80,
-    tireCondition: 80
+export function getConditionTips(category: string, value: number): string {
+  const conditionTips = {
+    exterior: {
+      1: "Vehicle exterior shows significant damage, rust, dents, and paint issues requiring major repairs.",
+      2: "Exterior has visible wear, minor dents, and paint chips that need attention.",
+      3: "Good overall condition with minor imperfections that can be easily fixed.",
+      4: "Very well-maintained exterior with minimal wear and no significant damage.",
+      5: "Like-new condition with pristine paint and no visible defects."
+    },
+    interior: {
+      1: "Interior shows excessive wear, stains, tears, or damage requiring significant restoration.",
+      2: "Noticeable wear on seats, dashboard, and controls, but functionally sound.",
+      3: "Clean interior with normal wear for the vehicle's age.",
+      4: "Well-maintained interior with minimal wear and no significant issues.",
+      5: "Pristine interior condition comparable to a new vehicle."
+    },
+    mechanical: {
+      1: "Significant mechanical issues requiring major repairs or component replacement.",
+      2: "Some mechanical concerns that need attention but vehicle is operational.",
+      3: "Mechanically sound with normal maintenance needs for the vehicle's age.",
+      4: "Very well-maintained mechanically with recent service history.",
+      5: "Perfect mechanical condition with comprehensive maintenance records."
+    }
   };
+
+  return conditionTips[category as keyof typeof conditionTips]?.[value as keyof typeof conditionTips.exterior] || 
+    "No specific tip available for this condition";
+}
+
+export function getOverallConditionFromValues(values: ConditionValues): string {
+  const total = Object.values(values).reduce((sum, val) => 
+    typeof val === 'number' ? sum + val : sum, 0);
+  const count = Object.values(values).filter(val => typeof val === 'number').length;
+  
+  if (count === 0) return "Good";
+  
+  const average = total / count;
+  
+  if (average >= 4.5) return "Excellent";
+  if (average >= 3.5) return "Very Good";
+  if (average >= 2.5) return "Good";
+  if (average >= 1.5) return "Fair";
+  return "Poor";
 }

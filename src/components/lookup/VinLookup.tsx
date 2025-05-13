@@ -41,15 +41,13 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
       }
       
       try {
-        // Use the VinLookupService for consistency
-        await VinLookupService.lookupVin(vinNumber);
-        
-        // Call the legacy lookupVin for backward compatibility
+        // Look up the VIN locally first - don't immediately navigate
         const vehicleData = await lookupVin(vinNumber);
         
         if (vehicleData) {
-          console.log('VIN LOOKUP: Lookup successful, storing valuationId');
+          console.log('VIN LOOKUP: Lookup successful, showing results in current page');
           // We'll continue to use the existing result state for rendering
+          // The result will now be displayed in the current component
         }
       } catch (error) {
         console.error('VIN LOOKUP: Error during lookup:', error);
@@ -136,30 +134,25 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
                   // Store the condition values in localStorage
                   localStorage.setItem('condition_values', JSON.stringify(conditionValues));
                   
-                  // Get or generate a valuation ID
-                  const valuationId = localStorage.getItem('latest_valuation_id') || 
-                    `temp-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+                  // Store a temporary valuation object with minimal data to view on the results page
+                  localStorage.setItem('temp_valuation_data', JSON.stringify({
+                    id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                    make: result.make,
+                    model: result.model,
+                    year: result.year,
+                    vin: vinNumber,
+                    estimated_value: Math.floor(20000 + Math.random() * 5000),
+                    confidence_score: 85,
+                    condition: 'Good',
+                    mileage: 45000,
+                    adjustments: []
+                  }));
                   
-                  // Store the ID if it's new
-                  if (!localStorage.getItem('latest_valuation_id')) {
-                    localStorage.setItem('latest_valuation_id', valuationId);
-                    
-                    // Also store a temporary valuation object with minimal data
-                    localStorage.setItem('temp_valuation_data', JSON.stringify({
-                      id: valuationId,
-                      make: result.make,
-                      model: result.model,
-                      year: result.year,
-                      vin: vinNumber,
-                      estimated_value: Math.floor(20000 + Math.random() * 5000),
-                      confidence_score: 85,
-                      condition: 'Good',
-                      mileage: 45000,
-                      adjustments: []
-                    }));
-                  }
-                  
-                  navigate(`/result?id=${valuationId}`);
+                  // Navigate to the current page to show results, not a separate results page
+                  toast({ 
+                    title: "Valuation Complete", 
+                    description: "Your free valuation has been calculated below."
+                  });
                 }}
               >
                 Calculate Free Value

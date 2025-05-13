@@ -11,7 +11,7 @@ import { getConditionTips } from '@/utils/valuation/conditionHelpers';
 
 interface ValuationResultsProps {
   estimatedValue: number;
-  confidenceScore?: number;
+  confidenceScore: number;
   basePrice?: number;
   adjustments?: Array<{
     factor: string;
@@ -28,9 +28,7 @@ interface ValuationResultsProps {
     mileage?: number;
     condition?: string;
   };
-  valuationId?: string;
-  onEmailReport?: () => void | Promise<void>;
-  onDownloadPdf?: () => void | Promise<void>;
+  onEmailReport: () => void | Promise<string>;
 }
 
 export const ValuationResults: React.FC<ValuationResultsProps> = ({
@@ -41,120 +39,164 @@ export const ValuationResults: React.FC<ValuationResultsProps> = ({
   adjustments,
   demandFactor,
   vehicleInfo,
-  onEmailReport,
-  onDownloadPdf
+  onEmailReport
 }) => {
-  const { conditionData } = useAICondition(vehicleInfo.trim || '');
-  
-  // Calculate price range if not provided
-  const calculatedPriceRange = useMemo(() => {
-    if (priceRange && Array.isArray(priceRange) && priceRange.length === 2) {
-      return priceRange;
-    }
+  const { generatedCondition, isLoading } = useAICondition(vehicleInfo);
+
+  const selectedRatings = useMemo<ConditionRatingOption[]>(() => {
+    if (!generatedCondition) return [];
     
-    // Calculate range based on confidence score
-    const margin = ((100 - (confidenceScore || 80)) / 100) * 0.2;
-    const min = Math.floor(estimatedValue * (1 - margin));
-    const max = Math.ceil(estimatedValue * (1 + margin));
-    return [min, max] as [number, number];
-  }, [estimatedValue, confidenceScore, priceRange]);
-  
-  // Generate condition tip text
-  const conditionTipText = useMemo(() => {
-    if (vehicleInfo.condition) {
-      return getConditionTips(vehicleInfo.condition);
-    }
-    return 'Vehicle appears to be in average condition based on age and mileage.';
-  }, [vehicleInfo.condition]);
-  
-  // Create a condition rating object that matches the ConditionRatingOption type
-  const conditionRating: ConditionRatingOption = {
-    id: 'overall-condition',
-    name: 'Overall Condition',
-    category: 'Vehicle Condition',
-    tip: conditionTipText,
-    value: vehicleInfo.condition ? 
-      (vehicleInfo.condition === 'Excellent' ? 90 :
-       vehicleInfo.condition === 'Good' ? 75 :
-       vehicleInfo.condition === 'Fair' ? 60 : 40) : 75 // Convert string condition to numeric value
+    return [
+      {
+        id: 'exterior',
+        name: 'Exterior',
+        category: 'exterior',
+        value: generatedCondition.exterior || 3,
+        description: 'Overall exterior condition including body, paint, and glass',
+        tip: getConditionTips('exterior', generatedCondition.exterior || 3)
+      }
+    ];
+  }, [generatedCondition]);
+
+  const getConditionLabel = (score: number): string => {
+    if (score >= 4.5) return 'Excellent';
+    if (score >= 3.5) return 'Very Good';
+    if (score >= 2.5) return 'Good';
+    if (score >= 1.5) return 'Fair';
+    return 'Poor';
   };
-  
-  // Create selectedRatings object that matches the Record<string, ConditionRatingOption> type
-  const selectedRatings: Record<string, ConditionRatingOption> = {
-    condition: conditionRating
+
+  const renderPriceRange = () => {
+    if (!priceRange) return null;
+
+    return (
+      <div className="mt-6">
+        <h4 className="text-sm font-medium text-muted-foreground mb-2">Value Range</h4>
+        <div className="flex items-center justify-between text-sm mb-1">
+          <span>{formatCurrency(priceRange[0])}</span>
+          <span>{formatCurrency(priceRange[1])}</span>
+        </div>
+        <Progress value={confidenceScore} className="h-2" />
+        <div className="flex justify-center mt-1">
+          <span className="text-xs text-muted-foreground">
+            {getConditionLabel(confidenceScore / 20)} confidence
+          </span>
+        </div>
+      </div>
+    );
   };
-  
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg shadow-sm">
+        <h3 className="text-lg font-medium text-blue-800 mb-1">Estimated Value</h3>
+        <div className="flex items-baseline">
+          <span className="text-4xl font-bold text-blue-700">
+            {formatCurrency(estimatedValue)}
+          </span>
+          <span className="ml-2 text-sm text-blue-600">
+            {getConditionLabel(confidenceScore / 20)} confidence
+          </span>
+        </div>
+        {renderPriceRange()}
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Value Estimate</CardTitle>
+          <CardTitle>Vehicle Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
-            <div className="mb-4">
-              <div className="text-3xl font-bold text-primary mb-1">
-                {formatCurrency(estimatedValue)}
-              </div>
-              {priceRange && (
-                <div className="text-sm text-muted-foreground">
-                  Estimated value range: {formatCurrency(calculatedPriceRange[0])} - {formatCurrency(calculatedPriceRange[1])}
-                </div>
-              )}
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="font-medium">Year:</span>
+              <span>{vehicleInfo.year}</span>
             </div>
-            
-            <div className="mb-4">
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Confidence Score</span>
-                <span className="text-sm">{confidenceScore}%</span>
-              </div>
-              <Progress value={confidenceScore} />
+            <div className="flex justify-between">
+              <span className="font-medium">Make:</span>
+              <span>{vehicleInfo.make}</span>
             </div>
-            
-            {basePrice && (
-              <div className="mb-3">
-                <div className="text-sm text-muted-foreground flex justify-between">
-                  <span>Base Value:</span>
-                  <span>{formatCurrency(basePrice)}</span>
-                </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Model:</span>
+              <span>{vehicleInfo.model}</span>
+            </div>
+            {vehicleInfo.trim && (
+              <div className="flex justify-between">
+                <span className="font-medium">Trim:</span>
+                <span>{vehicleInfo.trim}</span>
               </div>
             )}
-            
-            {adjustments && adjustments.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <h4 className="text-sm font-medium">Value Factors</h4>
-                <ul className="space-y-1">
-                  {adjustments.map((adjustment, index) => (
-                    <li key={index} className="text-sm flex justify-between">
-                      <span>{adjustment.factor}</span>
-                      <span className={adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {adjustment.impact > 0 ? '+' : ''}{adjustment.impact}%
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+            {vehicleInfo.mileage && (
+              <div className="flex justify-between">
+                <span className="font-medium">Mileage:</span>
+                <span>{vehicleInfo.mileage.toLocaleString()} miles</span>
+              </div>
+            )}
+            {vehicleInfo.condition && (
+              <div className="flex justify-between">
+                <span className="font-medium">Condition:</span>
+                <span>{vehicleInfo.condition}</span>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
-      
-      <ConditionTips selectedRatings={selectedRatings} />
-      
-      {(onEmailReport || onDownloadPdf) && (
-        <div className="flex space-x-2 mt-4">
-          {onEmailReport && (
-            <Button variant="outline" size="sm" onClick={onEmailReport} className="flex-1">
-              Email Report
-            </Button>
-          )}
-          {onDownloadPdf && (
-            <Button variant="outline" size="sm" onClick={onDownloadPdf} className="flex-1">
-              Download PDF
-            </Button>
-          )}
-        </div>
+
+      {adjustments && adjustments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Valuation Factors</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {adjustments.map((adjustment, index) => (
+                <div key={index} className="flex justify-between">
+                  <span className="font-medium">{adjustment.factor}:</span>
+                  <span className={adjustment.impact > 0 ? 'text-green-600' : 'text-red-600'}>
+                    {adjustment.impact > 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
+                  </span>
+                </div>
+              ))}
+              {basePrice && (
+                <div className="flex justify-between pt-2 border-t border-gray-200">
+                  <span className="font-medium">Base Value:</span>
+                  <span>{formatCurrency(basePrice)}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {generatedCondition && selectedRatings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Condition Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {selectedRatings.map((rating) => (
+                <div key={rating.id} className="pb-4 border-b border-gray-200 last:border-0 last:pb-0">
+                  <div className="flex justify-between mb-1">
+                    <span className="font-medium">{rating.name}:</span>
+                    <span>{getConditionLabel(rating.value)}</span>
+                  </div>
+                  <ConditionTips category={rating.category} tip={rating.tip || ''} />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex justify-center">
+        <Button 
+          variant="outline" 
+          onClick={() => onEmailReport()}
+          className="font-medium"
+        >
+          Email Full Report
+        </Button>
+      </div>
     </div>
   );
 };

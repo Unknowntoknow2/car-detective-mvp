@@ -1,58 +1,86 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { AICondition } from '@/types/photo';
 
-export function useAICondition(valuationId?: string) {
-  const [conditionData, setConditionData] = useState<AICondition | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+interface VehicleInfo {
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  mileage?: number;
+  condition?: string;
+}
+
+interface GeneratedCondition {
+  exterior: number;
+  interior: number;
+  mechanical: number;
+  overall: string;
+}
+
+export function useAICondition(vehicleInfo: VehicleInfo) {
+  const [generatedCondition, setGeneratedCondition] = useState<GeneratedCondition | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!valuationId) {
-      setIsLoading(false);
-      return;
-    }
+    if (!vehicleInfo.make || !vehicleInfo.model) return;
 
-    async function fetchAICondition() {
+    const generateCondition = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
-        // Get the latest photo score entry for this valuation
-        const { data, error } = await supabase
-          .from('photo_scores')
-          .select('metadata')
-          .eq('valuation_id', valuationId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-          
-        if (error) throw new Error(error.message);
+        // For now, we'll use a mock implementation
+        // In a real implementation, this would call an API
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // If we found metadata and it contains condition information
-        if (data?.metadata) {
-          const metadata = data.metadata as any;
-          
-          if (metadata.condition) {
-            setConditionData({
-              condition: metadata.condition,
-              confidenceScore: metadata.confidenceScore || 0,
-              issuesDetected: metadata.issuesDetected || [],
-              aiSummary: metadata.aiSummary
-            });
-          }
-        }
+        // Generate mock condition based on year and mileage
+        const currentYear = new Date().getFullYear();
+        const age = currentYear - vehicleInfo.year;
+        const mileage = vehicleInfo.mileage || 50000;
+        
+        let baseCondition = 5; // Start at excellent
+        
+        // Decrease based on age
+        baseCondition -= Math.min(age * 0.2, 2);
+        
+        // Decrease based on mileage
+        baseCondition -= Math.min((mileage / 50000) * 0.3, 2);
+        
+        // Ensure it stays between 1 and 5
+        baseCondition = Math.max(1, Math.min(5, baseCondition));
+        
+        // Add some random variation
+        const exterior = Math.max(1, Math.min(5, baseCondition + (Math.random() * 0.6 - 0.3)));
+        const interior = Math.max(1, Math.min(5, baseCondition + (Math.random() * 0.6 - 0.3)));
+        const mechanical = Math.max(1, Math.min(5, baseCondition + (Math.random() * 0.6 - 0.3)));
+        
+        const overall = getOverallCondition((exterior + interior + mechanical) / 3);
+        
+        setGeneratedCondition({
+          exterior: Math.round(exterior * 10) / 10,
+          interior: Math.round(interior * 10) / 10,
+          mechanical: Math.round(mechanical * 10) / 10,
+          overall
+        });
       } catch (err) {
-        console.error('Error fetching AI condition:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch AI condition data'));
+        console.error('Error generating condition:', err);
+        setError('Failed to generate condition assessment');
       } finally {
         setIsLoading(false);
       }
-    }
+    };
     
-    fetchAICondition();
-  }, [valuationId]);
+    generateCondition();
+  }, [vehicleInfo.make, vehicleInfo.model, vehicleInfo.year, vehicleInfo.mileage]);
 
-  return { conditionData, isLoading, error };
+  return { generatedCondition, isLoading, error };
+}
+
+function getOverallCondition(average: number): string {
+  if (average >= 4.5) return "Excellent";
+  if (average >= 3.5) return "Very Good";
+  if (average >= 2.5) return "Good";
+  if (average >= 1.5) return "Fair";
+  return "Poor";
 }

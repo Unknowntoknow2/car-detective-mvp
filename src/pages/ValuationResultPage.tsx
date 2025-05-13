@@ -1,376 +1,118 @@
 
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ValuationComplete } from '@/components/valuation/ValuationComplete';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
-import NotFound from './NotFound';
-import { downloadPdf } from '@/utils/pdf';
-import { toast } from '@/components/ui/use-toast';
-import { ValuationAdjustment } from '@/utils/valuation/types';
-
-// Define a type for the valuation data that includes required adjustments
-interface ValuationData {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  estimated_value: number;
-  confidence_score?: number;
-  price_range?: [number, number];
-  zip?: string;
-  vin?: string;
-  explanation?: string;
-  trim?: string;
-  accident_count?: number;
-  auction_avg_price?: number;
-  base_price?: number;
-  body_style?: string;
-  body_type?: string;
-  color?: string;
-  condition_score?: number;
-  created_at?: string;
-  photos?: string[];
-  adjustments: ValuationAdjustment[]; // Using the imported type
-  [key: string]: any; // Allow for other properties
-}
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function ValuationResultPage() {
-  const [loading, setLoading] = useState(true);
-  const [valuation, setValuation] = useState<ValuationData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [notFoundState, setNotFoundState] = useState(false);
+  const id = searchParams.get('id');
+  const vin = searchParams.get('vin');
+  const [tempData, setTempData] = useState<any>(null);
   
-  // Parse the ID from the URL query parameters
-  const getValuationId = () => {
-    const queryParams = new URLSearchParams(location.search);
-    const id = queryParams.get('id');
-    
-    // If no ID in URL, check localStorage for latest_valuation_id
-    if (!id) {
-      const storedId = localStorage.getItem('latest_valuation_id');
-      if (storedId) {
-        // Update URL with the stored ID
-        queryParams.set('id', storedId);
-        navigate(`${location.pathname}?${queryParams.toString()}`, { replace: true });
-        return storedId;
-      }
-    }
-    
-    return id;
-  };
-  
-  const valuationId = getValuationId();
-  
-  // Load condition values from localStorage if available
-  const getConditionValues = () => {
-    const storedValues = localStorage.getItem('condition_values');
-    if (storedValues) {
-      try {
-        return JSON.parse(storedValues);
-      } catch (e) {
-        console.error('Error parsing stored condition values:', e);
-      }
-    }
-    return null;
-  };
-  
-  useEffect(() => {
-    const fetchValuation = async () => {
-      if (!valuationId) {
-        setLoading(false);
-        setNotFoundState(true);
-        return;
-      }
-      
-      try {
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', valuationId)
-          .single();
-      
-        if (error) {
-          throw error;
-        }
-      
-        if (!data) {
-          setNotFoundState(true);
-          setError('Valuation not found');
-        } else {
-          // Create a properly typed object with adjustments that have required description field
-          const processedData: ValuationData = {
-            ...data,
-            // Initialize with empty array that meets the required type
-            adjustments: [] 
-          };
-        
-          // Apply condition values from localStorage if available
-          const conditionValues = getConditionValues();
-          if (conditionValues) {
-            // Apply any condition adjustments to the valuation data
-            processedData.adjustments = [
-              {
-                factor: 'Mileage',
-                impact: conditionValues.mileage * -100, // Example calculation
-                description: `Adjusted for ${conditionValues.mileage === 0 ? 'low' : 'high'} mileage`
-              },
-              {
-                factor: 'Accidents',
-                impact: conditionValues.accidents * -250, // Example calculation
-                description: `${conditionValues.accidents} accidents reported`
-              }
-            ];
-          }
-        
-          setValuation(processedData);
-        }
-      } catch (error: any) {
-        console.error('Error fetching valuation:', error);
-        setError(error.message);
-      
-        // If the valuation wasn't found, show NotFound
-        if (error.code === 'PGRST116') {
-          setNotFoundState(true);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchValuation();
-  }, [valuationId, navigate]);
+  const { data, isLoading, error } = useValuationResult(id || '');
 
-  const handleDownloadPdf = async () => {
-    if (!valuation) return;
-  
-    toast({
-      title: "Generating PDF",
-      description: "Your valuation report is being generated and will download shortly.",
-    });
-  
-    try {
-      // Always ensure we have an adjustments array with required description fields
-      const adjustmentsArray = valuation.adjustments?.length > 0
-        ? valuation.adjustments.map(adj => ({
-            ...adj,
-            // Ensure description is always present
-            description: adj.description || `Adjustment based on ${adj.factor}`
-          }))
-        : [
-          {
-            factor: 'Base Value',
-            impact: 0,
-            description: 'Starting vehicle value'
-          }
-        ];
-    
-      // Format the data according to the ReportData interface
-      const reportData = {
-        make: valuation.make,
-        model: valuation.model,
-        year: valuation.year,
-        mileage: valuation.mileage || 0,
-        condition: valuation.condition || 'Good',
-        estimatedValue: valuation.estimated_value,
-        confidenceScore: valuation.confidence_score,
-        priceRange: valuation.price_range || [
-          Math.floor(valuation.estimated_value * 0.95),
-          Math.ceil(valuation.estimated_value * 1.05)
-        ],
-        adjustments: adjustmentsArray,
-        generatedAt: new Date().toISOString(),
-        zipCode: valuation.zip,
-        vin: valuation.vin,
-        explanation: valuation.explanation,
-      };
-    
-      await downloadPdf(reportData);
-    
-      toast({
-        title: "PDF Downloaded",
-        description: "Your valuation report has been downloaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast({
-        title: "Download Failed",
-        description: "There was an error generating your PDF. Please try again.",
-        variant: "destructive",
-      });
+  useEffect(() => {
+    // Check for temp valuation data
+    const storedData = localStorage.getItem('temp_valuation_data');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setTempData(parsedData);
+      } catch (e) {
+        console.error('Error parsing temp valuation data:', e);
+      }
     }
+  }, []);
+
+  // Use data or tempData if available
+  const valuationData = data || tempData;
+
+  // Default vehicle info if data is not available
+  const vehicleInfo = valuationData ? {
+    make: valuationData.make,
+    model: valuationData.model,
+    year: valuationData.year,
+    mileage: valuationData.mileage,
+    condition: valuationData.condition
+  } : {
+    make: 'Unknown',
+    model: 'Vehicle',
+    year: new Date().getFullYear(),
+    mileage: 0,
+    condition: 'Good'
   };
-  
-  if (loading) {
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="container mx-auto py-12 px-4">
+        <main className="flex-1 bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg text-gray-600">Loading valuation data...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if ((!data && !tempData) || error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md mx-auto text-center">
+            <div className="flex justify-center mb-4">
+              <AlertCircle className="h-12 w-12 text-red-500" />
+            </div>
+            <h1 className="text-2xl font-bold mb-4">Valuation Not Found</h1>
+            <p className="text-gray-600 mb-6">
+              We couldn't find the requested valuation. It may have expired or been deleted.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={() => navigate('/')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Return Home
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/vin-lookup')}>
+                Start New Valuation
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-8">
-                <Skeleton className="h-12 w-3/4" />
-                <Skeleton className="h-64 w-full" />
-                <div className="grid grid-cols-2 gap-4">
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-24 w-full" />
-                </div>
-              </div>
+            <CardHeader>
+              <CardTitle>Vehicle Valuation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UnifiedValuationResult 
+                valuationId={id || valuationData?.id || ''}
+                vehicleInfo={vehicleInfo}
+                estimatedValue={valuationData?.estimated_value || 0}
+                confidenceScore={valuationData?.confidence_score || 85}
+                priceRange={valuationData?.price_range || [valuationData?.estimated_value * 0.9, valuationData?.estimated_value * 1.1]}
+                adjustments={valuationData?.adjustments || []}
+              />
             </CardContent>
           </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // Only show NotFound component if we've explicitly determined this valuation doesn't exist
-  if (notFoundState) {
-    return <NotFound />;
-  }
-  
-  // If we have a valuation, render the result
-  if (valuation) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="container mx-auto py-8 px-4">
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <div className="flex justify-between items-center mb-6">
-              <TabsList>
-                <TabsTrigger value="overview">Valuation Overview</TabsTrigger>
-                <TabsTrigger value="details">Vehicle Details</TabsTrigger>
-                {valuation.photos && valuation.photos.length > 0 && (
-                  <TabsTrigger value="photos">Photos</TabsTrigger>
-                )}
-              </TabsList>
-              
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleDownloadPdf}>
-                  Download PDF
-                </Button>
-                <Button onClick={() => navigate('/free')}>
-                  New Valuation
-                </Button>
-              </div>
-            </div>
-            
-            <TabsContent value="overview" className="mt-0">
-              <UnifiedValuationResult
-                valuationId={valuationId!}
-                displayMode="full"
-                vehicleInfo={{
-                  make: valuation.make,
-                  model: valuation.model,
-                  year: valuation.year,
-                  trim: valuation.trim,
-                  mileage: valuation.mileage,
-                  condition: valuation.condition,
-                  vin: valuation.vin
-                }}
-                estimatedValue={valuation.estimated_value}
-                confidenceScore={valuation.confidence_score}
-                priceRange={valuation.price_range}
-                adjustments={valuation.adjustments}
-              />
-            </TabsContent>
-            
-            <TabsContent value="details" className="mt-0">
-              <Card>
-                <CardContent className="pt-6">
-                  <h2 className="text-2xl font-bold mb-4">Vehicle Details</h2>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div>
-                      <p className="text-sm text-gray-500">Make</p>
-                      <p className="font-medium">{valuation.make}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Model</p>
-                      <p className="font-medium">{valuation.model}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Year</p>
-                      <p className="font-medium">{valuation.year}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Mileage</p>
-                      <p className="font-medium">{valuation.mileage?.toLocaleString()} miles</p>
-                    </div>
-                    {valuation.vin && (
-                      <div className="col-span-2">
-                        <p className="text-sm text-gray-500">VIN</p>
-                        <p className="font-medium font-mono">{valuation.vin}</p>
-                      </div>
-                    )}
-                    {valuation.trim && (
-                      <div>
-                        <p className="text-sm text-gray-500">Trim</p>
-                        <p className="font-medium">{valuation.trim}</p>
-                      </div>
-                    )}
-                    {valuation.condition && (
-                      <div>
-                        <p className="text-sm text-gray-500">Condition</p>
-                        <p className="font-medium capitalize">{valuation.condition}</p>
-                      </div>
-                    )}
-                    {valuation.zip && (
-                      <div>
-                        <p className="text-sm text-gray-500">ZIP Code</p>
-                        <p className="font-medium">{valuation.zip}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {valuation.photos && valuation.photos.length > 0 && (
-              <TabsContent value="photos" className="mt-0">
-                <Card>
-                  <CardContent className="pt-6">
-                    <h2 className="text-2xl font-bold mb-4">Vehicle Photos</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {valuation.photos.map((photo: string, index: number) => (
-                        <div key={index} className="aspect-video bg-gray-100 rounded-md overflow-hidden">
-                          <img 
-                            src={photo} 
-                            alt={`Vehicle photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-          </Tabs>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // If we have an error but not the notFoundState, show an error message
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="container max-w-md mx-auto py-20 px-4 text-center">
-        <h1 className="text-2xl font-bold mb-4">Error Loading Valuation</h1>
-        <p className="text-muted-foreground mb-6">{error}</p>
-        <Button onClick={() => navigate('/free')}>Start New Valuation</Button>
+        </div>
       </main>
       <Footer />
     </div>
