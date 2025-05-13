@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { FormData } from '@/types/premium-valuation';
@@ -107,6 +106,7 @@ export function ValuationResultStep({
 
       <UnifiedValuationResult
         valuationId={valuationId}
+        displayMode="full"
         estimatedValue={result.estimatedValue}
         confidenceScore={result.confidenceScore}
         priceRange={priceRange}
@@ -120,7 +120,6 @@ export function ValuationResultStep({
           mileage: result.mileage,
           condition: result.condition
         }}
-        displayMode="detailed"
       />
     </div>
   );

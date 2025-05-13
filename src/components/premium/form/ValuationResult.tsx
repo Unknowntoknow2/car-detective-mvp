@@ -33,7 +33,7 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
       <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
       <UnifiedValuationResult 
         valuationId={hydratedId} 
-        displayMode="simple"
+        displayMode="full"
       />
     </div>
   );

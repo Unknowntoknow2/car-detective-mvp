@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -23,7 +22,18 @@ export default function ResultPage() {
               <CardTitle>Vehicle Valuation</CardTitle>
             </CardHeader>
             <CardContent>
-              <UnifiedValuationResult valuationId={valuationId} />
+              <UnifiedValuationResult 
+                valuationId={id || ''} 
+                vehicleInfo={{
+                  year: 0,
+                  make: '',
+                  model: '',
+                  trim: '',
+                  mileage: 0,
+                  condition: ''
+                }}
+                estimatedValue={0}
+              />
             </CardContent>
           </Card>
         </div>

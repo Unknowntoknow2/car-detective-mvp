@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
@@ -70,6 +69,17 @@ export function ValuationResults({
       description: `${vehicleInfo.condition} condition`
     });
   }
+  
+  // Update the condition options to match ConditionRatingOption interface
+  const CONDITIONS: Record<string, ConditionRatingOption> = {
+    condition: {
+      id: 'condition',
+      name: 'Condition',
+      category: 'Vehicle Condition',
+      tip: 'Vehicle condition significantly impacts value',
+      value: 'Good'
+    }
+  };
   
   return (
     <div className="space-y-6">
