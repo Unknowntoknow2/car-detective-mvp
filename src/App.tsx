@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
-import { AuthProvider } from '@/components/auth/AuthProvider';
+import Layout from '@/components/layout/Layout';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ValuationProvider } from '@/contexts/ValuationContext';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -19,15 +19,15 @@ import SettingsPage from '@/pages/SettingsPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
 
 // Components for route protection
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { AuthRoute } from '@/components/auth/AuthRoute';
-import { DealerGuard } from '@/guards/DealerGuard';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AuthRoute from '@/components/auth/AuthRoute';
+import DealerGuard from '@/guards/DealerGuard';
 
 // Lazy loaded components
 const PremiumValuationPage = React.lazy(() => import('@/pages/PremiumValuationPage'));
 const MyValuationsPage = React.lazy(() => import('@/pages/MyValuationsPage'));
-const ValuationDetailsPage = React.lazy(() => import('@/pages/ValuationDetailsPage'));
-const DealerDashboardPage = React.lazy(() => import('@/pages/DealerDashboardPage'));
+const ValuationDetailsPage = React.lazy(() => import('@/pages/ValuationDetailPage')); // Note: Using existing ValuationDetailPage
+const DealerDashboardPage = React.lazy(() => import('@/pages/DealerDashboard')); // Note: Using existing DealerDashboard
 
 function App() {
   return (

@@ -1,75 +1,89 @@
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ResetPasswordForm } from '@/components/auth/forms/ResetPasswordForm';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
-export default function ResetPasswordPage() {
-  const [isValidToken, setIsValidToken] = useState(false);
-  const [isCheckingToken, setIsCheckingToken] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+interface ResetPasswordFormData {
+  password: string;
+  confirmPassword: string;
+}
+
+const ResetPasswordPage: React.FC = () => {
+  const { updatePassword } = useAuth();
   const navigate = useNavigate();
+  const { 
+    register, 
+    handleSubmit, 
+    watch,
+    formState: { errors, isSubmitting } 
+  } = useForm<ResetPasswordFormData>();
 
-  useEffect(() => {
-    const checkResetToken = async () => {
-      try {
-        // Check if this is a valid password reset attempt
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error || !data.session) {
-          setIsValidToken(false);
-          toast.error('Invalid or expired password reset link');
-          setTimeout(() => navigate('/auth/forgot-password'), 3000);
-        } else {
-          setIsValidToken(true);
-        }
-      } catch (err) {
-        console.error('Reset token validation error:', err);
-        setIsValidToken(false);
-        toast.error('Failed to validate password reset request');
-        setTimeout(() => navigate('/auth/forgot-password'), 3000);
-      } finally {
-        setIsCheckingToken(false);
-      }
-    };
+  const passwordValue = watch('password');
 
-    checkResetToken();
-  }, [navigate]);
-
-  if (isCheckingToken) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Validating your request</h2>
-          <p className="text-muted-foreground">Please wait...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isValidToken) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Invalid or expired link</h2>
-          <p className="text-muted-foreground">Redirecting to forgot password page...</p>
-        </div>
-      </div>
-    );
-  }
+  const onSubmit = async (data: ResetPasswordFormData) => {
+    try {
+      await updatePassword(data.password);
+      toast.success('Password updated successfully');
+      navigate('/login');
+    } catch (error) {
+      toast.error('Failed to update password');
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50/50">
-      <Card className="w-full max-w-md shadow-sm">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+    <div className="container mx-auto py-8 max-w-md">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Reset Your Password</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResetPasswordForm isLoading={isLoading} setIsLoading={setIsLoading} />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">New Password</label>
+              <Input
+                id="password"
+                type="password"
+                {...register('password', { 
+                  required: 'Password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters'
+                  }
+                })}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...register('confirmPassword', { 
+                  required: 'Please confirm your password',
+                  validate: value => value === passwordValue || 'Passwords do not match'
+                })}
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Updating...' : 'Reset Password'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
   );
-}
+};
+
+export default ResetPasswordPage;
