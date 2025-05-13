@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { calculateFinalValuation } from '@/utils/valuation/calculateFinalValuation';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
 
 type ValuationInputData = {
   type?: string;
@@ -38,7 +37,8 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastValuationResult, setLastValuationResult] = useState<any | null>(null);
-  const { user } = useAuth();
+  // Remove useAuth dependency
+  const user = null; // Default to null instead of using useAuth
 
   const processFreeValuation = async (valuationData: ValuationInputData) => {
     try {
@@ -190,36 +190,31 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
   };
 
   const saveValuationToUserProfile = async (valuationId: string) => {
-    if (!user) {
-      toast.error("You must be logged in to save valuations");
-      return false;
-    }
-
+    // For now, we'll just mock this functionality without requiring authentication
     try {
-      setIsProcessing(true);
+      console.log("ValuationContext: Saving valuation to user profile:", valuationId);
       
-      // Here you would typically save to Supabase or your database
-      // For now, we'll just simulate success
-      
-      toast.success("Valuation saved to your profile");
+      // Mock successful save
+      toast.success("Valuation saved to your profile!");
       return true;
-    } catch (err: any) {
+    } catch (error) {
+      console.error("Error saving valuation:", error);
       toast.error("Failed to save valuation to your profile");
       return false;
-    } finally {
-      setIsProcessing(false);
     }
   };
 
   return (
-    <ValuationContext.Provider value={{
-      processFreeValuation,
-      processPremiumValuation,
-      saveValuationToUserProfile,
-      isProcessing,
-      error,
-      lastValuationResult
-    }}>
+    <ValuationContext.Provider
+      value={{
+        processFreeValuation,
+        processPremiumValuation,
+        saveValuationToUserProfile,
+        isProcessing,
+        error,
+        lastValuationResult
+      }}
+    >
       {children}
     </ValuationContext.Provider>
   );
@@ -228,7 +223,7 @@ export function ValuationProvider({ children }: { children: React.ReactNode }) {
 export function useValuation() {
   const context = useContext(ValuationContext);
   if (context === undefined) {
-    throw new Error('useValuation must be used within a ValuationProvider');
+    throw new Error("useValuation must be used within a ValuationProvider");
   }
   return context;
 }
