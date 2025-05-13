@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,10 +53,10 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Button variant="outline" size="sm" onClick={() => navigate('/sign-in')}>
+              <Button variant="outline" size="sm" onClick={() => navigate('/login')}>
                 Sign In
               </Button>
-              <Button size="sm" onClick={() => navigate('/sign-up')}>
+              <Button size="sm" onClick={() => navigate('/register')}>
                 Sign Up
               </Button>
             </>
@@ -91,10 +92,10 @@ export function Navbar() {
               ) : (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link to="/sign-in" className="w-full">Sign In</Link>
+                    <Link to="/login" className="w-full">Sign In</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/sign-up" className="w-full">Sign Up</Link>
+                    <Link to="/register" className="w-full">Sign Up</Link>
                   </DropdownMenuItem>
                 </>
               )}

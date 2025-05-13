@@ -18,6 +18,8 @@ import { EnhancedErrorBoundary } from './components/common/EnhancedErrorBoundary
 import NotFound from './pages/NotFound';
 import MyValuationsPage from './pages/MyValuationsPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
@@ -61,6 +63,8 @@ export const appRoutes = [
   { path: '/payment/success', element: <LazyPaymentSuccessPage /> },
   { path: '/payment/cancelled', element: <LazyPaymentCancelledPage /> },
   { path: '/my-valuations', element: <MyValuationsPage /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '/register', element: <RegisterPage /> },
   { path: '*', element: <NotFound /> }
 ];
 
@@ -152,6 +156,16 @@ function App() {
                       wrapWithSuspense(<LazyPaymentCancelledPage />),
                       "payment-cancelled"
                     )}
+                  </MainLayout>
+                } />
+                <Route path="/login" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<LoginPage />, "login")}
+                  </MainLayout>
+                } />
+                <Route path="/register" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<RegisterPage />, "register")}
                   </MainLayout>
                 } />
                 <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />

@@ -11,5 +11,7 @@
   "/share/:token",
   "/payment/success",
   "/payment/cancelled",
-  "/my-valuations"
+  "/my-valuations",
+  "/sign-in",
+  "/sign-up"
 ]
