@@ -4,7 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, RotateCcw, FileDown, Share2, Mail } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, AlertTriangle, RotateCcw, FileDown, Share2, Mail, Navigation, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { useToast } from '@/components/ui/use-toast';
@@ -12,14 +13,17 @@ import { usePdfDownload } from '@/components/valuation/result/usePdfDownload';
 import { useEmailPdf } from '@/components/valuation/result/useEmailPdf';
 import EmailPdfModal from '@/components/valuation/result/EmailPdfModal';
 import { DealerOfferList } from '@/components/valuation/offers/DealerOfferList';
+import { formatCurrency } from '@/utils/formatters';
+import { ValuationResult } from '@/types/valuation';
 
 const ValuationResultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [valuationData, setValuationData] = useState<any | null>(null);
+  const [valuationData, setValuationData] = useState<ValuationResult | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [hasDealerOffers, setHasDealerOffers] = useState(false);
   const { toast } = useToast();
   
   // Use the PDF download hook
@@ -63,6 +67,18 @@ const ValuationResultPage: React.FC = () => {
         
         console.log('Fetched valuation data:', data);
         setValuationData(data);
+        
+        // Check if there are any dealer offers for this valuation
+        const { data: dealerOffers, error: offersError } = await supabase
+          .from('dealer_offers')
+          .select('id')
+          .eq('report_id', id)
+          .limit(1);
+          
+        if (!offersError && dealerOffers && dealerOffers.length > 0) {
+          setHasDealerOffers(true);
+        }
+        
         setIsLoading(false);
       } catch (err) {
         console.error('Unexpected error:', err);
@@ -189,6 +205,20 @@ const ValuationResultPage: React.FC = () => {
       });
   };
   
+  const handleRequestOffers = () => {
+    if (!valuationData || !id) return;
+    
+    // Either redirect to premium or show a toast about dealer notifications
+    if (valuationData.premium_unlocked) {
+      toast({
+        title: "Dealers notified",
+        description: "Local dealers have been notified about your vehicle.",
+      });
+    } else {
+      navigate('/premium');
+    }
+  };
+  
   // Show loading state
   if (isLoading) {
     return (
@@ -296,6 +326,35 @@ const ValuationResultPage: React.FC = () => {
           <div className="mb-6">
             <DealerOfferList valuationId={id} />
           </div>
+          
+          {/* Smart Action Footer */}
+          <Card className="mb-6 bg-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center">
+                <Navigation className="mr-2 h-5 w-5" />
+                What's Next?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!hasDealerOffers ? (
+                <div>
+                  <p className="mb-4">Want to see what dealers would offer for your vehicle?</p>
+                  <Button onClick={handleRequestOffers}>
+                    <Tag className="mr-2 h-4 w-4" />
+                    Request Dealer Offers
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <p className="mb-4">You have dealer offers available. You can respond to them or request updated offers at any time.</p>
+                  <Button onClick={() => navigate('/my-valuations')}>
+                    <Navigation className="mr-2 h-4 w-4" />
+                    View All My Valuations
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
           
           <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
             <Button variant="outline" onClick={handleStartNew}>
