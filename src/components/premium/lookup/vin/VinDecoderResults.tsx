@@ -54,7 +54,6 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
 
   const handleEmailReport = () => {
     toast.success("Email report functionality will be implemented soon!");
-    return "";
   };
 
   // If we're in the details collection stage, show the pipeline UI
@@ -131,6 +130,7 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
                 mileage: requiredInputs?.mileage,
                 condition: requiredInputs?.conditionLabel
               }}
+              onEmailReport={handleEmailReport}
             />
           </CardContent>
         </Card>

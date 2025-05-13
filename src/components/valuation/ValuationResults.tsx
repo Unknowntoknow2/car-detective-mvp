@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,10 @@ interface ValuationResultsProps {
     mileage?: number;
     condition?: string;
   };
+  // Add the missing properties that are causing TypeScript errors
+  valuationId?: string;
+  onEmailReport?: () => void | Promise<string>;
+  onDownloadPdf?: () => void | Promise<void>;
 }
 
 export const ValuationResults: React.FC<ValuationResultsProps> = ({
@@ -37,7 +40,9 @@ export const ValuationResults: React.FC<ValuationResultsProps> = ({
   priceRange,
   adjustments,
   demandFactor,
-  vehicleInfo
+  vehicleInfo,
+  onEmailReport,
+  onDownloadPdf
 }) => {
   const { conditionData } = useAICondition(vehicleInfo.trim || '');
   
@@ -135,6 +140,21 @@ export const ValuationResults: React.FC<ValuationResultsProps> = ({
       </Card>
       
       <ConditionTips selectedRatings={selectedRatings} />
+      
+      {(onEmailReport || onDownloadPdf) && (
+        <div className="flex space-x-2 mt-4">
+          {onEmailReport && (
+            <Button variant="outline" size="sm" onClick={onEmailReport} className="flex-1">
+              Email Report
+            </Button>
+          )}
+          {onDownloadPdf && (
+            <Button variant="outline" size="sm" onClick={onDownloadPdf} className="flex-1">
+              Download PDF
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
