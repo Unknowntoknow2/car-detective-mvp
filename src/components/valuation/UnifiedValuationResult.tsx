@@ -10,12 +10,37 @@ import { formatCurrency } from '@/utils/formatters';
 
 interface UnifiedValuationResultProps {
   valuationId?: string;
-  displayMode?: 'simple' | 'detailed';
+  displayMode?: 'simple' | 'detailed' | 'full';
+  estimatedValue?: number;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  adjustments?: {
+    factor: string;
+    impact: number;
+    description: string;
+  }[];
+  onDownloadPdf?: () => void;
+  onEmailReport?: () => void;
+  vehicleInfo?: {
+    year: number;
+    make: string;
+    model: string;
+    mileage?: number;
+    condition?: string;
+    vin?: string;
+  };
 }
 
 export function UnifiedValuationResult({ 
   valuationId,
-  displayMode = 'detailed'
+  displayMode = 'detailed',
+  estimatedValue,
+  confidenceScore,
+  priceRange,
+  adjustments,
+  onDownloadPdf,
+  onEmailReport,
+  vehicleInfo
 }: UnifiedValuationResultProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +48,23 @@ export function UnifiedValuationResult({
   
   useEffect(() => {
     async function fetchValuationData() {
+      // If direct props are provided, use them instead of fetching
+      if (estimatedValue && vehicleInfo) {
+        setValuationData({
+          estimated_value: estimatedValue,
+          confidence_score: confidenceScore || 85,
+          year: vehicleInfo.year,
+          make: vehicleInfo.make,
+          model: vehicleInfo.model,
+          mileage: vehicleInfo.mileage,
+          condition: vehicleInfo.condition,
+          vin: vehicleInfo.vin,
+          price_range: priceRange
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       if (!valuationId) {
         // Try to get from localStorage
         const storedId = localStorage.getItem('latest_valuation_id');
@@ -69,7 +111,7 @@ export function UnifiedValuationResult({
     }
     
     fetchValuationData();
-  }, [valuationId]);
+  }, [valuationId, estimatedValue, confidenceScore, vehicleInfo, priceRange]);
   
   if (isLoading) {
     return (
@@ -105,7 +147,7 @@ export function UnifiedValuationResult({
   }
   
   // Default or mock data if we don't have the actual values
-  const priceRange = valuationData.price_range || [
+  const priceRangeToDisplay = valuationData.price_range || priceRange || [
     valuationData.estimated_value * 0.9,
     valuationData.estimated_value * 1.1
   ];
@@ -121,23 +163,25 @@ export function UnifiedValuationResult({
         condition={valuationData.condition}
         location={valuationData.state || valuationData.zip}
         mileage={valuationData.mileage}
+        onDownloadPdf={onDownloadPdf}
+        onShareReport={onEmailReport}
       />
       
-      {displayMode === 'detailed' && (
+      {displayMode !== 'simple' && (
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-medium">Price Range</h3>
                 <div className="flex justify-between items-center mt-2">
-                  <span>{formatCurrency(priceRange[0])}</span>
+                  <span>{formatCurrency(priceRangeToDisplay[0])}</span>
                   <div className="h-2 bg-primary/20 rounded-full flex-1 mx-4">
                     <div 
                       className="h-2 bg-primary rounded-full" 
                       style={{ width: '50%' }}
                     ></div>
                   </div>
-                  <span>{formatCurrency(priceRange[1])}</span>
+                  <span>{formatCurrency(priceRangeToDisplay[1])}</span>
                 </div>
               </div>
               

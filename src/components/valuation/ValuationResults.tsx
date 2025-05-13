@@ -34,7 +34,7 @@ export const ValuationResults: React.FC<ValuationResultsProps> = (props) => {
   return (
     <UnifiedValuationResult
       {...props}
-      displayMode="full"
+      displayMode="detailed"
     />
   );
 };

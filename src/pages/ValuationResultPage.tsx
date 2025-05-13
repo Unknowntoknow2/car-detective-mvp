@@ -314,7 +314,7 @@ const ValuationResultPage: React.FC = () => {
                 estimatedValue={valuationData.estimatedValue}
                 confidenceScore={valuationData.confidenceScore}
                 priceRange={valuationData.priceRange}
-                displayMode="full"
+                displayMode="detailed"
               />
             </CardContent>
           </Card>

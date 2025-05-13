@@ -120,7 +120,7 @@ export function ValuationResultStep({
           mileage: result.mileage,
           condition: result.condition
         }}
-        displayMode="full"
+        displayMode="detailed"
       />
     </div>
   );

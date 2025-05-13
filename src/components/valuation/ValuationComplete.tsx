@@ -194,18 +194,22 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
   return (
     <div className="space-y-8">
       <UnifiedValuationHeader
-        vehicleInfo={valuationData}
-        estimatedValue={estimatedValue}
+        year={valuationData.year}
+        make={valuationData.make}
+        model={valuationData.model}
+        valuation={estimatedValue || 0}
         confidenceScore={photoSubmitted ? 92 : 85}
+        condition={aiCondition?.condition || valuationData.condition}
+        mileage={valuationData.mileage}
+        onShare={shareValuation}
+        onDownload={() => {}}
+        onSaveToAccount={saveToAccount}
+        isSaving={isSaving}
         photoSubmitted={photoSubmitted}
         photoCondition={aiCondition}
         calculationInProgress={calculationInProgress}
         bestPhotoUrl={bestPhotoUrl}
         isPremium={true}
-        onShare={shareValuation}
-        onSaveToAccount={saveToAccount}
-        isSaving={isSaving}
-        onDownload={() => {}}
       />
 
       {auditTrail && (
