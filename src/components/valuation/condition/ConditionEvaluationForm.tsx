@@ -1,215 +1,142 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState, useCallback } from 'react';
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { ConditionCategory } from './ConditionCategory';
 import { ConditionTips } from './ConditionTips';
-import { ConditionSlider } from './ConditionSlider';
-import { ConditionEvaluationFormProps, ConditionValues } from './types';
-import { ConditionRatingOption } from '@/types/condition';
+import { ConditionValues } from './types';
 
-const exteriorRatings = [
-  { id: 'exterior-excellent', name: 'Excellent', category: 'Exterior', value: 4, description: 'Like new condition with no visible damage or wear.' },
-  { id: 'exterior-good', name: 'Good', category: 'Exterior', value: 3, description: 'Minor wear consistent with age, no significant damage.' },
-  { id: 'exterior-fair', name: 'Fair', category: 'Exterior', value: 2, description: 'Noticeable wear and tear, may have minor damage.' },
-  { id: 'exterior-poor', name: 'Poor', category: 'Exterior', value: 1, description: 'Significant damage, rust, or cosmetic issues.' },
-  { id: 'exterior-salvage', name: 'Salvage', category: 'Exterior', value: 0, description: 'Major damage affecting structure and appearance.' }
-];
+// Define the schema for the condition evaluation form
+const conditionEvaluationSchema = z.object({
+  exterior: z.number().min(0).max(100).default(50),
+  interior: z.number().min(0).max(100).default(50),
+  mechanical: z.number().min(0).max(100).default(50),
+  title: z.number().min(0).max(100).default(50),
+  undercarriage: z.number().min(0).max(100).default(50),
+});
 
-const interiorRatings = [
-  { id: 'interior-excellent', name: 'Excellent', category: 'Interior', value: 4, description: 'Pristine interior with no wear or damage.' },
-  { id: 'interior-good', name: 'Good', category: 'Interior', value: 3, description: 'Minor wear on seats and surfaces, all features functional.' },
-  { id: 'interior-fair', name: 'Fair', category: 'Interior', value: 2, description: 'Visible wear on high-touch areas, may have minor damage.' },
-  { id: 'interior-poor', name: 'Poor', category: 'Interior', value: 1, description: 'Significant wear, stains, or damage to interior components.' },
-  { id: 'interior-salvage', name: 'Salvage', category: 'Interior', value: 0, description: 'Major interior damage requiring extensive repair.' }
-];
+// Make sure the onSubmit prop accepts just the values parameter
+interface ConditionEvaluationFormProps {
+  onSubmit: (values: ConditionValues) => void;
+  onCancel?: () => void;
+  initialValues?: Partial<ConditionValues>;
+}
 
-const mechanicalRatings = [
-  { id: 'mechanical-excellent', name: 'Excellent', category: 'Mechanical', value: 4, description: 'Perfect mechanical condition, no issues.' },
-  { id: 'mechanical-good', name: 'Good', category: 'Mechanical', value: 3, description: 'Well-maintained, no known issues, all systems functional.' },
-  { id: 'mechanical-fair', name: 'Fair', category: 'Mechanical', value: 2, description: 'Some minor issues may exist, but still reliable.' },
-  { id: 'mechanical-poor', name: 'Poor', category: 'Mechanical', value: 1, description: 'Known mechanical issues affecting reliability.' },
-  { id: 'mechanical-salvage', name: 'Salvage', category: 'Mechanical', value: 0, description: 'Major mechanical issues requiring significant repair.' }
-];
+export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = ({ onSubmit, onCancel, initialValues }) => {
+  const [localOverallScore, setLocalOverallScore] = useState<number | null>(null);
+  const navigate = useNavigate();
 
-export function ConditionEvaluationForm({ 
-  initialValues = {}, 
-  onSubmit,
-  isLoading = false,
-  onCancel
-}: ConditionEvaluationFormProps) {
-  const [values, setValues] = useState<ConditionValues>({
-    accidents: initialValues.accidents || 0,
-    mileage: initialValues.mileage || 0,
-    year: initialValues.year || 0,
-    titleStatus: initialValues.titleStatus || 'Clean',
-    exteriorGrade: initialValues.exteriorGrade || 3,
-    interiorGrade: initialValues.interiorGrade || 3,
-    mechanicalGrade: initialValues.mechanicalGrade || 3
+  // Initialize the form with useForm
+  const form = useForm<ConditionValues>({
+    resolver: zodResolver(conditionEvaluationSchema),
+    defaultValues: initialValues || {
+      exterior: 50,
+      interior: 50,
+      mechanical: 50,
+      title: 50,
+      undercarriage: 50,
+    },
+    mode: "onChange"
   });
 
-  const [selectedRatings, setSelectedRatings] = useState<Record<string, ConditionRatingOption>>({
-    exterior: exteriorRatings[values.exteriorGrade],
-    interior: interiorRatings[values.interiorGrade],
-    mechanical: mechanicalRatings[values.mechanicalGrade]
-  });
+  // Access the values from the form state
+  const values = form.watch();
 
-  const handleChange = (id: string, value: any) => {
-    setValues(prev => ({
-      ...prev,
-      [id]: value
-    }));
-
-    // Update selected ratings when slider values change
-    if (id === 'exteriorGrade') {
-      setSelectedRatings(prev => ({
-        ...prev,
-        exterior: exteriorRatings[value]
-      }));
-    } else if (id === 'interiorGrade') {
-      setSelectedRatings(prev => ({
-        ...prev,
-        interior: interiorRatings[value]
-      }));
-    } else if (id === 'mechanicalGrade') {
-      setSelectedRatings(prev => ({
-        ...prev,
-        mechanical: mechanicalRatings[value]
-      }));
-    }
-  };
-
-  const handleRatingSelect = (rating: ConditionRatingOption) => {
-    const category = rating.category.toLowerCase();
-    const gradeField = `${category}Grade`;
-    
-    // Update the grade value based on the selected rating
-    setValues(prev => ({
-      ...prev,
-      [gradeField]: rating.value
-    }));
-    
-    // Update selected rating
-    setSelectedRatings(prev => ({
-      ...prev,
-      [category]: rating
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  // Function to handle form submission
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Calculate average score from all category scores
+    const categories = Object.keys(values);
+    const overallScore = categories.reduce((sum, key) => {
+      return sum + values[key as keyof ConditionValues];
+    }, 0) / categories.length;
+    
+    // Store the overall score if needed
+    setLocalOverallScore(overallScore);
+    
+    // Only pass the values to the parent component
     onSubmit(values);
   };
 
+  // Handle cancel operation
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      navigate('/premium');
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <ConditionCategory
-        title="Exterior Condition"
-        description="Rate the overall exterior condition of the vehicle"
-      >
-        <ConditionSlider
-          id="exteriorGrade"
-          value={values.exteriorGrade}
-          onChange={(value) => handleChange('exteriorGrade', value)}
-          min={0}
-          max={4}
-          step={1}
-        />
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-          <span>Salvage</span>
-          <span>Poor</span>
-          <span>Fair</span>
-          <span>Good</span>
-          <span>Excellent</span>
-        </div>
-        <ConditionTips
-          category="Exterior"
-          tip={selectedRatings.exterior?.description || ''}
-        />
-      </ConditionCategory>
-
-      <ConditionCategory
-        title="Interior Condition"
-        description="Rate the overall interior condition of the vehicle"
-      >
-        <ConditionSlider
-          id="interiorGrade"
-          value={values.interiorGrade}
-          onChange={(value) => handleChange('interiorGrade', value)}
-          min={0}
-          max={4}
-          step={1}
-        />
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-          <span>Salvage</span>
-          <span>Poor</span>
-          <span>Fair</span>
-          <span>Good</span>
-          <span>Excellent</span>
-        </div>
-        <ConditionTips
-          category="Interior"
-          tip={selectedRatings.interior?.description || ''}
-        />
-      </ConditionCategory>
-
-      <ConditionCategory
-        title="Mechanical Condition"
-        description="Rate the overall mechanical condition of the vehicle"
-      >
-        <ConditionSlider
-          id="mechanicalGrade"
-          value={values.mechanicalGrade}
-          onChange={(value) => handleChange('mechanicalGrade', value)}
-          min={0}
-          max={4}
-          step={1}
-        />
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-          <span>Salvage</span>
-          <span>Poor</span>
-          <span>Fair</span>
-          <span>Good</span>
-          <span>Excellent</span>
-        </div>
-        <ConditionTips
-          category="Mechanical"
-          tip={selectedRatings.mechanical?.description || ''}
-        />
-      </ConditionCategory>
-
-      <ConditionCategory
-        title="Title Status"
-        description="Select the current title status of the vehicle"
-      >
-        <Select
-          value={values.titleStatus}
-          onValueChange={(value) => handleChange('titleStatus', value)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select title status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Clean">Clean</SelectItem>
-            <SelectItem value="Rebuilt">Rebuilt/Reconstructed</SelectItem>
-            <SelectItem value="Salvage">Salvage</SelectItem>
-            <SelectItem value="Lemon">Lemon Law/Manufacturer Buyback</SelectItem>
-            <SelectItem value="Flood">Flood/Water Damage</SelectItem>
-          </SelectContent>
-        </Select>
-      </ConditionCategory>
-
-      <div className="flex justify-end gap-3 pt-4">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Update Condition'}
-        </Button>
-      </div>
-    </form>
+    <Form {...form}>
+      <form onSubmit={handleFormSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Condition Assessment</CardTitle>
+            <CardDescription>
+              Evaluate the condition of your vehicle in each category.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <ConditionCategory 
+              name="exterior" 
+              label="Exterior" 
+              form={form} 
+              description="Rate the condition of the vehicle's exterior, including paint, body panels, glass, and trim." 
+            />
+            <ConditionCategory 
+              name="interior" 
+              label="Interior" 
+              form={form} 
+              description="Rate the condition of the vehicle's interior, including seats, carpets, dashboard, and controls." 
+            />
+            <ConditionCategory 
+              name="mechanical" 
+              label="Mechanical" 
+              form={form} 
+              description="Rate the condition of the vehicle's mechanical components, including engine, transmission, brakes, and suspension." 
+            />
+            <ConditionCategory 
+              name="title" 
+              label="Title" 
+              form={form} 
+              description="Rate the condition of the vehicle's title, considering factors such as liens, salvage history, and accuracy." 
+            />
+            <ConditionCategory 
+              name="undercarriage" 
+              label="Undercarriage" 
+              form={form} 
+              description="Rate the condition of the vehicle's undercarriage, including frame, exhaust, and suspension components." 
+            />
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button type="button" variant="secondary" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              Submit Condition
+            </Button>
+          </CardFooter>
+        </Card>
+        <ConditionTips />
+      </form>
+    </Form>
   );
-}
+};

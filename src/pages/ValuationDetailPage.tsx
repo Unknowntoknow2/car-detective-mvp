@@ -25,6 +25,9 @@ export default function ValuationDetailPage() {
     );
   }
   
+  // Add error handling for string or Error objects
+  const errorMessage = error ? (typeof error === 'string' ? error : error.message || "Unknown error") : "Failed to load valuation details";
+  
   if (error || !valuation) {
     return (
       <div className="container mx-auto py-8">
@@ -32,7 +35,7 @@ export default function ValuationDetailPage() {
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Valuation</h2>
             <p className="text-gray-600 mb-4">
-              {error?.message || "Could not load the valuation details."}
+              {errorMessage}
             </p>
             <Button onClick={() => navigate('/my-valuations')}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Valuations

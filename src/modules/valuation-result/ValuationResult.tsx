@@ -162,7 +162,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
                 Error Loading Valuation
               </HeadingL>
               <BodyM className="text-red-600">
-                {error?.message || "Could not load valuation data. Please try again or contact support."}
+                {error ? (typeof error === 'string' ? error : error.message || "Unknown error") : "Could not load valuation data. Please try again or contact support."}
               </BodyM>
             </div>
           </div>

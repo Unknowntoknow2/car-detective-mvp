@@ -13,9 +13,13 @@ export default function PremiumConditionEvaluationPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleConditionSubmit = (values: ConditionValues, overallScore: number) => {
+  // Updated to match the expected signature from ConditionEvaluationForm
+  const handleConditionSubmit = (values: ConditionValues) => {
     setIsSubmitting(true);
     console.log("Condition assessment values:", values);
+    
+    // Calculate overall score here if needed
+    const overallScore = Object.values(values).reduce((sum, value) => sum + value, 0) / Object.values(values).length;
     console.log("Overall condition score:", overallScore);
     
     // Store values in local storage for use in the valuation process

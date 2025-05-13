@@ -29,6 +29,9 @@ export interface Photo {
   uploading?: boolean;
   uploaded?: boolean;
   error?: string;
+  score?: number;
+  isPrimary?: boolean;
+  explanation?: string;
 }
 
 export interface PhotoFile {
@@ -41,6 +44,34 @@ export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
+}
+
+// Add missing PhotoScoringResult and PhotoAnalysisResult interfaces
+export interface PhotoScoringResult {
+  photoScore: number;
+  individualScores: PhotoScore[];
+  score: number;
+  photoUrls: string[];
+  bestPhotoUrl?: string;
+  aiCondition?: AICondition;
+  error?: string;
+}
+
+export interface PhotoAnalysisResult {
+  photoUrls: string[];
+  score: number;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
+}
+
+// Add AdjustmentBreakdown interface
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
 }
 
 // Constants
