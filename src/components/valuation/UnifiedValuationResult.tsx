@@ -1,246 +1,164 @@
 
 import React, { useState, useEffect } from 'react';
+import { AIConditionAssessment } from './AIConditionAssessment';
+import { UnifiedValuationHeader } from './header';
+import { ValuationResults } from './ValuationResults';
+import { ExplanationSection } from './result/ExplanationSection';
+import { useValuationData } from './result/useValuationData';
+import { useAICondition } from '@/hooks/useAICondition';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { UnifiedValuationHeader } from './header/UnifiedValuationHeader';
-import { supabase } from '@/utils/supabaseClient';
-import { formatCurrency } from '@/utils/formatters';
+import { getConditionValueImpact } from '@/utils/valuation/conditionHelpers';
+import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
 
-export interface UnifiedValuationResultProps {
-  valuationId?: string;
-  displayMode?: 'simple' | 'detailed' | 'full';
-  estimatedValue?: number;
+export interface VehicleInfoProps {
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition?: string;
+  trim?: string;
+  vin?: string;
+}
+
+interface UnifiedValuationResultProps {
+  valuationId: string;
+  displayMode?: 'compact' | 'full';
+  vehicleInfo: VehicleInfoProps;
+  estimatedValue: number;
   confidenceScore?: number;
   priceRange?: [number, number];
-  basePrice?: number;
-  adjustments?: {
+  adjustments?: Array<{
     factor: string;
     impact: number;
     description: string;
-  }[];
-  onDownloadPdf?: () => void;
-  onEmailReport?: () => void;
-  vehicleInfo?: {
-    year: number;
-    make: string;
-    model: string;
-    trim?: string;
-    mileage?: number;
-    condition?: string;
-    vin?: string;
-  };
-  isPremium?: boolean;
-  onUpgrade?: () => void;
-  valuation?: any;
+  }>;
 }
 
-export function UnifiedValuationResult({ 
+export function UnifiedValuationResult({
   valuationId,
-  displayMode = 'detailed',
-  estimatedValue,
-  confidenceScore,
-  priceRange,
-  adjustments,
-  onDownloadPdf,
-  onEmailReport,
+  displayMode = 'full',
   vehicleInfo,
-  isPremium,
-  onUpgrade,
-  valuation
+  estimatedValue,
+  confidenceScore = 75,
+  priceRange: propsPriceRange,
+  adjustments = []
 }: UnifiedValuationResultProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [valuationData, setValuationData] = useState<any | null>(null);
+  const { conditionData, isLoading: isLoadingCondition } = useAICondition(valuationId);
+  const [explanation, setExplanation] = useState<string>('');
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState<boolean>(false);
+  const [explanationError, setExplanationError] = useState<string>('');
   
-  useEffect(() => {
-    async function fetchValuationData() {
-      // If direct props are provided, use them instead of fetching
-      if (estimatedValue && vehicleInfo) {
-        setValuationData({
-          estimated_value: estimatedValue,
-          confidence_score: confidenceScore || 85,
-          year: vehicleInfo.year,
-          make: vehicleInfo.make,
-          model: vehicleInfo.model,
-          mileage: vehicleInfo.mileage,
-          condition: vehicleInfo.condition,
-          vin: vehicleInfo.vin,
-          price_range: priceRange,
-          trim: vehicleInfo.trim
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!valuationId) {
-        // Try to get from localStorage
-        const storedId = localStorage.getItem('latest_valuation_id');
-        if (storedId) {
-          console.log('Using valuation ID from localStorage:', storedId);
-          fetchData(storedId);
-        } else {
-          setError('No valuation ID found');
-          setIsLoading(false);
-        }
-        return;
-      }
-      
-      fetchData(valuationId);
-    }
-    
-    async function fetchData(id: string) {
-      try {
-        setIsLoading(true);
-        
-        // Fetch from supabase
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          console.log('Valuation data loaded:', data);
-          setValuationData(data);
-        } else {
-          setError('Valuation not found');
-        }
-      } catch (err: any) {
-        console.error('Error fetching valuation:', err);
-        setError(err.message || 'Failed to load valuation data');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    fetchValuationData();
-  }, [valuationId, estimatedValue, confidenceScore, vehicleInfo, priceRange]);
-  
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading valuation data...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-  
-  if (!valuationData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>No Data</AlertTitle>
-        <AlertDescription>
-          No valuation data is available. Please try a different valuation ID or create a new valuation.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  
-  // Default or mock data if we don't have the actual values
-  const priceRangeToDisplay = valuationData.price_range || priceRange || [
-    valuationData.estimated_value * 0.9,
-    valuationData.estimated_value * 1.1
+  // Calculate price range if not provided
+  const priceRange: [number, number] = propsPriceRange || [
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05)
   ];
   
+  // Add condition adjustment if not already in the adjustments array
+  useEffect(() => {
+    if (vehicleInfo.condition && !adjustments.some(adj => adj.factor === 'Condition')) {
+      const conditionImpact = getConditionValueImpact(vehicleInfo.condition);
+      adjustments.push({
+        factor: 'Condition',
+        impact: conditionImpact,
+        description: `${vehicleInfo.condition} condition`
+      });
+    }
+  }, [vehicleInfo.condition, adjustments]);
+  
+  // Fetch explanation on initial load
+  useEffect(() => {
+    const fetchExplanation = async () => {
+      if (!vehicleInfo.make || !vehicleInfo.model) return;
+      
+      setIsLoadingExplanation(true);
+      setExplanationError('');
+      try {
+        const result = await generateValuationExplanation({
+          make: vehicleInfo.make,
+          model: vehicleInfo.model,
+          year: vehicleInfo.year,
+          mileage: vehicleInfo.mileage || 0,
+          condition: vehicleInfo.condition || 'Good',
+          location: 'your area',
+          valuation: estimatedValue,
+        });
+        setExplanation(result);
+      } catch (e: any) {
+        console.error(e);
+        setExplanationError('Failed to load explanation.');
+      } finally {
+        setIsLoadingExplanation(false);
+      }
+    };
+    
+    fetchExplanation();
+  }, [vehicleInfo, estimatedValue]);
+  
+  const handleRegenerateExplanation = async () => {
+    setIsLoadingExplanation(true);
+    setExplanationError('');
+    try {
+      const result = await generateValuationExplanation({
+        make: vehicleInfo.make,
+        model: vehicleInfo.model,
+        year: vehicleInfo.year,
+        mileage: vehicleInfo.mileage || 0,
+        condition: vehicleInfo.condition || 'Good',
+        location: 'your area',
+        valuation: estimatedValue,
+      });
+      setExplanation(result);
+    } catch (e: any) {
+      console.error(e);
+      setExplanationError('Failed to regenerate explanation.');
+    } finally {
+      setIsLoadingExplanation(false);
+    }
+  };
+  
   return (
-    <div className="valuation-result space-y-6">
+    <div className="space-y-6">
       <UnifiedValuationHeader
-        estimatedValue={valuationData.estimated_value}
-        confidenceScore={valuationData.confidence_score}
-        year={valuationData.year}
-        make={valuationData.make}
-        model={valuationData.model}
-        mileage={valuationData.mileage}
-        condition={valuationData.condition}
-        trim={valuationData.trim}
-        vin={valuationData.vin}
-        zipCode={valuationData.zip}
-        onDownloadPdf={onDownloadPdf}
-        onShareReport={onEmailReport}
-        headerType={displayMode === 'simple' ? 'basic' : 'detailed'}
-        isPremium={isPremium}
+        vehicleInfo={vehicleInfo}
+        estimatedValue={estimatedValue}
+        confidenceScore={confidenceScore}
+        photoCondition={conditionData}
+        isPremium={displayMode === 'full'}
       />
       
-      {displayMode !== 'simple' && (
+      {displayMode === 'full' && (
+        <>
+          <AIConditionAssessment
+            conditionData={conditionData}
+            isLoading={isLoadingCondition}
+            bestPhotoUrl={conditionData?.photoUrl}
+          />
+          
+          <ValuationResults
+            estimatedValue={estimatedValue}
+            confidenceScore={confidenceScore}
+            adjustments={adjustments}
+            priceRange={priceRange}
+            vehicleInfo={vehicleInfo}
+            valuationId={valuationId}
+          />
+          
+          <ExplanationSection
+            explanation={explanation}
+            loading={isLoadingExplanation}
+            error={explanationError}
+            onRegenerate={handleRegenerateExplanation}
+          />
+        </>
+      )}
+      
+      {displayMode === 'compact' && (
         <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-medium">Price Range</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <span>{formatCurrency(priceRangeToDisplay[0])}</span>
-                  <div className="h-2 bg-primary/20 rounded-full flex-1 mx-4">
-                    <div 
-                      className="h-2 bg-primary rounded-full" 
-                      style={{ width: '50%' }}
-                    ></div>
-                  </div>
-                  <span>{formatCurrency(priceRangeToDisplay[1])}</span>
-                </div>
-              </div>
-              
-              {valuationData.base_price && (
-                <div>
-                  <h3 className="text-sm font-medium">Base Value</h3>
-                  <p className="text-lg">{formatCurrency(valuationData.base_price)}</p>
-                </div>
-              )}
-              
-              <div className="pt-4 border-t">
-                <h3 className="text-lg font-medium mb-2">Vehicle Details</h3>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Year</p>
-                    <p>{valuationData.year}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Make</p>
-                    <p>{valuationData.make}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Model</p>
-                    <p>{valuationData.model}</p>
-                  </div>
-                  {valuationData.mileage && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Mileage</p>
-                      <p>{valuationData.mileage.toLocaleString()} miles</p>
-                    </div>
-                  )}
-                  {valuationData.condition && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Condition</p>
-                      <p className="capitalize">{valuationData.condition}</p>
-                    </div>
-                  )}
-                  {valuationData.vin && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">VIN</p>
-                      <p className="font-mono text-sm">{valuationData.vin}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">
+              View the full report for detailed condition analysis, market comparisons, and value adjustments.
+            </p>
           </CardContent>
         </Card>
       )}
