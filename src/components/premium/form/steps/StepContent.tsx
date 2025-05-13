@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { VehicleIdentificationStep } from './VehicleIdentificationStep';
 import type { FormData } from '@/types/premium-valuation';

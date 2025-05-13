@@ -145,6 +145,7 @@ export function ReviewSubmitStep({
           onClick={handleSubmitClick}
           disabled={isSubmitting || !isFormValid || submitted}
           className="h-12"
+          data-testid="submit-valuation"
         >
           {isSubmitting ? (
             <>

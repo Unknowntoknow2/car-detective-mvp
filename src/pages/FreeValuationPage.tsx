@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
@@ -214,7 +213,7 @@ export default function FreeValuationPage() {
             isFormValid={isFormValid}
             handleSubmit={handleSubmit}
             handleReset={handleReset}
-            isFreeVersion={true} // Pass this prop to indicate free version
+            isFreeVersion={true}
           />
         );
       default:
