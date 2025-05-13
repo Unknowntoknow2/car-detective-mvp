@@ -2,10 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { LoginForm } from '@/components/auth/forms/LoginForm';
-import { SignupForm } from '@/components/auth/forms/SignupForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Car, Building, User } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -13,9 +10,8 @@ import { motion } from 'framer-motion';
 const AuthPage = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('signin');
-  const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<'individual' | 'dealer' | null>(null);
+  const [authType, setAuthType] = useState<'signin' | 'signup'>('signin');
   
   // Redirect already logged in users
   useEffect(() => {
@@ -40,11 +36,13 @@ const AuthPage = () => {
   const handleUserTypeSelect = (type: 'individual' | 'dealer') => {
     setUserType(type);
     
-    // Navigate to the appropriate login page
-    if (type === 'individual') {
-      navigate('/login-user');
+    // Navigate to the appropriate page based on user type and auth type
+    if (authType === 'signin') {
+      navigate(type === 'individual' ? '/login-user' : '/login-dealer');
     } else {
-      navigate('/login-dealer');
+      // For signup, we'll redirect to a general registration page first
+      // with a query parameter indicating the user type
+      navigate(`/register?userType=${type}`);
     }
   };
 
@@ -66,7 +64,7 @@ const AuthPage = () => {
               <h1 className="text-3xl font-bold mb-4">Vehicle Valuation Made Simple</h1>
               <p className="text-gray-600 mb-6">
                 Get accurate vehicle valuations and connect with trusted dealers.
-                Create an account or sign in to save your valuations and receive offers.
+                {authType === 'signin' ? 'Sign in to access your account.' : 'Create an account to save your valuations and receive offers.'}
               </p>
               <div className="bg-primary/10 rounded-lg p-4 mb-4 border border-primary/20">
                 <h3 className="font-semibold mb-2">Why create an account?</h3>
@@ -97,8 +95,24 @@ const AuthPage = () => {
               <CardHeader className="space-y-1 text-center">
                 <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
                 <CardDescription>
-                  Choose how you want to sign in
+                  {authType === 'signin' ? 'Choose how you want to sign in' : 'Choose your account type'}
                 </CardDescription>
+                <div className="flex justify-center space-x-4 pt-2">
+                  <Button 
+                    variant={authType === 'signin' ? 'default' : 'outline'} 
+                    className="w-1/2"
+                    onClick={() => setAuthType('signin')}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    variant={authType === 'signup' ? 'default' : 'outline'} 
+                    className="w-1/2"
+                    onClick={() => setAuthType('signup')}
+                  >
+                    Sign Up
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -152,15 +166,8 @@ const AuthPage = () => {
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-2">Don't have an account?</p>
-                  <Button variant="default" className="w-full" onClick={() => navigate('/register')}>
-                    Create an Account
-                  </Button>
-                </div>
-                
                 <div className="text-center text-sm text-muted-foreground">
-                  <p>By signing up, you agree to our <Link to="/terms" className="text-primary hover:underline">Terms</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link></p>
+                  <p>By signing {authType === 'signin' ? 'in' : 'up'}, you agree to our <Link to="/terms" className="text-primary hover:underline">Terms</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link></p>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4 border-t pt-4">

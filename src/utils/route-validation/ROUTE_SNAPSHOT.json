@@ -14,5 +14,6 @@
   "/my-valuations",
   "/auth",
   "/login-user",
-  "/login-dealer"
+  "/login-dealer",
+  "/dealer-signup"
 ]

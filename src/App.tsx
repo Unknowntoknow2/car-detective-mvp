@@ -22,6 +22,7 @@ import RegisterPage from './pages/RegisterPage';
 import AuthPage from './pages/AuthPage';
 import LoginUserPage from './pages/LoginUserPage';
 import LoginDealerPage from './pages/LoginDealerPage';
+import DealerSignup from './pages/DealerSignup';
 
 // Lazy-loaded components for routes
 const LazyDealerInsightsPage = lazy(() => import('./pages/DealerInsightsPage'));
@@ -70,6 +71,7 @@ export const appRoutes = [
   { path: '/register', element: <RegisterPage /> },
   { path: '/login-user', element: <LoginUserPage /> },
   { path: '/login-dealer', element: <LoginDealerPage /> },
+  { path: '/dealer-signup', element: <DealerSignup /> },
   { path: '*', element: <NotFound /> }
 ];
 
@@ -95,20 +97,47 @@ function App() {
           <ValuationProvider>
             <EnhancedErrorBoundary context="app-root">
               <Routes>
+                {/* Home and Main Routes */}
                 <Route path="/" element={<MainLayout>{wrapWithErrorBoundary(<HomePage />, "home-page")}</MainLayout>} />
                 <Route path="/valuation/:valuationId" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<ValuationDetailPage />, "valuation-detail")}
                   </MainLayout>
                 } />
+                
+                {/* Authentication Routes */}
                 <Route path="/auth" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<AuthPage />, "auth-page")}
                   </MainLayout>
                 } />
+                <Route path="/login" element={
+                  <Navigate to="/auth" replace />
+                } />
+                <Route path="/register" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<RegisterPage />, "register")}
+                  </MainLayout>
+                } />
+                <Route path="/login-user" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<LoginUserPage />, "login-user")}
+                  </MainLayout>
+                } />
+                <Route path="/login-dealer" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<LoginDealerPage />, "login-dealer")}
+                  </MainLayout>
+                } />
+                <Route path="/dealer-signup" element={
+                  <MainLayout>
+                    {wrapWithErrorBoundary(<DealerSignup />, "dealer-signup")}
+                  </MainLayout>
+                } />
                 <Route path="/auth/*" element={<AuthLayout />} />
-                <Route path="/dashboard/*" element={<DashboardLayout />} />
                 
+                {/* Dashboard Routes */}
+                <Route path="/dashboard/*" element={<DashboardLayout />} />
                 <Route path="/dealer-dashboard" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<DealerDashboard />, "dealer-dashboard")}
@@ -122,6 +151,8 @@ function App() {
                     )}
                   </MainLayout>
                 } />
+                
+                {/* Feature Routes */}
                 <Route path="/premium" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(
@@ -143,6 +174,8 @@ function App() {
                     {wrapWithErrorBoundary(<MyValuationsPage />, "my-valuations")}
                   </MainLayout>
                 } />
+                
+                {/* Public Offer/Share Routes */}
                 <Route path="/view-offer/:token" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(<ViewOfferPage />, "view-offer")}
@@ -153,6 +186,8 @@ function App() {
                     {wrapWithErrorBoundary(<SharedValuationPage />, "share-valuation")}
                   </MainLayout>
                 } />
+                
+                {/* Payment Routes */}
                 <Route path="/payment/success" element={
                   <MainLayout>
                     {wrapWithErrorBoundary(
@@ -169,26 +204,8 @@ function App() {
                     )}
                   </MainLayout>
                 } />
-                <Route path="/login" element={
-                  <MainLayout>
-                    {wrapWithErrorBoundary(<LoginPage />, "login")}
-                  </MainLayout>
-                } />
-                <Route path="/register" element={
-                  <MainLayout>
-                    {wrapWithErrorBoundary(<RegisterPage />, "register")}
-                  </MainLayout>
-                } />
-                <Route path="/login-user" element={
-                  <MainLayout>
-                    {wrapWithErrorBoundary(<LoginUserPage />, "login-user")}
-                  </MainLayout>
-                } />
-                <Route path="/login-dealer" element={
-                  <MainLayout>
-                    {wrapWithErrorBoundary(<LoginDealerPage />, "login-dealer")}
-                  </MainLayout>
-                } />
+                
+                {/* Catch-all Route */}
                 <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
               </Routes>
               
