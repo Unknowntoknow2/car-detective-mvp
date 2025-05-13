@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { ManualVehicleInfo } from '@/hooks/useManualValuation';
+import { useVehicleDBData } from '@/hooks/useVehicleDBData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ManualVehicleFormProps {
   formData: ManualVehicleInfo;
@@ -24,6 +26,9 @@ export function ManualVehicleForm({
   error 
 }: ManualVehicleFormProps) {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const { makes, models, getModelsByMakeId, getYears, isLoading: isDataLoading, error: dataError } = useVehicleDBData();
+  const [loadingModels, setLoadingModels] = useState(false);
+  const years = getYears();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -40,11 +45,34 @@ export function ManualVehicleForm({
   const handleSelectChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
     
+    // If changing make, fetch models for this make and reset model
+    if (name === 'make') {
+      handleMakeChange(value);
+    }
+    
     // Clear validation error for this field if it exists
     if (validationErrors[name]) {
       const newErrors = { ...validationErrors };
       delete newErrors[name];
       setValidationErrors(newErrors);
+    }
+  };
+
+  const handleMakeChange = async (makeId: string) => {
+    try {
+      setLoadingModels(true);
+      setFormData(prev => ({ ...prev, make: makeId, model: '' }));
+      
+      // Get make name for display
+      const selectedMake = makes.find(m => m.id === makeId);
+      console.log(`Selected make: ${selectedMake?.make_name} (${makeId})`);
+      
+      // Fetch models for this make
+      await getModelsByMakeId(makeId);
+    } catch (err) {
+      console.error('Error handling make change:', err);
+    } finally {
+      setLoadingModels(false);
     }
   };
 
@@ -82,25 +110,36 @@ export function ManualVehicleForm({
 
   return (
     <form onSubmit={handleSubmitForm} className="space-y-6">
-      {error && (
+      {(error || dataError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error || dataError}</AlertDescription>
         </Alert>
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-2">
           <Label htmlFor="make">Make</Label>
-          <Input
-            id="make"
-            name="make"
-            value={formData.make || ''}
-            onChange={handleChange}
-            placeholder="e.g., Toyota"
-            disabled={isLoading}
-            className={validationErrors.make ? 'border-red-500' : ''}
-          />
+          {isDataLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select
+              disabled={isLoading || isDataLoading}
+              value={formData.make || ''}
+              onValueChange={(value) => handleSelectChange('make', value)}
+            >
+              <SelectTrigger id="make" className={validationErrors.make ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select make" />
+              </SelectTrigger>
+              <SelectContent>
+                {makes.map((make) => (
+                  <SelectItem key={make.id} value={make.id}>
+                    {make.make_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {validationErrors.make && (
             <p className="text-sm text-red-500">{validationErrors.make}</p>
           )}
@@ -108,15 +147,26 @@ export function ManualVehicleForm({
         
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
-          <Input
-            id="model"
-            name="model"
-            value={formData.model || ''}
-            onChange={handleChange}
-            placeholder="e.g., Camry"
-            disabled={isLoading}
-            className={validationErrors.model ? 'border-red-500' : ''}
-          />
+          {isDataLoading || loadingModels ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select
+              disabled={isLoading || !formData.make}
+              value={formData.model || ''}
+              onValueChange={(value) => handleSelectChange('model', value)}
+            >
+              <SelectTrigger id="model" className={validationErrors.model ? 'border-red-500' : ''}>
+                <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {models.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.model_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {validationErrors.model && (
             <p className="text-sm text-red-500">{validationErrors.model}</p>
           )}
@@ -124,18 +174,22 @@ export function ManualVehicleForm({
         
         <div className="space-y-2">
           <Label htmlFor="year">Year</Label>
-          <Input
-            id="year"
-            name="year"
-            type="number"
-            min="1900"
-            max={(new Date().getFullYear() + 1).toString()}
-            value={formData.year || ''}
-            onChange={handleChange}
-            placeholder="e.g., 2020"
+          <Select
             disabled={isLoading}
-            className={validationErrors.year ? 'border-red-500' : ''}
-          />
+            value={formData.year ? formData.year.toString() : ''}
+            onValueChange={(value) => handleSelectChange('year', value)}
+          >
+            <SelectTrigger id="year" className={validationErrors.year ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {validationErrors.year && (
             <p className="text-sm text-red-500">{validationErrors.year}</p>
           )}
