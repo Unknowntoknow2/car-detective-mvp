@@ -46,37 +46,61 @@ function App() {
             <Route path="decoder" element={<VpicDecoderPage />} />
             
             {/* Auth routes - redirect to dashboard if logged in */}
-            <Route element={<AuthRoute />}>
-              <Route path="login" element={<LoginPage />} />
-              <Route path="register" element={<RegisterPage />} />
-              <Route path="forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="reset-password" element={<ResetPasswordPage />} />
-            </Route>
+            <Route path="login" element={
+              <AuthRoute>
+                <LoginPage />
+              </AuthRoute>
+            } />
+            <Route path="register" element={
+              <AuthRoute>
+                <RegisterPage />
+              </AuthRoute>
+            } />
+            <Route path="forgot-password" element={
+              <AuthRoute>
+                <ForgotPasswordPage />
+              </AuthRoute>
+            } />
+            <Route path="reset-password" element={
+              <AuthRoute>
+                <ResetPasswordPage />
+              </AuthRoute>
+            } />
             
             {/* Protected routes - require authentication */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="premium-valuation" element={
+            <Route path="dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="settings" element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="premium-valuation" element={
+              <ProtectedRoute>
                 <React.Suspense fallback={<div>Loading...</div>}>
                   <PremiumValuationPage />
                 </React.Suspense>
-              } />
-              <Route path="my-valuations" element={
+              </ProtectedRoute>
+            } />
+            <Route path="my-valuations" element={
+              <ProtectedRoute>
                 <React.Suspense fallback={<div>Loading...</div>}>
                   <MyValuationsPage />
                 </React.Suspense>
-              } />
+              </ProtectedRoute>
+            } />
               
-              {/* Dealer-only routes */}
-              <Route element={<DealerGuard />}>
-                <Route path="dealer-dashboard" element={
-                  <React.Suspense fallback={<div>Loading...</div>}>
-                    <DealerDashboardPage />
-                  </React.Suspense>
-                } />
-              </Route>
-            </Route>
+            {/* Dealer-only routes */}
+            <Route path="dealer-dashboard" element={
+              <DealerGuard>
+                <React.Suspense fallback={<div>Loading...</div>}>
+                  <DealerDashboardPage />
+                </React.Suspense>
+              </DealerGuard>
+            } />
             
             {/* Error pages */}
             <Route path="access-denied" element={<AccessDeniedPage />} />
