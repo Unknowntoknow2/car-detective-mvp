@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -79,7 +80,7 @@ export default function ValuationResultPage() {
         setNotFoundState(true);
         setError('Valuation not found');
       } else {
-        // Initialize adjustments array if it doesn't exist
+        // Add an adjustments array to the valuation data if it doesn't exist
         const processedData = {
           ...data,
           adjustments: data.adjustments || []
@@ -130,8 +131,8 @@ const handleDownloadPdf = async () => {
   });
   
   try {
-    // Ensure we have an adjustments array even if it doesn't exist in the database result
-    const adjustments = valuation.adjustments || [
+    // Make sure the valuation has an adjustments array
+    const adjustmentsArray = valuation.adjustments || [
       {
         factor: 'Base Value',
         impact: 0,
@@ -152,7 +153,7 @@ const handleDownloadPdf = async () => {
         Math.floor(valuation.estimated_value * 0.95),
         Math.ceil(valuation.estimated_value * 1.05)
       ],
-      adjustments: adjustments,
+      adjustments: adjustmentsArray,
       generatedAt: new Date().toISOString(),
       zipCode: valuation.zip,
       vin: valuation.vin,
