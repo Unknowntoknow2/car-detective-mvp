@@ -5,11 +5,19 @@ import { generatePdf } from './pdfGenerator';
 import { ReportData, ReportOptions } from './types';
 
 const DEFAULT_OPTIONS: ReportOptions = {
+  // Required properties from ReportOptions
+  includeHeader: true,
+  includeFooter: true,
+  includePageNumbers: true,
+  includePhotos: true,
+  includeLegalDisclaimer: true,
+  theme: 'light',
+  
+  // Additional properties
   format: 'letter',
   orientation: 'portrait',
   margin: 50,
   includeBranding: true,
-  includeFooter: true,
   includeTimestamp: true,
   includePhotoAssessment: true,
   includeAIScore: true,

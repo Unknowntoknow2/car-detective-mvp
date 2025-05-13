@@ -1,3 +1,4 @@
+
 import { generatePdf } from './pdfGenerator';
 import { ReportData } from './types';
 import fs from 'node:fs';
@@ -22,6 +23,8 @@ const testReportData: ReportData = {
   priceRange: [16650, 20350],
   adjustments: [
     {
+      factor: 'Mileage',
+      impact: -500,
       name: 'Mileage',
       value: -500,
       description: 'Vehicle has higher than average mileage',
@@ -56,6 +59,8 @@ const testReportDataWithAICondition: ReportData = {
   priceRange: [16650, 20350],
   adjustments: [
     {
+      factor: 'Mileage',
+      impact: -500,
       name: 'Mileage',
       value: -500,
       description: 'Vehicle has higher than average mileage',
@@ -84,6 +89,8 @@ const testReportDataPremium: ReportData = {
   priceRange: [16650, 20350],
   adjustments: [
     {
+      factor: 'Mileage',
+      impact: -500,
       name: 'Mileage',
       value: -500,
       description: 'Vehicle has higher than average mileage',
