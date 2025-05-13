@@ -1,6 +1,8 @@
+
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { FactorSlider, ConditionOption } from './FactorSlider';
+import { FactorSlider } from './FactorSlider';
+import { ConditionOption } from './types';
 
 // Import directly from @testing-library/dom
 import { screen, fireEvent } from '@testing-library/dom';

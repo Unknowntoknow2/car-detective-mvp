@@ -1,80 +1,67 @@
 
+export interface ValuationConditionData {
+  mileage?: number;
+  accidents?: number;
+  year?: number;
+  titleStatus?: string;
+  exteriorGrade?: number;
+  interiorGrade?: number;
+  mechanicalGrade?: number;
+  tireCondition?: number;
+  [key: string]: any;
+}
+
 export interface ValuationPipelineStep {
   id: string;
-  name: string;
+  title: string;
   description?: string;
-  component: string;
-  isCompleted: boolean;
-  isActive: boolean;
-  data?: any;
+  isCompleted?: boolean;
+  isActive?: boolean;
+}
+
+export interface ValuationPipelineData {
+  vehicle?: any;
+  condition?: ValuationConditionData;
+  features?: string[];
+  location?: any;
+  photos?: File[];
+  result?: any;
 }
 
 export interface ValuationPipelineState {
   steps: ValuationPipelineStep[];
   currentStepIndex: number;
-  data: {
-    vehicle?: {
-      make?: string;
-      model?: string;
-      year?: number;
-      trim?: string;
-      vin?: string;
-      plate?: string;
-      state?: string;
-    };
-    condition?: {
-      accidents?: number;
-      mileage?: number;
-      year?: number;
-      titleStatus?: string;
-      overall?: number;
-      exteriorGrade?: string;
-      interiorGrade?: string;
-      mechanicalGrade?: string;
-      tireCondition?: string;
-    };
-    features?: string[];
-    location?: {
-      zipCode?: string;
-      marketTrend?: string;
-    };
-    photos?: File[];
-    result?: {
-      estimatedValue?: number;
-      confidenceScore?: number;
-      priceRange?: [number, number];
-      valuationId?: string;
-    };
-  };
-  isComplete: boolean;
+  data: ValuationPipelineData;
   isLoading: boolean;
   error?: string;
+  // Add these properties to match what's used in ValuationPage.tsx
+  stage?: string;
+  vehicle?: any;
+  requiredInputs?: any;
+  valuationResult?: any;
 }
 
-export interface ValuationConditionData {
-  accidents: number;
-  mileage: number;
-  year: number;
-  titleStatus: string;
-  overall?: number;
-  exteriorGrade?: string;
-  interiorGrade?: string;
-  mechanicalGrade?: string;
-  tireCondition?: string;
+export interface ValuationPipelineReducerAction {
+  type: string;
+  payload?: any;
 }
 
-export type ValuationPipelineAction =
-  | { type: 'NEXT_STEP' }
-  | { type: 'PREVIOUS_STEP' }
-  | { type: 'GO_TO_STEP'; payload: number }
-  | { type: 'SET_STEP_COMPLETED'; payload: { stepId: string; isCompleted: boolean } }
-  | { type: 'SET_VEHICLE_DATA'; payload: any }
-  | { type: 'SET_CONDITION_DATA'; payload: ValuationConditionData }
-  | { type: 'SET_FEATURES_DATA'; payload: string[] }
-  | { type: 'SET_LOCATION_DATA'; payload: any }
-  | { type: 'SET_PHOTOS_DATA'; payload: File[] }
-  | { type: 'SET_RESULT_DATA'; payload: any }
-  | { type: 'RESET_PIPELINE' }
-  | { type: 'START_LOADING' }
-  | { type: 'STOP_LOADING' }
-  | { type: 'SET_ERROR'; payload: string };
+export interface PipelineActions {
+  nextStep: () => void;
+  previousStep: () => void;
+  goToStep: (stepIndex: number) => void;
+  setStepCompleted: (stepId: string, isCompleted: boolean) => void;
+  setVehicleData: (data: any) => void;
+  setConditionData: (data: ValuationConditionData) => void;
+  setFeaturesData: (data: string[]) => void;
+  setLocationData: (data: any) => void;
+  setPhotosData: (data: File[]) => void;
+  setResultData: (data: any) => void;
+  resetPipeline: () => void;
+  startLoading: () => void;
+  stopLoading: () => void;
+  setError: (error: string) => void;
+  runLookup?: (type: string, identifier: string, state?: string, manualData?: any) => Promise<any>;
+  submitValuation?: (data: any) => Promise<any>;
+  reset?: () => void;
+}

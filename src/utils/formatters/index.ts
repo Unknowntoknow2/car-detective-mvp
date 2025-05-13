@@ -5,7 +5,8 @@ import {
   formatDate,
   formatNumber,
   formatRelativeTime,
-  manualEntryToJson
+  manualEntryToJson,
+  formatPercentage
 } from '@/utils/formatters';
 
 export {
@@ -13,5 +14,6 @@ export {
   formatDate,
   formatNumber,
   formatRelativeTime,
-  manualEntryToJson
+  manualEntryToJson,
+  formatPercentage
 };

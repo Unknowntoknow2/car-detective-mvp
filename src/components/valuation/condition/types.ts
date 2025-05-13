@@ -1,22 +1,5 @@
 
-export interface ConditionValues {
-  accidents: number;
-  mileage: number;
-  year: number;
-  titleStatus: string;
-  overall?: number;
-  exteriorGrade?: string;
-  interiorGrade?: string;
-  mechanicalGrade?: string;
-  tireCondition?: string;
-}
-
-export interface ConditionProps {
-  conditionValues: ConditionValues;
-  onConditionChange: (conditionValues: ConditionValues) => void;
-  onValidityChange?: (isValid: boolean) => void;
-  isLoading?: boolean;
-}
+export type ConditionRating = 'poor' | 'fair' | 'good' | 'excellent';
 
 export interface ConditionOption {
   value: number;
@@ -35,15 +18,6 @@ export interface FactorSliderProps {
   ariaLabel?: string;
 }
 
-export interface ConditionRating {
-  id: string;
-  name: string;
-  category: string;
-  value: number;
-  description?: string;
-  tip?: string;
-}
-
 export interface ConditionSliderProps {
   id: string;
   name: string;
@@ -51,7 +25,20 @@ export interface ConditionSliderProps {
   onChange: (value: number) => void;
 }
 
+export interface ConditionValues {
+  accidents: number;
+  mileage: number;
+  year: number;
+  titleStatus: string;
+  exteriorGrade?: number;
+  interiorGrade?: number;
+  mechanicalGrade?: number;
+  tireCondition?: number;
+}
+
 export interface ConditionEvaluationFormProps {
-  onSubmit: (values: ConditionValues, overallScore: number) => void;
+  initialValues?: Partial<ConditionValues>;
+  onSubmit?: (values: ConditionValues) => void;
   onCancel?: () => void;
+  isLoading?: boolean;
 }

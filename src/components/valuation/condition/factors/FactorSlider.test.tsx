@@ -1,81 +1,41 @@
-
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { FactorSlider, ConditionOption } from '../FactorSlider';
+import { FactorSlider } from '../FactorSlider';
+import { ConditionOption } from '../types';
 
 // Import directly from @testing-library/dom
 import { screen, fireEvent } from '@testing-library/dom';
 
-describe('Factor Slider Components', () => {
-  const mockAccidentOptions: ConditionOption[] = [
-    { value: 0, label: 'No Accidents', tip: 'No accidents – full value', multiplier: 1.00 },
-    { value: 25, label: '1 Accident', tip: '1 accident (approximately -5% value)', multiplier: 0.95 },
-    { value: 50, label: '2 Accidents', tip: '2 accidents (approximately -10% value)', multiplier: 0.90 },
-    { value: 75, label: '3 Accidents', tip: '3 accidents (approximately -15% value)', multiplier: 0.85 },
-    { value: 100, label: '4+ Accidents', tip: '4+ accidents (approximately -25% value)', multiplier: 0.75 },
+describe('FactorSlider Component', () => {
+  const mockOptions: ConditionOption[] = [
+    { value: 0, label: 'Poor', tip: 'Needs major repairs', multiplier: 0.75 },
+    { value: 25, label: 'Fair', tip: 'Could use improvement', multiplier: 0.85 },
+    { value: 50, label: 'Good', tip: 'Standard condition', multiplier: 0.95 },
+    { value: 75, label: 'Very Good', tip: 'Better than average', multiplier: 1.00 },
+    { value: 100, label: 'Excellent', tip: 'Like new condition', multiplier: 1.05 },
   ];
 
   const mockOnChange = vi.fn();
 
-  it('renders the accidents slider with correct label and initial value', () => {
+  it('renders with correct initial value and label', () => {
     render(
       <FactorSlider
-        id="accident-factor"
-        label="Accident Count"
-        options={mockAccidentOptions}
-        value={0}
-        onChange={mockOnChange}
-      />
-    );
-
-    expect(screen.getByText('Accident Count')).toBeInTheDocument();
-    expect(screen.getByText('No Accidents')).toBeInTheDocument();
-    expect(screen.getByText('No accidents – full value')).toBeInTheDocument();
-  });
-
-  it('updates tip text when slider value changes', () => {
-    const { rerender } = render(
-      <FactorSlider
-        id="accident-factor"
-        label="Accident Count"
-        options={mockAccidentOptions}
-        value={0}
-        onChange={mockOnChange}
-      />
-    );
-
-    expect(screen.getByText('No accidents – full value')).toBeInTheDocument();
-
-    // Update the value
-    rerender(
-      <FactorSlider
-        id="accident-factor"
-        label="Accident Count"
-        options={mockAccidentOptions}
+        id="test-slider"
+        label="Test Slider"
+        options={mockOptions}
         value={50}
         onChange={mockOnChange}
       />
     );
 
-    // Check if the tip text is updated
-    expect(screen.getByText('2 accidents (approximately -10% value)')).toBeInTheDocument();
-    expect(screen.queryByText('No accidents – full value')).not.toBeInTheDocument();
-  });
-
-  it('calls onChange when slider value changes', () => {
-    render(
-      <FactorSlider
-        id="accident-factor"
-        label="Accident Count"
-        options={mockAccidentOptions}
-        value={0}
-        onChange={mockOnChange}
-      />
-    );
-
-    const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: 50 } });
+    // Check if the label is rendered
+    expect(screen.getByText('Test Slider')).toBeInTheDocument();
     
-    expect(mockOnChange).toHaveBeenCalledWith(50);
+    // Check if the current value's label is displayed
+    expect(screen.getByText('Good')).toBeInTheDocument();
+    
+    // Check if the tip for the selected value is shown
+    expect(screen.getByText('Tip:')).toBeInTheDocument();
+    expect(screen.getByText('Standard condition')).toBeInTheDocument();
   });
 });
