@@ -8,7 +8,7 @@ import { UnifiedValuationHeader } from './header/UnifiedValuationHeader';
 import { supabase } from '@/utils/supabaseClient';
 import { formatCurrency } from '@/utils/formatters';
 
-interface UnifiedValuationResultProps {
+export interface UnifiedValuationResultProps {
   valuationId?: string;
   displayMode?: 'simple' | 'detailed' | 'full';
   estimatedValue?: number;
@@ -25,10 +25,14 @@ interface UnifiedValuationResultProps {
     year: number;
     make: string;
     model: string;
+    trim?: string;
     mileage?: number;
     condition?: string;
     vin?: string;
   };
+  isPremium?: boolean;
+  onUpgrade?: () => void;
+  valuation?: any;
 }
 
 export function UnifiedValuationResult({ 
@@ -40,7 +44,10 @@ export function UnifiedValuationResult({
   adjustments,
   onDownloadPdf,
   onEmailReport,
-  vehicleInfo
+  vehicleInfo,
+  isPremium,
+  onUpgrade,
+  valuation
 }: UnifiedValuationResultProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -155,16 +162,17 @@ export function UnifiedValuationResult({
   return (
     <div className="valuation-result space-y-6">
       <UnifiedValuationHeader
+        estimatedValue={valuationData.estimated_value}
+        confidenceScore={valuationData.confidence_score}
         year={valuationData.year}
         make={valuationData.make}
         model={valuationData.model}
-        valuation={valuationData.estimated_value}
-        confidenceScore={valuationData.confidence_score}
-        condition={valuationData.condition}
-        location={valuationData.state || valuationData.zip}
+        trim={valuationData.trim}
         mileage={valuationData.mileage}
+        condition={valuationData.condition}
         onDownloadPdf={onDownloadPdf}
         onShareReport={onEmailReport}
+        displayMode={displayMode}
       />
       
       {displayMode !== 'simple' && (

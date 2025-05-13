@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,9 +82,11 @@ export default function ValuationResultPage() {
           // Apply condition values from localStorage if available
           const conditionValues = getConditionValues();
           if (conditionValues) {
+            // Create adjustments array if it doesn't exist
+            data.adjustments = data.adjustments || [];
+            
             // Apply any condition adjustments to the valuation data
-            data.adjustments = [
-              ...(data.adjustments || []),
+            data.adjustments.push(
               {
                 factor: 'Mileage',
                 impact: conditionValues.mileage * -100, // Example calculation
@@ -96,7 +97,7 @@ export default function ValuationResultPage() {
                 impact: conditionValues.accidents * -250, // Example calculation
                 description: `${conditionValues.accidents} accidents reported`
               }
-            ];
+            );
           }
           
           setValuation(data);
@@ -218,22 +219,18 @@ export default function ValuationResultPage() {
               <UnifiedValuationResult
                 valuationId={valuationId!}
                 displayMode="full"
-                isPremium={valuation.premium_unlocked}
-                onUpgrade={() => {}}
-                valuation={{
+                vehicleInfo={{
                   make: valuation.make,
                   model: valuation.model,
                   year: valuation.year,
                   trim: valuation.trim,
-                  estimatedValue: valuation.estimated_value,
-                  confidenceScore: valuation.confidence_score,
                   mileage: valuation.mileage,
                   condition: valuation.condition,
-                  zipCode: valuation.zip,
-                  basePrice: valuation.base_price,
-                  adjustments: valuation.adjustments,
-                  priceRange: valuation.price_range
+                  vin: valuation.vin
                 }}
+                estimatedValue={valuation.estimated_value}
+                confidenceScore={valuation.confidence_score}
+                priceRange={valuation.price_range}
               />
             </TabsContent>
             

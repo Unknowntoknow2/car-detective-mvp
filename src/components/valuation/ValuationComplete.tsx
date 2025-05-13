@@ -197,7 +197,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         year={valuationData.year}
         make={valuationData.make}
         model={valuationData.model}
-        valuation={estimatedValue || 0}
+        estimatedValue={estimatedValue || 0}
         confidenceScore={photoSubmitted ? 92 : 85}
         condition={aiCondition?.condition || valuationData.condition}
         mileage={valuationData.mileage}
@@ -210,6 +210,7 @@ export function ValuationComplete({ valuationId, valuationData }: ValuationCompl
         calculationInProgress={calculationInProgress}
         bestPhotoUrl={bestPhotoUrl}
         isPremium={true}
+        vehicleInfo={valuationData}
       />
 
       {auditTrail && (

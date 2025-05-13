@@ -1,17 +1,23 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { VinLookup } from './VinLookup';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export const VinDecoderForm = () => {
+interface VinDecoderFormProps {
+  onSubmit?: (vin: string) => void;
+}
+
+export const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
   return (
     <Card className="bg-white">
       <CardHeader className="pb-2">
         <CardTitle className="text-xl">VIN Lookup</CardTitle>
       </CardHeader>
       <CardContent>
-        <VinLookup />
+        <VinLookup onSubmit={onSubmit} />
       </CardContent>
     </Card>
   );
 };
+
+export default VinDecoderForm;

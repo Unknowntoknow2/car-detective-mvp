@@ -11,7 +11,11 @@ import { toast } from '@/components/ui/use-toast';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { useState as useReactState } from 'react';
 
-export const VinLookup = () => {
+interface VinLookupProps {
+  onSubmit?: (vin: string) => void;
+}
+
+export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
   const [vinNumber, setVinNumber] = useState('');
   const { isLoading, error, result, lookupVin } = useVinDecoder();
   const navigate = useNavigate();
@@ -29,6 +33,13 @@ export const VinLookup = () => {
   const handleLookup = useCallback(() => {
     if (vinNumber) {
       console.log('FREE VIN: Submitting form with VIN:', vinNumber);
+      
+      // If an onSubmit prop is provided, call it and return early
+      if (onSubmit) {
+        onSubmit(vinNumber);
+        return;
+      }
+      
       lookupVin(vinNumber).then(response => {
         console.log('FREE VIN: Response from API:', response);
         if (response) {
@@ -49,7 +60,7 @@ export const VinLookup = () => {
         });
       });
     }
-  }, [vinNumber, lookupVin]);
+  }, [vinNumber, lookupVin, onSubmit]);
   
   const onReset = useCallback(() => {
     console.log('FREE VIN: Reset form triggered');
