@@ -20,6 +20,8 @@ export function useEmailPdf({ valuationId }: UseEmailPdfParams) {
     try {
       setIsEmailing(true);
       
+      let userName = null;
+      
       // If email is not provided, check if user is authenticated
       if (!email) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -27,6 +29,7 @@ export function useEmailPdf({ valuationId }: UseEmailPdfParams) {
         if (user?.email) {
           setUserEmail(user.email);
           email = user.email;
+          userName = user.user_metadata?.full_name || null;
         } else {
           // No email available - need to prompt user
           toast.error("Please provide an email address to receive the PDF");
@@ -40,7 +43,7 @@ export function useEmailPdf({ valuationId }: UseEmailPdfParams) {
         body: {
           valuationId,
           email,
-          userName: user?.user_metadata?.full_name || null,
+          userName,
         },
       });
       
