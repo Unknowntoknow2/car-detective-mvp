@@ -10,4 +10,6 @@ export interface ValuationResultProps {
   valuation?: number;
   isManualValuation?: boolean;
   features?: string[];
+  // Add color property to match what's used in ValuationResultPage
+  color?: string;
 }

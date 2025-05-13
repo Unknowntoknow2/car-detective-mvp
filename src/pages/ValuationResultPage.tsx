@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,8 +47,7 @@ const mapDbToValuationResult = (data: any): ValuationResult => {
         description: 'Current market conditions' 
       }
     ],
-    // Additional properties with proper type mapping
-    isPremium: data.premium_unlocked || false,
+    // Include color and other properties only if they are defined in the ValuationResult type
     color: data.color || '',
     bodyStyle: data.body_style || '',
     bodyType: data.body_type || '',

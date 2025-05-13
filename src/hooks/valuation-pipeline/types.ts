@@ -1,4 +1,3 @@
-
 export type IdentifierType = 'vin' | 'plate' | 'manual';
 
 export type Stage = 
@@ -47,6 +46,12 @@ export interface ValuationResult {
     impact: number;
     description: string;
   }>;
+  color?: string;
+  bodyType?: string;
+  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  features?: string[];
 }
 
 export interface ValuationPipelineState {
