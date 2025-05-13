@@ -1,7 +1,7 @@
 
 import { useReducer, useCallback } from 'react';
 import { initialValuationPipelineState, valuationPipelineReducer } from './service';
-import { ValuationConditionData } from './types';
+import { ValuationConditionData, ValuationPipelineState } from './types';
 
 export function useValuationPipeline() {
   const [state, dispatch] = useReducer(valuationPipelineReducer, initialValuationPipelineState);
