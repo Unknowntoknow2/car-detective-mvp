@@ -10,7 +10,7 @@ export interface DealerOffer {
   dealer_id: string;
   offer_amount: number;
   message?: string;
-  status: 'sent' | 'viewed' | 'accepted' | 'rejected';
+  status: 'sent' | 'viewed' | 'accepted' | 'rejected' | 'pending'; // Added 'pending' status
   created_at: string;
   score?: number;
   label?: string;
@@ -31,7 +31,14 @@ export function useDealerOfferComparison(valuationId?: string) {
           .order('score', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+        
+        // Ensure the status is one of the allowed values in our type
+        const typedData = data?.map(offer => ({
+          ...offer,
+          status: offer.status as DealerOffer['status']
+        })) || [];
+        
+        return typedData;
       } catch (error) {
         console.error('Error fetching dealer offers:', error);
         toast.error('Failed to load dealer offers');
