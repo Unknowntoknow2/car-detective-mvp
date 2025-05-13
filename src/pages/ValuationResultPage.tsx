@@ -16,6 +16,56 @@ import { DealerOfferList } from '@/components/valuation/offers/DealerOfferList';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationResult } from '@/types/valuation';
 
+// Helper function to map database fields to ValuationResult type
+const mapDbToValuationResult = (data: any): ValuationResult => {
+  return {
+    id: data.id,
+    make: data.make || '',
+    model: data.model || '',
+    year: data.year || 0,
+    mileage: data.mileage || 0,
+    condition: data.condition_score ? 
+              (data.condition_score >= 90 ? 'Excellent' : 
+               data.condition_score >= 75 ? 'Good' : 
+               data.condition_score >= 60 ? 'Fair' : 'Poor') : 
+              'Good',
+    zipCode: data.state || '',
+    estimatedValue: data.estimated_value || 0,
+    confidenceScore: data.confidence_score || 75,
+    priceRange: [
+      Math.round((data.estimated_value || 0) * 0.95),
+      Math.round((data.estimated_value || 0) * 1.05)
+    ] as [number, number],
+    adjustments: [
+      { 
+        factor: 'Base Condition', 
+        impact: 0, 
+        description: 'Baseline vehicle value' 
+      },
+      { 
+        factor: 'Market Demand', 
+        impact: 1.5, 
+        description: 'Current market conditions' 
+      }
+    ],
+    // Additional properties with proper type mapping
+    isPremium: data.premium_unlocked || false,
+    color: data.color || '',
+    bodyStyle: data.body_style || '',
+    bodyType: data.body_type || '',
+    fuelType: data.fuel_type || '',
+    transmission: data.transmission || '',
+    explanation: '',
+    bestPhotoUrl: undefined,
+    photoScore: undefined,
+    photoExplanation: '',
+    aiCondition: null,
+    features: [],
+    vin: data.vin,
+    created_at: data.created_at
+  };
+};
+
 const ValuationResultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -66,7 +116,9 @@ const ValuationResultPage: React.FC = () => {
         }
         
         console.log('Fetched valuation data:', data);
-        setValuationData(data);
+        
+        // Map database response to ValuationResult type
+        setValuationData(mapDbToValuationResult(data));
         
         // Check if there are any dealer offers for this valuation
         const { data: dealerOffers, error: offersError } = await supabase
@@ -105,42 +157,8 @@ const ValuationResultPage: React.FC = () => {
     }
     
     try {
-      // Format the valuation data for the PDF download
-      const pdfValuationData = {
-        id: valuationData.id,
-        make: valuationData.make,
-        model: valuationData.model,
-        year: valuationData.year,
-        mileage: valuationData.mileage,
-        condition: valuationData.condition_score ? 
-                  (valuationData.condition_score >= 90 ? 'Excellent' : 
-                   valuationData.condition_score >= 75 ? 'Good' : 
-                   valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
-                  'Good',
-        zipCode: valuationData.state || '',
-        estimatedValue: valuationData.estimated_value,
-        confidenceScore: valuationData.confidence_score,
-        priceRange: [
-          Math.round((valuationData.estimated_value || 0) * 0.95),
-          Math.round((valuationData.estimated_value || 0) * 1.05)
-        ] as [number, number],
-        adjustments: [
-          { 
-            factor: 'Base Condition', 
-            impact: 0, 
-            description: 'Baseline vehicle value' 
-          },
-          { 
-            factor: 'Market Demand', 
-            impact: 1.5, 
-            description: 'Current market conditions' 
-          }
-        ],
-        isPremium: valuationData.premium_unlocked || false
-      };
-      
-      // Call the PDF download function
-      await downloadValuationPdf(pdfValuationData);
+      // Use the valuationData directly since it's already in the correct format
+      await downloadValuationPdf(valuationData);
       
       toast({
         title: "Success",
@@ -209,7 +227,7 @@ const ValuationResultPage: React.FC = () => {
     if (!valuationData || !id) return;
     
     // Either redirect to premium or show a toast about dealer notifications
-    if (valuationData.premium_unlocked) {
+    if (valuationData.isPremium) {
       toast({
         title: "Dealers notified",
         description: "Local dealers have been notified about your vehicle.",
@@ -272,32 +290,6 @@ const ValuationResultPage: React.FC = () => {
     );
   }
 
-  // Determine condition from condition score
-  const condition = valuationData.condition_score ? 
-                  (valuationData.condition_score >= 90 ? 'Excellent' : 
-                   valuationData.condition_score >= 75 ? 'Good' : 
-                   valuationData.condition_score >= 60 ? 'Fair' : 'Poor') : 
-                  'Good';
-  
-  // Format the data for the UnifiedValuationResult component
-  const formattedData = {
-    id: valuationData.id,
-    vehicleInfo: {
-      make: valuationData.make,
-      model: valuationData.model,
-      year: valuationData.year,
-      mileage: valuationData.mileage,
-      condition: condition
-    },
-    estimatedValue: valuationData.estimated_value,
-    confidenceScore: valuationData.confidence_score,
-    priceRange: [
-      Math.round((valuationData.estimated_value || 0) * 0.95),
-      Math.round((valuationData.estimated_value || 0) * 1.05)
-    ] as [number, number], // Explicitly type as tuple
-    isPremium: valuationData.premium_unlocked || false
-  };
-
   return (
     <div className="container mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-8">Your Vehicle Valuation Result</h1>
@@ -313,10 +305,16 @@ const ValuationResultPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <UnifiedValuationResult 
-                vehicleInfo={formattedData.vehicleInfo}
-                estimatedValue={formattedData.estimatedValue}
-                confidenceScore={formattedData.confidenceScore}
-                priceRange={formattedData.priceRange}
+                vehicleInfo={{
+                  make: valuationData.make,
+                  model: valuationData.model,
+                  year: valuationData.year,
+                  mileage: valuationData.mileage,
+                  condition: valuationData.condition
+                }}
+                estimatedValue={valuationData.estimatedValue}
+                confidenceScore={valuationData.confidenceScore}
+                priceRange={valuationData.priceRange}
                 displayMode="full"
               />
             </CardContent>
