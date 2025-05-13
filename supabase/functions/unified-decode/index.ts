@@ -20,7 +20,9 @@ interface DecodedVehicle {
   vin?: string;
   mileage?: number;
   features?: string[];
-  condition?: number;
+  condition?: string;
+  zipCode?: string;
+  fuelType?: string;
 }
 
 interface DecodedVehicleError {
@@ -36,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, vin, licensePlate, state, manual, imageData } = await req.json();
+    const { type, vin, licensePlate, state, manual, imageData, zipCode } = await req.json();
     let decoded: DecodedVehicle | DecodedVehicleError;
 
     // Create Supabase client
@@ -57,7 +59,32 @@ serve(async (req) => {
         }
 
         try {
+          // First check if we already have this VIN in our decoded_vehicles table
+          const { data: cachedVehicle, error: cacheError } = await supabaseClient
+            .from('decoded_vehicles')
+            .select('*')
+            .eq('vin', vin)
+            .maybeSingle();
+            
+          if (!cacheError && cachedVehicle) {
+            console.log(`Found cached VIN data for ${vin}`);
+            
+            decoded = {
+              make: cachedVehicle.make,
+              model: cachedVehicle.model,
+              year: cachedVehicle.year,
+              trim: cachedVehicle.trim,
+              engine: cachedVehicle.engine,
+              transmission: cachedVehicle.transmission,
+              drivetrain: cachedVehicle.drivetrain,
+              bodyType: cachedVehicle.bodyType,
+              zipCode: zipCode // Add the zipcode from request if provided
+            };
+            break;
+          }
+
           // Call NHTSA API for VIN decoding
+          console.log(`Calling NHTSA API for VIN: ${vin}`);
           const response = await fetch(
             `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`
           );
@@ -81,34 +108,41 @@ serve(async (req) => {
 
           // Extract relevant fields from NHTSA response
           decoded = Results.reduce((acc: DecodedVehicle, item: any) => {
-            switch (item.Variable) {
-              case 'Make':
-                acc.make = item.Value;
-                break;
-              case 'Model':
-                acc.model = item.Value;
-                break;
-              case 'Model Year':
-                acc.year = parseInt(item.Value);
-                break;
-              case 'Trim':
-                acc.trim = item.Value;
-                break;
-              case 'Engine':
-                acc.engine = item.Value;
-                break;
-              case 'Transmission Style':
-                acc.transmission = item.Value;
-                break;
-              case 'Drive Type':
-                acc.drivetrain = item.Value;
-                break;
-              case 'Body Class':
-                acc.bodyType = item.Value;
-                break;
+            if (item.Value && item.Value !== 'Not Applicable') {
+              switch (item.Variable) {
+                case 'Make':
+                  acc.make = item.Value;
+                  break;
+                case 'Model':
+                  acc.model = item.Value;
+                  break;
+                case 'Model Year':
+                  acc.year = parseInt(item.Value);
+                  break;
+                case 'Trim':
+                  acc.trim = item.Value;
+                  break;
+                case 'Engine Configuration':
+                case 'Displacement (L)':
+                  if (!acc.engine) acc.engine = '';
+                  acc.engine += `${item.Value} `;
+                  break;
+                case 'Transmission Style':
+                  acc.transmission = item.Value;
+                  break;
+                case 'Drive Type':
+                  acc.drivetrain = item.Value;
+                  break;
+                case 'Body Class':
+                  acc.bodyType = item.Value;
+                  break;
+                case 'Fuel Type - Primary':
+                  acc.fuelType = item.Value;
+                  break;
+              }
             }
             return acc;
-          }, { make: '', model: '', year: 0 } as DecodedVehicle);
+          }, { make: '', model: '', year: 0, zipCode } as DecodedVehicle);
 
           // Validate required fields
           if (!decoded.make || !decoded.model || !decoded.year) {
@@ -120,12 +154,24 @@ serve(async (req) => {
             break;
           }
 
+          // Clean up and format engine info
+          if (decoded.engine) {
+            decoded.engine = decoded.engine.trim();
+          }
+
           // Store in decoded_vehicles table
           await supabaseClient
             .from('decoded_vehicles')
             .upsert([{ 
               vin,
-              ...decoded,
+              make: decoded.make,
+              model: decoded.model,
+              year: decoded.year,
+              trim: decoded.trim,
+              engine: decoded.engine,
+              transmission: decoded.transmission,
+              drivetrain: decoded.drivetrain,
+              bodyType: decoded.bodyType,
               timestamp: new Date().toISOString()
             }]);
         } catch (err) {
@@ -161,10 +207,12 @@ serve(async (req) => {
           }
 
           if (!data) {
+            // This would be where we'd call an external API for plate lookup
+            // For now we'll return a helpful error
             decoded = { 
               error: 'Plate not found', 
               code: 'PLATE_NOT_FOUND',
-              details: `No records found for plate ${licensePlate} in ${state}`
+              details: `No records found for plate ${licensePlate} in ${state}. Try using VIN or manual entry instead.`
             };
             break;
           }
@@ -174,7 +222,8 @@ serve(async (req) => {
             model: data.model,
             year: data.year,
             exteriorColor: data.color,
-            vin: data.vin
+            vin: data.vin,
+            zipCode: zipCode // Add the zipcode from request if provided
           };
         } catch (err) {
           console.error("Plate lookup error:", err);
@@ -201,7 +250,6 @@ serve(async (req) => {
           make: manual.make,
           model: manual.model,
           year: manual.year,
-          // Include optional fields if provided
           trim: manual.trim,
           engine: manual.engine,
           transmission: manual.transmission,
@@ -211,7 +259,9 @@ serve(async (req) => {
           vin: manual.vin,
           mileage: manual.mileage,
           features: manual.selectedFeatures,
-          condition: manual.condition
+          condition: manual.condition,
+          zipCode: manual.zipCode || zipCode,
+          fuelType: manual.fuelType
         };
         
         // Log the entry to help improve our database
@@ -229,6 +279,9 @@ serve(async (req) => {
             trim: manual.trim,
             body_type: manual.bodyType,
             user_ip: req.headers.get('x-forwarded-for') || 'unknown'
+          }).catch(err => {
+            // Silently fail if this table doesn't exist yet
+            console.warn("Could not save to manual_vehicle_entries:", err);
           });
         } catch (err) {
           // Just log the error, don't fail the request
@@ -238,48 +291,11 @@ serve(async (req) => {
         break;
       }
 
-      case 'photo': {
-        // In a real implementation, this would analyze the uploaded images
-        // For now, we use mock data based on the provided info
-        
-        // Check if we have basic image data (would be base64 in real implementation)
-        if (!imageData || imageData.length === 0) {
-          decoded = { 
-            error: 'No image data provided', 
-            code: 'MISSING_IMAGE_DATA' 
-          };
-          break;
-        }
-        
-        // In a production environment, this would call an AI image analysis service
-        console.log(`Processing ${imageData.length} vehicle photos`);
-        
-        // Mock response for demonstration purposes
-        // In a real implementation, we would extract data from images
-        decoded = {
-          make: "Toyota",
-          model: "Camry",
-          year: 2019,
-          trim: "SE",
-          exteriorColor: "Silver",
-          // Additional estimated fields that AI might detect
-          condition: 75, // Good condition
-          mileage: 45000, // Estimated from image (real AI might estimate this)
-          features: ["sunroof", "alloy_wheels", "led_headlights", "fog_lights"],
-          bodyType: "Sedan"
-        };
-        
-        // Log the photo analysis
-        console.log(`Photo analysis result:`, JSON.stringify(decoded));
-        
-        break;
-      }
-
       default:
         decoded = { 
           error: 'Invalid decode type', 
           code: 'INVALID_TYPE',
-          details: 'Type must be one of: vin, plate, manual, photo'
+          details: 'Type must be one of: vin, plate, manual'
         };
     }
 

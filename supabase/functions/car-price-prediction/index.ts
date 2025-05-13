@@ -1,395 +1,417 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { z } from "https://deno.land/x/zod@v3.21.4/mod.ts"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
-// Define CORS headers for browser requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Define the input schema using Zod for validation
-const ValuationRequestSchema = z.object({
-  make: z.string().min(1, "Make is required"),
-  model: z.string().min(1, "Model is required"),
-  year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
-  mileage: z.number().int().min(0).optional(),
-  condition: z.enum(["excellent", "good", "fair", "poor"]).optional().default("good"),
-  zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP code format"),
-  features: z.array(z.string()).optional(),
-  hasAccident: z.union([z.boolean(), z.enum(["yes", "no"])]).optional(),
-  accidentDetails: z.object({
-    count: z.string().optional(),
-    severity: z.string().optional(),
-    area: z.string().optional()
-  }).optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional(),
-  bodyType: z.string().optional(),
-  trim: z.string().optional(),
-  includeCarfax: z.boolean().optional(),
-  drivingProfile: z.string().optional(),
-  colorMultiplier: z.number().optional(),
-  exteriorColor: z.string().optional(),
-  interiorColor: z.string().optional(),
-  aiConditionOverride: z.object({
-    condition: z.enum(["Excellent", "Good", "Fair", "Poor"]),
-    confidenceScore: z.number()
-  }).optional()
-})
+interface ValuationInput {
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  accidentCount?: number;
+  accidentSeverity?: string;
+  accidentArea?: string;
+  accidentRepaired?: boolean;
+  tireCondition?: string;
+  hasLoan?: boolean;
+  loanAmount?: number;
+  vin?: string;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+  drivetrain?: string;
+  color?: string;
+}
 
-type ValuationRequest = z.infer<typeof ValuationRequestSchema>
+interface ValuationAdjustment {
+  factor: string;
+  impact: number;
+  description: string;
+}
+
+interface ValuationResult {
+  id: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  adjustments: ValuationAdjustment[];
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Parse the request body
-    const requestData = await req.json()
+    // Get the valuation input
+    const input: ValuationInput = await req.json();
     
-    console.log('Received car price prediction request:', requestData)
-    
-    // Validate the request data
-    const validationResult = ValuationRequestSchema.safeParse(requestData)
-    
-    if (!validationResult.success) {
-      console.error('Validation error:', validationResult.error)
+    // Validate required fields
+    if (!input.make || !input.model || !input.year || !input.mileage || !input.condition || !input.zipCode) {
       return new Response(
         JSON.stringify({ 
-          error: 'Invalid request data', 
-          details: validationResult.error.format() 
+          error: 'Missing required fields', 
+          details: 'Make, model, year, mileage, condition, and zipCode are required' 
         }),
         { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
-      )
+      );
+    }
+
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Extract user ID from authorization header if it exists
+    let userId: string | null = null;
+    const authHeader = req.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+        if (user && !error) {
+          userId = user.id;
+        }
+      } catch (error) {
+        console.warn('Failed to get user from token:', error);
+      }
+    }
+
+    // First, check if we have a base price for this make/model/year in our model_trims table
+    let basePrice: number | null = null;
+    const { data: modelData, error: modelError } = await supabaseClient
+      .from('model_trims')
+      .select('msrp')
+      .eq('year', input.year)
+      .ilike('model_name', `%${input.model}%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (!modelError && modelData && modelData.msrp) {
+      basePrice = modelData.msrp;
+      console.log(`Found base price from model_trims: $${basePrice}`);
     }
     
-    const data = validationResult.data
-    
-    // Calculate the base price using make, model, and year
-    const basePrice = calculateBasePrice(data.make, data.model, data.year)
-    
-    // Calculate adjustments based on various factors
-    const adjustments = calculateAdjustments(data, basePrice)
-    
-    // Sum up all adjustments
-    const totalAdjustmentValue = adjustments.reduce((sum, adj) => sum + adj.impact, 0)
-    
-    // Calculate final estimated value
-    const estimatedValue = Math.round(basePrice + totalAdjustmentValue)
-    
-    // Calculate confidence score (75-95%)
-    const confidenceScore = calculateConfidenceScore(data)
-    
-    // Create price range (±5%)
-    const priceRange: [number, number] = [
-      Math.round(estimatedValue * 0.95),
-      Math.round(estimatedValue * 1.05)
-    ]
-    
-    // Prepare and return the response
-    const response = {
-      baseValue: basePrice,
-      estimatedValue,
-      confidenceScore,
-      priceRange,
-      valuationFactors: adjustments
+    // If we don't have a base price, use a reasonable default based on the year
+    if (!basePrice) {
+      const currentYear = new Date().getFullYear();
+      const age = currentYear - input.year;
+      
+      // Very simple estimator based on age of vehicle
+      if (age <= 1) {
+        basePrice = 35000; // New vehicles
+      } else if (age <= 3) {
+        basePrice = 28000; // Recent models
+      } else if (age <= 5) {
+        basePrice = 22000; // Slightly older
+      } else if (age <= 10) {
+        basePrice = 15000; // Older vehicles
+      } else {
+        basePrice = 8000; // Very old vehicles
+      }
+      
+      console.log(`Using estimated base price based on age (${age} years): $${basePrice}`);
     }
     
-    console.log('Returning valuation:', response)
+    // Initialize adjustments array
+    const adjustments: ValuationAdjustment[] = [];
     
-    return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
-  } catch (error) {
-    console.error('Error in car-price-prediction function:', error)
+    // Apply mileage adjustment
+    let mileageAdjustment = 0;
+    // Average annual mileage is ~12,000 miles
+    const expectedMileage = input.year * 12000;
+    const mileageDifference = input.mileage - expectedMileage;
     
-    return new Response(
-      JSON.stringify({ error: 'Failed to predict car price', details: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-})
-
-// Function to calculate base price based on make, model, and year
-function calculateBasePrice(make: string, model: string, year: number): number {
-  // Normalize make and model to lowercase for consistent matching
-  const normMake = make.toLowerCase()
-  const normModel = model.toLowerCase()
-  
-  // Define base prices for popular makes
-  const makeMultipliers: Record<string, number> = {
-    'toyota': 1.0,
-    'honda': 0.98,
-    'ford': 0.92,
-    'chevrolet': 0.9,
-    'nissan': 0.88,
-    'hyundai': 0.85,
-    'kia': 0.83,
-    'subaru': 0.95,
-    'mazda': 0.93,
-    'volkswagen': 0.9,
-    'bmw': 1.2,
-    'mercedes': 1.25,
-    'audi': 1.15,
-    'lexus': 1.1,
-    'acura': 1.05,
-    'infiniti': 1.0,
-    'tesla': 1.3,
-    'porsche': 1.5
-  }
-  
-  // Luxury models that command higher prices
-  const luxuryModels = [
-    'model s', 'model x', '911', 'cayenne', '7 series', 's-class', 
-    'a8', 'ls', 'q7', 'x5', 'range rover'
-  ]
-  
-  // SUVs and trucks that tend to hold value better
-  const suvAndTrucks = [
-    'f-150', 'silverado', 'ram', 'sierra', 'tacoma', 'tundra', 'rav4',
-    'cr-v', 'highlander', 'pilot', 'explorer', 'escape', 'rogue', 'murano'
-  ]
-  
-  // Base calculation starting point based on year
-  // Newer cars have higher base values
-  const currentYear = new Date().getFullYear()
-  const age = currentYear - year
-  
-  let basePrice = 0
-  
-  // Base price calculation based on age
-  if (age <= 1) {
-    basePrice = 30000
-  } else if (age <= 3) {
-    basePrice = 25000
-  } else if (age <= 5) {
-    basePrice = 20000
-  } else if (age <= 10) {
-    basePrice = 15000
-  } else if (age <= 15) {
-    basePrice = 8000
-  } else {
-    basePrice = 3000
-  }
-  
-  // Apply make multiplier
-  const makeMultiplier = makeMultipliers[normMake] || 0.85
-  basePrice *= makeMultiplier
-  
-  // Apply model adjustments
-  if (luxuryModels.some(m => normModel.includes(m))) {
-    basePrice *= 1.4
-  } else if (suvAndTrucks.some(m => normModel.includes(m))) {
-    basePrice *= 1.15
-  }
-  
-  // Apply some randomization to make values look more realistic (±5%)
-  const randomFactor = 0.95 + Math.random() * 0.1
-  basePrice *= randomFactor
-  
-  // Round to nearest 100
-  return Math.round(basePrice / 100) * 100
-}
-
-// Function to calculate adjustments based on various factors
-function calculateAdjustments(data: ValuationRequest, basePrice: number): Array<{factor: string, impact: number, description: string}> {
-  const adjustments = []
-  
-  // 1. Mileage adjustment
-  if (data.mileage !== undefined) {
-    const averageMileage = (new Date().getFullYear() - data.year) * 12000
-    const mileageDifference = averageMileage - data.mileage
-    
-    // Calculate impact as percentage of base price
-    let mileageImpactPercentage = 0
     if (mileageDifference > 0) {
-      // Below average mileage (positive adjustment)
-      mileageImpactPercentage = Math.min(10, mileageDifference / 5000)
+      // Higher mileage reduces value
+      mileageAdjustment = -Math.min(basePrice * 0.15, mileageDifference * 0.05);
     } else {
-      // Above average mileage (negative adjustment)
-      mileageImpactPercentage = Math.max(-15, mileageDifference / 3000)
+      // Lower mileage increases value
+      mileageAdjustment = Math.min(basePrice * 0.08, Math.abs(mileageDifference) * 0.03);
     }
-    
-    const mileageImpact = Math.round((basePrice * mileageImpactPercentage) / 100)
     
     adjustments.push({
       factor: 'Mileage',
-      impact: mileageImpact,
-      description: mileageImpactPercentage > 0 
-        ? 'Lower than average mileage' 
-        : 'Higher than average mileage'
-    })
-  }
-  
-  // 2. Condition adjustment
-  const conditionMap: Record<string, number> = {
-    'excellent': 5,
-    'good': 0,
-    'fair': -5,
-    'poor': -15
-  }
-  
-  // Use the AI condition override if provided
-  let conditionValue = data.condition.toLowerCase()
-  if (data.aiConditionOverride) {
-    conditionValue = data.aiConditionOverride.condition.toLowerCase()
-  }
-  
-  const conditionPercentage = conditionMap[conditionValue as keyof typeof conditionMap] || 0
-  const conditionImpact = Math.round((basePrice * conditionPercentage) / 100)
-  
-  adjustments.push({
-    factor: 'Condition',
-    impact: conditionImpact,
-    description: `${conditionValue.charAt(0).toUpperCase() + conditionValue.slice(1)} condition`
-  })
-  
-  // 3. ZIP code market adjustment (varies by region)
-  // Real implementation would use actual market data by region
-  const zipPrefix = data.zipCode.substring(0, 1)
-  const zipMarketMultipliers: Record<string, number> = {
-    '0': 0.5,  // Northeast
-    '1': 0.75, // Northeast
-    '2': 0,    // Mid-Atlantic
-    '3': -0.5, // Southeast
-    '4': -1,   // Midwest
-    '5': -0.5, // South
-    '6': -0.25,// South/Central
-    '7': -0.75,// Central
-    '8': 0.5,  // Mountain
-    '9': 1     // West Coast
-  }
-  
-  const zipMarketPercentage = zipMarketMultipliers[zipPrefix] || 0
-  const zipMarketImpact = Math.round((basePrice * zipMarketPercentage) / 100)
-  
-  adjustments.push({
-    factor: 'Market Demand',
-    impact: zipMarketImpact,
-    description: zipMarketPercentage > 0 
-      ? 'High demand in your area' 
-      : zipMarketPercentage < 0 
-        ? 'Lower demand in your area' 
-        : 'Average demand in your area'
-  })
-  
-  // 4. Accident history adjustment
-  let hasAccident = false
-  if (typeof data.hasAccident === 'boolean') {
-    hasAccident = data.hasAccident
-  } else if (data.hasAccident === 'yes') {
-    hasAccident = true
-  }
-  
-  if (hasAccident) {
-    const accidentImpact = Math.round((basePrice * -7) / 100) // -7% for accident history
+      impact: mileageAdjustment,
+      description: mileageDifference > 0 
+        ? `Higher than average mileage (${input.mileage.toLocaleString()} vs expected ${expectedMileage.toLocaleString()})` 
+        : `Lower than average mileage (${input.mileage.toLocaleString()} vs expected ${expectedMileage.toLocaleString()})`
+    });
     
+    // Apply condition adjustment
+    let conditionMultiplier = 1.0;
+    let conditionDescription = '';
+    
+    switch (input.condition) {
+      case 'excellent':
+        conditionMultiplier = 1.1;
+        conditionDescription = 'Excellent condition - Like new with no visible issues';
+        break;
+      case 'good':
+        conditionMultiplier = 1.0;
+        conditionDescription = 'Good condition - Minor wear, well maintained';
+        break;
+      case 'fair':
+        conditionMultiplier = 0.9;
+        conditionDescription = 'Fair condition - Some wear, may need minor repairs';
+        break;
+      case 'poor':
+        conditionMultiplier = 0.75;
+        conditionDescription = 'Poor condition - Significant wear, needs repairs';
+        break;
+    }
+    
+    const conditionAdjustment = basePrice * (conditionMultiplier - 1);
     adjustments.push({
-      factor: 'Accident History',
-      impact: accidentImpact,
-      description: 'Previous accident record'
-    })
-  }
-  
-  // 5. Features adjustment (if provided)
-  if (data.features && data.features.length > 0) {
-    const featureImpact = Math.round((basePrice * data.features.length) / 100)
+      factor: 'Condition',
+      impact: conditionAdjustment,
+      description: conditionDescription
+    });
     
-    adjustments.push({
-      factor: 'Features',
-      impact: featureImpact,
-      description: `${data.features.length} additional feature${data.features.length > 1 ? 's' : ''}`
-    })
-  }
-  
-  // 6. Fuel type adjustment
-  if (data.fuelType) {
-    const fuelTypePercentages: Record<string, number> = {
-      'gasoline': 0,
-      'hybrid': 3,
-      'electric': 5,
-      'diesel': 2,
-      'plug-in hybrid': 4
-    }
-    
-    const normalizedFuelType = data.fuelType.toLowerCase()
-    const fuelPercentage = fuelTypePercentages[normalizedFuelType as keyof typeof fuelTypePercentages] || 0
-    const fuelImpact = Math.round((basePrice * fuelPercentage) / 100)
-    
-    if (fuelPercentage !== 0) {
+    // Apply accident history adjustment
+    if (input.accidentCount && input.accidentCount > 0) {
+      let accidentImpact = -basePrice * 0.05; // Default minor reduction
+      
+      if (input.accidentSeverity === 'moderate') {
+        accidentImpact = -basePrice * 0.1;
+      } else if (input.accidentSeverity === 'major') {
+        accidentImpact = -basePrice * 0.2;
+      }
+      
+      // If repaired, reduce the negative impact
+      if (input.accidentRepaired) {
+        accidentImpact = accidentImpact * 0.7; // 30% less impact if repaired
+      }
+      
       adjustments.push({
-        factor: 'Fuel Type',
-        impact: fuelImpact,
-        description: `${data.fuelType} powertrain`
-      })
+        factor: 'Accident History',
+        impact: accidentImpact,
+        description: `${input.accidentSeverity || 'Reported'} accident${input.accidentRepaired ? ' (repaired)' : ''}`
+      });
     }
-  }
-  
-  // 7. Color adjustment (if provided)
-  if (data.exteriorColor && data.colorMultiplier) {
-    const colorImpact = Math.round((basePrice * (data.colorMultiplier - 1)) / 100)
     
-    if (colorImpact !== 0) {
+    // Apply tire condition adjustment
+    if (input.tireCondition) {
+      let tireImpact = 0;
+      let tireDescription = '';
+      
+      switch (input.tireCondition) {
+        case 'new':
+          tireImpact = 400;
+          tireDescription = 'New tires - Recently replaced';
+          break;
+        case 'good':
+          tireImpact = 0;
+          tireDescription = 'Good tire condition';
+          break;
+        case 'fair':
+          tireImpact = -200;
+          tireDescription = 'Fair tire condition - Some wear';
+          break;
+        case 'poor':
+          tireImpact = -800;
+          tireDescription = 'Poor tire condition - Needs replacement soon';
+          break;
+      }
+      
+      if (tireImpact !== 0) {
+        adjustments.push({
+          factor: 'Tire Condition',
+          impact: tireImpact,
+          description: tireDescription
+        });
+      }
+    }
+    
+    // Apply market adjustment based on ZIP code (using simple regional multipliers)
+    let zipAdjustment = 0;
+    let zipDescription = 'Local market adjustment';
+    
+    // Check the pricing_curves or market_adjustments table first
+    const { data: zipData, error: zipError } = await supabaseClient
+      .from('zip_validations')
+      .select('city, state')
+      .eq('zip', input.zipCode)
+      .maybeSingle();
+    
+    let regionMultiplier = 1.0;
+    
+    if (!zipError && zipData) {
+      // We have the zip code in our database
+      const { data: marketData, error: marketError } = await supabaseClient
+        .from('market_adjustments')
+        .select('market_multiplier')
+        .eq('zip_code', input.zipCode)
+        .maybeSingle();
+      
+      if (!marketError && marketData) {
+        regionMultiplier = 1 + (marketData.market_multiplier / 100);
+        zipDescription = `${zipData.city}, ${zipData.state} market adjustment`;
+      } else {
+        // If no specific multiplier, use a simplified regional approach
+        const region = zipData.state;
+        
+        // Apply simple regional multipliers
+        switch (region) {
+          case 'CA':
+          case 'NY':
+          case 'FL':
+          case 'WA':
+            regionMultiplier = 1.05; // Higher demand areas
+            break;
+          case 'TX':
+          case 'IL':
+          case 'GA':
+            regionMultiplier = 1.02; // Medium demand
+            break;
+          case 'MI':
+          case 'OH':
+            regionMultiplier = 0.98; // Lower demand
+            break;
+          default:
+            regionMultiplier = 1.0; // Average demand
+        }
+        
+        zipDescription = `${zipData.city}, ${zipData.state} regional market`;
+      }
+    }
+    
+    zipAdjustment = basePrice * (regionMultiplier - 1);
+    
+    if (zipAdjustment !== 0) {
       adjustments.push({
-        factor: 'Exterior Color',
-        impact: colorImpact,
-        description: `${data.exteriorColor} exterior`
-      })
-    }
-  }
-  
-  // 8. Driving profile adjustment (if provided)
-  if (data.drivingProfile) {
-    const drivingProfileMap: Record<string, number> = {
-      'gentle': 2,
-      'average': 0,
-      'aggressive': -2
+        factor: 'Location',
+        impact: zipAdjustment,
+        description: zipDescription
+      });
     }
     
-    const drivingPercentage = drivingProfileMap[data.drivingProfile as keyof typeof drivingProfileMap] || 0
-    const drivingImpact = Math.round((basePrice * drivingPercentage) / 100)
-    
-    if (drivingPercentage !== 0) {
+    // Apply additional model-specific adjustments
+    if (input.fuelType === 'Electric') {
+      const evAdjustment = basePrice * 0.05;
       adjustments.push({
-        factor: 'Driving History',
-        impact: drivingImpact,
-        description: `${data.drivingProfile} driving profile`
-      })
+        factor: 'Electric Vehicle',
+        impact: evAdjustment,
+        description: 'Premium for electric vehicle'
+      });
+    } else if (input.fuelType === 'Hybrid') {
+      const hybridAdjustment = basePrice * 0.03;
+      adjustments.push({
+        factor: 'Hybrid Vehicle',
+        impact: hybridAdjustment,
+        description: 'Premium for hybrid powertrain'
+      });
     }
+    
+    // Calculate final value
+    const totalAdjustments = adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+    const estimatedValue = Math.round(basePrice + totalAdjustments);
+    
+    // Calculate confidence score based on data completeness
+    let confidenceScore = 85; // Base confidence
+    
+    // Adjust confidence based on data quality
+    if (input.vin) confidenceScore += 5;
+    if (input.trim) confidenceScore += 2;
+    if (input.bodyType) confidenceScore += 2;
+    if (input.accidentCount !== undefined) confidenceScore += 3;
+    
+    // Cap confidence score at 95
+    confidenceScore = Math.min(confidenceScore, 95);
+    
+    // Add +/- 5% price range
+    const priceRange: [number, number] = [
+      Math.round(estimatedValue * 0.95),
+      Math.round(estimatedValue * 1.05)
+    ];
+    
+    // Create the result object
+    const valuationResult: ValuationResult = {
+      id: crypto.randomUUID(),
+      estimatedValue,
+      confidenceScore,
+      priceRange,
+      adjustments,
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      mileage: input.mileage,
+      condition: input.condition,
+      zipCode: input.zipCode
+    };
+    
+    // Save to valuations table if user is authenticated
+    if (userId) {
+      try {
+        const { data: valuationData, error: valuationError } = await supabaseClient
+          .from('valuations')
+          .insert({
+            user_id: userId,
+            make: input.make,
+            model: input.model,
+            year: input.year,
+            mileage: input.mileage,
+            condition_score: conditionMultiplier * 100,
+            estimated_value: estimatedValue,
+            confidence_score: confidenceScore,
+            base_price: basePrice,
+            state: input.zipCode,
+            vin: input.vin,
+            color: input.color,
+            body_type: input.bodyType,
+            accident_count: input.accidentCount || 0,
+            zip_demand_factor: regionMultiplier
+          })
+          .select('id')
+          .single();
+        
+        if (!valuationError && valuationData) {
+          valuationResult.id = valuationData.id;
+          console.log(`Saved valuation with ID: ${valuationData.id}`);
+        }
+      } catch (err) {
+        console.error('Failed to save valuation:', err);
+        // Continue with the function even if saving fails
+      }
+    }
+    
+    // Return successful response
+    return new Response(
+      JSON.stringify(valuationResult),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (err) {
+    console.error('Valuation error:', err);
+    
+    // Return error response
+    return new Response(
+      JSON.stringify({ 
+        error: err instanceof Error ? err.message : 'Unknown error during valuation',
+        details: 'Please try again or contact support if the problem persists'
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
-  
-  return adjustments
-}
-
-// Function to calculate confidence score based on available data
-function calculateConfidenceScore(data: ValuationRequest): number {
-  let score = 80 // Base confidence score
-  
-  // Add points for completeness of data
-  if (data.mileage !== undefined) score += 2
-  if (data.condition) score += 2
-  if (data.features && data.features.length > 0) score += 1
-  if (data.fuelType) score += 1
-  if (data.transmission) score += 1
-  if (data.zipCode) score += 1
-  if (data.aiConditionOverride) score += 5
-  
-  // Deduct points for factors that reduce certainty
-  const currentYear = new Date().getFullYear()
-  const age = currentYear - data.year
-  if (age > 15) score -= 5
-  
-  if (typeof data.hasAccident === 'boolean' && data.hasAccident) score -= 3
-  else if (data.hasAccident === 'yes') score -= 3
-  
-  // Ensure score stays within 75-95 range
-  return Math.min(95, Math.max(75, score))
-}
+});

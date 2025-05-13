@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { toast } from 'sonner';
 
-type DecodeType = 'vin' | 'plate' | 'manual';
+type DecodeType = 'vin' | 'plate' | 'manual' | 'photo';
 
 interface ManualEntry {
   make: string;
@@ -15,6 +15,12 @@ interface ManualEntry {
   transmission?: string;
   drivetrain?: string;
   bodyType?: string;
+  exteriorColor?: string;
+  fuelType?: string;
+  mileage?: number;
+  selectedFeatures?: string[];
+  condition?: string;
+  zipCode?: string;
 }
 
 export function useUnifiedDecoder() {
@@ -29,6 +35,7 @@ export function useUnifiedDecoder() {
       licensePlate?: string;
       state?: string;
       manual?: ManualEntry;
+      zipCode?: string;
     }
   ) => {
     setIsLoading(true);
@@ -44,9 +51,32 @@ export function useUnifiedDecoder() {
       });
 
       if (fnError) throw new Error(fnError.message);
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error.message || data.error);
       
-      const decodedInfo = data.decoded as DecodedVehicleInfo;
+      if (!data.decoded) {
+        throw new Error('No vehicle data returned');
+      }
+      
+      if ('error' in data.decoded) {
+        throw new Error(data.decoded.error);
+      }
+      
+      const decodedInfo: DecodedVehicleInfo = {
+        make: data.decoded.make,
+        model: data.decoded.model,
+        year: data.decoded.year,
+        trim: data.decoded.trim,
+        mileage: data.decoded.mileage,
+        condition: data.decoded.condition,
+        zipCode: data.decoded.zipCode,
+        transmission: data.decoded.transmission,
+        fuelType: data.decoded.fuelType,
+        bodyType: data.decoded.bodyType,
+        drivetrain: data.decoded.drivetrain,
+        color: data.decoded.exteriorColor,
+        vin: params.vin || data.decoded.vin
+      };
+      
       setVehicleInfo(decodedInfo);
       
       toast.success(`Found: ${decodedInfo.year} ${decodedInfo.make} ${decodedInfo.model}`);
