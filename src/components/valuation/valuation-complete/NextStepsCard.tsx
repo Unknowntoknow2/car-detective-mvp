@@ -2,62 +2,93 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Download, Printer, Share2, History } from 'lucide-react';
+import { FileDown, Share2, Car } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export interface NextStepsCardProps {
   valuationId?: string;
-  onShareClick?: () => void;
   isPremium?: boolean;
+  onShareClick?: () => void;
+  onDownloadClick?: () => void;
 }
 
-export function NextStepsCard({ valuationId = '', onShareClick, isPremium = false }: NextStepsCardProps) {
+export function NextStepsCard({ 
+  valuationId, 
+  isPremium = false,
+  onShareClick,
+  onDownloadClick
+}: NextStepsCardProps) {
+  const navigate = useNavigate();
+
+  const handleShareClick = () => {
+    if (onShareClick) {
+      onShareClick();
+    } else {
+      // Default share behavior
+      if (navigator.share) {
+        navigator.share({
+          title: 'My Car Valuation',
+          text: 'Check out the valuation for my car!',
+          url: window.location.href,
+        });
+      } else {
+        // Fallback for browsers that don't support navigator.share
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+      }
+    }
+  };
+
+  const handleDownloadClick = () => {
+    if (onDownloadClick) {
+      onDownloadClick();
+    } else if (isPremium) {
+      // Default premium download behavior
+      navigate(`/download-report?valuationId=${valuationId}`);
+    } else {
+      // Prompt to upgrade
+      navigate(`/premium?valuationId=${valuationId}`);
+    }
+  };
+
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
         <CardTitle>Next Steps</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Button variant="outline" className="flex items-center justify-center gap-2">
-            <Download className="h-4 w-4" />
-            Save Report
-          </Button>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Button 
+              variant="outline" 
+              className="flex items-center justify-center gap-2"
+              onClick={handleShareClick}
+            >
+              <Share2 className="h-4 w-4" />
+              Share Valuation
+            </Button>
+            
+            <Button 
+              variant={isPremium ? "default" : "outline"}
+              className="flex items-center justify-center gap-2"
+              onClick={handleDownloadClick}
+            >
+              <FileDown className="h-4 w-4" />
+              {isPremium ? "Download PDF Report" : "Upgrade to Download"}
+            </Button>
+          </div>
           
-          <Button variant="outline" className="flex items-center justify-center gap-2">
-            <Printer className="h-4 w-4" />
-            Print Report
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center justify-center gap-2"
-            onClick={onShareClick}
-          >
-            <Share2 className="h-4 w-4" />
-            Share Report
-          </Button>
-          
-          <Button variant="outline" className="flex items-center justify-center gap-2" asChild>
-            <Link to="/valuations">
-              <History className="h-4 w-4" />
-              View History
-            </Link>
-          </Button>
+          {!isPremium && (
+            <Button 
+              variant="default" 
+              className="w-full flex items-center justify-center gap-2"
+              onClick={() => navigate(`/premium?valuationId=${valuationId}`)}
+            >
+              <Car className="h-4 w-4" />
+              Get Premium Valuation
+            </Button>
+          )}
         </div>
-        
-        <div className="pt-4">
-          <Button className="w-full" asChild>
-            <Link to={`/premium?valuationId=${valuationId}`}>
-              Upgrade to Premium
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        
-        <p className="text-sm text-muted-foreground text-center mt-2">
-          Get detailed insights and dealer offers with our Premium Valuation
-        </p>
       </CardContent>
     </Card>
   );

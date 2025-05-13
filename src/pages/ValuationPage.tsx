@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -55,17 +54,24 @@ const ValuationPage = () => {
   const [valuationId, setValuationId] = useState<string | null>(searchParams.get('valuationId'));
   
   // Initialize the valuation pipeline hook
+  const pipeline = useValuationPipeline();
+  
+  // Destructure values from the pipeline for easier access
   const {
-    stage,
-    vehicle,
-    requiredInputs,
-    valuationResult,
-    error: pipelineError,
-    isLoading: pipelineLoading,
-    runLookup,
-    submitValuation,
-    reset
-  } = useValuationPipeline();
+    state: {
+      stage,
+      vehicle,
+      requiredInputs,
+      valuationResult,
+      error: pipelineError,
+      isLoading: pipelineLoading,
+    },
+    actions: {
+      runLookup,
+      submitValuation,
+      reset
+    }
+  } = pipeline;
 
   // Initialize the form
   const form = useForm<FormValues>({
@@ -109,9 +115,9 @@ const ValuationPage = () => {
 
   // Effect to handle valuation result
   useEffect(() => {
-    if (valuationResult && valuationResult.id) {
-      setValuationId(valuationResult.id);
-      localStorage.setItem('latest_valuation_id', valuationResult.id);
+    if (valuationResult && valuationResult.valuationId) {
+      setValuationId(valuationResult.valuationId);
+      localStorage.setItem('latest_valuation_id', valuationResult.valuationId);
       
       // Move to photo upload step if we have a valuation ID
       if (currentStep < 2) {

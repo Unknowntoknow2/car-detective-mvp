@@ -154,11 +154,13 @@ export default function ValuationResult({
     <div className="container mx-auto p-4 space-y-6">
       {/* Header Section */}
       <ValuationHeader
-        make={make}
-        model={model}
-        year={year}
-        mileage={mileage}
-        condition={condition}
+        vehicleInfo={{
+          make,
+          model,
+          year,
+          mileage,
+          condition
+        }}
         estimatedValue={estimatedValue}
         isPremium={isPremium}
         additionalInfo={additionalInfo}

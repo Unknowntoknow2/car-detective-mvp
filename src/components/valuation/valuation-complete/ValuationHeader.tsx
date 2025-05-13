@@ -2,135 +2,118 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CircleCheck, CircleAlert } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 export interface ValuationHeaderProps {
+  // Allow either individual props or a vehicleInfo object
   vehicleInfo?: {
-    make?: string;
-    model?: string;
-    year?: number;
+    make: string;
+    model: string;
+    year: number;
     mileage?: number;
     condition?: string;
+    trim?: string;
   };
+  // Individual props
   make?: string;
   model?: string;
   year?: number;
   mileage?: number;
   condition?: string;
+  // Value props
   estimatedValue: number;
-  confidenceScore?: number;
-  displayMode?: 'card' | 'inline';
   isPremium?: boolean;
+  confidenceScore?: number;
+  calculationInProgress?: boolean;
   additionalInfo?: Record<string, string>;
+  // Action props
+  onShare?: () => void;
+  onSaveToAccount?: () => void;
+  isSaving?: boolean;
+  onDownload?: () => void;
 }
 
 export function ValuationHeader({
   vehicleInfo,
-  make: propMake,
-  model: propModel,
-  year: propYear,
-  mileage: propMileage,
-  condition: propCondition,
+  make,
+  model,
+  year,
+  mileage,
+  condition,
   estimatedValue,
-  confidenceScore = 75,
-  displayMode = 'card',
   isPremium = false,
-  additionalInfo = {}
+  confidenceScore,
+  calculationInProgress = false,
+  additionalInfo = {},
+  onShare,
+  onSaveToAccount,
+  isSaving = false,
+  onDownload
 }: ValuationHeaderProps) {
-  // Use either vehicleInfo object or individual props
-  const make = vehicleInfo?.make || propMake;
-  const model = vehicleInfo?.model || propModel;
-  const year = vehicleInfo?.year || propYear;
-  const mileage = vehicleInfo?.mileage || propMileage;
-  const condition = vehicleInfo?.condition || propCondition;
+  // Get values either from vehicleInfo or individual props
+  const vehicleMake = vehicleInfo?.make || make || 'Unknown';
+  const vehicleModel = vehicleInfo?.model || model || 'Unknown';
+  const vehicleYear = vehicleInfo?.year || year || new Date().getFullYear();
+  const vehicleMileage = vehicleInfo?.mileage || mileage;
+  const vehicleCondition = vehicleInfo?.condition || condition;
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-
-  const formatNumber = (value?: number) => {
-    if (!value) return 'N/A';
-    return new Intl.NumberFormat('en-US').format(value);
-  };
-
-  const getConfidenceLabel = (score: number) => {
-    if (score >= 90) return 'Very High';
-    if (score >= 80) return 'High';
-    if (score >= 70) return 'Good';
-    if (score >= 60) return 'Moderate';
-    return 'Low';
-  };
-
-  const getConfidenceColor = (score: number) => {
-    if (score >= 80) return 'bg-green-100 text-green-800';
-    if (score >= 70) return 'bg-emerald-100 text-emerald-800';
-    if (score >= 60) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-orange-100 text-orange-800';
-  };
-
-  const content = (
-    <div className="space-y-3">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <h2 className="text-xl font-bold">
-            {year} {make} {model}
-          </h2>
-          <div className="text-sm text-muted-foreground space-x-2">
-            {mileage && <span>{formatNumber(mileage)} miles</span>}
-            {condition && <span>• {condition} condition</span>}
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-2">
+              {vehicleYear} {vehicleMake} {vehicleModel}
+            </h2>
             
-            {/* Show additional vehicle details if available */}
-            {Object.entries(additionalInfo).map(([key, value]) => (
-              <span key={key}>• {value}</span>
-            ))}
-            
-            {isPremium && (
-              <Badge variant="outline" className="ml-2 bg-yellow-50 text-yellow-800 border-yellow-300">
-                Premium
-              </Badge>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {vehicleMileage && (
+                <Badge variant="outline" className="font-normal">
+                  {vehicleMileage.toLocaleString()} miles
+                </Badge>
+              )}
+              
+              {vehicleCondition && (
+                <Badge variant="outline" className="font-normal">
+                  {vehicleCondition}
+                </Badge>
+              )}
+              
+              {Object.entries(additionalInfo).map(([key, value]) => (
+                <Badge key={key} variant="outline" className="font-normal">
+                  {value}
+                </Badge>
+              ))}
+              
+              {isPremium && (
+                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
+                  Premium
+                </Badge>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center bg-slate-50 p-4 rounded-lg">
+            <div className="text-sm text-muted-foreground mb-1">Estimated Value</div>
+            {calculationInProgress ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-muted-foreground">Calculating...</span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold text-center">
+                {formatCurrency(estimatedValue)}
+              </div>
+            )}
+            {!calculationInProgress && confidenceScore && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {confidenceScore}% confidence
+              </div>
             )}
           </div>
         </div>
-        
-        <Badge
-          className={`${getConfidenceColor(confidenceScore)} px-2 py-1 text-xs flex items-center gap-1`}
-        >
-          {confidenceScore >= 70 ? (
-            <CircleCheck className="h-3 w-3" />
-          ) : (
-            <CircleAlert className="h-3 w-3" />
-          )}
-          {getConfidenceLabel(confidenceScore)} Confidence
-        </Badge>
-      </div>
-
-      <div className="border-t pt-3">
-        <div className="flex justify-between items-end">
-          <div>
-            <p className="text-sm text-muted-foreground">Estimated Value</p>
-            <p className="text-3xl font-bold text-primary">
-              {formatCurrency(estimatedValue)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">Based on current market data</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
-
-  if (displayMode === 'card') {
-    return (
-      <Card>
-        <CardContent className="p-6">{content}</CardContent>
-      </Card>
-    );
-  }
-
-  return content;
 }
