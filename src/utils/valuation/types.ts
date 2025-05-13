@@ -1,4 +1,3 @@
-
 // Define the base ValuationAdjustment interface
 export interface ValuationAdjustment {
   factor: string;
@@ -33,6 +32,7 @@ export interface ValuationParams {
   saleDate?: string;
   mpg?: number;
   aiConditionOverride?: any; // Added aiConditionOverride property
+  photoScore?: number; // Added photoScore property to fix the error
 }
 
 // Define ValuationResult interface
