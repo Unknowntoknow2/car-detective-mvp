@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { usePdfDownload } from '@/components/valuation/result/usePdfDownload';
 import { useEmailPdf } from '@/components/valuation/result/useEmailPdf';
 import EmailPdfModal from '@/components/valuation/result/EmailPdfModal';
+import { DealerOfferList } from '@/components/valuation/offers/DealerOfferList';
 
 const ValuationResultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -289,6 +291,11 @@ const ValuationResultPage: React.FC = () => {
               />
             </CardContent>
           </Card>
+          
+          {/* Add Dealer Offers Section */}
+          <div className="mb-6">
+            <DealerOfferList valuationId={id} />
+          </div>
           
           <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
             <Button variant="outline" onClick={handleStartNew}>
