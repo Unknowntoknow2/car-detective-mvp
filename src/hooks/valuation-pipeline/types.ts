@@ -34,17 +34,17 @@ export interface ValuationPipelineState {
   data: ValuationPipelineData;
   isLoading: boolean;
   error?: string;
-  // Add these properties to match what's used in ValuationPage.tsx
-  stage?: string;
-  vehicle?: any;
-  requiredInputs?: any;
-  valuationResult?: any;
+  // For compatibility with consumer code
+  isComplete?: boolean;
 }
 
 export interface ValuationPipelineReducerAction {
   type: string;
   payload?: any;
 }
+
+// Alias for backward compatibility
+export type ValuationPipelineAction = ValuationPipelineReducerAction;
 
 export interface PipelineActions {
   nextStep: () => void;

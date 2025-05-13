@@ -7,15 +7,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { ConditionRating } from './types';
-
-interface ConditionCategoryProps {
-  title: string;
-  description: string;
-  ratings: ConditionRating[];
-  selectedRating: string;
-  onSelect: (rating: ConditionRating) => void;
-}
+import { ConditionRatingOption, ConditionCategoryProps } from './types';
 
 export function ConditionCategory({
   title,

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConditionCategory } from './ConditionCategory';
 import { ConditionTips } from './ConditionTips';
-import { ConditionRating, ConditionValues, ConditionEvaluationFormProps } from './types';
+import { ConditionValues, ConditionEvaluationFormProps, ConditionRatingOption } from './types';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -50,9 +50,9 @@ const conditionCategories = {
   }
 };
 
-export function ConditionEvaluationForm({ onSubmit, onCancel }: ConditionEvaluationFormProps) {
+export function ConditionEvaluationForm({ onSubmit, onCancel, initialValues }: ConditionEvaluationFormProps) {
   const [activeCategory, setActiveCategory] = useState<string>('exterior');
-  const [selectedRatings, setSelectedRatings] = useState<Record<string, ConditionRating>>({
+  const [selectedRatings, setSelectedRatings] = useState<Record<string, ConditionRatingOption>>({
     exterior: conditionCategories.exterior.ratings[2], // Default to "Good"
     interior: conditionCategories.interior.ratings[2],
     mechanical: conditionCategories.mechanical.ratings[2],
@@ -60,28 +60,28 @@ export function ConditionEvaluationForm({ onSubmit, onCancel }: ConditionEvaluat
   });
   
   const [conditionValues, setConditionValues] = useState<ConditionValues>({
-    accidents: 0,
-    mileage: 0,
-    year: new Date().getFullYear(),
-    titleStatus: 'Clean',
-    exteriorGrade: 'Good',
-    interiorGrade: 'Good',
-    mechanicalGrade: 'Good',
-    tireCondition: 'Good'
+    accidents: initialValues?.accidents || 0,
+    mileage: initialValues?.mileage || 0,
+    year: initialValues?.year || new Date().getFullYear(),
+    titleStatus: initialValues?.titleStatus || 'Clean',
+    exteriorGrade: 90,
+    interiorGrade: 90,
+    mechanicalGrade: 90,
+    tireCondition: 90
   });
   
   // Update condition values when ratings change
   useEffect(() => {
     setConditionValues(prev => ({
       ...prev,
-      exteriorGrade: selectedRatings.exterior?.name || 'Good',
-      interiorGrade: selectedRatings.interior?.name || 'Good',
-      mechanicalGrade: selectedRatings.mechanical?.name || 'Good',
-      tireCondition: selectedRatings.tires?.name || 'Good'
+      exteriorGrade: selectedRatings.exterior?.value || 90,
+      interiorGrade: selectedRatings.interior?.value || 90,
+      mechanicalGrade: selectedRatings.mechanical?.value || 90,
+      tireCondition: selectedRatings.tires?.value || 90
     }));
   }, [selectedRatings]);
   
-  const handleRatingSelect = (category: string, rating: ConditionRating) => {
+  const handleRatingSelect = (category: string, rating: ConditionRatingOption) => {
     setSelectedRatings(prev => ({
       ...prev,
       [category]: rating
@@ -115,7 +115,9 @@ export function ConditionEvaluationForm({ onSubmit, onCancel }: ConditionEvaluat
     const values = Object.values(selectedRatings).map(r => r.value);
     const overallScore = values.reduce((sum, value) => sum + value, 0) / values.length;
     
-    onSubmit(conditionValues, overallScore);
+    if (onSubmit) {
+      onSubmit(conditionValues, overallScore);
+    }
   };
   
   const isLastCategory = activeCategory === Object.keys(conditionCategories)[Object.keys(conditionCategories).length - 1];

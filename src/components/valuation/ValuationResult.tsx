@@ -44,11 +44,10 @@ export default function ValuationResult({
         mileage: data.mileage || 0,
         year: data.year || 0,
         titleStatus: data.titleStatus || 'Clean',
-        overall: data.conditionScore || 80,
-        exteriorGrade: data.exteriorGrade || 'Good',
-        interiorGrade: data.interiorGrade || 'Good',
-        mechanicalGrade: data.mechanicalGrade || 'Good',
-        tireCondition: data.tireCondition || 'Good'
+        exteriorGrade: data.exteriorGrade || 90,
+        interiorGrade: data.interiorGrade || 90,
+        mechanicalGrade: data.mechanicalGrade || 90,
+        tireCondition: data.tireCondition || 90
       });
     }
   }, [data]);

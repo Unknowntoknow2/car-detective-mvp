@@ -1,68 +1,61 @@
-
-import { ValuationPipelineState, ValuationPipelineAction } from './types';
+import { ValuationPipelineState, ValuationPipelineReducerAction } from './types';
 
 // Initial state for the valuation pipeline
 export const initialValuationPipelineState: ValuationPipelineState = {
   steps: [
     {
       id: 'vehicle-identification',
-      name: 'Vehicle Identification',
+      title: 'Vehicle Identification',
       description: 'Identify your vehicle using VIN, license plate, or manual entry',
-      component: 'VehicleIdentificationStep',
       isCompleted: false,
       isActive: true
     },
     {
       id: 'vehicle-condition',
-      name: 'Vehicle Condition',
+      title: 'Vehicle Condition',
       description: 'Assess the condition of your vehicle',
-      component: 'VehicleConditionStep',
       isCompleted: false,
       isActive: false
     },
     {
       id: 'features',
-      name: 'Features',
+      title: 'Features',
       description: 'Select additional features your vehicle has',
-      component: 'VehicleFeaturesStep',
       isCompleted: false,
       isActive: false
     },
     {
       id: 'photos',
-      name: 'Photos',
+      title: 'Photos',
       description: 'Upload photos of your vehicle for a more accurate valuation',
-      component: 'VehiclePhotosStep',
       isCompleted: false,
       isActive: false
     },
     {
       id: 'location',
-      name: 'Location',
+      title: 'Location',
       description: 'Provide your location for regional price adjustments',
-      component: 'VehicleLocationStep',
       isCompleted: false,
       isActive: false
     },
     {
       id: 'result',
-      name: 'Valuation Result',
+      title: 'Valuation Result',
       description: 'View your vehicle valuation results',
-      component: 'ValuationResultStep',
       isCompleted: false,
       isActive: false
     }
   ],
   currentStepIndex: 0,
   data: {},
-  isComplete: false,
-  isLoading: false
+  isLoading: false,
+  isComplete: false
 };
 
 // Reducer for the valuation pipeline
 export function valuationPipelineReducer(
   state: ValuationPipelineState,
-  action: ValuationPipelineAction
+  action: ValuationPipelineReducerAction
 ): ValuationPipelineState {
   switch (action.type) {
     case 'NEXT_STEP':

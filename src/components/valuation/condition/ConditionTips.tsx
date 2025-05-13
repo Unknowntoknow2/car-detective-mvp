@@ -2,19 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoIcon } from 'lucide-react';
-import { ConditionRating } from './types';
-
-interface ConditionTipsProps {
-  selectedRatings: Record<string, ConditionRating>;
-}
+import { ConditionTipsProps } from './types';
 
 export function ConditionTips({ selectedRatings }: ConditionTipsProps) {
   // Extract tips from selected ratings
   const tips = Object.values(selectedRatings)
     .filter(rating => rating.tip)
     .map(rating => ({
-      category: rating.category,
-      tip: rating.tip as string
+      category: rating.category || '',
+      tip: rating.tip || ''
     }));
 
   if (tips.length === 0) {

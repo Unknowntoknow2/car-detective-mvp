@@ -4,15 +4,18 @@ import { initialValuationPipelineState, valuationPipelineReducer } from './servi
 import { ValuationConditionData, ValuationPipelineState, PipelineActions } from './types';
 
 interface ValuationPipelineHook {
-  state: ValuationPipelineState & {
-    stage?: string;
-    vehicle?: any;
-    requiredInputs?: any;
-    valuationResult?: any;
-    error?: string;
-    isLoading?: boolean;
-  };
+  state: ValuationPipelineState;
   actions: PipelineActions;
+  // Additional exported properties for backward compatibility
+  stage?: string;
+  vehicle?: any;
+  requiredInputs?: any;
+  valuationResult?: any;
+  error?: string;
+  isLoading?: boolean;
+  runLookup: (type: string, identifier: string, state?: string, manualData?: any) => Promise<any>;
+  submitValuation: (data: any) => Promise<any>;
+  reset: () => void;
 }
 
 export function useValuationPipeline(): ValuationPipelineHook {
@@ -176,33 +179,36 @@ export function useValuationPipeline(): ValuationPipelineHook {
 
   // Add alias for resetPipeline to match what's expected in ValuationPage
   const reset = resetPipeline;
+  
+  const actions = {
+    nextStep,
+    previousStep,
+    goToStep,
+    setStepCompleted,
+    setVehicleData,
+    setConditionData,
+    setFeaturesData,
+    setLocationData,
+    setPhotosData,
+    setResultData,
+    resetPipeline,
+    startLoading,
+    stopLoading,
+    setError
+  };
 
   return {
-    state: {
-      ...state,
-      stage,
-      vehicle,
-      requiredInputs,
-      valuationResult,
-    },
-    actions: {
-      nextStep,
-      previousStep,
-      goToStep,
-      setStepCompleted,
-      setVehicleData,
-      setConditionData,
-      setFeaturesData,
-      setLocationData,
-      setPhotosData,
-      setResultData,
-      resetPipeline,
-      startLoading,
-      stopLoading,
-      setError,
-      runLookup,
-      submitValuation,
-      reset
-    }
+    state,
+    actions,
+    // Directly expose these for backward compatibility
+    stage,
+    vehicle,
+    requiredInputs,
+    valuationResult,
+    error: state.error,
+    isLoading: state.isLoading,
+    runLookup,
+    submitValuation,
+    reset
   };
 }
