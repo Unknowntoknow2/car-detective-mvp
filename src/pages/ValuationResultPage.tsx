@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,101 +70,101 @@ export default function ValuationResultPage() {
           .select('*')
           .eq('id', valuationId)
           .single();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (!data) {
-          setNotFoundState(true);
-          setError('Valuation not found');
-        } else {
-          // Initialize adjustments array if it doesn't exist
-          const processedData = {
-            ...data,
-            adjustments: data.adjustments || []
-          };
-          
-          // Apply condition values from localStorage if available
-          const conditionValues = getConditionValues();
-          if (conditionValues && (!processedData.adjustments || processedData.adjustments.length === 0)) {
-            // Apply any condition adjustments to the valuation data
-            processedData.adjustments = [
-              {
-                factor: 'Mileage',
-                impact: conditionValues.mileage * -100, // Example calculation
-                description: `Adjusted for ${conditionValues.mileage === 0 ? 'low' : 'high'} mileage`
-              },
-              {
-                factor: 'Accidents',
-                impact: conditionValues.accidents * -250, // Example calculation
-                description: `${conditionValues.accidents} accidents reported`
-              }
-            ];
-          }
-          
-          setValuation(processedData);
-        }
-      } catch (error: any) {
-        console.error('Error fetching valuation:', error);
-        setError(error.message);
-        
-        // If the valuation wasn't found, show NotFound
-        if (error.code === 'PGRST116') {
-          setNotFoundState(true);
-        }
-      } finally {
-        setLoading(false);
+      
+      if (error) {
+        throw error;
       }
-    };
-    
-    fetchValuation();
-  }, [valuationId, navigate]);
-  
-  const handleDownloadPdf = async () => {
-    if (!valuation) return;
-    
-    toast({
-      title: "Generating PDF",
-      description: "Your valuation report is being generated and will download shortly.",
-    });
-    
-    try {
-      // Format the data according to the ReportData interface
-      const reportData = {
-        make: valuation.make,
-        model: valuation.model,
-        year: valuation.year,
-        mileage: valuation.mileage || 0,
-        condition: valuation.condition || 'Good',
-        estimatedValue: valuation.estimated_value,
-        confidenceScore: valuation.confidence_score,
-        priceRange: valuation.price_range || [
-          Math.floor(valuation.estimated_value * 0.95),
-          Math.ceil(valuation.estimated_value * 1.05)
-        ],
-        adjustments: valuation.adjustments || [],
-        generatedAt: new Date().toISOString(),
-        zipCode: valuation.zip,
-        vin: valuation.vin,
-        explanation: valuation.explanation,
-      };
       
-      await downloadPdf(reportData);
+      if (!data) {
+        setNotFoundState(true);
+        setError('Valuation not found');
+      } else {
+        // Initialize adjustments array if it doesn't exist
+        const processedData = {
+          ...data,
+          adjustments: data.adjustments || []
+        };
+        
+        // Apply condition values from localStorage if available
+        const conditionValues = getConditionValues();
+        if (conditionValues && (!processedData.adjustments || processedData.adjustments.length === 0)) {
+          // Apply any condition adjustments to the valuation data
+          processedData.adjustments = [
+            {
+              factor: 'Mileage',
+              impact: conditionValues.mileage * -100, // Example calculation
+              description: `Adjusted for ${conditionValues.mileage === 0 ? 'low' : 'high'} mileage`
+            },
+            {
+              factor: 'Accidents',
+              impact: conditionValues.accidents * -250, // Example calculation
+              description: `${conditionValues.accidents} accidents reported`
+            }
+          ];
+        }
+        
+        setValuation(processedData);
+      }
+    } catch (error: any) {
+      console.error('Error fetching valuation:', error);
+      setError(error.message);
       
-      toast({
-        title: "PDF Downloaded",
-        description: "Your valuation report has been downloaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast({
-        title: "Download Failed",
-        description: "There was an error generating your PDF. Please try again.",
-        variant: "destructive",
-      });
+      // If the valuation wasn't found, show NotFound
+      if (error.code === 'PGRST116') {
+        setNotFoundState(true);
+      }
+    } finally {
+      setLoading(false);
     }
   };
+  
+  fetchValuation();
+}, [valuationId, navigate]);
+
+const handleDownloadPdf = async () => {
+  if (!valuation) return;
+  
+  toast({
+    title: "Generating PDF",
+    description: "Your valuation report is being generated and will download shortly.",
+  });
+  
+  try {
+    // Format the data according to the ReportData interface
+    const reportData = {
+      make: valuation.make,
+      model: valuation.model,
+      year: valuation.year,
+      mileage: valuation.mileage || 0,
+      condition: valuation.condition || 'Good',
+      estimatedValue: valuation.estimated_value,
+      confidenceScore: valuation.confidence_score,
+      priceRange: valuation.price_range || [
+        Math.floor(valuation.estimated_value * 0.95),
+        Math.ceil(valuation.estimated_value * 1.05)
+      ],
+      adjustments: valuation.adjustments || [],
+      generatedAt: new Date().toISOString(),
+      zipCode: valuation.zip,
+      vin: valuation.vin,
+      explanation: valuation.explanation,
+    };
+    
+    await downloadPdf(reportData);
+    
+    toast({
+      title: "PDF Downloaded",
+      description: "Your valuation report has been downloaded successfully.",
+    });
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    toast({
+      title: "Download Failed",
+      description: "There was an error generating your PDF. Please try again.",
+      variant: "destructive",
+    });
+  }
+};
   
   if (loading) {
     return (

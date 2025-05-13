@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
@@ -99,6 +100,16 @@ export const routes = [
   },
   {
     path: '/valuation-result/:id',
+    element: (
+      <MainLayout>
+        <Suspense fallback={<Loading />}>
+          <ValuationResultPage />
+        </Suspense>
+      </MainLayout>
+    ),
+  },
+  {
+    path: '/result',
     element: (
       <MainLayout>
         <Suspense fallback={<Loading />}>
