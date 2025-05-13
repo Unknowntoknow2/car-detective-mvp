@@ -76,10 +76,14 @@ export function useManualValuation() {
         const newValuationId = crypto.randomUUID();
         setValuationId(newValuationId);
         
+        // Get the current user, handling the Promise correctly
+        const userResponse = await supabase.auth.getUser();
+        const userId = userResponse.data.user?.id;
+        
         // Store the valuation in the database
         await supabase.from('valuations').insert({
           id: newValuationId,
-          user_id: supabase.auth.getUser()?.data?.user?.id,
+          user_id: userId,
           year: formData.year,
           make: makeName,
           model: modelName,
