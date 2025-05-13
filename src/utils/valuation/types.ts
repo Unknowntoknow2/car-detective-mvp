@@ -21,6 +21,7 @@ export interface ValuationParams {
   make?: string;
   model?: string;
   year?: number;
+  vehicleYear?: number; // Added vehicleYear property for compatibility
   accidentCount?: number;
   trim?: string;
   bodyType?: string;
@@ -31,6 +32,7 @@ export interface ValuationParams {
   colorMultiplier?: number;
   saleDate?: string;
   mpg?: number;
+  aiConditionOverride?: any; // Added aiConditionOverride property
 }
 
 // Define ValuationResult interface
@@ -96,6 +98,8 @@ export interface FinalValuationResult extends ValuationResult {
   mileage?: number;
   condition?: string;
   features?: string[];
+  pdfUrl?: string; // Add pdfUrl property for test files
+  aiCondition?: any; // Add aiCondition property for test files
 }
 
 // Define ValuationInput interface for compatibility
