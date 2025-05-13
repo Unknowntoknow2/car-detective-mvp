@@ -12,6 +12,9 @@ export interface ManualVehicleInfo {
   condition?: string;
   valuation?: number;
   confidenceScore?: number;
+  fuelType?: string;
+  transmission?: string;
+  trim?: string;
 }
 
 export function useManualValuation() {
@@ -42,7 +45,7 @@ export function useManualValuation() {
     }
   }, [formData]);
 
-  const calculateValuation = async (data: ManualVehicleInfo) => {
+  const calculateValuation = async (data: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'>) => {
     // Simple valuation logic for demonstration
     // In a real app, this would call an API or use a more complex algorithm
     const baseValue = 20000; // Base value for a standard car
@@ -164,6 +167,7 @@ export function useManualValuation() {
     error,
     handleSubmit,
     valuationId,
-    resetForm
+    resetForm,
+    calculateValuation
   };
 }

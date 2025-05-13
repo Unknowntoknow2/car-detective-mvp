@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -138,7 +137,7 @@ const ValuationResultPage: React.FC = () => {
     priceRange: [
       Math.round((valuationData.estimated_value || 0) * 0.95),
       Math.round((valuationData.estimated_value || 0) * 1.05)
-    ],
+    ] as [number, number], // Explicitly type as tuple
     isPremium: valuationData.premium_unlocked || false
   };
 
