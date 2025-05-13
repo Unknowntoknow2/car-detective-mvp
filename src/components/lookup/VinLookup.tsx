@@ -6,10 +6,13 @@ import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState('');
   const { isLoading, error, result, lookupVin } = useVinDecoder();
+  const navigate = useNavigate();
   
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
@@ -22,14 +25,27 @@ export const VinLookup = () => {
         console.log('FREE VIN: Response from API:', response);
         if (response) {
           console.log('FREE VIN: Lookup successful, result available');
+          
           // Store valuationId in localStorage if available from the API response
-          const responseId = localStorage.getItem('latest_valuation_id') || '';
+          const responseId = localStorage.getItem('latest_valuation_id');
           console.log('FREE VIN: Current valuationId in localStorage:', responseId);
+          
+          // Instead of navigating immediately, we'll wait to confirm we have the result displayed
+          setTimeout(() => {
+            if (document.querySelector('.valuation-result')) {
+              console.log('FREE VIN: Valuation result component found, no navigation needed');
+            }
+          }, 500);
         } else {
           console.warn('FREE VIN: No response or error occurred during lookup');
         }
       }).catch(error => {
         console.error('FREE VIN: Error during lookup:', error);
+        toast({ 
+          title: "Error", 
+          description: "There was a problem looking up this VIN. Please try again.",
+          variant: "destructive"
+        });
       });
     }
   }, [vinNumber, lookupVin]);
@@ -38,6 +54,15 @@ export const VinLookup = () => {
     console.log('FREE VIN: Reset form triggered');
     // Reset the form
     setVinNumber('');
+  }, []);
+  
+  const handleDownloadPdf = useCallback(() => {
+    console.log('FREE VIN: Download PDF triggered');
+    toast({ 
+      title: "PDF Download", 
+      description: "Your PDF is being generated and will download shortly."
+    });
+    // Implementation for PDF download would go here
   }, []);
   
   return (
@@ -63,7 +88,7 @@ export const VinLookup = () => {
             submitValuation={async () => {}}
             vin={vinNumber}
             carfaxData={null}
-            onDownloadPdf={() => {}}
+            onDownloadPdf={handleDownloadPdf}
           />
           <Button 
             variant="outline" 

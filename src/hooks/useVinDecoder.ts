@@ -1,88 +1,151 @@
 
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import type { DecodedVehicleInfo } from '@/types/vehicle';
-import { toast } from 'sonner';
-
-interface VinDecoderResult {
-  vin: string;
-  make: string; 
-  model: string; 
-  year: number; 
-  trim?: string;
-  fuelType?: string;
-  engine?: string;
-  mileage?: number;
-  transmission: string;
-  drivetrain?: string;
-  bodyType?: string;
-}
+import { supabase } from '@/utils/supabaseClient';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export function useVinDecoder() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<VinDecoderResult | null>(null);
+  const [result, setResult] = useState<DecodedVehicleInfo | null>(null);
+  const [valuationId, setValuationId] = useState<string | null>(null);
 
-  const lookupVin = async (vin: string): Promise<VinDecoderResult | null> => {
-    if (!vin || vin.length !== 17) {
-      setError('Invalid VIN. Must be a 17-character string.');
-      toast.error("Please enter a valid 17-character VIN.");
-      return null;
-    }
-    
+  const lookupVin = async (vin: string): Promise<DecodedVehicleInfo | null> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('VIN DECODER: Starting lookup for VIN:', vin);
+      // First try to get from cached results
+      const { data: cachedData } = await supabase
+        .from('decoded_vehicles')
+        .select('*')
+        .eq('vin', vin)
+        .single();
       
-      // Call the Supabase edge function directly
-      const { data, error } = await supabase.functions.invoke('decode-vin', {
-        body: { vin }
-      });
-      
-      console.log('VIN DECODER: Raw response from API:', data);
-      
-      if (error) {
-        console.error('VIN DECODER: Supabase function error:', error);
-        throw new Error(`VIN lookup failed: ${error.message}`);
+      if (cachedData) {
+        console.log('Found cached VIN data:', cachedData);
+        setResult(cachedData);
+        
+        // Create a valuation record for this lookup
+        const valuationId = crypto.randomUUID();
+        
+        // Get user if logged in, otherwise use null
+        const userResponse = await supabase.auth.getUser();
+        const userId = userResponse.data.user?.id;
+        
+        // Store valuation result
+        const { data: valuationData, error: valuationError } = await supabase
+          .from('valuations')
+          .insert({
+            id: valuationId,
+            user_id: userId,
+            vin: vin,
+            make: cachedData.make,
+            model: cachedData.model,
+            year: cachedData.year,
+            is_vin_lookup: true,
+            // Set default values
+            mileage: 50000,
+            condition: 'good',
+            estimated_value: 15000, // This is a placeholder - would normally come from a pricing algorithm
+            confidence_score: 70,
+            base_price: 15000,
+          })
+          .select()
+          .single();
+        
+        if (valuationError) {
+          console.error('Error creating valuation record:', valuationError);
+        } else {
+          console.log('Created valuation record:', valuationData);
+          setValuationId(valuationId);
+          localStorage.setItem('latest_valuation_id', valuationId);
+        }
+        
+        return cachedData;
       }
       
-      if (!data || data.error) {
-        console.error('VIN DECODER: Invalid or error response:', data?.error || 'No data returned');
-        throw new Error(data?.error || 'Invalid response from VIN decoder');
+      // If not cached, call the unified decode edge function
+      const response = await fetch(
+        'https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/unified-decode',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'vin',
+            vin: vin,
+          }),
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
-      const decodedVehicle: VinDecoderResult = {
-        vin,
-        make: data.make || 'Unknown',
-        model: data.model || 'Unknown',
-        year: data.year || 0,
-        trim: data.trim,
-        fuelType: data.fuelType || data.fuel_type,
-        engine: data.engine,
-        transmission: data.transmission || 'Unknown',
-        drivetrain: data.drivetrain,
-        bodyType: data.bodyType || data.body_type
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error.message || data.error);
+      }
+      
+      if (!data.decoded) {
+        throw new Error('No data returned from VIN decoder');
+      }
+      
+      // If there's an error in the decoded data
+      if (data.decoded.error) {
+        throw new Error(data.decoded.error);
+      }
+      
+      const decodedData: DecodedVehicleInfo = {
+        vin: vin,
+        ...data.decoded
       };
       
-      console.log('VIN DECODER: Successfully decoded vehicle:', decodedVehicle);
+      console.log('Decoded VIN data:', decodedData);
+      setResult(decodedData);
       
-      setResult(decodedVehicle);
-      toast.success(`VIN Decoded: ${decodedVehicle.year} ${decodedVehicle.make} ${decodedVehicle.model}`);
+      // Create a valuation record for this lookup
+      const valuationId = crypto.randomUUID();
       
-      // After successful decoding, check if we have a valuation ID to store
-      const storedValuationId = localStorage.getItem('latest_valuation_id');
-      console.log('VIN DECODER: Current valuation ID in localStorage:', storedValuationId);
+      // Get user if logged in, otherwise use null
+      const userResponse = await supabase.auth.getUser();
+      const userId = userResponse.data.user?.id;
       
-      return decodedVehicle;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error during VIN lookup';
-      console.error('VIN DECODER: Error during lookup:', errorMessage);
-      setError(errorMessage);
-      toast.error(errorMessage);
+      // Store valuation result
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .insert({
+          id: valuationId,
+          user_id: userId,
+          vin: vin,
+          make: decodedData.make,
+          model: decodedData.model,
+          year: decodedData.year,
+          is_vin_lookup: true,
+          // Set default values
+          mileage: 50000,
+          condition: 'good',
+          estimated_value: 15000, // This is a placeholder - would normally come from a pricing algorithm
+          confidence_score: 70,
+          base_price: 15000,
+        })
+        .select()
+        .single();
       
+      if (valuationError) {
+        console.error('Error creating valuation record:', valuationError);
+      } else {
+        console.log('Created valuation record:', valuationData);
+        setValuationId(valuationId);
+        localStorage.setItem('latest_valuation_id', valuationId);
+      }
+      
+      return decodedData;
+    } catch (err: any) {
+      console.error('Error in VIN lookup:', err);
+      setError(err.message);
       return null;
     } finally {
       setIsLoading(false);
@@ -93,6 +156,7 @@ export function useVinDecoder() {
     lookupVin,
     isLoading,
     error,
-    result
+    result,
+    valuationId
   };
 }
