@@ -4,15 +4,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { InfoIcon } from 'lucide-react';
 import { ConditionTipsProps } from './types';
 
-export function ConditionTips({ category, tip, selectedRatings }: ConditionTipsProps) {
+export function ConditionTips({ category, tip, selectedRatings }: Partial<ConditionTipsProps>) {
   // Use the passed tip or get from selected ratings if available
   const tipText = tip || 
     (selectedRatings && 
+     category &&
      selectedRatings[category.toLowerCase()] && 
      selectedRatings[category.toLowerCase()].description) || 
-    "No tips available for this condition.";
-  
-  if (!tipText) return null;
+    "Adjust the sliders above to rate your vehicle's condition in each category.";
   
   return (
     <Card className="bg-blue-50 border-blue-200">

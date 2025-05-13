@@ -19,7 +19,7 @@ export default function PremiumConditionEvaluationPage() {
     console.log("Condition assessment values:", values);
     
     // Calculate overall score here if needed
-    const overallScore = Object.values(values).reduce((sum, value) => sum + value, 0) / Object.values(values).length;
+    const overallScore = Object.values(values).reduce((sum, value) => sum + (typeof value === 'number' ? value : 0), 0) / Object.values(values).length;
     console.log("Overall condition score:", overallScore);
     
     // Store values in local storage for use in the valuation process

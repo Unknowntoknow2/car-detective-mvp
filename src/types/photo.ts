@@ -72,6 +72,7 @@ export interface AdjustmentBreakdown {
   value: number;
   description: string;
   percentAdjustment: number;
+  adjustment?: number;  // Add the adjustment property
 }
 
 // Constants

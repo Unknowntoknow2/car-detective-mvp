@@ -1,3 +1,4 @@
+
 // Define the base ValuationAdjustment interface
 export interface ValuationAdjustment {
   factor: string;
@@ -6,7 +7,7 @@ export interface ValuationAdjustment {
   name?: string;
   value?: number;
   percentAdjustment?: number;
-  adjustment?: number;
+  adjustment?: number; // Add this property
   impactPercentage?: number;
 }
 

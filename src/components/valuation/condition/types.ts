@@ -1,5 +1,10 @@
 
 export interface ConditionValues {
+  exterior?: number;
+  interior?: number;
+  mechanical?: number;
+  title?: number;
+  undercarriage?: number;
   accidents?: number;
   mileage?: number;
   year?: number;
@@ -28,12 +33,15 @@ export interface ConditionSliderProps {
 }
 
 export interface ConditionCategoryProps {
-  title: string;
+  title?: string;
   description?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   ratings?: ConditionRatingOption[];
   selectedRating?: ConditionRatingOption | null;
   onSelect?: (rating: ConditionRatingOption) => void;
+  name: string;
+  label: string;
+  form: any;
 }
 
 export interface ConditionTipsProps {
@@ -43,7 +51,7 @@ export interface ConditionTipsProps {
 }
 
 export interface ConditionEvaluationFormProps {
-  initialValues?: ConditionValues;
+  initialValues?: Partial<ConditionValues>;
   onSubmit: (values: ConditionValues) => void;
   isLoading?: boolean;
   onCancel?: () => void;

@@ -26,7 +26,11 @@ export default function ValuationDetailPage() {
   }
   
   // Add error handling for string or Error objects
-  const errorMessage = error ? (typeof error === 'string' ? error : error.message || "Unknown error") : "Failed to load valuation details";
+  const errorMessage = error 
+    ? (typeof error === 'object' && error !== null && 'message' in error 
+        ? String(error.message) 
+        : String(error)) 
+    : "Failed to load valuation details";
   
   if (error || !valuation) {
     return (

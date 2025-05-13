@@ -1,32 +1,61 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ConditionRatingOption } from '@/types/condition';
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { FormField, FormItem, FormControl, FormDescription } from "@/components/ui/form";
+import { UseFormReturn } from 'react-hook-form';
+import { ConditionValues } from './types';
 
 export interface ConditionCategoryProps {
-  title: string;
+  title?: string;
   description?: string;
-  children: React.ReactNode;
-  ratings?: ConditionRatingOption[];
-  selectedRating?: ConditionRatingOption | null;
-  onSelect?: (rating: ConditionRatingOption) => void;
+  children?: React.ReactNode;
+  ratings?: any[];
+  selectedRating?: any | null;
+  onSelect?: (rating: any) => void;
+  // Add these new props
+  name: string;
+  label: string;
+  form: UseFormReturn<ConditionValues, any, undefined>;
 }
 
-export function ConditionCategory({
-  title,
+export function ConditionCategory({ 
+  title, 
   description,
   children,
   ratings,
   selectedRating,
-  onSelect
+  onSelect,
+  // Use the new props
+  name,
+  label,
+  form
 }: ConditionCategoryProps) {
   return (
-    <Card className="bg-white shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent className="pt-2">{children}</CardContent>
-    </Card>
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <div className="space-y-2">
+            <div className="flex justify-between items-baseline">
+              <Label htmlFor={name} className="text-base font-medium">{label}</Label>
+              <span className="text-sm font-medium">{field.value}</span>
+            </div>
+            <FormControl>
+              <Slider
+                id={name}
+                min={0}
+                max={100}
+                step={1}
+                value={[field.value]}
+                onValueChange={(value) => field.onChange(value[0])}
+              />
+            </FormControl>
+            <FormDescription className="text-xs">{description}</FormDescription>
+          </div>
+        </FormItem>
+      )}
+    />
   );
 }
