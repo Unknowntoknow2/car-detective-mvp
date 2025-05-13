@@ -6,7 +6,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 export interface BreakdownItemProps {
   factor: string;
   impact: number;
-  description: string;
+  description: string; // Required field
 }
 
 export const BreakdownItem = ({ factor, impact, description }: BreakdownItemProps) => (
@@ -32,4 +32,3 @@ export const BreakdownItem = ({ factor, impact, description }: BreakdownItemProp
     </HoverCard>
   </div>
 );
-

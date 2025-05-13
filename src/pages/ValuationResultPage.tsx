@@ -13,8 +13,9 @@ import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationR
 import NotFound from './NotFound';
 import { downloadPdf } from '@/utils/pdf';
 import { toast } from '@/components/ui/use-toast';
+import { ValuationAdjustment } from '@/utils/valuation/types';
 
-// Define a type for the valuation data that includes optional adjustments
+// Define a type for the valuation data that includes required adjustments
 interface ValuationData {
   id: string;
   make: string;
@@ -38,11 +39,7 @@ interface ValuationData {
   condition_score?: number;
   created_at?: string;
   photos?: string[];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
+  adjustments: ValuationAdjustment[]; // Using the imported type
   [key: string]: any; // Allow for other properties
 }
 
@@ -112,10 +109,11 @@ export default function ValuationResultPage() {
           setNotFoundState(true);
           setError('Valuation not found');
         } else {
-          // Create a properly typed object with adjustments
+          // Create a properly typed object with adjustments that have required description field
           const processedData: ValuationData = {
             ...data,
-            adjustments: [] // Initialize as empty array
+            // Initialize with empty array that meets the required type
+            adjustments: [] 
           };
         
           // Apply condition values from localStorage if available
@@ -163,14 +161,20 @@ export default function ValuationResultPage() {
     });
   
     try {
-      // Always ensure we have an adjustments array
-      const adjustmentsArray = valuation.adjustments || [
-        {
-          factor: 'Base Value',
-          impact: 0,
-          description: 'Starting vehicle value'
-        }
-      ];
+      // Always ensure we have an adjustments array with required description fields
+      const adjustmentsArray = valuation.adjustments?.length > 0
+        ? valuation.adjustments.map(adj => ({
+            ...adj,
+            // Ensure description is always present
+            description: adj.description || `Adjustment based on ${adj.factor}`
+          }))
+        : [
+          {
+            factor: 'Base Value',
+            impact: 0,
+            description: 'Starting vehicle value'
+          }
+        ];
     
       // Format the data according to the ReportData interface
       const reportData = {
@@ -278,7 +282,7 @@ export default function ValuationResultPage() {
                 estimatedValue={valuation.estimated_value}
                 confidenceScore={valuation.confidence_score}
                 priceRange={valuation.price_range}
-                adjustments={valuation.adjustments || []}
+                adjustments={valuation.adjustments}
               />
             </TabsContent>
             

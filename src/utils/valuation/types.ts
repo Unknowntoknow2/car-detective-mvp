@@ -1,81 +1,13 @@
 
-// src/utils/valuation/types.ts
-
-import { type ValuationInput as BaseValuationInput } from '@/types/valuation';
-import { AdjustmentBreakdown } from '@/types/photo';
-import { AICondition } from '@/types/photo';
-
-export interface EnhancedValuationParams extends BaseValuationInput {
-  // Original fields from ValuationInput plus additional fields
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
-  trim?: string;
-  bodyType?: string;
-  photoScore?: number;
-  accidentCount?: number;
-  premiumFeatures?: boolean[] | string[];
-  mpg?: number;
-  aiConditionData?: any;
-  aiConditionOverride?: AICondition;
-  vehicleYear?: number;
-  
-  // Demand-related properties
-  saleDate?: string;
-  bodyStyle?: string;
-  exteriorColor?: string;
-  colorMultiplier?: number;
-  carfaxData?: any;
-  
-  // Add additional fields to fix errors
-  zip?: string;
-  baseMarketValue?: number;
-  basePrice?: number; // Add basePrice property
-  titleStatus?: string; // Add for compatibility with tests
+export interface ValuationAdjustment {
+  factor: string;
+  impact: number;
+  description: string; // Make description required
 }
 
-export interface FinalValuationResult {
-  // Core valuation data
-  baseValue: number;
-  basePrice?: number;
-  adjustments: AdjustmentBreakdown[];
-  finalValue: number;
-  confidenceScore: number;
-  priceRange: [number, number];
-  estimatedValue: number;
-  explanation?: string;
-  
-  // Additional fields to match test expectations
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
-  photoScore?: number;
-  bestPhotoUrl?: string | null;
-  isPremium?: boolean;
-  pdfUrl?: string;
-  features?: string[];
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    aiSummary?: string;
-  };
-  
-  // Add any additional properties needed by the application
-  valuationId?: string;
-  vin?: string;
-  regionalAdjustment?: number;
-}
+// Export the type to be used across the application
+export type { ValuationAdjustment };
 
-// Update ValuationParams to make baseMarketValue required
-export type ValuationParams = {
-  baseMarketValue: number; // Make this required
-} & Omit<EnhancedValuationParams, 'baseMarketValue'>;
-
-export type ValuationResult = FinalValuationResult;
-
-// Add ValuationOutput for backward compatibility with existing code
-export type ValuationOutput = FinalValuationResult;
-
-// Export ValuationInput for compatibility with other modules
-export type ValuationInput = ValuationParams;
+// This file re-exports from the other files in this directory
+export * from './types';
+export { calculateFinalValuation } from './calculateFinalValuation';
