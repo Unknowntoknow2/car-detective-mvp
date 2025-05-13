@@ -49,3 +49,8 @@ export const manualEntryToJson = (formData: FormData): Record<string, any> => {
   
   return result;
 };
+
+// Add the missing formatNumber function
+export const formatNumber = (value: number, locale = 'en-US'): string => {
+  return new Intl.NumberFormat(locale).format(value);
+};

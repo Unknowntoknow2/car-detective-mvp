@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useValuationResult } from '@/hooks/useValuationResult';
@@ -162,7 +163,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
                 Error Loading Valuation
               </HeadingL>
               <BodyM className="text-red-600">
-                {error ? (typeof error === 'object' && error !== null && 'message' in error 
+                {error ? (error && typeof error === 'object' && 'message' in error 
                   ? String(error.message) 
                   : String(error)) 
                   : "Could not load valuation data. Please try again or contact support."}

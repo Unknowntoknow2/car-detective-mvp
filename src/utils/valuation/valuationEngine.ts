@@ -99,7 +99,9 @@ export function calculateConditionAdjustment(baseValue: number, condition: numbe
     description,
     percentAdjustment: parseFloat(percentAdjustment.toFixed(1)),
     factor: "condition",
-    impact: Math.round(adjustment)
+    impact: Math.round(adjustment),
+    adjustment: Math.round(adjustment),
+    impactPercentage: parseFloat(percentAdjustment.toFixed(1))
   };
 }
 
