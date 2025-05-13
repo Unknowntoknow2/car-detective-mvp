@@ -1,3 +1,4 @@
+
 export interface ValuationResult {
   id: string;
   make: string;
@@ -18,6 +19,7 @@ export interface ValuationResult {
   transmission?: string;
   bestPhotoUrl?: string;
   photoScore?: number;
+  photoExplanation?: string;
   aiCondition?: {
     condition: string;
     confidenceScore: number;
