@@ -14,6 +14,7 @@ export interface UnifiedValuationResultProps {
   estimatedValue?: number;
   confidenceScore?: number;
   priceRange?: [number, number];
+  basePrice?: number;
   adjustments?: {
     factor: string;
     impact: number;

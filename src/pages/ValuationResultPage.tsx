@@ -131,21 +131,23 @@ export default function ValuationResultPage() {
     });
     
     try {
+      // Format the data according to the ReportData interface
       const pdfData = {
-        vehicleInfo: {
-          make: valuation.make,
-          model: valuation.model,
-          year: valuation.year,
-          vin: valuation.vin,
-          mileage: valuation.mileage,
-          condition: valuation.condition,
-        },
-        valuationDetails: {
-          estimatedValue: valuation.estimated_value,
-          basePrice: valuation.base_price,
-          confidenceScore: valuation.confidence_score,
-          adjustments: valuation.adjustments || [],
-        },
+        make: valuation.make,
+        model: valuation.model,
+        year: valuation.year,
+        mileage: valuation.mileage || 0,
+        condition: valuation.condition || 'Good',
+        estimatedValue: valuation.estimated_value,
+        confidenceScore: valuation.confidence_score,
+        priceRange: valuation.price_range || [
+          Math.floor(valuation.estimated_value * 0.95),
+          Math.ceil(valuation.estimated_value * 1.05)
+        ],
+        adjustments: valuation.adjustments || [],
+        generatedAt: new Date().toISOString(),
+        vin: valuation.vin,
+        zipCode: valuation.zip,
         explanation: valuation.explanation,
       };
       
