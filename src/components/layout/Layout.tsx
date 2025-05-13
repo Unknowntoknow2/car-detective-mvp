@@ -1,5 +1,4 @@
 
-// ✅ TS check passed
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from "./Navbar";
@@ -8,7 +7,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const Layout = () => {
-  const isMobile = useIsMobile();
+  // Get isMobile using a try-catch to handle any potential hooks errors gracefully
+  let isMobile = false;
+  try {
+    const { isMobile: mobileValue } = useIsMobile();
+    isMobile = mobileValue;
+  } catch (error) {
+    console.error("Error in Layout when checking mobile status:", error);
+  }
   
   return (
     <TooltipProvider>

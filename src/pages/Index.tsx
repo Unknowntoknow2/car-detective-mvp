@@ -1,7 +1,5 @@
 
 import { useState, useRef, useEffect } from "react";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { EnhancedHeroSection } from "@/components/home/EnhancedHeroSection";
 import { KeyFeatures } from "@/components/home/KeyFeatures";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
@@ -111,10 +109,9 @@ export default function Index() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
+    <div className="animate-fade-in">
       <AnnouncementBar />
-      <Navbar />
-      <main className="flex-1 animate-fade-in">
+      <main>
         <EnhancedHeroSection onFreeValuationClick={scrollToValuation} />
         <KeyFeatures />
         <ValuePropositionSection />
@@ -172,7 +169,6 @@ export default function Index() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
