@@ -1,72 +1,80 @@
-export type IdentifierType = 'vin' | 'plate' | 'manual';
 
-export type Stage = 
-  | 'initial' 
-  | 'lookup_in_progress' 
-  | 'lookup_failed' 
-  | 'vehicle_found' 
-  | 'details_required' 
-  | 'valuation_in_progress' 
-  | 'valuation_complete' 
-  | 'valuation_failed';
-
-export interface Vehicle {
-  make?: string;
-  model?: string;
-  year?: number;
-  trim?: string;
-  engine?: string;
-  transmission?: string;
-  fuelType?: string;
-  bodyType?: string;
-}
-
-export interface RequiredInputs {
-  mileage: number | null;
-  fuelType: string | null;
-  zipCode: string;
-  condition?: number;
-  conditionLabel?: string;
-  hasAccident?: boolean;
-  accidentDescription?: string;
-}
-
-export interface ValuationResult {
+export interface ValuationPipelineStep {
   id: string;
-  estimated_value: number;
-  confidence_score: number;
-  price_range?: [number, number];
-  base_price?: number;
-  zip_demand_factor?: number;
-  make?: string;
-  model?: string;
-  year?: number;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
-  color?: string;
-  bodyType?: string;
-  bodyStyle?: string;
-  fuelType?: string;
-  transmission?: string;
-  features?: string[];
+  name: string;
+  description?: string;
+  component: string;
+  isCompleted: boolean;
+  isActive: boolean;
+  data?: any;
 }
 
 export interface ValuationPipelineState {
-  stage: Stage;
-  vehicle: Vehicle | null;
-  requiredInputs: RequiredInputs | null;
-  valuationResult: ValuationResult | null;
-  error: string | null;
+  steps: ValuationPipelineStep[];
+  currentStepIndex: number;
+  data: {
+    vehicle?: {
+      make?: string;
+      model?: string;
+      year?: number;
+      trim?: string;
+      vin?: string;
+      plate?: string;
+      state?: string;
+    };
+    condition?: {
+      accidents?: number;
+      mileage?: number;
+      year?: number;
+      titleStatus?: string;
+      overall?: number;
+      exteriorGrade?: string;
+      interiorGrade?: string;
+      mechanicalGrade?: string;
+      tireCondition?: string;
+    };
+    features?: string[];
+    location?: {
+      zipCode?: string;
+      marketTrend?: string;
+    };
+    photos?: File[];
+    result?: {
+      estimatedValue?: number;
+      confidenceScore?: number;
+      priceRange?: [number, number];
+      valuationId?: string;
+    };
+  };
+  isComplete: boolean;
   isLoading: boolean;
+  error?: string;
 }
 
-export interface ValuationPipelineActions {
-  runLookup: (type: IdentifierType, identifier: string, state?: string, manualData?: any) => Promise<boolean>;
-  submitValuation: (details: Partial<RequiredInputs>) => Promise<boolean>;
-  reset: () => void;
+export interface ValuationConditionData {
+  accidents: number;
+  mileage: number;
+  year: number;
+  titleStatus: string;
+  overall?: number;
+  exteriorGrade?: string;
+  interiorGrade?: string;
+  mechanicalGrade?: string;
+  tireCondition?: string;
 }
 
-export type ValuationPipeline = ValuationPipelineState & ValuationPipelineActions;
+export type ValuationPipelineAction =
+  | { type: 'NEXT_STEP' }
+  | { type: 'PREVIOUS_STEP' }
+  | { type: 'GO_TO_STEP'; payload: number }
+  | { type: 'SET_STEP_COMPLETED'; payload: { stepId: string; isCompleted: boolean } }
+  | { type: 'SET_VEHICLE_DATA'; payload: any }
+  | { type: 'SET_CONDITION_DATA'; payload: ValuationConditionData }
+  | { type: 'SET_FEATURES_DATA'; payload: string[] }
+  | { type: 'SET_LOCATION_DATA'; payload: any }
+  | { type: 'SET_PHOTOS_DATA'; payload: File[] }
+  | { type: 'SET_RESULT_DATA'; payload: any }
+  | { type: 'RESET_PIPELINE' }
+  | { type: 'START_LOADING' }
+  | { type: 'STOP_LOADING' }
+  | { type: 'SET_ERROR'; payload: string };

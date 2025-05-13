@@ -1,114 +1,84 @@
 
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { 
-  IdentifierType, 
-  Stage,
-  Vehicle, 
-  RequiredInputs, 
-  ValuationResult,
-  ValuationPipeline
-} from './types';
-import { decodeVehicle, generateValuation } from './service';
+import { useReducer, useCallback } from 'react';
+import { initialValuationPipelineState, valuationPipelineReducer } from './service';
+import { ValuationConditionData } from './types';
 
-export function useValuationPipeline(): ValuationPipeline {
-  const [stage, setStage] = useState<Stage>('initial');
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [requiredInputs, setRequiredInputs] = useState<RequiredInputs | null>(null);
-  const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+export function useValuationPipeline() {
+  const [state, dispatch] = useReducer(valuationPipelineReducer, initialValuationPipelineState);
 
-  // Reset the pipeline
-  const reset = () => {
-    setStage('initial');
-    setVehicle(null);
-    setRequiredInputs(null);
-    setValuationResult(null);
-    setError(null);
-    setIsLoading(false);
-  };
+  const nextStep = useCallback(() => {
+    dispatch({ type: 'NEXT_STEP' });
+  }, []);
 
-  // Step 1: Run lookup by VIN or plate
-  const runLookup = async (type: IdentifierType, identifier: string, state?: string, manualData?: any) => {
-    setStage('lookup_in_progress');
-    setError(null);
-    setIsLoading(true);
-    
-    const { vehicle: vehicleData, error: lookupError } = await decodeVehicle(type, identifier, state, manualData);
-    
-    if (lookupError) {
-      setStage('lookup_failed');
-      setError(lookupError);
-      setIsLoading(false);
-      toast.error(lookupError);
-      return false;
-    }
-    
-    setVehicle(vehicleData);
-    
-    // Move to next stage - we need additional details from the user
-    setStage('details_required');
-    setIsLoading(false);
-    
-    // Pre-fill available data for the required inputs
-    setRequiredInputs({
-      mileage: null,
-      fuelType: vehicleData.fuelType || null,
-      zipCode: '',
-      condition: 3, // Default to "Good" condition
-      conditionLabel: 'Good',
-      hasAccident: false,
-      accidentDescription: ''
-    });
-    
-    toast.success(`Vehicle found: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`);
-    
-    return true;
-  };
+  const previousStep = useCallback(() => {
+    dispatch({ type: 'PREVIOUS_STEP' });
+  }, []);
 
-  // Step 2: Submit valuation with all required inputs
-  const submitValuation = async (details: Partial<RequiredInputs>) => {
-    if (!vehicle) {
-      setError('No vehicle data available');
-      return false;
-    }
-    
-    setStage('valuation_in_progress');
-    setError(null);
-    setIsLoading(true);
-    
-    const { result, error: valuationError } = await generateValuation(vehicle, details);
-    
-    if (valuationError) {
-      setStage('valuation_failed');
-      setError(valuationError);
-      setIsLoading(false);
-      toast.error(valuationError);
-      return false;
-    }
-    
-    if (result) {
-      setValuationResult(result);
-      setStage('valuation_complete');
-      setIsLoading(false);
-      toast.success('Vehicle valuation complete!');
-      return true;
-    }
-    
-    setIsLoading(false);
-    return false;
-  };
+  const goToStep = useCallback((stepIndex: number) => {
+    dispatch({ type: 'GO_TO_STEP', payload: stepIndex });
+  }, []);
+
+  const setStepCompleted = useCallback((stepId: string, isCompleted: boolean) => {
+    dispatch({ type: 'SET_STEP_COMPLETED', payload: { stepId, isCompleted } });
+  }, []);
+
+  const setVehicleData = useCallback((data: any) => {
+    dispatch({ type: 'SET_VEHICLE_DATA', payload: data });
+  }, []);
+
+  const setConditionData = useCallback((data: ValuationConditionData) => {
+    dispatch({ type: 'SET_CONDITION_DATA', payload: data });
+  }, []);
+
+  const setFeaturesData = useCallback((data: string[]) => {
+    dispatch({ type: 'SET_FEATURES_DATA', payload: data });
+  }, []);
+
+  const setLocationData = useCallback((data: any) => {
+    dispatch({ type: 'SET_LOCATION_DATA', payload: data });
+  }, []);
+
+  const setPhotosData = useCallback((data: File[]) => {
+    dispatch({ type: 'SET_PHOTOS_DATA', payload: data });
+  }, []);
+
+  const setResultData = useCallback((data: any) => {
+    dispatch({ type: 'SET_RESULT_DATA', payload: data });
+  }, []);
+
+  const resetPipeline = useCallback(() => {
+    dispatch({ type: 'RESET_PIPELINE' });
+  }, []);
+
+  const startLoading = useCallback(() => {
+    dispatch({ type: 'START_LOADING' });
+  }, []);
+
+  const stopLoading = useCallback(() => {
+    dispatch({ type: 'STOP_LOADING' });
+  }, []);
+
+  const setError = useCallback((error: string) => {
+    dispatch({ type: 'SET_ERROR', payload: error });
+  }, []);
 
   return {
-    stage,
-    vehicle,
-    requiredInputs,
-    valuationResult,
-    error,
-    isLoading,
-    runLookup,
-    submitValuation,
-    reset
+    state,
+    actions: {
+      nextStep,
+      previousStep,
+      goToStep,
+      setStepCompleted,
+      setVehicleData,
+      setConditionData,
+      setFeaturesData,
+      setLocationData,
+      setPhotosData,
+      setResultData,
+      resetPipeline,
+      startLoading,
+      stopLoading,
+      setError
+    }
   };
 }

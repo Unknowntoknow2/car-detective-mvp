@@ -1,122 +1,203 @@
 
-import { IdentifierType, RequiredInputs, Stage, ValuationPipelineState, ValuationResult, Vehicle } from './types';
-import { supabase } from '@/integrations/supabase/client';
+import { ValuationPipelineState, ValuationPipelineAction } from './types';
 
-// Function to decode vehicle from VIN or plate (renamed from lookupVehicle to decodeVehicle)
-export async function decodeVehicle(
-  type: IdentifierType,
-  identifier: string,
-  state?: string,
-  manualData?: { make: string; model: string; year: number; trim?: string; fuelType?: string; bodyType?: string; }
-): Promise<{ vehicle: Vehicle; error: string | null }> {
-  try {
-    // Handle manual entry for vehicles not in database
-    if (type === 'manual' && manualData) {
-      const vehicle: Vehicle = {
-        make: manualData.make,
-        model: manualData.model,
-        year: manualData.year,
-        trim: manualData.trim || undefined,
-        fuelType: manualData.fuelType || undefined,
-        transmission: 'Automatic'
-      };
-
-      return { 
-        vehicle,
-        error: null
-      };
+// Initial state for the valuation pipeline
+export const initialValuationPipelineState: ValuationPipelineState = {
+  steps: [
+    {
+      id: 'vehicle-identification',
+      name: 'Vehicle Identification',
+      description: 'Identify your vehicle using VIN, license plate, or manual entry',
+      component: 'VehicleIdentificationStep',
+      isCompleted: false,
+      isActive: true
+    },
+    {
+      id: 'vehicle-condition',
+      name: 'Vehicle Condition',
+      description: 'Assess the condition of your vehicle',
+      component: 'VehicleConditionStep',
+      isCompleted: false,
+      isActive: false
+    },
+    {
+      id: 'features',
+      name: 'Features',
+      description: 'Select additional features your vehicle has',
+      component: 'VehicleFeaturesStep',
+      isCompleted: false,
+      isActive: false
+    },
+    {
+      id: 'photos',
+      name: 'Photos',
+      description: 'Upload photos of your vehicle for a more accurate valuation',
+      component: 'VehiclePhotosStep',
+      isCompleted: false,
+      isActive: false
+    },
+    {
+      id: 'location',
+      name: 'Location',
+      description: 'Provide your location for regional price adjustments',
+      component: 'VehicleLocationStep',
+      isCompleted: false,
+      isActive: false
+    },
+    {
+      id: 'result',
+      name: 'Valuation Result',
+      description: 'View your vehicle valuation results',
+      component: 'ValuationResultStep',
+      isCompleted: false,
+      isActive: false
     }
+  ],
+  currentStepIndex: 0,
+  data: {},
+  isComplete: false,
+  isLoading: false
+};
 
-    // Handle VIN lookup
-    if (type === 'vin') {
-      // Mock data for the VIN lookup, replace with actual API call
-      const vehicle: Vehicle = {
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2019,
-        trim: 'LE',
-        fuelType: 'Gasoline',
-        transmission: 'Automatic'
-      };
+// Reducer for the valuation pipeline
+export function valuationPipelineReducer(
+  state: ValuationPipelineState,
+  action: ValuationPipelineAction
+): ValuationPipelineState {
+  switch (action.type) {
+    case 'NEXT_STEP':
+      if (state.currentStepIndex < state.steps.length - 1) {
+        const nextIndex = state.currentStepIndex + 1;
+        const updatedSteps = state.steps.map((step, index) => ({
+          ...step,
+          isActive: index === nextIndex
+        }));
+        return {
+          ...state,
+          currentStepIndex: nextIndex,
+          steps: updatedSteps
+        };
+      }
+      return state;
 
+    case 'PREVIOUS_STEP':
+      if (state.currentStepIndex > 0) {
+        const prevIndex = state.currentStepIndex - 1;
+        const updatedSteps = state.steps.map((step, index) => ({
+          ...step,
+          isActive: index === prevIndex
+        }));
+        return {
+          ...state,
+          currentStepIndex: prevIndex,
+          steps: updatedSteps
+        };
+      }
+      return state;
+
+    case 'GO_TO_STEP':
+      if (action.payload >= 0 && action.payload < state.steps.length) {
+        const updatedSteps = state.steps.map((step, index) => ({
+          ...step,
+          isActive: index === action.payload
+        }));
+        return {
+          ...state,
+          currentStepIndex: action.payload,
+          steps: updatedSteps
+        };
+      }
+      return state;
+
+    case 'SET_STEP_COMPLETED':
+      const updatedSteps = state.steps.map(step =>
+        step.id === action.payload.stepId
+          ? { ...step, isCompleted: action.payload.isCompleted }
+          : step
+      );
       return {
-        vehicle,
-        error: null
-      };
-    }
-
-    // Handle plate lookup
-    if (type === 'plate' && state) {
-      // Mock data for plate lookup, replace with actual API call
-      const vehicle: Vehicle = {
-        make: 'Honda',
-        model: 'Accord',
-        year: 2020,
-        trim: 'LX',
-        fuelType: 'Gasoline',
-        transmission: 'Automatic'
+        ...state,
+        steps: updatedSteps,
+        isComplete: updatedSteps.every(step => step.isCompleted)
       };
 
+    case 'SET_VEHICLE_DATA':
       return {
-        vehicle,
-        error: null
-      };
-    }
-
-    // Return error if lookup type is not supported
-    return {
-      vehicle: {} as Vehicle,
-      error: 'Unsupported lookup type'
-    };
-  } catch (error) {
-    return {
-      vehicle: {} as Vehicle,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred during vehicle lookup'
-    };
-  }
-}
-
-// Function to generate valuation from vehicle and details
-export async function generateValuation(
-  vehicle: Vehicle,
-  details: Partial<RequiredInputs>
-): Promise<{ result: ValuationResult | null; error: string | null }> {
-  try {
-    // Mock valuation result, replace with actual API call
-    const valuationResult: ValuationResult = {
-      id: crypto.randomUUID(),
-      estimated_value: 25000,
-      confidence_score: 90,
-      price_range: [23500, 26500],
-      base_price: 24000,
-      zip_demand_factor: 1.05,
-      adjustments: [
-        {
-          factor: 'Mileage',
-          impact: -500,
-          description: 'Below average mileage'
-        },
-        {
-          factor: 'Condition',
-          impact: 1000,
-          description: 'Good condition adds value'
-        },
-        {
-          factor: 'Market Demand',
-          impact: 500,
-          description: 'High demand in your area'
+        ...state,
+        data: {
+          ...state.data,
+          vehicle: action.payload
         }
-      ]
-    };
+      };
 
-    return {
-      result: valuationResult,
-      error: null
-    };
-  } catch (error) {
-    return {
-      result: null,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred during valuation'
-    };
+    case 'SET_CONDITION_DATA':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          condition: action.payload
+        }
+      };
+
+    case 'SET_FEATURES_DATA':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          features: action.payload
+        }
+      };
+
+    case 'SET_LOCATION_DATA':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          location: action.payload
+        }
+      };
+
+    case 'SET_PHOTOS_DATA':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          photos: action.payload
+        }
+      };
+
+    case 'SET_RESULT_DATA':
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          result: action.payload
+        }
+      };
+
+    case 'RESET_PIPELINE':
+      return initialValuationPipelineState;
+
+    case 'START_LOADING':
+      return {
+        ...state,
+        isLoading: true
+      };
+
+    case 'STOP_LOADING':
+      return {
+        ...state,
+        isLoading: false
+      };
+
+    case 'SET_ERROR':
+      return {
+        ...state,
+        error: action.payload,
+        isLoading: false
+      };
+
+    default:
+      return state;
   }
 }

@@ -1,100 +1,81 @@
 
 import React from 'react';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Share, Download, Star } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Car, DollarSign, Gauge, CalendarDays } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 interface ValuationHeaderProps {
-  valuationData: {
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-    mileage?: number;
-    vin?: string;
-    estimatedValue?: number;
-    condition?: string;
-  };
-  photoSubmitted: boolean;
-  photoScore: number | null;
-  aiCondition: any | null;
-  estimatedValue: number | undefined;
-  calculationInProgress: boolean;
-  onShareValuation: () => void;
-  onSaveToAccount: () => void;
-  isSaving: boolean;
-  bestPhotoUrl?: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition?: string;
+  estimatedValue: number;
+  isPremium?: boolean;
+  additionalInfo?: Record<string, string>;
 }
 
 export function ValuationHeader({
-  valuationData,
-  photoSubmitted,
-  photoScore,
-  aiCondition,
+  make,
+  model,
+  year,
+  mileage,
+  condition,
   estimatedValue,
-  calculationInProgress,
-  onShareValuation,
-  onSaveToAccount,
-  isSaving,
-  bestPhotoUrl
+  isPremium = false,
+  additionalInfo = {}
 }: ValuationHeaderProps) {
-  const vehicleName = `${valuationData.year} ${valuationData.make} ${valuationData.model}`;
-  const vehicleSpecs = valuationData.mileage 
-    ? `${valuationData.mileage.toLocaleString()} miles • ${aiCondition?.condition || valuationData.condition || 'Good'} condition`
-    : `${aiCondition?.condition || valuationData.condition || 'Good'} condition`;
-  
-  const confidenceScore = photoSubmitted ? 92 : 85;
-
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-semibold mb-2">{vehicleName}</h1>
-          {vehicleSpecs && <p className="text-gray-600">{vehicleSpecs}</p>}
-        </div>
-        
-        <div className="text-right">
-          <div className="text-2xl sm:text-3xl font-bold text-primary">
-            {calculationInProgress 
-              ? <span className="text-gray-400">Calculating...</span>
-              : estimatedValue 
-                ? `$${estimatedValue.toLocaleString()}`
-                : '$0'
-            }
+    <Card className={`overflow-hidden transition-all ${isPremium ? 'border-primary/30 bg-primary/5' : ''}`}>
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col">
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <Car className="h-6 w-6 text-primary" />
+              {year} {make} {model}
+            </h1>
+            
+            <div className="flex flex-wrap gap-2 mt-2">
+              {mileage && (
+                <Badge variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
+                  <Gauge className="h-3 w-3" />
+                  {mileage.toLocaleString()} miles
+                </Badge>
+              )}
+              
+              {condition && (
+                <Badge variant="outline" className="flex items-center gap-1 text-xs px-2 py-1">
+                  <CalendarDays className="h-3 w-3" />
+                  {condition} Condition
+                </Badge>
+              )}
+              
+              {Object.entries(additionalInfo).map(([key, value]) => (
+                <Badge key={key} variant="outline" className="text-xs px-2 py-1">
+                  {value}
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="text-sm text-gray-500 mt-1">
-            {confidenceScore}% confidence
+          
+          <div className="flex flex-col items-end">
+            <div className="text-sm font-medium text-muted-foreground mb-1">
+              Estimated Value
+            </div>
+            <div className="text-2xl md:text-3xl font-bold text-primary flex items-center">
+              <DollarSign className="h-5 w-5" />
+              {formatCurrency(estimatedValue)}
+            </div>
+            
+            {isPremium && (
+              <Badge className="mt-2 bg-primary/20 hover:bg-primary/30 text-primary border-primary/20">
+                Premium Valuation
+              </Badge>
+            )}
           </div>
         </div>
-      </div>
-      
-      <Separator className="my-4" />
-      
-      <div className="flex flex-wrap gap-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1"
-          onClick={onShareValuation}
-        >
-          <Share className="h-4 w-4" />
-          <span>Share</span>
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1"
-          onClick={onSaveToAccount}
-          disabled={isSaving}
-        >
-          <Download className="h-4 w-4" />
-          <span>{isSaving ? 'Saving...' : 'Save'}</span>
-        </Button>
-        <Button variant="outline" size="sm" className="flex items-center gap-1">
-          <Star className="h-4 w-4" />
-          <span>Favorite</span>
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
