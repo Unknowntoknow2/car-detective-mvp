@@ -1,86 +1,90 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/utils/supabaseClient';
 
-interface VehicleInfo {
-  year: number;
-  make: string;
-  model: string;
-  trim?: string;
-  mileage?: number;
-  condition?: string;
+export interface GeneratedCondition {
+  condition: string;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  summary?: string;
+  photoUrl?: string;
 }
 
-interface GeneratedCondition {
-  exterior: number;
-  interior: number;
-  mechanical: number;
-  overall: string;
-}
-
-export function useAICondition(vehicleInfo: VehicleInfo) {
+export function useAICondition(valuationId: string) {
   const [generatedCondition, setGeneratedCondition] = useState<GeneratedCondition | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  
   useEffect(() => {
-    if (!vehicleInfo.make || !vehicleInfo.model) return;
-
-    const generateCondition = async () => {
-      setIsLoading(true);
-      setError(null);
+    async function fetchConditionData() {
+      if (!valuationId) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
-        // For now, we'll use a mock implementation
-        // In a real implementation, this would call an API
-        await new Promise(resolve => setTimeout(resolve, 500));
+        setIsLoading(true);
+        // Fetch from photo_condition_scores table
+        const { data, error: fetchError } = await supabase
+          .from('photo_condition_scores')
+          .select('*')
+          .eq('valuation_id', valuationId)
+          .single();
         
-        // Generate mock condition based on year and mileage
-        const currentYear = new Date().getFullYear();
-        const age = currentYear - vehicleInfo.year;
-        const mileage = vehicleInfo.mileage || 50000;
+        if (fetchError) {
+          console.error('Error fetching condition data:', fetchError);
+          setError(fetchError.message);
+          return;
+        }
         
-        let baseCondition = 5; // Start at excellent
-        
-        // Decrease based on age
-        baseCondition -= Math.min(age * 0.2, 2);
-        
-        // Decrease based on mileage
-        baseCondition -= Math.min((mileage / 50000) * 0.3, 2);
-        
-        // Ensure it stays between 1 and 5
-        baseCondition = Math.max(1, Math.min(5, baseCondition));
-        
-        // Add some random variation
-        const exterior = Math.max(1, Math.min(5, baseCondition + (Math.random() * 0.6 - 0.3)));
-        const interior = Math.max(1, Math.min(5, baseCondition + (Math.random() * 0.6 - 0.3)));
-        const mechanical = Math.max(1, Math.min(5, baseCondition + (Math.random() * 0.6 - 0.3)));
-        
-        const overall = getOverallCondition((exterior + interior + mechanical) / 3);
-        
-        setGeneratedCondition({
-          exterior: Math.round(exterior * 10) / 10,
-          interior: Math.round(interior * 10) / 10,
-          mechanical: Math.round(mechanical * 10) / 10,
-          overall
-        });
-      } catch (err) {
-        console.error('Error generating condition:', err);
-        setError('Failed to generate condition assessment');
+        if (data) {
+          // Fetch best photo URL as well
+          const { data: photoData } = await supabase
+            .from('valuation_photos')
+            .select('photo_url, score')
+            .eq('valuation_id', valuationId)
+            .order('score', { ascending: false })
+            .limit(1)
+            .single();
+          
+          setGeneratedCondition({
+            condition: mapScoreToCondition(data.condition_score),
+            confidenceScore: data.confidence_score,
+            issuesDetected: data.issues || [],
+            summary: data.summary,
+            photoUrl: photoData?.photo_url
+          });
+        } else {
+          // If no data in database, try localStorage
+          const tempData = localStorage.getItem('temp_ai_condition');
+          if (tempData) {
+            setGeneratedCondition(JSON.parse(tempData));
+          }
+        }
+      } catch (err: any) {
+        console.error('Error in useAICondition:', err);
+        setError(err.message || 'Failed to fetch condition data');
       } finally {
         setIsLoading(false);
       }
-    };
+    }
     
-    generateCondition();
-  }, [vehicleInfo.make, vehicleInfo.model, vehicleInfo.year, vehicleInfo.mileage]);
-
-  return { generatedCondition, isLoading, error };
-}
-
-function getOverallCondition(average: number): string {
-  if (average >= 4.5) return "Excellent";
-  if (average >= 3.5) return "Very Good";
-  if (average >= 2.5) return "Good";
-  if (average >= 1.5) return "Fair";
-  return "Poor";
+    fetchConditionData();
+  }, [valuationId]);
+  
+  // Map numeric score to condition string
+  function mapScoreToCondition(score: number): string {
+    if (score >= 90) return 'Excellent';
+    if (score >= 80) return 'Very Good';
+    if (score >= 70) return 'Good';
+    if (score >= 50) return 'Fair';
+    return 'Poor';
+  }
+  
+  return { 
+    generatedCondition, 
+    isLoading, 
+    error,
+    conditionData: generatedCondition  // Add this to make it compatible with existing code
+  };
 }

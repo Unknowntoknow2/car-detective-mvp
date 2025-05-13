@@ -1,22 +1,24 @@
 
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAICondition } from '@/hooks/useAICondition';
-import { ConditionTips } from './condition/ConditionTips';
-import { formatCurrency } from '@/utils/formatters/formatCurrency';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ConditionRatingOption } from './condition/types';
+import { Download, Mail, Calendar, Info } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatCurrency } from '@/utils/formatters';
 import { getConditionTips } from '@/utils/valuation/conditionHelpers';
+import { ConditionRatingOption } from '@/types/condition';
 
-interface ValuationResultsProps {
+export interface ValuationResultsProps {
   estimatedValue: number;
   confidenceScore: number;
   basePrice?: number;
   adjustments?: Array<{
     factor: string;
     impact: number;
-    description: string;
+    description?: string;
   }>;
   priceRange?: [number, number];
   demandFactor?: number;
@@ -28,175 +30,177 @@ interface ValuationResultsProps {
     mileage?: number;
     condition?: string;
   };
-  onEmailReport: () => void | Promise<string>;
+  valuationId?: string;
+  onDownloadPdf?: () => Promise<void> | void;
+  onEmailReport?: () => Promise<void> | void;
 }
 
-export const ValuationResults: React.FC<ValuationResultsProps> = ({
+export function ValuationResults({
   estimatedValue,
-  confidenceScore = 80,
+  confidenceScore,
   basePrice,
+  adjustments = [],
   priceRange,
-  adjustments,
   demandFactor,
   vehicleInfo,
+  valuationId,
+  onDownloadPdf,
   onEmailReport
-}) => {
-  const { generatedCondition, isLoading } = useAICondition(vehicleInfo);
-
-  const selectedRatings = useMemo<ConditionRatingOption[]>(() => {
-    if (!generatedCondition) return [];
-    
-    return [
-      {
-        id: 'exterior',
-        name: 'Exterior',
-        category: 'exterior',
-        value: generatedCondition.exterior || 3,
-        description: 'Overall exterior condition including body, paint, and glass',
-        tip: getConditionTips('exterior', generatedCondition.exterior || 3)
-      }
-    ];
-  }, [generatedCondition]);
-
-  const getConditionLabel = (score: number): string => {
-    if (score >= 4.5) return 'Excellent';
-    if (score >= 3.5) return 'Very Good';
-    if (score >= 2.5) return 'Good';
-    if (score >= 1.5) return 'Fair';
-    return 'Poor';
+}: ValuationResultsProps) {
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  
+  // Create a condition rating option for the selected condition
+  const selectedConditionRating: ConditionRatingOption = {
+    id: 'condition',
+    name: vehicleInfo.condition || 'Good',
+    category: 'Condition',
+    value: vehicleInfo.condition ? 
+      ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor'].indexOf(vehicleInfo.condition) : 2,
+    description: getConditionTips(vehicleInfo.condition || 'Good')
   };
-
-  const renderPriceRange = () => {
-    if (!priceRange) return null;
-
-    return (
-      <div className="mt-6">
-        <h4 className="text-sm font-medium text-muted-foreground mb-2">Value Range</h4>
-        <div className="flex items-center justify-between text-sm mb-1">
-          <span>{formatCurrency(priceRange[0])}</span>
-          <span>{formatCurrency(priceRange[1])}</span>
-        </div>
-        <Progress value={confidenceScore} className="h-2" />
-        <div className="flex justify-center mt-1">
-          <span className="text-xs text-muted-foreground">
-            {getConditionLabel(confidenceScore / 20)} confidence
-          </span>
-        </div>
-      </div>
-    );
+  
+  // Create selected ratings object
+  const selectedRatings: Record<string, ConditionRatingOption> = {
+    condition: selectedConditionRating
   };
-
+  
+  // Calculate price range if not provided
+  const calculatedPriceRange = priceRange || [
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05)
+  ];
+  
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg shadow-sm">
-        <h3 className="text-lg font-medium text-blue-800 mb-1">Estimated Value</h3>
-        <div className="flex items-baseline">
-          <span className="text-4xl font-bold text-blue-700">
-            {formatCurrency(estimatedValue)}
-          </span>
-          <span className="ml-2 text-sm text-blue-600">
-            {getConditionLabel(confidenceScore / 20)} confidence
-          </span>
-        </div>
-        {renderPriceRange()}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center">
+          <span>Estimated Value</span>
+          <span className="text-3xl font-bold text-primary">{formatCurrency(estimatedValue)}</span>
+        </CardTitle>
+        <CardDescription>
+          Price range: {formatCurrency(calculatedPriceRange[0])} - {formatCurrency(calculatedPriceRange[1])}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* Confidence Score */}
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="font-medium">Year:</span>
-              <span>{vehicleInfo.year}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Confidence Score</span>
+              <span className="text-sm">{confidenceScore}%</span>
             </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Make:</span>
-              <span>{vehicleInfo.make}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Model:</span>
-              <span>{vehicleInfo.model}</span>
-            </div>
-            {vehicleInfo.trim && (
-              <div className="flex justify-between">
-                <span className="font-medium">Trim:</span>
-                <span>{vehicleInfo.trim}</span>
-              </div>
-            )}
-            {vehicleInfo.mileage && (
-              <div className="flex justify-between">
-                <span className="font-medium">Mileage:</span>
-                <span>{vehicleInfo.mileage.toLocaleString()} miles</span>
-              </div>
-            )}
-            {vehicleInfo.condition && (
-              <div className="flex justify-between">
-                <span className="font-medium">Condition:</span>
-                <span>{vehicleInfo.condition}</span>
-              </div>
-            )}
+            <Progress value={confidenceScore} className="h-2" />
           </div>
-        </CardContent>
-      </Card>
-
-      {adjustments && adjustments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Valuation Factors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {adjustments.map((adjustment, index) => (
-                <div key={index} className="flex justify-between">
-                  <span className="font-medium">{adjustment.factor}:</span>
-                  <span className={adjustment.impact > 0 ? 'text-green-600' : 'text-red-600'}>
-                    {adjustment.impact > 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
-                  </span>
+          
+          {/* Vehicle Info */}
+          <div className="bg-muted/40 p-4 rounded-md">
+            <h3 className="font-semibold mb-2">{vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              {vehicleInfo.trim && (
+                <div>
+                  <span className="text-muted-foreground">Trim:</span> {vehicleInfo.trim}
                 </div>
-              ))}
-              {basePrice && (
-                <div className="flex justify-between pt-2 border-t border-gray-200">
-                  <span className="font-medium">Base Value:</span>
-                  <span>{formatCurrency(basePrice)}</span>
+              )}
+              {vehicleInfo.mileage && (
+                <div>
+                  <span className="text-muted-foreground">Mileage:</span> {vehicleInfo.mileage.toLocaleString()} mi
+                </div>
+              )}
+              {vehicleInfo.condition && (
+                <div>
+                  <span className="text-muted-foreground">Condition:</span> {vehicleInfo.condition}
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {generatedCondition && selectedRatings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Condition Assessment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {selectedRatings.map((rating) => (
-                <div key={rating.id} className="pb-4 border-b border-gray-200 last:border-0 last:pb-0">
-                  <div className="flex justify-between mb-1">
-                    <span className="font-medium">{rating.name}:</span>
-                    <span>{getConditionLabel(rating.value)}</span>
+          </div>
+          
+          {/* Tabs */}
+          <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-2">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="adjustments">Adjustments</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview" className="space-y-4 pt-4">
+              <div className="grid gap-4">
+                {basePrice && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Base Value</span>
+                    <span className="font-medium">{formatCurrency(basePrice)}</span>
                   </div>
-                  <ConditionTips category={rating.category} tip={rating.tip || ''} />
+                )}
+                
+                {demandFactor && demandFactor !== 1 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Market Demand</span>
+                    <Badge variant={demandFactor > 1 ? "success" : "destructive"}>
+                      {demandFactor > 1 ? '+' : ''}{((demandFactor - 1) * 100).toFixed(1)}%
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Total Adjustments</span>
+                  <span className="font-medium">
+                    {formatCurrency(adjustments.reduce((sum, adj) => sum + (adj.impact || 0), 0))}
+                  </span>
                 </div>
-              ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="adjustments" className="space-y-4 pt-4">
+              {adjustments.length > 0 ? (
+                <div className="space-y-3">
+                  {adjustments.map((adjustment, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <span className="text-sm">{adjustment.factor}</span>
+                        {adjustment.description && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 ml-1 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {adjustment.description}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                      <Badge 
+                        variant={adjustment.impact > 0 ? "success" : adjustment.impact < 0 ? "destructive" : "outline"}
+                      >
+                        {adjustment.impact > 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No adjustments applied to this valuation.</p>
+              )}
+            </TabsContent>
+          </Tabs>
+          
+          {/* Actions */}
+          {(onDownloadPdf || onEmailReport) && (
+            <div className="flex gap-3 pt-2 border-t">
+              {onDownloadPdf && (
+                <Button variant="outline" size="sm" onClick={onDownloadPdf} className="flex-1">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              )}
+              {onEmailReport && (
+                <Button variant="outline" size="sm" onClick={onEmailReport} className="flex-1">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email Report
+                </Button>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex justify-center">
-        <Button 
-          variant="outline" 
-          onClick={() => onEmailReport()}
-          className="font-medium"
-        >
-          Email Full Report
-        </Button>
-      </div>
-    </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}

@@ -1,38 +1,31 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { InfoIcon } from 'lucide-react';
-import { ConditionTipsProps } from './types';
+import { ConditionRatingOption } from '@/types/condition';
 
-export function ConditionTips({ selectedRatings }: ConditionTipsProps) {
-  // Extract tips from selected ratings
-  const tips = Object.values(selectedRatings)
-    .filter(rating => rating.tip)
-    .map(rating => ({
-      category: rating.category || '',
-      tip: rating.tip || ''
-    }));
+export interface ConditionTipsProps {
+  category: string;
+  tip: string;
+  selectedRatings?: Record<string, ConditionRatingOption>;
+}
 
-  if (tips.length === 0) {
-    return null;
-  }
-
+export function ConditionTips({ category, tip, selectedRatings }: ConditionTipsProps) {
+  // Use the passed tip or get from selected ratings if available
+  const tipText = tip || 
+    (selectedRatings && Object.values(selectedRatings).find(r => r?.category === category)?.tip) || 
+    "No tips available for this condition.";
+  
+  if (!tipText) return null;
+  
   return (
     <Card className="bg-blue-50 border-blue-200">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
-          <InfoIcon className="h-5 w-5" />
-          Valuation Tips
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {tips.map((tip, index) => (
-            <div key={index} className="text-sm">
-              <span className="font-medium text-blue-800">{tip.category}:</span>{' '}
-              <span className="text-blue-700">{tip.tip}</span>
-            </div>
-          ))}
+      <CardContent className="p-3 text-sm text-blue-800">
+        <div className="flex items-start gap-2">
+          <InfoIcon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p>{tipText}</p>
+          </div>
         </div>
       </CardContent>
     </Card>

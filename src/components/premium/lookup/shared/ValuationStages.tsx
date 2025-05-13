@@ -28,6 +28,11 @@ export function ValuationStages({
   onDetailsSubmit,
   initialContent
 }: ValuationStagesProps) {
+  
+  const handleEmailReport = () => {
+    console.log('Email report functionality to be implemented');
+  };
+  
   if (stage === 'initial' || stage === 'lookup_in_progress' || stage === 'lookup_failed') {
     return initialContent;
   }
@@ -76,6 +81,7 @@ export function ValuationStages({
           mileage: requiredInputs?.mileage || undefined,
           condition: requiredInputs?.conditionLabel
         }}
+        onEmailReport={handleEmailReport}
       />
     );
   }
@@ -84,7 +90,7 @@ export function ValuationStages({
     return (
       <ValuationErrorState 
         error={error}
-        onRetry={() => window.location.reload()}
+        onRetry={() => onDetailsSubmit(requiredInputs!)}
       />
     );
   }

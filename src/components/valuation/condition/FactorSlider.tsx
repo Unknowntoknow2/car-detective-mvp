@@ -1,65 +1,81 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 
 export interface ConditionOption {
-  value: number;
+  id: string;
   label: string;
-  description?: string;
+  value: number;
   tip?: string;
-  multiplier?: number;
 }
 
-export interface FactorSliderProps {
+interface FactorSliderProps {
   id: string;
   label: string;
   options: ConditionOption[];
   value: number;
-  onChange: (value: number) => void;
-  ariaLabel?: string;
+  onChange: (id: string, value: number) => void;
 }
 
-export function FactorSlider({ id, label, options, value, onChange, ariaLabel }: FactorSliderProps) {
-  // Find the current option based on value
-  const currentOption = options.find(o => o.value === value) || options[0];
-  const sliderIndex = options.findIndex(o => o.value === value);
+export function FactorSlider({
+  id,
+  label,
+  options,
+  value,
+  onChange
+}: FactorSliderProps) {
+  const [sliderValue, setSliderValue] = useState<number>(value);
   
-  // Use a default index of 0 if the value isn't found
-  const safeSliderIndex = sliderIndex >= 0 ? sliderIndex : 0;
-
+  // Update the internal value when the prop changes
+  useEffect(() => {
+    setSliderValue(value);
+  }, [value]);
+  
+  // Get min and max from options
+  const min = 0;
+  const max = options.length - 1;
+  
+  // Handle slider change
+  const handleSliderChange = (values: number[]) => {
+    const newValue = Math.round(values[0]);
+    setSliderValue(newValue);
+    onChange(id, newValue);
+  };
+  
+  // Handle option button click
+  const handleOptionClick = (index: number) => {
+    setSliderValue(index);
+    onChange(id, index);
+  };
+  
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <label htmlFor={id} className="text-sm font-medium leading-none">
-          {label}
-        </label>
-        <span className="text-sm text-muted-foreground">
-          {currentOption.label}
-        </span>
-      </div>
+    <div className="space-y-4">
+      <Label htmlFor={id}>{label}</Label>
+      
       <Slider
         id={id}
-        min={0}
-        max={options.length - 1}
+        value={[sliderValue]}
+        min={min}
+        max={max}
         step={1}
-        value={[safeSliderIndex]}
-        onValueChange={(values) => onChange(options[values[0]].value)}
-        className="py-2"
-        aria-label={ariaLabel || `${label} slider`}
+        onValueChange={handleSliderChange}
       />
-      <div className="flex justify-between text-xs text-muted-foreground">
+      
+      <div className="flex justify-between">
         {options.map((option, index) => (
-          <span key={index} className="text-center" style={{ width: `${100 / options.length}%` }}>
+          <Button
+            key={option.id}
+            variant={sliderValue === index ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleOptionClick(index)}
+            className="text-xs px-2 py-1 h-auto min-w-[60px]"
+          >
             {option.label}
-          </span>
+          </Button>
         ))}
       </div>
-      
-      {currentOption.tip && (
-        <div className="text-xs text-muted-foreground mt-1">
-          <span className="font-medium">Tip:</span> {currentOption.tip}
-        </div>
-      )}
     </div>
   );
 }

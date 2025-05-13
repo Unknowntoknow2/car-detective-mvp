@@ -1,34 +1,52 @@
 
-import React from 'react';
 import { Slider } from '@/components/ui/slider';
-import { ConditionSliderProps } from './types';
+import { Label } from '@/components/ui/label';
 
-export function ConditionSlider({ id, name, value, onChange }: ConditionSliderProps) {
+export interface ConditionSliderProps {
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  label?: string;
+  description?: string;
+  id?: string;
+  name?: string;
+}
+
+export function ConditionSlider({
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  step = 1,
+  label,
+  description,
+  id,
+  name
+}: ConditionSliderProps) {
+  const handleChange = (values: number[]) => {
+    onChange(values[0]);
+  };
+
   return (
     <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <label htmlFor={id} className="text-sm font-medium leading-none">
-          {name}
-        </label>
-        <span className="text-sm text-muted-foreground">
-          {value}/100
-        </span>
-      </div>
+      {label && <Label htmlFor={id}>{label}</Label>}
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      
       <Slider
         id={id}
-        min={0}
-        max={100}
-        step={5}
         value={[value]}
-        onValueChange={(values) => onChange(values[0])}
+        min={min}
+        max={max}
+        step={step}
+        onValueChange={handleChange}
         className="py-2"
       />
+      
       <div className="flex justify-between text-xs text-muted-foreground">
-        <span>Poor</span>
-        <span>Fair</span>
-        <span>Good</span>
-        <span>Very Good</span>
-        <span>Excellent</span>
+        <span>{min}</span>
+        <span>{max}</span>
       </div>
     </div>
   );

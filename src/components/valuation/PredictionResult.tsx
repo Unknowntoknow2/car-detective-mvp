@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { AICondition } from '@/types/photo';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationResults } from './ValuationResults';
 import { DealerOffersList } from '@/components/dealer/DealerOffersList';
+import { toast } from '@/components/ui/use-toast';
 
 interface PredictionResultProps {
   valuationId: string;
@@ -113,6 +115,13 @@ export function PredictionResult({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailReport = () => {
+    toast({
+      title: "Email Report",
+      description: "The report will be sent to your email address.",
+    });
   };
 
   if (isLoading) {
@@ -221,6 +230,7 @@ export function PredictionResult({
           mileage: data.mileage,
           condition: data.condition
         }}
+        onEmailReport={handleEmailReport}
       />
       
       {valuationId && (

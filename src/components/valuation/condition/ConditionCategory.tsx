@@ -1,50 +1,32 @@
 
 import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { ConditionRatingOption, ConditionCategoryProps } from './types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ConditionRatingOption } from '@/types/condition';
+
+export interface ConditionCategoryProps {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  ratings?: ConditionRatingOption[];
+  selectedRating?: ConditionRatingOption | null;
+  onSelect?: (rating: ConditionRatingOption) => void;
+}
 
 export function ConditionCategory({
   title,
   description,
+  children,
   ratings,
   selectedRating,
   onSelect
 }: ConditionCategoryProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="bg-white shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-medium">{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {ratings.map((rating) => (
-            <div
-              key={rating.id}
-              className={`p-3 rounded-md cursor-pointer transition-colors ${
-                selectedRating === rating.id
-                  ? 'bg-primary/10 border border-primary/50'
-                  : 'hover:bg-muted border border-transparent'
-              }`}
-              onClick={() => onSelect(rating)}
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-medium">{rating.name}</span>
-                <span className="text-sm text-muted-foreground">{rating.value}</span>
-              </div>
-              {rating.description && (
-                <p className="text-sm text-muted-foreground mt-1">{rating.description}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      </CardContent>
+      <CardContent className="pt-2">{children}</CardContent>
     </Card>
   );
 }

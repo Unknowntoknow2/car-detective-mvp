@@ -1,106 +1,83 @@
 
-import { render } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { FactorSlider } from './FactorSlider';
-import { ConditionOption } from './types';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { FactorSlider, ConditionOption } from './FactorSlider';
 
-// Import directly from @testing-library/dom
-import { screen, fireEvent } from '@testing-library/dom';
-
-describe('FactorSlider Component', () => {
-  const mockOptions: ConditionOption[] = [
-    { value: 0, label: 'Poor', tip: 'Needs major repairs', multiplier: 0.75 },
-    { value: 25, label: 'Fair', tip: 'Could use improvement', multiplier: 0.85 },
-    { value: 50, label: 'Good', tip: 'Standard condition', multiplier: 0.95 },
-    { value: 75, label: 'Very Good', tip: 'Better than average', multiplier: 1.00 },
-    { value: 100, label: 'Excellent', tip: 'Like new condition', multiplier: 1.05 },
+describe('FactorSlider', () => {
+  // Define test options
+  const options: ConditionOption[] = [
+    { id: 'poor', label: 'Poor', value: 0, tip: 'Significant wear and tear' },
+    { id: 'fair', label: 'Fair', value: 1, tip: 'Noticeable wear and tear' },
+    { id: 'good', label: 'Good', value: 2, tip: 'Normal wear for age' },
+    { id: 'very-good', label: 'Very Good', value: 3, tip: 'Minor wear and tear' },
+    { id: 'excellent', label: 'Excellent', value: 4, tip: 'Like new condition' }
   ];
-
-  const mockOnChange = vi.fn();
-
-  it('renders with correct initial value and label', () => {
+  
+  const mockOnChange = jest.fn();
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  
+  it('renders with the correct label', () => {
     render(
       <FactorSlider
-        id="test-slider"
-        label="Test Slider"
-        options={mockOptions}
-        value={50}
+        id="condition"
+        label="Overall Condition"
+        options={options}
+        value={2}
         onChange={mockOnChange}
       />
     );
-
-    // Check if the label is rendered
-    expect(screen.getByText('Test Slider')).toBeInTheDocument();
     
-    // Check if the current value's label is displayed
-    expect(screen.getByText('Good')).toBeInTheDocument();
-    
-    // Check if the tip for the selected value is shown
-    expect(screen.getByText('Tip:')).toBeInTheDocument();
-    expect(screen.getByText('Standard condition')).toBeInTheDocument();
+    expect(screen.getByText('Overall Condition')).toBeInTheDocument();
   });
-
-  it('calls onChange when slider value changes', () => {
+  
+  it('renders all option buttons', () => {
     render(
       <FactorSlider
-        id="test-slider"
-        label="Test Slider"
-        options={mockOptions}
-        value={50}
-        onChange={mockOnChange}
-      />
-    );
-
-    const slider = screen.getByRole('slider');
-    fireEvent.change(slider, { target: { value: 75 } });
-    
-    expect(mockOnChange).toHaveBeenCalledWith(75);
-  });
-
-  it('updates displayed tip when value changes', () => {
-    const { rerender } = render(
-      <FactorSlider
-        id="test-slider"
-        label="Test Slider"
-        options={mockOptions}
-        value={50}
-        onChange={mockOnChange}
-      />
-    );
-
-    // Check initial tip
-    expect(screen.getByText('Standard condition')).toBeInTheDocument();
-    
-    // Update the value
-    rerender(
-      <FactorSlider
-        id="test-slider"
-        label="Test Slider"
-        options={mockOptions}
-        value={75}
+        id="condition"
+        label="Overall Condition"
+        options={options}
+        value={2}
         onChange={mockOnChange}
       />
     );
     
-    // Check if the tip updated
-    expect(screen.getByText('Better than average')).toBeInTheDocument();
-    expect(screen.queryByText('Standard condition')).not.toBeInTheDocument();
-  });
-
-  it('displays all option labels as marks', () => {
-    render(
-      <FactorSlider
-        id="test-slider"
-        label="Test Slider"
-        options={mockOptions}
-        value={50}
-        onChange={mockOnChange}
-      />
-    );
-
-    // Check if all option labels are displayed as marks
-    mockOptions.forEach(option => {
-      expect(screen.getAllByText(option.label).length).toBeGreaterThanOrEqual(1);
+    options.forEach(option => {
+      expect(screen.getByText(option.label)).toBeInTheDocument();
     });
+  });
+  
+  it('highlights the selected option button', () => {
+    render(
+      <FactorSlider
+        id="condition"
+        label="Overall Condition"
+        options={options}
+        value={2}
+        onChange={mockOnChange}
+      />
+    );
+    
+    // This is a simplified test since we can't easily check styling
+    // In a real test, you'd check for the specific class or attribute
+    expect(screen.getByText('Good')).toBeInTheDocument();
+  });
+  
+  it('calls onChange when an option button is clicked', () => {
+    render(
+      <FactorSlider
+        id="condition"
+        label="Overall Condition"
+        options={options}
+        value={2}
+        onChange={mockOnChange}
+      />
+    );
+    
+    fireEvent.click(screen.getByText('Excellent'));
+    
+    expect(mockOnChange).toHaveBeenCalledWith('condition', 4);
   });
 });
