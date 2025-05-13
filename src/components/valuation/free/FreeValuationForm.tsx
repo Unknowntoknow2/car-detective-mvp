@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { toast } from 'sonner';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 
 interface FreeValuationFormProps {
-  onValuationComplete: (data: ManualVehicleInfo) => void;
+  onValuationComplete: (data: any) => void;
   onStartLoading?: () => void;
   isLoading?: boolean;
 }
@@ -50,13 +51,14 @@ export function FreeValuationForm({
         
         if (result) {
           // Convert the decoded vehicle to manual vehicle info format
-          const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+          const vehicleData = {
+            year: result.year || new Date().getFullYear(),
             make: result.make || '',
             model: result.model || '',
-            year: result.year || new Date().getFullYear(),
             mileage: 50000, // Default mileage
-            condition: 'Good',
+            condition: 'good' as const,
             zipCode: '10001', // Default zip
+            fuelType: 'gasoline',
             trim: result.trim
           };
           
@@ -74,13 +76,14 @@ export function FreeValuationForm({
         
         if (decodedVehicle) {
           // Convert the decoded vehicle to manual vehicle info format
-          const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+          const vehicleData = {
+            year: decodedVehicle.year || new Date().getFullYear(),
             make: decodedVehicle.make || '',
             model: decodedVehicle.model || '',
-            year: decodedVehicle.year || new Date().getFullYear(),
             mileage: 50000, // Default mileage
-            condition: 'Good',
+            condition: 'good' as const,
             zipCode: '10001', // Default zip
+            fuelType: 'gasoline',
             trim: decodedVehicle.trim
           };
           
@@ -102,13 +105,14 @@ export function FreeValuationForm({
         
         if (decodedVehicle) {
           // Convert the decoded vehicle to manual vehicle info format
-          const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+          const vehicleData = {
+            year: decodedVehicle.year || new Date().getFullYear(),
             make: decodedVehicle.make || '',
             model: decodedVehicle.model || '',
-            year: decodedVehicle.year || new Date().getFullYear(),
             mileage: 50000, // Default mileage
-            condition: 'Good',
+            condition: 'good' as const,
             zipCode: '10001', // Default zip
+            fuelType: 'gasoline',
             trim: decodedVehicle.trim
           };
           
@@ -133,14 +137,14 @@ export function FreeValuationForm({
     
     try {
       // Convert form data to the format expected by calculateValuation
-      const vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'> = {
+      const vehicleData = {
+        year: parseInt(data.year),
         make: data.make,
         model: data.model,
-        year: parseInt(data.year),
         mileage: parseInt(data.mileage),
-        condition: data.condition || 'Good',
+        condition: data.condition || 'good' as const,
         zipCode: data.zipCode || '10001',
-        fuelType: data.fuelType
+        fuelType: data.fuelType || 'gasoline'
       };
       
       // Calculate the valuation using the manual data

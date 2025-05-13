@@ -1,15 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useManualValuation } from '@/hooks/useManualValuation';
+import { useManualValuation, type ManualVehicleInfo } from '@/hooks/useManualValuation';
 import { ManualVehicleForm } from '@/components/valuation/free/ManualVehicleForm';
 import { ValuationResult } from '@/components/valuation/free/ValuationResult';
 
 const FreeValuationPage = () => {
+  const [manualEntryFormData, setManualEntryFormData] = useState<ManualVehicleInfo>({
+    makeId: '',
+    modelId: '',
+    year: new Date().getFullYear(),
+    mileage: 0,
+    zipCode: '',
+    condition: 'good',
+  });
+  
   const {
-    formData,
-    setFormData,
     valuation,
     isLoading,
     error,
@@ -63,9 +70,9 @@ const FreeValuationPage = () => {
               
               <TabsContent value="manual" className="pt-2">
                 <ManualVehicleForm 
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleSubmit}
+                  formData={manualEntryFormData}
+                  setFormData={setManualEntryFormData}
+                  onSubmit={(e) => handleSubmit(e)}
                   isLoading={isLoading}
                   error={error}
                 />
