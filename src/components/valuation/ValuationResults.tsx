@@ -1,23 +1,19 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/utils/formatters';
-import { Progress } from '@/components/ui/progress';
-import { ConditionTips } from './condition/ConditionTips';
 import { useAICondition } from '@/hooks/useAICondition';
-import { getConditionValueImpact, getConditionTips } from '@/utils/valuation/conditionHelpers';
-import { ConditionRatingOption } from './condition/types';
+import { ConditionTips } from './condition/ConditionTips';
 
 interface ValuationResultsProps {
   estimatedValue: number;
-  confidenceScore: number;
+  confidenceScore?: number;
   basePrice?: number;
-  priceRange?: [number, number];
   adjustments?: Array<{
     factor: string;
     impact: number;
-    description?: string;
+    description: string;
   }>;
+  priceRange?: [number, number];
   demandFactor?: number;
   vehicleInfo: {
     year: number;
@@ -27,9 +23,8 @@ interface ValuationResultsProps {
     mileage?: number;
     condition?: string;
   };
-  // Add the missing properties that are causing TypeScript errors
   valuationId?: string;
-  onEmailReport?: () => void | Promise<string>;
+  onEmailReport?: () => void | Promise<void>;
   onDownloadPdf?: () => void | Promise<void>;
 }
 

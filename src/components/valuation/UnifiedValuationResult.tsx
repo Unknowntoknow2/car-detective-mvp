@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AIConditionAssessment } from './AIConditionAssessment';
 import { UnifiedValuationHeader } from './header';
@@ -147,6 +146,7 @@ export function UnifiedValuationResult({
             vehicleInfo={vehicleInfo}
             valuationId={valuationId}
             onEmailReport={onEmailReport}
+            onDownloadPdf={onDownloadPdf}
           />
           
           <ExplanationSection

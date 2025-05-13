@@ -8,6 +8,14 @@ export interface ConditionRatingOption {
   description?: string;
 }
 
+export interface ConditionOption {
+  value: number;
+  label: string;
+  description?: string;
+  tip?: string;
+  multiplier?: number;
+}
+
 export interface ConditionCategoryProps {
   title: string;
   description: string;
