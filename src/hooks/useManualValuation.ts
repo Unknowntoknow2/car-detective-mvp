@@ -64,6 +64,9 @@ export function useManualValuation() {
       
       console.log(`Resolved names: ${makeName} ${modelName}`);
       
+      // Set a default base market value (this would typically come from a database or API)
+      const baseMarketValue = 25000; // Default base market value
+
       // Build valuation parameters
       const valuationParams: ValuationInput = {
         make: makeName,
@@ -73,7 +76,8 @@ export function useManualValuation() {
         condition: formData.condition,
         zipCode: formData.zipCode,
         identifierType: 'manual' as 'manual' | 'vin' | 'plate' | 'photo',
-        fuelType: formData.fuelType
+        fuelType: formData.fuelType,
+        baseMarketValue: baseMarketValue // Add the required baseMarketValue property
       };
       
       // Generate valuation report
@@ -175,6 +179,9 @@ export function useManualValuation() {
         }
       }
       
+      // Set a default base market value (this would typically come from a database or API)
+      const baseMarketValue = 25000; // Default base market value
+      
       // Generate valuation
       const valuationParams: ValuationInput = {
         make: makeName,
@@ -184,7 +191,8 @@ export function useManualValuation() {
         condition: vehicleData.condition,
         zipCode: vehicleData.zipCode,
         identifierType: 'manual' as 'manual' | 'vin' | 'plate' | 'photo',
-        fuelType: vehicleData.fuelType
+        fuelType: vehicleData.fuelType,
+        baseMarketValue: baseMarketValue // Add the required baseMarketValue property
       };
       
       const valuationResult = await buildValuationReport(valuationParams);
