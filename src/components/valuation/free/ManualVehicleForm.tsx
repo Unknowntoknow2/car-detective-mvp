@@ -61,7 +61,9 @@ export function ManualVehicleForm({
   const handleMakeChange = async (makeId: string) => {
     try {
       setLoadingModels(true);
-      setFormData(prev => ({ ...prev, make: makeId, model: '' }));
+      // Use proper type when setting state
+      const updatedFormData: ManualVehicleInfo = { ...formData, make: makeId, model: '' };
+      setFormData(updatedFormData);
       
       // Get make name for display
       const selectedMake = makes.find(m => m.id === makeId);

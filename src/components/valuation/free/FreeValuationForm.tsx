@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +55,6 @@ export function FreeValuationForm({
             model: result.model || '',
             year: result.year || new Date().getFullYear(),
             mileage: 50000, // Default mileage
-            fuelType: result.fuelType || 'gasoline',
             condition: 'Good',
             zipCode: '10001', // Default zip
             trim: result.trim
@@ -81,7 +79,6 @@ export function FreeValuationForm({
             model: decodedVehicle.model || '',
             year: decodedVehicle.year || new Date().getFullYear(),
             mileage: 50000, // Default mileage
-            fuelType: decodedVehicle.fuelType || 'gasoline',
             condition: 'Good',
             zipCode: '10001', // Default zip
             trim: decodedVehicle.trim
@@ -110,7 +107,6 @@ export function FreeValuationForm({
             model: decodedVehicle.model || '',
             year: decodedVehicle.year || new Date().getFullYear(),
             mileage: 50000, // Default mileage
-            fuelType: decodedVehicle.fuelType || 'gasoline',
             condition: 'Good',
             zipCode: '10001', // Default zip
             trim: decodedVehicle.trim
@@ -142,9 +138,9 @@ export function FreeValuationForm({
         model: data.model,
         year: parseInt(data.year),
         mileage: parseInt(data.mileage),
-        fuelType: data.fuelType || 'gasoline',
         condition: data.condition || 'Good',
-        zipCode: data.zipCode || '10001'
+        zipCode: data.zipCode || '10001',
+        fuelType: data.fuelType
       };
       
       // Calculate the valuation using the manual data

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import { toast } from '@/components/ui/use-toast';
 import { buildValuationReport } from '@/lib/valuation/buildValuationReport';
+import { type ValuationInput } from '@/utils/valuation/types';
 
 export interface ManualVehicleInfo {
   make: string;
@@ -11,6 +12,8 @@ export interface ManualVehicleInfo {
   mileage: number;
   zipCode: string;
   condition: string;
+  fuelType?: string;
+  trim?: string;
   valuationId?: string;
   valuation?: number;
   confidenceScore?: number;
@@ -62,14 +65,15 @@ export function useManualValuation() {
       console.log(`Resolved names: ${makeName} ${modelName}`);
       
       // Build valuation parameters
-      const valuationParams = {
+      const valuationParams: ValuationInput = {
         make: makeName,
         model: modelName,
         year: formData.year,
         mileage: formData.mileage,
         condition: formData.condition,
         zipCode: formData.zipCode,
-        identifierType: 'manual'
+        identifierType: 'manual' as 'manual' | 'vin' | 'plate' | 'photo',
+        fuelType: formData.fuelType
       };
       
       // Generate valuation report
@@ -135,6 +139,93 @@ export function useManualValuation() {
     setError(null);
   };
 
+  // Add calculateValuation function to fix the missing property error
+  const calculateValuation = async (vehicleData: Omit<ManualVehicleInfo, 'valuation' | 'confidenceScore'>) => {
+    try {
+      setIsLoading(true);
+      
+      // Get make and model names if they are IDs
+      let makeName = vehicleData.make;
+      let modelName = vehicleData.model;
+      
+      if (makeName && modelName) {
+        try {
+          // Check if make and model are IDs
+          if (typeof makeName === 'string' && makeName.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            const { data: makeData } = await supabase
+              .from('makes')
+              .select('make_name')
+              .eq('id', makeName)
+              .single();
+            
+            if (makeData) makeName = makeData.make_name;
+          }
+          
+          if (typeof modelName === 'string' && modelName.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            const { data: modelData } = await supabase
+              .from('models')
+              .select('model_name')
+              .eq('id', modelName)
+              .single();
+            
+            if (modelData) modelName = modelData.model_name;
+          }
+        } catch (err) {
+          console.error('Error resolving make/model:', err);
+        }
+      }
+      
+      // Generate valuation
+      const valuationParams: ValuationInput = {
+        make: makeName,
+        model: modelName,
+        year: vehicleData.year,
+        mileage: vehicleData.mileage,
+        condition: vehicleData.condition,
+        zipCode: vehicleData.zipCode,
+        identifierType: 'manual' as 'manual' | 'vin' | 'plate' | 'photo',
+        fuelType: vehicleData.fuelType
+      };
+      
+      const valuationResult = await buildValuationReport(valuationParams);
+      
+      // Create valuation record in database
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .insert({
+          make: makeName,
+          model: modelName,
+          year: vehicleData.year,
+          mileage: vehicleData.mileage,
+          condition_score: vehicleData.condition === 'excellent' ? 90 : 
+                          vehicleData.condition === 'good' ? 75 : 
+                          vehicleData.condition === 'fair' ? 60 : 45,
+          state: vehicleData.zipCode,
+          estimated_value: Math.round(valuationResult.finalValue),
+          user_id: null,
+          confidence_score: valuationResult.confidenceScore,
+          is_vin_lookup: false
+        })
+        .select()
+        .single();
+      
+      if (valuationError) throw new Error(`Valuation storage error: ${valuationError.message}`);
+      
+      // Return combined result
+      return {
+        ...vehicleData,
+        valuationId: valuationData.id,
+        valuation: valuationResult.finalValue,
+        confidenceScore: valuationResult.confidenceScore
+      };
+    } catch (error) {
+      console.error('Calculation error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     formData,
     setFormData,
@@ -143,6 +234,7 @@ export function useManualValuation() {
     error,
     handleSubmit,
     valuationId,
-    resetForm
+    resetForm,
+    calculateValuation
   };
 }
