@@ -4,7 +4,7 @@ import { CDButton } from '@/components/ui-kit/CDButton';
 import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
 import { CDTooltip } from '@/components/ui-kit/CDTooltip';
 import { CDBadge } from '@/components/ui-kit/CDBadge';
-import { HeadingXL, HeadingL, BodyM, BodyS, Caption } from '@/components/ui-kit/typography';
+import { Heading, HeadingXL, HeadingL, BodyM, BodyS, Caption } from '@/components/ui-kit/typography';
 import { ValuationResult } from '@/modules/valuation-result';
 import { InfoIcon, AlertCircle, Check } from 'lucide-react';
 
@@ -43,10 +43,10 @@ const DesignSystem = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <HeadingXL as="h1" className="mb-8">Car Detective Design System</HeadingXL>
+      <Heading level={1} className="mb-8">Car Detective Design System</Heading>
       
       <section className="mb-12">
-        <HeadingL as="h2" className="mb-4">Typography</HeadingL>
+        <Heading level={2} className="mb-4">Typography</Heading>
         <div className="space-y-4">
           <HeadingXL>Heading XL - The quick brown fox jumps over the lazy dog</HeadingXL>
           <HeadingL>Heading L - The quick brown fox jumps over the lazy dog</HeadingL>
@@ -57,7 +57,7 @@ const DesignSystem = () => {
       </section>
       
       <section className="mb-12">
-        <HeadingL as="h2" className="mb-4">Buttons</HeadingL>
+        <Heading level={2} className="mb-4">Buttons</Heading>
         <div className="flex flex-wrap gap-4">
           <CDButton variant="primary">Primary Button</CDButton>
           <CDButton variant="secondary">Secondary Button</CDButton>
@@ -70,11 +70,11 @@ const DesignSystem = () => {
       </section>
       
       <section className="mb-12">
-        <HeadingL as="h2" className="mb-4">Cards</HeadingL>
+        <Heading level={2} className="mb-4">Cards</Heading>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <CDCard>
             <CDCardHeader>
-              <HeadingL as="h3" className="text-xl">Card Title</HeadingL>
+              <Heading level={3} className="text-xl">Card Title</Heading>
             </CDCardHeader>
             <CDCardBody>
               <BodyM>This is a basic card component with header and body.</BodyM>
@@ -83,7 +83,7 @@ const DesignSystem = () => {
           
           <CDCard>
             <CDCardHeader>
-              <HeadingL as="h3" className="text-xl">Interactive Card</HeadingL>
+              <Heading level={3} className="text-xl">Interactive Card</Heading>
             </CDCardHeader>
             <CDCardBody>
               <BodyM className="mb-4">Cards can contain various UI elements like buttons and badges.</BodyM>
@@ -97,7 +97,7 @@ const DesignSystem = () => {
       </section>
       
       <section className="mb-12">
-        <HeadingL as="h2" className="mb-4">Badges</HeadingL>
+        <Heading level={2} className="mb-4">Badges</Heading>
         <div className="flex flex-wrap gap-3">
           <CDBadge variant="primary">Primary</CDBadge>
           <CDBadge variant="info">Info</CDBadge>
@@ -111,7 +111,7 @@ const DesignSystem = () => {
       </section>
       
       <section className="mb-12">
-        <HeadingL as="h2" className="mb-4">Tooltips</HeadingL>
+        <Heading level={2} className="mb-4">Tooltips</Heading>
         <div className="flex gap-6 items-center">
           <CDTooltip content="This is a tooltip">
             <CDButton variant="outline" size="sm">Hover me</CDButton>
@@ -131,7 +131,7 @@ const DesignSystem = () => {
       </section>
       
       <section className="mb-20">
-        <HeadingL as="h2" className="mb-4">Valuation Result Module</HeadingL>
+        <Heading level={2} className="mb-4">Valuation Result Module</Heading>
         <div className="mt-6">
           <ValuationResult
             isManualValuation={true}

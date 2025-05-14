@@ -1,7 +1,7 @@
 
 import React from "react";
 import { CDCard } from "@/components/ui-kit/CDCard";
-import { HeadingM, HeadingL, BodyM } from "@/components/ui-kit/typography";
+import { Heading, BodyM } from "@/components/ui-kit/typography";
 import { homepageConfig } from "../homepage.config";
 import styles from "../styles";
 import { motion } from "framer-motion";
@@ -23,9 +23,12 @@ export const HowItWorksSection: React.FC = () => {
   return (
     <section className={styles.steps.wrapper}>
       <div className={styles.container.inner}>
-        <HeadingL className={styles.steps.heading} as="h2">
+        <Heading 
+          level={1} 
+          className={styles.steps.heading}
+        >
           How It Works
-        </HeadingL>
+        </Heading>
         
         <div className={styles.steps.grid}>
           {steps.map((step, index) => (
@@ -48,9 +51,12 @@ export const HowItWorksSection: React.FC = () => {
                   {getIconByType(step.iconType)}
                 </div>
                 
-                <HeadingM className={styles.steps.stepTitle} as="h3">
+                <Heading 
+                  level={2} 
+                  className={styles.steps.stepTitle}
+                >
                   {step.title}
-                </HeadingM>
+                </Heading>
                 
                 <BodyM className={styles.steps.stepDescription}>
                   {step.description}

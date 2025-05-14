@@ -1,7 +1,7 @@
 
 import React from "react";
 import { CDButton } from "@/components/ui-kit/CDButton";
-import { HeadingL, BodyM } from "@/components/ui-kit/typography";
+import { Heading, BodyM } from "@/components/ui-kit/typography";
 import { homepageConfig } from "../homepage.config";
 import styles from "../styles";
 import { Link } from "react-router-dom";
@@ -18,9 +18,12 @@ export const CTAFooterSection: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <HeadingL className={styles.ctaFooter.heading} as="h2">
+          <Heading 
+            level={1} 
+            className={styles.ctaFooter.heading}
+          >
             {ctaFooter.headline}
-          </HeadingL>
+          </Heading>
           
           <Link to={ctaFooter.buttonLink}>
             <CDButton 
