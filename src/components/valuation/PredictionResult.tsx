@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -121,6 +120,12 @@ export function PredictionResult({
     toast({
       title: "Email Report",
       description: "The report will be sent to your email address.",
+    });
+  };
+
+  const handleShareClick = () => {
+    toast({
+      description: "Valuation report has been shared successfully!"
     });
   };
 

@@ -1,33 +1,35 @@
 
-import { toast as sonnerToast } from "sonner";
+import { toast as sonnerToast } from 'sonner';
+import * as React from 'react';
 
-type ToastProps = {
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
-  variant?: "default" | "destructive" | "success" | "warning" | "info";
-  duration?: number;
+export type ToastProps = {
+  description?: React.ReactNode;
+  variant?: 'default' | 'destructive' | 'success';
 };
 
-export const useToast = () => {
-  const showToast = ({
-    title,
-    description,
-    action,
-    variant,
-    duration,
-  }: ToastProps) => {
-    sonnerToast(title, {
-      description,
-      action,
-      className: variant ? `toast-${variant}` : "",
-      duration,
-    });
-  };
-
+export function useToast() {
   return {
-    toast: showToast,
+    toast: ({ description, variant = 'default' }: ToastProps) => {
+      if (variant === 'destructive') {
+        sonnerToast.error(description);
+      } else if (variant === 'success') {
+        sonnerToast.success(description);
+      } else {
+        sonnerToast(description);
+      }
+    }
   };
-};
+}
 
-export { sonnerToast as toast };
+// Toast function for direct usage without the hook
+export function toast(props: ToastProps) {
+  const { description, variant = 'default' } = props;
+  
+  if (variant === 'destructive') {
+    sonnerToast.error(description);
+  } else if (variant === 'success') {
+    sonnerToast.success(description);
+  } else {
+    sonnerToast(description);
+  }
+}

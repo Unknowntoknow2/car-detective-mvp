@@ -8,23 +8,22 @@ interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   className?: string;
 }
 
-export const Heading: React.FC<HeadingProps> = ({ 
+export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(({ 
   level = 2, 
   children, 
   className, 
   ...props 
-}) => {
+}, ref) => {
   const Tag = `h${level}` as keyof JSX.IntrinsicElements;
   
-  return (
-    <Tag 
-      className={cn('font-bold', className)}
-      {...props}
-    >
-      {children}
-    </Tag>
-  );
-};
+  return React.createElement(Tag, {
+    className: cn('font-bold', className),
+    ref,
+    ...props
+  }, children);
+});
+
+Heading.displayName = 'Heading';
 
 // Legacy type exports that might be used elsewhere
 export const HeadingXL = Heading;
@@ -39,12 +38,12 @@ interface BodyProps extends React.HTMLAttributes<HTMLParagraphElement> {
   className?: string;
 }
 
-export const Body: React.FC<BodyProps> = ({ 
+export const Body = forwardRef<HTMLParagraphElement, BodyProps>(({ 
   children, 
   size = 'medium', 
   className, 
   ...props 
-}) => {
+}, ref) => {
   const sizeClasses = {
     small: 'text-sm',
     medium: 'text-base',
@@ -53,13 +52,16 @@ export const Body: React.FC<BodyProps> = ({
   
   return (
     <p 
+      ref={ref}
       className={cn(sizeClasses[size], className)}
       {...props}
     >
       {children}
     </p>
   );
-};
+});
+
+Body.displayName = 'Body';
 
 // Legacy exports to maintain compatibility
 export const BodyS: React.FC<BodyProps> = (props) => <Body size="small" {...props} />;
@@ -72,20 +74,23 @@ interface CaptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
   className?: string;
 }
 
-export const Caption: React.FC<CaptionProps> = ({ 
+export const Caption = forwardRef<HTMLParagraphElement, CaptionProps>(({ 
   children, 
   className, 
   ...props 
-}) => {
+}, ref) => {
   return (
     <p 
+      ref={ref}
       className={cn('text-xs text-neutral-dark', className)}
       {...props}
     >
       {children}
     </p>
   );
-};
+});
+
+Caption.displayName = 'Caption';
 
 // Label component
 interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
@@ -93,20 +98,23 @@ interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   className?: string;
 }
 
-export const Label: React.FC<LabelProps> = ({ 
+export const Label = forwardRef<HTMLLabelElement, LabelProps>(({ 
   children, 
   className, 
   ...props 
-}) => {
+}, ref) => {
   return (
     <label 
+      ref={ref}
       className={cn('text-sm font-medium', className)}
       {...props}
     >
       {children}
     </label>
   );
-};
+});
+
+Label.displayName = 'Label';
 
 // Paragraph component
 interface ParagraphProps extends React.HTMLAttributes<HTMLParagraphElement> {
@@ -114,17 +122,20 @@ interface ParagraphProps extends React.HTMLAttributes<HTMLParagraphElement> {
   className?: string;
 }
 
-export const Paragraph: React.FC<ParagraphProps> = ({ 
+export const Paragraph = forwardRef<HTMLParagraphElement, ParagraphProps>(({ 
   children, 
   className, 
   ...props 
-}) => {
+}, ref) => {
   return (
     <p 
+      ref={ref}
       className={cn('text-base leading-relaxed', className)}
       {...props}
     >
       {children}
     </p>
   );
-};
+});
+
+Paragraph.displayName = 'Paragraph';

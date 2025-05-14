@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ValuationFactorsGrid } from './factors/ValuationFactorsGrid';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface ValuationConditionFormProps {
   initialValues?: {
@@ -52,7 +51,6 @@ export function ValuationConditionForm({
     // Validate ZIP code if provided
     if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode)) {
       toast({
-        title: "Invalid ZIP Code",
         description: "Please enter a valid 5-digit ZIP code.",
         variant: "destructive"
       });
@@ -68,7 +66,6 @@ export function ValuationConditionForm({
       navigate(`/result?id=${id}`);
     } else {
       toast({ 
-        title: "Error", 
         description: "Missing valuation ID. Please try again.",
         variant: "destructive"
       });
