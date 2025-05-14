@@ -16,7 +16,7 @@ export function NextStepsCard({ valuationId, onShareClick, isPremium = false }: 
   
   const handleUpgrade = () => {
     if (valuationId) {
-      navigate(`/premium?valuationId=${valuationId}`);
+      navigate(`/premium?id=${valuationId}`);
     } else {
       navigate('/premium');
     }

@@ -1,26 +1,149 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { Shield, ChevronRight, Check } from 'lucide-react';
 
 const Premium = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Premium Valuation Services</h1>
-      <p className="mb-8">Upgrade to our premium services for detailed vehicle valuations with comprehensive market analysis.</p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-3">Advanced Reports</h2>
-          <p>Get in-depth analysis of your vehicle's value with our comprehensive reports.</p>
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Premium Valuation Services</h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Get comprehensive vehicle valuations with detailed market analysis, CARFAX history, and more.
+          </p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-3">Market Comparison</h2>
-          <p>Compare your vehicle to similar listings in your area for a more accurate valuation.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <Card className="border-2 border-primary/20 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-sm font-medium">
+              Popular
+            </div>
+            <CardHeader>
+              <CardTitle>Basic Valuation</CardTitle>
+              <CardDescription>Free</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Basic vehicle value estimate</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Make, model, and year analysis</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Simple condition assessment</span>
+                </li>
+              </ul>
+              <Button 
+                onClick={() => navigate('/valuation')} 
+                variant="outline" 
+                className="w-full"
+              >
+                Start Free Valuation
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-2 border-primary shadow-lg relative transform scale-105">
+            <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-sm font-medium">
+              Recommended
+            </div>
+            <CardHeader>
+              <CardTitle>Premium Valuation</CardTitle>
+              <CardDescription>$29.99 one-time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Full CARFAX® Report ($44.99 value)</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Comprehensive market analysis</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Detailed condition assessment</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>12-month price forecast</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Downloadable PDF report</span>
+                </li>
+              </ul>
+              <Button 
+                onClick={() => navigate('/premium-valuation')} 
+                className="w-full"
+              >
+                Get Premium Valuation
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-2 border-gray-200">
+            <CardHeader>
+              <CardTitle>Dealer Connect</CardTitle>
+              <CardDescription>Free with Premium</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Connect with local dealers</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>Get competitive offers</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                  <span>No-hassle communication</span>
+                </li>
+              </ul>
+              <Button 
+                onClick={() => navigate('/premium-valuation')} 
+                variant="outline" 
+                className="w-full"
+              >
+                Included with Premium
+                <Shield className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-3">Dealer Network</h2>
-          <p>Connect with our network of trusted dealers for competitive offers on your vehicle.</p>
+        <div className="bg-gray-50 p-8 rounded-lg text-center">
+          <h2 className="text-2xl font-bold mb-4">Need a Quick Valuation Right Now?</h2>
+          <p className="text-gray-600 mb-6">
+            Get started with our free valuation tool and upgrade to premium at any time.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={() => navigate('/valuation')}
+              variant="outline"
+            >
+              Try Free Valuation
+            </Button>
+            <Button 
+              onClick={() => navigate('/premium-valuation')}
+            >
+              Go Premium Now
+            </Button>
+          </div>
         </div>
       </div>
     </div>
