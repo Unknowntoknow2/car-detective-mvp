@@ -4,15 +4,17 @@ import { cn } from '@/lib/utils';
 
 type HeadingProps = React.HTMLAttributes<HTMLHeadingElement> & {
   level?: 1 | 2 | 3 | 4 | 5 | 6;
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 };
 
 export const Heading = ({
   level = 1,
+  as,
   className,
   children,
   ...props
 }: HeadingProps) => {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag = (as || `h${level}`) as keyof JSX.IntrinsicElements;
 
   const styles = {
     1: "text-4xl font-bold tracking-tight",
@@ -32,6 +34,12 @@ export const Heading = ({
     </Tag>
   );
 };
+
+// Add these specific heading variants for backward compatibility
+export const HeadingXL = (props: React.HTMLAttributes<HTMLHeadingElement>) => <Heading level={1} className="text-5xl" {...props} />;
+export const HeadingL = (props: React.HTMLAttributes<HTMLHeadingElement>) => <Heading level={1} {...props} />;
+export const HeadingM = (props: React.HTMLAttributes<HTMLHeadingElement>) => <Heading level={2} {...props} />;
+export const HeadingS = (props: React.HTMLAttributes<HTMLHeadingElement>) => <Heading level={3} {...props} />;
 
 type ParagraphProps = React.HTMLAttributes<HTMLParagraphElement> & {
   size?: "xs" | "sm" | "base" | "lg";
@@ -59,6 +67,11 @@ export const Paragraph = ({
     </p>
   );
 };
+
+// Add these specific body text variants for backward compatibility
+export const BodyL = (props: React.HTMLAttributes<HTMLParagraphElement>) => <Paragraph size="lg" {...props} />;
+export const BodyM = (props: React.HTMLAttributes<HTMLParagraphElement>) => <Paragraph size="base" {...props} />;
+export const BodyS = (props: React.HTMLAttributes<HTMLParagraphElement>) => <Paragraph size="sm" {...props} />;
 
 export const Caption = ({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => {
   return (
