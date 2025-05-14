@@ -18,7 +18,7 @@ export default function ValuationDetailPage() {
     if (error === null || error === undefined) {
       return "Could not load the valuation details.";
     }
-    if (typeof error === 'object' && 'message' in error) {
+    if (typeof error === 'object' && error !== null && 'message' in error) {
       return String((error as { message: string }).message);
     }
     return String(error);
