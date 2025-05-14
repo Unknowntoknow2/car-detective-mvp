@@ -21,6 +21,7 @@ import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import UserDashboardPage from '@/pages/UserDashboardPage';
 import DealerSubscriptionPage from './pages/DealerSubscriptionPage';
 import DealerInventoryPage from '@/pages/dealer/DealerInventoryPage';
+import DealerLayout from '@/layouts/DealerLayout';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -41,18 +42,28 @@ const router = createBrowserRouter(
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/user-dashboard" element={<UserDashboardPage />} />
+      
+      {/* Dealer Routes - Now using DealerLayout */}
+      <Route
+        path="/dealer"
+        element={
+          <DealerGuard>
+            <DealerLayout />
+          </DealerGuard>
+        }
+      >
+        <Route index element={<DealerDashboard />} />
+        <Route path="dashboard" element={<DealerDashboard />} />
+        <Route path="inventory" element={<DealerInventoryPage />} />
+      </Route>
+      
+      {/* Keep these routes separate for now since they're already set up */}
       <Route
         path="/dealer-dashboard"
         element={
           <DealerGuard>
             <DealerDashboard />
           </DealerGuard>
-        }
-      />
-      <Route
-        path="/admin-dashboard"
-        element={
-          <AdminDashboardPage />
         }
       />
       <Route 
@@ -69,6 +80,13 @@ const router = createBrowserRouter(
           <DealerGuard>
             <DealerInventoryPage />
           </DealerGuard>
+        }
+      />
+      
+      <Route
+        path="/admin-dashboard"
+        element={
+          <AdminDashboardPage />
         }
       />
     </Route>

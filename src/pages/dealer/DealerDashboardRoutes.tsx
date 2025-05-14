@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DealerDashboardPage from './DealerDashboardPage';
 import DealerInventoryPage from './DealerInventoryPage';
 import { useAuth } from '@/hooks/useAuth';
+import DealerLayout from '@/layouts/DealerLayout';
 
 const DealerDashboardRoutes = () => {
   const { user, userRole, isLoading } = useAuth();
@@ -25,11 +26,13 @@ const DealerDashboardRoutes = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<DealerDashboardPage />} />
-      <Route path="/inventory" element={<DealerInventoryPage />} />
-      <Route path="*" element={<Navigate to="/dealer" replace />} />
-    </Routes>
+    <DealerLayout>
+      <Routes>
+        <Route path="/" element={<DealerDashboardPage />} />
+        <Route path="/inventory" element={<DealerInventoryPage />} />
+        <Route path="*" element={<Navigate to="/dealer" replace />} />
+      </Routes>
+    </DealerLayout>
   );
 };
 
