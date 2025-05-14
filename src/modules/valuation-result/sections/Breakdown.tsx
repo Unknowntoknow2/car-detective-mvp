@@ -1,116 +1,125 @@
-// Update the import to use the correct Heading component
-import { Heading } from "@/components/ui-kit/typography";
-import { BodyM, BodyS } from "@/components/ui-kit/typography";
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { ArrowDown, ArrowUp, Minus } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-export const Breakdown = () => {
-  // Mock data for the breakdown
-  const baseValue = 25000;
-  const adjustments = [
-    { name: "Mileage", value: -1200, direction: "down" },
-    { name: "Condition", value: 800, direction: "up" },
-    { name: "Market Demand", value: 1500, direction: "up" },
-    { name: "Service History", value: 0, direction: "neutral" },
-    { name: "Accident History", value: -500, direction: "down" },
-  ];
+import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  ArrowTrendingDown, 
+  ArrowTrendingUp, 
+  MinusSmall 
+} from '@heroicons/react/24/solid';
+import { Heading, BodyM, BodyS } from '@/components/ui-kit/typography';
+import { formatCurrency } from '@/utils/formatters';
+import { Progress } from '@/components/ui/progress';
+
+interface PriceAdjustment {
+  factor: string;
+  impact: number;
+  description?: string;
+}
+
+interface BreakdownProps {
+  basePrice: number;
+  adjustments: PriceAdjustment[];
+  estimatedValue: number;
+}
+
+export const Breakdown: React.FC<BreakdownProps> = ({
+  basePrice,
+  adjustments = [],
+  estimatedValue
+}) => {
+  // Filter out zero impact adjustments
+  const significantAdjustments = adjustments.filter(adj => adj.impact !== 0);
   
-  const finalValue = baseValue + adjustments.reduce((sum, adj) => sum + adj.value, 0);
-  
-  // Calculate the percentage impact of each adjustment
-  const getPercentageImpact = (value: number) => {
-    return Math.abs((value / baseValue) * 100);
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
   };
   
-  // Get the appropriate icon for the adjustment direction
-  const getDirectionIcon = (direction: string) => {
-    switch (direction) {
-      case "up":
-        return <ArrowUp className="h-4 w-4 text-green-600" />;
-      case "down":
-        return <ArrowDown className="h-4 w-4 text-red-600" />;
-      default:
-        return <Minus className="h-4 w-4 text-gray-400" />;
-    }
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <Heading className="text-2xl font-bold mb-4">Valuation Breakdown</Heading>
+      <Heading className="text-xl font-semibold mb-4">
+        Price Breakdown
+      </Heading>
       
-      <div className="space-y-6">
-        <div>
-          <BodyM className="text-muted-foreground mb-2">
-            We start with a base value and apply adjustments based on your vehicle's specific details.
-          </BodyM>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <BodyS className="text-muted-foreground">Base Value</BodyS>
-                  <div className="text-xl font-bold">${baseValue.toLocaleString()}</div>
-                </div>
-                <div className="text-right">
-                  <BodyS className="text-muted-foreground">Final Value</BodyS>
-                  <div className="text-2xl font-bold text-primary">${finalValue.toLocaleString()}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+      >
+        {/* Base Price */}
+        <motion.div variants={itemVariants} className="flex justify-between items-center">
+          <BodyM className="font-medium">Base Market Value</BodyM>
+          <span className="text-xl font-semibold">
+            {formatCurrency(basePrice)}
+          </span>
+        </motion.div>
         
-        <Separator />
-        
-        <div className="space-y-4">
-          <Heading className="text-lg font-semibold">Value Adjustments</Heading>
-          
-          {adjustments.map((adjustment, index) => (
-            <div key={index} className="space-y-2">
-              <div className="flex justify-between items-center">
+        {/* Adjustments */}
+        {significantAdjustments.length > 0 && (
+          <div className="space-y-3 py-3 border-y border-dashed border-gray-200">
+            {significantAdjustments.map((adjustment, index) => (
+              <motion.div 
+                key={index}
+                variants={itemVariants}
+                className="flex justify-between items-center"
+              >
                 <div className="flex items-center gap-2">
-                  {getDirectionIcon(adjustment.direction)}
-                  <span>{adjustment.name}</span>
+                  {adjustment.impact > 0 ? (
+                    <ArrowTrendingUp className="h-4 w-4 text-green-500" />
+                  ) : adjustment.impact < 0 ? (
+                    <ArrowTrendingDown className="h-4 w-4 text-red-500" />
+                  ) : (
+                    <MinusSmall className="h-4 w-4 text-gray-400" />
+                  )}
+                  <BodyS>{adjustment.factor}</BodyS>
                 </div>
-                <span className={cn(
-                  "font-medium",
-                  adjustment.value > 0 ? "text-green-600" : 
-                  adjustment.value < 0 ? "text-red-600" : "text-gray-500"
-                )}>
-                  {adjustment.value > 0 ? "+" : ""}{adjustment.value.toLocaleString()}
+                <span className={`font-medium ${
+                  adjustment.impact > 0 
+                    ? 'text-green-600' 
+                    : adjustment.impact < 0 
+                      ? 'text-red-600' 
+                      : 'text-gray-600'
+                }`}>
+                  {adjustment.impact > 0 ? '+' : ''}
+                  {formatCurrency(adjustment.impact)}
                 </span>
-              </div>
-              <Progress 
-                value={getPercentageImpact(adjustment.value)} 
-                className={cn(
-                  "h-1.5",
-                  adjustment.value > 0 ? "bg-green-100" : 
-                  adjustment.value < 0 ? "bg-red-100" : "bg-gray-100"
-                )}
-                indicatorClassName={
-                  adjustment.value > 0 ? "bg-green-500" : 
-                  adjustment.value < 0 ? "bg-red-500" : "bg-gray-400"
-                }
-              />
-            </div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
         
-        <Separator />
+        {/* Final Value */}
+        <motion.div 
+          variants={itemVariants}
+          className="flex justify-between items-center pt-2"
+        >
+          <BodyM className="font-bold">Final Valuation</BodyM>
+          <span className="text-2xl font-bold text-primary">
+            {formatCurrency(estimatedValue)}
+          </span>
+        </motion.div>
         
-        <div>
-          <BodyM className="mb-2">
-            The final valuation represents our estimate of your vehicle's current market value based on all factors.
-          </BodyM>
-          <BodyS className="text-muted-foreground">
-            This valuation is based on current market data and the specific details of your vehicle. Actual selling prices may vary.
-          </BodyS>
-        </div>
-      </div>
+        {/* Confidence Bar */}
+        <motion.div variants={itemVariants} className="mt-6">
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-gray-500">Confidence Level</span>
+            <span className="font-medium">85%</span>
+          </div>
+          <Progress value={85} className="h-2" />
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

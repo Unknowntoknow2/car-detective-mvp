@@ -10,12 +10,12 @@ import { toast } from 'sonner';
 import MobileLayout from './MobileLayout';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
-import Header from './sections/Header';
+import { Header } from './sections/Header';
 import Summary from './sections/Summary';
-import PhotoAnalysis from './sections/PhotoAnalysis';
-import Breakdown from './sections/Breakdown';
-import Explanation from './sections/Explanation';
-import PDFActions from './sections/PDFActions';
+import { PhotoAnalysis } from './sections/PhotoAnalysis';
+import { Breakdown } from './sections/Breakdown';
+import { Explanation } from './sections/Explanation';
+import { PDFActions } from './sections/PDFActions';
 
 // Import context and styles
 import { ValuationProvider } from './context/ValuationContext';

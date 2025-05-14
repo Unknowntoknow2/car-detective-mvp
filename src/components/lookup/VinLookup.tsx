@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { VinLookupService } from '@/services/VinLookupService';
 
@@ -51,9 +51,9 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
         }
       } catch (error) {
         console.error('VIN LOOKUP: Error during lookup:', error);
-        toast("Error", {
+        toast({
           description: "There was a problem looking up this VIN. Please try again.",
-          className: "toast-destructive"
+          variant: "destructive"
         });
       }
     }
@@ -67,7 +67,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
   
   const handleDownloadPdf = useCallback(() => {
     console.log('VIN LOOKUP: Download PDF triggered');
-    toast("PDF Download", {
+    toast({
       description: "Your PDF is being generated and will download shortly."
     });
     // Implementation for PDF download would go here
@@ -146,8 +146,8 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
                     adjustments: []
                   }));
                   
-                  // Navigate to the current page to show results, not a separate results page
-                  toast("Valuation Complete", {
+                  // Notify about the valuation
+                  toast({
                     description: "Your free valuation has been calculated below."
                   });
                 }}

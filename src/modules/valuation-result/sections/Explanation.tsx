@@ -1,74 +1,55 @@
-// Update the import to use the correct Heading component
-import { Heading } from "@/components/ui-kit/typography";
-import { BodyM } from "@/components/ui-kit/typography";
 
-// Rest of the file remains the same
-export const Explanation = () => {
-  const factors = [
-    {
-      name: "Market Demand",
-      impact: "High",
-      description: "Current market demand for this make and model is strong, positively affecting the valuation."
-    },
-    {
-      name: "Vehicle Condition",
-      impact: "Medium",
-      description: "The overall condition is good with minor wear consistent with age."
-    },
-    {
-      name: "Mileage",
-      impact: "Medium",
-      description: "The vehicle has slightly above average mileage for its age, which slightly reduces its value."
-    },
-    {
-      name: "Service History",
-      impact: "High",
-      description: "Complete service history with regular maintenance increases buyer confidence and value."
-    }
-  ];
+import React from 'react';
+import { Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Heading, BodyM } from '@/components/ui-kit/typography';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 
+interface ExplanationProps {
+  explanation: string;
+  isPremium: boolean;
+  onUpgrade: () => void;
+}
+
+export const Explanation: React.FC<ExplanationProps> = ({
+  explanation,
+  isPremium,
+  onUpgrade
+}) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <Heading className="text-2xl font-bold mb-4">Valuation Explanation</Heading>
-      
-      <div className="space-y-6">
-        <div>
-          <BodyM className="text-gray-700">
-            This valuation is based on comprehensive analysis of market data, vehicle condition, 
-            and comparable sales. Here are the key factors that influenced this valuation:
-          </BodyM>
-        </div>
-        
-        <div className="space-y-4">
-          {factors.map((factor, index) => (
-            <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold">{factor.name}</h3>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                  factor.impact === "High" 
-                    ? "bg-green-100 text-green-800" 
-                    : factor.impact === "Medium"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
-                }`}>
-                  {factor.impact} Impact
-                </span>
-              </div>
-              <BodyM className="text-gray-600 text-sm mt-1">
-                {factor.description}
-              </BodyM>
+    <Card>
+      <CardHeader>
+        <Heading className="text-xl font-semibold">
+          Professional Valuation Explanation
+        </Heading>
+      </CardHeader>
+      <CardContent>
+        {isPremium ? (
+          <div>
+            <BodyM className="whitespace-pre-line">
+              {explanation || 'Detailed explanation about your vehicle valuation, including market factors, condition assessments, and comparable vehicles.'}
+            </BodyM>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center py-4 space-y-4">
+            <div className="p-4 bg-slate-100 rounded-full">
+              <Lock className="h-6 w-6 text-slate-500" />
             </div>
-          ))}
-        </div>
-        
-        <div className="bg-blue-50 p-4 rounded-md">
-          <BodyM className="text-blue-800">
-            <strong>Expert Note:</strong> This vehicle maintains good value retention due to its 
-            popularity, reliability record, and the current market conditions for similar vehicles 
-            in your area.
-          </BodyM>
-        </div>
-      </div>
-    </div>
+            <div>
+              <p className="font-medium text-lg">Professional Explanation Locked</p>
+              <p className="text-muted-foreground mb-4">
+                Unlock AI-powered professional valuation explanations with Premium
+              </p>
+              <Button onClick={onUpgrade}>
+                Upgrade to Premium <PremiumBadge className="ml-2" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
+
+export default Explanation;
