@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,9 +15,8 @@ export default function ValuationResultPage() {
   const id = searchParams.get('id');
   const vin = searchParams.get('vin');
   const [tempData, setTempData] = useState<any>(null);
-  
   const { data, isLoading, error } = useValuationResult(id || '');
-
+  
   useEffect(() => {
     // Check for temp valuation data
     const storedData = localStorage.getItem('temp_valuation_data');
@@ -34,6 +33,13 @@ export default function ValuationResultPage() {
   // Use data or tempData if available
   const valuationData = data || tempData;
 
+  // Error message handling with proper null check
+  const errorMessage = error !== null && error !== undefined
+    ? (typeof error === 'object' && error !== null && 'message' in error 
+        ? String(error.message) 
+        : String(error)) 
+    : "Could not find the requested valuation.";
+    
   // Default vehicle info if data is not available
   const vehicleInfo = valuationData ? {
     make: valuationData.make,
@@ -48,7 +54,7 @@ export default function ValuationResultPage() {
     mileage: 0,
     condition: 'Good'
   };
-
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -62,8 +68,8 @@ export default function ValuationResultPage() {
       </div>
     );
   }
-
-  if ((!data && !tempData) || error) {
+  
+  if ((!data && !tempData) || error !== null) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -74,7 +80,7 @@ export default function ValuationResultPage() {
             </div>
             <h1 className="text-2xl font-bold mb-4">Valuation Not Found</h1>
             <p className="text-gray-600 mb-6">
-              We couldn't find the requested valuation. It may have expired or been deleted.
+              {errorMessage}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button onClick={() => navigate('/')}>
