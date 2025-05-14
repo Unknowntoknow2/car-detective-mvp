@@ -1,10 +1,9 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useLeads } from '../context/LeadsContext';
 import { Message } from '../types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import { PaperClip, Send, Smile, Image } from 'lucide-react';
+import { Paperclip, Send, Smile, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import EmojiPicker from 'emoji-picker-react';
@@ -248,7 +247,7 @@ export const ChatView: React.FC = () => {
                 {file.type.includes('image') ? (
                   <Image size={14} className="mr-1" />
                 ) : (
-                  <PaperClip size={14} className="mr-1" />
+                  <Paperclip size={14} className="mr-1" />
                 )}
                 <span className="truncate max-w-[150px]">{file.name}</span>
                 <button 
@@ -292,7 +291,7 @@ export const ChatView: React.FC = () => {
                 className="h-8 w-8 rounded-full"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <PaperClip size={18} />
+                <Paperclip size={18} />
                 <input
                   ref={fileInputRef}
                   type="file"

@@ -61,6 +61,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.3.0",
+    "emoji-picker-react": "^4.12.2",
     "file-saver": "^2.0.5",
     "framer-motion": "^6.5.1",
     "i18next": "^25.0.1",
