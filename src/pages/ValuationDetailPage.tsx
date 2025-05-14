@@ -35,7 +35,7 @@ export default function ValuationResultPage() {
   const valuationData = data || tempData;
 
   // Error message handling with proper null check
-  const errorMessage = error 
+  const errorMessage = error !== null 
     ? (typeof error === 'object' && error !== null && 'message' in error 
         ? String(error.message) 
         : String(error)) 
@@ -70,7 +70,7 @@ export default function ValuationResultPage() {
     );
   }
 
-  if ((!data && !tempData) || error) {
+  if ((!data && !tempData) || error !== null) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
