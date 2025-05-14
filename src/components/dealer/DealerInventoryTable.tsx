@@ -45,12 +45,32 @@ export const DealerInventoryTable = () => {
         }
 
         // Transform the data to ensure it matches the DealerVehicle type
-        // Explicitly cast status to our enum type since we know the values match
-        const typedVehicles = (data || []).map(vehicle => ({
-          ...vehicle,
-          status: vehicle.status as DealerVehicle['status'],
-          photos: Array.isArray(vehicle.photos) ? vehicle.photos : []
-        }));
+        const typedVehicles = (data || []).map(vehicle => {
+          // Handle photos - ensure it's always a string array
+          let photos: string[] = [];
+          if (vehicle.photos) {
+            // Check if photos is an array and convert all elements to strings
+            if (Array.isArray(vehicle.photos)) {
+              photos = vehicle.photos.map(item => String(item));
+            } else if (typeof vehicle.photos === 'string') {
+              // If it's a string (could be JSON string), try to parse it
+              try {
+                const parsed = JSON.parse(vehicle.photos);
+                photos = Array.isArray(parsed) ? parsed.map(item => String(item)) : [];
+              } catch {
+                // If parsing fails, use as is if it's a string
+                photos = [vehicle.photos];
+              }
+            }
+          }
+
+          return {
+            ...vehicle,
+            status: vehicle.status as DealerVehicle['status'],
+            mileage: vehicle.mileage === null ? null : Number(vehicle.mileage),
+            photos
+          } as DealerVehicle;
+        });
 
         setVehicles(typedVehicles);
       } catch (err: any) {
