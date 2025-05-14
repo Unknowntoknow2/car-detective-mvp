@@ -1,25 +1,22 @@
 
 import React from 'react';
-import { Sparkles } from 'lucide-react';
-import { usePremiumDealer } from '@/hooks/usePremiumDealer';
+import { usePremiumDealer } from '../hooks/usePremiumDealer';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-interface PremiumBadgeProps {
+export interface PremiumBadgeProps {
   className?: string;
 }
 
-// Define the component
 export const PremiumBadge = ({ className }: PremiumBadgeProps) => {
   const { isPremium, isLoading } = usePremiumDealer();
   
-  if (isLoading || !isPremium) return null;
+  if (isLoading) return null;
+  if (!isPremium) return null;
   
   return (
-    <div className={cn("flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white", className)}>
-      <Sparkles className="h-3 w-3 mr-1" />
+    <Badge className={cn('bg-amber-100 text-amber-800 border-amber-200', className)}>
       Premium
-    </div>
+    </Badge>
   );
 };
-
-// Only export once, removing the duplicate export at the end
