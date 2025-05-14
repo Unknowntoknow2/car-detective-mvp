@@ -2,10 +2,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 
-  ArrowTrendingDown, 
-  ArrowTrendingUp, 
-  MinusSmall 
-} from '@heroicons/react/24/solid';
+  ChevronUp, 
+  ChevronDown, 
+  Minus 
+} from 'lucide-react';
 import { Heading, BodyM, BodyS } from '@/components/ui-kit/typography';
 import { formatCurrency } from '@/utils/formatters';
 import { Progress } from '@/components/ui/progress';
@@ -77,11 +77,11 @@ export const Breakdown: React.FC<BreakdownProps> = ({
               >
                 <div className="flex items-center gap-2">
                   {adjustment.impact > 0 ? (
-                    <ArrowTrendingUp className="h-4 w-4 text-green-500" />
+                    <ChevronUp className="h-4 w-4 text-green-500" />
                   ) : adjustment.impact < 0 ? (
-                    <ArrowTrendingDown className="h-4 w-4 text-red-500" />
+                    <ChevronDown className="h-4 w-4 text-red-500" />
                   ) : (
-                    <MinusSmall className="h-4 w-4 text-gray-400" />
+                    <Minus className="h-4 w-4 text-gray-400" />
                   )}
                   <BodyS>{adjustment.factor}</BodyS>
                 </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
-import { Layout } from '@/components/layout/Layout';
+import Layout from '@/components/layout/Layout';
 import { toast } from '@/hooks/use-toast';
 
 const ManualLookupPage = () => {

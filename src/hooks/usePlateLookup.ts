@@ -35,9 +35,7 @@ export function usePlateLookup() {
       
       setResult(plateResult);
       toast({
-        title: "Vehicle Found",
         description: `${plateResult.year} ${plateResult.make} ${plateResult.model}`,
-        variant: "default", // Using a valid variant property
       });
       
       return plateResult;
@@ -45,7 +43,6 @@ export function usePlateLookup() {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error during plate lookup';
       setError(errorMessage);
       toast({
-        title: "Plate Lookup Failed",
         description: errorMessage,
         variant: "destructive"
       });
