@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { UserDropdown } from './UserDropdown';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Menu } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import Logo from './Logo';
