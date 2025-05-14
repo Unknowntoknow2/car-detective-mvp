@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/utils/supabaseClient';
 import { toast } from 'sonner';
-import { Vehicle, VehicleFormData, VehicleStatus } from '@/types/vehicle';
+import { DealerVehicle, DealerVehicleFormData, DealerVehicleStatus } from '@/types/dealerVehicle';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -72,11 +72,11 @@ const VehicleForm = ({
   onSubmit,
   isSubmitting,
 }: {
-  initialData: VehicleFormData;
-  onSubmit: (data: VehicleFormData) => void;
+  initialData: DealerVehicleFormData;
+  onSubmit: (data: DealerVehicleFormData) => void;
   isSubmitting: boolean;
 }) => {
-  const [formData, setFormData] = useState<VehicleFormData>(initialData);
+  const [formData, setFormData] = useState<DealerVehicleFormData>(initialData);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -93,7 +93,7 @@ const VehicleForm = ({
   const handleStatusChange = (value: string) => {
     setFormData({
       ...formData,
-      status: value as VehicleStatus,
+      status: value as DealerVehicleStatus,
     });
   };
 
@@ -196,7 +196,7 @@ const VehicleForm = ({
 };
 
 // Status badge component
-const StatusBadge = ({ status }: { status: VehicleStatus }) => {
+const StatusBadge = ({ status }: { status: DealerVehicleStatus }) => {
   const variants = {
     available: 'bg-green-100 text-green-800',
     pending: 'bg-yellow-100 text-yellow-800',
@@ -214,7 +214,7 @@ const StatusBadge = ({ status }: { status: VehicleStatus }) => {
 export const DealerInventory = () => {
   const { user } = useAuth();
   const { isPremium, isLoading: isPremiumLoading } = usePremiumDealer();
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -222,12 +222,12 @@ export const DealerInventory = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<DealerVehicle | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const ITEMS_PER_PAGE = 10;
 
-  const emptyFormData: VehicleFormData = {
+  const emptyFormData: DealerVehicleFormData = {
     make: '',
     model: '',
     year: new Date().getFullYear(),
@@ -264,7 +264,7 @@ export const DealerInventory = () => {
 
       if (error) throw error;
       
-      setVehicles(data || []);
+      setVehicles(data as DealerVehicle[]);
       
       if (count !== null) {
         setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
@@ -278,7 +278,7 @@ export const DealerInventory = () => {
   };
 
   // Add new vehicle
-  const addVehicle = async (data: VehicleFormData) => {
+  const addVehicle = async (data: DealerVehicleFormData) => {
     if (!user) return;
     
     setIsSubmitting(true);
@@ -302,7 +302,7 @@ export const DealerInventory = () => {
   };
 
   // Update vehicle
-  const updateVehicle = async (data: VehicleFormData) => {
+  const updateVehicle = async (data: DealerVehicleFormData) => {
     if (!selectedVehicle) return;
     
     setIsSubmitting(true);
@@ -356,13 +356,13 @@ export const DealerInventory = () => {
   };
 
   // Handle edit button click
-  const handleEditClick = (vehicle: Vehicle) => {
+  const handleEditClick = (vehicle: DealerVehicle) => {
     setSelectedVehicle(vehicle);
     setIsEditModalOpen(true);
   };
 
   // Handle delete button click
-  const handleDeleteClick = (vehicle: Vehicle) => {
+  const handleDeleteClick = (vehicle: DealerVehicle) => {
     setSelectedVehicle(vehicle);
     setIsDeleteDialogOpen(true);
   };
