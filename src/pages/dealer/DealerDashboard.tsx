@@ -2,12 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Plus, ListChecks, CreditCard, Loader2 } from 'lucide-react';
+import { 
+  Plus, 
+  ListChecks, 
+  CreditCard, 
+  Loader2, 
+  Car, 
+  TrendingUp, 
+  TrendingDown, 
+  Users 
+} from 'lucide-react';
 import { supabase } from '@/utils/supabaseClient';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import DealerGuard from '@/guards/DealerGuard';
+import { StatCard } from '@/components/stats/StatCard';
+import { motion } from 'framer-motion';
 
 // Types for dealer profile and stats
 interface DealerProfile {
@@ -19,6 +30,9 @@ interface DealerProfile {
 
 interface DealerStats {
   totalVehicles: number;
+  activeVehicles: number;
+  monthlyLeads: number;
+  valuationsCompleted: number;
   averagePrice: number | null;
   lastAddedVehicle: {
     id: string;
@@ -31,23 +45,6 @@ interface DealerStats {
   error: string | null;
 }
 
-// KPI Card component
-const KPICard: React.FC<{
-  title: string;
-  value: string | number | React.ReactNode;
-  description?: string;
-}> = ({ title, value, description }) => (
-  <Card className="overflow-hidden">
-    <CardHeader className="bg-primary/5 pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-    </CardHeader>
-    <CardContent className="pt-4">
-      <div className="text-2xl font-bold">{value}</div>
-      {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
-    </CardContent>
-  </Card>
-);
-
 // Action Card component
 const ActionCard: React.FC<{
   title: string;
@@ -55,11 +52,11 @@ const ActionCard: React.FC<{
   icon: React.ReactNode;
   onClick: () => void;
 }> = ({ title, description, icon, onClick }) => (
-  <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
+  <Card className="overflow-hidden hover:shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer" onClick={onClick}>
     <CardHeader className="bg-primary/5 pb-2">
       <div className="flex items-center justify-between">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div className="rounded-full bg-primary/10 p-2">{icon}</div>
+        <div className="rounded-full bg-primary/10 p-2 transition-transform hover:rotate-3">{icon}</div>
       </div>
     </CardHeader>
     <CardContent className="pt-4">
@@ -80,6 +77,9 @@ const DealerDashboardContent: React.FC = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [stats, setStats] = useState<DealerStats>({
     totalVehicles: 0,
+    activeVehicles: 0,
+    monthlyLeads: 0,
+    valuationsCompleted: 0,
     averagePrice: null,
     lastAddedVehicle: null,
     isLoading: true,
@@ -123,6 +123,35 @@ const DealerDashboardContent: React.FC = () => {
           .eq('dealer_id', user.id);
 
         if (countError) throw countError;
+        
+        // Get active vehicles count
+        const { count: activeVehicles, error: activeError } = await supabase
+          .from('dealer_vehicles')
+          .select('*', { count: 'exact', head: true })
+          .eq('dealer_id', user.id)
+          .eq('status', 'available');
+          
+        if (activeError) throw activeError;
+        
+        // Get monthly leads count
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        
+        const { count: monthlyLeads, error: leadsError } = await supabase
+          .from('dealer_leads')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('created_at', oneMonthAgo.toISOString());
+          
+        if (leadsError) throw leadsError;
+        
+        // Get valuations count
+        const { count: valuationsCompleted, error: valuationsError } = await supabase
+          .from('valuations')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+          
+        if (valuationsError) throw valuationsError;
 
         // Get average price
         const { data: priceData, error: priceError } = await supabase
@@ -150,6 +179,9 @@ const DealerDashboardContent: React.FC = () => {
 
         setStats({
           totalVehicles: totalVehicles || 0,
+          activeVehicles: activeVehicles || 0,
+          monthlyLeads: monthlyLeads || 0,
+          valuationsCompleted: valuationsCompleted || 0,
           averagePrice,
           lastAddedVehicle,
           isLoading: false,
@@ -199,12 +231,20 @@ const DealerDashboardContent: React.FC = () => {
   return (
     <div className="container max-w-6xl py-12">
       {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+      <motion.div 
+        className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             Welcome back, {getDealerDisplayName()}
           </h1>
           <p className="text-muted-foreground mt-1">
+            Here's a quick look at your dealership activity
+          </p>
+          <p className="text-sm text-muted-foreground/70 mt-1">
             {format(new Date(), "EEEE, MMMM do, yyyy")}
           </p>
         </div>
@@ -221,59 +261,105 @@ const DealerDashboardContent: React.FC = () => {
             {getDealerDisplayName().charAt(0).toUpperCase()}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* KPI Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <KPICard 
-          title="Total Vehicles" 
-          value={stats.totalVehicles} 
-          description="Active listings in your inventory"
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <StatCard 
+          title="Total Listings" 
+          value={stats.totalVehicles}
+          icon={<ListChecks className="h-5 w-5" />}
+          trend={{ value: 5, isPositive: true, label: "vs. last month" }}
         />
-        <KPICard 
+        <StatCard 
+          title="Active Vehicles" 
+          value={stats.activeVehicles}
+          icon={<Car className="h-5 w-5" />}
+          trend={{ value: 3, isPositive: true, label: "vs. last month" }}
+        />
+        <StatCard 
+          title="Monthly Leads" 
+          value={stats.monthlyLeads}
+          icon={<Users className="h-5 w-5" />}
+          trend={{ value: 2, isPositive: false, label: "vs. last month" }}
+        />
+        <StatCard 
+          title="Valuations Completed" 
+          value={stats.valuationsCompleted}
+          icon={<TrendingUp className="h-5 w-5" />}
+          trend={{ value: 8, isPositive: true, label: "vs. last month" }}
+        />
+      </motion.div>
+
+      {/* Average Price and Last Added Vehicle */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <StatCard 
           title="Average Price" 
-          value={formatCurrency(stats.averagePrice)} 
-          description="Based on your current inventory"
+          value={stats.averagePrice || 0}
+          formatter={formatCurrency}
+          icon={<TrendingUp className="h-5 w-5" />}
         />
-        <KPICard 
-          title="Last Added Vehicle" 
-          value={
-            stats.lastAddedVehicle ? (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Last Added Vehicle
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            {stats.lastAddedVehicle ? (
               <div className="flex flex-col">
-                <span>{stats.lastAddedVehicle.year} {stats.lastAddedVehicle.make} {stats.lastAddedVehicle.model}</span>
+                <span className="text-xl font-semibold">
+                  {stats.lastAddedVehicle.year} {stats.lastAddedVehicle.make} {stats.lastAddedVehicle.model}
+                </span>
                 <span className="text-xs text-muted-foreground mt-1">
                   {format(new Date(stats.lastAddedVehicle.created_at), "MMM d, yyyy")}
                 </span>
               </div>
             ) : (
-              "No vehicles yet"
-            )
-          }
-        />
-      </div>
+              <span className="text-muted-foreground text-sm">No vehicles added yet</span>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Action Cards */}
-      <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ActionCard
-          title="Add New Vehicle"
-          description="List a new vehicle in your inventory"
-          icon={<Plus className="h-5 w-5" />}
-          onClick={() => navigate('/dealer/inventory/add')}
-        />
-        <ActionCard
-          title="View Inventory"
-          description="Manage your vehicle listings"
-          icon={<ListChecks className="h-5 w-5" />}
-          onClick={() => navigate('/dealer/inventory')}
-        />
-        <ActionCard
-          title="Manage Subscription"
-          description="View or update your dealer subscription"
-          icon={<CreditCard className="h-5 w-5" />}
-          onClick={() => navigate('/dealer-subscription')}
-        />
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+      >
+        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ActionCard
+            title="Add New Vehicle"
+            description="List a new vehicle in your inventory"
+            icon={<Plus className="h-5 w-5" />}
+            onClick={() => navigate('/dealer/inventory/add')}
+          />
+          <ActionCard
+            title="View Inventory"
+            description="Manage your vehicle listings"
+            icon={<ListChecks className="h-5 w-5" />}
+            onClick={() => navigate('/dealer/inventory')}
+          />
+          <ActionCard
+            title="Manage Subscription"
+            description="View or update your dealer subscription"
+            icon={<CreditCard className="h-5 w-5" />}
+            onClick={() => navigate('/dealer-subscription')}
+          />
+        </div>
+      </motion.div>
     </div>
   );
 };
