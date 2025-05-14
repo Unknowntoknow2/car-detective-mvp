@@ -18,7 +18,7 @@ export default function ValuationDetailPage() {
     ? "Could not load the valuation details."
     : typeof error === 'object' && error !== null && 'message' in error
       ? String((error as { message: string }).message)
-      : String(error);
+      : typeof error === 'string' ? error : "An unknown error occurred";
 
   if (isLoading) {
     return (
