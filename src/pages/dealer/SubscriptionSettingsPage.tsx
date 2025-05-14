@@ -53,8 +53,8 @@ const SubscriptionSettingsPage: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      toast("Ready to upgrade", {
-        description: "Choose your new plan below",
+      toast({
+        description: "Choose your new plan below"
       });
       
       // Smooth scroll to plan selector
@@ -71,8 +71,8 @@ const SubscriptionSettingsPage: React.FC = () => {
     setTimeout(() => {
       setIsLoading(false);
       setShowCancelDialog(false);
-      toast("Subscription canceled", {
-        description: "Your subscription will remain active until the end of the billing period",
+      toast({
+        description: "Your subscription will remain active until the end of the billing period"
       });
     }, 1500);
   };
@@ -82,8 +82,8 @@ const SubscriptionSettingsPage: React.FC = () => {
     // Simulate download
     setTimeout(() => {
       setIsLoading(false);
-      toast("Invoice downloaded", {
-        description: `Invoice #${invoiceId} has been downloaded`,
+      toast({
+        description: `Invoice #${invoiceId} has been downloaded`
       });
     }, 800);
   };

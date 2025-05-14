@@ -19,9 +19,9 @@ export const useVehicleUpload = (dealerId?: string) => {
     
     // Limit total number of photos to 10
     if (uploadedPhotos.length + newFiles.length > 10) {
-      toast("Too many photos", {
+      toast({
         description: 'You can upload a maximum of 10 photos per vehicle.',
-        className: 'toast-destructive',
+        variant: 'destructive'
       });
       return;
     }
@@ -83,9 +83,9 @@ export const useVehicleUpload = (dealerId?: string) => {
       return uploadedUrls;
     } catch (error) {
       console.error('Error uploading photos:', error);
-      toast("Upload Error", {
+      toast({
         description: 'Failed to upload one or more photos.',
-        className: 'toast-destructive',
+        variant: 'destructive'
       });
       return uploadedUrls; // Return any URLs that were successfully uploaded
     } finally {
@@ -130,9 +130,9 @@ export const useVehicleUpload = (dealerId?: string) => {
       return true;
     } catch (error) {
       console.error('Error deleting photo:', error);
-      toast("Delete Error", {
+      toast({
         description: 'Failed to delete photo.',
-        className: 'toast-destructive',
+        variant: 'destructive'
       });
       return false;
     }

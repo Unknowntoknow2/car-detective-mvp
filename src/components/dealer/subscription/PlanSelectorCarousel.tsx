@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
@@ -40,9 +39,7 @@ export const PlanSelectorCarousel: React.FC<PlanSelectorCarouselProps> = ({
     setTimeout(() => {
       setIsLoading(false);
       toast({
-        title: "Plan selected",
-        description: `You've successfully selected the ${availablePlans.find(p => p.id === planId)?.name} plan.`,
-        duration: 3000,
+        description: `You've successfully selected the ${availablePlans.find(p => p.id === planId)?.name} plan.`
       });
     }, 1500);
   };
