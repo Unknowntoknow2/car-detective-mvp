@@ -39,7 +39,7 @@ export default function ValuationResultPage() {
     ? "Could not find the requested valuation."
     : typeof error === 'object' && error !== null && 'message' in error
       ? String((error as { message: string }).message)
-      : String(error);
+      : typeof error === 'string' ? error : "An unknown error occurred";
     
   // Default vehicle info if data is not available
   const vehicleInfo = valuationData ? {
