@@ -34,7 +34,7 @@ export default function ValuationResultPage() {
   // Use data or tempData if available
   const valuationData = data || tempData;
 
-  // Error message handling with null check
+  // Error message handling with proper null check
   const errorMessage = error 
     ? (typeof error === 'object' && error !== null && 'message' in error 
         ? String(error.message) 
