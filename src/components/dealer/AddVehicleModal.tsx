@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { X, Plus, Upload, Car } from 'lucide-react';
-import { uuid } from '@supabase/supabase-js/dist/module/helpers';
+import { v4 as uuid } from 'uuid'; // Using uuid package instead of supabase helpers
 
 import {
   Dialog,
@@ -240,7 +240,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
                       <Select 
                         onValueChange={(value) => {
                           field.onChange(value);
-                          const makeObj = makes.find(m => m.name === value);
+                          const makeObj = makes.find(m => m.make_name === value);
                           if (makeObj) {
                             setSelectedMakeId(makeObj.id);
                           }
@@ -254,8 +254,8 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
                         </FormControl>
                         <SelectContent>
                           {makes.map((make) => (
-                            <SelectItem key={make.id} value={make.name}>
-                              {make.name}
+                            <SelectItem key={make.id} value={make.make_name}>
+                              {make.make_name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -283,8 +283,8 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
                         </FormControl>
                         <SelectContent>
                           {models.map((model) => (
-                            <SelectItem key={model.id} value={model.name}>
-                              {model.name}
+                            <SelectItem key={model.id} value={model.model_name}>
+                              {model.model_name}
                             </SelectItem>
                           ))}
                         </SelectContent>
