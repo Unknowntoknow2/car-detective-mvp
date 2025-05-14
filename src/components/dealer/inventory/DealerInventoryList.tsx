@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -32,19 +31,27 @@ export const DealerInventoryList: React.FC<DealerInventoryListProps> = ({ onRefr
   // Get dealer inventory data and functions from the hook
   const {
     vehicles,
-    loading,
-    searchTerm,
-    setSearchTerm,
-    sortBy,
-    setSortBy,
-    sortOptions,
-    vehicleToDelete,
-    setVehicleToDelete,
-    isDeleting,
-    deleteVehicle,
-    isEmpty,
-    noSearchResults
+    isLoading,
+    error,
+    refetch,
+    deleteVehicle
   } = useDealerInventory();
+
+  // State for managing search term, sort criteria, and deletion
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<string>('newest');
+  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Sort options
+  const sortOptions = [
+    { label: 'Newest', value: 'newest' },
+    { label: 'Oldest', value: 'oldest' },
+    { label: 'Price (High to Low)', value: 'price-desc' },
+    { label: 'Price (Low to High)', value: 'price-asc' },
+    { label: 'Mileage (High to Low)', value: 'mileage-desc' },
+    { label: 'Mileage (Low to High)', value: 'mileage-asc' },
+  ];
 
   // State for managing the current sort direction
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -76,7 +83,20 @@ export const DealerInventoryList: React.FC<DealerInventoryListProps> = ({ onRefr
 
   // Handle actual deletion
   const handleConfirmDelete = async () => {
-    await deleteVehicle(onRefresh);
+    if (!vehicleToDelete) return;
+    
+    setIsDeleting(true);
+    const result = await deleteVehicle(vehicleToDelete.id);
+    setIsDeleting(false);
+    
+    if (result.success) {
+      // Refresh the vehicle list after successful deletion
+      if (onRefresh) {
+        onRefresh();
+      }
+    }
+    
+    setVehicleToDelete(null);
   };
   
   // Get sort icon for column
@@ -116,8 +136,50 @@ export const DealerInventoryList: React.FC<DealerInventoryListProps> = ({ onRefr
     };
   }, [searchTerm]);
 
+  // Filter vehicles based on search term
+  const filteredVehicles = vehicles.filter(vehicle => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      vehicle.make.toLowerCase().includes(searchLower) ||
+      vehicle.model.toLowerCase().includes(searchLower) ||
+      vehicle.year.toString().includes(searchLower)
+    );
+  });
+
+  // Sort vehicles based on selected sort option
+  const sortedVehicles = [...filteredVehicles].sort((a, b) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'mileage-asc':
+        if (a.mileage === null) return -1;
+        if (b.mileage === null) return 1;
+        return a.mileage - b.mileage;
+      case 'mileage-desc':
+        if (a.mileage === null) return -1;
+        if (b.mileage === null) return 1;
+        return b.mileage - a.mileage;
+      default:
+        return 0;
+    }
+  });
+
+  // Check if no results based on search
+  const noSearchResults = searchTerm.length > 0 && filteredVehicles.length === 0;
+  
+  // Check if inventory is empty
+  const isEmpty = vehicles.length === 0;
+
   // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
