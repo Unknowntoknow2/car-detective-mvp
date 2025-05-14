@@ -8,6 +8,7 @@ export function usePremiumDealer() {
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [expiryDate, setExpiryDate] = useState<string | null>(null);
 
   useEffect(() => {
     const checkPremiumStatus = async () => {
@@ -36,6 +37,7 @@ export function usePremiumDealer() {
           (!data?.premium_expires_at || new Date(data.premium_expires_at) > new Date());
 
         setIsPremium(isPremiumActive);
+        setExpiryDate(data?.premium_expires_at);
       } catch (err) {
         console.error('Error checking premium status:', err);
         setError('Failed to check premium status');
@@ -48,5 +50,5 @@ export function usePremiumDealer() {
     checkPremiumStatus();
   }, [user]);
 
-  return { isPremium, isLoading, error };
+  return { isPremium, isLoading, error, expiryDate };
 }
