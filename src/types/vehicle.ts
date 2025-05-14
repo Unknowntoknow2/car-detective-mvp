@@ -37,4 +37,7 @@ export interface DecodedVehicleInfo {
   color?: string;
   mileage?: number;
   condition?: string;
+  fuelType?: string;
+  zipCode?: string;
 }
+
