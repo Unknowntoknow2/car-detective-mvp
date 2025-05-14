@@ -4,7 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
 import DealerSubscription from '@/components/dealer/DealerSubscription';
 import { useAuth } from '@/hooks/useAuth';
-import { Redirect } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 const DealerSubscriptionPage = () => {
   const { user, isLoading } = useAuth();
@@ -24,14 +24,14 @@ const DealerSubscriptionPage = () => {
 
   // Redirect if not logged in
   if (!user) {
-    return <Redirect to="/auth?redirect=/dealer-subscription" />;
+    return <Navigate to="/auth?redirect=/dealer-subscription" />;
   }
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="w-full bg-white border-b py-4">
         <div className="container">
-          <Alert variant="info" className="mb-4 bg-blue-50 border-blue-200">
+          <Alert variant="default" className="mb-4 bg-blue-50 border-blue-200">
             <InfoIcon className="h-4 w-4 text-blue-600" />
             <AlertTitle className="text-blue-800">Subscription Management</AlertTitle>
             <AlertDescription className="text-blue-700">
