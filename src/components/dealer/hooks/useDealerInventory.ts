@@ -24,7 +24,15 @@ export const useDealerInventory = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setVehicles(data || []);
+      
+      // Transform the data to ensure it matches the DealerVehicle type
+      const typedVehicles = (data || []).map(vehicle => ({
+        ...vehicle,
+        status: vehicle.status as DealerVehicle['status'],
+        photos: Array.isArray(vehicle.photos) ? vehicle.photos : []
+      }));
+      
+      setVehicles(typedVehicles);
     } catch (err: any) {
       console.error('Error fetching dealer inventory:', err);
       setError(err.message || 'Failed to load inventory');

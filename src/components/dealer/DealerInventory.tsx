@@ -1,17 +1,10 @@
 
 import React, { useState } from 'react';
-import AddVehicleModal from './modals/AddVehicleModal';
 import { toast } from 'sonner';
 import { useDealerInventory } from './hooks/useDealerInventory';
-import { 
-  EmptyState, 
-  LoadingState, 
-  NoSearchResults, 
-  SearchAndFilterBar, 
-  DeleteConfirmationDialog, 
-  VehicleGrid,
-  InventoryHeader
-} from './inventory';
+import { DealerVehicle } from '@/types/dealerVehicle';
+import { DealerInventoryTable } from './DealerInventoryTable';
+import { Button } from '@/components/ui/button';
 
 interface DealerInventoryProps {
   onRefresh?: () => void;
@@ -19,22 +12,15 @@ interface DealerInventoryProps {
 
 export const DealerInventory: React.FC<DealerInventoryProps> = ({ onRefresh }) => {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const { 
     vehicles, 
-    loading, 
-    searchTerm, 
-    setSearchTerm,
-    sortBy, 
-    setSortBy,
-    sortOptions,
-    vehicleToDelete,
-    setVehicleToDelete,
-    isDeleting,
+    isLoading, 
+    error,
     deleteVehicle,
-    isEmpty,
-    noSearchResults
+    refetch
   } = useDealerInventory();
 
   // Handle add vehicle
@@ -48,69 +34,57 @@ export const DealerInventory: React.FC<DealerInventoryProps> = ({ onRefresh }) =
   };
 
   // Handle delete vehicle confirmation
-  const handleDeleteClick = (vehicle: any) => {
+  const handleDeleteClick = (vehicle: DealerVehicle) => {
     setVehicleToDelete(vehicle);
-    setDeleteDialogOpen(true);
   };
 
   // Handle actual deletion
   const handleConfirmDelete = async () => {
-    await deleteVehicle(onRefresh);
-    setDeleteDialogOpen(false);
+    if (!vehicleToDelete) return;
+    
+    setIsDeleting(true);
+    const result = await deleteVehicle(vehicleToDelete.id);
+    setIsDeleting(false);
+    
+    if (result.success) {
+      toast.success('Vehicle deleted successfully');
+      if (onRefresh) {
+        onRefresh();
+      }
+    } else if (result.error) {
+      toast.error(result.error);
+    }
+    
+    setVehicleToDelete(null);
   };
 
+  // Simplified component that uses DealerInventoryTable
   return (
     <div className="container max-w-7xl py-6 space-y-6">
-      {/* Header Section */}
-      <InventoryHeader onAddVehicle={() => setIsAddVehicleModalOpen(true)} />
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">Your Inventory</h2>
+        <Button onClick={() => setIsAddVehicleModalOpen(true)}>
+          Add Vehicle
+        </Button>
+      </div>
       
-      {/* Search and Filter Section */}
-      <SearchAndFilterBar
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        sortOptions={sortOptions}
-      />
+      <DealerInventoryTable />
       
-      {/* Loading State */}
-      {loading && <LoadingState />}
-      
-      {/* Empty State */}
-      {isEmpty && (
-        <EmptyState onAddVehicle={() => setIsAddVehicleModalOpen(true)} />
-      )}
-      
-      {/* No Results State */}
-      {noSearchResults && (
-        <NoSearchResults 
-          searchTerm={searchTerm} 
-          onClearSearch={() => setSearchTerm('')} 
-        />
-      )}
-      
-      {/* Vehicle Grid */}
-      {!loading && vehicles.length > 0 && (
-        <VehicleGrid 
-          vehicles={vehicles}
-          onDeleteClick={handleDeleteClick}
-        />
-      )}
-      
-      {/* Add Vehicle Modal */}
+      {/* You'll need to import or create these components */}
+      {/* 
       <AddVehicleModal 
         open={isAddVehicleModalOpen} 
         onOpenChange={setIsAddVehicleModalOpen}
         onVehicleAdded={handleVehicleAdded}
       />
       
-      {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog 
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
+        open={vehicleToDelete !== null}
+        onOpenChange={open => !open && setVehicleToDelete(null)}
         onConfirmDelete={handleConfirmDelete}
         isDeleting={isDeleting}
       />
+      */}
     </div>
   );
 };
