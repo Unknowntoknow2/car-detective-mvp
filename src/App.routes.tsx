@@ -15,6 +15,7 @@ import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import DealerSignup from '@/pages/dealer/signup';
 import LoginDealerPage from '@/pages/LoginDealerPage';
 import DealerDashboard from '@/pages/DealerDashboard';
+import Dashboard from '@/pages/Dashboard';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import DealerGuard from '@/guards/DealerGuard';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
@@ -39,6 +40,7 @@ const router = createBrowserRouter(
       <Route path="/dealer-signup" element={<DealerSignup />} />
       <Route path="/login-dealer" element={<LoginDealerPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/user-dashboard" element={<UserDashboardPage />} />
       <Route
         path="/dealer-dashboard"

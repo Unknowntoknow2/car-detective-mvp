@@ -4,10 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 export function usePremiumDealer() {
-  const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [expiryDate, setExpiryDate] = useState<Date | null>(null);
+  const [expiryDate, setExpiryDate] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function checkPremiumStatus() {
@@ -17,6 +17,7 @@ export function usePremiumDealer() {
       }
 
       try {
+        // Fetch profile to check premium dealer status
         const { data, error } = await supabase
           .from('profiles')
           .select('is_premium_dealer, premium_expires_at')
@@ -24,20 +25,19 @@ export function usePremiumDealer() {
           .single();
 
         if (error) {
-          console.error('Error checking premium status:', error);
-          setIsLoading(false);
-          return;
+          console.error('Error fetching premium status:', error);
+          setIsPremium(false);
+        } else {
+          // Check if user is a premium dealer and subscription hasn't expired
+          const isPremiumActive = data?.is_premium_dealer && 
+            (!data?.premium_expires_at || new Date(data.premium_expires_at) > new Date());
+          
+          setIsPremium(isPremiumActive);
+          setExpiryDate(data?.premium_expires_at);
         }
-
-        // Check if user is premium and if premium hasn't expired
-        const isPremiumUser = data?.is_premium_dealer === true;
-        const expiryDateValue = data?.premium_expires_at ? new Date(data.premium_expires_at) : null;
-        const hasValidSubscription = expiryDateValue ? expiryDateValue > new Date() : false;
-
-        setIsPremium(isPremiumUser && hasValidSubscription);
-        setExpiryDate(expiryDateValue);
-      } catch (err) {
-        console.error('Error in premium check:', err);
+      } catch (error) {
+        console.error('Error in premium dealer check:', error);
+        setIsPremium(false);
       } finally {
         setIsLoading(false);
       }
