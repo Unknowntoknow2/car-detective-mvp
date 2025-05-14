@@ -22,7 +22,7 @@ const DealerLayout: React.FC<DealerLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <DealerSidebar 
@@ -63,7 +63,7 @@ const DealerLayout: React.FC<DealerLayoutProps> = ({ children }) => {
         </div>
 
         {/* Main Content Area */}
-        <div className={`flex-1 overflow-auto transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+        <div className={`flex-1 overflow-auto p-6 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
           {children || <Outlet />}
         </div>
       </div>
