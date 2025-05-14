@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Plus, Trash2 } from 'lucide-react';
@@ -52,9 +51,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
       setMethods(methods.filter(m => m.id !== id));
       setIsLoading(false);
       toast({
-        title: "Payment method removed",
-        description: "Your payment method has been successfully removed.",
-        duration: 3000,
+        description: "Your payment method has been successfully removed."
       });
     }, 1000);
   };
@@ -70,9 +67,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
       })));
       setIsLoading(false);
       toast({
-        title: "Default payment method updated",
-        description: "Your default payment method has been changed.",
-        duration: 3000,
+        description: "Your default payment method has been changed."
       });
     }, 1000);
   };
@@ -93,9 +88,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
       setIsLoading(false);
       setShowAddCardDialog(false);
       toast({
-        title: "Payment method added",
-        description: "Your new payment method has been added successfully.",
-        duration: 3000,
+        description: "Your new payment method has been added successfully."
       });
     }, 1500);
   };

@@ -118,8 +118,7 @@ export function PredictionResult({
 
   const handleEmailReport = () => {
     toast({
-      title: "Email Report",
-      description: "The report will be sent to your email address.",
+      description: "The report will be sent to your email address."
     });
   };
 
