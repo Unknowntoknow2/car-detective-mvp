@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { usePremiumDealer } from '../hooks/usePremiumDealer';
+import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
