@@ -8,4 +8,3 @@ export * from './SearchAndFilterBar';
 export * from './VehicleCard';
 export * from './VehicleGrid';
 export * from './DealerInventoryList';
-export type { SortOption } from '../hooks/useDealerInventory';
