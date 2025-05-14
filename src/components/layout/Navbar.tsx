@@ -2,49 +2,73 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { Award } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { UserDropdown } from './UserDropdown';
+import { ThemeToggle } from './ThemeToggle';
+import { Menu } from 'lucide-react';
+import MobileMenu from './MobileMenu';
+import Logo from './Logo';
 
-export const Navbar = () => {
-  const { user, signOut } = useAuth();
+export function Navbar() {
+  const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   return (
-    <nav className="bg-white border-b border-gray-200 py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-primary">Car Detective</Link>
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Logo />
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6 ml-6">
+            <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
+              Home
+            </Link>
+            <Link to="/valuation" className="text-sm font-medium transition-colors hover:text-primary">
+              Valuations
+            </Link>
+            <Link to="/decoder" className="text-sm font-medium transition-colors hover:text-primary">
+              VIN Decoder
+            </Link>
+            <Link to="/premium" className="text-sm font-medium transition-colors hover:text-primary">
+              Premium
+            </Link>
+          </nav>
+        </div>
         
-        <div className="flex items-center space-x-4">
-          <Link to="/valuation" className="text-gray-600 hover:text-primary">
-            Valuation
-          </Link>
-          <Link to="/premium" className="text-gray-600 hover:text-primary flex items-center">
-            <Award className="h-4 w-4 mr-1" />
-            Premium
-          </Link>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
           
           {user ? (
-            <>
-              <Link to="/my-valuations" className="text-gray-600 hover:text-primary">
-                My Valuations
-              </Link>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={() => signOut()}>
-                  Sign Out
-                </Button>
-                <Button asChild variant="default" size="sm">
-                  <Link to="/dashboard">Dashboard</Link>
-                </Button>
-              </div>
-            </>
+            <UserDropdown />
           ) : (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/auth">Sign In</Link>
-            </Button>
+            <div className="hidden md:flex items-center gap-3">
+              <Button asChild variant="ghost">
+                <Link to="/auth">Sign In</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/register">Sign Up</Link>
+              </Button>
+            </div>
           )}
+          
+          {/* Mobile Menu Button */}
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleMobileMenu}>
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
       </div>
-    </nav>
+      
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+      )}
+    </header>
   );
-};
+}
 
 export default Navbar;
