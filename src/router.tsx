@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -19,6 +20,7 @@ import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
 import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
 import DealerInsightsPage from '@/pages/DealerInsightsPage';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
+import PremiumPage from '@/pages/PremiumPage';
 
 // Lazy-loaded components
 const LazyDealerInsightsPage = lazy(() => import('@/pages/DealerInsightsPage'));
@@ -68,6 +70,14 @@ const router = createBrowserRouter([
       {
         path: 'lookup/:tab',
         element: <LookupPage />,
+      },
+      {
+        path: 'premium',
+        element: (
+          <EnhancedErrorBoundary context="premium">
+            <PremiumPage />
+          </EnhancedErrorBoundary>
+        ),
       },
     ],
   },
