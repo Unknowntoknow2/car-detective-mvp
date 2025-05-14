@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -20,7 +19,7 @@ import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import DealerGuard from '@/guards/DealerGuard';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import UserDashboardPage from '@/pages/UserDashboardPage';
-import DealerSubscriptionPage from '@/components/dealer/SubscriptionPage';
+import DealerSubscriptionPage from './pages/DealerSubscriptionPage';
 import DealerInventoryPage from '@/pages/dealer/DealerInventoryPage';
 
 const router = createBrowserRouter(
