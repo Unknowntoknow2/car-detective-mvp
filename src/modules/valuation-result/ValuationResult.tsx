@@ -4,19 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
-import { CDCard } from '@/components/ui-kit/CDCard';
-import { HeadingL, BodyM } from '@/components/ui-kit/typography';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { useValuationLogic } from './logic';
+import { toast } from 'sonner';
+
+// Import components
+import MobileLayout from './MobileLayout';
+import LoadingState from './components/LoadingState';
+import ErrorState from './components/ErrorState';
 import Header from './sections/Header';
 import Summary from './sections/Summary';
 import PhotoAnalysis from './sections/PhotoAnalysis';
 import Breakdown from './sections/Breakdown';
 import Explanation from './sections/Explanation';
 import PDFActions from './sections/PDFActions';
-import MobileLayout from './MobileLayout';
+
+// Import context and styles
+import { ValuationProvider } from './context/ValuationContext';
+import { useValuationLogic } from './logic';
 import styles from './styles';
-import { toast } from 'sonner';
 
 interface ValuationResultProps {
   valuationId?: string;
@@ -120,8 +124,8 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
         console.error('PREMIUM RESULT: Failed to create checkout session:', result.error);
         toast.error(result.error || "Failed to create checkout session");
       }
-    } catch (error) {
-      console.error("PREMIUM RESULT: Error creating checkout:", error);
+    } catch (err: any) {
+      console.error("PREMIUM RESULT: Error creating checkout:", err);
       toast.error("An error occurred while processing your request");
     }
   };
@@ -132,7 +136,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
       // This would call an API endpoint to send the PDF via email
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
       toast.success("PDF report sent to your email");
-    } catch (error) {
+    } catch (err) {
       toast.error("Failed to send PDF report");
     } finally {
       setIsEmailSending(false);
@@ -141,38 +145,12 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   
   // Loading state
   if (isLoading && !isManualValuation) {
-    return (
-      <div className={styles.container}>
-        <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-          <BodyM>Loading valuation data...</BodyM>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
   
   // Error state
   if ((error || !valuationData) && !isManualValuation) {
-    return (
-      <div className={styles.container}>
-        <CDCard className="p-6 bg-red-50">
-          <div className="flex items-start gap-4">
-            <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-1" />
-            <div>
-              <HeadingL as="h2" className="text-xl font-bold text-red-700 mb-2">
-                Error Loading Valuation
-              </HeadingL>
-              <BodyM className="text-red-600">
-                {error ? (error && typeof error === 'object' && 'message' in error 
-                  ? String(error.message) 
-                  : String(error)) 
-                  : "Could not load valuation data. Please try again or contact support."}
-              </BodyM>
-            </div>
-          </div>
-        </CDCard>
-      </div>
-    );
+    return <ErrorState error={error} />;
   }
   
   if (!valuationData) {
@@ -203,102 +181,118 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   const additionalInfo: Record<string, string> = {};
   if (fuelType) additionalInfo.fuelType = fuelType;
   if (transmission) additionalInfo.transmission = transmission;
+
+  // Create context value
+  const contextValue = {
+    valuationData,
+    isPremium: showPremiumContent,
+    isLoading,
+    error,
+    estimatedValue,
+    onUpgrade: handleUpgrade,
+    onDownloadPdf: handleDownloadPdf,
+    onEmailPdf: handleEmailPdf,
+    isDownloading,
+    isEmailSending
+  };
   
   return (
-    <MobileLayout
-      isPremium={showPremiumContent}
-      isLoading={isLoading}
-      onUpgrade={handleUpgrade}
-      onDownloadPdf={handleDownloadPdf}
-      estimatedValue={estimatedValue}
-      isDownloading={isDownloading}
-    >
-      <AnimatePresence>
-        <div className={styles.container}>
-          {/* Header Section */}
-          <Header
-            make={make}
-            model={model}
-            year={year}
-            mileage={mileage}
-            condition={condition}
-            estimatedValue={estimatedValue}
-            isPremium={showPremiumContent}
-            additionalInfo={additionalInfo}
-          />
-          
-          {/* Summary Section */}
-          <Summary
-            confidenceScore={confidenceScore}
-            priceRange={priceRange}
-            marketTrend={marketTrend}
-            recommendationText={recommendationText}
-          />
-          
-          {/* Main Content */}
-          <div className={styles.grid.container}>
-            {/* Left Column - Photo Analysis */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <PhotoAnalysis
-                photoUrl={bestPhotoUrl}
-                photoScore={photoScore}
-                condition={aiCondition}
-                isPremium={showPremiumContent}
-                onUpgrade={handleUpgrade}
-              />
-            </motion.div>
+    <ValuationProvider value={contextValue}>
+      <MobileLayout
+        isPremium={showPremiumContent}
+        isLoading={isLoading}
+        onUpgrade={handleUpgrade}
+        onDownloadPdf={handleDownloadPdf}
+        estimatedValue={estimatedValue}
+        isDownloading={isDownloading}
+      >
+        <AnimatePresence>
+          <div className={styles.container}>
+            {/* Header Section */}
+            <Header
+              make={make}
+              model={model}
+              year={year}
+              mileage={mileage}
+              condition={condition}
+              estimatedValue={estimatedValue}
+              isPremium={showPremiumContent}
+              additionalInfo={additionalInfo}
+            />
             
-            {/* Right Column - Price Breakdown */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-            >
-              <Breakdown
-                basePrice={estimatedValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)}
-                adjustments={adjustments}
-                estimatedValue={estimatedValue}
-              />
-            </motion.div>
+            {/* Summary Section */}
+            <Summary
+              confidenceScore={confidenceScore}
+              priceRange={priceRange}
+              marketTrend={marketTrend}
+              recommendationText={recommendationText}
+            />
             
-            {/* Full Width - Explanation (GPT) */}
-            <motion.div 
-              className={styles.grid.fullWidth}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-            >
-              <Explanation
-                explanation={explanation}
-                isPremium={showPremiumContent}
-                onUpgrade={handleUpgrade}
-              />
-            </motion.div>
-            
-            {/* Full Width - PDF Actions */}
-            <motion.div 
-              className={styles.grid.fullWidth + " mb-20 sm:mb-0"} // Add bottom margin on mobile for action bar
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-            >
-              <PDFActions
-                isPremium={showPremiumContent}
-                onDownloadPdf={handleDownloadPdf}
-                onEmailPdf={handleEmailPdf}
-                onUpgrade={handleUpgrade}
-                isDownloading={isDownloading}
-                isEmailSending={isEmailSending}
-              />
-            </motion.div>
+            {/* Main Content */}
+            <div className={styles.grid.container}>
+              {/* Left Column - Photo Analysis */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <PhotoAnalysis
+                  photoUrl={bestPhotoUrl}
+                  photoScore={photoScore}
+                  condition={aiCondition}
+                  isPremium={showPremiumContent}
+                  onUpgrade={handleUpgrade}
+                />
+              </motion.div>
+              
+              {/* Right Column - Price Breakdown */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
+                <Breakdown
+                  basePrice={estimatedValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)}
+                  adjustments={adjustments}
+                  estimatedValue={estimatedValue}
+                />
+              </motion.div>
+              
+              {/* Full Width - Explanation (GPT) */}
+              <motion.div 
+                className={styles.grid.fullWidth}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <Explanation
+                  explanation={explanation}
+                  isPremium={showPremiumContent}
+                  onUpgrade={handleUpgrade}
+                />
+              </motion.div>
+              
+              {/* Full Width - PDF Actions */}
+              <motion.div 
+                className={styles.grid.fullWidth + " mb-20 sm:mb-0"} // Add bottom margin on mobile for action bar
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+              >
+                <PDFActions
+                  isPremium={showPremiumContent}
+                  onDownloadPdf={handleDownloadPdf}
+                  onEmailPdf={handleEmailPdf}
+                  onUpgrade={handleUpgrade}
+                  isDownloading={isDownloading}
+                  isEmailSending={isEmailSending}
+                />
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </AnimatePresence>
-    </MobileLayout>
+        </AnimatePresence>
+      </MobileLayout>
+    </ValuationProvider>
   );
 };
 
