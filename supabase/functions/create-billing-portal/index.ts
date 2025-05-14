@@ -20,15 +20,30 @@ serve(async (req) => {
   }
 
   try {
-    // Get the request body
-    const { customerId } = await req.json();
+    // Get the authenticated user from request
+    const { data: { user }, error: userError } = await req.supabaseClient.auth.getUser();
     
-    if (!customerId) {
+    if (userError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Customer ID is required' }),
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+    
+    // Find the customer in Stripe by email
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 1
+    });
+    
+    if (customers.data.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No subscription found for this user' }),
         { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
+    
+    const customerId = customers.data[0].id;
     
     // Get the base URL for redirection after payment
     const baseUrl = req.headers.get('origin') || 'http://localhost:3000';
