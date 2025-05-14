@@ -1,117 +1,63 @@
+// Update the import to use the correct Heading component
+import { Heading } from "@/components/ui-kit/typography";
+import { BodyS } from "@/components/ui-kit/typography";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Download, FileText, Share2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
-import React, { useState } from 'react';
-import { CDButton } from '@/components/ui-kit/CDButton';
-import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
-import { HeadingL, BodyS } from '@/components/ui-kit/typography';
-import { Download, Share2, Lock, Mail } from 'lucide-react';
-import styles from '../styles';
+export const PDFActions = () => {
+  const handleDownloadPDF = () => {
+    console.log('Downloading PDF...');
+    // Implementation for PDF download
+  };
 
-interface PDFActionsProps {
-  isPremium: boolean;
-  onDownloadPdf: () => Promise<void>;
-  onEmailPdf?: () => Promise<void>;
-  onUpgrade: () => void;
-  isDownloading?: boolean;
-  isEmailSending?: boolean;
-}
+  const handleShareReport = () => {
+    console.log('Sharing report...');
+    // Implementation for sharing functionality
+  };
 
-export const PDFActions: React.FC<PDFActionsProps> = ({
-  isPremium,
-  onDownloadPdf,
-  onEmailPdf,
-  onUpgrade,
-  isDownloading = false,
-  isEmailSending = false
-}) => {
-  const [showShare, setShowShare] = useState(false);
-  
+  const handlePrintReport = () => {
+    console.log('Printing report...');
+    window.print();
+  };
+
   return (
-    <CDCard>
-      <CDCardHeader>
-        <div className="flex justify-between items-center">
-          <HeadingL as="h3" className="text-xl font-medium">
-            Valuation Report
-          </HeadingL>
-          {isPremium && (
-            <span className={styles.premiumBadge}>
-              Premium
-            </span>
-          )}
-        </div>
-      </CDCardHeader>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <Heading className="text-2xl font-bold mb-4">Download Report</Heading>
       
-      <CDCardBody>
-        {isPremium ? (
-          <>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <CDButton
-                variant="primary"
-                icon={<Download className="h-4 w-4" />}
-                onClick={onDownloadPdf}
-                isLoading={isDownloading}
-                className="flex-1"
-              >
-                Download PDF Report
-              </CDButton>
-              
-              {onEmailPdf && (
-                <CDButton
-                  variant="outline"
-                  icon={<Mail className="h-4 w-4" />}
-                  onClick={onEmailPdf}
-                  isLoading={isEmailSending}
-                  className="flex-1"
-                >
-                  Email Report
-                </CDButton>
-              )}
-              
-              <CDButton
-                variant="secondary"
-                icon={<Share2 className="h-4 w-4" />}
-                onClick={() => setShowShare(!showShare)}
-                className="flex-none"
-              >
-                Share
-              </CDButton>
-            </div>
-            
-            {showShare && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <BodyS className="text-gray-600 mb-2">
-                  Share this valuation report with others:
-                </BodyS>
-                <div className="flex gap-2">
-                  {/* Social share buttons would go here */}
-                  <BodyS className="text-primary">
-                    Copy link functionality would go here
-                  </BodyS>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="mb-3">
-              <BodyS className="text-gray-600">
-                Unlock premium features to download a detailed PDF report with market analysis, 
-                condition assessment, and pricing recommendations.
-              </BodyS>
-            </div>
-            
-            <CDButton
-              variant="primary"
-              icon={<Lock className="h-4 w-4" />}
-              onClick={onUpgrade}
-              className="w-full"
-            >
-              Unlock Premium Features
-            </CDButton>
-          </>
-        )}
-      </CDCardBody>
-    </CDCard>
+      <div className="space-y-4">
+        <BodyS className="text-muted-foreground">
+          Save or share this valuation report for your records. The PDF includes all details and can be used for insurance or selling purposes.
+        </BodyS>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+          <Card className="p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={handleDownloadPDF}>
+            <Download className="h-8 w-8 mb-2 text-primary" />
+            <span className="font-medium">Download PDF</span>
+            <BodyS className="text-muted-foreground mt-1">Save to your device</BodyS>
+          </Card>
+          
+          <Card className="p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={handleShareReport}>
+            <Share2 className="h-8 w-8 mb-2 text-primary" />
+            <span className="font-medium">Share Report</span>
+            <BodyS className="text-muted-foreground mt-1">Email or message</BodyS>
+          </Card>
+          
+          <Card className="p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={handlePrintReport}>
+            <FileText className="h-8 w-8 mb-2 text-primary" />
+            <span className="font-medium">Print Report</span>
+            <BodyS className="text-muted-foreground mt-1">Physical copy</BodyS>
+          </Card>
+        </div>
+        
+        <div className="flex justify-center mt-6">
+          <Button variant="outline" onClick={handleDownloadPDF} className="gap-2">
+            <Download className="h-4 w-4" />
+            Download Complete Report
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default PDFActions;

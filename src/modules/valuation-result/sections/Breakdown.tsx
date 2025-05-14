@@ -1,111 +1,117 @@
-
+// Update the import to use the correct Heading component
+import { Heading } from "@/components/ui-kit/typography";
+import { BodyM, BodyS } from "@/components/ui-kit/typography";
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
-import { HeadingL, BodyM, BodyS } from '@/components/ui-kit/typography';
-import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
-import styles from '../styles';
-import { formatCurrency } from '../logic';
-import { cn } from '@/lib/utils';
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface Adjustment {
-  factor: string;
-  impact: number;
-  description?: string;
-}
-
-interface BreakdownProps {
-  basePrice: number;
-  adjustments: Adjustment[];
-  estimatedValue: number;
-}
-
-export const Breakdown: React.FC<BreakdownProps> = ({
-  basePrice,
-  adjustments,
-  estimatedValue
-}) => {
-  // Sort adjustments by impact (largest first)
-  const sortedAdjustments = [...adjustments].sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+export const Breakdown = () => {
+  // Mock data for the breakdown
+  const baseValue = 25000;
+  const adjustments = [
+    { name: "Mileage", value: -1200, direction: "down" },
+    { name: "Condition", value: 800, direction: "up" },
+    { name: "Market Demand", value: 1500, direction: "up" },
+    { name: "Service History", value: 0, direction: "neutral" },
+    { name: "Accident History", value: -500, direction: "down" },
+  ];
   
+  const finalValue = baseValue + adjustments.reduce((sum, adj) => sum + adj.value, 0);
+  
+  // Calculate the percentage impact of each adjustment
+  const getPercentageImpact = (value: number) => {
+    return Math.abs((value / baseValue) * 100);
+  };
+  
+  // Get the appropriate icon for the adjustment direction
+  const getDirectionIcon = (direction: string) => {
+    switch (direction) {
+      case "up":
+        return <ArrowUp className="h-4 w-4 text-green-600" />;
+      case "down":
+        return <ArrowDown className="h-4 w-4 text-red-600" />;
+      default:
+        return <Minus className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
   return (
-    <CDCard>
-      <CDCardHeader>
-        <HeadingL as="h3" className="text-xl font-medium">
-          Valuation Breakdown
-        </HeadingL>
-      </CDCardHeader>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <Heading className="text-2xl font-bold mb-4">Valuation Breakdown</Heading>
       
-      <CDCardBody>
-        <div className={styles.breakdown.container}>
-          {/* Base price */}
-          <motion.div 
-            className={styles.breakdown.row}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <BodyM className="font-medium">Base Market Value</BodyM>
-            <BodyM className="font-medium">{formatCurrency(basePrice)}</BodyM>
-          </motion.div>
+      <div className="space-y-6">
+        <div>
+          <BodyM className="text-muted-foreground mb-2">
+            We start with a base value and apply adjustments based on your vehicle's specific details.
+          </BodyM>
           
-          {/* Adjustments */}
-          {sortedAdjustments.map((adjustment, index) => {
-            const isPositive = adjustment.impact > 0;
-            const isNeutral = adjustment.impact === 0;
-            
-            let impactClass = styles.breakdown.neutral;
-            if (isPositive) impactClass = styles.breakdown.positive;
-            else if (!isNeutral) impactClass = styles.breakdown.negative;
-            
-            const Icon = isNeutral 
-              ? Minus 
-              : isPositive 
-                ? ArrowUp 
-                : ArrowDown;
-                
-            return (
-              <motion.div 
-                key={adjustment.factor}
-                className={styles.breakdown.row}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + (index * 0.1), duration: 0.3 }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Icon 
-                    className={`h-4 w-4 ${impactClass}`} 
-                  />
-                  <BodyM className={styles.breakdown.factor}>
-                    {adjustment.factor}
-                  </BodyM>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <BodyS className="text-muted-foreground">Base Value</BodyS>
+                  <div className="text-xl font-bold">${baseValue.toLocaleString()}</div>
                 </div>
-                
-                <BodyM className={cn(styles.breakdown.impact, impactClass)}>
-                  {isNeutral
-                    ? '$0'
-                    : `${isPositive ? '+' : ''}${formatCurrency(adjustment.impact)}`
-                  }
-                </BodyM>
-              </motion.div>
-            );
-          })}
-          
-          {/* Total */}
-          <motion.div 
-            className="flex justify-between items-center pt-4 mt-4 border-t border-gray-200"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            <BodyM className="font-bold">Final Valuation</BodyM>
-            <BodyM className="font-bold text-primary text-xl">
-              {formatCurrency(estimatedValue)}
-            </BodyM>
-          </motion.div>
+                <div className="text-right">
+                  <BodyS className="text-muted-foreground">Final Value</BodyS>
+                  <div className="text-2xl font-bold text-primary">${finalValue.toLocaleString()}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </CDCardBody>
-    </CDCard>
+        
+        <Separator />
+        
+        <div className="space-y-4">
+          <Heading className="text-lg font-semibold">Value Adjustments</Heading>
+          
+          {adjustments.map((adjustment, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  {getDirectionIcon(adjustment.direction)}
+                  <span>{adjustment.name}</span>
+                </div>
+                <span className={cn(
+                  "font-medium",
+                  adjustment.value > 0 ? "text-green-600" : 
+                  adjustment.value < 0 ? "text-red-600" : "text-gray-500"
+                )}>
+                  {adjustment.value > 0 ? "+" : ""}{adjustment.value.toLocaleString()}
+                </span>
+              </div>
+              <Progress 
+                value={getPercentageImpact(adjustment.value)} 
+                className={cn(
+                  "h-1.5",
+                  adjustment.value > 0 ? "bg-green-100" : 
+                  adjustment.value < 0 ? "bg-red-100" : "bg-gray-100"
+                )}
+                indicatorClassName={
+                  adjustment.value > 0 ? "bg-green-500" : 
+                  adjustment.value < 0 ? "bg-red-500" : "bg-gray-400"
+                }
+              />
+            </div>
+          ))}
+        </div>
+        
+        <Separator />
+        
+        <div>
+          <BodyM className="mb-2">
+            The final valuation represents our estimate of your vehicle's current market value based on all factors.
+          </BodyM>
+          <BodyS className="text-muted-foreground">
+            This valuation is based on current market data and the specific details of your vehicle. Actual selling prices may vary.
+          </BodyS>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Calendar, CreditCard, Download, Plus, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
@@ -30,7 +29,7 @@ import {
   DialogTrigger 
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { PlanSelectorCarousel } from '@/components/dealer/subscription/PlanSelectorCarousel';
 import { PaymentMethodCard } from '@/components/dealer/subscription/PaymentMethodCard';
 import { currentPlanFeatures, mockPaymentMethods, mockInvoices } from '@/components/dealer/subscription/subscriptionData';
@@ -38,7 +37,6 @@ import { currentPlanFeatures, mockPaymentMethods, mockInvoices } from '@/compone
 const SubscriptionSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const { toast } = useToast();
   
   // Mock subscription data (would come from API in real implementation)
   const currentPlan = {
@@ -55,10 +53,8 @@ const SubscriptionSettingsPage: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      toast({
-        title: "Ready to upgrade",
+      toast("Ready to upgrade", {
         description: "Choose your new plan below",
-        duration: 3000,
       });
       
       // Smooth scroll to plan selector
@@ -75,10 +71,8 @@ const SubscriptionSettingsPage: React.FC = () => {
     setTimeout(() => {
       setIsLoading(false);
       setShowCancelDialog(false);
-      toast({
-        title: "Subscription canceled",
+      toast("Subscription canceled", {
         description: "Your subscription will remain active until the end of the billing period",
-        duration: 5000,
       });
     }, 1500);
   };
@@ -88,10 +82,8 @@ const SubscriptionSettingsPage: React.FC = () => {
     // Simulate download
     setTimeout(() => {
       setIsLoading(false);
-      toast({
-        title: "Invoice downloaded",
+      toast("Invoice downloaded", {
         description: `Invoice #${invoiceId} has been downloaded`,
-        duration: 3000,
       });
     }, 800);
   };

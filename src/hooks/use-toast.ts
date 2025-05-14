@@ -1,10 +1,12 @@
 
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
 type ToastProps = {
   title?: string;
   description?: string;
   action?: React.ReactNode;
+  variant?: "default" | "destructive" | "success" | "warning" | "info";
+  duration?: number;
 };
 
 export const useToast = () => {
@@ -12,10 +14,14 @@ export const useToast = () => {
     title,
     description,
     action,
+    variant,
+    duration,
   }: ToastProps) => {
-    toast(title, {
+    sonnerToast(title, {
       description,
       action,
+      className: variant ? `toast-${variant}` : "",
+      duration,
     });
   };
 
@@ -24,4 +30,4 @@ export const useToast = () => {
   };
 };
 
-export { toast };
+export { sonnerToast as toast };

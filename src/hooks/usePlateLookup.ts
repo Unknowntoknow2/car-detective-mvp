@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { PlateLookupInfo } from '@/types/lookup';
 import { mockPlateLookup } from '@/services/plateService';
 
@@ -46,7 +46,7 @@ export function usePlateLookup() {
       toast({
         title: "Plate Lookup Failed",
         description: errorMessage,
-        variant: "destructive"
+        className: "toast-destructive"
       });
       
       return null;

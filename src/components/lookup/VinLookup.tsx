@@ -51,10 +51,9 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
         }
       } catch (error) {
         console.error('VIN LOOKUP: Error during lookup:', error);
-        toast({ 
-          title: "Error", 
+        toast("Error", {
           description: "There was a problem looking up this VIN. Please try again.",
-          variant: "destructive"
+          className: "toast-destructive"
         });
       }
     }
@@ -68,8 +67,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
   
   const handleDownloadPdf = useCallback(() => {
     console.log('VIN LOOKUP: Download PDF triggered');
-    toast({ 
-      title: "PDF Download", 
+    toast("PDF Download", {
       description: "Your PDF is being generated and will download shortly."
     });
     // Implementation for PDF download would go here
@@ -149,8 +147,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
                   }));
                   
                   // Navigate to the current page to show results, not a separate results page
-                  toast({ 
-                    title: "Valuation Complete", 
+                  toast("Valuation Complete", {
                     description: "Your free valuation has been calculated below."
                   });
                 }}
