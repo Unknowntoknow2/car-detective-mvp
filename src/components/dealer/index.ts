@@ -3,3 +3,4 @@
 export { default as AddVehicleModal } from './modals/AddVehicleModal';
 export { default as DealerInventory } from './DealerInventory';
 export * from './inventory';
+export * from './hooks';
