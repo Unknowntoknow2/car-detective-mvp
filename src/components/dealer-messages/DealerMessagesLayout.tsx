@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMediaQuery } from '@/hooks/use-mobile';
 import { LeadsSidebar } from './sidebar/LeadsSidebar';
@@ -85,7 +84,7 @@ export const DealerMessagesLayout: React.FC = () => {
           </Tabs>
         </div>
         
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {activeView === 'list' && (
             <motion.div 
               key="list"
