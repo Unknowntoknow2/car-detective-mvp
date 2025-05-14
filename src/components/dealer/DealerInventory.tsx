@@ -16,7 +16,11 @@ import {
   SortOption
 } from './inventory';
 
-export const DealerInventory = () => {
+interface DealerInventoryProps {
+  onRefresh?: () => void;
+}
+
+export const DealerInventory: React.FC<DealerInventoryProps> = ({ onRefresh }) => {
   const { user } = useAuth();
   
   const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
@@ -139,6 +143,10 @@ export const DealerInventory = () => {
   const handleVehicleAdded = () => {
     setIsAddVehicleModalOpen(false);
     toast.success('Vehicle added successfully!');
+    // Call the onRefresh callback if provided
+    if (onRefresh) {
+      onRefresh();
+    }
   };
 
   // Handle delete vehicle confirmation
@@ -168,6 +176,11 @@ export const DealerInventory = () => {
       
       // Remove from local state (though realtime will handle this too)
       setVehicles(prev => prev.filter(v => v.id !== vehicleToDelete.id));
+      
+      // Call the onRefresh callback if provided
+      if (onRefresh) {
+        onRefresh();
+      }
     } catch (error) {
       console.error('Error deleting vehicle:', error);
       toast.error('Failed to delete vehicle');

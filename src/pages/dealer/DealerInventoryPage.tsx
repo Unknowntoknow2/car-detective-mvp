@@ -8,6 +8,11 @@ import { Plus } from 'lucide-react';
 
 const DealerInventoryPage = () => {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  
+  const handleRefresh = () => {
+    // This function can be used to trigger any additional refresh logic if needed
+    console.log('Refreshing inventory data...');
+  };
 
   return (
     <div className="container py-12">
@@ -21,7 +26,7 @@ const DealerInventoryPage = () => {
         </Button>
       </div>
       
-      <DealerInventory onRefresh={() => {}} />
+      <DealerInventory onRefresh={handleRefresh} />
       
       <AddVehicleModal
         open={isAddVehicleModalOpen}
