@@ -252,6 +252,60 @@ export type Database = {
           },
         ]
       }
+      dealer_vehicles: {
+        Row: {
+          condition: string
+          created_at: string
+          dealer_id: string
+          fuel_type: string | null
+          id: string
+          make: string
+          mileage: number | null
+          model: string
+          photos: Json | null
+          price: number
+          status: string
+          transmission: string | null
+          updated_at: string
+          year: number
+          zip_code: string | null
+        }
+        Insert: {
+          condition: string
+          created_at?: string
+          dealer_id: string
+          fuel_type?: string | null
+          id?: string
+          make: string
+          mileage?: number | null
+          model: string
+          photos?: Json | null
+          price: number
+          status?: string
+          transmission?: string | null
+          updated_at?: string
+          year: number
+          zip_code?: string | null
+        }
+        Update: {
+          condition?: string
+          created_at?: string
+          dealer_id?: string
+          fuel_type?: string | null
+          id?: string
+          make?: string
+          mileage?: number | null
+          model?: string
+          photos?: Json | null
+          price?: number
+          status?: string
+          transmission?: string | null
+          updated_at?: string
+          year?: number
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       dealers: {
         Row: {
           business_name: string
@@ -1515,6 +1569,27 @@ export type Database = {
           event_type?: string
           id?: string
           vin?: string
+        }
+        Relationships: []
+      }
+      vehicle_makes_models: {
+        Row: {
+          created_at: string
+          id: string
+          make: string
+          model: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          make: string
+          model: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          make?: string
+          model?: string
         }
         Relationships: []
       }
