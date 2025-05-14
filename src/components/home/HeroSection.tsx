@@ -1,12 +1,27 @@
 
 import { Button } from "@/components/ui/button";
 import { Shield, ChartBar, Car } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface HeroSectionProps {
-  onFreeValuationClick: () => void;
+  onFreeValuationClick?: () => void;
 }
 
 export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
+  const navigate = useNavigate();
+  
+  const handleFreeValuationClick = () => {
+    if (onFreeValuationClick) {
+      onFreeValuationClick();
+    } else {
+      navigate('/valuation');
+    }
+  };
+  
+  const handlePremiumClick = () => {
+    navigate('/premium');
+  };
+  
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-background">
       <div className="container mx-auto max-w-6xl">
@@ -27,7 +42,7 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary-hover text-white"
-                onClick={onFreeValuationClick}
+                onClick={handleFreeValuationClick}
               >
                 Start Free Valuation
               </Button>
@@ -35,6 +50,7 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
                 variant="outline" 
                 size="lg"
                 className="border-primary/30 text-primary hover:bg-primary-light/20"
+                onClick={handlePremiumClick}
               >
                 Premium Valuation ($29.99)
               </Button>

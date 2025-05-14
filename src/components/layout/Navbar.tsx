@@ -11,7 +11,7 @@ export const Navbar = () => {
         <Link to="/" className="text-xl font-bold text-primary">Car Detective</Link>
         
         <div className="flex items-center space-x-4">
-          <Link to="/free-valuation" className="text-gray-600 hover:text-primary">
+          <Link to="/valuation" className="text-gray-600 hover:text-primary">
             Free Valuation
           </Link>
           <Link to="/premium" className="text-gray-600 hover:text-primary">
