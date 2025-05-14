@@ -12,7 +12,11 @@ export interface DealerVehicle {
   status: DealerVehicleStatus;
   created_at: string;
   updated_at: string;
-  photos?: string[]; // Added photos property as an optional array of strings
+  photos?: string[]; 
+  condition?: string;
+  fuel_type?: string | null;
+  transmission?: string | null;
+  zip_code?: string | null;
 }
 
 export interface DealerVehicleFormData {
