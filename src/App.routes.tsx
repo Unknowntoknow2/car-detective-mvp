@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
-import RootLayout from '@/components/layout/RootLayout';
-import LandingPage from '@/pages/LandingPage';
+import Layout from '@/components/layout/Layout';
+import Index from '@/pages/Index';
 import AuthPage from '@/pages/AuthPage';
 import ProfilePage from '@/pages/ProfilePage';
 import ValuationPage from '@/pages/ValuationPage';
@@ -12,14 +12,12 @@ import PremiumValuationPage from '@/pages/PremiumValuationPage';
 import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
 import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
-import DealerSignupPage from '@/pages/DealerSignupPage';
-import DealerLoginPage from '@/pages/DealerLoginPage';
+import DealerSignup from '@/pages/dealer/signup';
+import LoginDealerPage from '@/pages/LoginDealerPage';
 import DealerDashboard from '@/pages/DealerDashboard';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import DealerGuard from '@/guards/DealerGuard';
-import AdminDashboard from '@/pages/AdminDashboard';
-import AdminGuard from '@/guards/AdminGuard';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import UpdatePasswordPage from '@/pages/UpdatePasswordPage';
 import UserDashboardPage from '@/pages/UserDashboardPage';
 
 // Import the subscription page
@@ -27,8 +25,8 @@ import DealerSubscriptionPage from './components/dealer/SubscriptionPage';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<RootLayout />}>
-      <Route index element={<LandingPage />} />
+    <Route path="/" element={<Layout />}>
+      <Route index element={<Index />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/valuation" element={<ValuationPage />} />
@@ -39,10 +37,9 @@ const router = createBrowserRouter(
       <Route path="/payment-success" element={<PaymentSuccessPage />} />
       <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
       <Route path="/access-denied" element={<AccessDeniedPage />} />
-      <Route path="/dealer-signup" element={<DealerSignupPage />} />
-      <Route path="/login-dealer" element={<DealerLoginPage />} />
+      <Route path="/dealer-signup" element={<DealerSignup />} />
+      <Route path="/login-dealer" element={<LoginDealerPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route path="/user-dashboard" element={<UserDashboardPage />} />
       <Route
         path="/dealer-dashboard"
@@ -55,9 +52,7 @@ const router = createBrowserRouter(
       <Route
         path="/admin-dashboard"
         element={
-          <AdminGuard>
-            <AdminDashboard />
-          </AdminGuard>
+          <AdminDashboardPage />
         }
       />
       <Route 

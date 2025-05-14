@@ -26,3 +26,6 @@ export function PremiumDealerBadge({
     </PremiumBadge>
   );
 }
+
+// Re-export the PremiumBadge component for use in other dealer components
+export { PremiumBadge };
