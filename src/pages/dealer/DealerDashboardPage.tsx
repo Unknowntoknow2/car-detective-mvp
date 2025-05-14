@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { DealerVehicle } from '@/types/dealerVehicle';
-import AddVehicleModal from '@/components/dealer/AddVehicleModal';
+import { AddVehicleModal } from '@/components/dealer/modals';
 import { Sidebar } from '@/components/ui/sidebar';
 import { toast } from 'sonner';
 import {

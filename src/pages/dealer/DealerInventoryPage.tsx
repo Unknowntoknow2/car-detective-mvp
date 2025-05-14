@@ -1,12 +1,33 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import DealerGuard from '@/guards/DealerGuard';
 import { DealerInventory } from '@/components/dealer/DealerInventory';
+import { AddVehicleModal } from '@/components/dealer/modals';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const DealerInventoryPage = () => {
+  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+
   return (
     <div className="container py-12">
-      <DealerInventory />
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Your Inventory</h1>
+        <Button 
+          onClick={() => setIsAddVehicleModalOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus size={16} /> Add Vehicle
+        </Button>
+      </div>
+      
+      <DealerInventory onRefresh={() => {}} />
+      
+      <AddVehicleModal
+        open={isAddVehicleModalOpen}
+        onOpenChange={setIsAddVehicleModalOpen}
+        onVehicleAdded={() => setIsAddVehicleModalOpen(false)}
+      />
     </div>
   );
 };
