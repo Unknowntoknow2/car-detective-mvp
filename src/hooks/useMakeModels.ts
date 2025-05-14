@@ -43,7 +43,15 @@ export function useMakeModels() {
           .order('make_name');
           
         if (error) throw error;
-        setMakes(data || []);
+        
+        // Ensure data matches the VehicleMake type
+        const typedData: VehicleMake[] = data ? data.map(make => ({
+          id: make.id,
+          make_name: make.make_name,
+          logo_url: make.logo_url || null
+        })) : [];
+        
+        setMakes(typedData);
       } catch (err: any) {
         console.error('Error fetching makes:', err);
         setError('Failed to load vehicle makes');
@@ -70,7 +78,7 @@ export function useMakeModels() {
       if (error) throw error;
       
       setModels(data || []);
-      return data;
+      return data || [];
     } catch (err: any) {
       console.error('Error fetching models:', err);
       setError('Failed to load vehicle models');
@@ -95,7 +103,7 @@ export function useMakeModels() {
       if (error) throw error;
       
       setTrims(data || []);
-      return data;
+      return data || [];
     } catch (err: any) {
       console.error('Error fetching trims:', err);
       setError('Failed to load vehicle trims');

@@ -2,10 +2,11 @@
 import React, { useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { VehicleMake, VehicleModel } from '@/hooks/useMakeModels';
 
-export interface MakeModelSelectProps {
-  makes: { id: string; name: string }[];
-  models: { id: string; name: string; makeId: string }[];
+interface MakeModelSelectProps {
+  makes: VehicleMake[];
+  models: VehicleModel[];
   selectedMakeId: string;
   setSelectedMakeId: (id: string) => void;
   selectedModelId: string;
@@ -32,7 +33,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   });
   
   // Filter models based on selected make
-  const filteredModels = models.filter(model => model.makeId === selectedMakeId);
+  const filteredModels = models.filter(model => model.make_id === selectedMakeId);
   console.log('Filtered models:', filteredModels, 'makeId:', selectedMakeId);
 
   // Reset model selection when make changes
@@ -90,7 +91,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
           <option value="">Select a make</option>
           {makes.map(make => (
             <option key={make.id} value={make.id}>
-              {make.name}
+              {make.make_name}
             </option>
           ))}
         </select>
@@ -111,7 +112,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
           </option>
           {filteredModels.map(model => (
             <option key={model.id} value={model.id}>
-              {model.name}
+              {model.model_name}
             </option>
           ))}
         </select>
