@@ -1,73 +1,34 @@
 
-import React, { useState } from 'react';
-import DealerGuard from '@/guards/DealerGuard';
-import { DealerInventory } from '@/components/dealer/DealerInventory';
-import { AddVehicleModal } from '@/components/dealer/modals';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
+import { DealerInventoryTable } from '@/components/dealer/DealerInventoryTable';
+import { Button } from '@/components/ui/button';
 
 const DealerInventoryPage = () => {
-  const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-  
-  const handleRefresh = () => {
-    // This function can be used to trigger any additional refresh logic if needed
-    console.log('Refreshing inventory data...');
-  };
+  const navigate = useNavigate();
 
   return (
-    <div className="container py-12">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Your Inventory</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="text-muted-foreground">
+            View, edit and manage your vehicle listings
+          </p>
+        </div>
         <Button 
-          onClick={() => setIsAddVehicleModalOpen(true)}
-          className="flex items-center gap-2"
+          onClick={() => navigate('/dealer/inventory/add')}
+          className="flex items-center gap-1"
         >
-          <Plus size={16} /> Add Vehicle
+          <Plus className="h-4 w-4" />
+          Add Vehicle
         </Button>
       </div>
       
-      <div className="flex justify-end mb-4">
-        <div className="flex p-1 border rounded-md bg-muted/20">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-            className="rounded-r-none"
-          >
-            Grid View
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-            className="rounded-l-none"
-          >
-            List View
-          </Button>
-        </div>
-      </div>
-      
-      {viewMode === 'grid' ? (
-        <DealerInventory onRefresh={handleRefresh} />
-      ) : (
-        <DealerInventoryList onRefresh={handleRefresh} />
-      )}
-      
-      <AddVehicleModal
-        open={isAddVehicleModalOpen}
-        onOpenChange={setIsAddVehicleModalOpen}
-        onVehicleAdded={() => setIsAddVehicleModalOpen(false)}
-      />
+      <DealerInventoryTable />
     </div>
   );
 };
 
-export default function ProtectedDealerInventoryPage() {
-  return (
-    <DealerGuard>
-      <DealerInventoryPage />
-    </DealerGuard>
-  );
-}
+export default DealerInventoryPage;
