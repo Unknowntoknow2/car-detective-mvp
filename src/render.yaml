@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: car-damage-api
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: MODEL_PATH
+        value: yolov8n.pt  # Adjust if using a different model file name
+    autoDeploy: true
+    healthCheckPath: /ping
+    region: oregon

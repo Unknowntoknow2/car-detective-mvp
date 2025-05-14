@@ -1,4 +1,3 @@
-
 // Export main component
 export { default as ValuationResult } from './ValuationResult';
 
