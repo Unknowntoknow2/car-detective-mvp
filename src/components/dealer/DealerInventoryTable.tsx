@@ -18,11 +18,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import EditVehicleModal from './modals/EditVehicleModal';
+import { DeleteConfirmationDialog } from './inventory/DeleteConfirmationDialog';
 
 export const DealerInventoryTable = () => {
   const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+  const [deleteVehicleId, setDeleteVehicleId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -86,28 +91,84 @@ export const DealerInventoryTable = () => {
   }, [user]);
 
   const handleEditVehicle = (vehicleId: string) => {
-    navigate(`/dealer/inventory/edit/${vehicleId}`);
+    setEditVehicleId(vehicleId);
   };
 
-  const handleDeleteVehicle = async (vehicleId: string) => {
-    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+  const handleDeleteVehicle = (vehicleId: string) => {
+    setDeleteVehicleId(vehicleId);
+  };
 
+  const confirmDeleteVehicle = async () => {
+    if (!deleteVehicleId || !user) return;
+    
     try {
+      setIsDeleting(true);
+      
       const { error } = await supabase
         .from('dealer_vehicles')
         .delete()
-        .eq('id', vehicleId)
-        .eq('dealer_id', user?.id);
+        .eq('id', deleteVehicleId)
+        .eq('dealer_id', user.id);
 
       if (error) throw error;
 
       // Remove from local state
-      setVehicles(vehicles.filter(vehicle => vehicle.id !== vehicleId));
+      setVehicles(vehicles.filter(vehicle => vehicle.id !== deleteVehicleId));
       toast.success('Vehicle deleted successfully');
     } catch (err: any) {
       console.error('Error deleting vehicle:', err);
       toast.error('Failed to delete vehicle');
+    } finally {
+      setIsDeleting(false);
+      setDeleteVehicleId(null);
     }
+  };
+
+  const handleVehicleUpdated = () => {
+    // Refetch the vehicles to get the updated data
+    const fetchDealerVehicles = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('dealer_vehicles')
+          .select('*')
+          .eq('dealer_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const typedVehicles = (data || []).map(vehicle => {
+          let photos: string[] = [];
+          if (vehicle.photos) {
+            if (Array.isArray(vehicle.photos)) {
+              photos = vehicle.photos.map(item => String(item));
+            } else if (typeof vehicle.photos === 'string') {
+              try {
+                const parsed = JSON.parse(vehicle.photos);
+                photos = Array.isArray(parsed) ? parsed.map(item => String(item)) : [];
+              } catch {
+                photos = [vehicle.photos];
+              }
+            }
+          }
+
+          return {
+            ...vehicle,
+            status: vehicle.status as DealerVehicle['status'],
+            mileage: vehicle.mileage === null ? null : Number(vehicle.mileage),
+            photos
+          } as DealerVehicle;
+        });
+
+        setVehicles(typedVehicles);
+      } catch (err: any) {
+        console.error('Error fetching dealer vehicles:', err);
+        toast.error('Could not refresh inventory data');
+      }
+    };
+
+    fetchDealerVehicles();
   };
 
   // Render loading skeleton
@@ -182,78 +243,98 @@ export const DealerInventoryTable = () => {
 
   // Render vehicle table
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[80px]">Image</TableHead>
-            <TableHead>Vehicle</TableHead>
-            <TableHead className="hidden md:table-cell">Mileage</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {vehicles.map((vehicle) => (
-            <TableRow key={vehicle.id}>
-              <TableCell>
-                {vehicle.photos && vehicle.photos.length > 0 ? (
-                  <img 
-                    src={vehicle.photos[0]} 
-                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    className="h-10 w-10 object-cover rounded-md"
-                  />
-                ) : (
-                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
-                    <Image className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                )}
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</div>
-                  <div className="md:hidden text-sm text-muted-foreground">
-                    {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'N/A'} • {vehicle.status}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'N/A'}
-              </TableCell>
-              <TableCell>
-                {formatCurrency(vehicle.price)}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <Badge variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
-                  {vehicle.status === 'available' ? 'Published' : 'Pending'}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEditVehicle(vehicle.id)}
-                    title="Edit vehicle"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteVehicle(vehicle.id)}
-                    title="Delete vehicle"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[80px]">Image</TableHead>
+              <TableHead>Vehicle</TableHead>
+              <TableHead className="hidden md:table-cell">Mileage</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {vehicles.map((vehicle) => (
+              <TableRow key={vehicle.id}>
+                <TableCell>
+                  {vehicle.photos && vehicle.photos.length > 0 ? (
+                    <img 
+                      src={vehicle.photos[0]} 
+                      alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                      className="h-10 w-10 object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+                      <Image className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</div>
+                    <div className="md:hidden text-sm text-muted-foreground">
+                      {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'N/A'} • {vehicle.status}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'N/A'}
+                </TableCell>
+                <TableCell>
+                  {formatCurrency(vehicle.price)}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Badge variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
+                    {vehicle.status === 'available' ? 'Published' : 'Pending'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditVehicle(vehicle.id)}
+                      title="Edit vehicle"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteVehicle(vehicle.id)}
+                      title="Delete vehicle"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Edit Vehicle Modal */}
+      {editVehicleId && (
+        <EditVehicleModal
+          open={!!editVehicleId}
+          onOpenChange={(open) => !open && setEditVehicleId(null)}
+          vehicleId={editVehicleId}
+          onVehicleUpdated={handleVehicleUpdated}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog 
+        open={!!deleteVehicleId}
+        onOpenChange={(open) => !open && setDeleteVehicleId(null)}
+        onConfirmDelete={confirmDeleteVehicle}
+        isDeleting={isDeleting}
+      />
+    </>
   );
 };
 
