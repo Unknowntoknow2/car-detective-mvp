@@ -1,199 +1,138 @@
-
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
-import { CDButton } from '@/components/ui-kit/CDButton';
-import { BodyM, BodyS, HeadingL } from '@/components/ui-kit/typography';
-import { Camera, AlertCircle, Lock } from 'lucide-react';
-import { AICondition } from '@/types/photo';
-import styles from '../styles';
+import { Heading } from "@/components/ui-kit/typography";
+import { BodyM, BodyS } from "@/components/ui-kit/typography";
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Check, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface PhotoAnalysisProps {
-  photoUrl?: string;
-  photoScore?: number;
-  condition?: AICondition | null;
-  isPremium?: boolean;
-  onUpgrade?: () => void;
-}
+export const PhotoAnalysis = () => {
+  // Mock data for photo analysis
+  const photoAnalysis = {
+    overallCondition: 'Good',
+    confidenceScore: 85,
+    issues: [
+      { name: 'Minor scratches', severity: 'low', impact: -150 },
+      { name: 'Wheel curb rash', severity: 'medium', impact: -350 },
+    ],
+    positives: [
+      { name: 'Clean interior', impact: +200 },
+      { name: 'No visible dents', impact: +100 },
+    ],
+    photoCount: 8,
+    photoQuality: 'High',
+  };
 
-export const PhotoAnalysis: React.FC<PhotoAnalysisProps> = ({
-  photoUrl,
-  photoScore,
-  condition,
-  isPremium = false,
-  onUpgrade
-}) => {
-  // Handle no photo case
-  if (!photoUrl) {
-    return (
-      <CDCard>
-        <CDCardHeader>
-          <HeadingL as="h3" className="text-xl font-medium">
-            Vehicle Condition
-          </HeadingL>
-        </CDCardHeader>
-        <CDCardBody>
-          <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
-            <Camera className="h-16 w-16 text-gray-400 mb-4" />
-            <BodyM className="text-gray-600 mb-2">No vehicle photos available</BodyM>
-            <BodyS className="text-gray-500 max-w-md mx-auto">
-              Upload photos of your vehicle to get an AI-powered condition assessment and more accurate valuation.
-            </BodyS>
-          </div>
-        </CDCardBody>
-      </CDCard>
-    );
-  }
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'low':
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'medium':
+        return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'high':
+        return 'text-red-600 bg-red-50 border-red-200';
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
 
   return (
-    <CDCard>
-      <CDCardHeader>
-        <div className="flex justify-between items-center">
-          <HeadingL as="h3" className="text-xl font-medium">
-            Vehicle Condition
-          </HeadingL>
-          {condition && photoScore && photoScore > 75 && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-light text-success-dark">
-              High Quality Photo
-            </span>
-          )}
-        </div>
-      </CDCardHeader>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <Heading className="text-2xl font-bold mb-4">Vehicle Photo Analysis</Heading>
       
-      <CDCardBody>
-        <div className="space-y-4">
-          {/* Vehicle Image */}
-          <motion.div
-            className="relative rounded-lg overflow-hidden aspect-video w-full"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <img 
-              src={photoUrl} 
-              alt="Vehicle" 
-              className="w-full h-full object-cover"
-            />
-            
-            {/* Photo score badge if available */}
-            {photoScore && (
-              <div className={cn(
-                "absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium",
-                photoScore >= 80 ? "bg-success text-white" :
-                photoScore >= 60 ? "bg-warning text-white" :
-                "bg-error text-white"
-              )}>
-                Photo Score: {photoScore}%
-              </div>
-            )}
-          </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card className="p-4 border">
+          <div className="flex justify-between items-center mb-4">
+            <Heading className="text-lg font-semibold">Condition Assessment</Heading>
+            <Badge variant="outline" className="text-blue-600 bg-blue-50 border-blue-200">
+              {photoAnalysis.photoQuality} Quality
+            </Badge>
+          </div>
           
-          {/* AI Condition Analysis */}
-          {condition ? (
-            <div className={cn(
-              "space-y-3 p-3 rounded-lg",
-              isPremium ? "relative" : "relative"
-            )}>
-              {/* Condition score */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <BodyS className="text-gray-500">AI Condition Assessment</BodyS>
-                  <div className="flex items-center mt-1">
-                    <span className={cn(
-                      "px-2.5 py-0.5 rounded-full text-sm font-medium",
-                      condition.condition === 'Excellent' ? "bg-success-light text-success-dark" :
-                      condition.condition === 'Good' ? "bg-primary-light text-primary" :
-                      condition.condition === 'Fair' ? "bg-warning-light text-warning-dark" :
-                      "bg-error-light text-error-dark"
-                    )}>
-                      {condition.condition}
-                    </span>
-                    <BodyS className="ml-2 text-gray-500">
-                      Confidence: {condition.confidenceScore}%
-                    </BodyS>
-                  </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <BodyM>Overall Condition</BodyM>
+              <Badge className={cn(
+                photoAnalysis.overallCondition === 'Excellent' ? 'bg-green-50 text-green-700 border-green-200' :
+                photoAnalysis.overallCondition === 'Good' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                photoAnalysis.overallCondition === 'Fair' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                'bg-red-50 text-red-700 border-red-200'
+              )}>
+                {photoAnalysis.overallCondition}
+              </Badge>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <BodyM>Confidence Score</BodyM>
+              <div className="flex items-center">
+                <div className="w-24 h-2 bg-gray-200 rounded-full mr-2">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full",
+                      photoAnalysis.confidenceScore > 80 ? "bg-green-500" :
+                      photoAnalysis.confidenceScore > 60 ? "bg-blue-500" :
+                      photoAnalysis.confidenceScore > 40 ? "bg-yellow-500" : "bg-red-500"
+                    )}
+                    style={{ width: `${photoAnalysis.confidenceScore}%` }}
+                  />
                 </div>
-              </div>
-              
-              {/* Issues detected - for premium users */}
-              {isPremium && condition.issuesDetected && condition.issuesDetected.length > 0 && (
-                <motion.div
-                  className="space-y-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                >
-                  <BodyS className="text-gray-500 font-medium">Issues Detected:</BodyS>
-                  <ul className="list-disc list-inside space-y-1">
-                    {condition.issuesDetected.map((issue, index) => (
-                      <li key={index} className="text-sm text-gray-600">
-                        {issue}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              )}
-              
-              {/* Summary - for premium users */}
-              {isPremium && condition.aiSummary && (
-                <motion.div
-                  className="pt-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                >
-                  <BodyS className="text-gray-500 font-medium">AI Summary:</BodyS>
-                  <BodyM className="text-gray-600 mt-1">
-                    {condition.aiSummary}
-                  </BodyM>
-                </motion.div>
-              )}
-              
-              {/* Premium overlay for non-premium users */}
-              {!isPremium && (
-                <motion.div 
-                  className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.3 }}
-                >
-                  <Lock className="h-6 w-6 text-primary mb-2" />
-                  <BodyM className="text-gray-900 font-medium mb-1">
-                    Detailed Condition Analysis
-                  </BodyM>
-                  <BodyS className="text-gray-600 mb-3 max-w-xs">
-                    Unlock detailed AI condition assessment with specific issues detected and recommendations
-                  </BodyS>
-                  {onUpgrade && (
-                    <CDButton
-                      variant="primary"
-                      size="sm"
-                      onClick={onUpgrade}
-                      icon={<Lock className="h-4 w-4" />}
-                    >
-                      Unlock Premium
-                    </CDButton>
-                  )}
-                </motion.div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-start p-3 bg-amber-50 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-              <div>
-                <BodyM className="text-amber-800 font-medium">
-                  Condition analysis not available
-                </BodyM>
-                <BodyS className="text-amber-700 mt-1">
-                  Our AI couldn't properly analyze this photo for condition assessment. Consider uploading a clearer photo from different angles.
-                </BodyS>
+                <BodyS className="font-medium">{photoAnalysis.confidenceScore}%</BodyS>
               </div>
             </div>
-          )}
+            
+            <div className="flex justify-between items-center">
+              <BodyM>Photos Analyzed</BodyM>
+              <BodyS className="font-medium">{photoAnalysis.photoCount} photos</BodyS>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-4 border">
+          <Heading className="text-lg font-semibold mb-4">Value Impact</Heading>
+          
+          <div className="space-y-3">
+            {photoAnalysis.issues.map((issue, index) => (
+              <div key={`issue-${index}`} className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
+                  <BodyM>{issue.name}</BodyM>
+                </div>
+                <Badge variant="outline" className={cn("font-mono", getSeverityColor(issue.severity))}>
+                  {issue.impact.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                </Badge>
+              </div>
+            ))}
+            
+            {photoAnalysis.positives.map((positive, index) => (
+              <div key={`positive-${index}`} className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-2" />
+                  <BodyM>{positive.name}</BodyM>
+                </div>
+                <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200 font-mono">
+                  +{positive.impact.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+      
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <div className="flex items-start">
+          <div className="mr-3 mt-1">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+          </div>
+          <div>
+            <BodyM className="font-medium">Photo Analysis Disclaimer</BodyM>
+            <BodyS className="text-gray-600 mt-1">
+              This analysis is based on the photos provided and may not capture all vehicle conditions.
+              For the most accurate valuation, we recommend an in-person inspection by a certified mechanic.
+            </BodyS>
+          </div>
         </div>
-      </CDCardBody>
-    </CDCard>
+      </div>
+    </div>
   );
 };
 

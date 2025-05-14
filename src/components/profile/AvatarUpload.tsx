@@ -21,10 +21,9 @@ export const AvatarUpload = ({ profile, onAvatarChange, isLoading }: AvatarUploa
       
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        toast({
-          title: 'File too large',
+        toast("File too large", {
           description: 'Avatar must be less than 2MB',
-          variant: "destructive"
+          className: "toast-destructive"
         });
         return;
       }
@@ -32,10 +31,9 @@ export const AvatarUpload = ({ profile, onAvatarChange, isLoading }: AvatarUploa
       // Validate file type
       const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        toast({
-          title: 'Invalid file type',
+        toast("Invalid file type", {
           description: 'Please upload a JPEG, PNG, GIF, or WebP image',
-          variant: "destructive"
+          className: "toast-destructive"
         });
         return;
       }
