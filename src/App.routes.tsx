@@ -1,102 +1,127 @@
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import Index from '@/pages/Index';
-import AuthPage from '@/pages/AuthPage';
-import ProfilePage from '@/pages/ProfilePage';
-import ValuationPage from '@/pages/ValuationPage';
-import ValuationResultPage from '@/pages/ValuationResultPage';
-import MyValuationsPage from '@/pages/MyValuationsPage';
-import PremiumValuationPage from '@/pages/PremiumValuationPage';
-import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
-import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
-import AccessDeniedPage from '@/pages/AccessDeniedPage';
-import DealerSignup from '@/pages/dealer/signup';
-import LoginDealerPage from '@/pages/LoginDealerPage';
-import DealerDashboard from '@/pages/DealerDashboard';
-import Dashboard from '@/pages/Dashboard';
-import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
-import DealerGuard from '@/guards/DealerGuard';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
-import UserDashboardPage from '@/pages/UserDashboardPage';
-import DealerSubscriptionPage from '@/pages/dealer/DealerSubscriptionPage';
-import DealerInventoryPage from '@/pages/dealer/DealerInventoryPage';
+import MainLayout from '@/layouts/MainLayout';
+import AuthLayout from '@/layouts/AuthLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
 import DealerLayout from '@/layouts/DealerLayout';
-import SubscriptionSettingsPage from '@/pages/dealer/SubscriptionSettingsPage';
+import DealerGuard from '@/guards/DealerGuard';
+import AuthGuard from '@/guards/AuthGuard';
+import GuestGuard from '@/guards/GuestGuard';
+
+// Page imports
+import HomePage from '@/pages/HomePage';
+import AboutPage from '@/pages/AboutPage';
+import ContactPage from '@/pages/ContactPage';
+import PricingPage from '@/pages/PricingPage';
+import BlogPage from '@/pages/BlogPage';
+import BlogArticlePage from '@/pages/BlogArticlePage';
+import HelpCenterPage from '@/pages/HelpCenterPage';
+import TermsOfServicePage from '@/pages/TermsOfServicePage';
+import PrivacyPolicyPage from '@/pages/PrivacyPolicyPage';
+import NotFoundPage from '@/pages/NotFoundPage';
+import AccessDeniedPage from '@/pages/AccessDeniedPage';
+
+// Auth page imports
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import VerifyEmailPage from '@/pages/VerifyEmailPage';
+import LogoutPage from '@/pages/LogoutPage';
+
+// Dashboard page imports
+import DashboardPage from '@/pages/DashboardPage';
+import ProfileSettingsPage from '@/pages/ProfileSettingsPage';
+import SubscriptionSettingsPage from '@/pages/SubscriptionSettingsPage';
+
+// Dealer page imports
+import DealerDashboard from '@/pages/DealerDashboard';
+import DealerProfileSettings from '@/pages/DealerProfileSettings';
+import SubscriptionSettingsPage from '@/pages/SubscriptionSettingsPage';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Layout />}>
-      <Route index element={<Index />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/valuation" element={<ValuationPage />} />
-      <Route path="/valuation/:valuationId" element={<ValuationPage />} />
-      <Route path="/valuation/result/:valuationId" element={<ValuationResultPage />} />
-      <Route path="/my-valuations" element={<MyValuationsPage />} />
-      <Route path="/valuation/:valuationId/premium" element={<PremiumValuationPage />} />
-      <Route path="/payment-success" element={<PaymentSuccessPage />} />
-      <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
+    <Route 
+      element={<Layout />}
+      errorElement={<div>Error Page</div>}
+    >
+      {/* Main site routes */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:articleId" element={<BlogArticlePage />} />
+      <Route path="/help-center" element={<HelpCenterPage />} />
+      <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="*" element={<NotFoundPage />} />
       <Route path="/access-denied" element={<AccessDeniedPage />} />
-      <Route path="/dealer-signup" element={<DealerSignup />} />
-      <Route path="/login-dealer" element={<LoginDealerPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/user-dashboard" element={<UserDashboardPage />} />
       
-      {/* Dealer Routes - Now using DealerLayout */}
-      <Route
-        path="/dealer"
+      {/* Auth routes */}
+      <Route element={<GuestGuard><AuthLayout /></GuestGuard>}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/logout" element={<LogoutPage />} />
+      </Route>
+      
+      {/* Authenticated routes */}
+      <Route element={<AuthGuard />}>
+        <Route 
+          path="/dashboard" 
+          element={
+            <DashboardLayout>
+              <DashboardPage />
+            </DashboardLayout>
+          } 
+        />
+        
+        <Route 
+          path="/profile-settings" 
+          element={
+            <DashboardLayout>
+              <ProfileSettingsPage />
+            </DashboardLayout>
+          } 
+        />
+        
+        <Route 
+          path="/subscription-settings" 
+          element={
+            <DashboardLayout>
+              <SubscriptionSettingsPage />
+            </DashboardLayout>
+          } 
+        />
+      </Route>
+      
+      {/* Dealer routes */}
+      <Route 
         element={
           <DealerGuard>
             <DealerLayout />
           </DealerGuard>
         }
       >
-        <Route index element={<DealerDashboard />} />
-        <Route path="dashboard" element={<DealerDashboard />} />
-        <Route path="inventory" element={<DealerInventoryPage />} />
-        <Route path="subscription" element={<DealerSubscriptionPage />} />
+        <Route 
+          path="/dealer-dashboard" 
+          element={<DealerDashboard />} 
+        />
+        
+        <Route 
+          path="/dealer-profile-settings" 
+          element={<DealerProfileSettings />} 
+        />
+        
+        <Route 
+          path="/dealer-subscription-settings" 
+          element={<SubscriptionSettingsPage />} 
+        />
       </Route>
-      
-      {/* Keep these routes separate for now since they're already set up */}
-      <Route
-        path="/dealer-dashboard"
-        element={
-          <DealerGuard>
-            <DealerDashboard />
-          </DealerGuard>
-        }
-      />
-      <Route 
-        path="/dealer-subscription" 
-        element={
-          <DealerGuard>
-            <DealerSubscriptionPage />
-          </DealerGuard>
-        }
-      />
-      <Route 
-        path="/dealer/inventory" 
-        element={
-          <DealerGuard>
-            <DealerInventoryPage />
-          </DealerGuard>
-        }
-      />
-      
-      <Route
-        path="/admin-dashboard"
-        element={
-          <AdminDashboardPage />
-        }
-      />
-      
-      <Route 
-        path="/dealer-subscription-settings" 
-        element={<SubscriptionSettingsPage />} 
-      />
     </Route>
   )
 );

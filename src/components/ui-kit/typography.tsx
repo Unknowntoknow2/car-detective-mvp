@@ -1,175 +1,132 @@
 
-import React from "react";
-import { typography } from "./tokens";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { cn } from '@/lib/utils';
 
-type TypographyProps = {
-  children: React.ReactNode;
-  className?: string;
-  as?: React.ElementType;
+type HeadingProps = React.HTMLAttributes<HTMLHeadingElement> & {
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
 };
 
-export const HeadingXL = ({
-  children,
+export const Heading = ({
+  level = 1,
   className,
-  as: Component = "h1",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-4xl font-bold tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  children,
+  ...props
+}: HeadingProps) => {
+  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
 
-export const HeadingL = ({
-  children,
-  className,
-  as: Component = "h2",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-3xl font-semibold tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  const styles = {
+    1: "text-4xl font-bold tracking-tight",
+    2: "text-3xl font-semibold tracking-tight",
+    3: "text-2xl font-semibold tracking-tight",
+    4: "text-xl font-semibold tracking-tight",
+    5: "text-lg font-medium",
+    6: "text-base font-medium",
+  };
 
-export const HeadingM = ({
-  children,
-  className,
-  as: Component = "h3",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-2xl font-semibold tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  return (
+    <Tag
+      className={cn(styles[level], className)}
+      {...props}
+    >
+      {children}
+    </Tag>
+  );
+};
 
-export const HeadingS = ({
-  children,
-  className,
-  as: Component = "h4",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-xl font-medium tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+type ParagraphProps = React.HTMLAttributes<HTMLParagraphElement> & {
+  size?: "xs" | "sm" | "base" | "lg";
+};
 
-export const BodyL = ({
-  children,
+export const Paragraph = ({
+  size = "base",
   className,
-  as: Component = "p",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-lg font-normal leading-relaxed text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  children,
+  ...props
+}: ParagraphProps) => {
+  const styles = {
+    xs: "text-xs",
+    sm: "text-sm",
+    base: "text-base",
+    lg: "text-lg",
+  };
 
-export const BodyM = ({
-  children,
-  className,
-  as: Component = "p",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-base font-normal leading-relaxed text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  return (
+    <p
+      className={cn(styles[size], className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+};
 
-export const BodyS = ({
-  children,
-  className,
-  as: Component = "p",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-sm font-normal leading-relaxed text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+export const Caption = ({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => {
+  return (
+    <p
+      className={cn("text-xs text-muted-foreground", className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+};
 
-export const Caption = ({
-  children,
-  className,
-  as: Component = "span",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-xs font-normal leading-relaxed text-neutral-dark",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+export const Label = ({ className, children, ...props }: React.HTMLAttributes<HTMLLabelElement>) => {
+  return (
+    <label
+      className={cn("text-sm font-medium", className)}
+      {...props}
+    >
+      {children}
+    </label>
+  );
+};
 
-export const Label = ({
-  children,
+export const Value = ({ className, children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn("text-base font-medium", className)}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+};
+
+export const Link = ({
   className,
-  as: Component = "label",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-sm font-medium leading-tight text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  href,
+  children,
+  ...props
+}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+  return (
+    <a
+      href={href}
+      className={cn(
+        "text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary/30 rounded",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+};
 
 export const Code = ({
-  children,
   className,
-  as: Component = "code",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-mono text-sm px-1.5 py-0.5 rounded-sm bg-neutral-lighter text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
-
-export const Quote = ({
   children,
-  className,
-  as: Component = "blockquote",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-lg italic border-l-4 border-primary pl-4 py-1 text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+  ...props
+}: React.HTMLAttributes<HTMLElement>) => {
+  return (
+    <code
+      className={cn(
+        "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </code>
+  );
+};
