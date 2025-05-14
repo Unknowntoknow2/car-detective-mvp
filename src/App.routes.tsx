@@ -1,147 +1,74 @@
+import React from 'react';
+import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
+import RootLayout from '@/components/layout/RootLayout';
+import LandingPage from '@/pages/LandingPage';
+import AuthPage from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
+import ValuationPage from '@/pages/ValuationPage';
+import ValuationResultPage from '@/pages/ValuationResultPage';
+import MyValuationsPage from '@/pages/MyValuationsPage';
+import PremiumValuationPage from '@/pages/PremiumValuationPage';
+import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
+import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
+import AccessDeniedPage from '@/pages/AccessDeniedPage';
+import DealerSignupPage from '@/pages/DealerSignupPage';
+import DealerLoginPage from '@/pages/DealerLoginPage';
+import DealerDashboard from '@/pages/DealerDashboard';
+import DealerGuard from '@/guards/DealerGuard';
+import AdminDashboard from '@/pages/AdminDashboard';
+import AdminGuard from '@/guards/AdminGuard';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import UpdatePasswordPage from '@/pages/UpdatePasswordPage';
+import UserDashboardPage from '@/pages/UserDashboardPage';
 
-import { lazy, Suspense } from 'react';
-import { Navigate } from 'react-router-dom';
-import MainLayout from './layouts/MainLayout';
-import Loading from './components/ui/Loading';
+// Import the subscription page
+import DealerSubscriptionPage from './components/dealer/SubscriptionPage';
 
-const HomePage = lazy(() => import('./pages/HomePage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
-const AboutPage = lazy(() => import('./pages/AboutPage'));
-const VinLookupPage = lazy(() => import('./pages/VinLookupPage'));
-const PremiumValuationPage = lazy(() => import('./pages/PremiumValuationPage'));
-const PremiumConditionPage = lazy(() => import('./pages/PremiumConditionPage'));
-const MyValuationsPage = lazy(() => import('./pages/MyValuationsPage'));
-const EquipmentPage = lazy(() => import('./pages/EquipmentPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const ValuationResultPage = lazy(() => import('./pages/ValuationResultPage'));
-const FreeValuationPage = lazy(() => import('./pages/FreeValuationPage'));
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<RootLayout />}>
+      <Route index element={<LandingPage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/valuation" element={<ValuationPage />} />
+      <Route path="/valuation/:valuationId" element={<ValuationPage />} />
+      <Route path="/valuation/result/:valuationId" element={<ValuationResultPage />} />
+      <Route path="/my-valuations" element={<MyValuationsPage />} />
+      <Route path="/valuation/:valuationId/premium" element={<PremiumValuationPage />} />
+      <Route path="/payment-success" element={<PaymentSuccessPage />} />
+      <Route path="/payment-cancelled" element={<PaymentCancelledPage />} />
+      <Route path="/access-denied" element={<AccessDeniedPage />} />
+      <Route path="/dealer-signup" element={<DealerSignupPage />} />
+      <Route path="/login-dealer" element={<DealerLoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/user-dashboard" element={<UserDashboardPage />} />
+      <Route
+        path="/dealer-dashboard"
+        element={
+          <DealerGuard>
+            <DealerDashboard />
+          </DealerGuard>
+        }
+      />
+      <Route
+        path="/admin-dashboard"
+        element={
+          <AdminGuard>
+            <AdminDashboard />
+          </AdminGuard>
+        }
+      />
+      {
+        path: "/dealer-subscription",
+        element: (
+          <DealerGuard>
+            <DealerSubscriptionPage />
+          </DealerGuard>
+        ),
+      },
+    </Route>
+  )
+);
 
-// Define the routes
-export const routes = [
-  {
-    path: '/',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <HomePage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/contact',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <ContactPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/about',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <AboutPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/vin-lookup',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <VinLookupPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/premium',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <PremiumValuationPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/premium/condition',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <PremiumConditionPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/my-valuations',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <MyValuationsPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/equipment',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <EquipmentPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/valuation-result/:id',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <ValuationResultPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/result',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <ValuationResultPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/free',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <FreeValuationPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '/404',
-    element: (
-      <MainLayout>
-        <Suspense fallback={<Loading />}>
-          <NotFoundPage />
-        </Suspense>
-      </MainLayout>
-    ),
-  },
-  {
-    path: '*',
-    element: <Navigate to="/404" replace />,
-  },
-];
-
-export default routes;
+export default router;
