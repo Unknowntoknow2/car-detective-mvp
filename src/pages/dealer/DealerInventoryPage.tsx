@@ -5,9 +5,11 @@ import { DealerInventory } from '@/components/dealer/DealerInventory';
 import { AddVehicleModal } from '@/components/dealer/modals';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
 
 const DealerInventoryPage = () => {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   
   const handleRefresh = () => {
     // This function can be used to trigger any additional refresh logic if needed
@@ -26,7 +28,32 @@ const DealerInventoryPage = () => {
         </Button>
       </div>
       
-      <DealerInventory onRefresh={handleRefresh} />
+      <div className="flex justify-end mb-4">
+        <div className="flex p-1 border rounded-md bg-muted/20">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className="rounded-r-none"
+          >
+            Grid View
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="rounded-l-none"
+          >
+            List View
+          </Button>
+        </div>
+      </div>
+      
+      {viewMode === 'grid' ? (
+        <DealerInventory onRefresh={handleRefresh} />
+      ) : (
+        <DealerInventoryList onRefresh={handleRefresh} />
+      )}
       
       <AddVehicleModal
         open={isAddVehicleModalOpen}
