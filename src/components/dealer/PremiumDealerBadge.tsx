@@ -8,6 +8,7 @@ interface PremiumBadgeProps {
   className?: string;
 }
 
+// Define the component
 export const PremiumBadge = ({ className }: PremiumBadgeProps) => {
   const { isPremium, isLoading } = usePremiumDealer();
   
@@ -21,5 +22,4 @@ export const PremiumBadge = ({ className }: PremiumBadgeProps) => {
   );
 };
 
-// Export for other components to use
-export { PremiumBadge };
+// Only export once, removing the duplicate export at the end

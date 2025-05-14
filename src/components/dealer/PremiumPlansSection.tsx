@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PremiumSubscriptionCard } from './PremiumSubscriptionCard';
 import { PremiumBadge } from './PremiumDealerBadge';
@@ -59,7 +58,7 @@ export function PremiumPlansSection() {
         <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center space-x-4">
-              <PremiumBadge variant="gold" size="lg" />
+              <PremiumBadge className="bg-amber-100 text-amber-800 px-3 py-1" />
               <div>
                 <h3 className="text-xl font-medium">You're a Premium Dealer</h3>
                 {expiryDate && (
