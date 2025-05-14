@@ -2,9 +2,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Award } from 'lucide-react';
 
 export const Navbar = () => {
-  // Simple navbar implementation that doesn't depend on auth context
+  const { user, signOut } = useAuth();
+
   return (
     <nav className="bg-white border-b border-gray-200 py-4">
       <div className="container mx-auto px-4 flex justify-between items-center">
@@ -12,19 +15,36 @@ export const Navbar = () => {
         
         <div className="flex items-center space-x-4">
           <Link to="/valuation" className="text-gray-600 hover:text-primary">
-            Free Valuation
+            Valuation
           </Link>
-          <Link to="/premium" className="text-gray-600 hover:text-primary">
+          <Link to="/premium" className="text-gray-600 hover:text-primary flex items-center">
+            <Award className="h-4 w-4 mr-1" />
             Premium
           </Link>
-          <Link to="/my-valuations" className="text-gray-600 hover:text-primary">
-            My Valuations
-          </Link>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/contact">Contact</Link>
-          </Button>
+          
+          {user ? (
+            <>
+              <Link to="/my-valuations" className="text-gray-600 hover:text-primary">
+                My Valuations
+              </Link>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" onClick={() => signOut()}>
+                  Sign Out
+                </Button>
+                <Button asChild variant="default" size="sm">
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/auth">Sign In</Link>
+            </Button>
+          )}
         </div>
       </div>
     </nav>
   );
 };
+
+export default Navbar;
