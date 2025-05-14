@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -23,6 +22,7 @@ import UserDashboardPage from '@/pages/UserDashboardPage';
 import DealerSubscriptionPage from '@/pages/dealer/DealerSubscriptionPage';
 import DealerInventoryPage from '@/pages/dealer/DealerInventoryPage';
 import DealerLayout from '@/layouts/DealerLayout';
+import SubscriptionSettingsPage from '@/pages/dealer/SubscriptionSettingsPage';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -91,6 +91,11 @@ const router = createBrowserRouter(
           <AdminDashboardPage />
         }
       />
+      
+      {
+        path: '/dealer-subscription-settings',
+        element: <SubscriptionSettingsPage />
+      }
     </Route>
   )
 );
