@@ -14,7 +14,7 @@ export default function ValuationResultPage() {
   const navigate = useNavigate();
   const id = searchParams.get('id');
   const vin = searchParams.get('vin');
-  const [tempData, setTempData] = useState<any>(null);
+  const [tempData, setTempData] = useState<any | null>(null);
   const { data, isLoading, error } = useValuationResult(id || '');
   
   useEffect(() => {
