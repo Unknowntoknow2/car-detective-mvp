@@ -9,21 +9,23 @@ import {
 } from '@/components/ui/dialog';
 import AddEditVehicleForm from '../AddEditVehicleForm';
 
-interface AddVehicleModalProps {
+interface EditVehicleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onVehicleAdded?: () => void;
+  vehicleId: string;
+  onVehicleUpdated?: () => void;
 }
 
-const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ 
+const EditVehicleModal: React.FC<EditVehicleModalProps> = ({ 
   open, 
   onOpenChange,
-  onVehicleAdded
+  vehicleId,
+  onVehicleUpdated
 }) => {
   const handleSuccess = () => {
     onOpenChange(false);
-    if (onVehicleAdded) {
-      onVehicleAdded();
+    if (onVehicleUpdated) {
+      onVehicleUpdated();
     }
   };
 
@@ -31,15 +33,18 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Vehicle</DialogTitle>
+          <DialogTitle>Edit Vehicle</DialogTitle>
           <DialogDescription>
-            Enter the details of the vehicle you want to add to your inventory
+            Update the details of your vehicle listing
           </DialogDescription>
         </DialogHeader>
-        <AddEditVehicleForm onSuccess={handleSuccess} />
+        <AddEditVehicleForm 
+          vehicleId={vehicleId} 
+          onSuccess={handleSuccess} 
+        />
       </DialogContent>
     </Dialog>
   );
 };
 
-export default AddVehicleModal;
+export default EditVehicleModal;
