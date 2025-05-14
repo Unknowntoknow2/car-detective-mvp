@@ -65,6 +65,30 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Define an interface for our vehicle database record
+interface DealerVehicle {
+  id: string;
+  dealer_id: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  price: number;
+  condition: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  photos: string[];
+  transmission?: string;
+  fuel_type?: string;
+  zip_code?: string;
+  // Additional fields we need for the form
+  trim?: string;
+  color?: string;
+  vin?: string;
+  description?: string;
+}
+
 interface AddEditVehicleFormProps {
   vehicleId?: string;
   onSuccess?: () => void;
@@ -139,44 +163,50 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
         if (vehicle) {
           // Find the make ID based on the make name
           const makeObject = makes.find(m => m.make_name === vehicle.make);
+          let foundModels: any[] = [];
+          let foundModelObj = null;
+          
           if (makeObject) {
             setSelectedMakeId(makeObject.id);
             // Load models for this make
-            const models = await getModelsByMakeId(makeObject.id);
-            setFilteredModels(models);
+            foundModels = await getModelsByMakeId(makeObject.id);
+            setFilteredModels(foundModels);
             
             // Find the model ID based on the model name
-            const modelObject = models.find(m => m.model_name === vehicle.model);
-            if (modelObject) {
-              setSelectedModelId(modelObject.id);
+            foundModelObj = foundModels.find(m => m.model_name === vehicle.model);
+            if (foundModelObj) {
+              setSelectedModelId(foundModelObj.id);
               
               // Load trims for this model
-              const trims = await getTrimsByModelId(modelObject.id);
+              const trims = await getTrimsByModelId(foundModelObj.id);
               setFilteredTrims(trims);
             }
           }
           
+          // Cast vehicle to our extended interface
+          const typedVehicle = vehicle as DealerVehicle;
+          
           // Set form values from vehicle data
           form.reset({
             make: makeObject?.id || "",
-            model: modelObject?.id || "",
-            trim: vehicle.trim || "",
-            year: vehicle.year,
-            mileage: vehicle.mileage || 0,
-            price: vehicle.price,
-            condition: vehicle.condition,
-            color: vehicle.color || "",
-            fuel_type: vehicle.fuel_type || "Gasoline",
-            transmission: vehicle.transmission || "Automatic",
-            vin: vehicle.vin || "",
-            description: vehicle.description || ""
+            model: foundModelObj?.id || "",
+            trim: typedVehicle.trim || "",
+            year: typedVehicle.year,
+            mileage: typedVehicle.mileage || 0,
+            price: typedVehicle.price,
+            condition: typedVehicle.condition as "Excellent" | "Good" | "Fair" | "Poor",
+            color: typedVehicle.color || "",
+            fuel_type: (typedVehicle.fuel_type as "Gasoline" | "Diesel" | "Electric" | "Hybrid" | "Plug-in Hybrid") || "Gasoline",
+            transmission: (typedVehicle.transmission as "Automatic" | "Manual" | "CVT" | "Semi-Automatic") || "Automatic",
+            vin: typedVehicle.vin || "",
+            description: typedVehicle.description || ""
           });
 
           // Load photos if any
-          if (vehicle.photos && Array.isArray(vehicle.photos)) {
+          if (typedVehicle.photos && Array.isArray(typedVehicle.photos)) {
             // Implementation would depend on how photos are stored
             // This is a simplified version assuming photos are URLs in an array
-            const photoUrlsFromDb = vehicle.photos as string[];
+            const photoUrlsFromDb = typedVehicle.photos as string[];
             // You would need to set these to the state that holds photo previews
             // Simplified example - in reality would need more work to handle properly
             // setPhotoUrls(photoUrlsFromDb);
@@ -252,7 +282,7 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
       }
 
       // Generate new vehicle ID if not editing
-      const vehicleId = isEditMode ? vehicleId : uuid();
+      const vehicleUuid = isEditMode ? vehicleId : uuid();
       
       // Upload photos first
       let photoUrls: string[] = [];
@@ -262,7 +292,7 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
       
       // Prepare vehicle data
       const vehicleData = {
-        id: vehicleId,
+        id: vehicleUuid,
         dealer_id: user.id,
         make: makeObject.make_name,
         model: modelObject.model_name,
@@ -286,7 +316,7 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
         ? await supabase
             .from('dealer_vehicles')
             .update(vehicleData)
-            .eq('id', vehicleId)
+            .eq('id', vehicleUuid)
             .eq('dealer_id', user.id)
         : await supabase
             .from('dealer_vehicles')
