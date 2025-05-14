@@ -1,35 +1,24 @@
-
 import React from 'react';
-import { PremiumBadge } from './PremiumDealerBadge';
-import { usePremiumDealer } from '@/hooks/usePremiumDealer';
-import { DashboardPanels } from './DashboardPanels';
-import { PremiumSubscriptionBanner } from './PremiumSubscriptionBanner';
+import { VehicleUploadButton } from './VehicleUploadButton';
+import { VehicleUploadProvider } from './vehicle-upload/VehicleUploadProvider';
 
 const DealerDashboardContent = () => {
-  const { isPremium, isLoading, expiryDate } = usePremiumDealer();
-  
   return (
-    <div className="container py-12">
-      <div className="flex flex-col md:flex-row justify-between md:items-center mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">Dealer Dashboard</h1>
-          <PremiumBadge />
+    <VehicleUploadProvider>
+      <div className="container max-w-6xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Dealer Dashboard</h1>
+          <VehicleUploadButton />
         </div>
         
-        {!isLoading && expiryDate && (
-          <div className="text-sm text-gray-500 mt-2 md:mt-0">
-            {isPremium 
-              ? `Premium subscription active until ${new Date(expiryDate).toLocaleDateString()}`
-              : "No active subscription"
-            }
-          </div>
-        )}
+        {/* Other dashboard content would go here */}
+        <div className="bg-muted/30 rounded-lg p-8 text-center">
+          <p className="text-muted-foreground">
+            Your dashboard content will appear here.
+          </p>
+        </div>
       </div>
-      
-      <PremiumSubscriptionBanner />
-      
-      <DashboardPanels />
-    </div>
+    </VehicleUploadProvider>
   );
 };
 

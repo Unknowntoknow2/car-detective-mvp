@@ -1,6 +1,5 @@
 
-// Re-export components to simplify imports
-export { default as AddVehicleModal } from './modals/AddVehicleModal';
-export { default as DealerInventory } from './DealerInventory';
-export * from './inventory';
-export * from './hooks';
+// If this file doesn't exist, we'll create it
+export * from './vehicle-upload';
+export * from './vehicle-upload/VehicleUploadProvider';
+export * from './VehicleUploadButton';
