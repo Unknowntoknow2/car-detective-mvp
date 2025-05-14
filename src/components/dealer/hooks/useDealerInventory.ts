@@ -62,7 +62,7 @@ export const useDealerInventory = () => {
           query = query.order('price', { ascending: true });
           break;
         case 'mileage-asc':
-          query = query.order('mileage', { ascending: true, nullsLast: true });
+          query = query.order('mileage', { ascending: true, nullsFirst: false });
           break;
         case 'mileage-desc':
           query = query.order('mileage', { ascending: false, nullsFirst: true });
