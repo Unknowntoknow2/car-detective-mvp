@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { X, Plus, Upload, Car } from 'lucide-react';
-import { v4 as uuid } from 'uuid'; // Using uuid package instead of supabase helpers
+import { v4 as uuid } from 'uuid'; // Using uuid package
 
 import {
   Dialog,
@@ -42,10 +41,12 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface AddVehicleModalProps {
   onVehicleAdded?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => {
-  const [open, setOpen] = useState(false);
+const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded, open, onOpenChange }) => {
+  const [openState, setOpen] = useState(open || false);
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [photoUploading, setPhotoUploading] = useState(false);
@@ -80,12 +81,12 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
 
   // Reset the form when the dialog is closed
   useEffect(() => {
-    if (!open) {
+    if (!openState) {
       form.reset();
       setUploadedPhotos([]);
       setPhotoUrls([]);
     }
-  }, [open, form]);
+  }, [openState, form]);
 
   const yearOptions = getYearOptions(1990);
 
@@ -190,7 +191,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
 
       // Success!
       toast.success('Vehicle added successfully');
-      setOpen(false);
+      if (onOpenChange) onOpenChange(false);
       
       // Call the callback if provided
       if (onVehicleAdded) {
@@ -206,7 +207,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={openState} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus size={16} />
@@ -551,7 +552,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ onVehicleAdded }) => 
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange && onOpenChange(false)}>
                 Cancel
               </Button>
               <Button 

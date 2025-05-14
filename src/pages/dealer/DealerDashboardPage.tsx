@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +16,8 @@ import {
   Car,
   Users,
   BarChart3,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 import {
   Card,
@@ -488,8 +488,8 @@ const DealerDashboardPage = () => {
 
       {/* Add Vehicle Modal */}
       <AddVehicleModal 
-        isOpen={isAddVehicleModalOpen} 
-        onClose={() => setIsAddVehicleModalOpen(false)}
+        open={isAddVehicleModalOpen} 
+        onOpenChange={setIsAddVehicleModalOpen}
         onVehicleAdded={handleVehicleAdded}
       />
     </div>
