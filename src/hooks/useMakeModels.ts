@@ -39,16 +39,17 @@ export function useMakeModels() {
         
         const { data, error } = await supabase
           .from('makes')
-          .select('id, make_name, logo_url')
+          .select('id, make_name')
           .order('make_name');
           
         if (error) throw error;
         
-        // Ensure data matches the VehicleMake type
+        // Update the type handling to match the actual structure of the makes table
+        // which appears to not have a logo_url column
         const typedData: VehicleMake[] = data ? data.map(make => ({
           id: make.id,
           make_name: make.make_name,
-          logo_url: make.logo_url || null
+          logo_url: null // Set logo_url to null since it doesn't exist in the database
         })) : [];
         
         setMakes(typedData);
