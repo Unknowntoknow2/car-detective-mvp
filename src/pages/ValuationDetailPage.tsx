@@ -24,6 +24,7 @@ export default function ValuationResultPage() {
       try {
         const parsedData = JSON.parse(storedData);
         setTempData(parsedData);
+        console.log('Retrieved manual valuation data from localStorage');
       } catch (e) {
         console.error('Error parsing temp valuation data:', e);
       }
