@@ -1,15 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/utils/supabaseClient';
+import { DealerVehicle } from '@/types/dealerVehicle';
 import { toast } from 'sonner';
-import { DealerVehicle, DealerVehicleFormData, DealerVehicleStatus } from '@/types/dealerVehicle';
-
-// UI Components
-import { Button } from '@/components/ui/button';
+import { Car, Search, Loader2 } from 'lucide-react';
+import AddVehicleModal from './AddVehicleModal';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -17,556 +15,205 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
-import { usePremiumDealer } from '@/hooks/usePremiumDealer';
-import { PremiumSubscriptionBanner } from '@/components/dealer/PremiumSubscriptionBanner';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-// Loading state component
-const LoadingState = () => (
-  <div className="flex justify-center items-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-  </div>
-);
-
-// Empty state component
-const EmptyState = ({ onAddClick }: { onAddClick: () => void }) => (
-  <div className="text-center py-12 border rounded-lg border-dashed">
-    <h3 className="text-lg font-medium mb-2">No vehicles in inventory</h3>
-    <p className="text-muted-foreground mb-6">Start adding vehicles to your inventory</p>
-    <Button onClick={onAddClick}>
-      <Plus className="mr-2 h-4 w-4" />
-      Add First Vehicle
-    </Button>
-  </div>
-);
-
-// Vehicle form for add/edit modal
-const VehicleForm = ({
-  initialData,
-  onSubmit,
-  isSubmitting,
-}: {
-  initialData: DealerVehicleFormData;
-  onSubmit: (data: DealerVehicleFormData) => void;
-  isSubmitting: boolean;
-}) => {
-  const [formData, setFormData] = useState<DealerVehicleFormData>(initialData);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'year' || name === 'mileage' || name === 'price'
-        ? value === '' ? null : Number(value)
-        : value,
-    });
-  };
-
-  const handleStatusChange = (value: string) => {
-    setFormData({
-      ...formData,
-      status: value as DealerVehicleStatus,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label htmlFor="make" className="text-sm font-medium">
-            Make
-          </label>
-          <Input
-            id="make"
-            name="make"
-            value={formData.make}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="model" className="text-sm font-medium">
-            Model
-          </label>
-          <Input
-            id="model"
-            name="model"
-            value={formData.model}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <label htmlFor="year" className="text-sm font-medium">
-            Year
-          </label>
-          <Input
-            id="year"
-            name="year"
-            type="number"
-            value={formData.year || ''}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="mileage" className="text-sm font-medium">
-            Mileage
-          </label>
-          <Input
-            id="mileage"
-            name="mileage"
-            type="number"
-            value={formData.mileage || ''}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="price" className="text-sm font-medium">
-            Price ($)
-          </label>
-          <Input
-            id="price"
-            name="price"
-            type="number"
-            step="0.01"
-            value={formData.price || ''}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="status" className="text-sm font-medium">
-          Status
-        </label>
-        <Select name="status" value={formData.status} onValueChange={handleStatusChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="available">Available</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="sold">Sold</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <DialogFooter>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : 'Save Vehicle'}
-        </Button>
-      </DialogFooter>
-    </form>
-  );
-};
-
-// Status badge component
-const StatusBadge = ({ status }: { status: DealerVehicleStatus }) => {
-  const variants = {
-    available: 'bg-green-100 text-green-800',
-    pending: 'bg-yellow-100 text-yellow-800',
-    sold: 'bg-blue-100 text-blue-800',
-  };
-
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${variants[status]}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
-  );
-};
-
-// Main component
-export const DealerInventory = () => {
-  const { user } = useAuth();
-  const { isPremium, isLoading: isPremiumLoading } = usePremiumDealer();
+export const DealerInventory: React.FC = () => {
   const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<DealerVehicle | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const ITEMS_PER_PAGE = 10;
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { user } = useAuth();
 
-  const emptyFormData: DealerVehicleFormData = {
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    mileage: null,
-    price: 0,
-    status: 'available',
-  };
-
-  // Fetch vehicles with search and pagination
   const fetchVehicles = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
+    if (!user?.id) return;
+
     try {
-      let query = supabase
-        .from('vehicles')
-        .select('*', { count: 'exact' })
-        .eq('dealer_id', user.id)
-        .order('created_at', { ascending: false });
-
-      // Apply search filter if present
-      if (searchTerm.trim() !== '') {
-        query = query.or(
-          `make.ilike.%${searchTerm}%,model.ilike.%${searchTerm}%,year::text.ilike.%${searchTerm}%`
-        );
-      }
-
-      // Apply pagination
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
+      setLoading(true);
       
-      const { data, count, error } = await query
-        .range(from, to);
-
-      if (error) throw error;
+      let query = supabase
+        .from('dealer_vehicles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Apply status filter if not 'all'
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching vehicles:', error);
+        toast.error('Failed to load inventory');
+        return;
+      }
       
       setVehicles(data as DealerVehicle[]);
-      
-      if (count !== null) {
-        setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
-      }
-    } catch (error) {
-      console.error('Error fetching vehicles:', error);
-      toast.error('Failed to load inventory');
+    } catch (err) {
+      console.error('Error in fetchVehicles:', err);
+      toast.error('An unexpected error occurred');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Add new vehicle
-  const addVehicle = async (data: DealerVehicleFormData) => {
-    if (!user) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from('vehicles').insert({
-        ...data,
-        dealer_id: user.id,
-      });
-
-      if (error) throw error;
-      
-      toast.success('Vehicle added successfully');
-      setIsAddModalOpen(false);
-      fetchVehicles();
-    } catch (error) {
-      console.error('Error adding vehicle:', error);
-      toast.error('Failed to add vehicle');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Update vehicle
-  const updateVehicle = async (data: DealerVehicleFormData) => {
-    if (!selectedVehicle) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('vehicles')
-        .update(data)
-        .eq('id', selectedVehicle.id);
-
-      if (error) throw error;
-      
-      toast.success('Vehicle updated successfully');
-      setIsEditModalOpen(false);
-      fetchVehicles();
-    } catch (error) {
-      console.error('Error updating vehicle:', error);
-      toast.error('Failed to update vehicle');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Delete vehicle
-  const deleteVehicle = async () => {
-    if (!selectedVehicle) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('vehicles')
-        .delete()
-        .eq('id', selectedVehicle.id);
-
-      if (error) throw error;
-      
-      toast.success('Vehicle deleted successfully');
-      setIsDeleteDialogOpen(false);
-      fetchVehicles();
-    } catch (error) {
-      console.error('Error deleting vehicle:', error);
-      toast.error('Failed to delete vehicle');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
-  };
-
-  // Handle edit button click
-  const handleEditClick = (vehicle: DealerVehicle) => {
-    setSelectedVehicle(vehicle);
-    setIsEditModalOpen(true);
-  };
-
-  // Handle delete button click
-  const handleDeleteClick = (vehicle: DealerVehicle) => {
-    setSelectedVehicle(vehicle);
-    setIsDeleteDialogOpen(true);
-  };
-
-  // Load vehicles on component mount and when dependencies change
   useEffect(() => {
-    if (user) {
-      fetchVehicles();
-    }
-  }, [user, currentPage, searchTerm]);
+    fetchVehicles();
+  }, [user, statusFilter]);
 
-  if (isPremiumLoading || isLoading) {
-    return <LoadingState />;
-  }
-
-  if (!isPremium) {
+  const filteredVehicles = vehicles.filter(vehicle => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Dealer Inventory</h2>
-        <PremiumSubscriptionBanner />
-        
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <h2 className="text-xl font-semibold mb-3">Premium Feature</h2>
-          <p className="text-gray-600 mb-6">
-            Inventory management is available exclusively for premium dealers.
-            Upgrade your subscription to access this feature.
-          </p>
-          <Button variant="premium">Upgrade to Premium</Button>
-        </div>
-      </div>
+      vehicle.make.toLowerCase().includes(searchLower) ||
+      vehicle.model.toLowerCase().includes(searchLower) ||
+      vehicle.year.toString().includes(searchTerm)
     );
-  }
+  });
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'sold':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Dealer Inventory</h2>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Vehicle
-        </Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Car size={24} />
+          Dealer Inventory
+        </h1>
+        <AddVehicleModal onVehicleAdded={fetchVehicles} />
       </div>
 
-      <div className="w-full max-w-md">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search by make, model, or year..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {vehicles.length === 0 && !isLoading ? (
-        <EmptyState onAddClick={() => setIsAddModalOpen(true)} />
-      ) : (
-        <>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Make</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vehicles.map((vehicle) => (
-                  <TableRow key={vehicle.id}>
-                    <TableCell className="font-medium">{vehicle.make}</TableCell>
-                    <TableCell>{vehicle.model}</TableCell>
-                    <TableCell>{vehicle.year}</TableCell>
-                    <TableCell>${vehicle.price.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={vehicle.status} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleEditClick(vehicle)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleDeleteClick(vehicle)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Listings</CardTitle>
+          <CardDescription>
+            Manage your dealership's vehicle inventory.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search by make, model, or year"
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Vehicles</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="sold">Sold</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(page)}
-                      isActive={currentPage === page}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredVehicles.length === 0 ? (
+            <div className="text-center py-12 border rounded-lg bg-gray-50">
+              <Car className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No vehicles found</h3>
+              <p className="text-gray-500 mb-4">
+                {vehicles.length === 0
+                  ? "Your inventory is empty. Add your first vehicle to get started."
+                  : "No vehicles match your search criteria."}
+              </p>
+              {vehicles.length === 0 && (
+                <AddVehicleModal onVehicleAdded={fetchVehicles} />
+              )}
+            </div>
+          ) : (
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Vehicle</TableHead>
+                    <TableHead className="hidden md:table-cell">Year</TableHead>
+                    <TableHead className="hidden md:table-cell">Mileage</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredVehicles.map((vehicle) => (
+                    <TableRow key={vehicle.id}>
+                      <TableCell className="font-medium">
+                        {vehicle.make} {vehicle.model}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{vehicle.year}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} mi` : 'N/A'}
+                      </TableCell>
+                      <TableCell>{formatCurrency(vehicle.price)}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(vehicle.status)}`}>
+                          {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="outline">
+                          Edit
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
-        </>
-      )}
-
-      {/* Add Vehicle Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add New Vehicle</DialogTitle>
-            <DialogDescription>
-              Enter the details of the vehicle you want to add to your inventory.
-            </DialogDescription>
-          </DialogHeader>
-          <VehicleForm
-            initialData={emptyFormData}
-            onSubmit={addVehicle}
-            isSubmitting={isSubmitting}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Vehicle Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Vehicle</DialogTitle>
-            <DialogDescription>
-              Update the details of this vehicle in your inventory.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedVehicle && (
-            <VehicleForm
-              initialData={{
-                make: selectedVehicle.make,
-                model: selectedVehicle.model,
-                year: selectedVehicle.year,
-                mileage: selectedVehicle.mileage,
-                price: selectedVehicle.price,
-                status: selectedVehicle.status,
-              }}
-              onSubmit={updateVehicle}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this vehicle from your inventory.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={deleteVehicle}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </CardContent>
+        <CardFooter className="flex justify-between border-t px-6 py-4">
+          <div className="text-sm text-gray-500">
+            Showing {filteredVehicles.length} of {vehicles.length} vehicles
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
