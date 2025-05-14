@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FormStepLayout } from './FormStepLayout';
 import { FormInitializer } from './initialization/FormInitializer';
