@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 type HeadingProps = React.HTMLAttributes<HTMLHeadingElement> & {
   level?: 1 | 2 | 3 | 4 | 5 | 6;
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  as?: React.ElementType;
 };
 
 export const Heading = ({
@@ -14,7 +14,7 @@ export const Heading = ({
   children,
   ...props
 }: HeadingProps) => {
-  const Tag = (as || `h${level}`) as keyof JSX.IntrinsicElements;
+  const Tag = (as || `h${level}`) as React.ElementType;
 
   const styles = {
     1: "text-4xl font-bold tracking-tight",
