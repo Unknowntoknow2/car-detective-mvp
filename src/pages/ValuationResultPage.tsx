@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -16,9 +15,8 @@ export default function ValuationResultPage() {
   const vin = searchParams.get('vin');
   const [tempData, setTempData] = useState<any>(null);
   const { data, isLoading, error } = useValuationResult(id || '');
-  
+
   useEffect(() => {
-    // Check for temp valuation data
     const storedData = localStorage.getItem('temp_valuation_data');
     if (storedData) {
       try {
@@ -30,17 +28,17 @@ export default function ValuationResultPage() {
     }
   }, []);
 
-  // Use data or tempData if available
   const valuationData = data || tempData;
 
-  // Error message handling with proper null check
-  const errorMessage = error !== null && error !== undefined
-    ? (typeof error === 'object' && error !== null && 'message' in error 
-        ? String(error.message) 
-        : String(error)) 
-    : "Could not find the requested valuation.";
-    
-  // Default vehicle info if data is not available
+  // ✅ FIXED ERROR MESSAGE
+  const errorMessage = (() => {
+    if (!error) return "Could not find the requested valuation.";
+    if (typeof error === 'object' && 'message' in error) {
+      return String((error as { message: string }).message);
+    }
+    return String(error);
+  })();
+
   const vehicleInfo = valuationData ? {
     make: valuationData.make,
     model: valuationData.model,
@@ -54,7 +52,7 @@ export default function ValuationResultPage() {
     mileage: 0,
     condition: 'Good'
   };
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -68,8 +66,8 @@ export default function ValuationResultPage() {
       </div>
     );
   }
-  
-  if ((!data && !tempData) || error !== null) {
+
+  if ((!data && !tempData) || error) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
