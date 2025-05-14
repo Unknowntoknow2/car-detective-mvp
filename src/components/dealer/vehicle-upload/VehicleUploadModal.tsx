@@ -341,7 +341,7 @@ export const VehicleUploadModal = () => {
                 )}
               </div>
               
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 <motion.div
                   key={formData.condition}
                   initial={{ opacity: 0 }}
