@@ -2,12 +2,13 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CheckIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 
-interface PremiumSubscriptionCardProps {
+export interface PremiumSubscriptionCardProps {
   name: string;
   price: string;
   features: string[];
@@ -33,26 +34,25 @@ export function PremiumSubscriptionCard({
       });
 
       if (error) {
-        console.error('Error creating checkout session:', error);
-        toast.error('Unable to start subscription process');
-        return;
+        throw error;
       }
 
       if (data?.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
       }
-    } catch (err) {
-      console.error('Error in subscription process:', err);
-      toast.error('Something went wrong with the subscription process');
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout process');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Card className={`flex flex-col ${recommended ? 'border-primary shadow-md' : ''}`}>
-      <CardHeader>
+    <Card className={`flex flex-col h-full ${recommended ? 'border-primary' : ''}`}>
+      <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl font-bold">
@@ -63,9 +63,9 @@ export function PremiumSubscriptionCard({
             </CardDescription>
           </div>
           {recommended && (
-            <span className="px-2.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground rounded-full">
+            <Badge variant="default" className="bg-primary text-white">
               Recommended
-            </span>
+            </Badge>
           )}
         </div>
       </CardHeader>
@@ -76,7 +76,7 @@ export function PremiumSubscriptionCard({
         <ul className="space-y-2 mb-6">
           {features.map((feature, i) => (
             <li key={i} className="flex items-start">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+              <CheckIcon className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
               <span>{feature}</span>
             </li>
           ))}
@@ -84,10 +84,9 @@ export function PremiumSubscriptionCard({
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={handleSubscribe} 
-          disabled={isLoading || isPremium} 
-          className="w-full"
-          variant={recommended ? "default" : "outline"}
+          className="w-full" 
+          onClick={handleSubscribe}
+          disabled={isLoading || isPremium}
         >
           {isLoading 
             ? 'Loading...' 
