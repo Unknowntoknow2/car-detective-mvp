@@ -1,63 +1,78 @@
-// Update the import to use the correct Heading component
-import { Heading } from "@/components/ui-kit/typography";
-import { BodyS } from "@/components/ui-kit/typography";
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Share2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Download, Mail, Lock } from 'lucide-react';
+import { Heading, BodyS } from '@/components/ui-kit/typography';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 
-export const PDFActions = () => {
-  const handleDownloadPDF = () => {
-    console.log('Downloading PDF...');
-    // Implementation for PDF download
-  };
+interface PDFActionsProps {
+  isPremium: boolean;
+  onDownloadPdf: () => void;
+  onEmailPdf: () => void;
+  onUpgrade: () => void;
+  isDownloading: boolean;
+  isEmailSending: boolean;
+}
 
-  const handleShareReport = () => {
-    console.log('Sharing report...');
-    // Implementation for sharing functionality
-  };
-
-  const handlePrintReport = () => {
-    console.log('Printing report...');
-    window.print();
-  };
-
+export const PDFActions: React.FC<PDFActionsProps> = ({
+  isPremium,
+  onDownloadPdf,
+  onEmailPdf,
+  onUpgrade,
+  isDownloading,
+  isEmailSending
+}) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <Heading className="text-2xl font-bold mb-4">Download Report</Heading>
+      <Heading className="text-xl font-semibold mb-4">
+        Download or Email Report
+      </Heading>
       
       <div className="space-y-4">
-        <BodyS className="text-muted-foreground">
-          Save or share this valuation report for your records. The PDF includes all details and can be used for insurance or selling purposes.
-        </BodyS>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
-          <Card className="p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={handleDownloadPDF}>
-            <Download className="h-8 w-8 mb-2 text-primary" />
-            <span className="font-medium">Download PDF</span>
-            <BodyS className="text-muted-foreground mt-1">Save to your device</BodyS>
-          </Card>
-          
-          <Card className="p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={handleShareReport}>
-            <Share2 className="h-8 w-8 mb-2 text-primary" />
-            <span className="font-medium">Share Report</span>
-            <BodyS className="text-muted-foreground mt-1">Email or message</BodyS>
-          </Card>
-          
-          <Card className="p-4 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer" onClick={handlePrintReport}>
-            <FileText className="h-8 w-8 mb-2 text-primary" />
-            <span className="font-medium">Print Report</span>
-            <BodyS className="text-muted-foreground mt-1">Physical copy</BodyS>
-          </Card>
-        </div>
-        
-        <div className="flex justify-center mt-6">
-          <Button variant="outline" onClick={handleDownloadPDF} className="gap-2">
-            <Download className="h-4 w-4" />
-            Download Complete Report
-          </Button>
-        </div>
+        {isPremium ? (
+          <>
+            <BodyS className="text-muted-foreground">
+              Download a comprehensive PDF report or have it sent to your email.
+            </BodyS>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                onClick={onDownloadPdf} 
+                disabled={isDownloading}
+                className="flex-1"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {isDownloading ? 'Downloading...' : 'Download PDF Report'}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={onEmailPdf}
+                disabled={isEmailSending}
+                className="flex-1"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                {isEmailSending ? 'Sending...' : 'Email Report'}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <Lock className="h-5 w-5 text-muted-foreground" />
+              <BodyS>
+                Unlock full PDF reports and email delivery with Premium
+              </BodyS>
+            </div>
+            
+            <Button onClick={onUpgrade} className="w-full">
+              Upgrade to Premium <PremiumBadge className="ml-2" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
 };
+
+export default PDFActions;

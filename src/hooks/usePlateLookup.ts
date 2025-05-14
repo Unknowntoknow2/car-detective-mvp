@@ -37,6 +37,7 @@ export function usePlateLookup() {
       toast({
         title: "Vehicle Found",
         description: `${plateResult.year} ${plateResult.make} ${plateResult.model}`,
+        variant: "default", // Using a valid variant property
       });
       
       return plateResult;
@@ -46,7 +47,7 @@ export function usePlateLookup() {
       toast({
         title: "Plate Lookup Failed",
         description: errorMessage,
-        className: "toast-destructive"
+        variant: "destructive"
       });
       
       return null;

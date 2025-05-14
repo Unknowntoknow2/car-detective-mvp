@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
@@ -65,3 +65,66 @@ export const Body: React.FC<BodyProps> = ({
 export const BodyS: React.FC<BodyProps> = (props) => <Body size="small" {...props} />;
 export const BodyM: React.FC<BodyProps> = (props) => <Body size="medium" {...props} />;
 export const BodyL: React.FC<BodyProps> = (props) => <Body size="large" {...props} />;
+
+// Caption component
+interface CaptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Caption: React.FC<CaptionProps> = ({ 
+  children, 
+  className, 
+  ...props 
+}) => {
+  return (
+    <p 
+      className={cn('text-xs text-neutral-dark', className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+};
+
+// Label component
+interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Label: React.FC<LabelProps> = ({ 
+  children, 
+  className, 
+  ...props 
+}) => {
+  return (
+    <label 
+      className={cn('text-sm font-medium', className)}
+      {...props}
+    >
+      {children}
+    </label>
+  );
+};
+
+// Paragraph component
+interface ParagraphProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Paragraph: React.FC<ParagraphProps> = ({ 
+  children, 
+  className, 
+  ...props 
+}) => {
+  return (
+    <p 
+      className={cn('text-base leading-relaxed', className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+};
