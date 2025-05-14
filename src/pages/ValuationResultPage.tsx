@@ -13,16 +13,12 @@ export default function ValuationDetailPage() {
   const navigate = useNavigate();
   const { data: valuation, isLoading, error } = useValuationResult(valuationId || '');
 
-  // ✅ Safe error message
-  const errorMessage = (() => {
-    if (error === null || error === undefined) {
-      return "Could not load the valuation details.";
-    }
-    if (typeof error === 'object' && error !== null && 'message' in error) {
-      return String((error as { message: string }).message);
-    }
-    return String(error);
-  })();
+  // ✅ Safe error message handling
+  const errorMessage = error === null || error === undefined
+    ? "Could not load the valuation details."
+    : typeof error === 'object' && error !== null && 'message' in error
+      ? String((error as { message: string }).message)
+      : String(error);
 
   if (isLoading) {
     return (
