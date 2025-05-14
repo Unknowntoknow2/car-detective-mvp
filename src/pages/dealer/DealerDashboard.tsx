@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -19,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import DealerGuard from '@/guards/DealerGuard';
 import { StatCard } from '@/components/stats/StatCard';
 import { motion } from 'framer-motion';
+import DealerInventoryStats from '@/components/dealer/DealerInventoryStats';
 
 // Types for dealer profile and stats
 interface DealerProfile {
@@ -332,11 +332,20 @@ const DealerDashboardContent: React.FC = () => {
         </Card>
       </motion.div>
 
+      {/* Inventory Stats Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+      >
+        <DealerInventoryStats />
+      </motion.div>
+
       {/* Action Cards */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
       >
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
