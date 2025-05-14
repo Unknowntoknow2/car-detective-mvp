@@ -4,13 +4,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, User, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -43,7 +43,26 @@ const Dashboard = () => {
     };
     
     fetchUserProfile();
-  }, [user, navigate]);
+  }, [user, navigate, userRole]);
+
+  // If user is dealer, this page should not be shown (redirected in useEffect)
+  if (userRole === 'dealer') {
+    return (
+      <div className="container max-w-5xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <Building className="h-12 w-12 mx-auto text-primary" />
+          <h1 className="text-2xl font-bold mt-4">Dealer Account Detected</h1>
+          <p className="text-muted-foreground mb-4">Redirecting you to the dealer dashboard...</p>
+          <Button 
+            onClick={() => navigate('/dealer-dashboard')}
+            className="mt-2"
+          >
+            Go to Dealer Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -66,9 +85,14 @@ const Dashboard = () => {
   return (
     <div className="container max-w-5xl mx-auto px-4 py-8">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {profile?.full_name || 'User'}</h1>
-          <p className="text-muted-foreground">Here's an overview of your vehicle valuations</p>
+        <div className="flex items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Welcome back, {profile?.full_name || 'User'}</h1>
+            <p className="text-muted-foreground">Here's an overview of your vehicle valuations</p>
+          </div>
+          <div className="ml-auto">
+            <User className="h-12 w-12 text-primary p-2 border rounded-full" />
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -84,7 +108,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" onClick={() => navigate('/free-valuation')}>
+              <Button variant="outline" onClick={() => navigate('/valuation')}>
                 Get New Valuation
               </Button>
             </CardFooter>

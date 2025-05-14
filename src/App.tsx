@@ -11,7 +11,7 @@ import Index from '@/pages/Index';
 import Dashboard from '@/pages/Dashboard';
 import LoginUserPage from '@/pages/LoginUserPage';
 import LoginDealerPage from '@/pages/LoginDealerPage';
-import DealerSignup from '@/pages/DealerSignup';
+import DealerSignup from '@/pages/dealer/signup';
 import RegisterPage from '@/pages/RegisterPage';
 import VpicDecoderPage from '@/pages/VpicDecoderPage';
 import ValuationPage from '@/pages/ValuationPage';

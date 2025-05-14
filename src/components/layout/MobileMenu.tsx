@@ -1,158 +1,107 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { X, Home, Car, Search, Crown, LogOut, Settings, User, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Separator } from '@/components/ui/separator';
+import { User, Building, Home, BarChart3, Settings, LogOut, FileText, PlusCircle } from 'lucide-react';
 
 interface MobileMenuProps {
   isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, setIsOpen }) => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  
-  // Close menu when navigating
-  const handleNavigation = (path: string) => {
-    setIsOpen(false);
-    navigate(path);
-  };
+  const { user, userRole, signOut } = useAuth();
+
+  const closeMenu = () => setIsOpen(false);
 
   const handleSignOut = async () => {
     await signOut();
-    setIsOpen(false);
-    navigate('/');
+    closeMenu();
   };
 
-  // Close menu when escape key is pressed
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-    
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [setIsOpen]);
-
-  // Prevent scrolling when menu is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => { document.body.style.overflow = 'auto'; };
-  }, [isOpen]);
-
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 300 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 300 }}
-      className="fixed inset-0 z-50 md:hidden"
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="md:hidden bg-white border-b border-gray-200 overflow-hidden"
     >
-      <div className="fixed inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
-      <div className="fixed inset-y-0 right-0 bg-background w-4/5 max-w-sm shadow-xl flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-bold text-lg">Menu</h2>
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+      <div className="flex flex-col p-4 space-y-4">
+        {/* Common Navigation Links */}
+        <Link to="/" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+          <Home className="h-4 w-4 mr-3" />
+          <span>Home</span>
+        </Link>
         
-        <div className="flex-1 overflow-auto py-4">
-          <div className="flex flex-col space-y-1">
-            <Button 
-              variant="ghost" 
-              className="justify-start pl-4"
-              onClick={() => handleNavigation('/')}
-            >
-              <Home className="mr-3 h-5 w-5" />
-              Home
-            </Button>
+        <Link to="/valuation" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+          <FileText className="h-4 w-4 mr-3" />
+          <span>Valuations</span>
+        </Link>
+        
+        <Link to="/decoder" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+          <PlusCircle className="h-4 w-4 mr-3" />
+          <span>VIN Decoder</span>
+        </Link>
+        
+        <Link to="/premium" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+          <FileText className="h-4 w-4 mr-3" />
+          <span>Premium</span>
+        </Link>
+        
+        <Separator />
+        
+        {/* Authenticated User Navigation */}
+        {user ? (
+          <>
+            {/* Individual user links */}
+            {userRole === 'individual' && (
+              <>
+                <Link to="/dashboard" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+                  <BarChart3 className="h-4 w-4 mr-3" />
+                  <span>Dashboard</span>
+                </Link>
+                <Link to="/my-valuations" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+                  <FileText className="h-4 w-4 mr-3" />
+                  <span>My Valuations</span>
+                </Link>
+              </>
+            )}
             
-            <Button 
-              variant="ghost" 
-              className="justify-start pl-4"
-              onClick={() => handleNavigation('/valuation')}
-            >
-              <Car className="mr-3 h-5 w-5" />
-              Valuations
-            </Button>
+            {/* Dealer links */}
+            {userRole === 'dealer' && (
+              <>
+                <Link to="/dealer-dashboard" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+                  <Building className="h-4 w-4 mr-3" />
+                  <span>Dealer Dashboard</span>
+                </Link>
+              </>
+            )}
             
-            <Button 
-              variant="ghost" 
-              className="justify-start pl-4"
-              onClick={() => handleNavigation('/decoder')}
-            >
-              <Search className="mr-3 h-5 w-5" />
-              VIN Decoder
-            </Button>
+            {/* Common authenticated user links */}
+            <Link to="/settings" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+              <Settings className="h-4 w-4 mr-3" />
+              <span>Settings</span>
+            </Link>
             
-            <Button 
-              variant="ghost" 
-              className="justify-start pl-4"
-              onClick={() => handleNavigation('/premium')}
-            >
-              <Crown className="mr-3 h-5 w-5" />
-              Premium
+            <Button variant="destructive" className="w-full justify-start" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-3" />
+              <span>Sign Out</span>
             </Button>
-          </div>
-          
-          <div className="border-t my-4" />
-          
-          {user ? (
-            <div className="flex flex-col space-y-1">
-              <Button 
-                variant="ghost" 
-                className="justify-start pl-4"
-                onClick={() => handleNavigation('/dashboard')}
-              >
-                <User className="mr-3 h-5 w-5" />
-                Dashboard
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                className="justify-start pl-4"
-                onClick={() => handleNavigation('/settings')}
-              >
-                <Settings className="mr-3 h-5 w-5" />
-                Settings
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                className="justify-start pl-4 text-red-500 hover:text-red-700 hover:bg-red-100"
-                onClick={handleSignOut}
-              >
-                <LogOut className="mr-3 h-5 w-5" />
-                Sign Out
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4 px-4">
-              <Button 
-                className="w-full"
-                onClick={() => handleNavigation('/auth')}
-              >
-                Sign In
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="outline"
-                className="w-full"
-                onClick={() => handleNavigation('/register')}
-              >
-                Create Account
-              </Button>
-            </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            <Link to="/auth" className="flex items-center p-2 hover:bg-gray-100 rounded-md" onClick={closeMenu}>
+              <User className="h-4 w-4 mr-3" />
+              <span>Sign In</span>
+            </Link>
+            <Button className="w-full" asChild>
+              <Link to="/register" onClick={closeMenu}>Sign Up</Link>
+            </Button>
+          </>
+        )}
       </div>
     </motion.div>
   );

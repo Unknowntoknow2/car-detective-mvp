@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { UserDropdown } from './UserDropdown';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { Menu } from 'lucide-react';
+import { Menu, Building, User } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import Logo from './Logo';
 
 export function Navbar() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const toggleMobileMenu = () => {
@@ -37,6 +37,14 @@ export function Navbar() {
             <Link to="/premium" className="text-sm font-medium transition-colors hover:text-primary">
               Premium
             </Link>
+            
+            {/* Role-specific navigation items */}
+            {user && userRole === 'dealer' && (
+              <Link to="/dealer-dashboard" className="text-sm font-medium transition-colors hover:text-primary flex items-center">
+                <Building className="mr-1 h-4 w-4" />
+                Dealer Dashboard
+              </Link>
+            )}
           </nav>
         </div>
         

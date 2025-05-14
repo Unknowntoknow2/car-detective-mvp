@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,65 +10,27 @@ interface DealerGuardProps {
 }
 
 const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
-  const { user } = useAuth();
-  const [isDealer, setIsDealer] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, userRole, isLoading } = useAuth();
+  const [isCheckingRole, setIsCheckingRole] = useState(true);
   const location = useLocation();
   
   useEffect(() => {
     const checkDealerRole = async () => {
       if (!user) {
-        setIsDealer(false);
-        setIsLoading(false);
+        setIsCheckingRole(false);
         return;
       }
       
-      try {
-        console.log('Checking dealer role for user:', user.id);
-        // Check if the user has the dealer role in their profile
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('user_role')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error checking dealer role:', error);
-          toast.error('Failed to verify your access permissions');
-          setIsDealer(false);
-        } else {
-          console.log('Found user role:', data?.user_role);
-          setIsDealer(data?.user_role === 'dealer');
-          if (data?.user_role !== 'dealer') {
-            console.warn(`User ${user.id} attempted to access dealer area without proper permissions`);
-            toast.error('You need dealer access for this page');
-          }
-        }
-      } catch (err) {
-        console.error('Error checking dealer status:', err);
-        toast.error('An unexpected error occurred while checking your access permissions');
-        setIsDealer(false);
-      } finally {
-        setIsLoading(false);
-      }
+      // Use the userRole directly from context
+      setIsCheckingRole(false);
     };
     
-    // Set a timeout to prevent indefinite loading
-    const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        console.warn('Dealer role check is taking too long, stopping...');
-        setIsLoading(false);
-        setIsDealer(false);
-        toast.error('Verification timeout exceeded');
-      }
-    }, 5000); // 5 second timeout
-    
-    checkDealerRole();
-    
-    return () => clearTimeout(timeoutId);
-  }, [user]);
+    if (!isLoading) {
+      checkDealerRole();
+    }
+  }, [user, userRole, isLoading]);
   
-  if (isLoading) {
+  if (isLoading || isCheckingRole) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
@@ -85,8 +46,9 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
     return <Navigate to="/login-dealer" state={{ from: location.pathname }} replace />;
   }
   
-  if (!isDealer) {
+  if (userRole !== 'dealer') {
     // Redirect to access denied page with explanatory message
+    toast.error('You need dealer access for this page');
     return <Navigate to="/access-denied" state={{ message: "You need dealer access for this page" }} replace />;
   }
   
