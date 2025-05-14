@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft } from 'lucide-react';
 
 interface RegisterPageProps {
   isEmbedded?: boolean;
@@ -40,7 +43,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ isEmbedded = false, redirec
     }
 
     try {
-      await signUp(email, password);
+      // Register as individual user
+      await signUp(email, password, 'individual');
       toast.success('Registration successful! Please check your email to verify your account.');
       navigate(redirectPath);
     } catch (error) {
@@ -104,18 +108,43 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ isEmbedded = false, redirec
   }
 
   return (
-    <div className="container mx-auto py-12 px-4">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Create an Account</h1>
-        {content}
-        <div className="mt-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
-              Sign In
-            </Button>
-          </p>
-        </div>
+    <div className="container mx-auto py-12 px-4 flex items-center justify-center min-h-screen bg-gray-50/50">
+      <div className="w-full max-w-md">
+        <Button 
+          variant="ghost" 
+          className="mb-4 text-muted-foreground flex items-center"
+          onClick={() => navigate('/auth')}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Sign In Options
+        </Button>
+        
+        <Card className="w-full shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl">Create an Account</CardTitle>
+            <CardDescription>Sign up as an individual user to access car valuations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {content}
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4 border-t pt-4">
+            <div className="text-center text-sm text-muted-foreground">
+              <div>Already have an account?{' '}
+                <Link to="/login-user" className="text-primary hover:underline">
+                  Sign In
+                </Link>
+              </div>
+            </div>
+            
+            <div className="text-center text-xs text-muted-foreground">
+              <p>Looking to register as a dealer instead?{' '}
+                <Link to="/dealer-signup" className="text-primary hover:underline">
+                  Dealer Signup
+                </Link>
+              </p>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
