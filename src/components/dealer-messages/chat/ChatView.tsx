@@ -186,7 +186,7 @@ export const ChatView: React.FC = () => {
                                 <div key={i} className={`flex items-center p-2 border-b ${
                                   message.sentByDealer ? 'border-blue-500' : 'border-gray-200'
                                 }`}>
-                                  <PaperClip size={14} className="mr-2" />
+                                  <Paperclip size={14} className="mr-2" />
                                   <span className="text-sm truncate">{attachment.name}</span>
                                 </div>
                               )

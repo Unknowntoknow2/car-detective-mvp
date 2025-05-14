@@ -18,3 +18,7 @@ export const useMediaQuery = (query: string): boolean => {
 
   return matches;
 };
+
+export const useIsMobile = (): boolean => {
+  return useMediaQuery('(max-width: 768px)');
+};
