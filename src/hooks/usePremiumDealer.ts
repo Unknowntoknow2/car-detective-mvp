@@ -4,20 +4,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 export function usePremiumDealer() {
-  const [isPremium, setIsPremium] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [expiryDate, setExpiryDate] = useState<string | null>(null);
   const { user } = useAuth();
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function checkPremiumStatus() {
+    const checkPremiumStatus = async () => {
       if (!user) {
         setIsLoading(false);
         return;
       }
 
       try {
-        // Fetch profile to check premium dealer status
+        setIsLoading(true);
+        setError(null);
+
         const { data, error } = await supabase
           .from('profiles')
           .select('is_premium_dealer, premium_expires_at')
@@ -25,26 +27,26 @@ export function usePremiumDealer() {
           .single();
 
         if (error) {
-          console.error('Error fetching premium status:', error);
-          setIsPremium(false);
-        } else {
-          // Check if user is a premium dealer and subscription hasn't expired
-          const isPremiumActive = data?.is_premium_dealer && 
-            (!data?.premium_expires_at || new Date(data.premium_expires_at) > new Date());
-          
-          setIsPremium(isPremiumActive);
-          setExpiryDate(data?.premium_expires_at);
+          throw error;
         }
-      } catch (error) {
-        console.error('Error in premium dealer check:', error);
+
+        // Check if the user is a premium dealer and if premium hasn't expired
+        const isPremiumActive = 
+          data?.is_premium_dealer === true && 
+          (!data?.premium_expires_at || new Date(data.premium_expires_at) > new Date());
+
+        setIsPremium(isPremiumActive);
+      } catch (err) {
+        console.error('Error checking premium status:', err);
+        setError('Failed to check premium status');
         setIsPremium(false);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     checkPremiumStatus();
   }, [user]);
 
-  return { isPremium, isLoading, expiryDate };
+  return { isPremium, isLoading, error };
 }
