@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useLeads } from '../context/LeadsContext';
 import { Lead, TabType } from '../types';
@@ -140,6 +139,16 @@ const LeadCard: React.FC<LeadCardProps> = ({
   onMarkAsRead 
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
+  
+  const formatTime = (date: Date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    
+    return formatDistanceToNow(date, { addSuffix: false });
+  };
   
   return (
     <motion.div
