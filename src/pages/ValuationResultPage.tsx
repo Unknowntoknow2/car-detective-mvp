@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -32,7 +33,7 @@ export default function ValuationResultPage() {
 
   // ✅ FIXED ERROR MESSAGE
   const errorMessage = (() => {
-    if (!error) return "Could not find the requested valuation.";
+    if (error === null || error === undefined) return "Could not find the requested valuation.";
     if (typeof error === 'object' && 'message' in error) {
       return String((error as { message: string }).message);
     }
@@ -67,7 +68,7 @@ export default function ValuationResultPage() {
     );
   }
 
-  if ((!data && !tempData) || error) {
+  if ((!data && !tempData) || error !== null) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
