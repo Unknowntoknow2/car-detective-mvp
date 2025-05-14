@@ -1,21 +1,17 @@
 
-import React from 'react';
-import { Car, Plus } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { EmptyState as ReusableEmptyState } from '@/components/ui/empty-state';
+import { Car } from 'lucide-react';
 
-interface EmptyStateProps {
-  onAddVehicle: () => void;
-}
+// Re-export with dealer inventory specific defaults
+export const EmptyState = ({ onAddVehicle, ...props }) => (
+  <ReusableEmptyState
+    title="No vehicles in your inventory"
+    message="Add vehicles to your inventory to start managing your dealership stock."
+    actionLabel="Add Vehicle"
+    onAction={onAddVehicle}
+    icon={<Car className="h-12 w-12 text-muted-foreground mb-2" />}
+    {...props}
+  />
+);
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ onAddVehicle }) => {
-  return (
-    <div className="text-center py-12 border rounded-lg bg-background mt-6">
-      <Car className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-      <h3 className="text-lg font-medium mb-2">No Vehicles Listed</h3>
-      <p className="text-muted-foreground mb-6">You haven't added any vehicles to your inventory yet.</p>
-      <Button onClick={onAddVehicle}>
-        <Plus className="h-4 w-4 mr-2" /> Add Your First Vehicle
-      </Button>
-    </div>
-  );
-};
+export default EmptyState;

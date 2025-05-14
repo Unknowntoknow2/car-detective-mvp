@@ -3,10 +3,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Car } from 'lucide-react';
 import { DealerVehicle } from '@/types/dealerVehicle';
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { EntityCard } from '@/components/ui/entity-card';
+import type { EntityStatus } from '@/components/ui/entity-card';
 
 interface VehicleCardProps {
   vehicle: DealerVehicle;
@@ -19,69 +17,50 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Get status badge styling
-  const getStatusBadge = (status: string) => {
+  // Map vehicle status to EntityStatus
+  const getStatusVariant = (status: string): EntityStatus => {
     switch (status) {
       case 'available':
-        return <Badge className="bg-green-500">Available</Badge>;
+        return 'success';
       case 'pending':
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">Pending</Badge>;
+        return 'warning';
       case 'sold':
-        return <Badge variant="secondary">Sold</Badge>;
+        return 'info';
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return 'default';
     }
   };
 
   return (
-    <Card key={vehicle.id} className="overflow-hidden">
-      {/* Vehicle Image */}
-      <AspectRatio ratio={16 / 9}>
-        {vehicle.photos && vehicle.photos.length > 0 ? (
-          <img 
-            src={vehicle.photos[0]} 
-            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            className="object-cover w-full h-full"
-          />
-        ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <Car className="h-12 w-12 text-muted-foreground" />
-          </div>
-        )}
-      </AspectRatio>
-      
-      <CardContent className="p-4 pb-2">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg">{vehicle.year} {vehicle.make} {vehicle.model}</h3>
-          {getStatusBadge(vehicle.status)}
-        </div>
-        
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-lg font-bold text-primary">
-            ${vehicle.price.toLocaleString()}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'Mileage N/A'}
-          </span>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="p-4 pt-0 flex justify-between">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate(`/dealer/edit/${vehicle.id}`)}
-        >
-          <Edit className="h-4 w-4 mr-2" /> Edit
-        </Button>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          onClick={() => onDeleteClick(vehicle)}
-        >
-          <Trash2 className="h-4 w-4 mr-2" /> Remove
-        </Button>
-      </CardFooter>
-    </Card>
+    <EntityCard
+      id={vehicle.id}
+      title={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+      status={{
+        label: vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1),
+        variant: getStatusVariant(vehicle.status)
+      }}
+      image={vehicle.photos && vehicle.photos.length > 0 ? vehicle.photos[0] : null}
+      imageAlt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+      imagePlaceholder={<Car className="h-12 w-12 text-muted-foreground" />}
+      price={vehicle.price}
+      secondaryInfo={vehicle.mileage ? `${vehicle.mileage.toLocaleString()} miles` : 'Mileage N/A'}
+      detailsPath={`/dealer/vehicles/${vehicle.id}`}
+      actions={[
+        {
+          label: 'Edit',
+          icon: <Edit className="h-4 w-4" />,
+          onClick: () => navigate(`/dealer/edit/${vehicle.id}`),
+          variant: 'outline'
+        },
+        {
+          label: 'Delete',
+          icon: <Trash2 className="h-4 w-4" />,
+          onClick: () => onDeleteClick(vehicle),
+          variant: 'destructive'
+        }
+      ]}
+    />
   );
 };
+
+export default VehicleCard;
