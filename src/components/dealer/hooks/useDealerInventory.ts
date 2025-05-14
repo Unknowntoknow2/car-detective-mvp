@@ -1,202 +1,155 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/utils/supabaseClient';
+import { toast } from '@/components/ui/use-toast';
 import { DealerVehicle } from '@/types/dealerVehicle';
-import { toast } from 'sonner';
 
 export type SortOption = {
   label: string;
   value: string;
-  sortFn: (a: DealerVehicle, b: DealerVehicle) => number;
 };
 
-export function useDealerInventory() {
+export const useDealerInventory = () => {
   const { user } = useAuth();
-  
   const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<string>('newest');
+  const [sortBy, setSortBy] = useState('newest');
   const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Define sorting options
+  // Define sort options
   const sortOptions: SortOption[] = [
-    {
-      label: 'Newest',
-      value: 'newest',
-      sortFn: (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    },
-    {
-      label: 'Oldest',
-      value: 'oldest',
-      sortFn: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    },
-    {
-      label: 'Price: High to Low',
-      value: 'price-desc',
-      sortFn: (a, b) => b.price - a.price
-    },
-    {
-      label: 'Price: Low to High',
-      value: 'price-asc',
-      sortFn: (a, b) => a.price - b.price
-    },
-    {
-      label: 'Mileage: Low to High',
-      value: 'mileage-asc',
-      sortFn: (a, b) => {
-        // Handle null mileage values
-        if (a.mileage === null) return 1;
-        if (b.mileage === null) return -1;
-        return a.mileage - b.mileage;
-      }
-    },
-    {
-      label: 'Mileage: High to Low',
-      value: 'mileage-desc',
-      sortFn: (a, b) => {
-        // Handle null mileage values
-        if (a.mileage === null) return 1;
-        if (b.mileage === null) return -1;
-        return b.mileage - a.mileage;
-      }
-    }
+    { label: 'Newest First', value: 'newest' },
+    { label: 'Oldest First', value: 'oldest' },
+    { label: 'Price: High to Low', value: 'price-desc' },
+    { label: 'Price: Low to High', value: 'price-asc' },
+    { label: 'Mileage: Low to High', value: 'mileage-asc' },
+    { label: 'Mileage: High to Low', value: 'mileage-desc' },
   ];
 
-  // Get the active sort function
-  const activeSortOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0];
-
   // Fetch dealer vehicles
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      if (!user?.id) return;
-      
-      try {
-        setLoading(true);
-        
-        const { data, error } = await supabase
-          .from('dealer_vehicles')
-          .select('*')
-          .eq('dealer_id', user.id)
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          throw error;
-        }
-        
-        setVehicles(data as DealerVehicle[]);
-      } catch (error) {
-        console.error('Error fetching vehicles:', error);
-        toast.error('Failed to load your inventory');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchVehicles = useCallback(async () => {
+    if (!user) return;
 
-    fetchVehicles();
-
-    // Set up real-time subscription for vehicle updates
-    const channel = supabase
-      .channel('dealer_vehicles_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'dealer_vehicles',
-        filter: `dealer_id=eq.${user?.id}`
-      }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setVehicles(prev => [payload.new as DealerVehicle, ...prev]);
-        } else if (payload.eventType === 'UPDATE') {
-          setVehicles(prev => 
-            prev.map(vehicle => 
-              vehicle.id === payload.new.id ? payload.new as DealerVehicle : vehicle
-            )
-          );
-        } else if (payload.eventType === 'DELETE') {
-          setVehicles(prev => 
-            prev.filter(vehicle => vehicle.id !== payload.old.id)
-          );
-        }
-      })
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
-
-  // Filter and sort vehicles based on search term and sort option
-  const filteredVehicles = (() => {
-    let result = [...vehicles];
-    
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(vehicle => 
-        vehicle.make.toLowerCase().includes(term) || 
-        vehicle.model.toLowerCase().includes(term) ||
-        vehicle.year.toString().includes(term)
-      );
-    }
-    
-    // Apply sorting
-    result.sort(activeSortOption.sortFn);
-    
-    return result;
-  })();
-
-  // Delete vehicle function
-  const deleteVehicle = async (refreshCallback?: () => void) => {
-    if (!vehicleToDelete || !user?.id) return;
-    
+    setLoading(true);
     try {
-      setIsDeleting(true);
-      
+      // Build query with sorting
+      let query = supabase
+        .from('dealer_vehicles')
+        .select('*')
+        .eq('dealer_id', user.id);
+
+      // Apply search filter if provided
+      if (searchTerm) {
+        query = query.or(`make.ilike.%${searchTerm}%,model.ilike.%${searchTerm}%,year::text.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'oldest':
+          query = query.order('created_at', { ascending: true });
+          break;
+        case 'price-desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'price-asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'mileage-asc':
+          query = query.order('mileage', { ascending: true, nullsLast: true });
+          break;
+        case 'mileage-desc':
+          query = query.order('mileage', { ascending: false, nullsFirst: true });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setVehicles(data as DealerVehicle[]);
+    } catch (err) {
+      console.error('Error fetching vehicles:', err);
+      setError('Failed to fetch your inventory');
+      toast({
+        title: 'Error',
+        description: 'Failed to load your inventory. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, searchTerm, sortBy]);
+
+  // Delete vehicle
+  const deleteVehicle = async (onSuccess?: () => void) => {
+    if (!vehicleToDelete) return;
+
+    setIsDeleting(true);
+    try {
       const { error } = await supabase
         .from('dealer_vehicles')
         .delete()
         .eq('id', vehicleToDelete.id)
-        .eq('dealer_id', user.id); // Safety check to ensure dealer owns this vehicle
-      
-      if (error) {
-        throw error;
+        .eq('dealer_id', user?.id); // Safety check to ensure dealer only deletes their own vehicles
+
+      if (error) throw error;
+
+      // Remove from local state
+      setVehicles((prev) => prev.filter((v) => v.id !== vehicleToDelete.id));
+      toast({
+        title: 'Vehicle Removed',
+        description: 'Vehicle has been successfully removed from your inventory.',
+      });
+
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
       }
-      
-      toast.success('Vehicle deleted successfully');
-      
-      // Remove from local state (though realtime will handle this too)
-      setVehicles(prev => prev.filter(v => v.id !== vehicleToDelete.id));
-      
-      // Call the refresh callback if provided
-      if (refreshCallback) {
-        refreshCallback();
-      }
-    } catch (error) {
-      console.error('Error deleting vehicle:', error);
-      toast.error('Failed to delete vehicle');
+    } catch (err) {
+      console.error('Error deleting vehicle:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete vehicle. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsDeleting(false);
       setVehicleToDelete(null);
     }
   };
 
+  // Effect to fetch vehicles when component mounts or filters change
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
+
+  // Calculate derived states
+  const isEmpty = !loading && vehicles.length === 0 && !searchTerm;
+  const noSearchResults = !loading && vehicles.length === 0 && !!searchTerm;
+
   return {
-    vehicles: filteredVehicles,
+    vehicles,
     loading,
+    error,
     searchTerm,
     setSearchTerm,
     sortBy,
     setSortBy,
     sortOptions,
-    activeSortOption,
     vehicleToDelete,
     setVehicleToDelete,
     isDeleting,
     deleteVehicle,
-    isEmpty: !loading && vehicles.length === 0,
-    noSearchResults: !loading && vehicles.length > 0 && filteredVehicles.length === 0
+    isEmpty,
+    noSearchResults,
+    refetch: fetchVehicles,
   };
-}
+};

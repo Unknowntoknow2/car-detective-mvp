@@ -1,92 +1,91 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuid } from 'uuid';
-import { toast } from 'sonner';
+import { supabase } from '@/utils/supabaseClient';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/components/ui/use-toast';
 
-export const useVehicleUpload = (dealerId?: string) => {
-  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [photoUploading, setPhotoUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Upload photos to Supabase Storage
-  const uploadPhotosToStorage = async (): Promise<string[]> => {
-    if (!dealerId || uploadedPhotos.length === 0) return [];
-
+export const useVehicleUpload = () => {
+  const { user } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const uploadVehiclePhotos = async (
+    files: File[], 
+    vehicleId: string
+  ): Promise<string[]> => {
+    if (!user || !files.length) return [];
+    
+    setIsUploading(true);
+    const uploadedUrls: string[] = [];
+    
     try {
-      setPhotoUploading(true);
-      const uploadPromises = uploadedPhotos.map(async (photo) => {
-        const fileExt = photo.name.split('.').pop();
-        const fileName = `${uuid()}.${fileExt}`;
-        const filePath = `${dealerId}/${fileName}`;
-
+      for (const file of files) {
+        // Create a unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${vehicleId}/${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+        
+        // Upload the file
         const { data, error } = await supabase.storage
-          .from('vehicle_photos')
-          .upload(filePath, photo);
-
+          .from('inventory-images')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
         if (error) {
-          console.error('Error uploading photo:', error);
           throw error;
         }
-
-        // Get public URL for the uploaded file
+        
+        // Get the public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('vehicle_photos')
+          .from('inventory-images')
           .getPublicUrl(filePath);
-
-        return publicUrl;
-      });
-
-      return await Promise.all(uploadPromises);
+        
+        uploadedUrls.push(publicUrl);
+      }
+      
+      return uploadedUrls;
     } catch (error) {
       console.error('Error uploading photos:', error);
-      toast.error('Failed to upload photos');
-      return [];
+      toast({
+        title: 'Upload Error',
+        description: 'Failed to upload one or more photos.',
+        variant: 'destructive',
+      });
+      return uploadedUrls; // Return any URLs that were successfully uploaded
     } finally {
-      setPhotoUploading(false);
+      setIsUploading(false);
     }
   };
-
-  // Handle photo uploads
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // Limit to 5 photos total
-    const remainingSlots = 5 - uploadedPhotos.length;
-    if (remainingSlots <= 0) {
-      toast.error('Maximum 5 photos allowed');
-      return;
+  
+  const deleteVehiclePhoto = async (
+    photoUrl: string
+  ): Promise<boolean> => {
+    try {
+      // Extract the path from the URL
+      const path = photoUrl.split('/').slice(-2).join('/');
+      
+      const { error } = await supabase.storage
+        .from('inventory-images')
+        .remove([path]);
+      
+      if (error) throw error;
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      toast({
+        title: 'Delete Error',
+        description: 'Failed to delete photo.',
+        variant: 'destructive',
+      });
+      return false;
     }
-
-    const newPhotos = Array.from(files).slice(0, remainingSlots);
-    setUploadedPhotos(prev => [...prev, ...newPhotos]);
-
-    // Create temporary URLs for preview
-    const newUrls = newPhotos.map(file => URL.createObjectURL(file));
-    setPhotoUrls(prev => [...prev, ...newUrls]);
   };
-
-  // Remove photo from the preview
-  const removePhoto = (index: number) => {
-    setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
-    
-    // Revoke the object URL to avoid memory leaks
-    URL.revokeObjectURL(photoUrls[index]);
-    setPhotoUrls(prev => prev.filter((_, i) => i !== index));
-  };
-
+  
   return {
-    photoUrls,
-    uploadedPhotos,
-    photoUploading,
-    submitting,
-    setUploadedPhotos,
-    setPhotoUrls,
-    setSubmitting,
-    uploadPhotosToStorage,
-    handlePhotoUpload,
-    removePhoto
+    isUploading,
+    uploadVehiclePhotos,
+    deleteVehiclePhoto
   };
 };
