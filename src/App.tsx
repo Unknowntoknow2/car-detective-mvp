@@ -19,6 +19,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import NotFound from '@/pages/NotFound';
 import Premium from '@/pages/Premium';
+import AuthPage from '@/pages/AuthPage';
 
 // Components for route protection
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -47,6 +48,9 @@ function App() {
             } />
             <Route path="decoder" element={<VpicDecoderPage />} />
             <Route path="premium" element={<Premium />} />
+            
+            {/* Auth page - combined login/register */}
+            <Route path="auth" element={<AuthPage />} />
             
             {/* Auth routes - redirect to dashboard if logged in */}
             <Route path="login" element={
