@@ -1,24 +1,30 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building, User, ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 
+// Define the type for the location state
+interface LocationState {
+  from?: string;
+}
+
 const AuthLandingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   
   // If user is already logged in, redirect to appropriate dashboard
   React.useEffect(() => {
     if (user) {
-      // Check if there's a redirect URL in the state
-      const from = (location.state as any)?.from || '/dashboard';
+      // Extract and type the state properly
+      const state = location.state as LocationState;
+      const from = state?.from || '/dashboard';
       navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, location]);
 
   return (
     <div className="container mx-auto py-12 px-4">
