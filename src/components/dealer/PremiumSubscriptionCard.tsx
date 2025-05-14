@@ -8,19 +8,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 
 interface PremiumSubscriptionCardProps {
-  tier: 'monthly' | 'yearly';
+  name: string;
   price: string;
   features: string[];
-  ctaText?: string;
   recommended?: boolean;
+  priceId: string;
 }
 
 export function PremiumSubscriptionCard({
-  tier,
+  name,
   price,
   features,
-  ctaText = 'Subscribe',
-  recommended = false
+  recommended = false,
+  priceId
 }: PremiumSubscriptionCardProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const { isPremium } = usePremiumDealer();
@@ -29,7 +29,7 @@ export function PremiumSubscriptionCard({
     try {
       setIsLoading(true);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { plan: tier }
+        body: { plan: priceId }
       });
 
       if (error) {
@@ -56,10 +56,10 @@ export function PremiumSubscriptionCard({
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl font-bold">
-              {tier === 'monthly' ? 'Monthly' : 'Annual'}
+              {name}
             </CardTitle>
             <CardDescription className="mt-1">
-              {tier === 'yearly' ? 'Save 15% with yearly billing' : 'Simple month-to-month billing'}
+              {recommended ? 'Recommended plan with all features' : 'Standard dealer subscription'}
             </CardDescription>
           </div>
           {recommended && (
@@ -72,7 +72,6 @@ export function PremiumSubscriptionCard({
       <CardContent className="flex-grow">
         <div className="mb-4">
           <span className="text-3xl font-bold">{price}</span>
-          <span className="text-muted-foreground">{tier === 'monthly' ? '/month' : '/year'}</span>
         </div>
         <ul className="space-y-2 mb-6">
           {features.map((feature, i) => (
@@ -94,7 +93,7 @@ export function PremiumSubscriptionCard({
             ? 'Loading...' 
             : isPremium 
               ? 'Already Subscribed' 
-              : ctaText}
+              : 'Subscribe'}
         </Button>
       </CardFooter>
     </Card>
