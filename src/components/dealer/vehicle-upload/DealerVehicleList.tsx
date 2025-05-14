@@ -136,7 +136,7 @@ export const DealerVehicleList: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const { setIsOpen: openUploadModal } = useVehicleUploadModal();
+  const { isOpen, setIsOpen } = useVehicleUploadModal();
   
   // Simulate loading for skeleton effect
   React.useEffect(() => {
@@ -147,6 +147,11 @@ export const DealerVehicleList: React.FC = () => {
     
     return () => clearTimeout(timer);
   }, []);
+  
+  // Function to handle opening the upload modal
+  const handleOpenUploadModal = () => {
+    setIsOpen(true);
+  };
   
   // Filter vehicles based on search
   const filteredVehicles = mockVehicles.filter(vehicle => {
@@ -195,7 +200,7 @@ export const DealerVehicleList: React.FC = () => {
         title="No vehicles in your inventory"
         description="Add your first vehicle to get started with your inventory management."
         actionLabel="Add First Vehicle"
-        onAction={openUploadModal}
+        onAction={handleOpenUploadModal}
         icon={<Plus className="h-10 w-10 text-muted-foreground" />}
       />
     );
@@ -217,7 +222,7 @@ export const DealerVehicleList: React.FC = () => {
                 className="pl-9 w-[250px]"
               />
             </div>
-            <Button onClick={openUploadModal} className="gap-2 whitespace-nowrap">
+            <Button onClick={handleOpenUploadModal} className="gap-2 whitespace-nowrap">
               <Plus className="h-4 w-4" /> Add Vehicle
             </Button>
           </div>
@@ -316,7 +321,7 @@ export const DealerVehicleList: React.FC = () => {
               </Button>
             </div>
             
-            <Button onClick={openUploadModal} className="gap-2 whitespace-nowrap w-full sm:w-auto">
+            <Button onClick={handleOpenUploadModal} className="gap-2 whitespace-nowrap w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Add Vehicle
             </Button>
           </div>
