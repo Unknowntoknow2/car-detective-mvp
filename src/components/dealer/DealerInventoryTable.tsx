@@ -44,7 +44,15 @@ export const DealerInventoryTable = () => {
           throw error;
         }
 
-        setVehicles(data || []);
+        // Transform the data to ensure it matches the DealerVehicle type
+        // Explicitly cast status to our enum type since we know the values match
+        const typedVehicles = (data || []).map(vehicle => ({
+          ...vehicle,
+          status: vehicle.status as DealerVehicle['status'],
+          photos: Array.isArray(vehicle.photos) ? vehicle.photos : []
+        }));
+
+        setVehicles(typedVehicles);
       } catch (err: any) {
         console.error('Error fetching dealer vehicles:', err);
         setError(err.message || 'Failed to load vehicles');
@@ -98,7 +106,6 @@ export const DealerInventoryTable = () => {
                 <TableHead>Vehicle</TableHead>
                 <TableHead>Mileage</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Condition</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -110,7 +117,6 @@ export const DealerInventoryTable = () => {
                   <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
                 </TableRow>
@@ -154,22 +160,6 @@ export const DealerInventoryTable = () => {
     );
   }
 
-  // Helper to get condition badge color
-  const getConditionColor = (condition: string) => {
-    switch (condition.toLowerCase()) {
-      case 'excellent':
-        return 'bg-green-100 text-green-800';
-      case 'good':
-        return 'bg-blue-100 text-blue-800';
-      case 'fair':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'poor':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   // Render vehicle table
   return (
     <div className="rounded-md border">
@@ -180,7 +170,6 @@ export const DealerInventoryTable = () => {
             <TableHead>Vehicle</TableHead>
             <TableHead className="hidden md:table-cell">Mileage</TableHead>
             <TableHead>Price</TableHead>
-            <TableHead className="hidden md:table-cell">Condition</TableHead>
             <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -214,11 +203,6 @@ export const DealerInventoryTable = () => {
               </TableCell>
               <TableCell>
                 {formatCurrency(vehicle.price)}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <Badge variant="outline" className={getConditionColor(vehicle.condition)}>
-                  {vehicle.condition}
-                </Badge>
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 <Badge variant={vehicle.status === 'available' ? 'default' : 'secondary'}>
