@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, ArrowRight, Check, Info } from 'lucide-react';
+import { LoadingState } from '@/components/premium/common/LoadingState';
 
 export default function PremiumPage() {
   const { lookupVehicle, isLoading, vehicle, reset } = useVehicleLookup();
@@ -24,11 +25,22 @@ export default function PremiumPage() {
   const existingValuationId = searchParams.get('valuationId');
   const [existingValuation, setExistingValuation] = useState<any | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(false);
+  const [pageLoaded, setPageLoaded] = useState(false);
   
-  // Debugging logs to track vehicle data
+  // Set page as loaded after component mounts
   useEffect(() => {
     console.log('PREMIUM PAGE: Component mounted');
     
+    // Mark page as loaded to prevent infinite loading state
+    const timer = setTimeout(() => {
+      setPageLoaded(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Debugging logs to track vehicle data
+  useEffect(() => {
     if (vehicle) {
       console.log("PREMIUM PAGE: Vehicle data updated:", vehicle);
     }
@@ -72,6 +84,7 @@ export default function PremiumPage() {
           }
         } catch (err) {
           console.error('Error parsing stored valuation:', err);
+          setLoadingExisting(false);
         }
       } else {
         // Mock data for demo
@@ -92,8 +105,6 @@ export default function PremiumPage() {
         if (!vehicle) {
           // Call reset without arguments, but update state elsewhere
           reset();
-          // Update vehicle data in a different way if needed
-          // For example, directly update the state using the mock data
         }
       }
       
@@ -196,6 +207,19 @@ export default function PremiumPage() {
       navigate(`/results?valuationId=${existingValuationId}`);
     }
   };
+
+  // Force bypass loading state if it's taking too long
+  if (!pageLoaded) {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <LoadingState text="Loading premium features..." size="lg" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
