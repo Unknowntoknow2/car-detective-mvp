@@ -19,9 +19,8 @@ import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import DealerGuard from '@/guards/DealerGuard';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import UserDashboardPage from '@/pages/UserDashboardPage';
-
-// Import the subscription page
-import DealerSubscriptionPage from './components/dealer/SubscriptionPage';
+import DealerSubscriptionPage from '@/components/dealer/SubscriptionPage';
+import DealerInventoryPage from '@/pages/dealer/DealerInventoryPage';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -60,6 +59,14 @@ const router = createBrowserRouter(
         element={
           <DealerGuard>
             <DealerSubscriptionPage />
+          </DealerGuard>
+        }
+      />
+      <Route 
+        path="/dealer/inventory" 
+        element={
+          <DealerGuard>
+            <DealerInventoryPage />
           </DealerGuard>
         }
       />

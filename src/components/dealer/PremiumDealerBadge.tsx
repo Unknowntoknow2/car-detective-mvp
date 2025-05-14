@@ -1,35 +1,25 @@
 
 import React from 'react';
+import { Sparkles } from 'lucide-react';
+import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { cn } from '@/lib/utils';
 
 interface PremiumBadgeProps {
-  variant?: 'silver' | 'gold' | 'platinum';
-  size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-export function PremiumBadge({ variant = 'gold', size = 'md' }: PremiumBadgeProps) {
-  const badgeColors = {
-    silver: 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-900',
-    gold: 'bg-gradient-to-r from-amber-300 to-yellow-500 text-amber-900',
-    platinum: 'bg-gradient-to-r from-indigo-400 to-purple-500 text-white'
-  };
+export const PremiumBadge = ({ className }: PremiumBadgeProps) => {
+  const { isPremium, isLoading } = usePremiumDealer();
   
-  const badgeSizes = {
-    sm: 'text-xs py-0.5 px-1.5',
-    md: 'text-sm py-0.5 px-2',
-    lg: 'text-base py-1 px-3'
-  };
+  if (isLoading || !isPremium) return null;
   
   return (
-    <span className={cn(
-      'rounded-md font-semibold inline-flex items-center',
-      badgeColors[variant],
-      badgeSizes[size]
-    )}>
-      <span className="mr-1">★</span> Premium Dealer
-    </span>
+    <div className={cn("flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white", className)}>
+      <Sparkles className="h-3 w-3 mr-1" />
+      Premium
+    </div>
   );
-}
+};
 
-// Default export for main component use
-export default PremiumBadge;
+// Export for other components to use
+export { PremiumBadge };
