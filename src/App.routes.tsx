@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
 import RootLayout from '@/components/layout/RootLayout';
@@ -59,14 +60,14 @@ const router = createBrowserRouter(
           </AdminGuard>
         }
       />
-      {
-        path: "/dealer-subscription",
-        element: (
+      <Route 
+        path="/dealer-subscription" 
+        element={
           <DealerGuard>
             <DealerSubscriptionPage />
           </DealerGuard>
-        ),
-      },
+        }
+      />
     </Route>
   )
 );
