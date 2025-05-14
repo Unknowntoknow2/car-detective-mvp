@@ -1,31 +1,35 @@
 
 import React from 'react';
-import { BadgeCheck, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PremiumBadge } from '@/components/ui/premium-badge';
 
-interface PremiumDealerBadgeProps {
+interface PremiumBadgeProps {
+  variant?: 'silver' | 'gold' | 'platinum';
   size?: 'sm' | 'md' | 'lg';
-  className?: string;
-  showText?: boolean;
 }
 
-export function PremiumDealerBadge({ 
-  size = 'md', 
-  className,
-  showText = true 
-}: PremiumDealerBadgeProps) {
+export function PremiumBadge({ variant = 'gold', size = 'md' }: PremiumBadgeProps) {
+  const badgeColors = {
+    silver: 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-900',
+    gold: 'bg-gradient-to-r from-amber-300 to-yellow-500 text-amber-900',
+    platinum: 'bg-gradient-to-r from-indigo-400 to-purple-500 text-white'
+  };
+  
+  const badgeSizes = {
+    sm: 'text-xs py-0.5 px-1.5',
+    md: 'text-sm py-0.5 px-2',
+    lg: 'text-base py-1 px-3'
+  };
+  
   return (
-    <PremiumBadge 
-      variant="gold"
-      size={size}
-      className={cn("gap-1", className)}
-    >
-      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-      {showText && "Premium Dealer"}
-    </PremiumBadge>
+    <span className={cn(
+      'rounded-md font-semibold inline-flex items-center',
+      badgeColors[variant],
+      badgeSizes[size]
+    )}>
+      <span className="mr-1">★</span> Premium Dealer
+    </span>
   );
 }
 
-// Re-export the PremiumBadge component for use in other dealer components
-export { PremiumBadge };
+// Default export for main component use
+export default PremiumBadge;

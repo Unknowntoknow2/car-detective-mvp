@@ -20,7 +20,16 @@ serve(async (req) => {
   }
 
   try {
-    // Get the authenticated user from request
+    // Get the authenticated user from the request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+    
+    // Get user info from Supabase JWT
     const { data: { user }, error: userError } = await req.supabaseClient.auth.getUser();
     
     if (userError || !user) {
@@ -29,38 +38,31 @@ serve(async (req) => {
         { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
-    
-    // Find the customer in Stripe by email
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1
-    });
+
+    // Find the Stripe customer by email
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No subscription found for this user' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        JSON.stringify({ error: 'No subscription found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
     
-    const customerId = customers.data[0].id;
-    
-    // Get the base URL for redirection after payment
     const baseUrl = req.headers.get('origin') || 'http://localhost:3000';
     
     // Create a billing portal session
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customerId,
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customers.data[0].id,
       return_url: `${baseUrl}/dealer-dashboard`,
     });
     
-    // Return the session URL
     return new Response(
-      JSON.stringify({ url: session.url }),
+      JSON.stringify({ url: portalSession.url }),
       { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   } catch (error) {
-    console.error('Error creating billing portal session:', error.message);
+    console.error('Error in billing portal creation:', error);
     
     return new Response(
       JSON.stringify({ error: error.message }),
