@@ -14,7 +14,7 @@ export default function ValuationDetailPage() {
 
   // ✅ Safe error message
   const errorMessage = (() => {
-    if (!error) return "Could not load the valuation details.";
+    if (error === null || error === undefined) return "Could not load the valuation details.";
     if (typeof error === 'object' && 'message' in error) {
       return String((error as { message: string }).message);
     }
@@ -33,7 +33,7 @@ export default function ValuationDetailPage() {
     );
   }
 
-  if (error || !valuation) {
+  if (error !== null || !valuation) {
     return (
       <div className="container mx-auto py-8">
         <Card>

@@ -36,7 +36,7 @@ export default function ValuationResultPage() {
   // Error message handling with proper null check
   const errorMessage = error !== null && error !== undefined
     ? (typeof error === 'object' && error !== null && 'message' in error 
-        ? String(error.message) 
+        ? String((error as { message: string }).message) 
         : String(error)) 
     : "Could not find the requested valuation.";
     
