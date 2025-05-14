@@ -9,7 +9,9 @@ import { Toaster } from '@/components/ui/toaster';
 // Pages
 import Index from '@/pages/Index';
 import Dashboard from '@/pages/Dashboard';
-import LoginPage from '@/pages/LoginPage';
+import LoginUserPage from '@/pages/LoginUserPage';
+import LoginDealerPage from '@/pages/LoginDealerPage';
+import DealerSignup from '@/pages/DealerSignup';
 import RegisterPage from '@/pages/RegisterPage';
 import VpicDecoderPage from '@/pages/VpicDecoderPage';
 import ValuationPage from '@/pages/ValuationPage';
@@ -19,7 +21,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import NotFound from '@/pages/NotFound';
 import Premium from '@/pages/Premium';
-import AuthPage from '@/pages/AuthPage';
+import AuthLandingPage from '@/pages/AuthLandingPage';
 
 // Components for route protection
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -49,13 +51,13 @@ function App() {
             <Route path="decoder" element={<VpicDecoderPage />} />
             <Route path="premium" element={<Premium />} />
             
-            {/* Auth page - combined login/register */}
-            <Route path="auth" element={<AuthPage />} />
+            {/* Auth routes - main landing page */}
+            <Route path="auth" element={<AuthLandingPage />} />
             
-            {/* Auth routes - redirect to dashboard if logged in */}
-            <Route path="login" element={
+            {/* User-specific auth routes */}
+            <Route path="login-user" element={
               <AuthRoute>
-                <LoginPage />
+                <LoginUserPage />
               </AuthRoute>
             } />
             <Route path="register" element={
@@ -63,6 +65,20 @@ function App() {
                 <RegisterPage />
               </AuthRoute>
             } />
+            
+            {/* Dealer-specific auth routes */}
+            <Route path="login-dealer" element={
+              <AuthRoute>
+                <LoginDealerPage />
+              </AuthRoute>
+            } />
+            <Route path="dealer-signup" element={
+              <AuthRoute>
+                <DealerSignup />
+              </AuthRoute>
+            } />
+            
+            {/* Shared auth routes */}
             <Route path="forgot-password" element={
               <AuthRoute>
                 <ForgotPasswordPage />
