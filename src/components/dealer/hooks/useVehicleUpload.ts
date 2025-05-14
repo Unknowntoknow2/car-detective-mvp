@@ -14,8 +14,14 @@ export function useVehicleUpload(userId?: string) {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-
-    const newPhotos = Array.from(files);
+    
+    // Filter to limit total photos to 5
+    const newPhotos = Array.from(files).slice(0, 5 - photoUrls.length);
+    
+    if (newPhotos.length !== files.length) {
+      toast.info('Only the first ' + newPhotos.length + ' photos were added to stay within the 5 photo limit.');
+    }
+    
     setUploadedPhotos(prev => [...prev, ...newPhotos]);
 
     // Create temporary URLs for preview
