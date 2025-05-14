@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -92,10 +93,10 @@ const router = createBrowserRouter(
         }
       />
       
-      {
-        path: '/dealer-subscription-settings',
-        element: <SubscriptionSettingsPage />
-      }
+      <Route 
+        path="/dealer-subscription-settings" 
+        element={<SubscriptionSettingsPage />} 
+      />
     </Route>
   )
 );
