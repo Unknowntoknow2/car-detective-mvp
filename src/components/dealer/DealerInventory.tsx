@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DealerVehicle } from '@/types/dealerVehicle';
-import AddVehicleModal from './AddVehicleModal';
+import AddVehicleModal from './modals/AddVehicleModal';
 import { toast } from 'sonner';
 import { 
   EmptyState, 
@@ -233,3 +233,6 @@ export const DealerInventory = () => {
     </div>
   );
 };
+
+// Add default export to fix the error
+export default DealerInventory;
