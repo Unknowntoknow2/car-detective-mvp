@@ -42,6 +42,26 @@ export function useDealerInventory() {
       label: 'Price: Low to High',
       value: 'price-asc',
       sortFn: (a, b) => a.price - b.price
+    },
+    {
+      label: 'Mileage: Low to High',
+      value: 'mileage-asc',
+      sortFn: (a, b) => {
+        // Handle null mileage values
+        if (a.mileage === null) return 1;
+        if (b.mileage === null) return -1;
+        return a.mileage - b.mileage;
+      }
+    },
+    {
+      label: 'Mileage: High to Low',
+      value: 'mileage-desc',
+      sortFn: (a, b) => {
+        // Handle null mileage values
+        if (a.mileage === null) return 1;
+        if (b.mileage === null) return -1;
+        return b.mileage - a.mileage;
+      }
     }
   ];
 
