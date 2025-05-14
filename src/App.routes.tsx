@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -19,7 +20,7 @@ import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import DealerGuard from '@/guards/DealerGuard';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import UserDashboardPage from '@/pages/UserDashboardPage';
-import DealerSubscriptionPage from './pages/DealerSubscriptionPage';
+import DealerSubscriptionPage from '@/pages/dealer/DealerSubscriptionPage';
 import DealerInventoryPage from '@/pages/dealer/DealerInventoryPage';
 import DealerLayout from '@/layouts/DealerLayout';
 
@@ -55,6 +56,7 @@ const router = createBrowserRouter(
         <Route index element={<DealerDashboard />} />
         <Route path="dashboard" element={<DealerDashboard />} />
         <Route path="inventory" element={<DealerInventoryPage />} />
+        <Route path="subscription" element={<DealerSubscriptionPage />} />
       </Route>
       
       {/* Keep these routes separate for now since they're already set up */}
