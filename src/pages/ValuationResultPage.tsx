@@ -13,13 +13,6 @@ export default function ValuationDetailPage() {
   const navigate = useNavigate();
   const { data: valuation, isLoading, error } = useValuationResult(valuationId || '');
 
-  // ✅ Safe error message handling
-  const errorMessage = error === null || error === undefined
-    ? "Could not load the valuation details."
-    : typeof error === 'object' && error !== null && 'message' in error
-      ? String((error as { message: string }).message)
-      : typeof error === 'string' ? error : "An unknown error occurred";
-
   if (isLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -32,14 +25,14 @@ export default function ValuationDetailPage() {
     );
   }
 
-  if (error !== null || !valuation) {
+  if (!valuation) {
     return (
       <div className="container mx-auto py-8">
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Valuation</h2>
             <p className="text-gray-600 mb-4">
-              {errorMessage}
+              Could not load the valuation details.
             </p>
             <Button onClick={() => navigate('/my-valuations')}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to My Valuations

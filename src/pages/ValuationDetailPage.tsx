@@ -33,13 +33,6 @@ export default function ValuationResultPage() {
 
   // Use data or tempData if available
   const valuationData = data || tempData;
-
-  // Error message handling with completely safe null check
-  const errorMessage = error === null || error === undefined
-    ? "Could not find the requested valuation."
-    : typeof error === 'object' && error !== null && 'message' in error
-      ? String((error as { message: string }).message)
-      : typeof error === 'string' ? error : "An unknown error occurred";
     
   // Default vehicle info if data is not available
   const vehicleInfo = valuationData ? {
@@ -70,7 +63,7 @@ export default function ValuationResultPage() {
     );
   }
   
-  if ((!data && !tempData) || error !== null) {
+  if ((!data && !tempData)) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -81,7 +74,7 @@ export default function ValuationResultPage() {
             </div>
             <h1 className="text-2xl font-bold mb-4">Valuation Not Found</h1>
             <p className="text-gray-600 mb-6">
-              {errorMessage}
+              Could not find the requested valuation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button onClick={() => navigate('/')}>
