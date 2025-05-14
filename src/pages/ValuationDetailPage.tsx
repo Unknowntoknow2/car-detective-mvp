@@ -33,12 +33,16 @@ export default function ValuationResultPage() {
   // Use data or tempData if available
   const valuationData = data || tempData;
 
-  // Error message handling with proper null check
-  const errorMessage = error !== null && error !== undefined
-    ? (typeof error === 'object' && error !== null && 'message' in error 
-        ? String((error as { message: string }).message) 
-        : String(error)) 
-    : "Could not find the requested valuation.";
+  // Error message handling with completely safe null check
+  const errorMessage = (() => {
+    if (error === null || error === undefined) {
+      return "Could not find the requested valuation.";
+    }
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      return String((error as { message: string }).message);
+    }
+    return String(error);
+  })();
     
   // Default vehicle info if data is not available
   const vehicleInfo = valuationData ? {

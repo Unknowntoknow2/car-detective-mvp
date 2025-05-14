@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,9 @@ export default function ValuationDetailPage() {
 
   // ✅ Safe error message
   const errorMessage = (() => {
-    if (error === null || error === undefined) return "Could not load the valuation details.";
+    if (error === null || error === undefined) {
+      return "Could not load the valuation details.";
+    }
     if (typeof error === 'object' && 'message' in error) {
       return String((error as { message: string }).message);
     }
