@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, CheckCircle } from 'lucide-react';
+import { Check, CheckCircle, Tag } from 'lucide-react';
+import { motion } from 'framer-motion';
 import DealerLayout from '@/layouts/DealerLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { Badge } from '@/components/ui/badge';
 
 type SubscriptionPlan = {
   id: string;
@@ -13,7 +15,7 @@ type SubscriptionPlan = {
   description: string;
   price: number;
   features: string[];
-  highlighted?: boolean;
+  recommended?: boolean;
 };
 
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -34,7 +36,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     name: 'Pro',
     description: 'Advanced tools for growing dealerships',
     price: 99,
-    highlighted: true,
+    recommended: true,
     features: [
       'Unlimited vehicle listings',
       'Enhanced analytics dashboard',
@@ -89,65 +91,94 @@ const DealerSubscriptionPage: React.FC = () => {
 
   return (
     <DealerLayout>
-      <div className="container max-w-6xl py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Subscription Plans</h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            Choose a plan that works best for your dealership
+      <div className="container max-w-6xl py-12">
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl font-bold tracking-tight mb-3">Choose Your Dealer Plan</h1>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            Select the plan that best fits your dealership's needs and scale as you grow
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {SUBSCRIPTION_PLANS.map((plan) => (
-            <Card 
-              key={plan.id} 
-              className={`transition-all ${
-                selectedPlan === plan.id 
-                  ? 'border-primary ring-2 ring-primary/20' 
-                  : plan.highlighted 
-                    ? 'border-primary/40 shadow-md' 
-                    : ''
-              }`}
+            <motion.div
+              key={plan.id}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                  {plan.name}
-                  {selectedPlan === plan.id && (
-                    <CheckCircle className="h-5 w-5 text-primary" />
+              <Card 
+                className={`h-full transition-all duration-200 ${
+                  selectedPlan === plan.id 
+                    ? 'border-primary ring-2 ring-primary/20' 
+                    : plan.recommended 
+                      ? 'border-primary/40 shadow-md' 
+                      : 'hover:shadow-lg'
+                }`}
+              >
+                <CardHeader className="relative pb-6">
+                  {plan.recommended && (
+                    <Badge 
+                      className="absolute -top-2 right-6 bg-primary text-primary-foreground px-3"
+                      aria-label="Recommended plan"
+                    >
+                      <Tag className="h-3.5 w-3.5 mr-1" />
+                      Recommended
+                    </Badge>
                   )}
-                </CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-                <div className="mt-2">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-muted-foreground ml-1">/month</span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-primary shrink-0 mr-2" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full" 
-                  variant={plan.highlighted ? "default" : "outline"}
-                  onClick={() => handleSelectPlan(plan.id)}
-                >
-                  {selectedPlan === plan.id ? 'Selected' : 'Select Plan'}
-                </Button>
-              </CardFooter>
-            </Card>
+                  <CardTitle className="text-2xl font-bold flex items-center justify-between">
+                    {plan.name}
+                    {selectedPlan === plan.id && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      >
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                      </motion.div>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-base mt-1">{plan.description}</CardDescription>
+                  <div className="mt-3">
+                    <span className="text-3xl font-bold">${plan.price}</span>
+                    <span className="text-muted-foreground ml-1">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, index) => (
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <Check className="h-5 w-5 text-primary shrink-0 mr-2.5 mt-0.5" />
+                        <span className="text-sm">{feature}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-4">
+                  <Button 
+                    className="w-full transition-all" 
+                    variant={plan.recommended ? "default" : "outline"}
+                    size="lg"
+                    onClick={() => handleSelectPlan(plan.id)}
+                    aria-label={`Select ${plan.name} plan`}
+                  >
+                    {selectedPlan === plan.id ? 'Selected' : 'Select Plan'}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
           ))}
         </div>
         
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>* All plans include basic dealer tools and customer support.</p>
-          <p>** Billing functionality will be implemented in a future update.</p>
+        <div className="mt-10 text-center text-sm text-muted-foreground">
+          <p>All plans include our standard 24/7 customer support.</p>
+          <p className="mt-1">You can upgrade or downgrade your plan anytime from your dashboard.</p>
         </div>
       </div>
     </DealerLayout>
