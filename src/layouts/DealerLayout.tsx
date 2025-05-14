@@ -5,7 +5,11 @@ import DealerSidebar from '@/components/dealer/DealerSidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
-const DealerLayout: React.FC = () => {
+interface DealerLayoutProps {
+  children?: React.ReactNode;
+}
+
+const DealerLayout: React.FC<DealerLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -60,7 +64,7 @@ const DealerLayout: React.FC = () => {
 
         {/* Main Content Area */}
         <div className={`flex-1 overflow-auto transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
-          <Outlet />
+          {children || <Outlet />}
         </div>
       </div>
     </div>
