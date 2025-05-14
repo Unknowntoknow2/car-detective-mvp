@@ -3,15 +3,13 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Plus, Car } from 'lucide-react';
+import { Car } from 'lucide-react';
 
-interface AddVehicleDialogWrapperProps {
+export interface AddVehicleDialogWrapperProps {
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -24,12 +22,6 @@ export const AddVehicleDialogWrapper: React.FC<AddVehicleDialogWrapperProps> = (
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus size={16} />
-          Add Vehicle
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

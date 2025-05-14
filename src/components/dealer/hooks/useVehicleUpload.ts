@@ -1,53 +1,25 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { v4 as uuid } from 'uuid';
+import { toast } from 'sonner';
 
-export function useVehicleUpload(userId?: string) {
+export const useVehicleUpload = (dealerId?: string) => {
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Handle photo uploads
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    // Filter to limit total photos to 5
-    const newPhotos = Array.from(files).slice(0, 5 - photoUrls.length);
-    
-    if (newPhotos.length !== files.length) {
-      toast.info('Only the first ' + newPhotos.length + ' photos were added to stay within the 5 photo limit.');
-    }
-    
-    setUploadedPhotos(prev => [...prev, ...newPhotos]);
-
-    // Create temporary URLs for preview
-    const newUrls = newPhotos.map(file => URL.createObjectURL(file));
-    setPhotoUrls(prev => [...prev, ...newUrls]);
-  };
-
-  // Remove photo from the preview
-  const removePhoto = (index: number) => {
-    setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
-    
-    // Revoke the object URL to avoid memory leaks
-    URL.revokeObjectURL(photoUrls[index]);
-    setPhotoUrls(prev => prev.filter((_, i) => i !== index));
-  };
-
   // Upload photos to Supabase Storage
   const uploadPhotosToStorage = async (): Promise<string[]> => {
-    if (!userId || uploadedPhotos.length === 0) return [];
+    if (!dealerId || uploadedPhotos.length === 0) return [];
 
     try {
       setPhotoUploading(true);
       const uploadPromises = uploadedPhotos.map(async (photo) => {
         const fileExt = photo.name.split('.').pop();
         const fileName = `${uuid()}.${fileExt}`;
-        const filePath = `${userId}/${fileName}`;
+        const filePath = `${dealerId}/${fileName}`;
 
         const { data, error } = await supabase.storage
           .from('vehicle_photos')
@@ -76,9 +48,38 @@ export function useVehicleUpload(userId?: string) {
     }
   };
 
+  // Handle photo uploads
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Limit to 5 photos total
+    const remainingSlots = 5 - uploadedPhotos.length;
+    if (remainingSlots <= 0) {
+      toast.error('Maximum 5 photos allowed');
+      return;
+    }
+
+    const newPhotos = Array.from(files).slice(0, remainingSlots);
+    setUploadedPhotos(prev => [...prev, ...newPhotos]);
+
+    // Create temporary URLs for preview
+    const newUrls = newPhotos.map(file => URL.createObjectURL(file));
+    setPhotoUrls(prev => [...prev, ...newUrls]);
+  };
+
+  // Remove photo from the preview
+  const removePhoto = (index: number) => {
+    setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
+    
+    // Revoke the object URL to avoid memory leaks
+    URL.revokeObjectURL(photoUrls[index]);
+    setPhotoUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
   return {
-    uploadedPhotos,
     photoUrls,
+    uploadedPhotos,
     photoUploading,
     submitting,
     setUploadedPhotos,
@@ -86,6 +87,6 @@ export function useVehicleUpload(userId?: string) {
     setSubmitting,
     uploadPhotosToStorage,
     handlePhotoUpload,
-    removePhoto,
+    removePhoto
   };
-}
+};

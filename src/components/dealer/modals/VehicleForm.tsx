@@ -1,12 +1,8 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { VehicleFormData } from '../schemas/vehicleSchema';
-import { useMakeModels } from '@/hooks/useMakeModels';
-import { ConditionSelector } from '@/components/common/ConditionSelector';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Upload, X } from 'lucide-react';
-
+import { X, Upload } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -24,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { useVehicleSelectors } from '@/hooks/useVehicleSelectors';
 
 interface VehicleFormProps {
   form: UseFormReturn<VehicleFormData>;
@@ -33,52 +31,22 @@ interface VehicleFormProps {
   removePhoto: (index: number) => void;
 }
 
-export const VehicleForm: React.FC<VehicleFormProps> = ({ 
-  form, 
+export const VehicleForm: React.FC<VehicleFormProps> = ({
+  form,
   onSubmit,
   photoUrls,
   handlePhotoUpload,
   removePhoto
 }) => {
-  const [selectedMake, setSelectedMake] = React.useState<string>('');
-  const [selectedModel, setSelectedModel] = React.useState<string>('');
-  
   const { 
     makes, 
     models, 
-    trims,
-    isLoading,
-    getModelsByMakeId,
-    getTrimsByModelId
-  } = useMakeModels();
+    selectedMakeId, 
+    setSelectedMakeId,
+    getYearOptions 
+  } = useVehicleSelectors();
 
-  // When make changes, fetch models
-  useEffect(() => {
-    if (selectedMake) {
-      getModelsByMakeId(selectedMake);
-      // Reset model selection
-      setSelectedModel('');
-      form.setValue('model', '');
-      form.setValue('trim_id', undefined);
-    }
-  }, [selectedMake, getModelsByMakeId, form]);
-
-  // When model changes, fetch trims
-  useEffect(() => {
-    if (selectedModel) {
-      getTrimsByModelId(selectedModel);
-    }
-  }, [selectedModel, getTrimsByModelId]);
-
-  // Generate years array
-  const years = React.useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const yearList = [];
-    for (let year = currentYear + 1; year >= 1950; year--) {
-      yearList.push(year);
-    }
-    return yearList;
-  }, []);
+  const yearOptions = getYearOptions(1990);
 
   return (
     <Form {...form}>
@@ -98,10 +66,9 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                   <Select 
                     onValueChange={(value) => {
                       field.onChange(value);
-                      // Find the make ID for the selected make name
                       const makeObj = makes.find(m => m.make_name === value);
                       if (makeObj) {
-                        setSelectedMake(makeObj.id);
+                        setSelectedMakeId(makeObj.id);
                       }
                     }} 
                     defaultValue={field.value}
@@ -131,16 +98,9 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 <FormItem>
                   <FormLabel>Model*</FormLabel>
                   <Select 
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      // Find the model ID for the selected model name
-                      const modelObj = models.find(m => m.model_name === value);
-                      if (modelObj) {
-                        setSelectedModel(modelObj.id);
-                      }
-                    }} 
+                    onValueChange={field.onChange} 
                     defaultValue={field.value}
-                    disabled={!selectedMake || models.length === 0}
+                    disabled={!selectedMakeId || models.length === 0}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -161,37 +121,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
             />
           </div>
 
-          {/* Trim and Year */}
+          {/* Year and Mileage */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="trim_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trim</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                    disabled={!selectedModel || trims.length === 0}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select trim" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {trims.map((trim) => (
-                        <SelectItem key={trim.id} value={trim.id}>
-                          {trim.trim_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="year"
@@ -200,7 +131,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                   <FormLabel>Year*</FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))} 
-                    defaultValue={field.value ? field.value.toString() : undefined}
+                    defaultValue={field.value.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -208,7 +139,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {years.map((year) => (
+                      {yearOptions.map((year) => (
                         <SelectItem key={year} value={year.toString()}>
                           {year}
                         </SelectItem>
@@ -219,10 +150,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 </FormItem>
               )}
             />
-          </div>
 
-          {/* Mileage and Price */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="mileage"
@@ -246,7 +174,10 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 </FormItem>
               )}
             />
+          </div>
 
+          {/* Price and Condition */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="price"
@@ -268,24 +199,31 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 </FormItem>
               )}
             />
-          </div>
 
-          {/* Condition */}
-          <FormField
-            control={form.control}
-            name="condition"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Condition*</FormLabel>
-                <ConditionSelector
-                  name="condition"
-                  defaultValue={75}
-                  className="mt-2"
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="condition"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Condition*</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Excellent">Excellent</SelectItem>
+                      <SelectItem value="Good">Good</SelectItem>
+                      <SelectItem value="Fair">Fair</SelectItem>
+                      <SelectItem value="Poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Transmission and Fuel Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -297,7 +235,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                   <FormLabel>Transmission</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    defaultValue={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -307,9 +245,6 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                     <SelectContent>
                       <SelectItem value="Automatic">Automatic</SelectItem>
                       <SelectItem value="Manual">Manual</SelectItem>
-                      <SelectItem value="CVT">CVT</SelectItem>
-                      <SelectItem value="Semi-Automatic">Semi-Automatic</SelectItem>
-                      <SelectItem value="Dual Clutch">Dual Clutch</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -325,7 +260,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                   <FormLabel>Fuel Type</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    defaultValue={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -335,11 +270,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                     <SelectContent>
                       <SelectItem value="Gasoline">Gasoline</SelectItem>
                       <SelectItem value="Diesel">Diesel</SelectItem>
-                      <SelectItem value="Electric">Electric</SelectItem>
                       <SelectItem value="Hybrid">Hybrid</SelectItem>
-                      <SelectItem value="Plug-in Hybrid">Plug-in Hybrid</SelectItem>
-                      <SelectItem value="Natural Gas">Natural Gas</SelectItem>
-                      <SelectItem value="Flex Fuel">Flex Fuel</SelectItem>
+                      <SelectItem value="Electric">Electric</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -360,7 +292,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                     <Input 
                       placeholder="e.g., 90210" 
                       {...field}
-                      maxLength={5}
+                      maxLength={10}
                     />
                   </FormControl>
                   <FormMessage />
@@ -430,7 +362,7 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                   <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
                 <p className="text-xs text-gray-500">
-                  JPEG, PNG or WebP (max 10MB)
+                  JPEG, PNG or WebP (max 5 photos, 10MB each)
                 </p>
               </div>
               <input 
@@ -439,14 +371,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 accept="image/*" 
                 multiple 
                 onChange={handlePhotoUpload}
-                disabled={photoUrls.length >= 5} // Limiting to 5 photos
               />
             </label>
-            {photoUrls.length >= 5 && (
-              <p className="text-amber-600 text-xs">
-                Maximum of 5 photos allowed. Remove some photos to add more.
-              </p>
-            )}
           </div>
         </div>
       </form>
