@@ -15,9 +15,7 @@ export default function ValuationResultPage() {
   const id = searchParams.get('id');
   const vin = searchParams.get('vin');
   const [tempData, setTempData] = useState<any>(null);
-  
   const { data, isLoading, error } = useValuationResult(id || '');
-
   useEffect(() => {
     // Check for temp valuation data
     const storedData = localStorage.getItem('temp_valuation_data');
@@ -40,7 +38,6 @@ export default function ValuationResultPage() {
         ? String(error.message) 
         : String(error)) 
     : "Could not find the requested valuation.";
-
   // Default vehicle info if data is not available
   const vehicleInfo = valuationData ? {
     make: valuationData.make,
@@ -55,7 +52,6 @@ export default function ValuationResultPage() {
     mileage: 0,
     condition: 'Good'
   };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -69,7 +65,6 @@ export default function ValuationResultPage() {
       </div>
     );
   }
-
   if ((!data && !tempData) || error !== null) {
     return (
       <div className="min-h-screen flex flex-col">
