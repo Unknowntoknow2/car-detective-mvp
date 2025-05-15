@@ -1,37 +1,13 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Form } from '@/components/ui/form';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
-import { VehicleBasicInfoInputs } from './form-parts/VehicleBasicInfoInputs';
-import { ConditionInput } from './form-parts/ConditionInput';
-import { ManualEntryFormData } from './types/manualEntry';
-import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { CarDetectiveValidator } from '@/utils/validation/CarDetectiveValidator';
-
-// Define validation schema based on our validator
-const formSchema = z.object({
-  make: z.string().min(1, 'Make is required'),
-  model: z.string().min(1, 'Model is required'),
-  year: z.string().refine(val => {
-    const yearNum = parseInt(val, 10);
-    return !isNaN(yearNum) && yearNum >= 1980 && yearNum <= new Date().getFullYear();
-  }, 'Valid year is required'),
-  mileage: z.string().refine(val => {
-    const mileageNum = parseInt(val, 10);
-    return !isNaN(mileageNum) && mileageNum >= 0 && mileageNum <= 300000;
-  }, 'Valid mileage is required'),
-  condition: z.string().optional(),
-  zipCode: z.string().regex(/^\d{5}$/, 'ZIP must be 5 digits').optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional()
-});
+import { manualEntrySchema, validateForm } from '@/components/form/validation';
+import { ManualEntryFormData } from './types/manualEntry';
+import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
 
 interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -40,155 +16,241 @@ interface ManualEntryFormProps {
   isPremium?: boolean;
 }
 
-export default function ManualEntryForm({ 
-  onSubmit, 
-  isLoading = false, 
+const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
+  onSubmit,
+  isLoading = false,
   submitButtonText = "Get Valuation",
   isPremium = false
-}: ManualEntryFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationResults, setValidationResults] = useState<{ valid: boolean, errors: Record<string, string> }>({ valid: false, errors: {} });
-  const navigate = useNavigate();
-
-  const form = useForm<ManualEntryFormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      make: '',
-      model: '',
-      year: '',
-      mileage: '',
-      condition: 'good',
-      zipCode: '',
-      fuelType: '',
-      transmission: ''
-    }
+}) => {
+  const [formData, setFormData] = useState<ManualEntryFormData>({
+    make: '',
+    model: '',
+    year: new Date().getFullYear(),
+    mileage: 0,
+    condition: 'Good',
+    zipCode: '',
+    trim: '',
+    color: '',
+    features: []
   });
-
-  // Watch form values for live validation
-  const formValues = form.watch();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
-  // Use our validator to validate the form
-  useEffect(() => {
-    const data = {
-      make: formValues.make,
-      model: formValues.model,
-      year: formValues.year ? parseInt(formValues.year, 10) : undefined,
-      mileage: formValues.mileage ? parseInt(formValues.mileage, 10) : undefined,
-      condition: formValues.condition,
-      zipCode: formValues.zipCode,
-      fuelType: formValues.fuelType,
-      transmission: formValues.transmission
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     
-    const result = CarDetectiveValidator.isValidForm(data);
-    setValidationResults(result);
-  }, [formValues]);
-
-  const handleFormSubmit = async (data: ManualEntryFormData) => {
-    setIsSubmitting(true);
-    
-    try {
-      // Additional validation using our validator
-      const validationResult = CarDetectiveValidator.isValidForm({
-        make: data.make,
-        model: data.model,
-        year: parseInt(data.year, 10),
-        mileage: parseInt(data.mileage, 10),
-        condition: data.condition,
-        zipCode: data.zipCode,
-        fuelType: data.fuelType,
-        transmission: data.transmission
-      });
-      
-      if (!validationResult.valid) {
-        // Show error toast for the first validation error
-        const firstError = Object.values(validationResult.errors)[0];
-        toast.error(firstError || 'Validation failed');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Calculate a mock valuation based on year and mileage
-      const baseValue = 30000 - (2023 - parseInt(data.year)) * 1000;
-      const mileageDeduction = parseInt(data.mileage) > 50000 ? 
-        (parseInt(data.mileage) - 50000) / 10000 * 500 : 0;
-      
-      const estimatedValue = Math.max(5000, baseValue - mileageDeduction);
-      
-      // Create a valuation record in the database
-      const { data: valuationData, error } = await supabase
-        .from('valuations')
-        .insert({
-          make: data.make,
-          model: data.model,
-          year: parseInt(data.year),
-          mileage: parseInt(data.mileage),
-          condition_score: data.condition === 'excellent' ? 90 : 
-                          data.condition === 'good' ? 75 : 
-                          data.condition === 'fair' ? 60 : 45,
-          state: data.zipCode,
-          estimated_value: Math.round(estimatedValue),
-          user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user
-          confidence_score: 75,
-          is_vin_lookup: false
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error saving valuation:', error);
-        toast.error('Failed to save valuation data');
-        return;
-      }
-      
-      // Store the valuation ID in localStorage
-      if (valuationData) {
-        localStorage.setItem('latest_valuation_id', valuationData.id);
-        
-        // Add valuation ID to the form data
-        data.valuationId = valuationData.id;
-        data.valuation = estimatedValue;
-        data.confidenceScore = 75;
-      }
-      
-      // Call the onSubmit callback with the form data
-      onSubmit(data);
-      
-      // Navigate to the results page if we have a valuation ID and not in premium mode
-      if (valuationData && !isPremium) {
-        navigate(`/result?valuationId=${valuationData.id}`);
-      }
-      
-    } catch (error) {
-      console.error('Error in form submission:', error);
-      toast.error('An unexpected error occurred');
-    } finally {
-      setIsSubmitting(false);
+    // Clear validation error for this field if it exists
+    if (validationErrors[name]) {
+      const newErrors = { ...validationErrors };
+      delete newErrors[name];
+      setValidationErrors(newErrors);
     }
   };
-
+  
+  const handleSelectChange = (name: string, value: any) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation error for this field if it exists
+    if (validationErrors[name]) {
+      const newErrors = { ...validationErrors };
+      delete newErrors[name];
+      setValidationErrors(newErrors);
+    }
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    console.log('MANUAL ENTRY: Validating form data', formData);
+    
+    // Validate the form data
+    const validation = validateForm(manualEntrySchema, formData);
+    
+    if (!validation.success) {
+      console.log('MANUAL ENTRY: Validation failed', validation.errors);
+      setValidationErrors(validation.errors || {});
+      return;
+    }
+    
+    // Clear validation errors
+    setValidationErrors({});
+    
+    // Log form submission
+    console.log('MANUAL ENTRY: Form submitted successfully', formData);
+    
+    // Call the onSubmit handler
+    onSubmit(formData);
+  };
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-        <VehicleBasicInfoInputs form={form} />
-        <VehicleDetailsInputs form={form} />
-        <ConditionInput form={form} />
-        
-        <Button 
-          type="submit" 
-          className="w-full h-12" 
-          disabled={isSubmitting || isLoading || !validationResults.valid}
-        >
-          {isSubmitting || isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            submitButtonText
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="make">
+            Make
+          </Label>
+          <Input
+            id="make"
+            name="make"
+            value={formData.make}
+            onChange={handleChange}
+            placeholder="e.g., Toyota"
+            className={validationErrors.make ? 'border-red-500' : ''}
+          />
+          {validationErrors.make && (
+            <p className="text-sm text-red-500">{validationErrors.make}</p>
           )}
-        </Button>
-      </form>
-    </Form>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="model">
+            Model
+          </Label>
+          <Input
+            id="model"
+            name="model"
+            value={formData.model}
+            onChange={handleChange}
+            placeholder="e.g., Camry"
+            className={validationErrors.model ? 'border-red-500' : ''}
+          />
+          {validationErrors.model && (
+            <p className="text-sm text-red-500">{validationErrors.model}</p>
+          )}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="year">
+            Year
+          </Label>
+          <Input
+            id="year"
+            name="year"
+            type="number"
+            value={formData.year}
+            onChange={handleChange}
+            placeholder="e.g., 2019"
+            className={validationErrors.year ? 'border-red-500' : ''}
+          />
+          {validationErrors.year && (
+            <p className="text-sm text-red-500">{validationErrors.year}</p>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="mileage">
+            Mileage
+          </Label>
+          <Input
+            id="mileage"
+            name="mileage"
+            type="number"
+            value={formData.mileage}
+            onChange={handleChange}
+            placeholder="e.g., 45000"
+            className={validationErrors.mileage ? 'border-red-500' : ''}
+          />
+          {validationErrors.mileage && (
+            <p className="text-sm text-red-500">{validationErrors.mileage}</p>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <Label htmlFor="condition">Condition</Label>
+            <VehicleFormTooltip 
+              content="Vehicle condition affects valuation significantly. Be honest for the most accurate estimate."
+            />
+          </div>
+          <Select
+            value={formData.condition}
+            onValueChange={(value) => handleSelectChange('condition', value)}
+          >
+            <SelectTrigger 
+              id="condition"
+              className={validationErrors.condition ? 'border-red-500' : ''}
+            >
+              <SelectValue placeholder="Select condition" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Excellent">Excellent</SelectItem>
+              <SelectItem value="Good">Good</SelectItem>
+              <SelectItem value="Fair">Fair</SelectItem>
+              <SelectItem value="Poor">Poor</SelectItem>
+            </SelectContent>
+          </Select>
+          {validationErrors.condition && (
+            <p className="text-sm text-red-500">{validationErrors.condition}</p>
+          )}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <Label htmlFor="zipCode">ZIP Code</Label>
+          <VehicleFormTooltip 
+            content="Your ZIP code helps us provide a more accurate valuation based on local market conditions."
+          />
+        </div>
+        <Input
+          id="zipCode"
+          name="zipCode"
+          value={formData.zipCode}
+          onChange={handleChange}
+          placeholder="e.g., 90210"
+          className={validationErrors.zipCode ? 'border-red-500' : ''}
+        />
+        {validationErrors.zipCode && (
+          <p className="text-sm text-red-500">{validationErrors.zipCode}</p>
+        )}
+      </div>
+      
+      {isPremium && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="trim">Trim (Optional)</Label>
+              <Input
+                id="trim"
+                name="trim"
+                value={formData.trim}
+                onChange={handleChange}
+                placeholder="e.g., SE, Limited"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="color">Color (Optional)</Label>
+              <Input
+                id="color"
+                name="color"
+                value={formData.color}
+                onChange={handleChange}
+                placeholder="e.g., Blue, Silver"
+              />
+            </div>
+          </div>
+        </>
+      )}
+      
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          submitButtonText
+        )}
+      </Button>
+    </form>
   );
-}
+};
+
+export default ManualEntryForm;

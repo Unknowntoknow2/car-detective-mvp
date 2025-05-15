@@ -1,4 +1,6 @@
 
 // Export checkout-related components
-export const PremiumCheckout = () => null;
+export * from './PremiumCheckoutButton';
+export * from './CheckoutSummary';
 
+export const PremiumCheckout = () => null;
