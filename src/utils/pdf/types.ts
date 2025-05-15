@@ -32,6 +32,15 @@ export interface ReportData {
   explanation?: string;
   narrative?: string;
   vin?: string;
+  // Extended properties that are optional
+  trim?: string;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  bodyType?: string;
+  features?: string[];
+  bodyStyle?: string;
+  photoExplanation?: string;
 }
 
 /**
@@ -58,6 +67,7 @@ export interface ReportOptions {
   showWholesaleValue?: boolean;
   userName?: string;
   dealerName?: string;
+  logoUrl?: string;
 }
 
 /**
@@ -90,4 +100,8 @@ export interface SectionParams {
   primaryColor: any;
   secondaryColor: any;
   textColor: any;
+  page: any;
+  width: number;
+  height: number;
+  contentWidth: number;
 }

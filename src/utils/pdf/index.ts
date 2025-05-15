@@ -22,6 +22,7 @@ export async function downloadPdf(reportData: ReportData): Promise<Blob> {
 export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, valuationData: any): ReportData {
   // Convert vehicle info and valuation data to report data format
   return {
+    id: valuationData.id || vehicleInfo.id || crypto.randomUUID(),
     make: vehicleInfo.make,
     model: vehicleInfo.model,
     year: vehicleInfo.year,

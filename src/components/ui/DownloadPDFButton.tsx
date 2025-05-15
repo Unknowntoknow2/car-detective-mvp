@@ -36,7 +36,6 @@ export function DownloadPDFButton({
   const handleDownload = async () => {
     if (!user) {
       toast({
-        title: "Authentication Required",
         description: "Please log in to download the valuation report.",
         variant: "destructive"
       });
@@ -104,13 +103,11 @@ export function DownloadPDFButton({
       if (onDownload) onDownload();
       
       toast({
-        title: "PDF Downloaded",
         description: "Your valuation report has been downloaded successfully."
       });
     } catch (error: any) {
       console.error('Download failed:', error);
       toast({
-        title: "Download Failed",
         description: error.message || "Failed to download PDF report",
         variant: "destructive"
       });
@@ -122,7 +119,6 @@ export function DownloadPDFButton({
   // For non-premium users accessing premium content
   const handlePremiumPrompt = () => {
     toast({
-      title: "Premium Feature",
       description: "Upgrade to premium to download full reports with enhanced insights.",
       variant: "default"
     });
