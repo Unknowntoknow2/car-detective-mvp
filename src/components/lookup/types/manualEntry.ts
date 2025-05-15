@@ -1,31 +1,30 @@
+// src/types/manualEntry.ts
 
 export interface ManualEntryFormData {
   make: string;
   model: string;
-  year: string;
-  mileage?: string;
+  year: number;
+  mileage?: number;
   condition?: string;
   zipCode?: string;
   fuelType?: string;
   transmission?: string;
   vin?: string;
-  // Added missing properties
   valuationId?: string;
   valuation?: number;
   confidenceScore?: number;
-  accident?: 'yes' | 'no';
+  accident?: boolean;
   accidentDetails?: AccidentDetails;
   selectedFeatures?: string[];
 }
 
-// Add the AccidentDetails interface that was missing
 export interface AccidentDetails {
-  count: string;
-  severity: string;
-  area: string;
+  description?: string;
+  severity?: 'Minor' | 'Moderate' | 'Severe';
+  repaired?: boolean;
+  hasAccident?: boolean;
 }
 
-// Add the ConditionLevel enum
 export enum ConditionLevel {
   Excellent = 'excellent',
   Good = 'good',
