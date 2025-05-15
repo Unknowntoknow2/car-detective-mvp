@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { ValuationResult } from '@/types/valuation';
-import { AICondition, AdjustmentBreakdown } from '@/types/photo';
+import { AICondition } from '@/types/photo';
 import { ReportData } from '@/utils/pdf/types';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { saveAs } from 'file-saver';
@@ -96,12 +96,14 @@ export const useValuationPdf = ({
       toast({
         description: "Valuation PDF downloaded successfully."
       });
+      return true;
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
         description: "Failed to generate the PDF. Please try again.",
         variant: "destructive"
       });
+      return false;
     } finally {
       setIsGenerating(false);
     }
