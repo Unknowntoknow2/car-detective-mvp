@@ -32,7 +32,10 @@ export function EnhancedVinLookup({
   useEffect(() => {
     if (value) {
       const result = validateVin(value);
-      setValidationResult(result);
+      setValidationResult({
+        isValid: result.isValid,
+        error: result.message || result.error || null
+      });
     } else {
       setValidationResult({ isValid: false, error: null });
     }
