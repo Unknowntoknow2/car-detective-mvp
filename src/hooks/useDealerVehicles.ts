@@ -15,17 +15,17 @@ export function useDealerVehicles() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Simulate success
-      toast({
-        description: `Successfully added ${data.year} ${data.make} ${data.model} to inventory`,
+      toast("Vehicle Added", {
+        description: `Successfully added ${data.year} ${data.make} ${data.model} to inventory`
       });
       
       // Return success
       return true;
     } catch (error) {
       console.error("Error adding vehicle:", error);
-      toast({
-        variant: "destructive",
+      toast("Error", {
         description: "Failed to add vehicle. Please try again.",
+        variant: "destructive"
       });
       return false;
     } finally {

@@ -1,12 +1,12 @@
 
-import { http, HttpResponse } from 'msw';
+import { rest } from 'msw';
 
+// Update this file to use the correct imports from msw
 export const handlers = [
-  http.get('/api/vehicles', () => {
-    return HttpResponse.json([
-      { id: '1', make: 'Toyota', model: 'Camry', year: 2020 },
-      { id: '2', make: 'Honda', model: 'Accord', year: 2019 },
-      { id: '3', make: 'Ford', model: 'F-150', year: 2021 },
-    ]);
+  rest.get('/api/example', (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({ message: 'This is a mocked response' })
+    );
   }),
 ];

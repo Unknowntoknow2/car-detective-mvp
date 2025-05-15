@@ -1,16 +1,13 @@
 
-import React, { useState } from 'react';
-import { SignupForm } from './SignupForm';
+import React from 'react';
+import SignupForm from './SignupForm';
 
-function SignUpPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  
+export const SignUpPage = () => {
   return (
-    <div className="container mx-auto max-w-md py-12">
-      <h1 className="text-2xl font-bold mb-6">Create Account</h1>
-      <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
+    <div>
+      <SignupForm />
     </div>
   );
-}
+};
 
 export default SignUpPage;
