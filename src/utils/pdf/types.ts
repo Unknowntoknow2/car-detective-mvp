@@ -24,7 +24,7 @@ export interface ReportData {
   year: number;
   vin?: string;
   mileage: number;
-  price: number;
+  price: number; // Required property
   condition: string;
   
   // Additional fields
@@ -37,4 +37,26 @@ export interface ReportData {
   explanation?: string;
   createdAt?: string;
   generatedAt?: string;
+  
+  // Added fields that are used in the codebase
+  estimatedValue?: number;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  zipCode?: string;
+  userId?: string;
+  isPremium?: boolean;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+    aiSummary?: string;
+  } | null;
+  bestPhotoUrl?: string;
+  photoScore?: number;
+  bodyType?: string;
+  color?: string;
+  fuelType?: string;
+  transmission?: string;
+  trim?: string;
 }

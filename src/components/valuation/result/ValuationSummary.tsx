@@ -1,71 +1,57 @@
 import React from 'react';
-import { ConfidenceScore } from '@/components/lookup/scoring/ConfidenceScore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/utils/formatters';
-import { Separator } from '@/components/ui/separator';
-import { VehicleScoreInfo } from '@/components/lookup/scoring/VehicleScoreInfo';
-import { BreakdownList } from '@/components/lookup/scoring/BreakdownList';
-import { BreakdownItemProps } from '@/components/lookup/scoring/BreakdownItem';
 
-interface ValuationSummaryProps {
-  estimatedValue: number;
-  confidenceScore: number;
-  baseValue: number;
-  adjustments: BreakdownItemProps[];
+export interface ConfidenceScoreProps {
+  score: number;
   comparableVehicles: number;
-  isPremium?: boolean;
 }
 
-const ValuationSummary: React.FC<ValuationSummaryProps> = ({
-  estimatedValue,
-  confidenceScore,
-  baseValue,
-  adjustments,
-  comparableVehicles,
-  isPremium = false
-}) => {
+const ConfidenceScore: React.FC<ConfidenceScoreProps> = ({ score, comparableVehicles }) => {
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
-        <CardTitle>Valuation Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <VehicleScoreInfo
-            label="Estimated Value"
-            value={estimatedValue}
-            tooltipContent={
-              <p>Our estimated market value based on similar vehicles and current market conditions.</p>
-            }
-          />
-          <VehicleScoreInfo
-            label="Base Value"
-            value={baseValue}
-            tooltipContent={
-              <p>The starting value before adjustments for condition, mileage, and features.</p>
-            }
-          />
-          <ConfidenceScore 
-            score={confidenceScore} 
-            comparableVehicles={comparableVehicles} 
-          />
+    <div className="mb-4">
+      <div className="flex justify-between mb-1">
+        <span className="text-sm font-medium">Confidence Score</span>
+        <span className="text-sm">{score}%</span>
+      </div>
+      <Progress value={score} className="h-2" />
+      <p className="text-xs text-muted-foreground mt-1">
+        Based on {comparableVehicles} comparable vehicles
+      </p>
+    </div>
+  );
+};
+
+const ValuationSummary: React.FC<{
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+}> = ({ estimatedValue, confidenceScore, priceRange }) => {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-semibold mb-3">Valuation Summary</h3>
+        
+        <div className="mb-4">
+          <span className="text-sm text-muted-foreground">Estimated Value</span>
+          <div className="text-3xl font-bold text-primary">
+            {formatCurrency(estimatedValue)}
+          </div>
         </div>
         
-        <Separator className="my-6" />
-        
-        <BreakdownList 
-          items={adjustments}
-          baseValue={baseValue}
-          comparableVehicles={comparableVehicles}
+        <ConfidenceScore 
+          score={confidenceScore} 
+          comparableVehicles={120} // Placeholder value
         />
         
-        {!isPremium && (
-          <div className="mt-6 p-4 bg-muted/30 rounded-md text-center text-sm">
-            <p className="text-muted-foreground">
-              Upgrade to Premium for detailed market analysis and historical price trends
-            </p>
+        <div>
+          <span className="text-sm font-medium">Price Range</span>
+          <div className="flex justify-between">
+            <span>{formatCurrency(priceRange[0])}</span>
+            <span>{formatCurrency(priceRange[1])}</span>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

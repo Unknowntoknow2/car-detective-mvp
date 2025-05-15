@@ -24,8 +24,7 @@ export function useDealerVehicles() {
     } catch (error) {
       console.error("Error adding vehicle:", error);
       toast("Error", {
-        description: "Failed to add vehicle. Please try again.",
-        variant: "destructive"
+        description: "Failed to add vehicle. Please try again."
       });
       return false;
     } finally {
