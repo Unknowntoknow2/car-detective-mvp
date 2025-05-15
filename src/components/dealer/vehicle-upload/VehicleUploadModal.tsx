@@ -1,116 +1,188 @@
 
-import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
+import React, { useState } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
   DialogTitle,
-  DialogDescription,
+  DialogFooter
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { DealerVehicleForm } from '@/components/dealer/forms/DealerVehicleForm';
-import { VinLookupForm } from '@/components/dealer/forms/VinLookupForm';
-import { useToast } from '@/components/ui/use-toast';
-import { useDealerVehicles } from '@/hooks/useDealerVehicles';
-import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DealerVehicleForm, DealerVehicleFormData } from '@/components/dealer/forms/DealerVehicleForm';
 import { Loader2 } from 'lucide-react';
 
-export interface VehicleUploadModalProps {
+interface VehicleUploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onVehicleAdded?: () => void;
 }
 
 export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
   open,
-  onOpenChange
+  onOpenChange,
+  onVehicleAdded
 }) => {
-  const [activeTab, setActiveTab] = React.useState('manual');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [vinData, setVinData] = React.useState<Partial<DealerVehicleFormData> | null>(null);
-  const { addVehicle } = useDealerVehicles();
-  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'manual' | 'vin'>('manual');
+  const [vinNumber, setVinNumber] = useState('');
+  const [vinVehicle, setVinVehicle] = useState<any>(null);
+  const [isLoadingVin, setIsLoadingVin] = useState(false);
 
-  // Reset form state when modal is opened/closed
-  React.useEffect(() => {
-    if (!open) {
-      setActiveTab('manual');
-      setVinData(null);
-      setIsSubmitting(false);
+  const handleLookupVin = async () => {
+    if (!vinNumber || vinNumber.length !== 17) {
+      toast({
+        description: "Please enter a valid 17-character VIN",
+        variant: "destructive"
+      });
+      return;
     }
-  }, [open]);
 
-  const handleVinLookupSuccess = (data: Partial<DealerVehicleFormData>) => {
-    setVinData(data);
-    setActiveTab('manual'); // Switch to manual tab with pre-filled data
-    toast({
-      description: `Found ${data.year} ${data.make} ${data.model}`,
-    });
+    setIsLoadingVin(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock response
+      const mockVehicle = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        vin: vinNumber,
+        trim: 'XLE',
+        color: 'Silver',
+        fuelType: 'Gasoline',
+        transmission: 'Automatic'
+      };
+      
+      setVinVehicle(mockVehicle);
+      toast({
+        description: `Found: ${mockVehicle.year} ${mockVehicle.make} ${mockVehicle.model}`,
+      });
+    } catch (error) {
+      toast({
+        description: "Failed to look up VIN. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingVin(false);
+    }
   };
 
-  const handleSubmit = async (data: DealerVehicleFormData) => {
+  const handleManualSubmit = async (data: DealerVehicleFormData) => {
     setIsSubmitting(true);
     try {
-      await addVehicle(data);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       toast({
-        description: `Successfully added ${data.year} ${data.make} ${data.model} to inventory`,
+        description: "Vehicle added successfully!",
       });
+      
       onOpenChange(false);
+      if (onVehicleAdded) {
+        onVehicleAdded();
+      }
     } catch (error) {
-      console.error("Error adding vehicle:", error);
       toast({
-        variant: "destructive",
         description: "Failed to add vehicle. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add Vehicle to Inventory</DialogTitle>
-          <DialogDescription>
-            Add a new vehicle to your dealer inventory by entering details manually or using VIN lookup.
-          </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'manual' | 'vin')}>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="manual">Manual Entry</TabsTrigger>
             <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="manual" className="space-y-4">
-            {isSubmitting && (
-              <div className="flex justify-center items-center py-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2">Adding vehicle to inventory...</span>
+          <TabsContent value="manual" className="pt-4">
+            <DealerVehicleForm 
+              onSuccess={handleManualSubmit}
+              isSubmitting={isSubmitting}
+              submitLabel="Add Vehicle"
+              showCancel={true}
+              onCancel={handleCancel}
+            />
+          </TabsContent>
+          
+          <TabsContent value="vin" className="pt-4">
+            {!vinVehicle ? (
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <label htmlFor="vin" className="text-sm font-medium">
+                    Vehicle Identification Number (VIN)
+                  </label>
+                  <input
+                    id="vin"
+                    value={vinNumber}
+                    onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    placeholder="Enter 17-character VIN"
+                    maxLength={17}
+                  />
+                </div>
+                <Button 
+                  onClick={handleLookupVin} 
+                  disabled={isLoadingVin}
+                  className="w-full"
+                >
+                  {isLoadingVin ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Looking up VIN...
+                    </>
+                  ) : (
+                    'Lookup VIN'
+                  )}
+                </Button>
               </div>
-            )}
-            
-            {!isSubmitting && (
-              <DealerVehicleForm 
-                initialData={vinData || {}}
-                onSubmit={handleSubmit}
+            ) : (
+              <DealerVehicleForm
+                onSuccess={handleManualSubmit}
+                initialData={{
+                  make: vinVehicle.make,
+                  model: vinVehicle.model,
+                  year: vinVehicle.year,
+                  condition: 'Good',
+                  status: 'Available',
+                  trim: vinVehicle.trim,
+                  color: vinVehicle.color,
+                  vehicleId: vinVehicle.vin,
+                  photos: []
+                }}
                 isSubmitting={isSubmitting}
-                submitLabel="Add to Inventory"
+                submitLabel="Add Vehicle"
                 showCancel={true}
-                onCancel={() => onOpenChange(false)}
+                onCancel={handleCancel}
               />
             )}
           </TabsContent>
-          
-          <TabsContent value="vin" className="space-y-4">
-            <VinLookupForm 
-              onSuccess={handleVinLookupSuccess}
-              onCancel={() => onOpenChange(false)}
-            />
-          </TabsContent>
         </Tabs>
+        
+        <DialogFooter>
+          {!((activeTab === 'manual' || (activeTab === 'vin' && vinVehicle)))) && (
+            <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
+export default VehicleUploadModal;

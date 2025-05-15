@@ -4,7 +4,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,30 +38,42 @@ export interface DealerVehicleFormProps {
   onSuccess: (data: DealerVehicleFormData) => void;
   vehicleData?: Partial<DealerVehicleFormData>;
   isEditing?: boolean; // Add isEditing property
+  initialData?: Partial<DealerVehicleFormData>; // Add initialData property for VehicleUploadModal
+  isSubmitting?: boolean; // Add for VehicleUploadModal
+  submitLabel?: string; // Add for VehicleUploadModal
+  showCancel?: boolean; // Add for VehicleUploadModal
+  onCancel?: () => void; // Add for VehicleUploadModal
 }
 
 export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({ 
   onSuccess, 
   vehicleData = {},
-  isEditing = false 
+  isEditing = false,
+  initialData,
+  isSubmitting = false,
+  submitLabel = "Save Vehicle",
+  showCancel = false,
+  onCancel
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
   
-  // Set default values using the vehicleData or empty values
+  // Set default values using the vehicleData or initialData or empty values
+  const mergedData = { ...vehicleData, ...initialData };
+  
   const defaultValues: Partial<DealerVehicleFormData> = {
-    make: vehicleData.make || '',
-    model: vehicleData.model || '',
-    year: vehicleData.year || new Date().getFullYear(),
-    price: vehicleData.price || 0,
-    mileage: vehicleData.mileage || 0,
-    condition: vehicleData.condition || 'Good',
-    description: vehicleData.description || '',
-    status: vehicleData.status || 'Available',
-    photos: vehicleData.photos || [],
-    color: vehicleData.color || '',
-    features: vehicleData.features || [],
-    vehicleId: vehicleData.vehicleId || '',
-    id: vehicleData.id || '',
+    make: mergedData.make || '',
+    model: mergedData.model || '',
+    year: mergedData.year || new Date().getFullYear(),
+    price: mergedData.price || 0,
+    mileage: mergedData.mileage || 0,
+    condition: mergedData.condition || 'Good',
+    description: mergedData.description || '',
+    status: mergedData.status || 'Available',
+    photos: mergedData.photos || [],
+    color: mergedData.color || '',
+    features: mergedData.features || [],
+    vehicleId: mergedData.vehicleId || '',
+    id: mergedData.id || '',
   };
 
   // Create form schema with Zod
@@ -81,12 +99,12 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
   });
 
   const handleSubmit = async (data: DealerVehicleFormData) => {
-    setIsSubmitting(true);
+    setIsSubmittingInternal(true);
     try {
       // If editing, ensure ID is preserved
       const submissionData = {
         ...data,
-        id: isEditing ? vehicleData.id || vehicleData.vehicleId : undefined
+        id: isEditing ? mergedData.id || mergedData.vehicleId : undefined
       };
 
       // Call the onSuccess callback with the form data
@@ -94,7 +112,7 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
     } catch (error) {
       console.error('Error submitting vehicle data:', error);
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingInternal(false);
     }
   };
 
@@ -188,15 +206,15 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <Select.Trigger>
-                        <Select.Value placeholder="Select condition" />
-                      </Select.Trigger>
-                      <Select.Content>
-                        <Select.Item value="Excellent">Excellent</Select.Item>
-                        <Select.Item value="Good">Good</Select.Item>
-                        <Select.Item value="Fair">Fair</Select.Item>
-                        <Select.Item value="Poor">Poor</Select.Item>
-                      </Select.Content>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Excellent">Excellent</SelectItem>
+                        <SelectItem value="Good">Good</SelectItem>
+                        <SelectItem value="Fair">Fair</SelectItem>
+                        <SelectItem value="Poor">Poor</SelectItem>
+                      </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
@@ -212,15 +230,15 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-                      <Select.Trigger>
-                        <Select.Value placeholder="Select status" />
-                      </Select.Trigger>
-                      <Select.Content>
-                        <Select.Item value="Available">Available</Select.Item>
-                        <Select.Item value="Sold">Sold</Select.Item>
-                        <Select.Item value="Pending">Pending</Select.Item>
-                        <Select.Item value="Reserved">Reserved</Select.Item>
-                      </Select.Content>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Available">Available</SelectItem>
+                        <SelectItem value="Sold">Sold</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Reserved">Reserved</SelectItem>
+                      </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
@@ -269,9 +287,22 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
               {/* Photo upload component would go here */}
             </div>
           </CardContent>
-          <CardFooter>
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Saving...' : isEditing ? 'Update Vehicle' : 'Add Vehicle'}
+          <CardFooter className="flex gap-2 justify-end">
+            {showCancel && onCancel && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel}
+                disabled={isSubmitting || isSubmittingInternal}
+              >
+                Cancel
+              </Button>
+            )}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || isSubmittingInternal}
+            >
+              {isSubmitting || isSubmittingInternal ? 'Saving...' : submitLabel || (isEditing ? 'Update Vehicle' : 'Add Vehicle')}
             </Button>
           </CardFooter>
         </form>

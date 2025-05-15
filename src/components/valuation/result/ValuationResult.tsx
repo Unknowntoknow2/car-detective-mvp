@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useValuationResult } from '@/hooks/useValuationResult';
@@ -6,7 +7,7 @@ import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
 import { toast } from 'sonner';
 
 // Import components
-import MobileLayout from './MobileLayout';
+import { MobileLayout } from './MobileLayout';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
 import { Header } from './sections/Header';
@@ -154,7 +155,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   
   // Error state
   if ((error || !valuationData) && !isManualValuation) {
-    return <ErrorState error={error} />;
+    return <ErrorState message={error} />;
   }
   
   if (!valuationData) {

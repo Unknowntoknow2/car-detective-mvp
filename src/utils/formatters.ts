@@ -1,56 +1,73 @@
 
-// Basic number formatting
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
+/**
+ * Formats a number as currency
+ * @param value The value to format
+ * @param locale The locale to use (default: 'en-US')
+ * @param currency The currency to use (default: 'USD')
+ * @returns Formatted currency string
+ */
+export const formatCurrency = (
+  value: number, 
+  locale = 'en-US', 
+  currency = 'USD'
+): string => {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(value);
 };
 
-// Date formatting
-export const formatDate = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
+/**
+ * Formats a date string to a localized date format
+ * @param dateString The date string to format
+ * @param locale The locale to use (default: 'en-US')
+ * @returns Formatted date string
+ */
+export const formatDate = (
+  dateString: string, 
+  locale = 'en-US'
+): string => {
+  const date = new Date(dateString);
+  
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }).format(dateObj);
+  }).format(date);
 };
 
-// Relative time formatter
-export const formatRelativeTime = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-  
-  return formatDate(dateObj);
+/**
+ * Formats a number as a percentage
+ * @param value The value to format (0-100)
+ * @param decimalPlaces The number of decimal places to include
+ * @returns Formatted percentage string
+ */
+export const formatPercentage = (
+  value: number, 
+  decimalPlaces = 0
+): string => {
+  return `${value.toFixed(decimalPlaces)}%`;
 };
 
-// Convert manual entry form data to JSON
-export const manualEntryToJson = (formData: FormData): Record<string, any> => {
-  const entries = Array.from(formData.entries());
-  const result: Record<string, any> = {};
-  
-  for (const [key, value] of entries) {
-    // Convert numeric values appropriately
-    if (key === 'year' || key === 'mileage') {
-      result[key] = value ? parseInt(value.toString(), 10) : null;
-    } else {
-      result[key] = value;
-    }
+/**
+ * Truncates a string to a maximum length
+ * @param str The string to truncate
+ * @param maxLength The maximum length
+ * @returns Truncated string with ellipsis if needed
+ */
+export const truncateString = (
+  str: string,
+  maxLength: number
+): string => {
+  if (str.length <= maxLength) {
+    return str;
   }
   
-  return result;
-};
-
-// Add the missing formatNumber function
-export const formatNumber = (value: number, locale = 'en-US'): string => {
-  return new Intl.NumberFormat(locale).format(value);
+  return str.substring(0, maxLength) + '...';
 };
