@@ -1,106 +1,63 @@
 
-import { PDFPage, PDFFont, Color, RGB, rgb } from 'pdf-lib';
-
-export interface AICondition {
-  condition: string;
-  confidenceScore: number;
-  issuesDetected?: string[];
-  summary?: string;
-  aiSummary?: string;
-}
-
 export interface ReportData {
   id: string;
   make: string;
   model: string;
   year: number;
-  price: number; // Required property for compatibility
-  mileage?: number;
-  condition?: string;
+  mileage: number;
+  condition: string;
+  price: number;
+  estimatedValue: number;
   zipCode?: string;
-  estimatedValue?: number;
-  adjustments?: { factor: string; impact: number; description: string }[];
-  confidenceScore?: number;
-  generatedAt?: string;
-  priceRange?: number[] | [number, number];
   vin?: string;
-  trim?: string;
-  features?: string[];
-  color?: string;
   bodyType?: string;
   fuelType?: string;
-  explanation?: string;
   transmission?: string;
-  // Additional properties
-  userId?: string;
+  color?: string;
+  confidenceScore?: number;
   isPremium?: boolean;
-  aiCondition?: AICondition;
+  priceRange?: number[] | { min: number; max: number };
+  adjustments?: {
+    factor: string;
+    impact: number;
+    description?: string;
+  }[];
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+  };
+  generatedAt: string;
+  userId?: string;
+  explanation?: string;
   bestPhotoUrl?: string;
-  photoScore?: number;
-  narrative?: string;
 }
 
 export interface ReportOptions {
-  title?: string;
-  showPriceRange?: boolean;
-  showConfidenceScore?: boolean;
-  logo?: string;
-  brandColor?: string;
-  locale?: string;
-  showWholesaleValue?: boolean;
-  dealerName?: string;
-  format?: string;
-  landscape?: boolean;
-  userName?: string;
-  // Additional properties
-  includeBreakdown?: boolean;
-  includeHeader?: boolean;
-  includeFooter?: boolean;
-  includeMarketTrends?: boolean;
-  includeSimilarVehicles?: boolean;
-  includePageNumbers?: boolean;
-  isPremium?: boolean;
-  // Additional properties for pdfGeneratorService
-  includePhotos?: boolean;
-  includeLegalDisclaimer?: boolean;
-  theme?: string;
-  orientation?: string;
-  margin?: number;
-  includeBranding?: boolean;
-  includeTimestamp?: boolean;
-  includePhotoAssessment?: boolean;
-  includeAIScore?: boolean;
-  printBackground?: boolean;
-  watermark?: boolean;
-  branding?: boolean;
-  templateId?: string;
+  pageSize: 'letter' | 'a4' | 'legal';
+  margins: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  includePageNumbers: boolean;
+  includePhotos: boolean;
+  includeSimilarVehicles: boolean;
+  companyInfo: {
+    name: string;
+    logo: string | null;
+    website: string;
+    phone: string;
+  };
 }
 
 export interface SectionParams {
-  page: PDFPage;
-  data: ReportData;
+  doc: any;
   y: number;
-  doc: any; // Add doc property
-  margin: number; // Add margin property
-  margins?: { left: number; right: number; top: number; bottom: number };
-  contentWidth: number;
-  width: number; // Add width property
-  pageWidth: number; // Add pageWidth property
-  boldFont: PDFFont;
-  regularFont: PDFFont;
-  primaryColor: Color;
-  secondaryColor: Color; // Add secondaryColor property
-  textColor: Color;
-  height: number; // Add height property
-}
-
-export interface AdjustmentBreakdown {
-  factor: string;
-  impact: number;
-  description?: string; // Make description optional in AdjustmentBreakdown
-  name?: string;
-  value?: number;
-  percentAdjustment?: number;
-  adjustment?: number;
-  impactPercentage?: number;
+  data: ReportData;
+  options: ReportOptions;
+  pageWidth: number;
+  pageHeight: number;
 }
