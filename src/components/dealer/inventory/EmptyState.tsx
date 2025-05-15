@@ -1,55 +1,27 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { Plus, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
-  title: string;
-  description: string;
-  actionLabel: string;
-  onAction: () => void;
-  icon?: React.ReactNode;
+  onAddClick: () => void;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
-  title,
-  description,
-  actionLabel,
-  onAction,
-  icon
-}) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ onAddClick }) => {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="text-center py-16 px-4 border rounded-xl bg-muted/20"
-    >
-      {icon && (
-        <motion.div 
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mx-auto bg-primary/10 rounded-full p-6 w-fit mb-6"
-        >
-          {icon}
-        </motion.div>
-      )}
-      
-      <h2 className="text-2xl font-semibold mb-2">{title}</h2>
-      
-      <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-        {description}
+    <div className="flex flex-col items-center justify-center p-10 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
+      <div className="h-16 w-16 mb-5 bg-primary/10 rounded-full flex items-center justify-center">
+        <Car className="h-8 w-8 text-primary" />
+      </div>
+      <h3 className="text-lg font-medium mb-2">No vehicles in your inventory</h3>
+      <p className="text-muted-foreground mb-6 max-w-md">
+        Add your first vehicle listing to your inventory. Vehicles you add will appear here.
       </p>
-      
-      <Button 
-        onClick={onAction}
-        size="lg"
-        className="px-8"
-      >
-        {actionLabel}
+      <Button onClick={onAddClick} className="flex items-center gap-1 animate-pulse">
+        <Plus className="h-4 w-4" />
+        Add Your First Vehicle
       </Button>
-    </motion.div>
+    </div>
   );
 };
 
