@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -41,7 +42,7 @@ export function FreeValuationPage() {
   const [zipCode, setZipCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [valuationId, setValuationId] = useState<string | null>(null);
-	const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isManualValuation, setIsManualValuation] = useState(false);
   const [manualValuationData, setManualValuationData] = useState<any>(null);
@@ -53,7 +54,6 @@ export function FreeValuationPage() {
     if (!make || !model || !year || !mileage || !condition || !zipCode) {
       setError('Please fill in all fields.');
       toast({
-        title: "Error",
         description: "Please fill in all fields.",
         variant: "destructive",
       });
@@ -61,7 +61,7 @@ export function FreeValuationPage() {
     }
 
     setIsSubmitting(true);
-		setProgress(30);
+    setProgress(30);
     setError(null);
 
     try {
@@ -71,7 +71,7 @@ export function FreeValuationPage() {
       // Mock valuation result
       const mockValuationId = 'valuation-' + Date.now();
       setValuationId(mockValuationId);
-			setProgress(100);
+      setProgress(100);
 
       // Store manual valuation data
       setManualValuationData({
@@ -89,8 +89,8 @@ export function FreeValuationPage() {
       setIsManualValuation(true);
 
       toast({
-        title: "Success",
         description: "Valuation generated successfully!",
+        variant: "success",
       });
 
       // Navigate to the valuation result page
@@ -99,13 +99,12 @@ export function FreeValuationPage() {
       console.error("Error during form submission:", err);
       setError('Failed to generate valuation. Please try again.');
       toast({
-        title: "Error",
         description: "Failed to generate valuation. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
-			setProgress(0);
+      setProgress(0);
     }
   }, [make, model, year, mileage, condition, zipCode, navigate]);
 
@@ -235,3 +234,5 @@ export function FreeValuationPage() {
     </div>
   );
 }
+
+export default FreeValuationPage;
