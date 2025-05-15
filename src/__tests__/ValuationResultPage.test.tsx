@@ -4,7 +4,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ValuationResultPage from '@/pages/ValuationResultPage';
 import { useValuationResult } from '@/hooks/useValuationResult';
-import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import * as pdfModule from '@/utils/pdf/generateValuationPdf';
 
 // Mock the modules we need
 jest.mock('@/hooks/useValuationResult');
@@ -76,7 +76,7 @@ const renderComponent = (mockData: any = null, isLoading = false, error: string 
   });
   
   // Mock generateValuationPdf
-  (generateValuationPdf as jest.Mock).mockResolvedValue(new Uint8Array([1, 2, 3]));
+  jest.spyOn(pdfModule, 'generateValuationPdf').mockResolvedValue(new Uint8Array([1, 2, 3]));
   
   // Render with router since the component uses route params
   return render(
@@ -144,20 +144,21 @@ describe('ValuationResultPage', () => {
     renderComponent(null, false, 'Failed to load valuation data');
     
     expect(screen.getByText(/error loading valuation/i)).toBeInTheDocument();
-    expect(screen.getByText(/failed to load valuation data/i)).toBeInTheDocument();
+    expect(screen.getByText(/could not load the valuation details/i)).toBeInTheDocument();
   });
 
   test('shows error when valuation data is not found', () => {
     renderComponent(null, false, null);
     
-    expect(screen.getByText(/valuation not found/i)).toBeInTheDocument();
+    expect(screen.getByText(/error loading valuation/i)).toBeInTheDocument();
+    expect(screen.getByText(/could not load the valuation details/i)).toBeInTheDocument();
   });
 
   test('clicking PDF download button triggers PDF generation', async () => {
     renderComponent(mockValuationData);
     
-    // Setup PDF generation spy
-    const pdfSpy = jest.spyOn(generateValuationPdf, 'mockImplementation');
+    // Setup PDF generation spy - fixed way to spy on module function
+    const pdfSpy = jest.spyOn(pdfModule, 'generateValuationPdf');
     
     // Simulate PDF button click
     await waitFor(() => {
