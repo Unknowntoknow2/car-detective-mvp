@@ -6,6 +6,7 @@ import { vehicleSchema, VehicleFormValues } from '../schemas/vehicleSchema';
 import { Form } from '@/components/ui/form';
 import { useVehicleUpload } from '../hooks/useVehicleUpload';
 import { Button } from '@/components/ui/button';
+import { DealerVehicleFormData } from '@/types/dealerVehicle';
 
 interface DealerVehicleFormProps {
   isEditing: boolean;
@@ -47,10 +48,24 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
 
   const onSubmit = async (data: VehicleFormValues) => {
     try {
+      // Convert VehicleFormValues to DealerVehicleFormData
+      const vehicleData: DealerVehicleFormData = {
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        price: data.price,
+        mileage: data.mileage,
+        condition: data.condition,
+        status: data.status,
+        transmission: data.transmission,
+        fuel_type: data.fuel_type,
+        zip_code: data.zip_code
+      };
+      
       if (isEditing && vehicleData?.id) {
-        await updateVehicle(vehicleData.id, data);
+        await updateVehicle(vehicleData.id, vehicleData);
       } else {
-        await addVehicle(data);
+        await addVehicle(vehicleData);
       }
       onSuccess();
     } catch (error) {

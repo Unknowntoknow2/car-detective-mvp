@@ -10,8 +10,6 @@ export * from './service-history';
 export * from './animations';
 export * from './title-ownership';
 export * from './stats';
-export * from './marketing';
-export * from './theme';
 
 // Export individual components
 export { ErrorBoundary } from './ErrorBoundary';

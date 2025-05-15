@@ -17,6 +17,8 @@ export interface DealerVehicle {
   fuel_type?: string | null;
   transmission?: string | null;
   zip_code?: string | null;
+  description?: string;
+  vin?: string;
 }
 
 export interface DealerVehicleFormData {
@@ -31,4 +33,6 @@ export interface DealerVehicleFormData {
   fuel_type?: string | null;
   transmission?: string | null;
   zip_code?: string | null;
+  description?: string;
+  vin?: string;
 }

@@ -1,42 +1,88 @@
+import { describe, it, expect, vi } from 'vitest';
+import { generateValuationPdf } from '../utils/pdf/generateValuationPdf';
+import { ReportData } from '../utils/pdf/types';
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
-
-// Mock jsPDF
-vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    setFontSize: vi.fn(),
-    setFont: vi.fn(),
-    text: vi.fn(),
-    addImage: vi.fn(),
-    addPage: vi.fn(),
-    save: vi.fn(),
-    line: vi.fn(),
-    // Add other methods as needed
-  })),
+// Mock the PDF generation dependencies
+vi.mock('@react-pdf/renderer', () => ({
+  pdf: {
+    create: vi.fn().mockReturnValue({
+      toBlob: vi.fn().mockResolvedValue(new Blob(['mock pdf content'], { type: 'application/pdf' })),
+      toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock pdf content')),
+    }),
+  },
+  Document: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Page: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Text: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  View: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  StyleSheet: {
+    create: vi.fn().mockReturnValue({}),
+  },
+  Font: {
+    register: vi.fn(),
+  },
+  Image: () => <div>Image</div>,
 }));
 
 describe('generateValuationPdf', () => {
-  const mockValuation = {
-    id: '123',
-    make: 'Toyota',
-    model: 'Camry',
-    year: 2020,
-    vin: 'ABC123',
-    mileage: 50000,
-    estimated_value: 15000,
-    condition: 'Good',
-    adjustments: [
-      { factor: 'Mileage', impact: -500, description: 'Higher than average mileage' },
-      { factor: 'Condition', impact: 200, description: 'Good overall condition' },
-      { factor: 'Market Demand', impact: 300, description: 'High demand in your area' }
-    ],
-    confidence_score: 85,
-    created_at: '2023-01-01T00:00:00Z',
-  };
+  it('generates a PDF with the correct data', async () => {
+    // Sample test data
+    const testData = {
+      id: '123',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2020,
+      vin: 'ABC123456DEF78901',
+      mileage: 15000,
+      condition: 'Good',
+      zipCode: '90210', // Added missing required field
+      estimatedValue: 25000, // Added missing required field
+      adjustments: [
+        {
+          factor: 'Mileage',
+          impact: -500,
+          description: 'Lower than average mileage'
+        },
+        {
+          factor: 'Condition',
+          impact: 1000,
+          description: 'Excellent condition'
+        }
+      ],
+      confidenceScore: 85,
+      generatedAt: new Date().toISOString(), // Added missing field
+      // Add any other required fields from ReportData
+      priceRange: [23000, 27000],
+      userId: 'user123'
+    };
 
-  it('should generate a PDF document', () => {
-    const result = generateValuationPdf(mockValuation);
-    expect(result).toBeDefined();
+    // Generate the PDF
+    const pdfBuffer = await generateValuationPdf(testData as ReportData);
+    
+    // Verify the PDF was generated
+    expect(pdfBuffer).toBeDefined();
+    expect(pdfBuffer instanceof Buffer).toBe(true);
+    expect(pdfBuffer.toString()).toBe('mock pdf content');
+  });
+
+  it('handles missing optional fields gracefully', async () => {
+    // Minimal test data with only required fields
+    const minimalData = {
+      id: '456',
+      make: 'Honda',
+      model: 'Civic',
+      year: 2019,
+      mileage: 20000,
+      condition: 'Fair',
+      zipCode: '10001',
+      estimatedValue: 18000,
+      generatedAt: new Date().toISOString()
+    };
+
+    // Generate the PDF with minimal data
+    const pdfBuffer = await generateValuationPdf(minimalData as ReportData);
+    
+    // Verify the PDF was generated even with minimal data
+    expect(pdfBuffer).toBeDefined();
+    expect(pdfBuffer instanceof Buffer).toBe(true);
   });
 });

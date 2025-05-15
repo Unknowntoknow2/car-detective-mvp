@@ -164,7 +164,11 @@ export function useVehicleUpload() {
       if (error) throw error;
       
       if (data.photos) {
-        setPhotoUrls(Array.isArray(data.photos) ? data.photos : []);
+        // Convert any non-string values in photos array to strings
+        const photoStrings = Array.isArray(data.photos) 
+          ? data.photos.map(photo => String(photo)) 
+          : [];
+        setPhotoUrls(photoStrings);
       }
       
       return data;

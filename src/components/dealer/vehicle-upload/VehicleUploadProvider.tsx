@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { VehicleUploadModal } from './VehicleUploadModal';
 
 interface VehicleUploadProviderProps {
@@ -7,10 +7,15 @@ interface VehicleUploadProviderProps {
 }
 
 export const VehicleUploadProvider = ({ children }: VehicleUploadProviderProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
   return (
     <>
       {children}
-      <VehicleUploadModal />
+      <VehicleUploadModal 
+        open={isOpen} 
+        onOpenChange={setIsOpen} 
+      />
     </>
   );
 };

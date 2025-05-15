@@ -43,7 +43,6 @@ export const useValuationPdf = ({
         estimatedValue: valuationData.estimatedValue || 0,
         zipCode: valuationData.zipCode || valuationData.zip || '',
         vin: valuationData.vin || '',
-        trim: valuationData.trim || '',
         fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
@@ -54,7 +53,7 @@ export const useValuationPdf = ({
           Math.floor((valuationData.estimatedValue || 0) * 0.95),
           Math.ceil((valuationData.estimatedValue || 0) * 1.05)
         ],
-        // Convert adjustments to match AdjustmentBreakdown format
+        // Convert adjustments to match ReportData format
         adjustments: valuationData.adjustments?.map(adj => ({
           name: adj.factor || '',
           value: adj.impact || 0,
@@ -75,7 +74,12 @@ export const useValuationPdf = ({
           summary: conditionData.summary || conditionData.aiSummary || ''
         };
       } else if (valuationData.aiCondition) {
-        reportData.aiCondition = valuationData.aiCondition;
+        reportData.aiCondition = {
+          condition: valuationData.aiCondition.condition,
+          confidenceScore: valuationData.aiCondition.confidenceScore,
+          issuesDetected: valuationData.aiCondition.issuesDetected,
+          summary: valuationData.aiCondition.summary || valuationData.aiCondition.aiSummary || ''
+        };
       }
       
       // Add photo data if available
