@@ -1,3 +1,4 @@
 
 // Export account-related components
-export {};
+export const PremiumAccountOverview = () => null;
+

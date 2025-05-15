@@ -1,3 +1,4 @@
 
 // Export report-related components
-export {};
+export const PremiumReport = () => null;
+

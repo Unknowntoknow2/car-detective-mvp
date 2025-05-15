@@ -19,6 +19,9 @@ export interface DealerVehicle {
   zip_code?: string | null;
   description?: string;
   vin?: string;
+  color?: string;
+  vehicleId?: string;
+  features?: string[];
 }
 
 export interface DealerVehicleFormData {
@@ -35,4 +38,7 @@ export interface DealerVehicleFormData {
   zip_code?: string | null;
   description?: string;
   vin?: string;
+  color?: string;
+  vehicleId?: string;
+  features?: string[];
 }
