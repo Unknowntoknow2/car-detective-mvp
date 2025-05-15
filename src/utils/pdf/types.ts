@@ -63,9 +63,10 @@ export interface ReportOptions {
   printBackground?: boolean;
 }
 
-// Add the missing SectionParams type
+// Update the SectionParams type to include all required properties
 export interface SectionParams {
   page: any;
+  doc: any; // Add this
   margin: number;
   width: number;
   height: number;
@@ -75,4 +76,5 @@ export interface SectionParams {
   primaryColor: any;
   textColor: any;
   secondaryColor?: any;
+  pageWidth?: number; // Add this
 }
