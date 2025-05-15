@@ -106,7 +106,7 @@ export const DealerInventoryList: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingState itemCount={6} />;
   }
 
   if (error) {
@@ -131,7 +131,9 @@ export const DealerInventoryList: React.FC = () => {
             Add Vehicle
           </Button>
         </div>
-        <EmptyState onAddClick={openModal} />
+        <EmptyState 
+          onAddClick={openModal} 
+        />
       </div>
     );
   }
@@ -162,7 +164,10 @@ export const DealerInventoryList: React.FC = () => {
       
       {/* No Results Message */}
       {filteredVehicles.length === 0 ? (
-        <NoSearchResults onClearFilters={clearFilters} />
+        <NoSearchResults 
+          query={searchTerm}
+          onClearFilters={clearFilters} 
+        />
       ) : (
         <VehicleGrid 
           vehicles={sortedVehicles} 

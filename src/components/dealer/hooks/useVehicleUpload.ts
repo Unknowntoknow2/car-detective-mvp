@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { VehicleFormValues } from '../schemas/vehicleSchema';
+import { DealerVehicle } from '@/types/dealerVehicle';
 
 export const useVehicleUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
@@ -110,11 +111,17 @@ export const useVehicleUpload = () => {
     try {
       setIsUploading(true);
       
-      // Add the dealer_id to the vehicle data
+      // Ensure required fields are filled
       const dataWithDealer = {
         ...vehicleData,
         dealer_id: user.id,
-        photos: photoUrls
+        photos: photoUrls,
+        make: vehicleData.make || '',
+        model: vehicleData.model || '',
+        year: vehicleData.year || new Date().getFullYear(),
+        price: vehicleData.price || 0,
+        condition: vehicleData.condition || 'Good',
+        status: vehicleData.status || 'available'
       };
       
       // Insert the vehicle into the database
@@ -149,10 +156,16 @@ export const useVehicleUpload = () => {
     try {
       setIsUploading(true);
       
-      // Add the photos to the vehicle data
+      // Ensure required fields are filled
       const dataToUpdate = {
         ...vehicleData,
-        photos: photoUrls
+        photos: photoUrls,
+        make: vehicleData.make || '',
+        model: vehicleData.model || '',
+        year: vehicleData.year || new Date().getFullYear(),
+        price: vehicleData.price || 0,
+        condition: vehicleData.condition || 'Good',
+        status: vehicleData.status || 'available'
       };
       
       // Update the vehicle in the database
@@ -175,7 +188,7 @@ export const useVehicleUpload = () => {
   };
   
   // Fetch a vehicle by ID
-  const fetchVehicle = async (id: string) => {
+  const fetchVehicle = async (id: string): Promise<DealerVehicle | null> => {
     if (!user) return null;
     
     try {
@@ -188,12 +201,7 @@ export const useVehicleUpload = () => {
       
       if (error) throw error;
       
-      // Set photo URLs for editing
-      if (data.photos && Array.isArray(data.photos)) {
-        setPhotoUrls(data.photos.map(photo => String(photo)));
-      }
-      
-      return data;
+      return data as DealerVehicle;
     } catch (error: any) {
       console.error('Error fetching vehicle:', error);
       toast.error(`Failed to fetch vehicle: ${error.message}`);

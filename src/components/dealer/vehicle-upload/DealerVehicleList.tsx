@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, ChevronDown, Grid, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -135,7 +135,7 @@ export const DealerVehicleList: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const { setIsOpen } = useVehicleUploadModal();
+  const { openModal } = useVehicleUploadModal();
   
   // Simulate loading for skeleton effect
   React.useEffect(() => {
@@ -149,7 +149,7 @@ export const DealerVehicleList: React.FC = () => {
   
   // Function to handle opening the upload modal
   const handleOpenUploadModal = () => {
-    setIsOpen(true);
+    openModal();
   };
   
   // Filter vehicles based on search
@@ -199,7 +199,7 @@ export const DealerVehicleList: React.FC = () => {
         title="No vehicles in your inventory"
         description="Add your first vehicle to get started with your inventory management."
         actionLabel="Add First Vehicle"
-        onAction={handleOpenUploadModal}
+        onAddClick={handleOpenUploadModal}
         icon={<Plus className="h-10 w-10 text-muted-foreground" />}
       />
     );
@@ -229,7 +229,7 @@ export const DealerVehicleList: React.FC = () => {
         
         <NoSearchResults 
           query={searchQuery}
-          onClear={() => setSearchQuery('')}
+          onClearFilters={() => setSearchQuery('')}
         />
       </div>
     );

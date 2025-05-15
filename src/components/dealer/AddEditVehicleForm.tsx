@@ -12,15 +12,15 @@ import { Form } from '@/components/ui/form';
 import { VehicleForm } from './modals/VehicleForm';
 
 interface AddEditVehicleFormProps {
+  vehicleId?: string;
   onSuccess?: () => void;
 }
 
-const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ onSuccess }) => {
+const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ vehicleId, onSuccess }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   
   const {
     isUploading,
@@ -51,10 +51,11 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ onSuccess }) =>
   
   useEffect(() => {
     const loadVehicle = async () => {
-      if (id) {
+      const idToUse = vehicleId || id;
+      if (idToUse) {
         setIsLoading(true);
         try {
-          const vehicle = await fetchVehicle(id);
+          const vehicle = await fetchVehicle(idToUse);
           if (vehicle) {
             form.reset({
               make: vehicle.make,
@@ -70,7 +71,9 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ onSuccess }) =>
             });
             
             if (vehicle.photos && Array.isArray(vehicle.photos)) {
-              setPhotoUrls(vehicle.photos);
+              // Convert JSON array to string array
+              const photoUrlStrings = vehicle.photos.map(photo => String(photo));
+              setPhotoUrls(photoUrlStrings);
             }
           } else {
             toast.error('Vehicle not found');
@@ -85,14 +88,15 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ onSuccess }) =>
     };
     
     loadVehicle();
-  }, [id, fetchVehicle, form, navigate, setPhotoUrls]);
+  }, [vehicleId, id, fetchVehicle, form, navigate, setPhotoUrls]);
   
   const onSubmit = async (data: VehicleFormValues) => {
     try {
       setIsSubmitting(true);
       
-      if (id) {
-        await updateVehicle(id, data);
+      const idToUpdate = vehicleId || id;
+      if (idToUpdate) {
+        await updateVehicle(idToUpdate, data);
         toast.success('Vehicle updated successfully');
       } else {
         await addVehicle(data);
@@ -144,7 +148,7 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ onSuccess }) =>
             type="submit"
             disabled={isSubmitting || isUploading}
           >
-            {isSubmitting || isUploading ? 'Saving...' : id ? 'Update Vehicle' : 'Add Vehicle'}
+            {isSubmitting || isUploading ? 'Saving...' : id || vehicleId ? 'Update Vehicle' : 'Add Vehicle'}
           </Button>
         </div>
       </form>
