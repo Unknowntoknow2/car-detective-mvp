@@ -8,7 +8,7 @@ import { PredictionResult } from '@/components/valuation/PredictionResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import { DealerOffersList } from '@/components/dealer/DealerOffersList';
-import { PDFDownloadButton } from '@/components/common/PDFDownloadButton';
+import { DownloadPDFButton } from '@/components/ui/DownloadPDFButton';
 
 export default function ValuationDetailPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
@@ -45,7 +45,7 @@ export default function ValuationDetailPage() {
     );
   }
 
-  const isPremium = valuation.is_premium || valuation.isPremium;
+  const isPremium = valuation.premium_unlocked || valuation.isPremium;
 
   return (
     <div className="container mx-auto py-8">
@@ -96,12 +96,24 @@ export default function ValuationDetailPage() {
         }} 
       />
       
-      {/* PDF Download Button - only shown for premium valuations */}
+      {/* PDF Download Button - show for all users but adjust functionality based on premium status */}
       <div className="my-6 flex justify-center">
-        <PDFDownloadButton 
-          valuationResult={valuation} 
+        <DownloadPDFButton 
+          valuationId={valuation.id}
           isPremium={isPremium}
           className="mx-auto"
+          valuationData={{
+            make: valuation.make,
+            model: valuation.model,
+            year: valuation.year,
+            mileage: valuation.mileage,
+            condition: valuation.condition,
+            estimatedValue: valuation.estimatedValue || valuation.estimated_value,
+            confidenceScore: valuation.confidenceScore || valuation.confidence_score,
+            priceRange: valuation.priceRange || valuation.price_range,
+            adjustments: valuation.adjustments,
+            aiCondition: valuation.aiCondition
+          }}
         />
       </div>
 

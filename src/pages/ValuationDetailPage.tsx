@@ -8,6 +8,7 @@ import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationR
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DownloadPDFButton } from '@/components/ui/DownloadPDFButton';
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
@@ -92,14 +93,34 @@ export default function ValuationResultPage() {
     );
   }
 
+  const isPremium = valuationData?.premium_unlocked || false;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Vehicle Valuation</CardTitle>
+              <DownloadPDFButton
+                valuationId={id || valuationData?.id || ''}
+                isPremium={isPremium}
+                valuationData={{
+                  make: vehicleInfo.make,
+                  model: vehicleInfo.model,
+                  year: vehicleInfo.year,
+                  mileage: vehicleInfo.mileage,
+                  condition: vehicleInfo.condition,
+                  estimatedValue: valuationData?.estimated_value || 0,
+                  confidenceScore: valuationData?.confidence_score || 75,
+                  priceRange: valuationData?.price_range || [
+                    Math.round((valuationData?.estimated_value || 0) * 0.9),
+                    Math.round((valuationData?.estimated_value || 0) * 1.1)
+                  ],
+                  adjustments: valuationData?.adjustments || []
+                }}
+              />
             </CardHeader>
             <CardContent>
               <UnifiedValuationResult 
