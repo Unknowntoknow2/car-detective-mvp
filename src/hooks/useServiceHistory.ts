@@ -1,56 +1,59 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ServiceRecord {
-  id: number;
+  id: string;
   vin: string;
   service_date: string;
-  mileage: number | null;
+  mileage?: number | null;
   description: string;
-  receipt_url: string;
+  receipt_url?: string | null;
   created_at: string;
 }
 
 export function useServiceHistory(vin: string) {
   const [records, setRecords] = useState<ServiceRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchServiceHistory = useCallback(async () => {
+  const fetchRecords = async () => {
     if (!vin) {
+      setError('No VIN provided');
       setIsLoading(false);
       return;
     }
 
-    try {
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      const { data, error } = await supabase
+    try {
+      const { data, error: fetchError } = await supabase
         .from('service_history')
         .select('*')
         .eq('vin', vin)
         .order('service_date', { ascending: false });
 
-      if (error) throw error;
+      if (fetchError) throw new Error(fetchError.message);
 
-      setRecords(data as ServiceRecord[] || []);
+      setRecords(data || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load service history');
       console.error('Error fetching service history:', err);
+      setError(err.message || 'An error occurred while fetching service history');
     } finally {
       setIsLoading(false);
     }
-  }, [vin]);
+  };
+
+  const refetch = () => {
+    fetchRecords();
+  };
 
   useEffect(() => {
-    fetchServiceHistory();
-  }, [fetchServiceHistory]);
-
-  const refetch = useCallback(() => {
-    fetchServiceHistory();
-  }, [fetchServiceHistory]);
+    if (vin) {
+      fetchRecords();
+    }
+  }, [vin]);
 
   return { records, isLoading, error, refetch };
 }

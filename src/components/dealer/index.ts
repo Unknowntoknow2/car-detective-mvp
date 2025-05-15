@@ -1,5 +1,8 @@
 
-// If this file doesn't exist, we'll create it
+// Export dealer components
+export * from './hooks';
 export * from './vehicle-upload';
-export * from './vehicle-upload/VehicleUploadProvider';
-export * from './VehicleUploadButton';
+export * from './inventory';
+export * from './modals';
+export { default as DealerSubscription } from './DealerSubscription';
+export { default as DealerDashboardContent } from './DealerDashboardContent';

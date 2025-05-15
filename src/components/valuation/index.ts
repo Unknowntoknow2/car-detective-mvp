@@ -1,7 +1,10 @@
 
-// Re-export components from subdirectories
-export * from './form';
+// Export valuation components
 export * from './header';
-export * from './report';
-// Export from result directory with proper path
+export * from './condition';
+export * from './photo-upload';
+export * from './valuation-complete';
 export * from './result';
+export * from './free';
+export * from './form';
+export * from './report';
