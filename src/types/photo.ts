@@ -1,3 +1,4 @@
+
 // Define constants
 export const MAX_FILES = 10;
 export const MIN_FILES = 1;
@@ -59,6 +60,10 @@ export interface AICondition {
   confidenceScore: number;
   issuesDetected?: string[];
   summary?: string;
+  // Add backward compatibility properties
+  aiSummary?: string;
+  photoUrl?: string;
+  bestPhotoUrl?: string;
 }
 
 // Photo analysis result from AI
@@ -79,7 +84,7 @@ export interface PhotoAnalysisResult {
   aiCondition?: AICondition;
   individualScores?: PhotoScore[];
   bestPhotoId?: string;
-  error?: string; // Add error property
+  error?: string;
 }
 
 // Photo scoring result
@@ -97,7 +102,7 @@ export interface PhotoScoringResult {
   missingAngles?: string[];
   completionPercentage?: number;
   photoUrls?: string[];
-  error?: string; // Add error property
+  error?: string;
 }
 
 // Adjustment breakdown for photo-based valuation
@@ -107,6 +112,10 @@ export interface AdjustmentBreakdown {
   description?: string;
   name: string;
   value: number;
+  // Add back these properties for compatibility
+  percentAdjustment?: number;
+  impactPercentage?: number;
+  adjustment?: number;
 }
 
 // Photo upload options
