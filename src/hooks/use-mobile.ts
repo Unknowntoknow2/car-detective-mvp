@@ -1,24 +1,26 @@
 
 import { useState, useEffect } from 'react';
 
-export const useMediaQuery = (query: string): boolean => {
-  const [matches, setMatches] = useState(false);
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
+    // Function to check if the viewport is mobile sized
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [query]);
+    // Initial check
+    checkMobile();
 
-  return matches;
-};
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
 
-export const useIsMobile = (): boolean => {
-  return useMediaQuery('(max-width: 768px)');
-};
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  return isMobile;
+}

@@ -1,9 +1,20 @@
 
-// Export all UI components for easier imports
-export * from './search-and-filter-bar';
+// Export all UI components
+export * from './button';
+export * from './card';
+export * from './label';
+export * from './input';
+export * from './textarea';
+export * from './select';
+export * from './table';
+export * from './progress';
+export * from './checkbox';
+export * from './badge';
+export * from './tooltip';
+export * from './hover-card';
+export * from './collapsible';
+export * from './slider';
 export * from './loading-grid';
-export * from './no-results';
 export * from './empty-state';
-export * from './resource-header';
-export * from './entity-card';
-export * from './delete-confirmation-dialog';
+export * from './container';
+export { default as LoadingComponent } from './loading-component';

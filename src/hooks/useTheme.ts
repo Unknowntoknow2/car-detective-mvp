@@ -1,39 +1,30 @@
 
 import { useState, useEffect } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'light' | 'dark';
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage for saved theme preference
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    
-    if (savedTheme) {
+    // Check for saved preference or use system preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
     
-    // Check for OS preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return prefersDark ? 'dark' : 'light';
+    // Check system preference
+    const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches 
+      ? 'dark' 
+      : 'light';
+    
+    return systemPreference;
   });
 
   useEffect(() => {
+    // Apply theme to document
     const root = window.document.documentElement;
     
-    // Remove old class
     root.classList.remove('light', 'dark');
-    
-    // Add new class based on theme
-    let newTheme: Theme;
-    
-    if (theme === 'system') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      newTheme = prefersDark ? 'dark' : 'light';
-    } else {
-      newTheme = theme;
-    }
-    
-    root.classList.add(newTheme);
+    root.classList.add(theme);
     
     // Save to localStorage
     localStorage.setItem('theme', theme);
