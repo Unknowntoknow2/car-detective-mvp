@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Download, Mail } from 'lucide-react';
 
 interface ValuationResultProps {
   valuationId: string;
@@ -19,6 +21,9 @@ interface ValuationResultProps {
     impact: number;
     description?: string;
   }>;
+  displayMode?: string; // Added the missing property
+  onDownloadPdf?: () => Promise<void>; // Added missing property
+  onEmailReport?: () => Promise<void>; // Added missing property
 }
 
 const UnifiedValuationResult: React.FC<ValuationResultProps> = ({
@@ -27,7 +32,10 @@ const UnifiedValuationResult: React.FC<ValuationResultProps> = ({
   estimatedValue,
   confidenceScore = 85,
   priceRange = [0, 0],
-  adjustments = []
+  adjustments = [],
+  displayMode = 'default',
+  onDownloadPdf,
+  onEmailReport
 }) => {
   // Format currency with thousands separator
   const formatCurrency = (value: number) => {
@@ -74,6 +82,33 @@ const UnifiedValuationResult: React.FC<ValuationResultProps> = ({
             </div>
           </div>
         </div>
+        
+        {/* Add action buttons if handlers are provided */}
+        {(onDownloadPdf || onEmailReport) && displayMode === 'full' && (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {onDownloadPdf && (
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2" 
+                onClick={onDownloadPdf}
+              >
+                <Download className="h-4 w-4" />
+                Download PDF Report
+              </Button>
+            )}
+            
+            {onEmailReport && (
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2" 
+                onClick={onEmailReport}
+              >
+                <Mail className="h-4 w-4" />
+                Email Report
+              </Button>
+            )}
+          </div>
+        )}
       </div>
       
       {adjustments.length > 0 && (

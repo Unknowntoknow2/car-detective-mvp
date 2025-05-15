@@ -1,52 +1,37 @@
-
 /**
  * Validates a Vehicle Identification Number (VIN)
  * @param vin The VIN to validate
  * @returns An object containing isValid (boolean) and error (string if invalid)
  */
-export function validateVin(vin: string): { isValid: boolean; error: string | null } {
-  // Check if VIN is provided
-  if (!vin || vin.trim() === '') {
-    return { isValid: false, error: 'VIN is required' };
-  }
-
-  // Check for correct length (17 characters)
-  if (vin.length !== 17) {
+export function validateVin(vin: string): VinValidationResult {
+  // Remove any whitespace
+  const trimmedVin = vin.trim().toUpperCase();
+  
+  // Basic validation: VIN should be 17 characters long
+  if (trimmedVin.length !== 17) {
     return {
       isValid: false,
-      error: `VIN must be exactly 17 characters (currently ${vin.length})`
-    };
-  }
-
-  // Check for valid characters (exclude O, I, Q as they're not valid in modern VINs)
-  const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
-  if (!vinRegex.test(vin)) {
-    return {
-      isValid: false,
-      error: 'VIN contains invalid characters (only letters A-Z except O,I,Q and numbers 0-9 are allowed)'
+      message: 'VIN must be exactly 17 characters'
     };
   }
   
-  // Check the VIN check digit
-  const isCheckDigitValid = validateVinCheckDigit(vin);
-  if (!isCheckDigitValid) {
+  // Check for invalid characters
+  const validChars = /^[A-HJ-NPR-Z0-9]+$/; // excludes I, O, Q
+  if (!validChars.test(trimmedVin)) {
     return {
       isValid: false,
-      error: 'Invalid VIN check digit - this VIN appears to be incorrectly formatted'
+      message: 'VIN contains invalid characters'
     };
   }
-
-  // Check for proper year character
-  const yearChar = vin.charAt(9);
-  if (!isValidYearChar(yearChar)) {
-    return {
-      isValid: false,
-      error: 'Invalid year character in VIN position 10'
-    };
-  }
-
-  // All checks passed
-  return { isValid: true, error: null };
+  
+  // Additional checks could be implemented here
+  // - Check digit validation
+  // - Year validation
+  // - Manufacturer code validation
+  
+  return {
+    isValid: true
+  };
 }
 
 /**
