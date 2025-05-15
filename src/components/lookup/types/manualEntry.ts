@@ -10,6 +10,15 @@ export enum ConditionLevel {
 }
 
 /**
+ * Interface for accident details
+ */
+export interface AccidentDetails {
+  severity: 'Minor' | 'Moderate' | 'Severe';
+  description?: string;
+  repaired?: boolean;
+}
+
+/**
  * Interface for manual entry form data
  */
 export interface ManualEntryFormData {
@@ -24,4 +33,7 @@ export interface ManualEntryFormData {
   trim?: string;
   color?: string;
   vin?: string;
+  accidentDetails?: AccidentDetails;
+  selectedFeatures?: string[];
+  bodyType?: string;
 }
