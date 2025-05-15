@@ -3,7 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check } from "lucide-react";
 
-export function PremiumHero() {
+interface PremiumHeroProps {
+  scrollToForm: () => void;
+}
+
+export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
   return (
     <div className="bg-gradient-to-b from-slate-50 to-white py-16 border-b">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,11 +28,9 @@ export function PremiumHero() {
             <Button 
               size="lg" 
               className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white transition-all duration-300"
-              asChild
+              onClick={scrollToForm}
             >
-              <a href="#premium-form">
-                Purchase Premium <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
+              Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
           

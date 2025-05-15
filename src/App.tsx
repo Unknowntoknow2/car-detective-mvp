@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/hooks/useAuth';
 import { ValuationProvider } from '@/contexts/ValuationContext';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -22,7 +22,7 @@ import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import NotFound from '@/pages/NotFound';
 import Premium from '@/pages/Premium';
 import AuthLandingPage from '@/pages/AuthLandingPage';
-import UserDashboard from '@/pages/dashboard/UserDashboard'; // Add import
+import UserDashboard from '@/pages/dashboard/UserDashboard';
 
 // Components for route protection
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
