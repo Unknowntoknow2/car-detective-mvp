@@ -2,7 +2,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useVehicleUploadModal } from '@/components/dealer/hooks';
+import { useVehicleUploadModal } from '@/components/dealer/hooks/useVehicleUploadModal';
 
 export const VehicleUploadButton = () => {
   const { setIsOpen } = useVehicleUploadModal();

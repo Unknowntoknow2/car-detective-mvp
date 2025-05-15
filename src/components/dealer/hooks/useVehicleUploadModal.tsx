@@ -3,12 +3,14 @@ import React, { createContext, useContext, useState } from 'react';
 
 interface VehicleUploadModalContextProps {
   isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
   openModal: () => void;
   onClose: () => void;
 }
 
 const VehicleUploadModalContext = createContext<VehicleUploadModalContextProps>({
   isOpen: false,
+  setIsOpen: () => {},
   openModal: () => {},
   onClose: () => {}
 });
@@ -22,7 +24,7 @@ export const VehicleUploadModalProvider: React.FC<{ children: React.ReactNode }>
   const onClose = () => setIsOpen(false);
 
   return (
-    <VehicleUploadModalContext.Provider value={{ isOpen, openModal, onClose }}>
+    <VehicleUploadModalContext.Provider value={{ isOpen, setIsOpen, openModal, onClose }}>
       {children}
     </VehicleUploadModalContext.Provider>
   );

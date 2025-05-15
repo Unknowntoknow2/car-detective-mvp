@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { DealerVehicleFormData } from '../schemas/vehicleSchema';
+import { VehicleFormValues } from '../schemas/vehicleSchema';
 
 export const useVehicleUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
@@ -101,7 +101,7 @@ export const useVehicleUpload = () => {
   };
   
   // Add a new vehicle to the dealer's inventory
-  const addVehicle = async (vehicleData: DealerVehicleFormData) => {
+  const addVehicle = async (vehicleData: VehicleFormValues) => {
     if (!user) {
       toast.error('You must be logged in to add a vehicle');
       return;
@@ -140,7 +140,7 @@ export const useVehicleUpload = () => {
   };
   
   // Update an existing vehicle
-  const updateVehicle = async (id: string, vehicleData: DealerVehicleFormData) => {
+  const updateVehicle = async (id: string, vehicleData: VehicleFormValues) => {
     if (!user) {
       toast.error('You must be logged in to update a vehicle');
       return;

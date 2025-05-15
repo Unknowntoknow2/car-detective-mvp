@@ -1,45 +1,33 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
 
-export const LoadingState: React.FC = () => {
+export interface LoadingStateProps {
+  itemCount: number;
+}
+
+export const LoadingState: React.FC<LoadingStateProps> = ({ itemCount = 6 }) => {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-9 w-32" />
-      </div>
-      
-      <div className="flex justify-between items-center">
-        <Skeleton className="h-10 w-full max-w-md" />
-        <div className="hidden md:flex gap-2">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array(6).fill(0).map((_, index) => (
-          <div key={index} className="border rounded-lg p-4 space-y-4">
-            <Skeleton className="h-40 w-full rounded-md" />
-            <Skeleton className="h-6 w-3/4" />
-            <div className="flex justify-between">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-5 w-20" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: itemCount }).map((_, index) => (
+        <Card key={index} className="overflow-hidden">
+          <Skeleton className="h-48 w-full" />
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <Skeleton className="h-5 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <div className="flex justify-between items-center pt-2">
+                <Skeleton className="h-6 w-28" />
+                <div className="flex gap-1">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <Skeleton className="h-9 w-20" />
-              <Skeleton className="h-9 w-20" />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <div className="flex justify-center items-center">
-        <Loader2 className="h-8 w-8 text-primary mr-2 animate-spin" />
-        <span className="text-muted-foreground">Loading your inventory...</span>
-      </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

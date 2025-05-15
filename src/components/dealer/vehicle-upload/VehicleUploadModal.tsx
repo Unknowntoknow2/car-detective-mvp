@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -7,9 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { vehicleSchema, VehicleFormValues } from '../schemas/vehicleSchema';
 import { useVehicleUpload } from '../hooks/useVehicleUpload';
 import { useVehicleUploadModal } from '../hooks/useVehicleUploadModal';
-import { supabase } from '@/integrations/supabase/client';
 import { ImageUploadSection } from './ImageUploadSection';
-import { ConditionSelector } from './ConditionSelector';
 import Loading from '@/components/ui/loading';
 import {
   Dialog,
@@ -89,10 +86,10 @@ export const VehicleUploadModal: React.FC = () => {
               year: vehicle.year,
               price: vehicle.price,
               mileage: vehicle.mileage,
-              condition: vehicle.condition,
-              status: vehicle.status,
-              transmission: vehicle.transmission || undefined,
-              fuel_type: vehicle.fuel_type || undefined,
+              condition: vehicle.condition as "Excellent" | "Good" | "Fair" | "Poor",
+              status: vehicle.status as "available" | "pending" | "sold",
+              transmission: vehicle.transmission as "Automatic" | "Manual" | undefined,
+              fuel_type: vehicle.fuel_type as "Gasoline" | "Diesel" | "Hybrid" | "Electric" | undefined,
               zip_code: vehicle.zip_code || ''
             });
             

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Plus, ChevronDown, Grid, List } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -136,7 +135,7 @@ export const DealerVehicleList: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const { isOpen, setIsOpen } = useVehicleUploadModal();
+  const { setIsOpen } = useVehicleUploadModal();
   
   // Simulate loading for skeleton effect
   React.useEffect(() => {
