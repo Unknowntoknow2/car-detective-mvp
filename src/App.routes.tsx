@@ -1,116 +1,241 @@
+import { lazy, Suspense } from 'react';
+import { Navigate } from 'react-router-dom';
+import { SiteLayout } from '@/layouts/SiteLayout';
+import { AuthLayout } from '@/layouts/AuthLayout';
+import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { DealerLayout } from '@/layouts/DealerLayout';
+import Loading from '@/components/ui/loading';
+import DealerSubscriptionPlansPage from '@/pages/dealer/DealerSubscriptionPlansPage';
 
-import React from 'react';
-import { createBrowserRouter, RouterProvider, Route, createRoutesFromElements } from 'react-router-dom';
-import Layout from '@/components/layout/Layout';
-import MainLayout from '@/layouts/MainLayout';
-import AuthLayout from '@/layouts/AuthLayout';
-import DashboardLayout from '@/layouts/DashboardLayout';
-import DealerLayout from '@/layouts/DealerLayout';
-import DealerGuard from '@/guards/DealerGuard';
-import AuthGuard from '@/guards/AuthGuard';
-import GuestGuard from '@/guards/GuestGuard';
+// Lazy-loaded components
+const HomePage = lazy(() => import('@/pages/HomePage'));
+const AboutPage = lazy(() => import('@/pages/AboutPage'));
+const ContactPage = lazy(() => import('@/pages/ContactPage'));
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'));
+const DealerDashboardPage = lazy(() => import('@/pages/dealer/DealerDashboardPage'));
+const DealerInventoryPage = lazy(() => import('@/pages/dealer/DealerInventoryPage'));
+const DealerSubscriptionPage = lazy(() => import('@/pages/dealer/DealerSubscriptionPage'));
+const VehicleDetailsPage = lazy(() => import('@/pages/VehicleDetailsPage'));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const UnifiedValuationPage = lazy(() => import('@/pages/ValuationPage'));
+const TermsOfServicePage = lazy(() => import('@/pages/TermsOfServicePage'));
+const PrivacyPolicyPage = lazy(() => import('@/pages/PrivacyPolicyPage'));
 
-// Page imports
-import HomePage from '@/pages/HomePage';
-import AboutPage from '@/pages/AboutPage';
-import ContactPage from '@/pages/ContactPage';
-import NotFoundPage from '@/pages/NotFoundPage';
-import AccessDeniedPage from '@/pages/AccessDeniedPage';
+// Update the routes to include the new DealerSubscriptionPlansPage
+export const routes = [
+  {
+    path: '/',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <HomePage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/about',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <AboutPage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/contact',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <ContactPage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/login',
+    element: (
+      <AuthLayout>
+        <Suspense fallback={<Loading />}>
+          <LoginPage />
+        </Suspense>
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/register',
+    element: (
+      <AuthLayout>
+        <Suspense fallback={<Loading />}>
+          <RegisterPage />
+        </Suspense>
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <AuthLayout>
+        <Suspense fallback={<Loading />}>
+          <ForgotPasswordPage />
+        </Suspense>
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <AuthLayout>
+        <Suspense fallback={<Loading />}>
+          <ResetPasswordPage />
+        </Suspense>
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/dashboard',
+    element: (
+      <DashboardLayout>
+        <Suspense fallback={<Loading />}>
+          <DashboardPage />
+        </Suspense>
+      </DashboardLayout>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <DashboardLayout>
+        <Suspense fallback={<Loading />}>
+          <ProfilePage />
+        </Suspense>
+      </DashboardLayout>
+    ),
+  },
+  {
+    path: '/settings',
+    element: (
+      <DashboardLayout>
+        <Suspense fallback={<Loading />}>
+          <SettingsPage />
+        </Suspense>
+      </DashboardLayout>
+    ),
+  },
+  {
+    path: '/admin-dashboard',
+    element: (
+      <DashboardLayout>
+        <Suspense fallback={<Loading />}>
+          <AdminDashboardPage />
+        </Suspense>
+      </DashboardLayout>
+    ),
+  },
+  {
+    path: '/dealer-dashboard',
+    element: (
+      <DealerLayout>
+        <Suspense fallback={<Loading />}>
+          <DealerDashboardPage />
+        </Suspense>
+      </DealerLayout>
+    ),
+  },
+  {
+    path: '/dealer-inventory',
+    element: (
+      <DealerLayout>
+        <Suspense fallback={<Loading />}>
+          <DealerInventoryPage />
+        </Suspense>
+      </DealerLayout>
+    ),
+  },
+  {
+    path: '/dealer-subscription',
+    element: (
+      <DealerLayout>
+        <Suspense fallback={<Loading />}>
+          <DealerSubscriptionPage />
+        </Suspense>
+      </DealerLayout>
+    ),
+  },
+  {
+    path: '/vehicle/:id',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <VehicleDetailsPage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/valuation',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <UnifiedValuationPage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/terms-of-service',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <TermsOfServicePage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/privacy-policy',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <PrivacyPolicyPage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+  {
+    path: '/dealer-subscription-plans',
+    element: <DealerSubscriptionPlansPage />,
+  },
+  {
+    path: '*',
+    element: (
+      <SiteLayout>
+        <Suspense fallback={<Loading />}>
+          <NotFoundPage />
+        </Suspense>
+      </SiteLayout>
+    ),
+  },
+];
 
-// Auth page imports
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
-import ResetPasswordPage from '@/pages/ResetPasswordPage';
+export const protectedRoutes = [
+  '/dashboard',
+  '/profile',
+  '/settings',
+  '/admin-dashboard',
+  '/dealer-dashboard',
+  '/dealer-inventory',
+  '/dealer-subscription',
+];
 
-// Dashboard page imports
-import DashboardPage from '@/pages/DashboardPage';
+export const adminRoutes = ['/admin-dashboard'];
 
-// Dealer page imports
-import DealerDashboard from '@/pages/DealerDashboard';
-import DealerProfileSettings from '@/pages/DealerProfileSettings';
-import DealerSubscriptionSettings from '@/pages/DealerSubscriptionPage';
-
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route 
-      element={<Layout />}
-      errorElement={<div>Error Page</div>}
-    >
-      {/* Main site routes */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route path="*" element={<NotFoundPage />} />
-      <Route path="/access-denied" element={<AccessDeniedPage />} />
-      
-      {/* Auth routes */}
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={
-          <GuestGuard>
-            <LoginPage />
-          </GuestGuard>
-        } />
-        <Route path="/register" element={
-          <GuestGuard>
-            <RegisterPage />
-          </GuestGuard>
-        } />
-        <Route path="/forgot-password" element={
-          <GuestGuard>
-            <ForgotPasswordPage />
-          </GuestGuard>
-        } />
-        <Route path="/reset-password" element={
-          <GuestGuard>
-            <ResetPasswordPage />
-          </GuestGuard>
-        } />
-      </Route>
-      
-      {/* Authenticated routes */}
-      <Route element={<DashboardLayout />}>
-        <Route 
-          path="/dashboard" 
-          element={
-            <AuthGuard>
-              <DashboardPage />
-            </AuthGuard>
-          } 
-        />
-      </Route>
-      
-      {/* Dealer routes */}
-      <Route element={<DealerLayout />}>
-        <Route 
-          path="/dealer-dashboard" 
-          element={
-            <DealerGuard>
-              <DealerDashboard />
-            </DealerGuard>
-          } 
-        />
-        
-        <Route 
-          path="/dealer-profile-settings" 
-          element={
-            <DealerGuard>
-              <DealerProfileSettings />
-            </DealerGuard>
-          } 
-        />
-        
-        <Route 
-          path="/dealer-subscription-settings" 
-          element={
-            <DealerGuard>
-              <DealerSubscriptionSettings />
-            </DealerGuard>
-          } 
-        />
-      </Route>
-    </Route>
-  )
-);
-
-export default router;
+export const dealerRoutes = ['/dealer-dashboard', '/dealer-inventory', '/dealer-subscription'];
