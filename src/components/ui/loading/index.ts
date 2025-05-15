@@ -1,2 +1,2 @@
 
-export { default } from '../Loading';
+export { default } from '@/components/ui/Loading';

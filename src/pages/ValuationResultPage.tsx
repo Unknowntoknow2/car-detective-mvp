@@ -8,6 +8,7 @@ import { PredictionResult } from '@/components/valuation/PredictionResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import { DealerOffersList } from '@/components/dealer/DealerOffersList';
+import { PDFDownloadButton } from '@/components/common/PDFDownloadButton';
 
 export default function ValuationDetailPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
@@ -44,7 +45,7 @@ export default function ValuationDetailPage() {
     );
   }
 
-  const isPremium = valuation.isPremium;
+  const isPremium = valuation.is_premium || valuation.isPremium;
 
   return (
     <div className="container mx-auto py-8">
@@ -94,6 +95,22 @@ export default function ValuationDetailPage() {
           confidence_score: valuation.confidenceScore,
         }} 
       />
+      
+      {/* PDF Download Button - only shown for premium valuations */}
+      <div className="my-6 flex justify-center">
+        <PDFDownloadButton 
+          valuationResult={valuation} 
+          isPremium={isPremium}
+          className="mx-auto"
+        />
+      </div>
+
+      {valuationId && (
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold mb-4">Dealer Offers</h3>
+          <DealerOffersList reportId={valuationId} showActions={true} />
+        </div>
+      )}
     </div>
   );
 }
