@@ -35,9 +35,19 @@ export function drawValuationSummary(
   let currentLine = '';
   const lines: string[] = [];
   
+  // Mock calculation for line width if font object doesn't have widthOfTextAtSize
+  const calculateTextWidth = (text: string, fontSize: number) => {
+    // Simple approximation: assume each character is ~0.6 times the font size wide
+    return text.length * fontSize * 0.6;
+  };
+  
+  const getTextWidth = typeof regularFont === 'string' 
+    ? (text: string) => calculateTextWidth(text, 12)
+    : (text: string) => (regularFont as any).widthOfTextAtSize(text, 12);
+  
   for (const word of words) {
     const testLine = currentLine + word + ' ';
-    if (regularFont.widthOfTextAtSize(testLine, 12) > contentWidth) {
+    if (getTextWidth(testLine) > contentWidth) {
       lines.push(currentLine);
       currentLine = word + ' ';
     } else {
@@ -79,19 +89,20 @@ export function drawValuationSummary(
 
 // Export a function that shows how to use drawValuationSummary
 export function buildValuationSummarySection(sectionParams: SectionParams, reportData: ReportData): number {
-  let yPosition = sectionParams.height - sectionParams.margin - 100; // Starting position
+  // Use height and margins in a safely way
+  const startY = sectionParams.height ? sectionParams.height - (sectionParams.margins?.top || sectionParams.margin || 40) - 100 : 700;
   
   // Generate narrative if not provided
   const narrative = reportData.narrative || 
     `This valuation report for your ${reportData.year} ${reportData.make} ${reportData.model} ` +
-    `provides an estimated market value of $${reportData.estimatedValue.toLocaleString()} ` +
+    `provides an estimated market value of $${reportData.estimatedValue?.toLocaleString() || reportData.price.toLocaleString()} ` +
     `based on vehicle condition, mileage, and local market factors.`;
   
   // Call the function with all required parameters
-  yPosition = drawValuationSummary(
+  const yPosition = drawValuationSummary(
     sectionParams, 
     narrative, 
-    yPosition,
+    startY,
     reportData.isPremium,
     true // includeTimestamp 
   );

@@ -1,16 +1,18 @@
 
-import React, { useState } from 'react';
-import { LoginForm } from './LoginForm';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import LoginForm from './LoginForm';
 
-function SignInPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  
+const SignInPage: React.FC = () => {
   return (
-    <div className="container mx-auto max-w-md py-12">
-      <h1 className="text-2xl font-bold mb-6">Sign In</h1>
-      <LoginForm isLoading={isLoading} setIsLoading={setIsLoading} />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Sign In</h1>
+      <LoginForm />
+      <p className="mt-4">
+        Don't have an account? <Link to="/signup" className="text-blue-500 hover:underline">Sign up</Link>
+      </p>
     </div>
   );
-}
+};
 
 export default SignInPage;

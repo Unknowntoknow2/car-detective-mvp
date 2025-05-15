@@ -54,7 +54,11 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         // Use estimated value as price
         price: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
         estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
-        adjustments: valuationResult.adjustments || [],
+        adjustments: (valuationResult.adjustments || []).map((adj: any) => ({
+          factor: adj.factor || '',
+          impact: adj.impact || 0,
+          description: adj.description || `Adjustment for ${adj.factor || 'unknown'}`
+        })),
         generatedAt: new Date().toISOString(),
         confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore,
         priceRange: valuationResult.price_range || valuationResult.priceRange
