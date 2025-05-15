@@ -3,19 +3,21 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SignupForm } from '@/components/auth/forms/SignupForm';
 
-export function SignUpPage() {
+export const SignUpPage = () => {
   return (
-    <div className="container mx-auto mt-12 max-w-md px-4">
-      <Card className="border shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Sign Up</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SignupForm />
-        </CardContent>
-      </Card>
+    <div className="container flex items-center justify-center min-h-[calc(100vh-14rem)] py-8">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Create Account</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SignupForm />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
 
 export default SignUpPage;

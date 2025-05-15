@@ -6,4 +6,4 @@ export * from './dashboard/states/AdminEmptyState';
 export * from './dashboard/states/AdminErrorState';
 export * from './dashboard/states/AdminLoadingState';
 export * from './dashboard/sections/TopZipCodesCard';
-export { AuthTestPanel } from './testing/AuthTestPanel';
+// Remove or fix the missing AuthTestPanel export

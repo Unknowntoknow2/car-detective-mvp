@@ -1,7 +1,6 @@
 
 export interface ReportData {
   id: string;
-  userId?: string;
   make: string;
   model: string;
   year: number;
@@ -9,30 +8,32 @@ export interface ReportData {
   condition: string;
   zipCode: string;
   estimatedValue: number;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
   confidenceScore?: number;
+  generatedAt: string;
+  userId?: string;
   priceRange?: [number, number];
-  generatedAt?: string;
-  features?: string[];
-  photoUrl?: string;
-  bodyType?: string;
-  transmission?: string;
-  fuelType?: string;
-  color?: string;
+  adjustments?: Array<{
+    name: string;
+    value: number;
+    factor?: string;
+    impact?: number;
+    description?: string;
+    impactPercentage?: number;
+  }>;
+  // Additional properties needed for the PDF
   vin?: string;
-}
-
-export interface ReportOptions {
-  isPremium: boolean;
-  includeBranding: boolean;
-  includeAIScore: boolean;
-  includeFooter: boolean;
-  includeTimestamp: boolean;
-  includePhotoAssessment: boolean;
-  includeMarketComparison: boolean;
-  includeDealerOffers: boolean;
+  trim?: string;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  bodyType?: string;
+  bestPhotoUrl?: string;
+  isPremium?: boolean;
+  explanation?: string;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+  };
 }

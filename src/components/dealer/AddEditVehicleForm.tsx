@@ -10,6 +10,7 @@ import Loading from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { VehicleForm } from './modals/VehicleForm';
+import { DealerVehicleFormData } from '@/types/dealerVehicle';
 
 interface AddEditVehicleFormProps {
   vehicleId?: string;
@@ -94,12 +95,26 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ vehicleId, onSu
     try {
       setIsSubmitting(true);
       
+      // Convert VehicleFormValues to DealerVehicleFormData
+      const vehicleData: DealerVehicleFormData = {
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        price: data.price,
+        mileage: data.mileage,
+        condition: data.condition,
+        status: data.status,
+        transmission: data.transmission,
+        fuel_type: data.fuel_type,
+        zip_code: data.zip_code
+      };
+      
       const idToUpdate = vehicleId || id;
       if (idToUpdate) {
-        await updateVehicle(idToUpdate, data);
+        await updateVehicle(idToUpdate, vehicleData);
         toast.success('Vehicle updated successfully');
       } else {
-        await addVehicle(data);
+        await addVehicle(vehicleData);
         toast.success('Vehicle added successfully');
       }
       

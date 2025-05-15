@@ -35,7 +35,9 @@ export function useDealerInventory() {
         ...vehicle,
         status: vehicle.status as DealerVehicleStatus,
         // Ensure photos is an array of strings
-        photos: Array.isArray(vehicle.photos) ? vehicle.photos : [],
+        photos: Array.isArray(vehicle.photos) 
+          ? vehicle.photos.map(photo => String(photo))
+          : [],
         // Convert any null values to undefined for optional fields
         fuel_type: vehicle.fuel_type || undefined,
         transmission: vehicle.transmission || undefined,

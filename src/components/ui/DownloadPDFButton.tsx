@@ -60,11 +60,21 @@ export function DownloadPDFButton({
           generatedAt: new Date().toISOString(),
           userId: user.id,
           isPremium: isPremium,
-          aiCondition: valuationData.aiCondition,
-          adjustments: valuationData.adjustments,
+          // Custom properties
+          vin: valuationData.vin,
           explanation: valuationData.explanation,
-          vin: valuationData.vin
+          adjustments: valuationData.adjustments,
         };
+
+        // Add AI condition data if available
+        if (valuationData.aiCondition) {
+          reportData.aiCondition = {
+            condition: valuationData.aiCondition.condition,
+            confidenceScore: valuationData.aiCondition.confidenceScore,
+            issuesDetected: valuationData.aiCondition.issuesDetected,
+            summary: valuationData.aiCondition.summary || ''
+          };
+        }
 
         await downloadValuationPdf(reportData);
       } else {
