@@ -19,6 +19,7 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
   isPremium?: boolean;
 }): ReportData {
   return {
+    // Generate a random UUID if id doesn't exist in vehicleInfo
     id: vehicleInfo.id || crypto.randomUUID(),
     make: vehicleInfo.make,
     model: vehicleInfo.model,

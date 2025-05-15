@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
-import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { toast } from '@/components/ui/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { saveAs } from 'file-saver';
+import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
 interface PDFDownloadButtonProps {
   valuationResult: any;
@@ -42,6 +42,8 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       
       // Format the data for the PDF generator
       const formData = {
+        // Add the missing id property
+        id: valuationResult.id || crypto.randomUUID(),
         make: valuationResult.make,
         model: valuationResult.model,
         year: valuationResult.year,
