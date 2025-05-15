@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Add error state
 
   // Setup Supabase auth state listener
   useEffect(() => {
@@ -97,6 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
+    setError(null); // Reset error state
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -121,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { data, error: null };
     } catch (err) {
       console.error('Sign in error:', err);
+      setError((err as Error).message || 'Failed to sign in');
       toast.error('Failed to sign in');
       return { data: null, error: err as Error };
     } finally {
@@ -130,6 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, role: UserRole = 'individual') => {
     setIsLoading(true);
+    setError(null); // Reset error state
     
     try {
       // Sign up the user
@@ -164,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { data, error: null };
     } catch (err) {
       console.error('Sign up error:', err);
+      setError((err as Error).message || 'Failed to sign up');
       toast.error('Failed to sign up');
       return { data: null, error: err as Error };
     } finally {
@@ -173,6 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     setIsLoading(true);
+    setError(null); // Reset error state
     
     try {
       await supabase.auth.signOut();
@@ -182,6 +188,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast.success('Successfully signed out!');
     } catch (err) {
       console.error('Sign out error:', err);
+      setError((err as Error).message || 'Failed to sign out');
       toast.error('Failed to sign out');
     } finally {
       setIsLoading(false);
@@ -190,6 +197,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     setIsLoading(true);
+    setError(null); // Reset error state
     
     try {
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -202,6 +210,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { data, error: null };
     } catch (err) {
       console.error('Reset password error:', err);
+      setError((err as Error).message || 'Failed to reset password');
       toast.error('Failed to reset password');
       return { data: null, error: err as Error };
     } finally {
@@ -211,6 +220,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updatePassword = async (password: string) => {
     setIsLoading(true);
+    setError(null); // Reset error state
     
     try {
       const { data, error } = await supabase.auth.updateUser({
@@ -223,6 +233,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { data, error: null };
     } catch (err) {
       console.error('Update password error:', err);
+      setError((err as Error).message || 'Failed to update password');
       toast.error('Failed to update password');
       return { data: null, error: err as Error };
     } finally {
@@ -242,12 +253,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
       if (error) {
         console.error('Get user role error:', error);
+        setError(error.message || 'Failed to get user role');
         return null;
       }
       
       return data?.user_role as UserRole || null;
     } catch (err) {
       console.error('Get user role error:', err);
+      setError((err as Error).message || 'Failed to get user role');
       return null;
     }
   };
@@ -259,6 +272,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         userRole,
         isLoading,
+        error, // Include error in the context value
         signIn,
         signUp,
         signOut,
