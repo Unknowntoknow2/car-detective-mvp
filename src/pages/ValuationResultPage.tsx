@@ -32,11 +32,12 @@ export default function ValuationResultPage() {
   const valuationData = data || tempData;
 
   // Safely extract error message, handling null case
-  const errorMessage = error 
-    ? (typeof error === 'object' && error !== null && 'message' in error)
-      ? String((error as { message: string }).message)
-      : String(error)
-    : 'Could not find the requested valuation.';
+  const errorMessage = error
+  ? typeof error === 'object' && error && 'message' in error
+    ? String((error as { message?: string }).message || 'Unknown error')
+    : String(error)
+  : 'Could not find the requested valuation.';
+
 
   const vehicleInfo = valuationData
     ? {
