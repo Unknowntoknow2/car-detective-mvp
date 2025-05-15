@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { validateVin } from '@/utils/validation/vin-validation';
 import { AlertCircle } from 'lucide-react';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 
 // Import our new component parts
 import { VehicleBasicInfoFields } from './components/VehicleBasicInfoFields';
@@ -22,13 +23,17 @@ const formSchema = z.object({
   mileage: z.string().regex(/^\d+$/, "Enter a valid mileage"),
   condition: z.string().min(1, "Condition is required"),
   zipCode: z.string().regex(/^\d{5}$/, "Enter a valid 5-digit ZIP code"),
-  vin: z.string().optional()
+  vin: z.string().optional(),
+  fuelType: z.string().optional(),
+  transmission: z.string().optional(),
+  trim: z.string().optional(),
+  color: z.string().optional()
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export interface ManualEntryFormProps {
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
   isPremium?: boolean;
@@ -49,7 +54,11 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       mileage: '',
       condition: '',
       zipCode: '',
-      vin: ''
+      vin: '',
+      fuelType: '',
+      transmission: '',
+      trim: '',
+      color: ''
     }
   });
   
@@ -63,14 +72,29 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       }
     }
     
-    onSubmit(values);
+    // Convert string values to appropriate types for ManualEntryFormData
+    const formattedData: ManualEntryFormData = {
+      make: values.make,
+      model: values.model,
+      year: parseInt(values.year),
+      mileage: parseInt(values.mileage),
+      condition: (values.condition as ConditionLevel) || ConditionLevel.Good,
+      zipCode: values.zipCode,
+      fuelType: values.fuelType,
+      transmission: values.transmission,
+      trim: values.trim,
+      color: values.color,
+      vin: values.vin
+    };
+    
+    onSubmit(formattedData);
   };
 
   const conditionOptions = [
-    { value: 'excellent', label: 'Excellent' },
-    { value: 'good', label: 'Good' },
-    { value: 'fair', label: 'Fair' },
-    { value: 'poor', label: 'Poor' }
+    { value: ConditionLevel.Excellent, label: 'Excellent' },
+    { value: ConditionLevel.Good, label: 'Good' },
+    { value: ConditionLevel.Fair, label: 'Fair' },
+    { value: ConditionLevel.Poor, label: 'Poor' }
   ];
 
   return (
