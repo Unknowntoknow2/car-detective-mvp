@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,7 +35,7 @@ type ValuationFormData = z.infer<typeof valuationSchema>;
 export const FreeValuationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { generateValuation } = useValuation();
+  const { submitValuation } = useValuation();
   const navigate = useNavigate();
 
   const {
@@ -66,12 +67,12 @@ export const FreeValuationForm = () => {
         zipCode: data.zipCode // Ensure this is not optional
       };
 
-      const result = await generateValuation(valuationData);
+      const result = await submitValuation(valuationData);
 
-      if (result.success && result.valuationId) {
-        navigate(`/valuation/${result.valuationId}`);
+      if (result.success && result.data?.valuationId) {
+        navigate(`/valuation/${result.data.valuationId}`);
       } else {
-        setError(result.error || 'Failed to generate valuation. Please try again.');
+        setError(result.errorMessage || 'Failed to generate valuation. Please try again.');
       }
     } catch (err) {
       console.error('Valuation error:', err);

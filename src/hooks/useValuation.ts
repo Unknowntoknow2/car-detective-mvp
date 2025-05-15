@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { ValuationInput } from '@/utils/valuation/types';
 
 export const useValuation = () => {
   const [valuationResult, setValuationResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submitValuation = async (formData: ValuationInput): Promise<{ success: boolean; data?: any; errorMessage?: string }> => {
     setIsLoading(true);
@@ -18,7 +20,6 @@ export const useValuation = () => {
         success: true,
         valuationId: '123456',
         confidenceScore: 85,
-        // Add error property for error handling in catch block
         error: null
       };
 
@@ -35,6 +36,7 @@ export const useValuation = () => {
       return { success: true, data: response };
     } catch (error: any) {
       console.error('Valuation error:', error);
+      setError(error.message || 'An error occurred while processing your valuation');
       return { 
         success: false, 
         errorMessage: error.message || 'An error occurred while processing your valuation' 
@@ -44,9 +46,49 @@ export const useValuation = () => {
     }
   };
 
+  // Add generateValuation function that works the same as submitValuation
+  const generateValuation = async (formData: ValuationInput): Promise<{ 
+    success: boolean; 
+    valuationId?: string; 
+    confidenceScore?: number;
+    error?: string;
+  }> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Validate form data
+      if (!formData.zipCode) {
+        throw new Error('Please enter a valid ZIP code');
+      }
+      
+      // Simulate API response
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const result = {
+        success: true,
+        valuationId: `val-${Date.now()}`,
+        confidenceScore: 85,
+      };
+      
+      return result;
+    } catch (error: any) {
+      console.error('Valuation generation error:', error);
+      setError(error.message || 'Failed to generate valuation');
+      return { 
+        success: false, 
+        error: error.message || 'Failed to generate valuation' 
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     valuationResult,
     isLoading,
-    submitValuation
+    error,
+    submitValuation,
+    generateValuation
   };
 };

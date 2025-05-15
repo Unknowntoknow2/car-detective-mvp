@@ -45,3 +45,8 @@ export const formatRelativeTime = (date: Date | string): string => {
 export const manualEntryToJson = (data: any): string => {
   return JSON.stringify(data);
 };
+
+// Make sure formatCurrency and formatDate are exported directly here as well
+export { formatCurrency } from './formatCurrency';
+export { formatDate } from './formatDate';
+export { formatNumber } from './formatNumber';

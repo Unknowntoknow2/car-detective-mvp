@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,28 @@ export function ValuationFlow() {
   const [valuationResult, setValuationResult] = useState<any>(null);
   const [vehicleInfo, setVehicleInfo] = useState<any>(null);
   const [showResult, setShowResult] = useState(false);
-  const { generateValuation, isLoading, error } = useValuation();
+  const { submitValuation, isLoading } = useValuation();
+  const [error, setError] = useState<string | null>(null);
+  
+  // Modified generateValuation function that uses submitValuation
+  const generateValuation = async (data: any) => {
+    try {
+      const result = await submitValuation(data);
+      if (result.success) {
+        return { 
+          success: true, 
+          confidenceScore: 85, // Default confidence score
+          ...result.data
+        };
+      } else {
+        setError(result.errorMessage || 'Failed to generate valuation');
+        return { success: false };
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+      return { success: false };
+    }
+  };
   
   // Handle VIN lookup
   const handleVinLookup = async (vin: string) => {

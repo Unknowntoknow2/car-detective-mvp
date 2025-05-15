@@ -12,9 +12,17 @@ export interface ManualEntryFormData {
   fuelType?: string;
   transmission?: string;
   bodyType?: string;
-  accident?: boolean; // Add accident property
-  accidentDetails?: AccidentDetails; // Add accidentDetails property
-  selectedFeatures?: string[]; // Add selectedFeatures property
+  accident?: boolean;
+  accidentDetails?: AccidentDetails;
+  selectedFeatures?: string[];
+}
+
+export interface ManualEntryFormProps {
+  onSubmit: (data: ManualEntryFormData) => void | Promise<void>;
+  isLoading?: boolean; // Make isLoading an optional prop to fix the error
+  submitButtonText?: string;
+  isPremium?: boolean;
+  initialData?: Partial<ManualEntryFormData>;
 }
 
 // Add AccidentDetails interface
