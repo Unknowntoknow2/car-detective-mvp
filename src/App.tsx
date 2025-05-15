@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { AuthProvider } from '@/components/auth/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ValuationProvider } from '@/contexts/ValuationContext';
 import { Toaster } from '@/components/ui/toaster';
 
