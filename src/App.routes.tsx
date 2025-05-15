@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
 import SiteLayout from '@/layouts/SiteLayout';
@@ -32,183 +33,255 @@ const PrivacyPolicyPage = lazy(() => import('@/pages/PrivacyPolicyPage'));
 export const routes = [
   {
     path: '/',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <HomePage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <HomePage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/about',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <AboutPage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <AboutPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/contact',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <ContactPage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ContactPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/login',
-    element: (
-      <AuthLayout>
-        <Suspense fallback={<Loading />}>
-          <LoginPage />
-        </Suspense>
-      </AuthLayout>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <LoginPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/register',
-    element: (
-      <AuthLayout>
-        <Suspense fallback={<Loading />}>
-          <RegisterPage />
-        </Suspense>
-      </AuthLayout>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <RegisterPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/forgot-password',
-    element: (
-      <AuthLayout>
-        <Suspense fallback={<Loading />}>
-          <ForgotPasswordPage />
-        </Suspense>
-      </AuthLayout>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ForgotPasswordPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/reset-password',
-    element: (
-      <AuthLayout>
-        <Suspense fallback={<Loading />}>
-          <ResetPasswordPage />
-        </Suspense>
-      </AuthLayout>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ResetPasswordPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/dashboard',
-    element: (
-      <DashboardLayout>
-        <Suspense fallback={<Loading />}>
-          <DashboardPage />
-        </Suspense>
-      </DashboardLayout>
-    ),
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <DashboardPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/profile',
-    element: (
-      <DashboardLayout>
-        <Suspense fallback={<Loading />}>
-          <ProfilePage />
-        </Suspense>
-      </DashboardLayout>
-    ),
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <ProfilePage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/settings',
-    element: (
-      <DashboardLayout>
-        <Suspense fallback={<Loading />}>
-          <SettingsPage />
-        </Suspense>
-      </DashboardLayout>
-    ),
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SettingsPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/admin-dashboard',
-    element: (
-      <DashboardLayout>
-        <Suspense fallback={<Loading />}>
-          <AdminDashboardPage />
-        </Suspense>
-      </DashboardLayout>
-    ),
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <AdminDashboardPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/dealer-dashboard',
-    element: (
-      <DealerLayout>
-        <Suspense fallback={<Loading />}>
-          <DealerDashboardPage />
-        </Suspense>
-      </DealerLayout>
-    ),
+    element: <DealerLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <DealerDashboardPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/dealer-inventory',
-    element: (
-      <DealerLayout>
-        <Suspense fallback={<Loading />}>
-          <DealerInventoryPage />
-        </Suspense>
-      </DealerLayout>
-    ),
+    element: <DealerLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <DealerInventoryPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/dealer-subscription',
-    element: (
-      <DealerLayout>
-        <Suspense fallback={<Loading />}>
-          <DealerSubscriptionPage />
-        </Suspense>
-      </DealerLayout>
-    ),
+    element: <DealerLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <DealerSubscriptionPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/vehicle/:id',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <VehicleDetailsPage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <VehicleDetailsPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/valuation',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <UnifiedValuationPage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <UnifiedValuationPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/terms-of-service',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <TermsOfServicePage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <TermsOfServicePage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/privacy-policy',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <PrivacyPolicyPage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PrivacyPolicyPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
   {
     path: '/dealer-subscription-plans',
@@ -216,13 +289,17 @@ export const routes = [
   },
   {
     path: '*',
-    element: (
-      <SiteLayout>
-        <Suspense fallback={<Loading />}>
-          <NotFoundPage />
-        </Suspense>
-      </SiteLayout>
-    ),
+    element: <SiteLayout />,
+    children: [
+      {
+        path: '',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <NotFoundPage />
+          </Suspense>
+        ),
+      }
+    ]
   },
 ];
 
