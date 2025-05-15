@@ -47,7 +47,7 @@ export const useValuationPdf = ({
         fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
-        bodyType: valuationData.bodyType || valuationData.bodyStyle || '', // Fixed from body_type to bodyType
+        bodyType: valuationData.bodyType || valuationData.bodyStyle || '', 
         confidenceScore: valuationData.confidenceScore || 75,
         isPremium: isPremium,
         priceRange: valuationData.priceRange || [
