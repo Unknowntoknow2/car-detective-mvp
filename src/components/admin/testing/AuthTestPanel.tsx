@@ -9,7 +9,7 @@ export interface AuthTestPanelProps {
 }
 
 export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({ userId }) => {
-  const { runTests, results, isLoading } = useAuthTests(userId);
+  const { runTests, results, isRunning } = useAuthTests(userId);
   
   return (
     <Card>
@@ -17,8 +17,8 @@ export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({ userId }) => {
         <CardTitle>Authentication Test Panel</CardTitle>
       </CardHeader>
       <CardContent>
-        <Button onClick={runTests} disabled={isLoading}>
-          {isLoading ? 'Running Tests...' : 'Run Auth Tests'}
+        <Button onClick={runTests} disabled={isRunning}>
+          {isRunning ? 'Running Tests...' : 'Run Auth Tests'}
         </Button>
         
         {results && (

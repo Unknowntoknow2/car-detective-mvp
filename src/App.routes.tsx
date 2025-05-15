@@ -27,7 +27,7 @@ const AppRoutes = () => {
     <Routes>
       <Route element={<MainLayout />}>
         {/* Public routes */}
-        <Route path="/" element={<HomePage />} />
+        <Route index element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/valuation/vin" element={<VinLookupPage />} />
         <Route path="/valuation/plate" element={<PlateLookupPage />} />

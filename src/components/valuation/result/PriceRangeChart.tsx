@@ -1,34 +1,138 @@
-
 import React from 'react';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/formatters';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface PriceRangeChartProps {
-  priceRange: [number, number];
-  currentValue: number;
+  estimatedValue: number;
+  priceRange?: [number, number];
+  marketAverage?: number;
+  className?: string;
 }
 
-export const PriceRangeChart: React.FC<PriceRangeChartProps> = ({ priceRange, currentValue }) => {
-  const [min, max] = priceRange;
-  const range = max - min;
-  const position = Math.min(Math.max((currentValue - min) / range, 0), 1) * 100;
+const PriceRangeChart: React.FC<PriceRangeChartProps> = ({
+  estimatedValue,
+  priceRange = [
+    Math.floor(estimatedValue * 0.9),
+    Math.ceil(estimatedValue * 1.1),
+  ],
+  marketAverage = estimatedValue * 0.98,
+  className,
+}) => {
+  // Calculate the midpoint for better visualization
+  const midpoint = (priceRange[0] + priceRange[1]) / 2;
   
+  // Create data for the chart
+  const data = {
+    labels: ['Price Range'],
+    datasets: [
+      {
+        label: 'Price Range',
+        data: [{ y: 0, x: 'Price Range', low: priceRange[0], high: priceRange[1] }],
+        backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        borderColor: 'rgba(53, 162, 235, 1)',
+        borderWidth: 1,
+        borderRadius: 4,
+        barThickness: 60,
+      },
+      {
+        label: 'Estimated Value',
+        data: [estimatedValue],
+        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 2,
+        borderRadius: 4,
+        barThickness: 10,
+        type: 'bar' as const,
+      },
+      {
+        label: 'Market Average',
+        data: [marketAverage],
+        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 2,
+        borderRadius: 4,
+        barThickness: 10,
+        type: 'bar' as const,
+      },
+    ],
+  };
+
+  // Chart options
+  const options = {
+    responsive: true,
+    scales: {
+      y: {
+        beginAtZero: false,
+        min: Math.floor(priceRange[0] * 0.95),
+        max: Math.ceil(priceRange[1] * 1.05),
+        ticks: {
+          callback: (value: number) => formatCurrency(value),
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            if (context.dataset.label === 'Price Range') {
+              return [
+                `Low: ${formatCurrency(context.raw.low)}`,
+                `High: ${formatCurrency(context.raw.high)}`,
+              ];
+            }
+            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+          },
+        },
+      },
+    },
+  };
+
   return (
-    <div className="border rounded-lg p-4 bg-white shadow-sm">
-      <h3 className="font-semibold text-lg mb-3">Price Range</h3>
-      <div className="relative h-6 bg-gray-200 rounded-full">
-        <div 
-          className="absolute top-0 h-6 bg-blue-500 rounded-l-full"
-          style={{ width: `${position}%` }}
-        ></div>
-        <div 
-          className="absolute top-0 w-4 h-6 bg-red-500 rounded-full transform -translate-x-1/2"
-          style={{ left: `${position}%` }}
-        ></div>
-      </div>
-      <div className="flex justify-between mt-2 text-sm">
-        <span>${min.toLocaleString()}</span>
-        <span>${max.toLocaleString()}</span>
-      </div>
-    </div>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="text-lg">Price Range</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-64">
+          <Bar data={data} options={options} />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Price Range</p>
+            <p className="font-medium">
+              {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+            </p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Estimated Value</p>
+            <p className="font-medium">{formatCurrency(estimatedValue)}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
