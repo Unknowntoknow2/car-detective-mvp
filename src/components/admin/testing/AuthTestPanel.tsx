@@ -17,7 +17,7 @@ export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({ userId }) => {
         <CardTitle>Authentication Test Panel</CardTitle>
       </CardHeader>
       <CardContent>
-        <Button onClick={runTests} disabled={isRunning}>
+        <Button onClick={() => runTests()} disabled={isRunning}>
           {isRunning ? 'Running Tests...' : 'Run Auth Tests'}
         </Button>
         
@@ -27,8 +27,8 @@ export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({ userId }) => {
             <ul className="space-y-1">
               {Object.entries(results).map(([testName, passed]) => (
                 <li key={testName} className="flex items-center gap-2">
-                  <span className={passed ? 'text-green-500' : 'text-red-500'}>
-                    {passed ? '✓' : '✗'}
+                  <span className={typeof passed === 'boolean' && passed ? 'text-green-500' : 'text-red-500'}>
+                    {typeof passed === 'boolean' && passed ? '✓' : '✗'}
                   </span>
                   <span>{testName}</span>
                 </li>

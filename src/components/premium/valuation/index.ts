@@ -1,3 +1,4 @@
 
 // Export valuation-related components
-export {};
+export const PremiumValuation = () => null;
+

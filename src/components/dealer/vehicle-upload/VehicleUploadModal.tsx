@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -43,7 +44,6 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
     setVinData(data);
     setActiveTab('manual'); // Switch to manual tab with pre-filled data
     toast({
-      title: "VIN Lookup Successful",
       description: `Found ${data.year} ${data.make} ${data.model}`,
     });
   };
@@ -53,16 +53,14 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
     try {
       await addVehicle(data);
       toast({
-        title: "Vehicle Added",
         description: `Successfully added ${data.year} ${data.make} ${data.model} to inventory`,
       });
       onOpenChange(false);
     } catch (error) {
       console.error("Error adding vehicle:", error);
       toast({
-        title: "Error",
-        description: "Failed to add vehicle. Please try again.",
         variant: "destructive",
+        description: "Failed to add vehicle. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -110,12 +108,6 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
               onSuccess={handleVinLookupSuccess}
               onCancel={() => onOpenChange(false)}
             />
-            
-            <div className="flex justify-between mt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>

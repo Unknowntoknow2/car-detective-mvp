@@ -1,3 +1,4 @@
 
 // Export lookup-related components
-export {};
+export const PremiumLookup = () => null;
+

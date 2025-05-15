@@ -1,3 +1,4 @@
 
 // Export dashboard-related components
-export {};
+export const PremiumDashboard = () => null;
+
