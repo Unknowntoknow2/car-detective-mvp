@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
-import { generateValuationPdf } from '../utils/pdf/generateValuationPdf';
-import { ReportData } from '../utils/pdf/types';
+import { generateValuationPdf } from './generateValuationPdf';
+import { ReportData } from './types';
 
 // Mock the PDF generation dependencies
 vi.mock('@react-pdf/renderer', () => ({
