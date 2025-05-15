@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { AuthProvider } from '@/hooks/useAuth.tsx';
+import { AuthProvider } from '@/components/auth/AuthContext';
 import { ValuationProvider } from '@/contexts/ValuationContext';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -15,6 +15,7 @@ import DealerSignup from '@/pages/dealer/signup';
 import RegisterPage from '@/pages/RegisterPage';
 import VpicDecoderPage from '@/pages/VpicDecoderPage';
 import ValuationPage from '@/pages/ValuationPage';
+import ValuationResultPage from '@/pages/ValuationResultPage';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import SettingsPage from '@/pages/SettingsPage';
@@ -49,6 +50,7 @@ function App() {
                 <ValuationDetailsPage />
               </React.Suspense>
             } />
+            <Route path="valuation-result" element={<ValuationResultPage />} />
             <Route path="decoder" element={<VpicDecoderPage />} />
             <Route path="premium" element={<Premium />} />
             

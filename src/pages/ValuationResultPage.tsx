@@ -1,5 +1,4 @@
 
-// src/pages/ValuationResultPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -33,11 +32,10 @@ export default function ValuationResultPage() {
 
   // Safely extract error message, handling null case
   const errorMessage = error
-  ? typeof error === 'object' && error && 'message' in error
-    ? String((error as { message?: string }).message || 'Unknown error')
-    : String(error)
-  : 'Could not find the requested valuation.';
-
+    ? typeof error === 'object' && error && 'message' in error
+      ? String((error as { message?: string }).message || 'Unknown error')
+      : String(error)
+    : 'Could not find the requested valuation.';
 
   const vehicleInfo = valuationData
     ? {

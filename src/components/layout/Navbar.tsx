@@ -2,15 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { UserDropdown } from './UserDropdown';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { Menu, Building, User, Sparkles } from 'lucide-react';
+import { Menu, Building, Sparkles } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import Logo from './Logo';
 
 export function Navbar() {
-  const { user, userRole } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const toggleMobileMenu = () => {
@@ -38,32 +36,20 @@ export function Navbar() {
               <Sparkles className="mr-1 h-4 w-4" />
               Premium
             </Link>
-            
-            {/* Role-specific navigation items */}
-            {user && userRole === 'dealer' && (
-              <Link to="/dealer-dashboard" className="text-sm font-medium transition-colors hover:text-primary flex items-center">
-                <Building className="mr-1 h-4 w-4" />
-                Dealer Dashboard
-              </Link>
-            )}
           </nav>
         </div>
         
         <div className="flex items-center gap-4">
           <ThemeToggle />
           
-          {user ? (
-            <UserDropdown />
-          ) : (
-            <div className="hidden md:flex items-center gap-3">
-              <Button asChild variant="ghost">
-                <Link to="/auth">Sign In</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/register">Sign Up</Link>
-              </Button>
-            </div>
-          )}
+          <div className="hidden md:flex items-center gap-3">
+            <Button asChild variant="ghost">
+              <Link to="/auth">Sign In</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register">Sign Up</Link>
+            </Button>
+          </div>
           
           {/* Mobile Menu Button */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleMobileMenu}>
