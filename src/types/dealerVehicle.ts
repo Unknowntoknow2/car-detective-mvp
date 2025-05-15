@@ -26,4 +26,9 @@ export interface DealerVehicleFormData {
   mileage: number | null;
   price: number;
   status: DealerVehicleStatus;
+  photos?: string[];
+  condition?: string;
+  fuel_type?: string | null;
+  transmission?: string | null;
+  zip_code?: string | null;
 }
