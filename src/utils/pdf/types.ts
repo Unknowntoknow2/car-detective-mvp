@@ -1,40 +1,42 @@
 
+/**
+ * Data required for generating a valuation report
+ */
 export interface ReportData {
+  id: string;
   make: string;
   model: string;
   year: number;
   mileage: number;
   condition: string;
-  zipCode?: string;
+  zipCode: string;
   estimatedValue: number;
   confidenceScore?: number;
-  priceRange?: [number, number];
   adjustments?: Array<{
     factor: string;
     impact: number;
-    name?: string;
-    value?: number;
     description?: string;
-    percentAdjustment?: number;
   }>;
+  priceRange?: [number, number];
   generatedAt: string;
-  vin?: string;
-  color?: string;
-  bodyType?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
+  userId?: string;
   isPremium?: boolean;
-  aiCondition?: any;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+  };
+  photoScore?: number;
+  bestPhotoUrl?: string;
   explanation?: string;
-  fuelType?: string;
-  transmission?: string;
-  features?: string[];
-  photoExplanation?: string;
-  valuationId?: string;
   narrative?: string;
-  trim?: string;
+  vin?: string;
 }
 
+/**
+ * Options for PDF report generation
+ */
 export interface ReportOptions {
   includeHeader: boolean;
   includeFooter: boolean;
@@ -42,10 +44,8 @@ export interface ReportOptions {
   includePhotos: boolean;
   includeLegalDisclaimer: boolean;
   theme: 'light' | 'dark';
-  logoUrl?: string;
-  customStyles?: Record<string, any>;
   format?: string;
-  orientation?: 'portrait' | 'landscape';
+  orientation?: string;
   margin?: number;
   includeBranding?: boolean;
   includeTimestamp?: boolean;
@@ -56,31 +56,38 @@ export interface ReportOptions {
   printBackground?: boolean;
   landscape?: boolean;
   showWholesaleValue?: boolean;
-  dealerName?: string;
   userName?: string;
+  dealerName?: string;
 }
 
+/**
+ * Default options for PDF generation
+ */
+export const defaultReportOptions: ReportOptions = {
+  includeHeader: true,
+  includeFooter: true,
+  includePageNumbers: true,
+  includePhotos: true,
+  includeLegalDisclaimer: true,
+  theme: 'light',
+  includeBranding: true,
+  includeTimestamp: true,
+  includePhotoAssessment: true,
+  includeAIScore: true,
+  isPremium: false,
+  title: 'Vehicle Valuation Report'
+};
+
+/**
+ * Parameters for drawing PDF sections
+ */
 export interface SectionParams {
   doc: any;
-  page: any;
-  width?: number;
-  height?: number;
-  margin?: number;
-  pageWidth?: number;
-  contentWidth?: number;
-  fonts?: {
-    regular: any;
-    bold: any;
-  };
-  regularFont?: any;
-  boldFont?: any;
-  constants?: {
-    margin: number;
-    width: number;
-    height: number;
-    titleFontSize: number;
-    headingFontSize: number;
-    normalFontSize: number;
-    smallFontSize: number;
-  };
+  pageWidth: number;
+  margin: number;
+  regularFont: any;
+  boldFont: any;
+  primaryColor: any;
+  secondaryColor: any;
+  textColor: any;
 }
