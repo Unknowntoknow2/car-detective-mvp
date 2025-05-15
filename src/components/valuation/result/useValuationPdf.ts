@@ -23,7 +23,6 @@ export const useValuationPdf = ({
   const handleDownloadPdf = async () => {
     if (!valuationData) {
       toast({
-        title: "Error",
         description: "No valuation data available.",
         variant: "destructive"
       });
@@ -41,14 +40,14 @@ export const useValuationPdf = ({
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Unknown',
-        estimatedValue: valuationData.estimatedValue || valuationData.valuation || 0,
+        estimatedValue: valuationData.estimatedValue || 0,
         zipCode: valuationData.zipCode || valuationData.zip || '',
         vin: valuationData.vin || '',
         trim: valuationData.trim || '',
-        fuelType: valuationData.fuelType || '',
+        fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
-        bodyType: valuationData.bodyType || '',
+        bodyType: valuationData.bodyType || valuationData.body_type || '',
         confidenceScore: valuationData.confidenceScore || 75,
         isPremium: isPremium,
         priceRange: valuationData.priceRange || [
@@ -67,15 +66,15 @@ export const useValuationPdf = ({
           issuesDetected: conditionData.issuesDetected,
           // Make sure we're using the correct property name as defined in the AICondition type
           // If aiSummary doesn't exist, provide a fallback or empty string
-          summary: conditionData.aiSummary || conditionData.summary || ''
+          aiSummary: conditionData.aiSummary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;
       }
       
       // Add photo data if available
-      if (valuationData.photoUrl || valuationData.bestPhotoUrl) {
-        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photoUrl;
+      if (valuationData.bestPhotoUrl || valuationData.photo_url) {
+        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
       }
       
       // Generate the PDF
@@ -89,13 +88,11 @@ export const useValuationPdf = ({
       saveAs(pdfBlob, fileName);
       
       toast({
-        title: "Success!",
         description: "Valuation PDF downloaded successfully."
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
-        title: "Error",
         description: "Failed to generate the PDF. Please try again.",
         variant: "destructive"
       });

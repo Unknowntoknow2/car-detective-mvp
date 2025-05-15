@@ -93,7 +93,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   
   // PDF generation logic
   const { 
-    isDownloading, 
+    isGenerating, 
     handleDownloadPdf 
   } = useValuationPdf({
     valuationData,
@@ -192,7 +192,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     onUpgrade: handleUpgrade,
     onDownloadPdf: handleDownloadPdf,
     onEmailPdf: handleEmailPdf,
-    isDownloading,
+    isDownloading: isGenerating,
     isEmailSending
   };
   
@@ -204,7 +204,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
         onUpgrade={handleUpgrade}
         onDownloadPdf={handleDownloadPdf}
         estimatedValue={estimatedValue}
-        isDownloading={isDownloading}
+        isDownloading={isGenerating}
       >
         <AnimatePresence>
           <div className={styles.container}>
