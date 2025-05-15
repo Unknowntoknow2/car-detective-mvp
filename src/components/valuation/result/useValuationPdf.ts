@@ -1,42 +1,36 @@
 
 import { useState } from 'react';
-import { toast } from '@/components/ui/use-toast';
 import { ValuationResult } from '@/types/valuation';
 import { AICondition } from '@/types/photo';
 import { ReportData } from '@/utils/pdf/types';
-import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
-import { useAuth } from '@/hooks/useAuth';
+import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { saveAs } from 'file-saver';
+import { toast } from '@/components/ui/use-toast';
 
 interface UseValuationPdfProps {
   valuationData: ValuationResult | null;
   conditionData: AICondition | null;
+  isPremium?: boolean;
 }
 
-export function useValuationPdf({ 
-  valuationData, 
-  conditionData 
-}: UseValuationPdfProps) {
-  const { user } = useAuth();
-  const [isDownloading, setIsDownloading] = useState(false);
+export const useValuationPdf = ({
+  valuationData,
+  conditionData,
+  isPremium = false
+}: UseValuationPdfProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
   
-  const handleDownloadPdf = async (): Promise<void> => {
+  const handleDownloadPdf = async () => {
     if (!valuationData) {
       toast({
-        description: "No valuation data available to generate PDF",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!user) {
-      toast({
-        description: "Please log in to download the valuation report",
+        title: "Error",
+        description: "No valuation data available.",
         variant: "destructive"
       });
       return;
     }
     
-    setIsDownloading(true);
+    setIsGenerating(true);
     
     try {
       // Format data for PDF generation
@@ -46,20 +40,23 @@ export function useValuationPdf({
         model: valuationData.model || 'Vehicle',
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
-        condition: valuationData.condition || 'Good',
-        zipCode: valuationData.zipCode || valuationData.zip || '00000',
-        estimatedValue: valuationData.estimatedValue || 0,
+        condition: valuationData.condition || 'Unknown',
+        estimatedValue: valuationData.estimatedValue || valuationData.valuation || 0,
+        zipCode: valuationData.zipCode || valuationData.zip || '',
+        vin: valuationData.vin || '',
+        trim: valuationData.trim || '',
+        fuelType: valuationData.fuelType || '',
+        transmission: valuationData.transmission || '',
+        color: valuationData.color || '',
+        bodyType: valuationData.bodyType || '',
         confidenceScore: valuationData.confidenceScore || 75,
+        isPremium: isPremium,
         priceRange: valuationData.priceRange || [
-          Math.round((valuationData.estimatedValue || 0) * 0.9),
-          Math.round((valuationData.estimatedValue || 0) * 1.1)
+          Math.floor((valuationData.estimatedValue || 0) * 0.95),
+          Math.ceil((valuationData.estimatedValue || 0) * 1.05)
         ],
-        generatedAt: new Date().toISOString(),
-        userId: user.id,
-        isPremium: valuationData.isPremium || valuationData.premium_unlocked || false,
         adjustments: valuationData.adjustments || [],
-        explanation: valuationData.explanation || valuationData.gptExplanation || '',
-        vin: valuationData.vin || ''
+        generatedAt: new Date().toISOString(),
       };
       
       // Add AI condition data if available
@@ -68,31 +65,49 @@ export function useValuationPdf({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          // Fix: Changed 'summary' to 'aiSummary' to match the type
-          summary: conditionData.aiSummary || ''
+          // Make sure we're using the correct property name as defined in the AICondition type
+          // If aiSummary doesn't exist, provide a fallback or empty string
+          summary: conditionData.aiSummary || conditionData.summary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;
       }
       
-      await downloadValuationPdf(reportData);
+      // Add photo data if available
+      if (valuationData.photoUrl || valuationData.bestPhotoUrl) {
+        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photoUrl;
+      }
+      
+      // Generate the PDF
+      const pdfBytes = await generateValuationPdf(reportData);
+      
+      // Create file name
+      const fileName = `${reportData.make}_${reportData.model}_Valuation_${Date.now()}.pdf`;
+      
+      // Create a blob and save/download the file
+      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      saveAs(pdfBlob, fileName);
       
       toast({
-        description: "Your valuation report has been downloaded successfully."
+        title: "Success!",
+        description: "Valuation PDF downloaded successfully."
       });
-    } catch (error: any) {
-      console.error('Error downloading PDF:', error);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
       toast({
-        description: error.message || "Failed to download PDF report",
+        title: "Error",
+        description: "Failed to generate the PDF. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setIsDownloading(false);
+      setIsGenerating(false);
     }
   };
   
   return {
-    isDownloading,
+    isGenerating,
     handleDownloadPdf
   };
-}
+};
+
+export default useValuationPdf;
