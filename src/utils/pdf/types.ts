@@ -1,66 +1,38 @@
 
-import { AICondition } from '@/types/photo';
-
-export interface ReportOptions {
-  paperSize: 'letter' | 'a4' | 'legal';
-  orientation: 'portrait' | 'landscape';
-  includeWatermark: boolean;
-  includeValuationBreakdown: boolean;
-  includeVehicleHistory: boolean;
-  includeVehicleImages: boolean;
-  includeMarketTrends: boolean;
-  includeCarfaxData: boolean;
-  headerLogo?: string;
-  footerText?: string;
-  color: {
-    primary: string;
-    secondary: string;
-    accent: string;
-    text: string;
-    muted: string;
-    background: string;
-  };
-}
+import { AICondition, AdjustmentBreakdown } from '@/types/photo';
 
 export interface ReportData {
   id: string;
+  userId?: string;
   make: string;
   model: string;
   year: number;
   mileage: number;
   condition: string;
-  zipCode: string;
   estimatedValue: number;
-  confidenceScore: number;
-  priceRange: [number, number];
-  adjustments: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
+  zipCode: string;
+  vin?: string;
   trim?: string;
-  color?: string;
-  bodyType?: string;
   fuelType?: string;
   transmission?: string;
-  vin?: string;
-  userId?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  photoExplanation?: string;
-  aiCondition?: AICondition | null;
-  explanation?: string;
-  features?: string[];
-  isPremium?: boolean;
+  color?: string;
+  bodyType?: string;
+  confidenceScore?: number;
+  priceRange?: number[];
+  adjustments?: AdjustmentBreakdown[];
+  aiCondition?: AICondition;
   generatedAt: string;
+  bestPhotoUrl?: string;
+  isPremium?: boolean;
 }
 
-export interface AdjustmentBreakdown {
-  name: string;
-  value: number;
-  description: string;
-  percentAdjustment: number;
-  factor: string;
-  impact: number;
-  impactPercentage?: number;
+export interface ReportOptions {
+  emailTo?: string;
+  includeBreakdown?: boolean;
+  includeMarketTrends?: boolean;
+  includeSimilarVehicles?: boolean;
+  watermark?: boolean;
+  branding?: boolean;
+  templateId?: string;
+  isPremium?: boolean;
 }

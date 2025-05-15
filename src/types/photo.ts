@@ -7,36 +7,51 @@ export const MIN_FILES = 1;
 export interface PhotoFile {
   id: string;
   file: File;
-  previewUrl: string;
-  status: 'uploading' | 'uploaded' | 'error';
-  progress: number;
+  previewUrl?: string;
+  preview?: string; // For backward compatibility
+  status?: 'uploading' | 'uploaded' | 'error';
+  progress?: number;
   error?: string;
 }
 
 // Photo type (used after upload)
 export interface Photo {
   id: string;
-  url: string;
+  url?: string;
   thumbnailUrl?: string;
-  fileName: string;
-  fileSize: number;
+  fileName?: string;
+  fileSize?: number;
   width?: number;
   height?: number;
-  uploadedAt: string;
-  angle: 'front' | 'back' | 'side' | 'interior' | 'other';
+  uploadedAt?: string;
+  angle?: 'front' | 'back' | 'side' | 'interior' | 'other';
   isMainPhoto?: boolean;
   valuationId?: string;
+  // For backward compatibility and form handling
+  file?: File;
+  name?: string;
+  size?: number;
+  type?: string;
+  preview?: string;
+  uploading?: boolean;
+  uploaded?: boolean;
+  error?: string;
+  score?: number;
+  isPrimary?: boolean;
+  explanation?: string;
 }
 
 // Photo score type
 export interface PhotoScore {
   score: number;
-  angle: string;
-  clarity: number;
-  lighting: number;
-  framing: number;
-  comments: string[];
+  angle?: string;
+  clarity?: number;
+  lighting?: number;
+  framing?: number;
+  comments?: string[];
   issues?: string[];
+  url?: string;
+  isPrimary?: boolean;
 }
 
 // AI condition assessment result
@@ -46,32 +61,45 @@ export interface AICondition {
   issuesDetected?: string[];
   summary?: string;
   aiSummary?: string; // For backward compatibility
+  photoUrl?: string; // Best photo URL
+  bestPhotoUrl?: string; // Alternative name for best photo
 }
 
 // Photo analysis result from AI
 export interface PhotoAnalysisResult {
-  photoId: string;
-  angle: string;
-  clarity: number;
-  lighting: number;
-  framing: number;
-  overall: number;
+  photoId?: string;
+  photoUrls?: string[];
+  angle?: string;
+  clarity?: number;
+  lighting?: number;
+  framing?: number;
+  overall?: number;
+  score?: number;
   vehicleType?: string;
   damageDetected?: boolean;
   damageDescription?: string;
   colorDetected?: string;
-  isComplete: boolean;
+  isComplete?: boolean;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
+  bestPhotoId?: string;
 }
 
 // Photo scoring result
 export interface PhotoScoringResult {
-  overallScore: number;
-  photoScores: PhotoScore[];
+  overallScore?: number;
+  photoScore?: number; 
+  score?: number;
+  photoScores?: PhotoScore[];
+  individualScores?: PhotoScore[];
   conditionAssessment?: AICondition;
+  aiCondition?: AICondition;
   bestPhotoId?: string;
-  feedback: string;
+  bestPhotoUrl?: string;
+  feedback?: string;
   missingAngles?: string[];
-  completionPercentage: number;
+  completionPercentage?: number;
+  photoUrls?: string[];
 }
 
 // Adjustment breakdown for photo-based valuation
@@ -79,10 +107,12 @@ export interface AdjustmentBreakdown {
   name: string;
   value: number;
   description: string;
-  percentAdjustment: number;
-  factor: string;
-  impact: number;
+  percentAdjustment?: number;
+  factor?: string;
+  impact?: number;
   impactPercentage?: number;
+  // For backward compatibility
+  adjustment?: number;
 }
 
 // Photo upload options

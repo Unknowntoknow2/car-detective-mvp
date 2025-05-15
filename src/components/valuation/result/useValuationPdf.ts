@@ -44,10 +44,10 @@ export const useValuationPdf = ({
         zipCode: valuationData.zipCode || valuationData.zip || '',
         vin: valuationData.vin || '',
         trim: valuationData.trim || '',
-        fuelType: valuationData.fuelType || (valuationData as any).fuel_type || '',
+        fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
-        bodyType: valuationData.bodyType || (valuationData as any).body_type || '',
+        bodyType: valuationData.bodyType || valuationData.body_type || '',
         confidenceScore: valuationData.confidenceScore || 75,
         isPremium: isPremium,
         priceRange: valuationData.priceRange || [
@@ -64,15 +64,15 @@ export const useValuationPdf = ({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          summary: conditionData.summary || ''
+          summary: conditionData.aiSummary || conditionData.summary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;
       }
       
       // Add photo data if available
-      if (valuationData.bestPhotoUrl || (valuationData as any).photo_url) {
-        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || (valuationData as any).photo_url;
+      if (valuationData.bestPhotoUrl || valuationData.photo_url) {
+        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
       }
       
       // Generate the PDF
