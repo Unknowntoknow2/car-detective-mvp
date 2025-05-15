@@ -4,6 +4,21 @@
 import { ApiErrorType } from '@/utils/api-utils';
 import { toast } from 'sonner';
 import { Make, Model } from '@/hooks/types/vehicle';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export const insertManualEntryValuation = async (formData: ManualEntryFormData) => {
+  const { data, error } = await supabase
+    .from('manual_entry_valuations')
+    .insert([formData]);
+
+  return { data, error };
+};
+
 
 // Instead of using process.env, define the API base URL directly
 // or use import.meta.env which is supported by Vite
