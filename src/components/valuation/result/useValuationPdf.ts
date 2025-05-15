@@ -63,11 +63,11 @@ export const useValuationPdf = ({
         })) || [],
         generatedAt: new Date().toISOString(),
         explanation: valuationData.explanation || valuationData.gptExplanation || '',
-        // Add userId if available
-        userId: valuationData.userId || localStorage.getItem('user_id') || undefined
+        // Add userId if available 
+        userId: valuationData.userId || localStorage.getItem('user_id') || ''
       };
       
-      // Add AI condition data if available - this is now a valid property
+      // Add AI condition data if available
       if (conditionData) {
         reportData.aiCondition = {
           condition: conditionData.condition,
@@ -84,7 +84,7 @@ export const useValuationPdf = ({
         };
       }
       
-      // Add photo data if available - this is now a valid property
+      // Add photo data if available
       if (valuationData.bestPhotoUrl || valuationData.photo_url) {
         reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
       }
