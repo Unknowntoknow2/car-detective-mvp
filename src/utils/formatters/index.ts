@@ -7,12 +7,7 @@ export * from './formatPhone';
 export * from './formatVin';
 export * from './formatPercent';
 export * from './stringFormatters';
-
-// Make sure the most frequently used formatters are directly exported
-export { formatCurrency } from './formatCurrency';
-export { formatDate } from './formatDate';
-export { formatNumber } from './formatNumber';
-export { formatPercent } from './formatPercent';
+export * from './adjustment-formatter';
 
 // Legacy formatter functions for backward compatibility
 export const formatRelativeTime = (date: Date | string): string => {

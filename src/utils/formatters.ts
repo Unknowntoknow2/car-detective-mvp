@@ -1,14 +1,19 @@
 
-/**
- * Formats a number with commas as thousand separators
- */
+// Re-export all formatters from the formatters directory
+export * from './formatters/index';
+export * from './formatters/formatCurrency';
+export * from './formatters/formatDate';
+export * from './formatters/formatNumber';
+export * from './formatters/formatPercent';
+export * from './formatters/formatPhone';
+export * from './formatters/formatVin';
+export * from './formatters/stringFormatters';
+
+// Legacy formatter functions that need to be directly available from this file
 export const formatNumber = (num: number): string => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-/**
- * Formats a date relative to the current time
- */
 export const formatRelativeTime = (date: Date | string): string => {
   const now = new Date();
   const then = typeof date === 'string' ? new Date(date) : date;
@@ -42,9 +47,33 @@ export const formatRelativeTime = (date: Date | string): string => {
   return `${years} ${years === 1 ? 'year' : 'years'} ago`;
 };
 
-/**
- * Converts manual entry form data to JSON format
- */
 export const manualEntryToJson = (data: any): string => {
   return JSON.stringify(data);
+};
+
+// Export the currency formatter that many components are looking for
+export const formatCurrency = (value: number, locale: string = 'en-US', currencyCode: string = 'USD'): string => {
+  // If value is null or undefined, return $0
+  if (value == null) return '$0';
+  
+  try {
+    if (currencyCode === 'USD') {
+      // Optimize for the common case - US dollars
+      return `$${value.toLocaleString('en-US', { 
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2 
+      })}`;
+    }
+    
+    // For other currencies, use the full Intl.NumberFormat
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(value);
+  } catch (error) {
+    // Fallback in case of invalid locale or currency code
+    return `$${value.toLocaleString()}`;
+  }
 };

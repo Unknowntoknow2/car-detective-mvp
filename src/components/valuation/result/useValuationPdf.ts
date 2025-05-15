@@ -63,8 +63,8 @@ export const useValuationPdf = ({
         })) || [],
         generatedAt: new Date().toISOString(),
         explanation: valuationData.explanation || valuationData.gptExplanation || '',
-        // Add userId if available 
-        userId: valuationData.userId || localStorage.getItem('user_id') || ''
+        // Add userId if available, with fallback
+        userId: (valuationData as any).userId || localStorage.getItem('user_id') || ''
       };
       
       // Add AI condition data if available
