@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi } from 'vitest';
 import { generateValuationPdf } from '../utils/pdf/generateValuationPdf';
 import { ReportData } from '../utils/pdf/types';
@@ -10,10 +11,10 @@ vi.mock('@react-pdf/renderer', () => ({
       toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock pdf content')),
     }),
   },
-  Document: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Page: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Text: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  View: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Document: ({ children }) => <div>{children}</div>,
+  Page: ({ children }) => <div>{children}</div>,
+  Text: ({ children }) => <div>{children}</div>,
+  View: ({ children }) => <div>{children}</div>,
   StyleSheet: {
     create: vi.fn().mockReturnValue({}),
   },
