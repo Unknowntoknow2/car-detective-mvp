@@ -41,7 +41,7 @@ export function useValuationPdf({
     try {
       // Format data for PDF generation
       const reportData: ReportData = {
-        id: valuationData.id,
+        id: valuationData.id || crypto.randomUUID(),
         make: valuationData.make || 'Unknown',
         model: valuationData.model || 'Vehicle',
         year: valuationData.year || new Date().getFullYear(),
@@ -68,7 +68,8 @@ export function useValuationPdf({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          summary: conditionData.summary || ''
+          // Fix: Changed 'summary' to 'aiSummary' to match the type
+          summary: conditionData.aiSummary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;
