@@ -24,6 +24,12 @@ export interface ReportData {
   generatedAt: string;
   bestPhotoUrl?: string;
   isPremium?: boolean;
+  // Add missing properties
+  explanation?: string;
+  photoScore?: number;
+  photoExplanation?: string;
+  narrative?: string;
+  features?: string[];
 }
 
 export interface ReportOptions {
@@ -35,4 +41,38 @@ export interface ReportOptions {
   branding?: boolean;
   templateId?: string;
   isPremium?: boolean;
+  // Add missing properties
+  includeHeader?: boolean;
+  includeFooter?: boolean;
+  includePageNumbers?: boolean;
+  includePhotos?: boolean;
+  includeLegalDisclaimer?: boolean;
+  theme?: 'light' | 'dark';
+  includeBranding?: boolean;
+  includeTimestamp?: boolean;
+  includePhotoAssessment?: boolean;
+  includeAIScore?: boolean;
+  title?: string;
+  landscape?: boolean;
+  showWholesaleValue?: boolean;
+  dealerName?: string;
+  userName?: string;
+  format?: string;
+  orientation?: string;
+  margin?: number;
+  printBackground?: boolean;
+}
+
+// Add the missing SectionParams type
+export interface SectionParams {
+  page: any;
+  margin: number;
+  width: number;
+  height: number;
+  contentWidth: number;
+  boldFont: any;
+  regularFont: any;
+  primaryColor: any;
+  textColor: any;
+  secondaryColor?: any;
 }

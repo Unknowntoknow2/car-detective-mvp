@@ -13,7 +13,13 @@ describe('generateValuationPdf', () => {
     zipCode: '90210',
     estimatedValue: 18000,
     adjustments: [
-      { factor: 'Mileage', impact: -500, description: 'Higher than average mileage' }
+      { 
+        name: 'Mileage', 
+        value: -500, 
+        factor: 'Mileage',
+        impact: -500,
+        description: 'Higher than average mileage' 
+      }
     ],
     generatedAt: new Date().toISOString(),
     confidenceScore: 85,

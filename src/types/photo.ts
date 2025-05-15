@@ -83,6 +83,7 @@ export interface PhotoAnalysisResult {
   aiCondition?: AICondition;
   individualScores?: PhotoScore[];
   bestPhotoId?: string;
+  error?: string; // Add error property
 }
 
 // Photo scoring result
@@ -100,6 +101,7 @@ export interface PhotoScoringResult {
   missingAngles?: string[];
   completionPercentage?: number;
   photoUrls?: string[];
+  error?: string; // Add error property
 }
 
 // Adjustment breakdown for photo-based valuation
@@ -108,8 +110,8 @@ export interface AdjustmentBreakdown {
   value: number;
   description: string;
   percentAdjustment?: number;
-  factor?: string;
-  impact?: number;
+  factor?: string;  // Include both factor and name for compatibility
+  impact?: number;   // Include both impact and value for compatibility
   impactPercentage?: number;
   // For backward compatibility
   adjustment?: number;

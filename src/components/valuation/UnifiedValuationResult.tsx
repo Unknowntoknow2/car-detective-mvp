@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { ValuationResult } from '@/types/valuation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -260,16 +259,14 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
     conditionData: null
   });
 
-  const downloadPdfHandler = () => {
-    if (onDownloadPdf) {
-      onDownloadPdf();
-    } else {
-      handleDownloadPdf();
+  const handleEmailPdf = () => {
+    if (onEmailReport) {
+      onEmailReport();
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="valuation-container">
       <Card className="bg-white">
         <CardContent className="p-6 space-y-6">
           <div className="space-y-6">
@@ -346,13 +343,13 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-4">
                   {onEmailReport && (
-                    <Button variant="outline" onClick={onEmailReport}>
-                      <Mail className="h-4 w-4 mr-2" />
-                      Email Report
+                    <Button variant="outline" onClick={handleEmailPdf}>
+                      <Mail size={18} className="icon" />
+                      Email PDF
                     </Button>
                   )}
-                  <Button onClick={downloadPdfHandler} disabled={isGenerating}>
-                    <Download className="h-4 w-4 mr-2" />
+                  <Button onClick={handleDownloadPdf} disabled={isGenerating}>
+                    <Download size={18} className="icon" />
                     {isGenerating ? 'Generating PDF...' : 'Download PDF'}
                   </Button>
                 </div>
