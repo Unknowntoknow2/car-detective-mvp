@@ -50,7 +50,7 @@ export const useValuationPdf = ({
         color: valuationData.color || '',
         bodyType: valuationData.bodyType || valuationData.bodyStyle || '', 
         confidenceScore: valuationData.confidenceScore || 75,
-        isPremium: isPremium,
+        isPremium: isPremium, // This is now a valid property
         priceRange: valuationData.priceRange || [
           Math.floor((valuationData.estimatedValue || 0) * 0.95),
           Math.ceil((valuationData.estimatedValue || 0) * 1.05)
@@ -63,9 +63,11 @@ export const useValuationPdf = ({
         })) || [],
         generatedAt: new Date().toISOString(),
         explanation: valuationData.explanation || valuationData.gptExplanation || '',
+        // Add userId if available
+        userId: valuationData.userId || localStorage.getItem('user_id') || undefined
       };
       
-      // Add AI condition data if available
+      // Add AI condition data if available - this is now a valid property
       if (conditionData) {
         reportData.aiCondition = {
           condition: conditionData.condition,
@@ -82,7 +84,7 @@ export const useValuationPdf = ({
         };
       }
       
-      // Add photo data if available
+      // Add photo data if available - this is now a valid property
       if (valuationData.bestPhotoUrl || valuationData.photo_url) {
         reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
       }

@@ -1,3 +1,4 @@
+
 import { Color, PDFPage, PDFFont } from 'pdf-lib';
 import { ReportData, SectionParams } from '../types';
 import { formatCurrency } from '@/utils/formatters';

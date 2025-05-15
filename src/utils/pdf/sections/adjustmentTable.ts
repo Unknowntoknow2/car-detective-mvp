@@ -7,8 +7,8 @@ export const drawAdjustmentTable = (
   params: SectionParams,
   reportData: ReportData
 ): number => {
-  const { doc, margin, contentWidth, regularFont, boldFont } = params;
-  const { page, y } = params;
+  const { margin, contentWidth, regularFont, boldFont } = params;
+  const { page, y, doc } = params;
   const { adjustments = [] } = reportData;
 
   // Draw section title

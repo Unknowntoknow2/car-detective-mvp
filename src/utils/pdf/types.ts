@@ -1,6 +1,14 @@
 
 import { PDFPage, PDFFont, Color } from 'pdf-lib';
 
+export interface AICondition {
+  condition: string;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  summary?: string;
+  aiSummary?: string;
+}
+
 export interface ReportData {
   id: string;
   make: string;
@@ -23,6 +31,13 @@ export interface ReportData {
   fuelType?: string;
   explanation?: string;
   transmission?: string;
+  // Additional properties that were missing
+  userId?: string;
+  isPremium?: boolean;
+  aiCondition?: AICondition;
+  bestPhotoUrl?: string;
+  photoScore?: number;
+  narrative?: string;
 }
 
 export interface ReportOptions {
@@ -32,11 +47,15 @@ export interface ReportOptions {
   logo?: string;
   brandColor?: string;
   locale?: string;
-  showWholesaleValue?: boolean; // Add missing property
-  dealerName?: string; // Add missing property
-  format?: string; // Add missing property
-  landscape?: boolean; // Add missing property
-  userName?: string; // Add missing property
+  showWholesaleValue?: boolean;
+  dealerName?: string;
+  format?: string;
+  landscape?: boolean;
+  userName?: string;
+  // Additional properties
+  includeBreakdown?: boolean;
+  includeHeader?: boolean;
+  isPremium?: boolean;
 }
 
 export interface SectionParams {
