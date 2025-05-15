@@ -614,6 +614,7 @@ export type Database = {
           model: string
           selected_features: string[] | null
           transmission: string
+          user_id: string | null
           valuation_id: string | null
           vin: string | null
           year: number
@@ -632,6 +633,7 @@ export type Database = {
           model: string
           selected_features?: string[] | null
           transmission: string
+          user_id?: string | null
           valuation_id?: string | null
           vin?: string | null
           year: number
@@ -650,6 +652,7 @@ export type Database = {
           model?: string
           selected_features?: string[] | null
           transmission?: string
+          user_id?: string | null
           valuation_id?: string | null
           vin?: string | null
           year?: number
