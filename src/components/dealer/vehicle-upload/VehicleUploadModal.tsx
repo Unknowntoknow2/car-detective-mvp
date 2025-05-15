@@ -1,56 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+
+import React, { useState } from 'react';
+import { X, Loader2, Save, Car, UploadCloud } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { vehicleSchema, VehicleFormValues } from '../schemas/vehicleSchema';
-import { useVehicleUpload } from '../hooks/useVehicleUpload';
+import { VehicleFormValues, vehicleSchema } from '../schemas/vehicleSchema';
 import { useVehicleUploadModal } from '../hooks/useVehicleUploadModal';
-import { ImageUploadSection } from './ImageUploadSection';
-import Loading from '@/components/ui/loading';
+import { useVehicleUpload } from '../hooks/useVehicleUpload';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
+import { ImageUploadSection } from './ImageUploadSection';
+import { ConditionSelector } from './ConditionSelector';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 
-export const VehicleUploadModal: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+export const VehicleUploadModal = () => {
   const { isOpen, onClose } = useVehicleUploadModal();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
     isUploading,
+    uploadProgress,
     photoUrls,
-    setPhotoUrls,
     handlePhotoUpload,
     removePhoto,
     addVehicle,
-    updateVehicle,
-    fetchVehicle
   } = useVehicleUpload();
 
   const form = useForm<VehicleFormValues>({
@@ -63,210 +50,113 @@ export const VehicleUploadModal: React.FC = () => {
       mileage: null,
       condition: 'Good',
       status: 'available',
-      transmission: undefined,
-      fuel_type: undefined,
-      zip_code: ''
-    }
+    },
   });
 
-  useEffect(() => {
-    const loadVehicle = async () => {
-      if (id) {
-        setIsEditMode(true);
-        setIsLoading(true);
-        
-        try {
-          const vehicle = await fetchVehicle(id);
-          
-          if (vehicle) {
-            // Reset form with vehicle data
-            form.reset({
-              make: vehicle.make,
-              model: vehicle.model,
-              year: vehicle.year,
-              price: vehicle.price,
-              mileage: vehicle.mileage,
-              condition: vehicle.condition as "Excellent" | "Good" | "Fair" | "Poor",
-              status: vehicle.status as "available" | "pending" | "sold",
-              transmission: vehicle.transmission as "Automatic" | "Manual" | undefined,
-              fuel_type: vehicle.fuel_type as "Gasoline" | "Diesel" | "Hybrid" | "Electric" | undefined,
-              zip_code: vehicle.zip_code || ''
-            });
-            
-            // Set photos
-            if (vehicle.photos && Array.isArray(vehicle.photos)) {
-              setPhotoUrls(vehicle.photos.map(photo => String(photo)));
-            }
-          } else {
-            toast.error('Vehicle not found');
-            navigate('/dealer/inventory');
-          }
-        } catch (error) {
-          toast.error('Failed to load vehicle');
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    loadVehicle();
-  }, [id, fetchVehicle, form, navigate, setPhotoUrls]);
-
-  const onSubmit = async (data: VehicleFormValues) => {
-    if (isEditMode && id) {
-      await updateVehicle(id, data);
-    } else {
+  const handleSubmit = async (data: VehicleFormValues) => {
+    setIsSubmitting(true);
+    try {
       await addVehicle(data);
+      form.reset();
+      onClose();
+    } catch (error) {
+      console.error('Error adding vehicle:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
-
-  const handleClose = () => {
-    form.reset();
-    setPhotoUrls([]);
-    onClose();
-  };
-
-  if (isLoading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[600px]">
-          <div className="flex justify-center items-center py-12">
-            <Loading />
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}</DialogTitle>
-          <DialogDescription>
-            {isEditMode 
-              ? 'Update the details of your vehicle listing' 
-              : 'Enter the details of the vehicle you want to add to your inventory'}
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Add New Vehicle
+          </DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Make Field */}
-              <FormField
-                control={form.control}
-                name="make"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Make*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Toyota" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Model Field */}
-              <FormField
-                control={form.control}
-                name="model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Model*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Camry" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Year Field */}
-              <FormField
-                control={form.control}
-                name="year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year*</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 2020" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Price Field */}
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price ($)*</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 20000" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Mileage Field */}
-              <FormField
-                control={form.control}
-                name="mileage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mileage</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 50000" 
-                        {...field}
-                        value={field.value === null ? '' : field.value}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormDescription>Leave empty if unknown</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Condition Field */}
-              <FormField
-                control={form.control}
-                name="condition"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Condition*</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select condition" />
-                        </SelectTrigger>
-                      </FormControl>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Vehicle Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Vehicle Information</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="make">Make</Label>
+                    <Input 
+                      id="make" 
+                      placeholder="e.g. Toyota" 
+                      {...form.register("make")} 
+                    />
+                    {form.formState.errors.make && (
+                      <p className="text-destructive text-sm">{form.formState.errors.make.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="model">Model</Label>
+                    <Input 
+                      id="model" 
+                      placeholder="e.g. Camry" 
+                      {...form.register("model")} 
+                    />
+                    {form.formState.errors.model && (
+                      <p className="text-destructive text-sm">{form.formState.errors.model.message}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Year</Label>
+                    <Input 
+                      id="year" 
+                      type="number" 
+                      placeholder="e.g. 2022" 
+                      {...form.register("year", { valueAsNumber: true })} 
+                    />
+                    {form.formState.errors.year && (
+                      <p className="text-destructive text-sm">{form.formState.errors.year.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Price</Label>
+                    <Input 
+                      id="price" 
+                      type="number" 
+                      placeholder="e.g. 25000" 
+                      {...form.register("price", { valueAsNumber: true })} 
+                    />
+                    {form.formState.errors.price && (
+                      <p className="text-destructive text-sm">{form.formState.errors.price.message}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="mileage">Mileage</Label>
+                    <Input 
+                      id="mileage" 
+                      type="number" 
+                      placeholder="e.g. 15000" 
+                      {...form.register("mileage", { valueAsNumber: true })} 
+                    />
+                    {form.formState.errors.mileage && (
+                      <p className="text-destructive text-sm">{form.formState.errors.mileage.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="condition">Condition</Label>
+                    <Select 
+                      onValueChange={(value) => form.setValue("condition", value as "Excellent" | "Good" | "Fair" | "Poor")} 
+                      defaultValue={form.getValues("condition")}
+                    >
+                      <SelectTrigger id="condition">
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Excellent">Excellent</SelectItem>
                         <SelectItem value="Good">Good</SelectItem>
@@ -274,55 +164,73 @@ export const VehicleUploadModal: React.FC = () => {
                         <SelectItem value="Poor">Poor</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Transmission Field */}
-              <FormField
-                control={form.control}
-                name="transmission"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transmission</FormLabel>
+                    {form.formState.errors.condition && (
+                      <p className="text-destructive text-sm">{form.formState.errors.condition.message}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                      onValueChange={(value) => form.setValue("status", value as "available" | "pending" | "sold")} 
+                      defaultValue={form.getValues("status")}
                     >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select transmission" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="sold">Sold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.status && (
+                      <p className="text-destructive text-sm">{form.formState.errors.status.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zip_code">ZIP Code</Label>
+                    <Input 
+                      id="zip_code" 
+                      placeholder="e.g. 90210" 
+                      {...form.register("zip_code")} 
+                    />
+                    {form.formState.errors.zip_code && (
+                      <p className="text-destructive text-sm">{form.formState.errors.zip_code.message}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="transmission">Transmission</Label>
+                    <Select 
+                      onValueChange={(value) => form.setValue("transmission", value as "Automatic" | "Manual")} 
+                      defaultValue={form.getValues("transmission") || undefined}
+                    >
+                      <SelectTrigger id="transmission">
+                        <SelectValue placeholder="Select transmission" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Automatic">Automatic</SelectItem>
                         <SelectItem value="Manual">Manual</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {/* Fuel Type Field */}
-              <FormField
-                control={form.control}
-                name="fuel_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fuel Type</FormLabel>
+                    {form.formState.errors.transmission && (
+                      <p className="text-destructive text-sm">{form.formState.errors.transmission.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fuel_type">Fuel Type</Label>
                     <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                      onValueChange={(value) => form.setValue("fuel_type", value as "Gasoline" | "Diesel" | "Hybrid" | "Electric")} 
+                      defaultValue={form.getValues("fuel_type") || undefined}
                     >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select fuel type" />
-                        </SelectTrigger>
-                      </FormControl>
+                      <SelectTrigger id="fuel_type">
+                        <SelectValue placeholder="Select fuel type" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Gasoline">Gasoline</SelectItem>
                         <SelectItem value="Diesel">Diesel</SelectItem>
@@ -330,80 +238,51 @@ export const VehicleUploadModal: React.FC = () => {
                         <SelectItem value="Electric">Electric</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* ZIP Code Field */}
-              <FormField
-                control={form.control}
-                name="zip_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ZIP Code</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="e.g., 90210" 
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    {form.formState.errors.fuel_type && (
+                      <p className="text-destructive text-sm">{form.formState.errors.fuel_type.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
               
-              {/* Status Field */}
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status*</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="sold">Sold</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            {/* Photo Upload Section */}
-            <div className="space-y-4">
-              <FormLabel>Vehicle Photos</FormLabel>
-              <ImageUploadSection 
-                photoUrls={photoUrls}
-                handlePhotoUpload={handlePhotoUpload}
-                removePhoto={removePhoto}
-                isUploading={isUploading}
-              />
+              {/* Photos Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Vehicle Photos</h3>
+                <ImageUploadSection 
+                  photoUrls={photoUrls}
+                  handlePhotoUpload={handlePhotoUpload}
+                  removePhoto={removePhoto}
+                  isUploading={isUploading}
+                  uploadProgress={uploadProgress}
+                />
+              </div>
             </div>
             
             <DialogFooter>
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={handleClose}
+                onClick={onClose}
+                disabled={isSubmitting || isUploading}
               >
                 Cancel
               </Button>
               <Button 
-                type="submit" 
-                disabled={isUploading}
+                type="submit"
+                disabled={isSubmitting || isUploading}
+                className="gap-2"
               >
-                {isUploading ? 'Saving...' : isEditMode ? 'Update Vehicle' : 'Add Vehicle'}
+                {isSubmitting || isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Vehicle
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -412,5 +291,3 @@ export const VehicleUploadModal: React.FC = () => {
     </Dialog>
   );
 };
-
-export default VehicleUploadModal;
