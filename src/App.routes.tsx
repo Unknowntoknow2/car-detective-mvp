@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
-import { SiteLayout } from '@/layouts/SiteLayout';
-import { AuthLayout } from '@/layouts/AuthLayout';
-import { DashboardLayout } from '@/layouts/DashboardLayout';
-import { DealerLayout } from '@/layouts/DealerLayout';
+import SiteLayout from '@/layouts/SiteLayout';
+import AuthLayout from '@/layouts/AuthLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import DealerLayout from '@/layouts/DealerLayout';
 import Loading from '@/components/ui/loading';
 import DealerSubscriptionPlansPage from '@/pages/dealer/DealerSubscriptionPlansPage';
 

@@ -39,7 +39,7 @@ export const LiveChatCTA: React.FC<LiveChatCTAProps> = ({ className }) => {
           }`}
           aria-label={isOpen ? 'Close chat' : 'Open chat'}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {isOpen ? (
               <motion.div
                 key="close"
