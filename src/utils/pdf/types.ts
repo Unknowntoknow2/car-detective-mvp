@@ -57,6 +57,8 @@ export interface ReportOptions {
   includeHeader?: boolean;
   includeFooter?: boolean;
   includeMarketTrends?: boolean;
+  includeSimilarVehicles?: boolean;
+  includePageNumbers?: boolean;
   isPremium?: boolean;
 }
 
