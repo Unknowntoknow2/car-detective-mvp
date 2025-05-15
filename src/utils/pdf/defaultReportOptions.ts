@@ -11,6 +11,7 @@ export const defaultReportOptions: ReportOptions = {
   includeMarketTrends: false,
   includeSimilarVehicles: false,
   includePageNumbers: true,
+  includePhotos: true,
   logo: '',
   brandColor: '#0077CC',
   locale: 'en-US',

@@ -8,7 +8,7 @@ export * from './formatVin';
 export * from './formatPercent';
 export * from './stringFormatters';
 
-// Export formatCurrency and formatDate directly for backward compatibility
+// Make sure the most frequently used formatters are directly exported
 export { formatCurrency } from './formatCurrency';
 export { formatDate } from './formatDate';
 export { formatNumber } from './formatNumber';
