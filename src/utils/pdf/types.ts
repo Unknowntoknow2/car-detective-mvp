@@ -1,7 +1,27 @@
 
-/**
- * Data required for generating a valuation report
- */
+import { AICondition } from '@/types/photo';
+
+export interface ReportOptions {
+  paperSize: 'letter' | 'a4' | 'legal';
+  orientation: 'portrait' | 'landscape';
+  includeWatermark: boolean;
+  includeValuationBreakdown: boolean;
+  includeVehicleHistory: boolean;
+  includeVehicleImages: boolean;
+  includeMarketTrends: boolean;
+  includeCarfaxData: boolean;
+  headerLogo?: string;
+  footerText?: string;
+  color: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    text: string;
+    muted: string;
+    background: string;
+  };
+}
+
 export interface ReportData {
   id: string;
   make: string;
@@ -11,97 +31,36 @@ export interface ReportData {
   condition: string;
   zipCode: string;
   estimatedValue: number;
-  confidenceScore?: number;
-  adjustments?: Array<{
+  confidenceScore: number;
+  priceRange: [number, number];
+  adjustments: Array<{
     factor: string;
     impact: number;
     description?: string;
   }>;
-  priceRange?: [number, number];
-  generatedAt: string;
-  userId?: string;
-  isPremium?: boolean;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    summary?: string;
-  };
-  photoScore?: number;
-  bestPhotoUrl?: string;
-  explanation?: string;
-  narrative?: string;
-  vin?: string;
-  // Extended properties that are optional
   trim?: string;
-  fuelType?: string;
-  transmission?: string;
   color?: string;
   bodyType?: string;
-  features?: string[];
-  bodyStyle?: string;
+  fuelType?: string;
+  transmission?: string;
+  vin?: string;
+  userId?: string;
+  bestPhotoUrl?: string;
+  photoScore?: number;
   photoExplanation?: string;
-}
-
-/**
- * Options for PDF report generation
- */
-export interface ReportOptions {
-  includeHeader: boolean;
-  includeFooter: boolean;
-  includePageNumbers: boolean;
-  includePhotos: boolean;
-  includeLegalDisclaimer: boolean;
-  theme: 'light' | 'dark';
-  format?: string;
-  orientation?: string;
-  margin?: number;
-  includeBranding?: boolean;
-  includeTimestamp?: boolean;
-  includePhotoAssessment?: boolean;
-  includeAIScore?: boolean;
+  aiCondition?: AICondition | null;
+  explanation?: string;
+  features?: string[];
   isPremium?: boolean;
-  title?: string;
-  printBackground?: boolean;
-  landscape?: boolean;
-  showWholesaleValue?: boolean;
-  userName?: string;
-  dealerName?: string;
-  logoUrl?: string;
+  generatedAt: string;
 }
 
-/**
- * Default options for PDF generation
- */
-export const defaultReportOptions: ReportOptions = {
-  includeHeader: true,
-  includeFooter: true,
-  includePageNumbers: true,
-  includePhotos: true,
-  includeLegalDisclaimer: true,
-  theme: 'light',
-  includeBranding: true,
-  includeTimestamp: true,
-  includePhotoAssessment: true,
-  includeAIScore: true,
-  isPremium: false,
-  title: 'Vehicle Valuation Report'
-};
-
-/**
- * Parameters for drawing PDF sections
- */
-export interface SectionParams {
-  doc: any;
-  pageWidth: number;
-  margin: number;
-  regularFont: any;
-  boldFont: any;
-  primaryColor: any;
-  secondaryColor: any;
-  textColor: any;
-  page: any;
-  width: number;
-  height: number;
-  contentWidth: number;
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+  factor: string;
+  impact: number;
+  impactPercentage?: number;
 }

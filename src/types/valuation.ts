@@ -1,4 +1,3 @@
-
 export interface ValuationResult {
   id: string;
   make: string;
@@ -25,6 +24,7 @@ export interface ValuationResult {
     confidenceScore: number;
     issuesDetected?: string[];
     summary?: string;
+    aiSummary?: string;
   } | null;
   priceRange?: [number, number];
   isPremium?: boolean;
@@ -35,12 +35,14 @@ export interface ValuationResult {
   color?: string;
   bodyType?: string;
   bodyStyle?: string;
+  trim?: string;
   // Additional fields to match database column names
   fuel_type?: string;
   photo_url?: string;
   zip?: string;
-  created_at?: string; // Add this to match MyValuationsPage usage
-  premium_unlocked?: boolean; // Add premium_unlocked field
+  created_at?: string; 
+  createdAt?: string; // Add this for compatibility
+  premium_unlocked?: boolean;
 }
 
 export interface ValuationResultProps {
