@@ -1,51 +1,76 @@
 
 import React from 'react';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
+import { 
+  RadioGroup, 
+  RadioGroupItem 
+} from '@/components/ui/radio-group';
 
 interface ConditionSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+  selectedCondition: string;
+  onConditionChange: (condition: string) => void;
 }
 
 export const ConditionSelector: React.FC<ConditionSelectorProps> = ({
-  value,
-  onChange
+  selectedCondition,
+  onConditionChange
 }) => {
   const conditions = [
-    { label: 'Excellent', value: 'Excellent', color: 'bg-green-500' },
-    { label: 'Good', value: 'Good', color: 'bg-blue-500' },
-    { label: 'Fair', value: 'Fair', color: 'bg-yellow-500' },
-    { label: 'Poor', value: 'Poor', color: 'bg-red-500' }
+    { 
+      value: 'excellent', 
+      label: 'Excellent', 
+      description: 'Like new condition with minimal wear and tear.' 
+    },
+    { 
+      value: 'good', 
+      label: 'Good', 
+      description: 'Normal wear for age and mileage, no major mechanical issues.' 
+    },
+    { 
+      value: 'fair', 
+      label: 'Fair', 
+      description: 'Some mechanical or cosmetic issues that need attention.' 
+    },
+    { 
+      value: 'poor', 
+      label: 'Poor', 
+      description: 'Significant problems, may not be in reliable running condition.' 
+    }
   ];
-
+  
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {conditions.map((condition) => (
-        <button
-          key={condition.value}
-          type="button"
-          className={cn(
-            "flex flex-col items-center justify-center p-3 rounded-md border transition-all text-center h-24",
-            value === condition.value 
-              ? "border-primary shadow-sm bg-primary/5" 
-              : "border-gray-200 hover:border-gray-300 bg-white"
-          )}
-          onClick={() => onChange(condition.value)}
-        >
-          <div className={cn(
-            "w-4 h-4 rounded-full mb-2",
-            condition.color
-          )}>
-            {value === condition.value && (
-              <Check className="w-4 h-4 text-white" />
-            )}
-          </div>
-          <span className="font-medium">{condition.label}</span>
-        </button>
-      ))}
+    <div className="space-y-3">
+      <Label>Vehicle Condition</Label>
+      <RadioGroup 
+        value={selectedCondition} 
+        onValueChange={onConditionChange}
+        className="grid gap-2"
+      >
+        {conditions.map((condition) => (
+          <label
+            key={condition.value}
+            className={`
+              flex items-center gap-2 rounded-md border p-3 cursor-pointer
+              ${selectedCondition === condition.value 
+                ? 'bg-primary/5 border-primary/50' 
+                : 'bg-transparent hover:bg-muted/50'}
+            `}
+          >
+            <RadioGroupItem value={condition.value} id={`condition-${condition.value}`} />
+            <div className="grid gap-1.5 leading-none">
+              <Label 
+                htmlFor={`condition-${condition.value}`} 
+                className="text-sm font-medium leading-none cursor-pointer"
+              >
+                {condition.label}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {condition.description}
+              </p>
+            </div>
+          </label>
+        ))}
+      </RadioGroup>
     </div>
   );
 };
-
-export default ConditionSelector;
