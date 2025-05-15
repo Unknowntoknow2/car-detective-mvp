@@ -28,7 +28,7 @@ export function ManualLookup({
   const [year, setYear] = useState<number>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
   const [mileage, setMileage] = useState<number>(initialData?.mileage ? Number(initialData.mileage) : 0);
   const [condition, setCondition] = useState<ConditionLevel>(
-    initialData?.condition as ConditionLevel || ConditionLevel.Good
+    (initialData?.condition as ConditionLevel) || ConditionLevel.Good
   );
   const [zipCode, setZipCode] = useState(initialData?.zipCode || '');
   const [fuelType, setFuelType] = useState(initialData?.fuelType || 'Gasoline');

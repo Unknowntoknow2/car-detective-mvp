@@ -12,6 +12,7 @@ export interface ManualEntryFormData {
   transmission?: string;
   trim?: string;
   color?: string;
+  bodyType?: string; // Added missing property
   vin?: string;
   valuationId?: string;
   valuation?: number;
@@ -23,7 +24,7 @@ export interface ManualEntryFormData {
 
 export interface AccidentDetails {
   description?: string;
-  count?: string;
+  count?: string; // Added missing property
   severity?: 'Minor' | 'Moderate' | 'Severe';
   repaired?: boolean;
   hasAccident?: boolean;

@@ -29,7 +29,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
     vin: '',
     valuationId: '',
     confidenceScore: 0,
-    accident: 'no',
+    accident: false, // Changed from string to boolean
     accidentDetails: {
       count: '0',
       severity: 'Minor',
@@ -94,7 +94,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
   };
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 30 }, (_, i) => (currentYear - i).toString());
+  const years = Array.from({ length: 30 }, (_, i) => currentYear - i); // Changed to number array
 
   const features = [
     'Leather Seats',
@@ -126,13 +126,16 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Year</Label>
-            <Select value={formData.year} onValueChange={(val) => handleSelectChange('year', val)}>
+            <Select
+              value={formData.year.toString()} // Convert to string for Select component
+              onValueChange={(val) => handleSelectChange('year', val)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Year" />
               </SelectTrigger>
               <SelectContent>
                 {years.map((year) => (
-                  <SelectItem key={year} value={year}>
+                  <SelectItem key={year} value={year.toString()}>
                     {year}
                   </SelectItem>
                 ))}
