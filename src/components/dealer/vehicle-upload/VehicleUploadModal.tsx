@@ -32,8 +32,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
 
   const handleLookupVin = async () => {
     if (!vinNumber || vinNumber.length !== 17) {
-      toast({
-        title: "Invalid VIN",
+      toast("Invalid VIN", {
         description: "Please enter a valid 17-character VIN",
         variant: "destructive"
       });
@@ -58,13 +57,11 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
       };
       
       setVinVehicle(mockVehicle);
-      toast({
-        title: "VIN Found",
-        description: `Found: ${mockVehicle.year} ${mockVehicle.make} ${mockVehicle.model}`,
+      toast("VIN Found", {
+        description: `Found: ${mockVehicle.year} ${mockVehicle.make} ${mockVehicle.model}`
       });
     } catch (error) {
-      toast({
-        title: "Lookup Failed",
+      toast("Lookup Failed", {
         description: "Failed to look up VIN. Please try again.",
         variant: "destructive"
       });
@@ -79,9 +76,8 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      toast({
-        title: "Success",
-        description: "Vehicle added successfully!",
+      toast("Success", {
+        description: "Vehicle added successfully!"
       });
       
       onOpenChange(false);
@@ -89,8 +85,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
         onVehicleAdded();
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "Failed to add vehicle. Please try again.",
         variant: "destructive"
       });
