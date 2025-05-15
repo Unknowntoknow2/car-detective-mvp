@@ -24,6 +24,7 @@ export type AuthContextType = {
   user: User | null;
   userRole: UserRole | null;
   isLoading: boolean;
+  error: string | null; // Adding the missing error property
   signIn: (email: string, password: string) => Promise<{ data: any; error: Error | null; } | undefined>;
   signUp: (email: string, password: string, role?: UserRole) => Promise<{ data: any; error: Error | null; } | undefined>;
   signOut: () => Promise<void>;
