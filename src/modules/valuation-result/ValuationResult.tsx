@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useValuationResult } from '@/hooks/useValuationResult';
@@ -143,6 +142,11 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     }
   };
   
+  const downloadPdfHandler = () => {
+    if (isGenerating) return; // Changed from isDownloading to isGenerating
+    handleDownloadPdf();
+  };
+  
   // Loading state
   if (isLoading && !isManualValuation) {
     return <LoadingState />;
@@ -190,7 +194,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     error,
     estimatedValue,
     onUpgrade: handleUpgrade,
-    onDownloadPdf: handleDownloadPdf,
+    onDownloadPdf: downloadPdfHandler,
     onEmailPdf: handleEmailPdf,
     isDownloading: isGenerating,
     isEmailSending
@@ -202,7 +206,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
         isPremium={showPremiumContent}
         isLoading={isLoading}
         onUpgrade={handleUpgrade}
-        onDownloadPdf={handleDownloadPdf}
+        onDownloadPdf={downloadPdfHandler}
         estimatedValue={estimatedValue}
         isDownloading={isGenerating}
       >
