@@ -2,10 +2,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { UserDropdown } from './UserDropdown';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { Menu, Building, User } from 'lucide-react';
+import { Menu, Building, User, Sparkles } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import Logo from './Logo';
 
@@ -34,7 +34,8 @@ export function Navbar() {
             <Link to="/decoder" className="text-sm font-medium transition-colors hover:text-primary">
               VIN Decoder
             </Link>
-            <Link to="/premium" className="text-sm font-medium transition-colors hover:text-primary">
+            <Link to="/premium" className="text-sm font-medium transition-colors hover:text-primary flex items-center">
+              <Sparkles className="mr-1 h-4 w-4" />
               Premium
             </Link>
             
