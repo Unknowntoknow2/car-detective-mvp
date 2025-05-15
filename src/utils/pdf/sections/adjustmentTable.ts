@@ -1,62 +1,135 @@
-
-import { PDFPage, PDFFont, Color, rgb } from 'pdf-lib';
-import { ReportData, SectionParams, AdjustmentBreakdown } from '../types';
+// Fixed import for formatCurrency from the correct module path
 import { formatCurrency } from '@/utils/formatters';
+import { AdjustmentBreakdown, SectionParams } from '../types';
 
-export const drawAdjustmentTable = (
-  params: SectionParams,
-  reportData: ReportData
-): number => {
-  const { margin, contentWidth, regularFont, boldFont } = params;
-  const { page, y } = params;
-  const { adjustments = [] } = reportData;
+export const drawAdjustmentTable = (params: SectionParams, adjustments: AdjustmentBreakdown[]): number => {
+  const { page, y, width, margin, boldFont, regularFont, primaryColor, textColor } = params;
+  const tableX = margin;
+  let currentY = y;
+  const rowHeight = 20;
+  const numColumns = 3;
+  const columnWidths = [width * 0.4, width * 0.3, width * 0.3]; // Adjusted for 3 columns
+  const headers = ['Factor', 'Description', 'Impact'];
 
-  // Draw section title
-  page.drawText('Value Adjustments', {
-    x: margin,
-    y: y - 30,
-    size: 14,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
-  });
+  // Function to draw a cell with text wrapping
+  const drawTableCell = (
+    page: any,
+    text: string,
+    x: number,
+    y: number,
+    colWidth: number,
+    font: any,
+    fontSize: number,
+    color: any,
+    alignment: 'left' | 'center' | 'right' = 'left'
+  ) => {
+    const words = text.split(' ');
+    let line = '';
+    let yOffset = y;
 
-  // Just a stub implementation
-  let currentY = y - 60;
+    words.forEach((word, index) => {
+      const testLine = line + word + ' ';
+      const textWidth = font.widthOfTextAtSize(testLine, fontSize);
 
-  // Draw adjustments
-  adjustments.forEach(adjustment => {
-    // Draw factor
-    page.drawText(adjustment.factor, {
-      x: margin,
-      y: currentY,
-      size: 11,
-      font: regularFont,
-      color: rgb(0.3, 0.3, 0.3)
+      if (textWidth > colWidth && line !== '') {
+        // Draw the line
+        page.drawText(line.trim(), {
+          x: x,
+          y: yOffset,
+          font: font,
+          size: fontSize,
+          color: color,
+          wordBreaks: ['break-word']
+        });
+        yOffset -= fontSize * 1.2; // Adjust line spacing
+        line = word + ' ';
+      } else {
+        line = testLine;
+      }
+
+      if (index === words.length - 1) {
+        // Draw the last line
+        page.drawText(line.trim(), {
+          x: x,
+          y: yOffset,
+          font: font,
+          size: fontSize,
+          color: color,
+          wordBreaks: ['break-word']
+        });
+      }
     });
 
-    // Draw impact
-    const impactText = formatCurrency(adjustment.impact);
-    page.drawText(impactText, {
-      x: margin + contentWidth - 80,
+    return yOffset; // Return the new Y offset after drawing the cell
+  };
+
+  // Draw table headers
+  for (let i = 0; i < numColumns; i++) {
+    page.drawText(headers[i], {
+      x: tableX + columnWidths[0] * i,
       y: currentY,
-      size: 11,
       font: boldFont,
-      color: adjustment.impact >= 0 ? rgb(0.2, 0.6, 0.3) : rgb(0.8, 0.2, 0.2)
+      size: 10,
+      color: primaryColor,
     });
+  }
+  currentY -= rowHeight;
 
-    // Draw description
-    if (adjustment.description) {
-      page.drawText(adjustment.description, {
-        x: margin + 10,
-        y: currentY - 20,
-        size: 9,
-        font: regularFont,
-        color: rgb(0.5, 0.5, 0.5)
-      });
-      currentY -= 40;
-    } else {
-      currentY -= 25;
-    }
+  // Draw table rows
+  adjustments.forEach((adjustment) => {
+    let cellY = currentY; // Start the cell's Y position at the current row Y
+
+    // Draw Factor cell
+    const factorY = drawTableCell(
+      page,
+      adjustment.factor,
+      tableX,
+      cellY,
+      columnWidths[0],
+      regularFont,
+      10,
+      textColor
+    );
+
+    // Draw Description cell
+    const descriptionY = drawTableCell(
+      page,
+      adjustment.description || 'N/A',
+      tableX + columnWidths[0],
+      cellY,
+      columnWidths[1],
+      regularFont,
+      10,
+      textColor
+    );
+
+    // Draw Impact cell
+    const impactText = formatCurrency(adjustment.impact);
+    const impactY = drawTableCell(
+      page,
+      impactText,
+      tableX + columnWidths[0] + columnWidths[1],
+      cellY,
+      columnWidths[2],
+      regularFont,
+      10,
+      textColor,
+      'right'
+    );
+
+    // Determine the lowest Y value after drawing all cells in the row
+    const lowestY = Math.min(factorY, descriptionY, impactY);
+
+    // Update currentY to the lowest Y value minus some padding
+    currentY = lowestY - 5;
+
+    // Draw row separator
+    page.drawLine({
+      start: { x: tableX, y: currentY + 3 },
+      end: { x: tableX + width, y: currentY + 3 },
+      color: primaryColor,
+      thickness: 0.5,
+    });
   });
 
   return currentY;

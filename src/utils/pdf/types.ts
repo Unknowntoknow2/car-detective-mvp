@@ -60,6 +60,20 @@ export interface ReportOptions {
   includeSimilarVehicles?: boolean;
   includePageNumbers?: boolean;
   isPremium?: boolean;
+  // Additional properties for pdfGeneratorService
+  includePhotos?: boolean;
+  includeLegalDisclaimer?: boolean;
+  theme?: string;
+  orientation?: string;
+  margin?: number;
+  includeBranding?: boolean;
+  includeTimestamp?: boolean;
+  includePhotoAssessment?: boolean;
+  includeAIScore?: boolean;
+  printBackground?: boolean;
+  watermark?: boolean;
+  branding?: boolean;
+  templateId?: string;
 }
 
 export interface SectionParams {
