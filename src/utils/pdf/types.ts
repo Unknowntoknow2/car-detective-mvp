@@ -36,7 +36,8 @@ export interface ReportData {
   trim?: string;
   photoScore?: number;
   photoExplanation?: string;
-  narrative?: string; // Used in buildValuationReport.ts
+  narrative?: string;
+  features?: string[];
 }
 
 export interface ReportOptions {

@@ -27,9 +27,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface ManualEntryFormProps {
+export interface ManualEntryFormProps {
   onSubmit: (data: FormValues) => void;
-  isLoading?: boolean; // Added isLoading prop
+  isLoading?: boolean;
   submitButtonText?: string;
   isPremium?: boolean;
 }
