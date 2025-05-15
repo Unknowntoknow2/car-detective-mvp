@@ -2,25 +2,17 @@
 import { ReportOptions } from './types';
 
 export const defaultReportOptions: ReportOptions = {
+  title: 'Vehicle Valuation Report',
+  showPriceRange: true,
+  showConfidenceScore: true,
   includeBreakdown: true,
-  includeMarketTrends: false,
-  includeSimilarVehicles: false,
-  watermark: false,
-  branding: true,
-  templateId: 'default',
-  isPremium: false,
-  // Adding the new properties
   includeHeader: true,
   includeFooter: true,
+  includeMarketTrends: false,
+  includeSimilarVehicles: false,
   includePageNumbers: true,
-  includePhotos: true,
-  includeLegalDisclaimer: true,
-  theme: 'light',
-  includeBranding: true,
-  includeTimestamp: true,
-  includePhotoAssessment: true,
-  includeAIScore: true,
-  title: 'Vehicle Valuation Report'
+  logo: '',
+  brandColor: '#0077CC',
+  locale: 'en-US',
+  isPremium: false,
 };
-
-export default defaultReportOptions;

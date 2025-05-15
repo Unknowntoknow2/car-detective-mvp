@@ -28,6 +28,18 @@ const DEFAULT_OPTIONS: ReportOptions = {
   showWholesaleValue: false
 };
 
+const defaultPdfOptions: ReportOptions = {
+  title: 'Vehicle Valuation Report',
+  showPriceRange: true,
+  showConfidenceScore: true,
+  includeHeader: true,
+  includeFooter: true,
+  includePageNumbers: true,
+  brandColor: '#0077CC',
+  locale: 'en-US',
+  isPremium: false,
+};
+
 /**
  * Generates a valuation report PDF
  * @param data The report data
