@@ -1,3 +1,4 @@
+
 // Fixed import for formatCurrency from the correct module path
 import { formatCurrency } from '@/utils/formatters';
 import { AdjustmentBreakdown, SectionParams } from '../types';
