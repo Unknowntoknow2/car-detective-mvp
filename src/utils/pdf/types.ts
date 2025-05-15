@@ -14,6 +14,7 @@ export interface SectionParams {
     bottom: number;
     left: number;
   };
+  doc?: any; // Added for some sections that use doc instead of page
 }
 
 export interface ReportData {
@@ -37,6 +38,7 @@ export interface ReportData {
   explanation?: string;
   createdAt?: string;
   generatedAt?: string;
+  narrative?: string; // Added for buildValuationReport.ts
   
   // Added fields that are used in the codebase
   estimatedValue?: number;
@@ -59,4 +61,39 @@ export interface ReportData {
   fuelType?: string;
   transmission?: string;
   trim?: string;
+}
+
+export interface ReportOptions {
+  includeBreakdown: boolean;
+  includeMarketTrends: boolean;
+  includeSimilarVehicles: boolean;
+  watermark: boolean;
+  branding: boolean;
+  templateId: string;
+  isPremium: boolean;
+  includeHeader: boolean;
+  includeFooter: boolean;
+  includePageNumbers: boolean;
+  includePhotos: boolean;
+  includeLegalDisclaimer: boolean;
+  theme: 'light' | 'dark';
+  includeBranding: boolean;
+  includeTimestamp: boolean;
+  includePhotoAssessment: boolean;
+  includeAIScore: boolean;
+  title: string;
+}
+
+export interface ValuationSummaryProps {
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  comparableVehicles?: number;
+}
+
+export interface ManualEntryFormProps {
+  onSubmit: (data: any) => void;
+  submitButtonText: string;
+  isPremium?: boolean;
+  isLoading?: boolean; // Added for compatibility with ManualLookup.tsx and ValuationFlow.tsx
 }

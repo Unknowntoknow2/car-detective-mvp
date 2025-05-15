@@ -1,5 +1,5 @@
 
-// Export formatters
+// Export individual formatters
 export * from './formatNumber';
 export * from './formatDate';
 export * from './formatCurrency';
@@ -44,44 +44,4 @@ export const formatRelativeTime = (date: Date | string): string => {
 
 export const manualEntryToJson = (data: any): string => {
   return JSON.stringify(data);
-};
-
-// Add formatCurrency function (a simpler version that will be overridden by the actual implementation)
-export const formatCurrency = (
-  amount: number,
-  currency = 'USD',
-  locale = 'en-US'
-): string => {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
-// Add formatNumber function
-export const formatNumber = (num: number): string => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-// Add formatDate function
-export const formatDate = (date: Date | string | number, format = 'MM/DD/YYYY'): string => {
-  const d = new Date(date);
-  
-  // Return empty string for invalid dates
-  if (isNaN(d.getTime())) {
-    return '';
-  }
-  
-  // Simple date formatting for now - could be extended with a library like date-fns
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const year = d.getFullYear();
-  
-  // Replace tokens in format string
-  return format
-    .replace('MM', month)
-    .replace('DD', day)
-    .replace('YYYY', year.toString());
 };

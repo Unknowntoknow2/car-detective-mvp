@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -23,11 +24,19 @@ const ConfidenceScore: React.FC<ConfidenceScoreProps> = ({ score, comparableVehi
   );
 };
 
-const ValuationSummary: React.FC<{
+interface ValuationSummaryProps {
   estimatedValue: number;
   confidenceScore: number;
   priceRange: [number, number];
-}> = ({ estimatedValue, confidenceScore, priceRange }) => {
+  comparableVehicles?: number;
+}
+
+const ValuationSummary: React.FC<ValuationSummaryProps> = ({ 
+  estimatedValue, 
+  confidenceScore, 
+  priceRange,
+  comparableVehicles = 120 // Default value if not provided
+}) => {
   return (
     <Card>
       <CardContent className="pt-6">
@@ -42,7 +51,7 @@ const ValuationSummary: React.FC<{
         
         <ConfidenceScore 
           score={confidenceScore} 
-          comparableVehicles={120} // Placeholder value
+          comparableVehicles={comparableVehicles}
         />
         
         <div>
