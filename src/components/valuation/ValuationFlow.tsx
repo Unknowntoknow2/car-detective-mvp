@@ -6,8 +6,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Check } from 'lucide-react';
 import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
-import ValuationSummary from './result/ValuationSummary'; // Fixed import
+import ManualEntryForm from '@/components/lookup/manual/ManualEntryForm';
+import ValuationSummary from './result/ValuationSummary'; 
 import { useValuation } from '@/hooks/useValuation';
 import { toast } from 'sonner';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
