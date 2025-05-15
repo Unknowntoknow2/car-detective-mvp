@@ -36,7 +36,7 @@ export const useValuationPdf = ({
       const reportData: ReportData = {
         id: valuationData.id || crypto.randomUUID(),
         make: valuationData.make || 'Unknown',
-        model: valuationData.model || 'Vehicle',
+        model: valuationData.model || 'Unknown',
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Unknown',
@@ -64,7 +64,7 @@ export const useValuationPdf = ({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          aiSummary: conditionData.aiSummary || ''
+          summary: conditionData.summary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;

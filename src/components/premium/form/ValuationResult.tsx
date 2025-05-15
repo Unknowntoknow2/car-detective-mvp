@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
-import { UnifiedValuationHeader } from '@/components/valuation/header/UnifiedValuationHeader';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 
 interface ValuationResultProps {
@@ -24,9 +25,13 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
 
   if (!hydratedId) {
     return (
-      <p className="text-center text-sm text-muted-foreground">
-        No valuation result found. Please try submitting your vehicle details again.
-      </p>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Missing Valuation ID</AlertTitle>
+        <AlertDescription>
+          No valuation ID was provided. Please complete the previous steps to generate a valuation.
+        </AlertDescription>
+      </Alert>
     );
   }
 

@@ -4,7 +4,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { FormData } from '@/types/premium-valuation';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, Download, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
