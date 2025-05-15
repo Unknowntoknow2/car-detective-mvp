@@ -1,99 +1,69 @@
 
-export interface SectionParams {
-  page: any;
-  margin: number;
-  contentWidth: number;
-  boldFont: string;
-  regularFont: string;
-  primaryColor: string;
-  textColor: string;
-  height?: number;
-  margins?: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-  doc?: any; // Added for some sections that use doc instead of page
-}
+import { PDFPage, PDFFont, Color } from 'pdf-lib';
 
 export interface ReportData {
-  // Base fields
   id: string;
   make: string;
   model: string;
   year: number;
-  vin?: string;
-  mileage: number;
-  price: number; // Required property
-  condition: string;
-  
-  // Additional fields
-  features?: string[];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
-  explanation?: string;
-  createdAt?: string;
-  generatedAt?: string;
-  narrative?: string; // Added for buildValuationReport.ts
-  
-  // Added fields that are used in the codebase
-  estimatedValue?: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
+  price: number; // Required property for compatibility
+  mileage?: number;
+  condition?: string;
   zipCode?: string;
-  userId?: string;
-  isPremium?: boolean;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    summary?: string;
-    aiSummary?: string;
-  } | null;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  bodyType?: string;
-  color?: string;
-  fuelType?: string;
-  transmission?: string;
+  estimatedValue?: number;
+  adjustments?: { factor: string; impact: number; description: string }[];
+  confidenceScore?: number;
+  generatedAt?: string;
+  priceRange?: number[] | [number, number];
+  vin?: string;
   trim?: string;
+  features?: string[];
+  color?: string;
+  bodyType?: string;
+  fuelType?: string;
+  explanation?: string;
+  transmission?: string;
 }
 
 export interface ReportOptions {
-  includeBreakdown: boolean;
-  includeMarketTrends: boolean;
-  includeSimilarVehicles: boolean;
-  watermark: boolean;
-  branding: boolean;
-  templateId: string;
-  isPremium: boolean;
-  includeHeader: boolean;
-  includeFooter: boolean;
-  includePageNumbers: boolean;
-  includePhotos: boolean;
-  includeLegalDisclaimer: boolean;
-  theme: 'light' | 'dark';
-  includeBranding: boolean;
-  includeTimestamp: boolean;
-  includePhotoAssessment: boolean;
-  includeAIScore: boolean;
-  title: string;
+  title?: string;
+  showPriceRange?: boolean;
+  showConfidenceScore?: boolean;
+  logo?: string;
+  brandColor?: string;
+  locale?: string;
+  showWholesaleValue?: boolean; // Add missing property
+  dealerName?: string; // Add missing property
+  format?: string; // Add missing property
+  landscape?: boolean; // Add missing property
+  userName?: string; // Add missing property
 }
 
-export interface ValuationSummaryProps {
-  estimatedValue: number;
-  confidenceScore: number;
-  priceRange: [number, number];
-  comparableVehicles?: number;
+export interface SectionParams {
+  page: PDFPage;
+  data: ReportData;
+  y: number;
+  doc: any; // Add doc property
+  margin: number; // Add margin property
+  margins?: { left: number; right: number; top: number; bottom: number };
+  contentWidth: number;
+  width: number; // Add width property
+  pageWidth: number; // Add pageWidth property
+  boldFont: PDFFont;
+  regularFont: PDFFont;
+  primaryColor: Color;
+  secondaryColor: Color; // Add secondaryColor property
+  textColor: Color;
+  height: number; // Add height property
 }
 
-export interface ManualEntryFormProps {
-  onSubmit: (data: any) => void;
-  submitButtonText: string;
-  isPremium?: boolean;
-  isLoading?: boolean; // Added for compatibility with ManualLookup.tsx and ValuationFlow.tsx
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description?: string; // Make description optional in AdjustmentBreakdown
+  name?: string;
+  value?: number;
+  percentAdjustment?: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }
