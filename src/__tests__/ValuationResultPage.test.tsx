@@ -75,8 +75,8 @@ const renderComponent = (mockData: any = null, isLoading = false, error: string 
     error,
   });
   
-  // Mock generateValuationPdf
-  jest.spyOn(pdfModule, 'generateValuationPdf').mockResolvedValue(new Uint8Array([1, 2, 3]));
+  // Fix the type error by converting Uint8Array to Buffer
+  jest.spyOn(pdfModule, 'generateValuationPdf').mockResolvedValue(Buffer.from([1, 2, 3]));
   
   // Render with router since the component uses route params
   return render(
