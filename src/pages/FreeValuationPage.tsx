@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -775,3 +775,5 @@ export default function FreeValuationPage() {
     </div>
   );
 }
+
+export default FreeValuationPage;

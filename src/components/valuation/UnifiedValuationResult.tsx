@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ValuationResult } from '@/types/valuation';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,8 @@ import {
   TrendingUp,
   Upload,
   XCircle,
+  Mail,
+  Download,
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -344,12 +347,12 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                 <div className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-4">
                   {onEmailReport && (
                     <Button variant="outline" onClick={handleEmailPdf}>
-                      <Mail size={18} className="icon" />
+                      <Mail size={18} className="mr-2" />
                       Email PDF
                     </Button>
                   )}
                   <Button onClick={handleDownloadPdf} disabled={isGenerating}>
-                    <Download size={18} className="icon" />
+                    <Download size={18} className="mr-2" />
                     {isGenerating ? 'Generating PDF...' : 'Download PDF'}
                   </Button>
                 </div>
