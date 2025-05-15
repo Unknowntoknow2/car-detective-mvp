@@ -5,13 +5,13 @@ import { Container } from '@/components/ui/container';
 import PremiumManualEntryForm from '@/components/lookup/manual/PremiumManualEntryForm';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+import { useValuation } from '@/contexts/ValuationContext';
 
 const Premium: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { processPremiumValuation } = useValuation();
   
   useEffect(() => {
     // Check if URL has a fragment identifier pointing to the form
@@ -31,25 +31,24 @@ const Premium: React.FC = () => {
   const handleSubmit = (data: any) => {
     console.log("Premium form submitted:", data);
     
-    // Check if user is logged in
-    if (!user) {
-      // Store form data in localStorage to retrieve after authentication
-      localStorage.setItem('pendingPremiumData', JSON.stringify(data));
-      
-      // Redirect to auth page
-      toast.info("Please sign in to continue with premium valuation");
-      navigate('/auth', { state: { returnTo: '/premium#premium-form' } });
-      return;
-    }
+    // Store form data in localStorage to retrieve after authentication if needed
+    localStorage.setItem('pendingPremiumData', JSON.stringify(data));
     
     // Process the premium valuation
-    toast.success("Processing your premium valuation...");
-    
-    // For now, just redirect to a success page
-    // In a real implementation, you would submit this data to your backend
-    setTimeout(() => {
-      navigate('/valuation', { state: { premiumData: data } });
-    }, 1500);
+    processPremiumValuation(data).then(result => {
+      if (result && result.valuationId) {
+        toast.success("Premium valuation processed successfully!");
+        navigate(`/valuation-result?id=${result.valuationId}`);
+      } else {
+        // Redirect to auth page if valuation couldn't be processed
+        // (this could be due to not having premium access)
+        toast.info("Please sign in to continue with premium valuation");
+        navigate('/auth', { state: { returnTo: '/premium#premium-form' } });
+      }
+    }).catch(error => {
+      console.error("Error processing premium valuation:", error);
+      toast.error("Failed to process premium valuation");
+    });
   };
   
   return (
