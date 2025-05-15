@@ -33,6 +33,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
   const handleLookupVin = async () => {
     if (!vinNumber || vinNumber.length !== 17) {
       toast({
+        title: "Invalid VIN",
         description: "Please enter a valid 17-character VIN",
         variant: "destructive"
       });
@@ -50,7 +51,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
         model: 'Camry',
         year: 2019,
         vin: vinNumber,
-        trim: 'XLE',
+        trimLevel: 'XLE',
         color: 'Silver',
         fuelType: 'Gasoline',
         transmission: 'Automatic'
@@ -58,10 +59,12 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
       
       setVinVehicle(mockVehicle);
       toast({
+        title: "VIN Found",
         description: `Found: ${mockVehicle.year} ${mockVehicle.make} ${mockVehicle.model}`,
       });
     } catch (error) {
       toast({
+        title: "Lookup Failed",
         description: "Failed to look up VIN. Please try again.",
         variant: "destructive"
       });
@@ -77,6 +80,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast({
+        title: "Success",
         description: "Vehicle added successfully!",
       });
       
@@ -86,6 +90,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
       }
     } catch (error) {
       toast({
+        title: "Error",
         description: "Failed to add vehicle. Please try again.",
         variant: "destructive"
       });
@@ -161,7 +166,6 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
                   year: vinVehicle.year,
                   condition: 'Good',
                   status: 'Available',
-                  trim: vinVehicle.trim,
                   color: vinVehicle.color,
                   vehicleId: vinVehicle.vin,
                   photos: []
