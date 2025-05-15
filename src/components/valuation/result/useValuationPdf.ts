@@ -22,7 +22,6 @@ export function useValuationPdf({
   const handleDownloadPdf = async (): Promise<void> => {
     if (!valuationData) {
       toast({
-        title: "Error",
         description: "No valuation data available to generate PDF",
         variant: "destructive"
       });
@@ -31,7 +30,6 @@ export function useValuationPdf({
 
     if (!user) {
       toast({
-        title: "Authentication Required",
         description: "Please log in to download the valuation report",
         variant: "destructive"
       });
@@ -50,11 +48,11 @@ export function useValuationPdf({
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Good',
         zipCode: valuationData.zipCode || valuationData.zip || '00000',
-        estimatedValue: valuationData.estimatedValue || valuationData.estimated_value || 0,
-        confidenceScore: valuationData.confidenceScore || valuationData.confidence_score || 75,
+        estimatedValue: valuationData.estimatedValue || 0,
+        confidenceScore: valuationData.confidenceScore || 75,
         priceRange: valuationData.priceRange || [
-          Math.round((valuationData.estimatedValue || valuationData.estimated_value || 0) * 0.9),
-          Math.round((valuationData.estimatedValue || valuationData.estimated_value || 0) * 1.1)
+          Math.round((valuationData.estimatedValue || 0) * 0.9),
+          Math.round((valuationData.estimatedValue || 0) * 1.1)
         ],
         generatedAt: new Date().toISOString(),
         userId: user.id,
@@ -70,7 +68,7 @@ export function useValuationPdf({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          summary: conditionData.summary
+          summary: conditionData.summary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;
@@ -79,13 +77,11 @@ export function useValuationPdf({
       await downloadValuationPdf(reportData);
       
       toast({
-        title: "PDF Downloaded",
         description: "Your valuation report has been downloaded successfully."
       });
     } catch (error: any) {
       console.error('Error downloading PDF:', error);
       toast({
-        title: "Download Failed",
         description: error.message || "Failed to download PDF report",
         variant: "destructive"
       });

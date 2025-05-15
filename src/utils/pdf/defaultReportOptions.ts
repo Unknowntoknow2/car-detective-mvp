@@ -8,6 +8,12 @@ export const defaultReportOptions: ReportOptions = {
   includePhotos: true,
   includeLegalDisclaimer: true,
   theme: 'light',
-  logoUrl: '/logo.png',
-  customStyles: {}
+  includeBranding: true,
+  includeTimestamp: true,
+  includePhotoAssessment: true,
+  includeAIScore: true,
+  isPremium: false,
+  title: 'Vehicle Valuation Report'
 };
+
+export default defaultReportOptions;

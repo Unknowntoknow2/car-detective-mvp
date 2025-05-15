@@ -1407,6 +1407,7 @@ export type Database = {
           make: string | null
           mileage: number | null
           model: string | null
+          pdf_url: string | null
           plate: string | null
           premium_unlocked: boolean | null
           sale_date: string | null
@@ -1437,6 +1438,7 @@ export type Database = {
           make?: string | null
           mileage?: number | null
           model?: string | null
+          pdf_url?: string | null
           plate?: string | null
           premium_unlocked?: boolean | null
           sale_date?: string | null
@@ -1467,6 +1469,7 @@ export type Database = {
           make?: string | null
           mileage?: number | null
           model?: string | null
+          pdf_url?: string | null
           plate?: string | null
           premium_unlocked?: boolean | null
           sale_date?: string | null

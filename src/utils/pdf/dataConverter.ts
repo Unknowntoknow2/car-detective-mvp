@@ -19,6 +19,7 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
   isPremium?: boolean;
 }): ReportData {
   return {
+    id: vehicleInfo.id || crypto.randomUUID(),
     make: vehicleInfo.make,
     model: vehicleInfo.model,
     year: vehicleInfo.year,
@@ -28,10 +29,11 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
     confidenceScore: additionalData.confidenceScore || 75,
     vin: vehicleInfo.vin,
     zipCode: additionalData.zipCode,
-    color: vehicleInfo.color,
-    bodyType: vehicleInfo.bodyType,
+    trim: vehicleInfo.trim,
     fuelType: vehicleInfo.fuelType,
     transmission: vehicleInfo.transmission,
+    color: vehicleInfo.color,
+    bodyType: vehicleInfo.bodyType,
     isPremium: additionalData.isPremium || false,
     // Add required properties
     priceRange: [
@@ -58,9 +60,6 @@ export function convertValuationToReportData(valuation: any): ReportData {
     factor: adj.factor || adj.name || '',
     impact: adj.impact || adj.value || 0,
     description: adj.description || '',
-    percentAdjustment: adj.impactPercentage || adj.percentAdjustment || 0,
-    name: adj.factor || adj.name || '',
-    value: adj.impact || adj.value || 0
   })) || [];
 
   // Calculate price range if not provided
@@ -70,6 +69,7 @@ export function convertValuationToReportData(valuation: any): ReportData {
   ];
 
   return {
+    id: valuation.id || crypto.randomUUID(),
     make: valuation.make || '',
     model: valuation.model || '',
     year: valuation.year || 0,
@@ -87,13 +87,12 @@ export function convertValuationToReportData(valuation: any): ReportData {
     features: valuation.features || [],
     aiCondition: valuation.aiCondition || null,
     vin: valuation.vin || '',
-    valuationId: valuation.id,
     zipCode: valuation.zipCode || valuation.zip || '',
+    trim: valuation.trim || '',
     color: valuation.color || '',
     bodyType: valuation.bodyType || valuation.bodyStyle || '',
     fuelType: valuation.fuelType || valuation.fuel_type || '',
     transmission: valuation.transmission || '',
-    photoExplanation: valuation.photoExplanation || '',
-    trim: valuation.trim || ''
+    photoExplanation: valuation.photoExplanation || ''
   };
 }

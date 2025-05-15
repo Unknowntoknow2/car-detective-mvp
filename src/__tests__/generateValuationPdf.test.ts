@@ -4,6 +4,7 @@ import { ReportData } from '@/utils/pdf/types';
 
 describe('generateValuationPdf', () => {
   const mockReportData: ReportData = {
+    id: '12345',
     make: 'Toyota',
     model: 'Camry',
     year: 2020,
