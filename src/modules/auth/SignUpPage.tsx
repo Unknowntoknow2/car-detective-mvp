@@ -1,23 +1,16 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SignupForm } from '@/components/auth/forms/SignupForm';
+import React, { useState } from 'react';
+import { SignupForm } from './SignupForm';
 
-export const SignUpPage = () => {
+function SignUpPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  
   return (
-    <div className="container flex items-center justify-center min-h-[calc(100vh-14rem)] py-8">
-      <div className="w-full max-w-md">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SignupForm />
-          </CardContent>
-        </Card>
-      </div>
+    <div className="container mx-auto max-w-md py-12">
+      <h1 className="text-2xl font-bold mb-6">Create Account</h1>
+      <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
     </div>
   );
-};
+}
 
 export default SignUpPage;

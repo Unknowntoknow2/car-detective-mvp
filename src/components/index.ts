@@ -1,16 +1,19 @@
 
-// Re-export component modules
-export * from './ui';
-export * from './layout';
-export * from './dealer';
-export * from './valuation';
-export * from './lookup';
-export * from './premium';
-export * from './service-history';
-export * from './animations';
-export * from './title-ownership';
-export * from './stats';
+// Export components by category
 
-// Export individual components
-export { ErrorBoundary } from './ErrorBoundary';
-export { default as ResultsDisplay } from './ResultsDisplay';
+// Layout components
+export * from './layout';
+export * from './navbar';
+export * from './footer';
+
+// UI components with namespaced exports
+export * as UI from './ui';
+export * as Forms from './form';
+export * as Dealer from './dealer';
+export * as Valuation from './valuation';
+export * as Premium from './premium';
+export * as Service from './service-history';
+export * as Stats from './stats';
+export * as Animation from './animations';
+export * as Marketing from './marketing';
+export * as Theme from './theme';
