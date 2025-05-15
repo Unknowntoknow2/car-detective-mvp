@@ -29,7 +29,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface ManualEntryFormProps {
   onSubmit: (data: FormValues) => void;
-  isLoading?: boolean;
+  isLoading?: boolean; // Added isLoading prop
   submitButtonText?: string;
   isPremium?: boolean;
 }

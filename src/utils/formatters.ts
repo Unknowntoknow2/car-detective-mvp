@@ -9,6 +9,30 @@ export * from './formatters/formatPhone';
 export * from './formatters/formatVin';
 export * from './formatters/stringFormatters';
 
+// Format currency for US market only
+export const formatCurrency = (value: number, locale: string = 'en-US', currencyCode: string = 'USD'): string => {
+  // If value is null or undefined, return $0
+  if (value == null) return '$0';
+  
+  try {
+    // Optimize for the common case - US dollars
+    return `$${value.toLocaleString('en-US', { 
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2 
+    })}`;
+  } catch (error) {
+    // Fallback in case of error
+    return `$${value.toLocaleString()}`;
+  }
+};
+
+// Format date in US format (MM/DD/YYYY)
+export const formatDate = (date: Date | string): string => {
+  if (!date) return '';
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString('en-US');
+};
+
 // Legacy formatter functions that need to be directly available from this file
 export const formatNumber = (num: number): string => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -49,31 +73,4 @@ export const formatRelativeTime = (date: Date | string): string => {
 
 export const manualEntryToJson = (data: any): string => {
   return JSON.stringify(data);
-};
-
-// Export the currency formatter that many components are looking for
-export const formatCurrency = (value: number, locale: string = 'en-US', currencyCode: string = 'USD'): string => {
-  // If value is null or undefined, return $0
-  if (value == null) return '$0';
-  
-  try {
-    if (currencyCode === 'USD') {
-      // Optimize for the common case - US dollars
-      return `$${value.toLocaleString('en-US', { 
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2 
-      })}`;
-    }
-    
-    // For other currencies, use the full Intl.NumberFormat
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: currencyCode,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(value);
-  } catch (error) {
-    // Fallback in case of invalid locale or currency code
-    return `$${value.toLocaleString()}`;
-  }
 };

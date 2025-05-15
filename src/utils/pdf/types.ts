@@ -32,6 +32,11 @@ export interface ReportData {
   userId?: string;
   explanation?: string;
   bestPhotoUrl?: string;
+  // Additional fields needed by various components
+  trim?: string;
+  photoScore?: number;
+  photoExplanation?: string;
+  narrative?: string; // Used in buildValuationReport.ts
 }
 
 export interface ReportOptions {
@@ -60,4 +65,33 @@ export interface SectionParams {
   options: ReportOptions;
   pageWidth: number;
   pageHeight: number;
+  // Additional properties needed by various components
+  page?: any;
+  margin?: number;
+  margins?: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  width?: number;
+  height?: number;
+  contentWidth?: number;
+  boldFont?: any;
+  regularFont?: any;
+  primaryColor?: any;
+  secondaryColor?: any;
+  textColor?: any;
+}
+
+// Add the AdjustmentBreakdown type that is used in adjustmentTable.ts
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description?: string;
+  name?: string;
+  value?: number;
+  percentAdjustment?: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }
