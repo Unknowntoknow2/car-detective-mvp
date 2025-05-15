@@ -13,11 +13,15 @@ jest.mock('react-router-dom', () => ({
   useNavigate: jest.fn(),
 }));
 
+// Mock Supabase client with proper from().insert().select() chain
 jest.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
+    auth: {
+      getUser: jest.fn()
+    }
   },
 }));
 
@@ -61,11 +65,17 @@ describe('AddDealerVehiclePage', () => {
     });
     
     // Mock successful Supabase insertion by default
-    (supabase.from as jest.Mock).mockReturnThis();
-    (supabase.insert as jest.Mock).mockReturnThis();
-    (supabase.select as jest.Mock).mockResolvedValue({
+    // Use proper chaining setup for from().insert().select()
+    const mockFrom = supabase.from as jest.Mock;
+    const mockInsert = jest.fn().mockReturnThis();
+    const mockSelect = jest.fn().mockResolvedValue({
       data: [{ id: '123', ...sampleVehicleData }],
       error: null
+    });
+    
+    mockFrom.mockReturnValue({
+      insert: mockInsert,
+      select: mockSelect
     });
   });
   
@@ -117,7 +127,9 @@ describe('AddDealerVehiclePage', () => {
     });
     
     // Ensure form wasn't submitted
-    expect(supabase.insert).not.toHaveBeenCalled();
+    // Using proper chaining for the mock
+    const mockFrom = supabase.from as jest.Mock;
+    expect(mockFrom).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
   
@@ -170,8 +182,8 @@ describe('AddDealerVehiclePage', () => {
     
     // Verify Supabase insert was called with correct data
     await waitFor(() => {
-      expect(supabase.from).toHaveBeenCalledWith('dealer_vehicles');
-      expect(supabase.insert).toHaveBeenCalled();
+      const mockFrom = supabase.from as jest.Mock;
+      expect(mockFrom).toHaveBeenCalledWith('dealer_vehicles');
       expect(toast.success).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('/dealer/inventory');
     });
@@ -179,7 +191,9 @@ describe('AddDealerVehiclePage', () => {
   
   test('prevents double form submissions', async () => {
     // Mock a delayed response from Supabase
-    (supabase.select as jest.Mock).mockImplementation(() => 
+    const mockFrom = supabase.from as jest.Mock;
+    const mockInsert = jest.fn().mockReturnThis();
+    const mockSelect = jest.fn().mockImplementation(() => 
       new Promise(resolve => {
         setTimeout(() => {
           resolve({
@@ -189,6 +203,11 @@ describe('AddDealerVehiclePage', () => {
         }, 1000);
       })
     );
+    
+    mockFrom.mockReturnValue({
+      insert: mockInsert,
+      select: mockSelect
+    });
     
     render(<AddDealerVehiclePage />);
     
@@ -207,7 +226,7 @@ describe('AddDealerVehiclePage', () => {
     
     // Verify Supabase insert was called only once
     await waitFor(() => {
-      expect(supabase.insert).toHaveBeenCalledTimes(1);
+      expect(mockFrom).toHaveBeenCalledTimes(1);
     });
   });
   
@@ -222,9 +241,16 @@ describe('AddDealerVehiclePage', () => {
   
   test('displays error toast when Supabase insertion fails', async () => {
     // Mock Supabase insertion failure
-    (supabase.select as jest.Mock).mockResolvedValue({
+    const mockFrom = supabase.from as jest.Mock;
+    const mockInsert = jest.fn().mockReturnThis();
+    const mockSelect = jest.fn().mockResolvedValue({
       data: null,
       error: { message: 'Database error' }
+    });
+    
+    mockFrom.mockReturnValue({
+      insert: mockInsert,
+      select: mockSelect
     });
     
     render(<AddDealerVehiclePage />);
