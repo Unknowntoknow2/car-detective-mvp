@@ -21,9 +21,11 @@ export function usePremiumAccess(valuationId?: string) {
       setError(null);
       
       try {
-        // Use the checkPremiumAccess function from premiumService
-        const hasAccess = await checkPremiumAccess(valuationId);
-        setHasPremiumAccess(hasAccess);
+        // Check if the function implementation in premiumService.ts returns an object
+        const result = await checkPremiumAccess();
+        
+        // Extract the hasPremium boolean from the result
+        setHasPremiumAccess(result.hasPremium);
       } catch (err) {
         console.error('Error checking premium access:', err);
         setError(err instanceof Error ? err : new Error('Failed to check premium access'));

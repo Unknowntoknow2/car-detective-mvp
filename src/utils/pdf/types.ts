@@ -1,86 +1,98 @@
 
 export interface ReportData {
+  id: string;
   make: string;
   model: string;
   year: number;
   mileage: number;
   condition: string;
-  zipCode?: string;
+  price: number;
   estimatedValue: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    name?: string;
-    value?: number;
-    description?: string;
-    percentAdjustment?: number;
-  }>;
-  generatedAt: string;
+  zipCode?: string;
   vin?: string;
-  color?: string;
   bodyType?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  isPremium?: boolean;
-  aiCondition?: any;
-  explanation?: string;
   fuelType?: string;
   transmission?: string;
-  features?: string[];
-  photoExplanation?: string;
-  valuationId?: string;
-  narrative?: string;
+  color?: string;
+  confidenceScore?: number;
+  isPremium?: boolean;
+  priceRange?: number[] | { min: number; max: number };
+  adjustments?: {
+    factor: string;
+    impact: number;
+    description?: string;
+  }[];
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+  };
+  generatedAt: string;
+  userId?: string;
+  explanation?: string;
+  bestPhotoUrl?: string;
+  // Additional fields needed by various components
   trim?: string;
+  photoScore?: number;
+  photoExplanation?: string;
+  narrative?: string;
+  features?: string[];
 }
 
 export interface ReportOptions {
-  includeHeader: boolean;
-  includeFooter: boolean;
+  pageSize: 'letter' | 'a4' | 'legal';
+  margins: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
   includePageNumbers: boolean;
   includePhotos: boolean;
-  includeLegalDisclaimer: boolean;
-  theme: 'light' | 'dark';
-  logoUrl?: string;
-  customStyles?: Record<string, any>;
-  format?: string;
-  orientation?: 'portrait' | 'landscape';
-  margin?: number;
-  includeBranding?: boolean;
-  includeTimestamp?: boolean;
-  includePhotoAssessment?: boolean;
-  includeAIScore?: boolean;
-  isPremium?: boolean;
-  title?: string;
-  printBackground?: boolean;
-  landscape?: boolean;
-  showWholesaleValue?: boolean;
-  dealerName?: string;
-  userName?: string;
+  includeSimilarVehicles: boolean;
+  companyInfo: {
+    name: string;
+    logo: string | null;
+    website: string;
+    phone: string;
+  };
 }
 
 export interface SectionParams {
   doc: any;
-  page: any;
+  y: number;
+  data: ReportData;
+  options: ReportOptions;
+  pageWidth: number;
+  pageHeight: number;
+  // Additional properties needed by various components
+  page?: any;
+  margin?: number;
+  margins?: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
   width?: number;
   height?: number;
-  margin?: number;
-  pageWidth?: number;
   contentWidth?: number;
-  fonts?: {
-    regular: any;
-    bold: any;
-  };
-  regularFont?: any;
   boldFont?: any;
-  constants?: {
-    margin: number;
-    width: number;
-    height: number;
-    titleFontSize: number;
-    headingFontSize: number;
-    normalFontSize: number;
-    smallFontSize: number;
-  };
+  regularFont?: any;
+  primaryColor?: any;
+  secondaryColor?: any;
+  textColor?: any;
+}
+
+// Add the AdjustmentBreakdown type that is used in adjustmentTable.ts
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description?: string;
+  name?: string;
+  value?: number;
+  percentAdjustment?: number;
+  adjustment?: number;
+  impactPercentage?: number;
 }

@@ -9,22 +9,114 @@ export function drawValuationSummary(
   isPremium: boolean = false,
   includeTimestamp: boolean = true
 ): number {
-  // Implementation of drawing valuation summary
-  // For now, we'll just return the yPosition plus some offset
-  // This is a stub implementation to make the types work
-  console.log("Drawing valuation summary", narrative, isPremium, includeTimestamp);
-  return yPosition + 60; // Return the updated yPosition after drawing
+  const { 
+    page, 
+    margin, 
+    contentWidth, 
+    boldFont, 
+    regularFont, 
+    primaryColor, 
+    textColor 
+  } = sectionParams;
+  
+  // Safety checks for required properties
+  if (!page || !margin || !contentWidth || !boldFont || !regularFont || !primaryColor || !textColor) {
+    console.error('Missing required properties in sectionParams', { 
+      hasPage: !!page, 
+      hasMargin: !!margin, 
+      hasContentWidth: !!contentWidth,
+      hasBoldFont: !!boldFont,
+      hasRegularFont: !!regularFont 
+    });
+    return yPosition;
+  }
+  
+  // Draw heading
+  page.drawText("Valuation Summary", {
+    x: margin,
+    y: yPosition,
+    size: 16,
+    font: boldFont,
+    color: primaryColor
+  });
+  
+  yPosition -= 25;
+  
+  // Split narrative into lines to fit within content width
+  const words = narrative.split(' ');
+  let currentLine = '';
+  const lines: string[] = [];
+  
+  // Mock calculation for line width if font object doesn't have widthOfTextAtSize
+  const calculateTextWidth = (text: string, fontSize: number) => {
+    // Simple approximation: assume each character is ~0.6 times the font size wide
+    return text.length * fontSize * 0.6;
+  };
+  
+  const getTextWidth = typeof regularFont === 'string' 
+    ? (text: string) => calculateTextWidth(text, 12)
+    : (text: string) => (regularFont as any).widthOfTextAtSize(text, 12);
+  
+  for (const word of words) {
+    const testLine = currentLine + word + ' ';
+    if (getTextWidth(testLine) > contentWidth) {
+      lines.push(currentLine);
+      currentLine = word + ' ';
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  // Draw each line of text
+  for (const line of lines) {
+    page.drawText(line, {
+      x: margin,
+      y: yPosition,
+      size: 12,
+      font: regularFont,
+      color: textColor
+    });
+    yPosition -= 18;
+  }
+  
+  // Add timestamp if requested
+  if (includeTimestamp) {
+    yPosition -= 10;
+    page.drawText(`Generated on ${new Date().toLocaleDateString()}`, {
+      x: margin,
+      y: yPosition,
+      size: 10,
+      font: regularFont,
+      color: textColor
+    });
+    yPosition -= 15;
+  }
+  
+  return yPosition; // Return updated position
 }
 
 // Export a function that shows how to use drawValuationSummary
 export function buildValuationSummarySection(sectionParams: SectionParams, reportData: ReportData): number {
-  let yPosition = 100; // Starting position
+  // Use height and margins in a safely way
+  const startY = sectionParams.height 
+    ? sectionParams.height - ((sectionParams.margins?.top || sectionParams.margin || 40) + 100) 
+    : 700;
+  
+  // Generate narrative if not provided
+  const narrative = reportData.narrative || 
+    `This valuation report for your ${reportData.year} ${reportData.make} ${reportData.model} ` +
+    `provides an estimated market value of $${reportData.estimatedValue?.toLocaleString() || reportData.price.toLocaleString()} ` +
+    `based on vehicle condition, mileage, and local market factors.`;
   
   // Call the function with all required parameters
-  yPosition = drawValuationSummary(
+  const yPosition = drawValuationSummary(
     sectionParams, 
-    reportData.narrative || '', 
-    yPosition,
+    narrative, 
+    startY,
     reportData.isPremium,
     true // includeTimestamp 
   );

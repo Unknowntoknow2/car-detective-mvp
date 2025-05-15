@@ -1,14 +1,17 @@
 
 /**
  * Formats a number as a percentage
- * @param value The numeric value to format as percentage (0-100)
- * @param locale The locale to use for formatting (default: 'en-US')
- * @returns A formatted percentage string
+ * @param value The number to format (0.1 = 10%)
+ * @param decimals The number of decimal places to show
+ * @returns The formatted percentage string
  */
-export const formatPercent = (value: number, locale = 'en-US'): string => {
-  return new Intl.NumberFormat(locale, {
-    style: 'percent',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value / 100);
-};
+export function formatPercent(value: number, decimals: number = 0): string {
+  if (value == null) return '0%';
+  
+  try {
+    const percentValue = value * 100;
+    return `${percentValue.toFixed(decimals)}%`;
+  } catch (error) {
+    return '0%';
+  }
+}

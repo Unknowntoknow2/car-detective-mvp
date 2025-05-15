@@ -1,124 +1,143 @@
 
-import { rgb } from 'pdf-lib';
-import { SectionParams } from '../types';
-import { AdjustmentBreakdown } from '@/utils/rules/types';
+// Fixed import for formatCurrency from the correct module path
 import { formatCurrency } from '@/utils/formatters';
+import { AdjustmentBreakdown, SectionParams } from '../types';
 
-/**
- * Renders an adjustment table in the PDF
- * @param params PDF section parameters
- * @param basePrice The base price before adjustments
- * @param adjustments Array of adjustment breakdowns
- * @param yPosition Current Y position in the PDF
- * @returns New Y position after drawing the table
- */
-export function renderAdjustmentTable(
-  params: SectionParams,
-  basePrice: number,
-  adjustments: AdjustmentBreakdown[],
-  yPosition: number
-): number {
-  const { doc, page, margin, contentWidth, regularFont, boldFont } = params;
+export const drawAdjustmentTable = (params: SectionParams, adjustments: AdjustmentBreakdown[]): number => {
+  const { page, y, width, margin, boldFont, regularFont, primaryColor, textColor } = params;
+  const tableX = margin || 72; // Default margin if not provided
+  let currentY = y;
+  const rowHeight = 20;
+  const numColumns = 3;
+  const columnWidths = [(width || 500) * 0.4, (width || 500) * 0.3, (width || 500) * 0.3]; // Adjusted for 3 columns
+  const headers = ['Factor', 'Description', 'Impact'];
 
-  if (!page || !doc) {
-    console.error('PDF page or document not defined');
-    return yPosition;
-  }
+  // Function to draw a cell with text wrapping
+  const drawTableCell = (
+    page: any,
+    text: string,
+    x: number,
+    y: number,
+    colWidth: number,
+    font: any,
+    fontSize: number,
+    color: any,
+    alignment: 'left' | 'center' | 'right' = 'left'
+  ) => {
+    const words = text.split(' ');
+    let line = '';
+    let yOffset = y;
 
-  // Title
-  let currentY = yPosition;
-  page.drawText('Value Adjustments', {
-    x: margin,
-    y: currentY,
-    size: 14,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
-  });
+    words.forEach((word, index) => {
+      const testLine = line + word + ' ';
+      const textWidth = font?.widthOfTextAtSize ? font.widthOfTextAtSize(testLine, fontSize) : testLine.length * fontSize * 0.6;
 
-  currentY -= 20;
+      if (textWidth > colWidth && line !== '') {
+        // Draw the line
+        page.drawText(line.trim(), {
+          x: x,
+          y: yOffset,
+          font: font,
+          size: fontSize,
+          color: color,
+          wordBreaks: ['break-word']
+        });
+        yOffset -= fontSize * 1.2; // Adjust line spacing
+        line = word + ' ';
+      } else {
+        line = testLine;
+      }
 
-  // Base price row
-  page.drawText('Base Value:', {
-    x: margin,
-    y: currentY,
-    size: 12,
-    font: regularFont,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-
-  page.drawText(formatCurrency(basePrice), {
-    x: margin + (contentWidth || 0) - 100,
-    y: currentY,
-    size: 12,
-    font: boldFont,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-
-  currentY -= 15;
-
-  // Draw separator line
-  page.drawLine({
-    start: { x: margin, y: currentY + 5 },
-    end: { x: margin + (contentWidth || 0), y: currentY + 5 },
-    thickness: 0.5,
-    color: rgb(0.8, 0.8, 0.8)
-  });
-
-  currentY -= 10;
-
-  // Draw adjustments
-  for (const adj of adjustments) {
-    const adjValue = adj.value || adj.impact || 0;
-    const isPositive = adjValue > 0;
-    
-    page.drawText(adj.name || adj.factor || 'Adjustment', {
-      x: margin,
-      y: currentY,
-      size: 11,
-      font: regularFont,
-      color: rgb(0.3, 0.3, 0.3)
+      if (index === words.length - 1) {
+        // Draw the last line
+        page.drawText(line.trim(), {
+          x: x,
+          y: yOffset,
+          font: font,
+          size: fontSize,
+          color: color,
+          wordBreaks: ['break-word']
+        });
+      }
     });
 
-    page.drawText(`${isPositive ? '+' : ''}${formatCurrency(adjValue)}`, {
-      x: margin + (contentWidth || 0) - 100,
-      y: currentY,
-      size: 11,
-      font: regularFont,
-      color: isPositive ? rgb(0.2, 0.7, 0.2) : rgb(0.8, 0.2, 0.2)
-    });
+    return yOffset; // Return the new Y offset after drawing the cell
+  };
 
-    currentY -= 20;
+  // Check if page is available before drawing
+  if (!page) {
+    console.error('Page object is missing in SectionParams');
+    return currentY;
   }
 
-  // Draw separator line
-  page.drawLine({
-    start: { x: margin, y: currentY + 10 },
-    end: { x: margin + (contentWidth || 0), y: currentY + 10 },
-    thickness: 0.5,
-    color: rgb(0.8, 0.8, 0.8)
+  // Draw table headers
+  for (let i = 0; i < numColumns; i++) {
+    page.drawText(headers[i], {
+      x: tableX + columnWidths[0] * i,
+      y: currentY,
+      font: boldFont,
+      size: 10,
+      color: primaryColor,
+    });
+  }
+  currentY -= rowHeight;
+
+  // Draw table rows
+  adjustments.forEach((adjustment) => {
+    let cellY = currentY; // Start the cell's Y position at the current row Y
+
+    // Draw Factor cell
+    const factorY = drawTableCell(
+      page,
+      adjustment.factor,
+      tableX,
+      cellY,
+      columnWidths[0],
+      regularFont,
+      10,
+      textColor
+    );
+
+    // Draw Description cell
+    const descriptionY = drawTableCell(
+      page,
+      adjustment.description || 'N/A',
+      tableX + columnWidths[0],
+      cellY,
+      columnWidths[1],
+      regularFont,
+      10,
+      textColor
+    );
+
+    // Draw Impact cell
+    const impactText = formatCurrency(adjustment.impact);
+    const impactY = drawTableCell(
+      page,
+      impactText,
+      tableX + columnWidths[0] + columnWidths[1],
+      cellY,
+      columnWidths[2],
+      regularFont,
+      10,
+      textColor,
+      'right'
+    );
+
+    // Determine the lowest Y value after drawing all cells in the row
+    const lowestY = Math.min(factorY, descriptionY, impactY);
+
+    // Update currentY to the lowest Y value minus some padding
+    currentY = lowestY - 5;
+
+    // Draw row separator
+    page.drawLine({
+      start: { x: tableX, y: currentY + 3 },
+      end: { x: tableX + (width || 500), y: currentY + 3 },
+      color: primaryColor,
+      thickness: 0.5,
+    });
   });
 
-  currentY -= 5;
-
-  // Draw final value
-  page.drawText('Final Estimated Value:', {
-    x: margin,
-    y: currentY,
-    size: 12,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
-  });
-
-  const totalAdjustment = adjustments.reduce((sum, adj) => sum + (adj.value || adj.impact || 0), 0);
-  const finalValue = basePrice + totalAdjustment;
-
-  page.drawText(formatCurrency(finalValue), {
-    x: margin + (contentWidth || 0) - 100,
-    y: currentY,
-    size: 12,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
-  });
-
-  return currentY - 20;
-}
+  return currentY;
+};

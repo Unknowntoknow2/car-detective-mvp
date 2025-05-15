@@ -9,7 +9,9 @@ import { Toaster } from '@/components/ui/toaster';
 // Pages
 import Index from '@/pages/Index';
 import Dashboard from '@/pages/Dashboard';
-import LoginPage from '@/pages/LoginPage';
+import LoginUserPage from '@/pages/LoginUserPage';
+import LoginDealerPage from '@/pages/LoginDealerPage';
+import DealerSignup from '@/pages/dealer/signup';
 import RegisterPage from '@/pages/RegisterPage';
 import VpicDecoderPage from '@/pages/VpicDecoderPage';
 import ValuationPage from '@/pages/ValuationPage';
@@ -17,6 +19,10 @@ import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import SettingsPage from '@/pages/SettingsPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
+import NotFound from '@/pages/NotFound';
+import Premium from '@/pages/Premium';
+import AuthLandingPage from '@/pages/AuthLandingPage';
+import UserDashboard from '@/pages/dashboard/UserDashboard'; // Add import
 
 // Components for route protection
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -26,8 +32,8 @@ import DealerGuard from '@/guards/DealerGuard';
 // Lazy loaded components
 const PremiumValuationPage = React.lazy(() => import('@/pages/PremiumValuationPage'));
 const MyValuationsPage = React.lazy(() => import('@/pages/MyValuationsPage'));
-const ValuationDetailsPage = React.lazy(() => import('@/pages/ValuationDetailPage')); // Note: Using existing ValuationDetailPage
-const DealerDashboardPage = React.lazy(() => import('@/pages/DealerDashboard')); // Note: Using existing DealerDashboard
+const ValuationDetailsPage = React.lazy(() => import('@/pages/ValuationDetailPage')); 
+const DealerDashboardPage = React.lazy(() => import('@/pages/DealerDashboard'));
 
 function App() {
   return (
@@ -44,11 +50,15 @@ function App() {
               </React.Suspense>
             } />
             <Route path="decoder" element={<VpicDecoderPage />} />
+            <Route path="premium" element={<Premium />} />
             
-            {/* Auth routes - redirect to dashboard if logged in */}
-            <Route path="login" element={
+            {/* Auth routes - main landing page */}
+            <Route path="auth" element={<AuthLandingPage />} />
+            
+            {/* User-specific auth routes */}
+            <Route path="login-user" element={
               <AuthRoute>
-                <LoginPage />
+                <LoginUserPage />
               </AuthRoute>
             } />
             <Route path="register" element={
@@ -56,6 +66,20 @@ function App() {
                 <RegisterPage />
               </AuthRoute>
             } />
+            
+            {/* Dealer-specific auth routes */}
+            <Route path="login-dealer" element={
+              <AuthRoute>
+                <LoginDealerPage />
+              </AuthRoute>
+            } />
+            <Route path="dealer-signup" element={
+              <AuthRoute>
+                <DealerSignup />
+              </AuthRoute>
+            } />
+            
+            {/* Shared auth routes */}
             <Route path="forgot-password" element={
               <AuthRoute>
                 <ForgotPasswordPage />
@@ -71,6 +95,11 @@ function App() {
             <Route path="dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="user-dashboard" element={
+              <ProtectedRoute>
+                <UserDashboard />
               </ProtectedRoute>
             } />
             <Route path="settings" element={
@@ -104,7 +133,7 @@ function App() {
             
             {/* Error pages */}
             <Route path="access-denied" element={<AccessDeniedPage />} />
-            <Route path="*" element={<div>Page not found</div>} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
         <Toaster />

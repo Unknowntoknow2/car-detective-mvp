@@ -1,9 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { UnifiedValuationHeader } from '@/components/valuation/header/UnifiedValuationHeader';
 import { useValuationResult } from '@/hooks/useValuationResult';
 
 interface ValuationResultProps {
@@ -41,8 +40,8 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
     make: data.make,
     model: data.model,
     year: data.year,
-    mileage: data.mileage,
-    condition: data.condition
+    mileage: data.mileage || 0,
+    condition: data.condition || 'Good'
   } : {
     make: 'Unknown',
     model: 'Vehicle',

@@ -1,58 +1,59 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useInView } from 'framer-motion';
 
 interface AnimatedCounterProps {
   value: number;
-  duration?: number;
   formatter?: (value: number) => string;
-  className?: string;
+  duration?: number;
 }
 
-export function AnimatedCounter({ 
+export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ 
   value, 
-  duration = 1000, 
-  formatter = (val) => val.toLocaleString(), 
-  className 
-}: AnimatedCounterProps) {
+  formatter = (val) => val.toString(),
+  duration = 1000
+}) => {
   const [displayValue, setDisplayValue] = useState(0);
-  const startTimeRef = useRef<number | null>(null);
-  const startValueRef = useRef(0);
-  const frameRef = useRef<number | null>(null);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const startTime = useRef<number | null>(null);
+  const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
-    startValueRef.current = displayValue;
-    startTimeRef.current = null;
-    
-    if (frameRef.current) {
-      cancelAnimationFrame(frameRef.current);
-    }
+    if (!isInView) return;
 
-    const animateValue = (timestamp: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-      }
-
-      const elapsed = timestamp - startTimeRef.current;
-      const progress = Math.min(elapsed / duration, 1);
+    const animate = (timestamp: number) => {
+      if (!startTime.current) startTime.current = timestamp;
+      const progress = timestamp - startTime.current;
+      const percentage = Math.min(progress / duration, 1);
       
-      const newValue = Math.floor(startValueRef.current + (value - startValueRef.current) * progress);
-      setDisplayValue(newValue);
-
-      if (progress < 1) {
-        frameRef.current = requestAnimationFrame(animateValue);
+      // Easing function: ease out cubic
+      const eased = 1 - Math.pow(1 - percentage, 3);
+      
+      // Update the displayed value
+      setDisplayValue(Math.floor(eased * value));
+      
+      // Continue animation until duration is complete
+      if (percentage < 1) {
+        animationFrameId.current = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(value); // Ensure final value is exact
       }
     };
 
-    frameRef.current = requestAnimationFrame(animateValue);
+    // Start the animation
+    animationFrameId.current = requestAnimationFrame(animate);
     
+    // Cleanup on component unmount or when value changes
     return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
       }
+      startTime.current = null;
     };
-  }, [value, duration]);
+  }, [value, isInView, duration]);
 
-  return (
-    <span className={className}>{formatter(displayValue)}</span>
-  );
-}
+  return <span ref={ref}>{formatter(displayValue)}</span>;
+};
+
+export default AnimatedCounter;

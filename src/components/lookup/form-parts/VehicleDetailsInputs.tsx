@@ -1,95 +1,138 @@
 
 import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
-import { ManualEntryFormData } from '../types/manualEntry';
-import { ZipCodeInput } from './ZipCodeInput';
-import { toast } from 'sonner';
-import { ZipCodeField } from '@/components/premium/lookup/form-parts/fields/ZipCodeField';
+import { Label } from '@/components/ui/label';
 
 interface VehicleDetailsInputsProps {
-  form: UseFormReturn<ManualEntryFormData>;
+  make: string;
+  setMake: (value: string) => void;
+  model: string;
+  setModel: (value: string) => void;
+  year: number;
+  setYear: (value: number) => void;
+  mileage: number;
+  setMileage: (value: number) => void;
+  trim?: string;
+  setTrim?: (value: string) => void;
+  color?: string;
+  setColor?: (value: string) => void;
 }
 
-export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form }) => {
+export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
+  make,
+  setMake,
+  model,
+  setModel,
+  year,
+  setYear,
+  mileage,
+  setMileage,
+  trim,
+  setTrim,
+  color,
+  setColor
+}) => {
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1990 + 1 }, (_, i) => currentYear - i);
-
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: number) => void) => {
-    const value = e.target.value;
-    const numberValue = parseInt(value, 10);
-    
-    if (value === '') {
-      onChange(0);
-    } else if (!isNaN(numberValue) && numberValue >= 0 && numberValue <= 500000) {
-      onChange(numberValue);
-    } else {
-      toast.error('Please enter a valid mileage between 0 and 500,000');
+  
+  // Handle year change with validation
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const yearValue = parseInt(e.target.value);
+    if (!isNaN(yearValue)) {
+      // Limit year between 1900 and current year + 1
+      if (yearValue >= 1900 && yearValue <= currentYear + 1) {
+        setYear(yearValue);
+      }
     }
   };
-
+  
+  // Handle mileage change with validation
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const mileageValue = parseInt(e.target.value);
+    if (!isNaN(mileageValue) && mileageValue >= 0) {
+      setMileage(mileageValue);
+    }
+  };
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <FormField
-        control={form.control}
-        name="year"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Year</FormLabel>
-            <Select
-              onValueChange={(value) => field.onChange(value)}
-              value={field.value ? field.value.toString() : undefined}
-            >
-              <FormControl>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent className="max-h-[300px]">
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="make">Make</Label>
+          <Input
+            id="make"
+            placeholder="e.g. Toyota"
+            value={make}
+            onChange={(e) => setMake(e.target.value)}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="model">Model</Label>
+          <Input
+            id="model"
+            placeholder="e.g. Camry"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+          />
+        </div>
+      </div>
       
-      <FormField
-        control={form.control}
-        name="mileage"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Mileage</FormLabel>
-            <FormControl>
-              <Input 
-                type="number"
-                min={0}
-                max={500000}
-                step={100}
-                placeholder="e.g., 25000"
-                {...field}
-                value={field.value === '0' ? '' : field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                className="h-12"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="year">Year</Label>
+          <Input
+            id="year"
+            type="number"
+            placeholder={`1900-${currentYear + 1}`}
+            value={year}
+            onChange={handleYearChange}
+            min={1900}
+            max={currentYear + 1}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="mileage">Mileage</Label>
+          <Input
+            id="mileage"
+            type="number"
+            placeholder="e.g. 50000"
+            value={mileage}
+            onChange={handleMileageChange}
+            min={0}
+          />
+        </div>
+      </div>
+      
+      {(setTrim || setColor) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {setTrim && (
+            <div className="space-y-2">
+              <Label htmlFor="trim">Trim (Optional)</Label>
+              <Input
+                id="trim"
+                placeholder="e.g. XLE"
+                value={trim}
+                onChange={(e) => setTrim(e.target.value)}
               />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <ZipCodeField
-        form={form}
-        name="zipCode"
-        label="ZIP Code"
-        placeholder="Enter ZIP code"
-      />
+            </div>
+          )}
+          
+          {setColor && (
+            <div className="space-y-2">
+              <Label htmlFor="color">Color (Optional)</Label>
+              <Input
+                id="color"
+                placeholder="e.g. Silver"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+
+export default VehicleDetailsInputs;

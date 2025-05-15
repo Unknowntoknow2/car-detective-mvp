@@ -1,22 +1,31 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-export function usePremiumDealer() {
+type PremiumDealerStatus = {
+  isPremium: boolean;
+  expiryDate: string | null;
+  isLoading: boolean;
+  error: Error | null;
+};
+
+export const usePremiumDealer = (): PremiumDealerStatus => {
   const { user } = useAuth();
-  const [isPremium, setIsPremium] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [expiryDate, setExpiryDate] = useState<Date | null>(null);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [expiryDate, setExpiryDate] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    async function checkPremiumStatus() {
+    const checkPremiumStatus = async () => {
       if (!user) {
         setIsLoading(false);
         return;
       }
 
       try {
+        // Get profile data which contains premium information
         const { data, error } = await supabase
           .from('profiles')
           .select('is_premium_dealer, premium_expires_at')
@@ -24,27 +33,24 @@ export function usePremiumDealer() {
           .single();
 
         if (error) {
-          console.error('Error checking premium status:', error);
-          setIsLoading(false);
-          return;
+          throw error;
         }
 
-        // Check if user is premium and if premium hasn't expired
-        const isPremiumUser = data?.is_premium_dealer === true;
-        const expiryDateValue = data?.premium_expires_at ? new Date(data.premium_expires_at) : null;
-        const hasValidSubscription = expiryDateValue ? expiryDateValue > new Date() : false;
+        const isPremiumActive = data.is_premium_dealer && 
+          (!data.premium_expires_at || new Date(data.premium_expires_at) > new Date());
 
-        setIsPremium(isPremiumUser && hasValidSubscription);
-        setExpiryDate(expiryDateValue);
+        setIsPremium(isPremiumActive);
+        setExpiryDate(data.premium_expires_at);
       } catch (err) {
-        console.error('Error in premium check:', err);
+        console.error('Error checking premium status:', err);
+        setError(err as Error);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     checkPremiumStatus();
   }, [user]);
 
-  return { isPremium, isLoading, expiryDate };
-}
+  return { isPremium, expiryDate, isLoading, error };
+};

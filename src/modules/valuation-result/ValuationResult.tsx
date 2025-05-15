@@ -10,12 +10,12 @@ import { toast } from 'sonner';
 import MobileLayout from './MobileLayout';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
-import Header from './sections/Header';
+import { Header } from './sections/Header';
 import Summary from './sections/Summary';
-import PhotoAnalysis from './sections/PhotoAnalysis';
-import Breakdown from './sections/Breakdown';
-import Explanation from './sections/Explanation';
-import PDFActions from './sections/PDFActions';
+import { PhotoAnalysis } from './sections/PhotoAnalysis';
+import { Breakdown } from './sections/Breakdown';
+import { Explanation } from './sections/Explanation';
+import { PDFActions } from './sections/PDFActions';
 
 // Import context and styles
 import { ValuationProvider } from './context/ValuationContext';
@@ -93,7 +93,7 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
   
   // PDF generation logic
   const { 
-    isDownloading, 
+    isGenerating, 
     handleDownloadPdf 
   } = useValuationPdf({
     valuationData,
@@ -143,6 +143,11 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     }
   };
   
+  const downloadPdfHandler = async () => {
+    if (isGenerating) return; 
+    await handleDownloadPdf();
+  };
+  
   // Loading state
   if (isLoading && !isManualValuation) {
     return <LoadingState />;
@@ -190,9 +195,9 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
     error,
     estimatedValue,
     onUpgrade: handleUpgrade,
-    onDownloadPdf: handleDownloadPdf,
+    onDownloadPdf: downloadPdfHandler,
     onEmailPdf: handleEmailPdf,
-    isDownloading,
+    isDownloading: isGenerating,
     isEmailSending
   };
   
@@ -202,9 +207,9 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
         isPremium={showPremiumContent}
         isLoading={isLoading}
         onUpgrade={handleUpgrade}
-        onDownloadPdf={handleDownloadPdf}
+        onDownloadPdf={downloadPdfHandler}
         estimatedValue={estimatedValue}
-        isDownloading={isDownloading}
+        isDownloading={isGenerating}
       >
         <AnimatePresence>
           <div className={styles.container}>
@@ -281,10 +286,10 @@ export const ValuationResult: React.FC<ValuationResultProps> = ({
               >
                 <PDFActions
                   isPremium={showPremiumContent}
-                  onDownloadPdf={handleDownloadPdf}
+                  onDownloadPdf={downloadPdfHandler}
                   onEmailPdf={handleEmailPdf}
                   onUpgrade={handleUpgrade}
-                  isDownloading={isDownloading}
+                  isDownloading={isGenerating}
                   isEmailSending={isEmailSending}
                 />
               </motion.div>

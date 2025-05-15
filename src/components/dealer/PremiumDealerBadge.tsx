@@ -1,28 +1,22 @@
 
 import React from 'react';
-import { BadgeCheck, Star } from 'lucide-react';
+import { usePremiumDealer } from '@/hooks/usePremiumDealer';
 import { cn } from '@/lib/utils';
-import { PremiumBadge } from '@/components/ui/premium-badge';
+import { Badge } from '@/components/ui/badge';
 
-interface PremiumDealerBadgeProps {
-  size?: 'sm' | 'md' | 'lg';
+export interface PremiumBadgeProps {
   className?: string;
-  showText?: boolean;
 }
 
-export function PremiumDealerBadge({ 
-  size = 'md', 
-  className,
-  showText = true 
-}: PremiumDealerBadgeProps) {
+export const PremiumBadge = ({ className }: PremiumBadgeProps) => {
+  const { isPremium, isLoading } = usePremiumDealer();
+  
+  if (isLoading) return null;
+  if (!isPremium) return null;
+  
   return (
-    <PremiumBadge 
-      variant="gold"
-      size={size}
-      className={cn("gap-1", className)}
-    >
-      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-      {showText && "Premium Dealer"}
-    </PremiumBadge>
+    <Badge className={cn('bg-amber-100 text-amber-800 border-amber-200', className)}>
+      Premium
+    </Badge>
   );
-}
+};

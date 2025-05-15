@@ -4,7 +4,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'react-router-dom';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
 
 export default function ResultPage() {

@@ -1,6 +1,10 @@
 
-export * from './ValuationResult';
-export { default as ValuationResult } from './ValuationResult';
-export * from './condition';
-export * from './valuation-complete';
+// Export valuation components
 export * from './header';
+export * from './condition';
+export * from './photo-upload';
+export * from './valuation-complete';
+export * from './result';
+export * from './free';
+export * from './form';
+export * from './report';

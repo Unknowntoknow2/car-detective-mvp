@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AICondition } from '@/types/photo';
@@ -78,6 +77,11 @@ export function AIConditionAssessment({
     return 'Low';
   };
   
+  // Helper to get summary, check both properties for backward compatibility
+  const getSummary = (data: AICondition) => {
+    return data.summary || data.aiSummary || '';
+  };
+  
   return (
     <Card className="mt-6 mb-6">
       <CardHeader>
@@ -152,10 +156,10 @@ export function AIConditionAssessment({
             </div>
             
             {/* AI Summary */}
-            {conditionData.aiSummary && (
+            {getSummary(conditionData) && (
               <div className="mt-4">
                 <h4 className="text-sm font-medium mb-1">AI Assessment:</h4>
-                <p className="text-sm text-muted-foreground">{conditionData.aiSummary}</p>
+                <p className="text-sm text-muted-foreground">{getSummary(conditionData)}</p>
               </div>
             )}
             

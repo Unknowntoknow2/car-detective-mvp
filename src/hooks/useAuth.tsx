@@ -1,6 +1,5 @@
 
-// This file re-exports the useAuth hook from useAuth.ts for backward compatibility
-import { useAuth as useAuthHook, AuthContextType, User } from './useAuth';
+import { useAuth as useAuthHook, AuthContextType, User } from './useAuth.ts';
 
 export const useAuth = useAuthHook;
 

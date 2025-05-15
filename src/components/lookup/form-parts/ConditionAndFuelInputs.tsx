@@ -1,56 +1,111 @@
 
 import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { ManualEntryFormData } from '../types/manualEntry';
-import { FormSelect } from './FormSelect';
-
-const fuelTypes = [
-  { value: 'Gasoline', label: 'Gasoline' },
-  { value: 'Diesel', label: 'Diesel' },
-  { value: 'Hybrid', label: 'Hybrid' },
-  { value: 'Electric', label: 'Electric' }
-];
-
-const conditions = [
-  { value: 'excellent', label: 'Excellent' },
-  { value: 'good', label: 'Good' },
-  { value: 'fair', label: 'Fair' },
-  { value: 'poor', label: 'Poor' }
-];
-
-const conditionDescriptions: Record<string, string> = {
-  excellent: "Vehicle is like new with no visible issues",
-  good: "Vehicle is well maintained with minimal wear",
-  fair: "Vehicle has moderate wear and may need minor repairs",
-  poor: "Vehicle has significant wear and likely needs repairs"
-};
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { ConditionLevel } from '../types/manualEntry';
 
 interface ConditionAndFuelInputsProps {
-  form: UseFormReturn<ManualEntryFormData>;
+  condition: ConditionLevel;
+  setCondition: (value: ConditionLevel) => void;
+  fuelType: string;
+  setFuelType: (value: string) => void;
+  transmission: string;
+  setTransmission: (value: string) => void;
 }
 
-export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({ form }) => {
-  const [selectedCondition, setSelectedCondition] = React.useState(form.getValues().condition);
+export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
+  condition,
+  setCondition,
+  fuelType,
+  setFuelType,
+  transmission,
+  setTransmission
+}) => {
+  const handleConditionChange = (value: string) => {
+    switch (value) {
+      case 'Excellent':
+        setCondition(ConditionLevel.Excellent);
+        break;
+      case 'Good':
+        setCondition(ConditionLevel.Good);
+        break;
+      case 'Fair':
+        setCondition(ConditionLevel.Fair);
+        break;
+      case 'Poor':
+        setCondition(ConditionLevel.Poor);
+        break;
+      default:
+        setCondition(ConditionLevel.Good);
+    }
+  };
 
   return (
-    <>
-      <FormSelect
-        form={form}
-        name="fuelType"
-        label="Fuel Type"
-        placeholder="Select fuel type"
-        options={fuelTypes}
-      />
-
-      <FormSelect
-        form={form}
-        name="condition"
-        label="Condition"
-        placeholder="Select condition"
-        options={conditions}
-        description={selectedCondition ? conditionDescriptions[selectedCondition] : undefined}
-        onChange={setSelectedCondition}
-      />
-    </>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="condition">Condition</Label>
+          <Select
+            value={condition}
+            onValueChange={handleConditionChange}
+          >
+            <SelectTrigger id="condition">
+              <SelectValue placeholder="Select condition" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
+              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
+              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
+              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="fuelType">Fuel Type</Label>
+          <Select
+            value={fuelType}
+            onValueChange={setFuelType}
+          >
+            <SelectTrigger id="fuelType">
+              <SelectValue placeholder="Select fuel type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Gasoline">Gasoline</SelectItem>
+              <SelectItem value="Diesel">Diesel</SelectItem>
+              <SelectItem value="Hybrid">Hybrid</SelectItem>
+              <SelectItem value="Electric">Electric</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="transmission">Transmission</Label>
+          <Select
+            value={transmission}
+            onValueChange={setTransmission}
+          >
+            <SelectTrigger id="transmission">
+              <SelectValue placeholder="Select transmission" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Automatic">Automatic</SelectItem>
+              <SelectItem value="Manual">Manual</SelectItem>
+              <SelectItem value="CVT">CVT</SelectItem>
+              <SelectItem value="Semi-Automatic">Semi-Automatic</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
   );
 };
+
+export default ConditionAndFuelInputs;

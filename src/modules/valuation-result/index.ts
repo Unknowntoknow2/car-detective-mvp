@@ -2,12 +2,12 @@
 export { default as ValuationResult } from './ValuationResult';
 
 // Export section components
-export { default as Header } from './sections/Header';
+export { Header } from './sections/Header';
 export { default as Summary } from './sections/Summary';
-export { default as PhotoAnalysis } from './sections/PhotoAnalysis';
-export { default as Breakdown } from './sections/Breakdown';
-export { default as Explanation } from './sections/Explanation';
-export { default as PDFActions } from './sections/PDFActions';
+export { PhotoAnalysis } from './sections/PhotoAnalysis';
+export { Breakdown } from './sections/Breakdown';
+export { Explanation } from './sections/Explanation';
+export { PDFActions } from './sections/PDFActions';
 
 // Export common components
 export { default as LoadingState } from './components/LoadingState';

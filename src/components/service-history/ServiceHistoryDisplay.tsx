@@ -1,75 +1,106 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, PlusCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ServiceRecordsList } from './ServiceRecordsList';
-import { LoadingState } from './LoadingState';
-import { ErrorState } from './ErrorState';
-import { EmptyState } from './EmptyState';
-import { useServiceHistory } from '@/hooks/useServiceHistory';
-import { ServiceHistoryUploader } from './ServiceHistoryUploader';
+import ServiceRecordsEmpty from './ServiceRecordsEmpty';
+import { Plus } from 'lucide-react';
 
-interface ServiceHistoryDisplayProps {
-  vin: string;
+export interface ServiceHistoryDisplayProps {
+  vin?: string;
 }
 
-export function ServiceHistoryDisplay({ vin }: ServiceHistoryDisplayProps) {
-  const { records, isLoading, error, refetch } = useServiceHistory(vin);
-  const [showAddForm, setShowAddForm] = useState(false);
+export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vin }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [records, setRecords] = useState<any[]>([]);
+  const [isAddingRecord, setIsAddingRecord] = useState(false);
 
-  const handleUploadComplete = () => {
-    setShowAddForm(false);
-    refetch();
+  const handleAddRecord = () => {
+    setIsAddingRecord(true);
   };
 
-  if (isLoading) {
-    return <LoadingState />;
-  }
+  const handleCancelAdd = () => {
+    setIsAddingRecord(false);
+  };
 
-  if (error) {
-    return <ErrorState message={error} />;
-  }
+  const handleSaveRecord = async (record: any) => {
+    try {
+      setIsLoading(true);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Add record to state
+      setRecords([...records, { ...record, id: Date.now().toString() }]);
+      setIsAddingRecord(false);
+    } catch (err) {
+      setError('Failed to save service record');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteRecord = async (id: string) => {
+    try {
+      setIsLoading(true);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Remove record from state
+      setRecords(records.filter(record => record.id !== id));
+    } catch (err) {
+      setError('Failed to delete service record');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {showAddForm ? (
-        <ServiceHistoryUploader 
-          initialVin={vin} 
-          onUploadComplete={handleUploadComplete} 
-        />
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Service History</h2>
+        <Button onClick={handleAddRecord} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Service Record
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="py-8 text-center">Loading service records...</div>
+      ) : error ? (
+        <div className="py-8 text-center text-destructive">{error}</div>
+      ) : records.length === 0 ? (
+        <ServiceRecordsEmpty />
       ) : (
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Service History</CardTitle>
-              {records.length > 0 && (
-                <Badge variant="outline" className="ml-2">
-                  {records.length} {records.length === 1 ? 'record' : 'records'}
-                </Badge>
-              )}
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowAddForm(true)}
-              className="gap-1"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Add Record
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {records.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <ServiceRecordsList records={records} />
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {records.map(record => (
+            <Card key={record.id}>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base font-medium">
+                  {record.serviceType}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="py-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Date: {record.date}</div>
+                  <div>Mileage: {record.mileage}</div>
+                  <div className="col-span-2">
+                    Description: {record.description}
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeleteRecord(record.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
-}
+};

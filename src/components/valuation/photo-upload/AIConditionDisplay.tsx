@@ -38,6 +38,11 @@ export function AIConditionDisplay({ aiCondition, photoScore }: AIConditionDispl
     }
   };
   
+  // Helper to get summary, checking both properties
+  const getSummary = () => {
+    return aiCondition.summary || aiCondition.aiSummary || '';
+  };
+  
   if (!aiCondition || !aiCondition.condition) {
     return null;
   }
@@ -61,9 +66,9 @@ export function AIConditionDisplay({ aiCondition, photoScore }: AIConditionDispl
         </div>
       </div>
       
-      {aiCondition.aiSummary && (
+      {getSummary() && (
         <p className="text-xs text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">
-          "{aiCondition.aiSummary}"
+          "{getSummary()}"
         </p>
       )}
       

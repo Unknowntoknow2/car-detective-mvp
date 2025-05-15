@@ -1,32 +1,33 @@
 
-// Define necessary interfaces for photo analysis
+// Define constants
+export const MAX_FILES = 10;
+export const MIN_FILES = 1;
 
-// AdjustmentBreakdown interface used in valuation engine
-export interface AdjustmentBreakdown {
-  name: string;
-  value: number;
-  description: string;
-  percentAdjustment: number;
-  factor: string;
-  impact: number;
-  adjustment?: number;
-  impactPercentage?: number;
+// Photo file type (used when uploading)
+export interface PhotoFile {
+  id: string;
+  file: File;
+  previewUrl?: string;
+  preview?: string; // For backward compatibility
+  status?: 'uploading' | 'uploaded' | 'error';
+  progress?: number;
+  error?: string;
 }
 
-// AICondition interface for vehicle condition assessment
-export interface AICondition {
-  condition: "Excellent" | "Good" | "Fair" | "Poor";
-  confidenceScore: number;
-  aiSummary?: string;
-  issuesDetected?: string[];
-  photoUrl?: string;
-  bestPhotoUrl?: string;
-}
-
-// Photo interface for basic photo information
+// Photo type (used after upload)
 export interface Photo {
   id: string;
   url?: string;
+  thumbnailUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  width?: number;
+  height?: number;
+  uploadedAt?: string;
+  angle?: 'front' | 'back' | 'side' | 'interior' | 'other';
+  isMainPhoto?: boolean;
+  valuationId?: string;
+  // For backward compatibility and form handling
   file?: File;
   name?: string;
   size?: number;
@@ -40,49 +41,89 @@ export interface Photo {
   explanation?: string;
 }
 
-// PhotoFile interface for file upload handling
-export interface PhotoFile {
-  id: string;
-  file: File;
-  preview: string;
-}
-
-// PhotoScore interface for individual photo scores
+// Photo score type
 export interface PhotoScore {
-  url: string;
   score: number;
-  isPrimary?: boolean;
-}
-
-// PhotoScoringResult for photo analysis service
-export interface PhotoScoringResult {
-  photoScore?: number;
-  individualScores?: PhotoScore[];
-  score: number;
-  photoUrls?: string[];
-  bestPhotoUrl?: string;
-  aiCondition?: AICondition;
-  error?: string;
-  confidenceScore?: number;
+  angle?: string;
+  clarity?: number;
+  lighting?: number;
+  framing?: number;
+  comments?: string[];
   issues?: string[];
-  isPrimary?: boolean;
-  summary?: string;
   url?: string;
+  isPrimary?: boolean;
 }
 
-// PhotoAnalysisResult for the overall analysis
+// AI condition assessment result
+export interface AICondition {
+  condition: string;
+  confidenceScore: number;
+  issuesDetected?: string[];
+  summary?: string;
+  // Add backward compatibility properties
+  aiSummary?: string;
+  photoUrl?: string;
+  bestPhotoUrl?: string;
+}
+
+// Photo analysis result from AI
 export interface PhotoAnalysisResult {
-  photoUrls: string[];
-  score: number;
+  photoId?: string;
+  photoUrls?: string[];
+  angle?: string;
+  clarity?: number;
+  lighting?: number;
+  framing?: number;
+  overall?: number;
+  score?: number;
+  vehicleType?: string;
+  damageDetected?: boolean;
+  damageDescription?: string;
+  colorDetected?: string;
+  isComplete?: boolean;
   aiCondition?: AICondition;
   individualScores?: PhotoScore[];
-  overallScore?: number;
-  bestPhoto?: PhotoScoringResult;
-  detailedResults?: PhotoScoringResult[];
-  condition?: string;
-  confidenceScore?: number;
+  bestPhotoId?: string;
+  error?: string;
 }
 
-// Constants for photo uploads
-export const MAX_FILES = 6;
-export const MIN_FILES = 2;
+// Photo scoring result
+export interface PhotoScoringResult {
+  overallScore?: number;
+  photoScore?: number; 
+  score?: number;
+  photoScores?: PhotoScore[];
+  individualScores?: PhotoScore[];
+  conditionAssessment?: AICondition;
+  aiCondition?: AICondition;
+  bestPhotoId?: string;
+  bestPhotoUrl?: string;
+  feedback?: string;
+  missingAngles?: string[];
+  completionPercentage?: number;
+  photoUrls?: string[];
+  error?: string;
+}
+
+// Adjustment breakdown for photo-based valuation
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description?: string;
+  name: string;
+  value: number;
+  // Add back these properties for compatibility
+  percentAdjustment?: number;
+  impactPercentage?: number;
+  adjustment?: number;
+}
+
+// Photo upload options
+export interface PhotoUploadOptions {
+  maxFiles?: number;
+  allowedTypes?: string[];
+  maxSizeMB?: number;
+  autoUpload?: boolean;
+  valuationId?: string;
+  includeExif?: boolean;
+}

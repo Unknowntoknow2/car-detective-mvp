@@ -1,18 +1,43 @@
 
-// Add or update this interface to include zipCode
-export interface DecodedVehicleInfo {
-  vin: string;
+
+export type VehicleStatus = 'available' | 'sold' | 'pending';
+
+export interface Vehicle {
+  id: string;
+  dealer_id: string;
   make: string;
   model: string;
   year: number;
+  mileage: number | null;
+  price: number;
+  status: VehicleStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number | null;
+  price: number;
+  status: VehicleStatus;
+}
+
+export interface DecodedVehicleInfo {
+  vin?: string;
+  make?: string;
+  model?: string;
+  year?: number;
   trim?: string;
+  bodyType?: string;
   engine?: string;
   transmission?: string;
-  fuelType?: string;
-  bodyType?: string;
-  zipCode?: string;
+  drivetrain?: string;
+  color?: string;
   mileage?: number;
   condition?: string;
-  drivetrain?: string; // Added property
-  color?: string;      // Added property
+  fuelType?: string;
+  zipCode?: string;
 }
+
