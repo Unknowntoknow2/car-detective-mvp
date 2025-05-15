@@ -1,10 +1,20 @@
 
 /**
- * Formats a number with commas for thousands
- * @param value The numeric value to format
- * @param locale The locale to use for formatting (default: 'en-US')
- * @returns A formatted number string
+ * Formats a number with commas as thousand separators
+ * @param value The number to format
+ * @param decimals The number of decimal places to show
+ * @returns The formatted number as a string
  */
-export const formatNumber = (value: number, locale = 'en-US'): string => {
-  return new Intl.NumberFormat(locale).format(value);
-};
+export function formatNumber(value: number, decimals: number = 0): string {
+  if (value == null) return '0';
+  
+  try {
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  } catch (error) {
+    // Fallback in case of any errors
+    return value.toString();
+  }
+}

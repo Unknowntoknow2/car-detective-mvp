@@ -1,26 +1,28 @@
 
 /**
- * Formats a date into a readable string
- * @param date The date to format
- * @param format The date format (default: MM/DD/YYYY)
- * @returns A formatted date string
+ * Formats a date in US format (MM/DD/YYYY)
+ * @param date The date to format, can be Date object or string
+ * @param locale The locale to use, defaults to en-US
+ * @returns The formatted date string
  */
-export const formatDate = (date: Date | string | number, format = 'MM/DD/YYYY'): string => {
-  const d = new Date(date);
+export function formatDate(date: Date | string, locale: string = 'en-US'): string {
+  if (!date) return '';
   
-  // Return empty string for invalid dates
-  if (isNaN(d.getTime())) {
-    return '';
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return '';
+    }
+    
+    return dateObj.toLocaleDateString(locale, {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    // Fallback formatting
+    return typeof date === 'string' ? date : date.toDateString();
   }
-  
-  // Simple date formatting for now - could be extended with a library like date-fns
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const year = d.getFullYear();
-  
-  // Replace tokens in format string
-  return format
-    .replace('MM', month)
-    .replace('DD', day)
-    .replace('YYYY', year.toString());
-};
+}

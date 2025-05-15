@@ -12,6 +12,7 @@ export * from './stringFormatters';
 export { formatCurrency } from './formatCurrency';
 export { formatDate } from './formatDate';
 export { formatNumber } from './formatNumber';
+export { formatPercent } from './formatPercent';
 
 // Legacy formatter functions for backward compatibility
 export const formatRelativeTime = (date: Date | string): string => {
