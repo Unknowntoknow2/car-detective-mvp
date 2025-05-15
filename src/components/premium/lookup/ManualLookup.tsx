@@ -25,8 +25,8 @@ export function ManualLookup({
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
   const [model, setModel] = useState(initialData?.model || '');
-  const [year, setYear] = useState(initialData?.year || new Date().getFullYear());
-  const [mileage, setMileage] = useState(initialData?.mileage || 0);
+  const [year, setYear] = useState<number>(initialData?.year || new Date().getFullYear());
+  const [mileage, setMileage] = useState<number>(initialData?.mileage || 0);
   const [condition, setCondition] = useState<ConditionLevel>(
     initialData?.condition || ConditionLevel.Good
   );
@@ -55,12 +55,12 @@ export function ManualLookup({
       return;
     }
     
-    // Convert string values to numbers for year and mileage
+    // Create form data object
     const formData: ManualEntryFormData = {
       make,
       model,
-      year: Number(year),
-      mileage: Number(mileage),
+      year,
+      mileage,
       condition,
       zipCode,
       fuelType,
@@ -85,9 +85,9 @@ export function ManualLookup({
             model={model}
             setModel={setModel}
             year={year}
-            setYear={setYear}
+            setYear={(val: number) => setYear(val)}
             mileage={mileage}
-            setMileage={setMileage}
+            setMileage={(val: number) => setMileage(val)}
             trim={trim}
             setTrim={setTrim}
             color={color}
@@ -96,7 +96,7 @@ export function ManualLookup({
           
           <ConditionAndFuelInputs
             condition={condition}
-            setCondition={setCondition}
+            setCondition={(val: ConditionLevel) => setCondition(val)}
             fuelType={fuelType}
             setFuelType={setFuelType}
             transmission={transmission}
@@ -138,3 +138,5 @@ export function ManualLookup({
     </Card>
   );
 }
+
+export default ManualLookup;

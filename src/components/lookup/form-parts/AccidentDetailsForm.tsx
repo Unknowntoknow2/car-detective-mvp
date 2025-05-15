@@ -2,8 +2,9 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AccidentDetails } from '../types/manualEntry';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AccidentDetails } from '../types/manualEntry';
 
 interface AccidentDetailsFormProps {
   accidentDetails: AccidentDetails;
@@ -14,107 +15,76 @@ export const AccidentDetailsForm: React.FC<AccidentDetailsFormProps> = ({
   accidentDetails,
   setAccidentDetails
 }) => {
-  const handleHasAccidentChange = (value: string) => {
-    setAccidentDetails({
-      ...accidentDetails,
-      hasAccident: value === 'yes'
-    });
-  };
-  
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setAccidentDetails({
-      ...accidentDetails,
-      description: e.target.value
-    });
-  };
-  
   const handleSeverityChange = (value: string) => {
     setAccidentDetails({
       ...accidentDetails,
       severity: value as 'Minor' | 'Moderate' | 'Severe'
     });
   };
-  
-  const handleRepairedChange = (value: string) => {
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAccidentDetails({
       ...accidentDetails,
-      repaired: value === 'yes'
+      description: e.target.value
     });
   };
-  
+
+  const handleRepairedChange = (checked: boolean) => {
+    setAccidentDetails({
+      ...accidentDetails,
+      repaired: checked
+    });
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Has this vehicle been in an accident?</Label>
-        <RadioGroup
-          value={accidentDetails.hasAccident ? 'yes' : 'no'}
-          onValueChange={handleHasAccidentChange}
-          className="flex space-x-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="accident-yes" />
-            <Label htmlFor="accident-yes" className="cursor-pointer">Yes</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="accident-no" />
-            <Label htmlFor="accident-no" className="cursor-pointer">No</Label>
-          </div>
-        </RadioGroup>
-      </div>
+    <div className="space-y-4 p-4 border rounded-lg bg-muted/10">
+      <h3 className="font-medium">Accident Details</h3>
       
-      {accidentDetails.hasAccident && (
-        <>
-          <div className="space-y-2">
-            <Label htmlFor="accidentDescription">Describe the accident</Label>
-            <Textarea
-              id="accidentDescription"
-              value={accidentDetails.description || ''}
-              onChange={handleDescriptionChange}
-              placeholder="Please provide details about the accident"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Severity</Label>
-            <RadioGroup
-              value={accidentDetails.severity || 'Minor'}
-              onValueChange={handleSeverityChange}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Minor" id="severity-minor" />
-                <Label htmlFor="severity-minor" className="cursor-pointer">Minor - Cosmetic damage only</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Moderate" id="severity-moderate" />
-                <Label htmlFor="severity-moderate" className="cursor-pointer">Moderate - Some structural damage</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Severe" id="severity-severe" />
-                <Label htmlFor="severity-severe" className="cursor-pointer">Severe - Major structural damage</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Was the vehicle professionally repaired?</Label>
-            <RadioGroup
-              value={accidentDetails.repaired ? 'yes' : 'no'}
-              onValueChange={handleRepairedChange}
-              className="flex space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="repaired-yes" />
-                <Label htmlFor="repaired-yes" className="cursor-pointer">Yes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="repaired-no" />
-                <Label htmlFor="repaired-no" className="cursor-pointer">No</Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </>
-      )}
+      <div className="space-y-3">
+        <div>
+          <Label className="mb-2 block">Severity</Label>
+          <RadioGroup
+            value={accidentDetails.severity || 'Minor'}
+            onValueChange={handleSeverityChange}
+            className="flex flex-col space-y-1"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Minor" id="severity-minor" />
+              <Label htmlFor="severity-minor" className="cursor-pointer">Minor (Cosmetic damage)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Moderate" id="severity-moderate" />
+              <Label htmlFor="severity-moderate" className="cursor-pointer">Moderate (Significant damage, but repairable)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Severe" id="severity-severe" />
+              <Label htmlFor="severity-severe" className="cursor-pointer">Severe (Major structural or mechanical damage)</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        
+        <div>
+          <Label htmlFor="accident-description">Description (Optional)</Label>
+          <Textarea
+            id="accident-description"
+            placeholder="Briefly describe the accident and damage..."
+            value={accidentDetails.description || ''}
+            onChange={handleDescriptionChange}
+            className="resize-none h-24"
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="repaired"
+            checked={accidentDetails.repaired || false}
+            onCheckedChange={handleRepairedChange}
+          />
+          <Label htmlFor="repaired" className="cursor-pointer">Has the damage been fully repaired?</Label>
+        </div>
+      </div>
     </div>
   );
 };
+
+export default AccidentDetailsForm;

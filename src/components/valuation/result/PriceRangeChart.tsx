@@ -1,136 +1,199 @@
+
 import React from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/formatters';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
+  Filler
 } from 'chart.js';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/utils/formatters';
 
-// Register ChartJS components
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 interface PriceRangeChartProps {
-  estimatedValue: number;
-  priceRange?: [number, number];
-  marketAverage?: number;
-  className?: string;
+  currentValue: number;
+  historicalPrices?: {
+    date: string;
+    price: number;
+  }[];
+  forecast?: {
+    date: string;
+    price: number;
+    isEstimate: boolean;
+  }[];
+  isPremium?: boolean;
 }
 
-const PriceRangeChart: React.FC<PriceRangeChartProps> = ({
-  estimatedValue,
-  priceRange = [
-    Math.floor(estimatedValue * 0.9),
-    Math.ceil(estimatedValue * 1.1),
-  ],
-  marketAverage = estimatedValue * 0.98,
-  className,
+export const PriceRangeChart: React.FC<PriceRangeChartProps> = ({
+  currentValue,
+  historicalPrices = [],
+  forecast = [],
+  isPremium = false
 }) => {
-  // Calculate the midpoint for better visualization
-  const midpoint = (priceRange[0] + priceRange[1]) / 2;
+  // Generate sample data if not provided or if not premium
+  const generateSampleData = () => {
+    const currentDate = new Date();
+    const result = [];
+    
+    // Historical prices (last 12 months)
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(currentDate);
+      date.setMonth(currentDate.getMonth() - i);
+      const month = date.toLocaleString('default', { month: 'short' });
+      const year = date.getFullYear().toString().slice(2);
+      
+      const randomFactor = 0.95 + (Math.random() * 0.1); // Between 0.95 and 1.05
+      const price = Math.round(currentValue * randomFactor);
+      
+      result.push({
+        date: `${month} '${year}`,
+        price,
+        isEstimate: false
+      });
+    }
+    
+    // Current month (actual value)
+    const currentMonth = currentDate.toLocaleString('default', { month: 'short' });
+    const currentYear = currentDate.getFullYear().toString().slice(2);
+    result.push({
+      date: `${currentMonth} '${currentYear}`,
+      price: currentValue,
+      isEstimate: false
+    });
+    
+    if (isPremium) {
+      // Future forecast (next 6 months)
+      for (let i = 1; i <= 6; i++) {
+        const date = new Date(currentDate);
+        date.setMonth(currentDate.getMonth() + i);
+        const month = date.toLocaleString('default', { month: 'short' });
+        const year = date.getFullYear().toString().slice(2);
+        
+        // Simulating a trend (slight decrease)
+        const randomFactor = 0.99 - (i * 0.005) + (Math.random() * 0.02);
+        const price = Math.round(currentValue * randomFactor);
+        
+        result.push({
+          date: `${month} '${year}`,
+          price,
+          isEstimate: true
+        });
+      }
+    }
+    
+    return result;
+  };
   
-  // Create data for the chart
+  // Use provided data or generate sample data
+  const combinedData = historicalPrices.length > 0 || forecast.length > 0
+    ? [...historicalPrices.map(item => ({ ...item, isEstimate: false })), ...forecast]
+    : generateSampleData();
+  
+  // Separate actual values and estimates for the chart
+  const labels = combinedData.map(item => item.date);
+  const actualValues = combinedData
+    .map(item => item.isEstimate ? null : item.price);
+  const estimatedValues = combinedData
+    .map(item => item.isEstimate ? item.price : null);
+  
   const data = {
-    labels: ['Price Range'],
+    labels,
     datasets: [
       {
-        label: 'Price Range',
-        data: [{ y: 0, x: 'Price Range', low: priceRange[0], high: priceRange[1] }],
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        borderColor: 'rgba(53, 162, 235, 1)',
-        borderWidth: 1,
-        borderRadius: 4,
-        barThickness: 60,
+        label: 'Actual Value',
+        data: actualValues,
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+        pointBorderColor: 'rgb(59, 130, 246)',
+        pointBackgroundColor: '#fff',
+        tension: 0.3,
+        fill: false
       },
       {
         label: 'Estimated Value',
-        data: [estimatedValue],
-        backgroundColor: 'rgba(255, 99, 132, 0.8)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 2,
-        borderRadius: 4,
-        barThickness: 10,
-        type: 'bar' as const,
-      },
-      {
-        label: 'Market Average',
-        data: [marketAverage],
-        backgroundColor: 'rgba(75, 192, 192, 0.8)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 2,
-        borderRadius: 4,
-        barThickness: 10,
-        type: 'bar' as const,
-      },
-    ],
+        data: estimatedValues,
+        borderColor: 'rgb(99, 102, 241)',
+        backgroundColor: 'rgba(99, 102, 241, 0.3)',
+        pointBorderColor: 'rgb(99, 102, 241)',
+        pointBackgroundColor: '#fff',
+        borderDash: [5, 5],
+        tension: 0.3,
+        fill: false
+      }
+    ]
   };
-
-  // Chart options
+  
   const options = {
     responsive: true,
-    scales: {
-      y: {
-        beginAtZero: false,
-        min: Math.floor(priceRange[0] * 0.95),
-        max: Math.ceil(priceRange[1] * 1.05),
-        ticks: {
-          callback: (value: number) => formatCurrency(value),
-        },
-      },
-    },
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 6
+        }
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
-            if (context.dataset.label === 'Price Range') {
-              return [
-                `Low: ${formatCurrency(context.raw.low)}`,
-                `High: ${formatCurrency(context.raw.high)}`,
-              ];
+          label: function(context: any) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
             }
-            return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-          },
-        },
-      },
+            if (context.parsed.y !== null) {
+              label += formatCurrency(context.parsed.y);
+            }
+            return label;
+          }
+        }
+      }
     },
+    scales: {
+      y: {
+        ticks: {
+          callback: function(value: any) {
+            return formatCurrency(value);
+          }
+        }
+      }
+    }
   };
-
+  
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="text-lg">Price Range</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-muted/20">
+        <CardTitle className="text-lg">Price Trend</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="py-4">
         <div className="h-64">
-          <Bar data={data} options={options} />
+          <Line data={data} options={options} />
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground">Price Range</p>
-            <p className="font-medium">
-              {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+        
+        {!isPremium && (
+          <div className="mt-4 p-4 bg-muted/30 rounded-md text-center text-sm">
+            <p className="text-muted-foreground">
+              Upgrade to Premium to see projected value forecast for the next 6 months
             </p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Estimated Value</p>
-            <p className="font-medium">{formatCurrency(estimatedValue)}</p>
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ManualEntryFormData, AccidentDetails, ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData, ConditionLevel, AccidentDetails } from '@/components/lookup/types/manualEntry';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
@@ -22,8 +22,8 @@ export const ManualEntryTab: React.FC<ManualEntryTabProps> = ({
   // Basic vehicle info
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [mileage, setMileage] = useState(0);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [mileage, setMileage] = useState<number>(0);
   const [condition, setCondition] = useState<ConditionLevel>(ConditionLevel.Good);
   const [zipCode, setZipCode] = useState('');
   
@@ -35,7 +35,6 @@ export const ManualEntryTab: React.FC<ManualEntryTabProps> = ({
   const [bodyType, setBodyType] = useState('');
   
   // Premium fields
-  const [accident, setAccident] = useState(false);
   const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
     hasAccident: false
   });
@@ -73,7 +72,6 @@ export const ManualEntryTab: React.FC<ManualEntryTabProps> = ({
       trim,
       color,
       bodyType,
-      accident,
       accidentDetails,
       selectedFeatures,
       features: selectedFeatures // Map selectedFeatures to features for compatibility
@@ -150,3 +148,5 @@ export const ManualEntryTab: React.FC<ManualEntryTabProps> = ({
     </form>
   );
 };
+
+export default ManualEntryTab;

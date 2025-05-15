@@ -1,72 +1,96 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ConfidenceScore } from '@/components/valuation/ConfidenceScore';
+import { formatCurrency } from '@/utils/formatters';
+import { TrendingDown, TrendingUp, LineHorizontal, Sparkles } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import styles from '../styles';
 
 interface SummaryProps {
-  estimatedValue: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
-  currency?: string;
+  confidenceScore: number;
+  priceRange: {
+    low: number;
+    high: number;
+  };
+  marketTrend: string;
+  recommendationText: string;
 }
 
-export const Summary: React.FC<SummaryProps> = ({
-  estimatedValue,
-  confidenceScore = 85,
+const Summary: React.FC<SummaryProps> = ({
+  confidenceScore,
   priceRange,
-  currency = 'USD'
+  marketTrend,
+  recommendationText
 }) => {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0
-  });
+  // Determine trend icons and colors
+  const getTrendIcon = () => {
+    switch (marketTrend) {
+      case 'rising':
+      case 'up':
+        return <TrendingUp className="h-5 w-5 text-green-500" />;
+      case 'falling':
+      case 'down':
+        return <TrendingDown className="h-5 w-5 text-red-500" />;
+      default:
+        return <LineHorizontal className="h-5 w-5 text-amber-500" />;
+    }
+  };
+  
+  const getTrendColor = () => {
+    switch (marketTrend) {
+      case 'rising':
+      case 'up':
+        return 'text-green-600';
+      case 'falling':
+      case 'down':
+        return 'text-red-600';
+      default:
+        return 'text-amber-600';
+    }
+  };
   
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          <div className="bg-primary p-6 text-white flex flex-col justify-center">
-            <div>
-              <h3 className="text-lg font-medium text-primary-foreground/80">
-                Estimated Value
-              </h3>
-              <p className="text-3xl font-bold mt-1">
-                {formatter.format(estimatedValue)}
-              </p>
-              
-              {priceRange && (
-                <p className="text-sm mt-2 text-primary-foreground/70">
-                  Price Range: {formatter.format(priceRange[0])} - {formatter.format(priceRange[1])}
-                </p>
-              )}
-            </div>
+    <div className={styles.summary.container}>
+      <Card className={styles.summary.card}>
+        <div className={styles.summary.title}>Confidence Score</div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className={styles.summary.value}>{confidenceScore}%</div>
+            <Sparkles className="h-5 w-5 text-yellow-500" />
           </div>
-          
-          <div className="col-span-2 p-6">
-            <div className="flex flex-col h-full justify-center">
-              <h3 className="text-lg font-medium mb-4">Valuation Detail</h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <ConfidenceScore 
-                  score={confidenceScore} 
-                  comparableVehicles={125} 
-                />
-                
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Valuation Date
-                  </p>
-                  <p className="text-lg font-semibold">
-                    {new Date().toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Progress value={confidenceScore} className="h-2" />
         </div>
-      </CardContent>
-    </Card>
+      </Card>
+      
+      <Card className={styles.summary.card}>
+        <div className={styles.summary.title}>Price Range</div>
+        <div className={styles.summary.value}>
+          {formatCurrency(priceRange.low)} - {formatCurrency(priceRange.high)}
+        </div>
+      </Card>
+      
+      <Card className={styles.summary.card}>
+        <div className={styles.summary.title}>Market Trend</div>
+        <div className="flex items-center">
+          <div className={`${styles.summary.value} ${getTrendColor()} mr-2`}>
+            {marketTrend === 'up' || marketTrend === 'rising' 
+              ? 'Rising'
+              : marketTrend === 'down' || marketTrend === 'falling'
+                ? 'Falling'
+                : 'Stable'
+            }
+          </div>
+          {getTrendIcon()}
+        </div>
+      </Card>
+      
+      <Card className={styles.summary.card}>
+        <div className={styles.summary.title}>Recommendation</div>
+        <div className={styles.summary.value}>
+          {recommendationText}
+        </div>
+      </Card>
+    </div>
   );
 };
 

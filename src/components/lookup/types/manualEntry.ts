@@ -4,7 +4,7 @@ export interface ManualEntryFormData {
   model: string;
   year: number;
   mileage: number;
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  condition: ConditionLevel;
   zipCode: string;
   trim?: string;
   color?: string;
@@ -13,7 +13,7 @@ export interface ManualEntryFormData {
   transmission?: string;
   bodyType?: string;
   accident?: boolean; // Add accident property
-  accidentDetails?: string; // Add accidentDetails property
+  accidentDetails?: AccidentDetails; // Add accidentDetails property
   selectedFeatures?: string[]; // Add selectedFeatures property
 }
 

@@ -2,8 +2,8 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AccidentDetails } from '../types/manualEntry';
 
 interface PremiumFieldsProps {
@@ -31,110 +31,107 @@ export const PremiumFields: React.FC<PremiumFieldsProps> = ({
   features,
   setFeatures
 }) => {
-  // Function to handle accident radio change
-  const handleAccidentChange = (value: string) => {
+  // Common features for the checkboxes
+  const commonFeatures = [
+    { id: "leather-seats", label: "Leather Seats" },
+    { id: "sunroof", label: "Sunroof/Moonroof" },
+    { id: "navigation", label: "Navigation System" },
+    { id: "bluetooth", label: "Bluetooth" },
+    { id: "backup-camera", label: "Backup Camera" },
+    { id: "third-row", label: "Third Row Seating" },
+    { id: "heated-seats", label: "Heated Seats" },
+    { id: "apple-carplay", label: "Apple CarPlay/Android Auto" },
+    { id: "premium-audio", label: "Premium Audio" }
+  ];
+  
+  const handleFeatureChange = (id: string, checked: boolean) => {
+    if (checked) {
+      setFeatures([...features, id]);
+    } else {
+      setFeatures(features.filter(f => f !== id));
+    }
+  };
+  
+  const toggleAccidentHistory = (checked: boolean) => {
     setAccidentDetails({
       ...accidentDetails,
-      hasAccident: value === 'yes'
+      hasAccident: checked
     });
   };
-
+  
   return (
-    <div className="space-y-6 border-t pt-6 mt-6">
-      <h3 className="text-lg font-medium">Additional Details</h3>
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold">Additional Details</h3>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="trim">Trim Level</Label>
+          <Label htmlFor="trim">Trim Level (Optional)</Label>
           <Input
             id="trim"
+            placeholder="e.g. XLE, Limited, Sport"
             value={trim}
             onChange={(e) => setTrim(e.target.value)}
-            placeholder="e.g., SE, Limited, Sport"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
+          <Label htmlFor="color">Exterior Color (Optional)</Label>
           <Input
             id="color"
+            placeholder="e.g. Silver, Black, White"
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            placeholder="e.g., Red, Silver, Blue"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="bodyType">Body Type (Optional)</Label>
+          <Input
+            id="bodyType"
+            placeholder="e.g. Sedan, SUV, Truck"
+            value={bodyType}
+            onChange={(e) => setBodyType(e.target.value)}
           />
         </div>
       </div>
       
       <div className="space-y-2">
-        <div className="flex items-center">
-          <Label htmlFor="bodyType">Body Style</Label>
-          <VehicleFormTooltip 
-            content="The body style of your vehicle affects its valuation."
+        <div className="flex items-center justify-between">
+          <Label htmlFor="accident-history" className="cursor-pointer">
+            Accident History
+          </Label>
+          <Switch
+            id="accident-history"
+            checked={accidentDetails.hasAccident}
+            onCheckedChange={toggleAccidentHistory}
           />
         </div>
-        <Select
-          value={bodyType}
-          onValueChange={setBodyType}
-        >
-          <SelectTrigger id="bodyType">
-            <SelectValue placeholder="Select body style" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Sedan">Sedan</SelectItem>
-            <SelectItem value="SUV">SUV</SelectItem>
-            <SelectItem value="Coupe">Coupe</SelectItem>
-            <SelectItem value="Truck">Truck</SelectItem>
-            <SelectItem value="Convertible">Convertible</SelectItem>
-            <SelectItem value="Wagon">Wagon</SelectItem>
-            <SelectItem value="Hatchback">Hatchback</SelectItem>
-            <SelectItem value="Van">Van/Minivan</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label>Has this vehicle been in an accident?</Label>
-        <div className="flex space-x-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="radio"
-              id="accident-yes"
-              name="accident"
-              value="yes"
-              checked={accidentDetails.hasAccident === true}
-              onChange={() => handleAccidentChange('yes')}
-              className="h-4 w-4 text-primary"
-            />
-            <Label htmlFor="accident-yes" className="cursor-pointer">Yes</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="radio"
-              id="accident-no"
-              name="accident"
-              value="no"
-              checked={accidentDetails.hasAccident === false}
-              onChange={() => handleAccidentChange('no')}
-              className="h-4 w-4 text-primary"
-            />
-            <Label htmlFor="accident-no" className="cursor-pointer">No</Label>
-          </div>
-        </div>
-      </div>
-      
-      {/* Feature selection would go here, simplified for now */}
-      <div className="space-y-2">
-        <div className="flex items-center">
-          <Label>Premium Features</Label>
-          <VehicleFormTooltip 
-            content="Select premium features that your vehicle has. These can increase its value."
-          />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Feature selection is available in the premium valuation flow.
+        <p className="text-xs text-muted-foreground">
+          Disclosing accident history improves valuation accuracy
         </p>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Features (Optional)</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+          {commonFeatures.map((feature) => (
+            <div key={feature.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={feature.id}
+                checked={features.includes(feature.id)}
+                onCheckedChange={(checked) => 
+                  handleFeatureChange(feature.id, checked as boolean)
+                }
+              />
+              <Label htmlFor={feature.id} className="cursor-pointer text-sm">
+                {feature.label}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 };
+
+export default PremiumFields;

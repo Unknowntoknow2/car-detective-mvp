@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
 
 interface VehicleDetailsInputsProps {
   make: string;
@@ -17,7 +16,6 @@ interface VehicleDetailsInputsProps {
   setTrim?: (value: string) => void;
   color?: string;
   setColor?: (value: string) => void;
-  showAdvanced?: boolean;
 }
 
 export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
@@ -32,64 +30,39 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
   trim,
   setTrim,
   color,
-  setColor,
-  showAdvanced = true
+  setColor
 }) => {
-  const [yearError, setYearError] = useState<string | null>(null);
-  const [mileageError, setMileageError] = useState<string | null>(null);
+  const currentYear = new Date().getFullYear();
   
-  const currentYear = new Date().getFullYear() + 1;
-  
+  // Handle year change with validation
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const numValue = parseInt(value, 10);
-    
-    // Clear previous error
-    setYearError(null);
-    
-    // Validate year
-    if (isNaN(numValue)) {
-      setYearError('Year must be a valid number');
-      return;
+    const yearValue = parseInt(e.target.value);
+    if (!isNaN(yearValue)) {
+      // Limit year between 1900 and current year + 1
+      if (yearValue >= 1900 && yearValue <= currentYear + 1) {
+        setYear(yearValue);
+      }
     }
-    
-    if (numValue < 1900 || numValue > currentYear) {
-      setYearError(`Year must be between 1900 and ${currentYear}`);
-    }
-    
-    setYear(numValue);
   };
   
+  // Handle mileage change with validation
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const numValue = parseInt(value, 10);
-    
-    // Clear previous error
-    setMileageError(null);
-    
-    // Validate mileage
-    if (isNaN(numValue)) {
-      setMileageError('Mileage must be a valid number');
-      return;
+    const mileageValue = parseInt(e.target.value);
+    if (!isNaN(mileageValue) && mileageValue >= 0) {
+      setMileage(mileageValue);
     }
-    
-    if (numValue < 0) {
-      setMileageError('Mileage cannot be negative');
-    }
-    
-    setMileage(numValue);
   };
-
+  
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="make">Make</Label>
           <Input
             id="make"
+            placeholder="e.g. Toyota"
             value={make}
             onChange={(e) => setMake(e.target.value)}
-            placeholder="e.g., Toyota"
           />
         </div>
         
@@ -97,72 +70,69 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
           <Label htmlFor="model">Model</Label>
           <Input
             id="model"
+            placeholder="e.g. Camry"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder="e.g., Camry"
           />
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <div className="flex items-center">
-            <Label htmlFor="year">Year</Label>
-            <VehicleFormTooltip 
-              content={`Enter a year between 1900 and ${currentYear}.`}
-            />
-          </div>
+          <Label htmlFor="year">Year</Label>
           <Input
             id="year"
             type="number"
-            value={year || ''}
+            placeholder={`1900-${currentYear + 1}`}
+            value={year}
             onChange={handleYearChange}
-            placeholder="e.g., 2019"
+            min={1900}
+            max={currentYear + 1}
           />
-          {yearError && <p className="text-sm text-red-500">{yearError}</p>}
         </div>
         
         <div className="space-y-2">
-          <div className="flex items-center">
-            <Label htmlFor="mileage">Mileage</Label>
-            <VehicleFormTooltip 
-              content="Current odometer reading in miles."
-            />
-          </div>
+          <Label htmlFor="mileage">Mileage</Label>
           <Input
             id="mileage"
-            type="number" 
-            value={mileage || ''}
+            type="number"
+            placeholder="e.g. 50000"
+            value={mileage}
             onChange={handleMileageChange}
-            placeholder="e.g., 45000"
+            min={0}
           />
-          {mileageError && <p className="text-sm text-red-500">{mileageError}</p>}
         </div>
       </div>
       
-      {showAdvanced && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="trim">Trim (Optional)</Label>
-            <Input
-              id="trim"
-              value={trim || ''}
-              onChange={(e) => setTrim && setTrim(e.target.value)}
-              placeholder="e.g., SE, Limited"
-            />
-          </div>
+      {(setTrim || setColor) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {setTrim && (
+            <div className="space-y-2">
+              <Label htmlFor="trim">Trim (Optional)</Label>
+              <Input
+                id="trim"
+                placeholder="e.g. XLE"
+                value={trim}
+                onChange={(e) => setTrim(e.target.value)}
+              />
+            </div>
+          )}
           
-          <div className="space-y-2">
-            <Label htmlFor="color">Color (Optional)</Label>
-            <Input
-              id="color"
-              value={color || ''}
-              onChange={(e) => setColor && setColor(e.target.value)}
-              placeholder="e.g., Blue, Silver"
-            />
-          </div>
+          {setColor && (
+            <div className="space-y-2">
+              <Label htmlFor="color">Color (Optional)</Label>
+              <Input
+                id="color"
+                placeholder="e.g. Silver"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
+
+export default VehicleDetailsInputs;
