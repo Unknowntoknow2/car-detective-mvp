@@ -24,3 +24,5 @@ export const VehicleGrid: React.FC<VehicleGridProps> = ({
     </div>
   );
 };
+
+export default VehicleGrid;

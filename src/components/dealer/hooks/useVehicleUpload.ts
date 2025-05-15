@@ -1,153 +1,215 @@
 
-import { useState, useCallback } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/components/ui/use-toast';
+import { DealerVehicleFormData } from '../schemas/vehicleSchema';
 
-export const useVehicleUpload = (dealerId?: string) => {
-  const { user } = useAuth();
+export const useVehicleUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
-  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Upload photos to Supabase storage
+  const uploadPhotos = async (files: File[]): Promise<string[]> => {
+    if (!user) throw new Error('User not authenticated');
+    
+    const urls: string[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}-${i}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      // Upload file to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('vehicle_photos')
+        .upload(filePath, file);
+      
+      if (error) {
+        console.error('Error uploading photo:', error);
+        toast.error(`Failed to upload photo: ${error.message}`);
+        continue;
+      }
+      
+      // Get public URL for the file
+      const { data: { publicUrl } } = supabase.storage
+        .from('vehicle_photos')
+        .getPublicUrl(filePath);
+      
+      urls.push(publicUrl);
+      
+      // Update progress
+      setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+    }
+    
+    return urls;
+  };
   
-  // Handle file selection
-  const handlePhotoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle photo upload and preview
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     
-    const newFiles = Array.from(e.target.files);
+    const filesToUpload = Array.from(e.target.files);
     
-    // Limit total number of photos to 10
-    if (uploadedPhotos.length + newFiles.length > 10) {
-      toast({
-        description: 'You can upload a maximum of 10 photos per vehicle.',
-        variant: 'destructive'
-      });
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      
+      const urls = await uploadPhotos(filesToUpload);
+      setPhotoUrls(prev => [...prev, ...urls]);
+      
+      toast.success('Photos uploaded successfully');
+    } catch (error: any) {
+      toast.error(`Failed to upload photos: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+  
+  // Remove photo from preview and storage
+  const removePhoto = async (index: number) => {
+    const photoToRemove = photoUrls[index];
+    
+    // Extract the path from the URL
+    const storagePath = photoToRemove.split('/').slice(-2).join('/');
+    
+    try {
+      // Delete from Supabase storage
+      const { error } = await supabase.storage
+        .from('vehicle_photos')
+        .remove([storagePath]);
+      
+      if (error) {
+        console.error('Error removing photo:', error);
+        toast.error(`Failed to remove photo: ${error.message}`);
+        return;
+      }
+      
+      // Update state to remove the photo URL
+      setPhotoUrls(prev => prev.filter((_, i) => i !== index));
+      
+      toast.success('Photo removed successfully');
+    } catch (error: any) {
+      toast.error(`Failed to remove photo: ${error.message}`);
+    }
+  };
+  
+  // Add a new vehicle to the dealer's inventory
+  const addVehicle = async (vehicleData: DealerVehicleFormData) => {
+    if (!user) {
+      toast.error('You must be logged in to add a vehicle');
       return;
     }
     
-    // Add files to state
-    setUploadedPhotos(prev => [...prev, ...newFiles]);
-    
-    // Create object URLs for previews
-    const newUrls = newFiles.map(file => URL.createObjectURL(file));
-    setPhotoUrls(prev => [...prev, ...newUrls]);
-    
-    // Reset the input value to allow selecting the same file again
-    e.target.value = '';
-  }, [uploadedPhotos]);
-  
-  // Remove a photo from the selection
-  const removePhoto = useCallback((index: number) => {
-    setPhotoUrls(prev => prev.filter((_, i) => i !== index));
-    setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
-  }, []);
-  
-  // Upload files to Supabase Storage
-  const uploadVehiclePhotos = async (
-    files: File[], 
-    vehicleId: string
-  ): Promise<string[]> => {
-    if (!user || !files.length) return [];
-    
-    setIsUploading(true);
-    const uploadedUrls: string[] = [];
-    
     try {
-      for (const file of files) {
-        // Create a unique filename
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${vehicleId}/${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-        
-        // Upload the file
-        const { data, error } = await supabase.storage
-          .from('inventory-images')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Get the public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('inventory-images')
-          .getPublicUrl(filePath);
-        
-        uploadedUrls.push(publicUrl);
-      }
-      
-      return uploadedUrls;
-    } catch (error) {
-      console.error('Error uploading photos:', error);
-      toast({
-        description: 'Failed to upload one or more photos.',
-        variant: 'destructive'
-      });
-      return uploadedUrls; // Return any URLs that were successfully uploaded
-    } finally {
-      setIsUploading(false);
-    }
-  };
-  
-  // Upload all selected photos to storage
-  const uploadPhotosToStorage = async (): Promise<string[] | undefined> => {
-    if (!user || uploadedPhotos.length === 0) return [];
-    
-    try {
-      const uuid = crypto.randomUUID();
-      // Use the dealer ID if available, otherwise use the user ID
-      const targetId = dealerId || user.id;
-      const folderPath = `${targetId}/${uuid}`;
-      
       setIsUploading(true);
-      return await uploadVehiclePhotos(uploadedPhotos, folderPath);
-    } catch (error) {
-      console.error('Error in uploadPhotosToStorage:', error);
-      return undefined;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-  
-  // Delete a photo from storage
-  const deleteVehiclePhoto = async (
-    photoUrl: string
-  ): Promise<boolean> => {
-    try {
-      // Extract the path from the URL
-      const path = photoUrl.split('/').slice(-2).join('/');
       
-      const { error } = await supabase.storage
-        .from('inventory-images')
-        .remove([path]);
+      // Add the dealer_id to the vehicle data
+      const dataWithDealer = {
+        ...vehicleData,
+        dealer_id: user.id,
+        photos: photoUrls
+      };
+      
+      // Insert the vehicle into the database
+      const { data, error } = await supabase
+        .from('dealer_vehicles')
+        .insert(dataWithDealer)
+        .select('id')
+        .single();
       
       if (error) throw error;
       
-      return true;
-    } catch (error) {
-      console.error('Error deleting photo:', error);
-      toast({
-        description: 'Failed to delete photo.',
-        variant: 'destructive'
-      });
-      return false;
+      toast.success('Vehicle added successfully!');
+      setPhotoUrls([]);
+      navigate('/dealer/inventory');
+      
+      return data;
+    } catch (error: any) {
+      console.error('Error adding vehicle:', error);
+      toast.error(`Failed to add vehicle: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Update an existing vehicle
+  const updateVehicle = async (id: string, vehicleData: DealerVehicleFormData) => {
+    if (!user) {
+      toast.error('You must be logged in to update a vehicle');
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // Add the photos to the vehicle data
+      const dataToUpdate = {
+        ...vehicleData,
+        photos: photoUrls
+      };
+      
+      // Update the vehicle in the database
+      const { error } = await supabase
+        .from('dealer_vehicles')
+        .update(dataToUpdate)
+        .eq('id', id)
+        .eq('dealer_id', user.id); // Ensure the vehicle belongs to the dealer
+      
+      if (error) throw error;
+      
+      toast.success('Vehicle updated successfully!');
+      navigate('/dealer/inventory');
+    } catch (error: any) {
+      console.error('Error updating vehicle:', error);
+      toast.error(`Failed to update vehicle: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Fetch a vehicle by ID
+  const fetchVehicle = async (id: string) => {
+    if (!user) return null;
+    
+    try {
+      const { data, error } = await supabase
+        .from('dealer_vehicles')
+        .select('*')
+        .eq('id', id)
+        .eq('dealer_id', user.id) // Ensure the vehicle belongs to the dealer
+        .single();
+      
+      if (error) throw error;
+      
+      // Set photo URLs for editing
+      if (data.photos && Array.isArray(data.photos)) {
+        setPhotoUrls(data.photos.map(photo => String(photo)));
+      }
+      
+      return data;
+    } catch (error: any) {
+      console.error('Error fetching vehicle:', error);
+      toast.error(`Failed to fetch vehicle: ${error.message}`);
+      return null;
     }
   };
   
   return {
-    photoUrls,
-    uploadedPhotos,
     isUploading,
-    submitting,
-    setSubmitting,
+    uploadProgress,
+    photoUrls,
+    setPhotoUrls,
     handlePhotoUpload,
     removePhoto,
-    uploadPhotosToStorage,
-    uploadVehiclePhotos,
-    deleteVehiclePhoto
+    addVehicle,
+    updateVehicle,
+    fetchVehicle
   };
 };
