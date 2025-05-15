@@ -1,175 +1,141 @@
 
-import React from "react";
-import { typography } from "./tokens";
-import { cn } from "@/lib/utils";
+import React, { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
-type TypographyProps = {
+interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
   children: React.ReactNode;
   className?: string;
-  as?: React.ElementType;
-};
+}
 
-export const HeadingXL = ({
-  children,
-  className,
-  as: Component = "h1",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-4xl font-bold tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(({ 
+  level = 2, 
+  children, 
+  className, 
+  ...props 
+}, ref) => {
+  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  
+  return React.createElement(Tag, {
+    className: cn('font-bold', className),
+    ref,
+    ...props
+  }, children);
+});
 
-export const HeadingL = ({
-  children,
-  className,
-  as: Component = "h2",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-3xl font-semibold tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+Heading.displayName = 'Heading';
 
-export const HeadingM = ({
-  children,
-  className,
-  as: Component = "h3",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-2xl font-semibold tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+// Legacy type exports that might be used elsewhere
+export const HeadingXL = Heading;
+export const HeadingL = Heading;
+export const HeadingM = Heading;
+export const HeadingS = Heading;
 
-export const HeadingS = ({
-  children,
-  className,
-  as: Component = "h4",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-xl font-medium tracking-tight leading-tight text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+// Body text components
+interface BodyProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children: React.ReactNode;
+  size?: 'small' | 'medium' | 'large';
+  className?: string;
+}
 
-export const BodyL = ({
-  children,
-  className,
-  as: Component = "p",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-lg font-normal leading-relaxed text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+export const Body = forwardRef<HTMLParagraphElement, BodyProps>(({ 
+  children, 
+  size = 'medium', 
+  className, 
+  ...props 
+}, ref) => {
+  const sizeClasses = {
+    small: 'text-sm',
+    medium: 'text-base',
+    large: 'text-lg',
+  };
+  
+  return (
+    <p 
+      ref={ref}
+      className={cn(sizeClasses[size], className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+});
 
-export const BodyM = ({
-  children,
-  className,
-  as: Component = "p",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-base font-normal leading-relaxed text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+Body.displayName = 'Body';
 
-export const BodyS = ({
-  children,
-  className,
-  as: Component = "p",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-sm font-normal leading-relaxed text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+// Legacy exports to maintain compatibility
+export const BodyS: React.FC<BodyProps> = (props) => <Body size="small" {...props} />;
+export const BodyM: React.FC<BodyProps> = (props) => <Body size="medium" {...props} />;
+export const BodyL: React.FC<BodyProps> = (props) => <Body size="large" {...props} />;
 
-export const Caption = ({
-  children,
-  className,
-  as: Component = "span",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-xs font-normal leading-relaxed text-neutral-dark",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+// Caption component
+interface CaptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children: React.ReactNode;
+  className?: string;
+}
 
-export const Label = ({
-  children,
-  className,
-  as: Component = "label",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-sm font-medium leading-tight text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+export const Caption = forwardRef<HTMLParagraphElement, CaptionProps>(({ 
+  children, 
+  className, 
+  ...props 
+}, ref) => {
+  return (
+    <p 
+      ref={ref}
+      className={cn('text-xs text-neutral-dark', className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+});
 
-export const Code = ({
-  children,
-  className,
-  as: Component = "code",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-mono text-sm px-1.5 py-0.5 rounded-sm bg-neutral-lighter text-neutral-darkest",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+Caption.displayName = 'Caption';
 
-export const Quote = ({
-  children,
-  className,
-  as: Component = "blockquote",
-}: TypographyProps) => (
-  <Component
-    className={cn(
-      "font-primary text-lg italic border-l-4 border-primary pl-4 py-1 text-neutral-darker",
-      className
-    )}
-  >
-    {children}
-  </Component>
-);
+// Label component
+interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Label = forwardRef<HTMLLabelElement, LabelProps>(({ 
+  children, 
+  className, 
+  ...props 
+}, ref) => {
+  return (
+    <label 
+      ref={ref}
+      className={cn('text-sm font-medium', className)}
+      {...props}
+    >
+      {children}
+    </label>
+  );
+});
+
+Label.displayName = 'Label';
+
+// Paragraph component
+interface ParagraphProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Paragraph = forwardRef<HTMLParagraphElement, ParagraphProps>(({ 
+  children, 
+  className, 
+  ...props 
+}, ref) => {
+  return (
+    <p 
+      ref={ref}
+      className={cn('text-base leading-relaxed', className)}
+      {...props}
+    >
+      {children}
+    </p>
+  );
+});
+
+Paragraph.displayName = 'Paragraph';

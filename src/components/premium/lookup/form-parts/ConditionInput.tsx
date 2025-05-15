@@ -1,56 +1,60 @@
+
 import React from 'react';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { UseFormReturn } from 'react-hook-form';
-import { ConditionLevel } from '@/components/lookup/types/manualEntry'; // Fixed import
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
+import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 
 interface ConditionInputProps {
-  form: UseFormReturn<any>;
+  condition: ConditionLevel;
+  setCondition: (condition: ConditionLevel) => void;
 }
 
-export const ConditionInput: React.FC<ConditionInputProps> = ({ form }) => {
+export const ConditionInput: React.FC<ConditionInputProps> = ({
+  condition,
+  setCondition
+}) => {
+  const handleChange = (value: string) => {
+    setCondition(value as ConditionLevel);
+  };
+  
   return (
-    <FormField
-      control={form.control}
-      name="condition"
-      render={({ field }) => (
-        <FormItem className="space-y-3">
-          <FormLabel>Condition</FormLabel>
-          <FormControl>
-            <RadioGroup 
-              onValueChange={field.onChange} 
-              defaultValue={field.value} 
-              className="flex flex-col space-y-1"
-            >
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value={ConditionLevel.Excellent} id="excellent" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
-                </FormControl>
-                <FormLabel htmlFor="excellent" className="font-normal">Excellent</FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value={ConditionLevel.Good} id="good" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
-                </FormControl>
-                <FormLabel htmlFor="good" className="font-normal">Good</FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value={ConditionLevel.Fair} id="fair" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
-                </FormControl>
-                <FormLabel htmlFor="fair" className="font-normal">Fair</FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value={ConditionLevel.Poor} id="poor" className="peer h-5 w-5 border-2 border-gray-300 text-primary shadow-[0_0_0_2px_white] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
-                </FormControl>
-                <FormLabel htmlFor="poor" className="font-normal">Poor</FormLabel>
-              </FormItem>
-            </RadioGroup>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Label htmlFor="condition">Vehicle Condition</Label>
+        <VehicleFormTooltip 
+          content="The condition of your vehicle significantly impacts its value. Be honest for the most accurate valuation."
+        />
+      </div>
+      <Select
+        value={condition}
+        onValueChange={handleChange}
+      >
+        <SelectTrigger id="condition">
+          <SelectValue placeholder="Select condition" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
+          <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
+          <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
+          <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      <div className="text-xs mt-1 text-muted-foreground">
+        {condition === ConditionLevel.Excellent && (
+          "Like new condition with no visible wear and tear, low mileage."
+        )}
+        {condition === ConditionLevel.Good && (
+          "Normal wear and tear for vehicle age, well maintained, no major issues."
+        )}
+        {condition === ConditionLevel.Fair && (
+          "Shows signs of consistent use, may need minor repairs, some cosmetic issues."
+        )}
+        {condition === ConditionLevel.Poor && (
+          "Significant mechanical or cosmetic issues, may need major repairs."
+        )}
+      </div>
+    </div>
   );
 };

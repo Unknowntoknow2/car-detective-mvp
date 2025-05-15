@@ -1,20 +1,20 @@
 
 /**
- * Formats a phone number
+ * Formats a phone number in US format (XXX) XXX-XXXX
  * @param phone The phone number to format
- * @returns A formatted phone number string
+ * @returns The formatted phone number
  */
-export const formatPhone = (phone: string): string => {
-  // Remove all non-numeric characters
+export function formatPhone(phone: string): string {
+  if (!phone) return '';
+  
+  // Remove all non-digit characters
   const cleaned = phone.replace(/\D/g, '');
   
-  // Check if it's a valid US phone number
+  // Check if we have a 10-digit US number
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-  } else if (cleaned.length === 11 && cleaned[0] === '1') {
-    return `(${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
   }
   
-  // Return the original if it doesn't match expected patterns
+  // Just return the original number if it doesn't match the expected format
   return phone;
-};
+}

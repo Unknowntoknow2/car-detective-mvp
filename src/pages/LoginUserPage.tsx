@@ -52,7 +52,7 @@ export default function LoginUserPage() {
               <SharedLoginForm 
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
-                expectedRole="user"
+                expectedRole="individual"
                 redirectPath="/dashboard"
                 alternateLoginPath="/login-dealer"
                 alternateLoginText="Are you a dealer? Click here to login"

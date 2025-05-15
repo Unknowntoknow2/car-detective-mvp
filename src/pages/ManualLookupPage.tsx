@@ -1,45 +1,36 @@
 
-import React, { useState } from 'react';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/components/ui/use-toast';
+import React from 'react';
+import { ManualLookup } from '@/components/lookup/ManualLookup';
+import Layout from '@/components/layout/Layout';
+import { toast } from '@/hooks/use-toast';
 
-const ManualLookupPage: React.FC = () => {
-  const [manualEntryResult, setManualEntryResult] = useState<ManualEntryFormData | null>(null);
-
-  const handleManualSubmit = (vehicleInfo: ManualEntryFormData) => {
-    // Process the manual entry form submission
-    setManualEntryResult(vehicleInfo);
+const ManualLookupPage = () => {
+  const handleSubmit = (data: any) => {
+    // Here you would normally handle form submission
+    console.log("Form submitted with data:", data);
     
-    // Use toast without the .success method, as it doesn't exist in the type
+    // Show toast with proper structure
     toast({
-      title: "Success",
-      description: `Details received for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`,
+      description: "Vehicle information submitted successfully!",
       variant: "success",
     });
     
-    // Explicitly return a boolean instead of void
-    return true;
+    // Redirect to results page or handle response
   };
-
+  
   return (
-    <div className="container mx-auto py-12">
-      <Card>
-        <CardHeader>
-          <CardTitle>Manual Vehicle Entry</CardTitle>
-          <CardContent>
-            <ManualEntryForm onSubmit={handleManualSubmit} />
-          </CardContent>
-        </CardHeader>
-      </Card>
-
-      {manualEntryResult && (
-        <div className="mt-8">
-          <h2>Entered Vehicle Details:</h2>
-          <pre>{JSON.stringify(manualEntryResult, null, 2)}</pre>
+    <div>
+      <Layout />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">Manual Vehicle Lookup</h1>
+        <p className="text-gray-600 mb-6">
+          Enter your vehicle details manually to get an accurate valuation.
+        </p>
+        
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <ManualLookup onSubmit={handleSubmit} />
         </div>
-      )}
+      </div>
     </div>
   );
 };

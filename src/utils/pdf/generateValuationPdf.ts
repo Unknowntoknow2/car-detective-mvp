@@ -1,22 +1,50 @@
 
-import { ReportData, ReportOptions } from './types';
-import { defaultReportOptions } from './defaultReportOptions';
+import { ReportData } from './types';
 
-export async function generateValuationPdf(
-  reportData: ReportData,
-  options: Partial<ReportOptions> = {}
-): Promise<Uint8Array> {
-  // Merge default options with provided options
-  const mergedOptions = { ...defaultReportOptions, ...options };
+/**
+ * Generate a PDF for the valuation report
+ * @param data The report data to include in the PDF
+ * @returns A buffer containing the PDF data
+ */
+export const generateValuationPdf = async (data: ReportData): Promise<Buffer> => {
+  // This is a placeholder implementation
+  // The actual implementation would use PDF generation libraries
+  // like @react-pdf/renderer as mocked in the test
   
-  // This is just a placeholder implementation
-  console.log('Generating PDF with data:', reportData, 'and options:', mergedOptions);
-  
-  // In a real implementation, this would generate a PDF document
-  // For now, we'll just return a simple mock Uint8Array
-  const mockPdfContent = `Vehicle Valuation Report for ${reportData.year} ${reportData.make} ${reportData.model}`;
-  
-  // Convert string to Uint8Array
-  const encoder = new TextEncoder();
-  return encoder.encode(mockPdfContent);
-}
+  // For now just return a mock buffer
+  return Buffer.from('Mock PDF content');
+};
+
+/**
+ * Download a PDF for the valuation report
+ * @param data The report data to include in the PDF
+ * @param fileName Optional custom filename
+ */
+export const downloadValuationPdf = async (
+  data: ReportData,
+  fileName?: string
+): Promise<void> => {
+  try {
+    const pdfBuffer = await generateValuationPdf(data);
+    
+    // Create a blob from the PDF data
+    const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+    
+    // Create a URL for the blob
+    const url = URL.createObjectURL(blob);
+    
+    // Create a link element and trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || `CarDetective_Valuation_${data.make}_${data.model}_${Date.now()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error downloading valuation PDF:', error);
+    throw error;
+  }
+};

@@ -1,90 +1,90 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AccidentDetails } from '../types/manualEntry';
 import { Label } from '@/components/ui/label';
-import { Car, AlertTriangle, FileBarChart } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AccidentDetails } from '../types/manualEntry';
 
 interface AccidentDetailsFormProps {
   accidentDetails: AccidentDetails;
   setAccidentDetails: (details: AccidentDetails) => void;
-  disabled?: boolean;
 }
 
 export const AccidentDetailsForm: React.FC<AccidentDetailsFormProps> = ({
   accidentDetails,
-  setAccidentDetails,
-  disabled = false
+  setAccidentDetails
 }) => {
+  const handleSeverityChange = (value: string) => {
+    setAccidentDetails({
+      ...accidentDetails,
+      severity: value as 'Minor' | 'Moderate' | 'Severe'
+    });
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAccidentDetails({
+      ...accidentDetails,
+      description: e.target.value
+    });
+  };
+
+  const handleRepairedChange = (checked: boolean) => {
+    setAccidentDetails({
+      ...accidentDetails,
+      repaired: checked
+    });
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <FileBarChart className="h-4 w-4 text-primary" />
-          Number of accidents
-        </Label>
-        <Input 
-          placeholder="How many accidents?" 
-          value={accidentDetails.count}
-          onChange={e => setAccidentDetails({ ...accidentDetails, count: e.target.value })}
-          disabled={disabled}
-          className="input-3d"
-        />
-        <p className="text-xs text-text-secondary mt-1">
-          Enter the total number of reported accidents
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-warning" />
-          Severity of damage
-        </Label>
-        <Select 
-          value={accidentDetails.severity}
-          onValueChange={(value) => setAccidentDetails({ ...accidentDetails, severity: value })}
-          disabled={disabled}
-        >
-          <SelectTrigger className="input-3d">
-            <SelectValue placeholder="Select severity" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="minor">Minor</SelectItem>
-            <SelectItem value="moderate">Moderate</SelectItem>
-            <SelectItem value="major">Major</SelectItem>
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-text-secondary mt-1">
-          The extent of damage from the accidents
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <Car className="h-4 w-4 text-primary" />
-          Area of impact
-        </Label>
-        <Select 
-          value={accidentDetails.area}
-          onValueChange={(value) => setAccidentDetails({ ...accidentDetails, area: value })}
-          disabled={disabled}
-        >
-          <SelectTrigger className="input-3d">
-            <SelectValue placeholder="Select area" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="front">Front</SelectItem>
-            <SelectItem value="rear">Rear</SelectItem>
-            <SelectItem value="left">Left Side</SelectItem>
-            <SelectItem value="right">Right Side</SelectItem>
-            <SelectItem value="multiple">Multiple Areas</SelectItem>
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-text-secondary mt-1">
-          Which part of the vehicle was impacted
-        </p>
+    <div className="space-y-4 p-4 border rounded-lg bg-muted/10">
+      <h3 className="font-medium">Accident Details</h3>
+      
+      <div className="space-y-3">
+        <div>
+          <Label className="mb-2 block">Severity</Label>
+          <RadioGroup
+            value={accidentDetails.severity || 'Minor'}
+            onValueChange={handleSeverityChange}
+            className="flex flex-col space-y-1"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Minor" id="severity-minor" />
+              <Label htmlFor="severity-minor" className="cursor-pointer">Minor (Cosmetic damage)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Moderate" id="severity-moderate" />
+              <Label htmlFor="severity-moderate" className="cursor-pointer">Moderate (Significant damage, but repairable)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Severe" id="severity-severe" />
+              <Label htmlFor="severity-severe" className="cursor-pointer">Severe (Major structural or mechanical damage)</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        
+        <div>
+          <Label htmlFor="accident-description">Description (Optional)</Label>
+          <Textarea
+            id="accident-description"
+            placeholder="Briefly describe the accident and damage..."
+            value={accidentDetails.description || ''}
+            onChange={handleDescriptionChange}
+            className="resize-none h-24"
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="repaired"
+            checked={accidentDetails.repaired || false}
+            onCheckedChange={handleRepairedChange}
+          />
+          <Label htmlFor="repaired" className="cursor-pointer">Has the damage been fully repaired?</Label>
+        </div>
       </div>
     </div>
   );
 };
+
+export default AccidentDetailsForm;

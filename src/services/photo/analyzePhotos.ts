@@ -39,7 +39,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
           condition: 'Fair',
           confidenceScore: 0
         },
-        error: error.message || 'Failed to analyze photos'
+        error: error.message || 'Failed to analyze photos' // Valid property now
       };
     }
 
@@ -53,7 +53,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
           condition: 'Fair',
           confidenceScore: 0
         },
-        error: 'Invalid response from photo analysis service'
+        error: 'Invalid response from photo analysis service' // Valid property now
       };
     }
 
@@ -85,7 +85,7 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         condition: 'Fair',
         confidenceScore: 0
       },
-      error: error.message || 'Failed to analyze photos'
+      error: error.message || 'Failed to analyze photos' // Valid property now
     };
   }
 }
@@ -121,7 +121,7 @@ export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string)
         condition: 'Fair',
         confidenceScore: 0
       },
-      error: error.message || 'Failed to upload and analyze photos'
+      error: error.message || 'Failed to upload and analyze photos' // Valid property now
     };
   }
 };

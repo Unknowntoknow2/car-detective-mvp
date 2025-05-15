@@ -1,7 +1,12 @@
 
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
-import { AdjustmentBreakdown } from '@/utils/rules/types';
+
+interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description?: string;
+}
 
 /**
  * Convert vehicle information to report data format
@@ -18,31 +23,38 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
   adjustments: AdjustmentBreakdown[];
   isPremium?: boolean;
 }): ReportData {
+  // Process adjustments to ensure all have descriptions
+  const processedAdjustments = additionalData.adjustments.map(adj => ({
+    factor: adj.factor,
+    impact: adj.impact,
+    description: adj.description || `Adjustment for ${adj.factor}`
+  }));
+
   return {
+    // Use crypto.randomUUID() since DecodedVehicleInfo doesn't have an id property
+    id: crypto.randomUUID(),
     make: vehicleInfo.make,
     model: vehicleInfo.model,
     year: vehicleInfo.year,
     mileage: additionalData.mileage,
     condition: additionalData.condition,
+    // Use estimated value as price when generating report
+    price: additionalData.estimatedValue,
     estimatedValue: additionalData.estimatedValue,
     confidenceScore: additionalData.confidenceScore || 75,
     vin: vehicleInfo.vin,
     zipCode: additionalData.zipCode,
-    color: vehicleInfo.color,
-    bodyType: vehicleInfo.bodyType,
+    trim: vehicleInfo.trim,
     fuelType: vehicleInfo.fuelType,
     transmission: vehicleInfo.transmission,
+    color: vehicleInfo.color,
+    bodyType: vehicleInfo.bodyType,
     isPremium: additionalData.isPremium || false,
-    // Add required properties
     priceRange: [
       Math.round(additionalData.estimatedValue * 0.90), 
       Math.round(additionalData.estimatedValue * 1.10)
     ],
-    adjustments: additionalData.adjustments.map(adj => ({
-      factor: adj.factor || '',
-      impact: adj.impact || 0,
-      description: adj.description
-    })),
+    adjustments: processedAdjustments,
     generatedAt: new Date().toISOString()
   };
 }
@@ -57,10 +69,7 @@ export function convertValuationToReportData(valuation: any): ReportData {
   const adjustments = valuation.adjustments?.map((adj: any) => ({
     factor: adj.factor || adj.name || '',
     impact: adj.impact || adj.value || 0,
-    description: adj.description || '',
-    percentAdjustment: adj.impactPercentage || adj.percentAdjustment || 0,
-    name: adj.factor || adj.name || '',
-    value: adj.impact || adj.value || 0
+    description: adj.description || `Adjustment for ${adj.factor || adj.name || 'unknown factor'}`
   })) || [];
 
   // Calculate price range if not provided
@@ -69,12 +78,17 @@ export function convertValuationToReportData(valuation: any): ReportData {
     Math.round((valuation.estimatedValue || valuation.valuation || 0) * 1.1)
   ];
 
+  // Use estimated value as price when price is not provided
+  const price = valuation.price || valuation.estimatedValue || valuation.valuation || 0;
+
   return {
+    id: valuation.id || crypto.randomUUID(),
     make: valuation.make || '',
     model: valuation.model || '',
     year: valuation.year || 0,
     mileage: valuation.mileage || 0,
     condition: valuation.condition || 'Good',
+    price: price,
     estimatedValue: valuation.estimatedValue || valuation.valuation || 0,
     priceRange: priceRange,
     adjustments: adjustments,
@@ -84,16 +98,13 @@ export function convertValuationToReportData(valuation: any): ReportData {
     confidenceScore: valuation.confidenceScore || 75,
     photoScore: valuation.photoScore || 0,
     isPremium: valuation.isPremium || false,
-    features: valuation.features || [],
     aiCondition: valuation.aiCondition || null,
     vin: valuation.vin || '',
-    valuationId: valuation.id,
     zipCode: valuation.zipCode || valuation.zip || '',
+    trim: valuation.trim || '',
     color: valuation.color || '',
     bodyType: valuation.bodyType || valuation.bodyStyle || '',
     fuelType: valuation.fuelType || valuation.fuel_type || '',
-    transmission: valuation.transmission || '',
-    photoExplanation: valuation.photoExplanation || '',
-    trim: valuation.trim || ''
+    transmission: valuation.transmission || ''
   };
 }

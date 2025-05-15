@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Photo, PhotoScore, AICondition } from '@/types/photo';
 import { v4 as uuidv4 } from 'uuid';
@@ -180,7 +179,7 @@ export function usePhotoUpload({ valuationId }: UsePhotoUploadProps) {
         condition: mockConditions[randomIndex],
         confidenceScore: 75 + Math.floor(Math.random() * 20), // 75-95%
         issuesDetected: randomIndex > 0 ? mockIssues[randomIndex - 1] : [],
-        aiSummary: `Vehicle appears to be in ${mockConditions[randomIndex]} condition overall.`
+        summary: `Vehicle appears to be in ${mockConditions[randomIndex]} condition overall.`
       };
       
       // Store the assessment in the database (mock)

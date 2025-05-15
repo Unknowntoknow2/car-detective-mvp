@@ -1,11 +1,10 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
-import { CDButton } from '@/components/ui-kit/CDButton';
-import { HeadingL, BodyM } from '@/components/ui-kit/typography';
 import { Lock } from 'lucide-react';
-import styles from '../styles';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Heading, BodyM } from '@/components/ui-kit/typography';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 
 interface ExplanationProps {
   explanation: string;
@@ -19,53 +18,37 @@ export const Explanation: React.FC<ExplanationProps> = ({
   onUpgrade
 }) => {
   return (
-    <CDCard>
-      <CDCardHeader>
-        <div className="flex justify-between items-center">
-          <HeadingL as="h3" className="text-xl font-medium">
-            Expert Analysis
-          </HeadingL>
-          {isPremium && (
-            <span className={styles.premiumBadge}>
-              Premium
-            </span>
-          )}
-        </div>
-      </CDCardHeader>
-      
-      <CDCardBody>
-        <div className={styles.explanation.container}>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            <BodyM className={styles.explanation.text}>
-              {explanation || 'Expert analysis of your vehicle valuation including market positioning, key value drivers, and personalized insights.'}
+    <Card>
+      <CardHeader>
+        <Heading className="text-xl font-semibold">
+          Professional Valuation Explanation
+        </Heading>
+      </CardHeader>
+      <CardContent>
+        {isPremium ? (
+          <div>
+            <BodyM className="whitespace-pre-line">
+              {explanation || 'Detailed explanation about your vehicle valuation, including market factors, condition assessments, and comparable vehicles.'}
             </BodyM>
-          </motion.div>
-          
-          {/* Premium Overlay for non-premium users */}
-          {!isPremium && (
-            <motion.div 
-              className={styles.explanation.premium.blur}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-            >
-              <CDButton
-                variant="primary"
-                icon={<Lock className="h-4 w-4" />}
-                onClick={onUpgrade}
-                className={styles.explanation.premium.button}
-              >
-                Unlock Premium Analysis
-              </CDButton>
-            </motion.div>
-          )}
-        </div>
-      </CDCardBody>
-    </CDCard>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center py-4 space-y-4">
+            <div className="p-4 bg-slate-100 rounded-full">
+              <Lock className="h-6 w-6 text-slate-500" />
+            </div>
+            <div>
+              <p className="font-medium text-lg">Professional Explanation Locked</p>
+              <p className="text-muted-foreground mb-4">
+                Unlock AI-powered professional valuation explanations with Premium
+              </p>
+              <Button onClick={onUpgrade}>
+                Upgrade to Premium <PremiumBadge className="ml-2" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

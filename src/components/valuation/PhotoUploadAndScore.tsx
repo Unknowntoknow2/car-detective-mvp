@@ -74,7 +74,7 @@ export function PhotoUploadAndScore({
       condition: score > 0.8 ? 'Excellent' : score > 0.6 ? 'Good' : score > 0.4 ? 'Fair' : 'Poor',
       confidenceScore: Math.round(score * 100),
       issuesDetected: score < 0.7 ? ['Minor scratches', 'Worn interior'] : [],
-      aiSummary: score > 0.8 
+      summary: score > 0.8 
         ? 'Vehicle appears to be in excellent condition with no visible issues.'
         : score > 0.6
         ? 'Vehicle is in good condition with minor cosmetic issues.'
@@ -190,9 +190,9 @@ export function PhotoUploadAndScore({
                     </div>
                   )}
                   
-                  {aiCondition.aiSummary && (
+                  {(aiCondition.summary || aiCondition.aiSummary) && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      {aiCondition.aiSummary}
+                      {aiCondition.summary || aiCondition.aiSummary}
                     </p>
                   )}
                 </div>

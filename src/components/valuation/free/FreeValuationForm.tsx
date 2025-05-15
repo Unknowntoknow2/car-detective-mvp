@@ -1,258 +1,214 @@
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUnifiedDecoder } from '@/hooks/useUnifiedDecoder';
-import { Card } from '@/components/ui/card';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
-import { useManualValuation, type ManualVehicleInfo } from '@/hooks/useManualValuation';
-import { toast } from 'sonner';
-import { useVinDecoder } from '@/hooks/useVinDecoder';
+import { useValuation } from '@/hooks/useValuation';
+import { useNavigate } from 'react-router-dom';
 
-interface FreeValuationFormProps {
-  onValuationComplete: (data: any) => void;
-  onStartLoading?: () => void;
-  isLoading?: boolean;
-}
+const currentYear = new Date().getFullYear();
 
-export function FreeValuationForm({ 
-  onValuationComplete, 
-  onStartLoading, 
-  isLoading: externalLoading 
-}: FreeValuationFormProps) {
-  const [vin, setVin] = useState('');
-  const [plate, setPlate] = useState('');
-  const [state, setState] = useState('');
-  const { decode, isLoading: decoderLoading } = useUnifiedDecoder();
-  const { lookupVin, isLoading: vinDecoderLoading } = useVinDecoder();
-  const { calculateValuation, isLoading: calculationLoading } = useManualValuation();
-  const [activeTab, setActiveTab] = useState('vin');
-  
-  const isLoading = externalLoading || decoderLoading || calculationLoading || vinDecoderLoading;
+const valuationSchema = z.object({
+  make: z.string().min(1, 'Make is required'),
+  model: z.string().min(1, 'Model is required'),
+  year: z.coerce.number()
+    .min(1900, 'Year must be at least 1900')
+    .max(currentYear + 1, `Year cannot be greater than ${currentYear + 1}`),
+  mileage: z.coerce.number()
+    .min(0, 'Mileage cannot be negative')
+    .max(1000000, 'Mileage seems too high'),
+  zipCode: z.string()
+    .min(5, 'ZIP code must be at least 5 characters')
+    .max(10, 'ZIP code cannot exceed 10 characters'),
+  condition: z.enum(['Excellent', 'Good', 'Fair', 'Poor']),
+});
 
-  const handleSubmit = async (e: React.FormEvent, type: 'vin' | 'plate' | 'manual') => {
-    e.preventDefault();
-    
-    if (onStartLoading) {
-      onStartLoading();
-    }
-    
-    if (type === 'vin') {
-      if (!vin || vin.length !== 17) {
-        toast.error('Please enter a valid 17-character VIN');
-        return;
+type ValuationFormData = z.infer<typeof valuationSchema>;
+
+export const FreeValuationForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { submitValuation } = useValuation();
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<ValuationFormData>({
+    resolver: zodResolver(valuationSchema),
+    defaultValues: {
+      make: '',
+      model: '',
+      year: currentYear,
+      mileage: 0,
+      zipCode: '',
+      condition: 'Good',
+    },
+  });
+
+  const onSubmit = async (data: ValuationFormData) => {
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Make zipCode required to match ValuationInput interface
+      const valuationData = {
+        ...data,
+        isPremium: false,
+        zipCode: data.zipCode // Ensure this is not optional
+      };
+
+      const result = await submitValuation(valuationData);
+
+      if (result.success && result.data?.valuationId) {
+        navigate(`/valuation/${result.data.valuationId}`);
+      } else {
+        setError(result.errorMessage || 'Failed to generate valuation. Please try again.');
       }
-      
-      try {
-        // First, try the VIN decoder
-        const result = await lookupVin(vin);
-        
-        if (result) {
-          // Convert the decoded vehicle to manual vehicle info format
-          const vehicleData = {
-            year: result.year || new Date().getFullYear(),
-            make: result.make || '',
-            model: result.model || '',
-            mileage: 50000, // Default mileage
-            condition: 'good' as const,
-            zipCode: '10001', // Default zip
-            fuelType: 'gasoline',
-            trim: result.trim
-          };
-          
-          // Calculate valuation for the decoded vehicle
-          const valuationResult = await calculateValuation(vehicleData);
-          
-          if (valuationResult) {
-            onValuationComplete(valuationResult);
-            return;
-          }
-        }
-        
-        // Fallback to unified decoder if VIN decoder fails
-        const decodedVehicle = await decode('vin', { vin });
-        
-        if (decodedVehicle) {
-          // Convert the decoded vehicle to manual vehicle info format
-          const vehicleData = {
-            year: decodedVehicle.year || new Date().getFullYear(),
-            make: decodedVehicle.make || '',
-            model: decodedVehicle.model || '',
-            mileage: 50000, // Default mileage
-            condition: 'good' as const,
-            zipCode: '10001', // Default zip
-            fuelType: 'gasoline',
-            trim: decodedVehicle.trim
-          };
-          
-          // Calculate valuation for the decoded vehicle
-          const valuationResult = await calculateValuation(vehicleData);
-          
-          if (valuationResult) {
-            onValuationComplete(valuationResult);
-          }
-        }
-      } catch (error) {
-        console.error('VIN lookup error:', error);
-        toast.error('Error looking up VIN. Please try again or use manual entry.');
-      }
-    } else if (type === 'plate') {
-      try {
-        const params = { licensePlate: plate, state };
-        const decodedVehicle = await decode('plate', params);
-        
-        if (decodedVehicle) {
-          // Convert the decoded vehicle to manual vehicle info format
-          const vehicleData = {
-            year: decodedVehicle.year || new Date().getFullYear(),
-            make: decodedVehicle.make || '',
-            model: decodedVehicle.model || '',
-            mileage: 50000, // Default mileage
-            condition: 'good' as const,
-            zipCode: '10001', // Default zip
-            fuelType: 'gasoline',
-            trim: decodedVehicle.trim
-          };
-          
-          // Calculate valuation for the decoded vehicle
-          const valuationResult = await calculateValuation(vehicleData);
-          
-          if (valuationResult) {
-            onValuationComplete(valuationResult);
-          }
-        }
-      } catch (error) {
-        console.error('Plate lookup error:', error);
-        toast.error('Error looking up license plate. Please try again or use manual entry.');
-      }
+    } catch (err) {
+      console.error('Valuation error:', err);
+      setError('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleManualSubmit = async (data: any) => {
-    if (onStartLoading) {
-      onStartLoading();
-    }
-    
-    try {
-      // Convert form data to the format expected by calculateValuation
-      const vehicleData = {
-        year: parseInt(data.year),
-        make: data.make,
-        model: data.model,
-        mileage: parseInt(data.mileage),
-        condition: data.condition || 'good' as const,
-        zipCode: data.zipCode || '10001',
-        fuelType: data.fuelType || 'gasoline'
-      };
-      
-      // Calculate the valuation using the manual data
-      const valuationResult = await calculateValuation(vehicleData);
-      
-      if (valuationResult) {
-        // Store the manual entry data and send to parent
-        localStorage.setItem('manual_valuation_data', JSON.stringify(data));
-        onValuationComplete(valuationResult);
-      }
-    } catch (error) {
-      console.error('Manual valuation error:', error);
-      toast.error('Error processing manual entry. Please try again.');
-    }
+  const handleConditionChange = (value: string) => {
+    setValue('condition', value as 'Excellent' | 'Good' | 'Fair' | 'Poor');
   };
 
   return (
-    <Card className="p-6">
-      <Tabs defaultValue="vin" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="vin">VIN</TabsTrigger>
-          <TabsTrigger value="plate">License Plate</TabsTrigger>
-          <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-        </TabsList>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="text-xl">Free Vehicle Valuation</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form id="valuation-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="make">Make</Label>
+            <Input
+              id="make"
+              placeholder="e.g. Toyota"
+              {...register('make')}
+              className={errors.make ? 'border-red-500' : ''}
+            />
+            {errors.make && (
+              <p className="text-sm text-red-500">{errors.make.message}</p>
+            )}
+          </div>
 
-        <TabsContent value="vin" className="space-y-4">
-          <form onSubmit={(e) => handleSubmit(e, 'vin')} className="space-y-4">
-            <div>
-              <label htmlFor="vin" className="block text-sm font-medium text-gray-700">
-                Vehicle Identification Number (VIN)
-              </label>
+          <div className="space-y-2">
+            <Label htmlFor="model">Model</Label>
+            <Input
+              id="model"
+              placeholder="e.g. Camry"
+              {...register('model')}
+              className={errors.model ? 'border-red-500' : ''}
+            />
+            {errors.model && (
+              <p className="text-sm text-red-500">{errors.model.message}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="year">Year</Label>
               <Input
-                id="vin"
-                value={vin}
-                onChange={(e) => setVin(e.target.value.toUpperCase())}
-                placeholder="Enter 17-character VIN"
-                className="mt-1 font-mono"
-                maxLength={17}
+                id="year"
+                type="number"
+                placeholder={currentYear.toString()}
+                {...register('year')}
+                className={errors.year ? 'border-red-500' : ''}
               />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading || vin.length !== 17}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Getting Valuation...
-                </>
-              ) : (
-                'Get Free Valuation'
+              {errors.year && (
+                <p className="text-sm text-red-500">{errors.year.message}</p>
               )}
-            </Button>
-          </form>
-        </TabsContent>
-
-        <TabsContent value="plate" className="space-y-4">
-          <form onSubmit={(e) => handleSubmit(e, 'plate')} className="space-y-4">
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="plate" className="block text-sm font-medium text-gray-700">
-                  License Plate
-                </label>
-                <Input
-                  id="plate"
-                  value={plate}
-                  onChange={(e) => setPlate(e.target.value.toUpperCase())}
-                  placeholder="Enter license plate"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                  State
-                </label>
-                <Input
-                  id="state"
-                  value={state}
-                  onChange={(e) => setState(e.target.value.toUpperCase())}
-                  placeholder="Enter state (e.g., CA)"
-                  className="mt-1"
-                  maxLength={2}
-                />
-              </div>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading || !plate || !state}
+
+            <div className="space-y-2">
+              <Label htmlFor="mileage">Mileage</Label>
+              <Input
+                id="mileage"
+                type="number"
+                placeholder="e.g. 50000"
+                {...register('mileage')}
+                className={errors.mileage ? 'border-red-500' : ''}
+              />
+              {errors.mileage && (
+                <p className="text-sm text-red-500">{errors.mileage.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="zipCode">ZIP Code</Label>
+            <Input
+              id="zipCode"
+              placeholder="e.g. 90210"
+              {...register('zipCode')}
+              className={errors.zipCode ? 'border-red-500' : ''}
+            />
+            {errors.zipCode && (
+              <p className="text-sm text-red-500">{errors.zipCode.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="condition">Condition</Label>
+            <Select
+              onValueChange={handleConditionChange}
+              defaultValue="Good"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Getting Valuation...
-                </>
-              ) : (
-                'Get Free Valuation'
-              )}
-            </Button>
-          </form>
-        </TabsContent>
+              <SelectTrigger id="condition">
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Excellent">Excellent</SelectItem>
+                <SelectItem value="Good">Good</SelectItem>
+                <SelectItem value="Fair">Fair</SelectItem>
+                <SelectItem value="Poor">Poor</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.condition && (
+              <p className="text-sm text-red-500">{errors.condition.message}</p>
+            )}
+          </div>
 
-        <TabsContent value="manual" className="space-y-4">
-          <ManualEntryForm 
-            onSubmit={handleManualSubmit}
-            isLoading={isLoading}
-            submitButtonText="Get Free Valuation"
-            isPremium={false}
-          />
-        </TabsContent>
-      </Tabs>
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Button
+          type="submit"
+          form="valuation-form"
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating Valuation...
+            </>
+          ) : (
+            'Get Free Valuation'
+          )}
+        </Button>
+      </CardFooter>
     </Card>
   );
-}
+};
+
+export default FreeValuationForm;

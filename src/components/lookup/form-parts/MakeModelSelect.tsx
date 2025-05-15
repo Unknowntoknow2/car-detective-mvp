@@ -15,7 +15,7 @@ interface MakeModelSelectWrapperProps {
 
 export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelectWrapperProps) {
   // Fetch makes and models data using our hook
-  const { data, isLoading, isError, error } = useMakeModels();
+  const { makes, models, isLoading, error } = useMakeModels();
   
   useEffect(() => {
     console.log('MakeModelFormField: form values updated', {
@@ -41,19 +41,17 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
   }
   
   // Handle error state
-  if (isError) {
+  if (error) {
     return (
       <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800 flex items-start gap-2">
         <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-medium">Failed to load vehicle data</p>
-          <p className="text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+          <p className="text-sm mt-1">{error}</p>
         </div>
       </div>
     );
   }
-  
-  const { makes, models } = data!;
   
   console.log('MakeModelFormField: rendering with data', { 
     makesCount: makes.length, 

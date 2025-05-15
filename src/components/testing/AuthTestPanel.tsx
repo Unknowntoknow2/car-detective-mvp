@@ -1,130 +1,125 @@
 
-import React from 'react';
-import { useAuthTests } from '@/hooks/useAuthTests';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Loader2, CheckCircle, XCircle, Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Define an interface for user roles
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: string;
-  created_at: string;
+// Define the test result type
+export interface TestResult {
+  success: boolean;
+  message: string;
+  timestamp: string;
 }
 
-export function AuthTestPanel() {
-  const { results, isRunning, runTests } = useAuthTests();
-  const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
-  const [isCheckingAdmin, setIsCheckingAdmin] = React.useState(false);
+interface AuthTestPanelProps {
+  results: Record<string, TestResult>;
+  isRunning: boolean;
+  runTests: () => Promise<void>;
+}
+
+export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({
+  results,
+  isRunning,
+  runTests
+}) => {
+  const [expanded, setExpanded] = useState<string | null>(null);
   
-  const checkAdminStatus = async () => {
-    if (!user) {
-      setIsAdmin(false);
-      return;
-    }
-    
-    setIsCheckingAdmin(true);
-    try {
-      // Check if user has admin role in the database
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle() as { data: UserRole | null, error: Error | null };
-        
-      if (error) throw error;
-      setIsAdmin(!!data);
-    } catch (err) {
-      console.error('Error checking admin status:', err);
-      setIsAdmin(false);
-    } finally {
-      setIsCheckingAdmin(false);
+  const toggleExpand = (testId: string) => {
+    if (expanded === testId) {
+      setExpanded(null);
+    } else {
+      setExpanded(testId);
     }
   };
   
-  React.useEffect(() => {
-    if (user) {
-      checkAdminStatus();
-    } else {
-      setIsAdmin(null);
-    }
-  }, [user]);
+  const testOrder = [
+    'auth-connection',
+    'user-session',
+    'user-profile',
+    'create-profile',
+    'update-profile',
+    'get-profile'
+  ];
   
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Auth & RLS Test Panel</span>
+        <CardTitle className="flex justify-between items-center">
+          <span>Authentication Tests</span>
           <Button 
-            variant="outline" 
-            size="sm" 
             onClick={runTests} 
             disabled={isRunning}
-            className="flex items-center gap-2"
+            size="sm"
           >
-            <RefreshCw className={`h-4 w-4 ${isRunning ? 'animate-spin' : ''}`} />
-            {isRunning ? 'Running Tests...' : 'Run Tests'}
+            {isRunning ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Running Tests...
+              </>
+            ) : (
+              'Run Tests'
+            )}
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {user && (
-            <div className={`p-3 rounded-md flex items-start gap-2 ${
-              isAdmin === true ? 'bg-green-50' : 
-              isAdmin === false ? 'bg-yellow-50' : 'bg-gray-50'
-            }`}>
-              <ShieldCheck className={`h-5 w-5 ${
-                isAdmin === true ? 'text-green-500' : 
-                isAdmin === false ? 'text-yellow-500' : 'text-gray-500'
-              } mt-0.5`} />
-              <div>
-                <h3 className="font-medium">Admin Status</h3>
-                <p className="text-sm">
-                  {isCheckingAdmin ? 'Checking admin status...' : 
-                   isAdmin === true ? 'User has admin privileges' : 
-                   isAdmin === false ? 'User does not have admin privileges' : 
-                   'Status unknown'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  User ID: {user.id}
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {Object.keys(results).length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tests have been run yet.</p>
-          ) : (
-            Object.entries(results).map(([testName, result]) => (
-              <div 
-                key={testName} 
-                className={`p-3 rounded-md flex items-start gap-2 ${
-                  result.success ? 'bg-green-50' : 'bg-red-50'
-                }`}
-              >
-                {result.success ? (
-                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
-                )}
-                <div>
-                  <h3 className="font-medium">{testName}</h3>
-                  <p className="text-sm">{result.message}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {result.timestamp.toLocaleTimeString()}
-                  </p>
+        <div className="space-y-4">
+          {testOrder.map((testId) => {
+            const result = results[testId];
+            const isExpanded = expanded === testId;
+            
+            return (
+              <div key={testId} className="border rounded-md overflow-hidden">
+                <div 
+                  className={`flex items-center justify-between p-3 cursor-pointer ${
+                    result ? (result.success ? 'bg-green-50' : 'bg-red-50') : 'bg-gray-50'
+                  }`}
+                  onClick={() => result && toggleExpand(testId)}
+                >
+                  <div className="flex items-center space-x-2">
+                    {!result ? (
+                      <Info className="h-5 w-5 text-gray-400" />
+                    ) : result.success ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <span className="font-medium">
+                      {testId
+                        .split('-')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ')}
+                    </span>
+                  </div>
+                  
+                  {result && (
+                    <div className="text-sm text-gray-500">
+                      {result.timestamp ? new Date(result.timestamp).toLocaleTimeString() : ''}
+                    </div>
+                  )}
                 </div>
+                
+                {result && isExpanded && (
+                  <div className="p-3 border-t bg-white">
+                    <Alert variant={result.success ? "default" : "destructive"}>
+                      <AlertDescription>
+                        {result.message}
+                      </AlertDescription>
+                    </Alert>
+                    
+                    {result.timestamp && (
+                      <div className="mt-2 text-xs text-gray-500">
+                        Tested at: {new Date(result.timestamp).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            ))
-          )}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
   );
-}
+};

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { PlateLookupInfo } from '@/types/lookup';
 import { mockPlateLookup } from '@/services/plateService';
 
@@ -35,7 +35,6 @@ export function usePlateLookup() {
       
       setResult(plateResult);
       toast({
-        title: "Vehicle Found",
         description: `${plateResult.year} ${plateResult.make} ${plateResult.model}`,
       });
       
@@ -44,7 +43,6 @@ export function usePlateLookup() {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error during plate lookup';
       setError(errorMessage);
       toast({
-        title: "Plate Lookup Failed",
         description: errorMessage,
         variant: "destructive"
       });

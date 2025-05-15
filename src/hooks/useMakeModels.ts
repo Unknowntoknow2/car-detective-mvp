@@ -1,90 +1,126 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Raw types from Supabase response
-interface RawMake {
+export interface VehicleMake {
   id: string;
   make_name: string;
+  logo_url?: string | null;
 }
 
-interface RawModel {
+export interface VehicleModel {
   id: string;
-  model_name: string;
   make_id: string;
+  model_name: string;
 }
 
-// Transformed types for component consumption
-export interface Make {
+export interface VehicleTrim {
   id: string;
-  name: string;
+  model_id: string;
+  trim_name: string;
+  year?: number;
+  fuel_type?: string;
+  transmission?: string;
 }
 
-export interface Model {
-  id: string;
-  name: string;
-  makeId: string;
-}
-
-/**
- * Fetches makes and models from Supabase
- * @returns {Promise<{makes: Make[], models: Model[]}>} Makes and models data
- */
-async function fetchMakesModels(): Promise<{ makes: Make[], models: Model[] }> {
-  console.log('Fetching makes and models from Supabase...');
-  
-  // Fetch makes
-  const { data: makesData, error: makesError } = await supabase
-    .from('makes')
-    .select('id, make_name')
-    .order('make_name', { ascending: true });
-  
-  if (makesError) {
-    console.error('Error fetching makes:', makesError);
-    throw new Error(`Error fetching makes: ${makesError.message}`);
-  }
-  
-  // Fetch models
-  const { data: modelsData, error: modelsError } = await supabase
-    .from('models')
-    .select('id, model_name, make_id')
-    .order('model_name', { ascending: true });
-  
-  if (modelsError) {
-    console.error('Error fetching models:', modelsError);
-    throw new Error(`Error fetching models: ${modelsError.message}`);
-  }
-  
-  console.log('Raw makes data:', makesData);
-  console.log('Raw models data:', modelsData);
-  
-  // Transform data to match expected interface
-  const makes: Make[] = makesData ? makesData.map((make: RawMake) => ({
-    id: make.id,
-    name: make.make_name
-  })) : [];
-  
-  const models: Model[] = modelsData ? modelsData.map((model: RawModel) => ({
-    id: model.id,
-    name: model.model_name,
-    makeId: model.make_id
-  })) : [];
-  
-  console.log('Transformed makes:', makes);
-  console.log('Transformed models:', models);
-  
-  return { makes, models };
-}
-
-/**
- * React Query hook to fetch and cache makes and models
- * @returns {UseQueryResult<{makes: Make[], models: Model[]}>} Query result with makes and models
- */
 export function useMakeModels() {
-  return useQuery({
-    queryKey: ['makes', 'models'],
-    queryFn: fetchMakesModels,
-    staleTime: 300_000, // 5 minutes
-    retry: 2
-  });
+  const [makes, setMakes] = useState<VehicleMake[]>([]);
+  const [models, setModels] = useState<VehicleModel[]>([]);
+  const [trims, setTrims] = useState<VehicleTrim[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Load makes on initial component mount
+  useEffect(() => {
+    async function fetchMakes() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const { data, error } = await supabase
+          .from('makes')
+          .select('id, make_name')
+          .order('make_name');
+          
+        if (error) throw error;
+        
+        // Update the type handling to match the actual structure of the makes table
+        // which appears to not have a logo_url column
+        const typedData: VehicleMake[] = data ? data.map(make => ({
+          id: make.id,
+          make_name: make.make_name,
+          logo_url: null // Set logo_url to null since it doesn't exist in the database
+        })) : [];
+        
+        setMakes(typedData);
+      } catch (err: any) {
+        console.error('Error fetching makes:', err);
+        setError('Failed to load vehicle makes');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchMakes();
+  }, []);
+
+  // Function to fetch models for a specific make
+  const getModelsByMakeId = async (makeId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error } = await supabase
+        .from('models')
+        .select('id, make_id, model_name')
+        .eq('make_id', makeId)
+        .order('model_name');
+        
+      if (error) throw error;
+      
+      setModels(data || []);
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching models:', err);
+      setError('Failed to load vehicle models');
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to fetch trims for a specific model
+  const getTrimsByModelId = async (modelId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error } = await supabase
+        .from('model_trims')
+        .select('id, model_id, trim_name, year, fuel_type, transmission')
+        .eq('model_id', modelId)
+        .order('trim_name');
+        
+      if (error) throw error;
+      
+      setTrims(data || []);
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching trims:', err);
+      setError('Failed to load vehicle trims');
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    makes,
+    models,
+    trims,
+    isLoading,
+    error,
+    getModelsByMakeId,
+    getTrimsByModelId,
+  };
 }

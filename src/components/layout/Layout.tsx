@@ -7,11 +7,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const Layout = () => {
-  // Get isMobile using a try-catch to handle any potential hooks errors gracefully
+  // Get isMobile directly, as the hook returns a boolean
   let isMobile = false;
   try {
-    const { isMobile: mobileValue } = useIsMobile();
-    isMobile = mobileValue;
+    isMobile = useIsMobile();
   } catch (error) {
     console.error("Error in Layout when checking mobile status:", error);
   }

@@ -1,7 +1,4 @@
 
-// Export formatters
-export * from './formatNumber';
-export * from './formatDate';
+// Export all formatters
 export * from './formatCurrency';
-export * from './formatPhone';
-export * from './formatVin';
+export * from './formatDate';

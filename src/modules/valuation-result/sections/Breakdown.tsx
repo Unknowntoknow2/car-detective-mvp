@@ -1,14 +1,16 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
-import { HeadingL, BodyM, BodyS } from '@/components/ui-kit/typography';
-import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
-import styles from '../styles';
-import { formatCurrency } from '../logic';
-import { cn } from '@/lib/utils';
+import { 
+  ChevronUp, 
+  ChevronDown, 
+  Minus 
+} from 'lucide-react';
+import { Heading, BodyM, BodyS } from '@/components/ui-kit/typography';
+import { formatCurrency } from '@/utils/formatters';
+import { Progress } from '@/components/ui/progress';
 
-interface Adjustment {
+interface PriceAdjustment {
   factor: string;
   impact: number;
   description?: string;
@@ -16,96 +18,109 @@ interface Adjustment {
 
 interface BreakdownProps {
   basePrice: number;
-  adjustments: Adjustment[];
+  adjustments: PriceAdjustment[];
   estimatedValue: number;
 }
 
 export const Breakdown: React.FC<BreakdownProps> = ({
   basePrice,
-  adjustments,
+  adjustments = [],
   estimatedValue
 }) => {
-  // Sort adjustments by impact (largest first)
-  const sortedAdjustments = [...adjustments].sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+  // Filter out zero impact adjustments
+  const significantAdjustments = adjustments.filter(adj => adj.impact !== 0);
   
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <CDCard>
-      <CDCardHeader>
-        <HeadingL as="h3" className="text-xl font-medium">
-          Valuation Breakdown
-        </HeadingL>
-      </CDCardHeader>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <Heading className="text-xl font-semibold mb-4">
+        Price Breakdown
+      </Heading>
       
-      <CDCardBody>
-        <div className={styles.breakdown.container}>
-          {/* Base price */}
-          <motion.div 
-            className={styles.breakdown.row}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <BodyM className="font-medium">Base Market Value</BodyM>
-            <BodyM className="font-medium">{formatCurrency(basePrice)}</BodyM>
-          </motion.div>
-          
-          {/* Adjustments */}
-          {sortedAdjustments.map((adjustment, index) => {
-            const isPositive = adjustment.impact > 0;
-            const isNeutral = adjustment.impact === 0;
-            
-            let impactClass = styles.breakdown.neutral;
-            if (isPositive) impactClass = styles.breakdown.positive;
-            else if (!isNeutral) impactClass = styles.breakdown.negative;
-            
-            const Icon = isNeutral 
-              ? Minus 
-              : isPositive 
-                ? ArrowUp 
-                : ArrowDown;
-                
-            return (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+      >
+        {/* Base Price */}
+        <motion.div variants={itemVariants} className="flex justify-between items-center">
+          <BodyM className="font-medium">Base Market Value</BodyM>
+          <span className="text-xl font-semibold">
+            {formatCurrency(basePrice)}
+          </span>
+        </motion.div>
+        
+        {/* Adjustments */}
+        {significantAdjustments.length > 0 && (
+          <div className="space-y-3 py-3 border-y border-dashed border-gray-200">
+            {significantAdjustments.map((adjustment, index) => (
               <motion.div 
-                key={adjustment.factor}
-                className={styles.breakdown.row}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + (index * 0.1), duration: 0.3 }}
+                key={index}
+                variants={itemVariants}
+                className="flex justify-between items-center"
               >
-                <div className="flex items-center gap-1.5">
-                  <Icon 
-                    className={`h-4 w-4 ${impactClass}`} 
-                  />
-                  <BodyM className={styles.breakdown.factor}>
-                    {adjustment.factor}
-                  </BodyM>
+                <div className="flex items-center gap-2">
+                  {adjustment.impact > 0 ? (
+                    <ChevronUp className="h-4 w-4 text-green-500" />
+                  ) : adjustment.impact < 0 ? (
+                    <ChevronDown className="h-4 w-4 text-red-500" />
+                  ) : (
+                    <Minus className="h-4 w-4 text-gray-400" />
+                  )}
+                  <BodyS>{adjustment.factor}</BodyS>
                 </div>
-                
-                <BodyM className={cn(styles.breakdown.impact, impactClass)}>
-                  {isNeutral
-                    ? '$0'
-                    : `${isPositive ? '+' : ''}${formatCurrency(adjustment.impact)}`
-                  }
-                </BodyM>
+                <span className={`font-medium ${
+                  adjustment.impact > 0 
+                    ? 'text-green-600' 
+                    : adjustment.impact < 0 
+                      ? 'text-red-600' 
+                      : 'text-gray-600'
+                }`}>
+                  {adjustment.impact > 0 ? '+' : ''}
+                  {formatCurrency(adjustment.impact)}
+                </span>
               </motion.div>
-            );
-          })}
-          
-          {/* Total */}
-          <motion.div 
-            className="flex justify-between items-center pt-4 mt-4 border-t border-gray-200"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            <BodyM className="font-bold">Final Valuation</BodyM>
-            <BodyM className="font-bold text-primary text-xl">
-              {formatCurrency(estimatedValue)}
-            </BodyM>
-          </motion.div>
-        </div>
-      </CDCardBody>
-    </CDCard>
+            ))}
+          </div>
+        )}
+        
+        {/* Final Value */}
+        <motion.div 
+          variants={itemVariants}
+          className="flex justify-between items-center pt-2"
+        >
+          <BodyM className="font-bold">Final Valuation</BodyM>
+          <span className="text-2xl font-bold text-primary">
+            {formatCurrency(estimatedValue)}
+          </span>
+        </motion.div>
+        
+        {/* Confidence Bar */}
+        <motion.div variants={itemVariants} className="mt-6">
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-gray-500">Confidence Level</span>
+            <span className="font-medium">85%</span>
+          </div>
+          <Progress value={85} className="h-2" />
+        </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
