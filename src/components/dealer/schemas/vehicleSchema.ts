@@ -15,8 +15,8 @@ export const vehicleSchema = z.object({
   fuel_type: z.enum(["Gasoline", "Diesel", "Hybrid", "Electric"]).optional(),
   zip_code: z.string().regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP code format").optional(),
   status: z.enum(["available", "pending", "sold"]).default("available"),
+  photos: z.array(z.string()).optional().default([]),
 });
 
 export type VehicleFormValues = z.infer<typeof vehicleSchema>;
-// Add this type alias to match what the components are trying to import
 export type VehicleFormData = VehicleFormValues;
