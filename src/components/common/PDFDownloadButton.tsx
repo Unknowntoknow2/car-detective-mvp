@@ -6,6 +6,8 @@ import { toast } from '@/components/ui/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { saveAs } from 'file-saver';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { ReportData } from '@/utils/pdf/types';
+import { formatCurrency } from '@/utils/formatters';
 
 interface PDFDownloadButtonProps {
   valuationResult: any;
@@ -41,8 +43,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       setIsGenerating(true);
       
       // Format the data for the PDF generator
-      const formData = {
-        // Add the missing id property
+      const formData: ReportData = {
         id: valuationResult.id || crypto.randomUUID(),
         make: valuationResult.make,
         model: valuationResult.model,
@@ -50,12 +51,11 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         mileage: valuationResult.mileage,
         condition: valuationResult.condition,
         zipCode: valuationResult.zip || valuationResult.zipCode,
-        // Fix: Using estimatedValue instead of valuation
-        estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue,
+        // Use estimated value as price
+        price: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
+        estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
         adjustments: valuationResult.adjustments || [],
-        // Fix: Adding the required generatedAt property
         generatedAt: new Date().toISOString(),
-        // Add additional fields needed for PDF generation
         confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore,
         priceRange: valuationResult.price_range || valuationResult.priceRange
       };

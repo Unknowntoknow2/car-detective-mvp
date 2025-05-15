@@ -53,21 +53,27 @@ export function DownloadPDFButton({
           year: valuationData.year || new Date().getFullYear(),
           mileage: valuationData.mileage || 0,
           condition: valuationData.condition || 'Good',
-          zipCode: valuationData.zipCode || '00000',
-          estimatedValue: valuationData.estimatedValue || 0,
-          confidenceScore: valuationData.confidenceScore,
-          priceRange: valuationData.priceRange,
-          generatedAt: new Date().toISOString(),
+          // Use the appropriate property for price
+          price: valuationData.price || valuationData.estimatedValue || 0,
           userId: user.id,
           isPremium: isPremium,
-          // Custom properties
+          generatedAt: new Date().toISOString(),
+          
+          // These are now optional in the ReportData interface
+          estimatedValue: valuationData.estimatedValue,
+          confidenceScore: valuationData.confidenceScore,
+          priceRange: valuationData.priceRange,
+          // Include zipCode if available
+          zipCode: valuationData.zipCode,
+          
+          // Optional properties
           vin: valuationData.vin,
           explanation: valuationData.explanation,
           adjustments: valuationData.adjustments,
         };
 
-        // Add AI condition data if available
-        if (valuationData.aiCondition) {
+        // Add conditional data if available
+        if ('aiCondition' in valuationData && valuationData.aiCondition) {
           reportData.aiCondition = {
             condition: valuationData.aiCondition.condition,
             confidenceScore: valuationData.aiCondition.confidenceScore,

@@ -35,8 +35,9 @@ describe('generateValuationPdf', () => {
       vin: 'ABC123456DEF78901',
       mileage: 15000,
       condition: 'Good',
-      zipCode: '90210', // Added missing required field
-      estimatedValue: 25000, // Added missing required field
+      zipCode: '90210',
+      price: 25000, // Added required price property
+      estimatedValue: 25000,
       adjustments: [
         {
           factor: 'Mileage',
@@ -50,14 +51,13 @@ describe('generateValuationPdf', () => {
         }
       ],
       confidenceScore: 85,
-      generatedAt: new Date().toISOString(), // Added missing field
-      // Add any other required fields from ReportData
+      generatedAt: new Date().toISOString(),
       priceRange: [23000, 27000],
       userId: 'user123'
-    };
+    } as ReportData;
 
     // Generate the PDF
-    const pdfBuffer = await generateValuationPdf(testData as ReportData);
+    const pdfBuffer = await generateValuationPdf(testData);
     
     // Verify the PDF was generated
     expect(pdfBuffer).toBeDefined();
@@ -75,12 +75,13 @@ describe('generateValuationPdf', () => {
       mileage: 20000,
       condition: 'Fair',
       zipCode: '10001',
+      price: 18000, // Added required price property
       estimatedValue: 18000,
       generatedAt: new Date().toISOString()
-    };
+    } as ReportData;
 
     // Generate the PDF with minimal data
-    const pdfBuffer = await generateValuationPdf(minimalData as ReportData);
+    const pdfBuffer = await generateValuationPdf(minimalData);
     
     // Verify the PDF was generated even with minimal data
     expect(pdfBuffer).toBeDefined();

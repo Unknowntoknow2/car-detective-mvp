@@ -40,6 +40,8 @@ export const useValuationPdf = ({
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Unknown',
+        // Use estimatedValue as price
+        price: valuationData.estimatedValue || 0,
         estimatedValue: valuationData.estimatedValue || 0,
         zipCode: valuationData.zipCode || valuationData.zip || '',
         vin: valuationData.vin || '',
@@ -55,8 +57,6 @@ export const useValuationPdf = ({
         ],
         // Convert adjustments to match ReportData format
         adjustments: valuationData.adjustments?.map(adj => ({
-          name: adj.factor || '',
-          value: adj.impact || 0,
           factor: adj.factor || '',
           impact: adj.impact || 0,
           description: adj.description || ''
