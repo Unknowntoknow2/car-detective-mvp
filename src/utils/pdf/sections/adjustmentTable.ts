@@ -5,11 +5,11 @@ import { AdjustmentBreakdown, SectionParams } from '../types';
 
 export const drawAdjustmentTable = (params: SectionParams, adjustments: AdjustmentBreakdown[]): number => {
   const { page, y, width, margin, boldFont, regularFont, primaryColor, textColor } = params;
-  const tableX = margin;
+  const tableX = margin || 72; // Default margin if not provided
   let currentY = y;
   const rowHeight = 20;
   const numColumns = 3;
-  const columnWidths = [width * 0.4, width * 0.3, width * 0.3]; // Adjusted for 3 columns
+  const columnWidths = [(width || 500) * 0.4, (width || 500) * 0.3, (width || 500) * 0.3]; // Adjusted for 3 columns
   const headers = ['Factor', 'Description', 'Impact'];
 
   // Function to draw a cell with text wrapping
@@ -30,7 +30,7 @@ export const drawAdjustmentTable = (params: SectionParams, adjustments: Adjustme
 
     words.forEach((word, index) => {
       const testLine = line + word + ' ';
-      const textWidth = font.widthOfTextAtSize(testLine, fontSize);
+      const textWidth = font?.widthOfTextAtSize ? font.widthOfTextAtSize(testLine, fontSize) : testLine.length * fontSize * 0.6;
 
       if (textWidth > colWidth && line !== '') {
         // Draw the line
@@ -63,6 +63,12 @@ export const drawAdjustmentTable = (params: SectionParams, adjustments: Adjustme
 
     return yOffset; // Return the new Y offset after drawing the cell
   };
+
+  // Check if page is available before drawing
+  if (!page) {
+    console.error('Page object is missing in SectionParams');
+    return currentY;
+  }
 
   // Draw table headers
   for (let i = 0; i < numColumns; i++) {
@@ -127,7 +133,7 @@ export const drawAdjustmentTable = (params: SectionParams, adjustments: Adjustme
     // Draw row separator
     page.drawLine({
       start: { x: tableX, y: currentY + 3 },
-      end: { x: tableX + width, y: currentY + 3 },
+      end: { x: tableX + (width || 500), y: currentY + 3 },
       color: primaryColor,
       thickness: 0.5,
     });

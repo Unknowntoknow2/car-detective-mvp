@@ -19,6 +19,18 @@ export function drawValuationSummary(
     textColor 
   } = sectionParams;
   
+  // Safety checks for required properties
+  if (!page || !margin || !contentWidth || !boldFont || !regularFont || !primaryColor || !textColor) {
+    console.error('Missing required properties in sectionParams', { 
+      hasPage: !!page, 
+      hasMargin: !!margin, 
+      hasContentWidth: !!contentWidth,
+      hasBoldFont: !!boldFont,
+      hasRegularFont: !!regularFont 
+    });
+    return yPosition;
+  }
+  
   // Draw heading
   page.drawText("Valuation Summary", {
     x: margin,
@@ -90,7 +102,9 @@ export function drawValuationSummary(
 // Export a function that shows how to use drawValuationSummary
 export function buildValuationSummarySection(sectionParams: SectionParams, reportData: ReportData): number {
   // Use height and margins in a safely way
-  const startY = sectionParams.height ? sectionParams.height - (sectionParams.margins?.top || sectionParams.margin || 40) - 100 : 700;
+  const startY = sectionParams.height 
+    ? sectionParams.height - ((sectionParams.margins?.top || sectionParams.margin || 40) + 100) 
+    : 700;
   
   // Generate narrative if not provided
   const narrative = reportData.narrative || 
