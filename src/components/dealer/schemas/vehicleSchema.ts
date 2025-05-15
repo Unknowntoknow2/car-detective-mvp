@@ -20,3 +20,4 @@ export const vehicleSchema = z.object({
 
 export type VehicleFormValues = z.infer<typeof vehicleSchema>;
 export type VehicleFormData = VehicleFormValues;
+export type DealerVehicleFormData = VehicleFormValues;
