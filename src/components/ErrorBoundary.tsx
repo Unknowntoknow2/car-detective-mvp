@@ -1,55 +1,69 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle } from 'lucide-react';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  state = { 
-    hasError: false, 
-    error: null 
-  };
-
-  static getDerivedStateFromError(error: Error): State {
-    return { 
-      hasError: true, 
-      error 
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error caught by ErrorBoundary:", error);
-    console.error("Component stack trace:", errorInfo.componentStack);
-    
-    // Here you could add error reporting to a service like Sentry
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return {
+      hasError: true,
+      error
+    };
   }
 
-  render() {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Here you could send the error to an error reporting service
+  }
+
+  handleReset = (): void => {
+    this.setState({
+      hasError: false,
+      error: null
+    });
+  }
+
+  render(): ReactNode {
     if (this.state.hasError) {
-      // Render fallback UI if provided, otherwise show default error message
       if (this.props.fallback) {
         return this.props.fallback;
       }
       
       return (
-        <div className="p-6 rounded-lg bg-red-50 border border-red-200">
-          <h2 className="text-xl font-semibold text-red-700 mb-2">Something went wrong</h2>
-          <p className="text-red-600 mb-4">
-            There was an error loading this component.
-          </p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded transition-colors"
-          >
-            Try again
-          </button>
+        <div className="min-h-[400px] flex items-center justify-center p-6">
+          <div className="bg-red-50 border border-red-100 rounded-lg p-6 max-w-md w-full text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2 text-red-700">Something went wrong</h2>
+            <p className="text-red-600 mb-6 text-sm">
+              {this.state.error?.message || 'An unexpected error occurred'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={() => window.location.reload()}>
+                Reload Page
+              </Button>
+              <Button variant="outline" onClick={this.handleReset}>
+                Try Again
+              </Button>
+            </div>
+          </div>
         </div>
       );
     }
@@ -57,5 +71,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-export default ErrorBoundary;

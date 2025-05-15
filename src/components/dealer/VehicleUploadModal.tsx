@@ -8,10 +8,10 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { VehicleUploadForm } from '../VehicleUploadForm';
-import { useVehicleUploadModal } from '../hooks/useVehicleUploadModal';
+import { VehicleUploadForm } from './VehicleUploadForm';
+import { useVehicleUploadModal } from './hooks/useVehicleUploadModal';
 import { DealerVehicleFormData } from '@/types/dealerVehicle';
-import { UploadProgressIndicator } from '../UploadProgressIndicator';
+import { UploadProgressIndicator } from './UploadProgressIndicator';
 
 interface VehicleUploadModalProps {
   open: boolean;
