@@ -1,73 +1,50 @@
 
 /**
- * Formats a number as currency
- * @param value The value to format
- * @param locale The locale to use (default: 'en-US')
- * @param currency The currency to use (default: 'USD')
- * @returns Formatted currency string
+ * Formats a number with commas as thousand separators
  */
-export const formatCurrency = (
-  value: number, 
-  locale = 'en-US', 
-  currency = 'USD'
-): string => {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+export const formatNumber = (num: number): string => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 /**
- * Formats a date string to a localized date format
- * @param dateString The date string to format
- * @param locale The locale to use (default: 'en-US')
- * @returns Formatted date string
+ * Formats a date relative to the current time
  */
-export const formatDate = (
-  dateString: string, 
-  locale = 'en-US'
-): string => {
-  const date = new Date(dateString);
-  
-  if (isNaN(date.getTime())) {
-    return 'Invalid date';
+export const formatRelativeTime = (date: Date | string): string => {
+  const now = new Date();
+  const then = typeof date === 'string' ? new Date(date) : date;
+  const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+
+  if (seconds < 60) {
+    return 'just now';
   }
 
-  return new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
-};
-
-/**
- * Formats a number as a percentage
- * @param value The value to format (0-100)
- * @param decimalPlaces The number of decimal places to include
- * @returns Formatted percentage string
- */
-export const formatPercentage = (
-  value: number, 
-  decimalPlaces = 0
-): string => {
-  return `${value.toFixed(decimalPlaces)}%`;
-};
-
-/**
- * Truncates a string to a maximum length
- * @param str The string to truncate
- * @param maxLength The maximum length
- * @returns Truncated string with ellipsis if needed
- */
-export const truncateString = (
-  str: string,
-  maxLength: number
-): string => {
-  if (str.length <= maxLength) {
-    return str;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
   }
-  
-  return str.substring(0, maxLength) + '...';
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) {
+    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  }
+
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+  }
+
+  const years = Math.floor(months / 12);
+  return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+};
+
+/**
+ * Converts manual entry form data to JSON format
+ */
+export const manualEntryToJson = (data: any): string => {
+  return JSON.stringify(data);
 };

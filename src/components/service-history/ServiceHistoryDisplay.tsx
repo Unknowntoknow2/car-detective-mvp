@@ -1,167 +1,106 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import ServiceRecordsList, { ServiceRecord } from './ServiceRecordsList';
 import ServiceRecordsEmpty from './ServiceRecordsEmpty';
-import { Loader2, Plus } from 'lucide-react';
-import AddServiceForm from './AddServiceForm';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { useToast } from '@/components/ui/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-
-// Define props for useServiceHistory hook
-export interface UseServiceHistoryProps {
-  vehicleId?: string;
-}
-
-// Define the expected return shape from useServiceHistory
-interface UseServiceHistoryReturn {
-  records: ServiceRecord[];
-  isLoading: boolean;
-  error: Error | null;
-  addServiceRecord: (record: Omit<ServiceRecord, 'id' | 'created_at'>) => Promise<void>;
-  deleteServiceRecord: (recordId: string) => Promise<void>;
-  refreshRecords: () => Promise<void>;
-}
-
-// Mock for the hook until it's fully implemented
-const useServiceHistory = (props: UseServiceHistoryProps): UseServiceHistoryReturn => {
-  // This is a mock implementation that would be replaced by the actual hook
-  return {
-    records: [],
-    isLoading: false,
-    error: null,
-    addServiceRecord: async () => {},
-    deleteServiceRecord: async () => {},
-    refreshRecords: async () => {}
-  };
-};
+import { Plus } from 'lucide-react';
 
 export interface ServiceHistoryDisplayProps {
-  vehicleId?: string;
+  vin?: string;
 }
 
-export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vehicleId }) => {
+export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vin }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [records, setRecords] = useState<any[]>([]);
   const [isAddingRecord, setIsAddingRecord] = useState(false);
-  const { toast } = useToast();
-  
-  const {
-    records,
-    isLoading,
-    error,
-    addServiceRecord,
-    deleteServiceRecord,
-    refreshRecords
-  } = useServiceHistory({ vehicleId });
 
-  const handleAddRecord = async (data: any) => {
+  const handleAddRecord = () => {
+    setIsAddingRecord(true);
+  };
+
+  const handleCancelAdd = () => {
+    setIsAddingRecord(false);
+  };
+
+  const handleSaveRecord = async (record: any) => {
     try {
-      setIsAddingRecord(true);
-      await addServiceRecord({
-        vehicleId: vehicleId || 'default',
-        serviceType: data.serviceType,
-        date: data.date,
-        mileage: data.mileage,
-        cost: data.cost,
-        shop: data.shop,
-        notes: data.notes
-      });
+      setIsLoading(true);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      toast({
-        description: "Service record added successfully",
-      });
-      
-      // Close the sheet after adding
-      const sheetClose = document.querySelector('[data-sheet-close]');
-      if (sheetClose) {
-        (sheetClose as HTMLElement).click();
-      }
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        description: "Failed to add service record",
-      });
-    } finally {
+      // Add record to state
+      setRecords([...records, { ...record, id: Date.now().toString() }]);
       setIsAddingRecord(false);
+    } catch (err) {
+      setError('Failed to save service record');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteRecord = async (id: string) => {
     try {
-      await deleteServiceRecord(id);
-      toast({
-        description: "Service record deleted",
-      });
+      setIsLoading(true);
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Remove record from state
+      setRecords(records.filter(record => record.id !== id));
     } catch (err) {
-      toast({
-        variant: "destructive",
-        description: "Failed to delete service record",
-      });
+      setError('Failed to delete service record');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          {error.message || "Failed to load service records"}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Service Records</h2>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Service
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Add Service Record</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6">
-              <AddServiceForm 
-                onSubmit={handleAddRecord} 
-                isLoading={isAddingRecord}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Service History</h2>
+        <Button onClick={handleAddRecord} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Service Record
+        </Button>
       </div>
 
-      {records.length === 0 ? (
+      {isLoading ? (
+        <div className="py-8 text-center">Loading service records...</div>
+      ) : error ? (
+        <div className="py-8 text-center text-destructive">{error}</div>
+      ) : records.length === 0 ? (
         <ServiceRecordsEmpty />
       ) : (
-        <ServiceRecordsList 
-          records={records}
-          onDelete={handleDeleteRecord}
-        />
+        <div className="space-y-4">
+          {records.map(record => (
+            <Card key={record.id}>
+              <CardHeader className="py-3">
+                <CardTitle className="text-base font-medium">
+                  {record.serviceType}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="py-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Date: {record.date}</div>
+                  <div>Mileage: {record.mileage}</div>
+                  <div className="col-span-2">
+                    Description: {record.description}
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeleteRecord(record.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
 };
-
-export default ServiceHistoryDisplay;
