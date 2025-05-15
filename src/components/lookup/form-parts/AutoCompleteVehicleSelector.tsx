@@ -1,3 +1,4 @@
+// src/components/lookup/manual/form-parts/AutoCompleteVehicleSelector.tsx
 
 import { VehicleSelectorWrapper } from './vehicle-selector/VehicleSelectorWrapper';
 
