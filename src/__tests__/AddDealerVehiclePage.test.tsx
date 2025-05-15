@@ -19,6 +19,7 @@ jest.mock('@/integrations/supabase/client', () => ({
     from: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
+    single: jest.fn(),
     auth: {
       getUser: jest.fn()
     }
@@ -64,18 +65,25 @@ describe('AddDealerVehiclePage', () => {
       data: sampleVehicleData
     });
     
-    // Mock successful Supabase insertion by default
-    // Use proper chaining setup for from().insert().select()
+    // Mock successful Supabase getUser
+    (supabase.auth.getUser as jest.Mock).mockResolvedValue({
+      data: { user: { id: 'test-dealer-id' } },
+      error: null
+    });
+    
+    // Mock successful Supabase insertion
     const mockFrom = supabase.from as jest.Mock;
     const mockInsert = jest.fn().mockReturnThis();
-    const mockSelect = jest.fn().mockResolvedValue({
-      data: [{ id: '123', ...sampleVehicleData }],
+    const mockSelect = jest.fn().mockReturnThis();
+    const mockSingle = jest.fn().mockResolvedValue({
+      data: { id: '123', ...sampleVehicleData },
       error: null
     });
     
     mockFrom.mockReturnValue({
       insert: mockInsert,
-      select: mockSelect
+      select: mockSelect,
+      single: mockSingle
     });
   });
   
@@ -180,6 +188,11 @@ describe('AddDealerVehiclePage', () => {
     const submitButton = screen.getByRole('button', { name: /submit|save|add vehicle/i });
     fireEvent.click(submitButton);
     
+    // Verify Supabase getUser was called
+    await waitFor(() => {
+      expect(supabase.auth.getUser).toHaveBeenCalled();
+    });
+    
     // Verify Supabase insert was called with correct data
     await waitFor(() => {
       const mockFrom = supabase.from as jest.Mock;
@@ -191,13 +204,19 @@ describe('AddDealerVehiclePage', () => {
   
   test('prevents double form submissions', async () => {
     // Mock a delayed response from Supabase
+    (supabase.auth.getUser as jest.Mock).mockResolvedValue({
+      data: { user: { id: 'test-dealer-id' } },
+      error: null
+    });
+    
     const mockFrom = supabase.from as jest.Mock;
     const mockInsert = jest.fn().mockReturnThis();
-    const mockSelect = jest.fn().mockImplementation(() => 
+    const mockSelect = jest.fn().mockReturnThis();
+    const mockSingle = jest.fn().mockImplementation(() => 
       new Promise(resolve => {
         setTimeout(() => {
           resolve({
-            data: [{ id: '123', ...sampleVehicleData }],
+            data: { id: '123', ...sampleVehicleData },
             error: null
           });
         }, 1000);
@@ -206,7 +225,8 @@ describe('AddDealerVehiclePage', () => {
     
     mockFrom.mockReturnValue({
       insert: mockInsert,
-      select: mockSelect
+      select: mockSelect,
+      single: mockSingle
     });
     
     render(<AddDealerVehiclePage />);
@@ -224,9 +244,9 @@ describe('AddDealerVehiclePage', () => {
     fireEvent.click(submitButton);
     fireEvent.click(submitButton);
     
-    // Verify Supabase insert was called only once
+    // Verify Supabase auth.getUser was called only once
     await waitFor(() => {
-      expect(mockFrom).toHaveBeenCalledTimes(1);
+      expect(supabase.auth.getUser).toHaveBeenCalledTimes(1);
     });
   });
   
@@ -240,17 +260,25 @@ describe('AddDealerVehiclePage', () => {
   });
   
   test('displays error toast when Supabase insertion fails', async () => {
+    // Mock Supabase getUser success
+    (supabase.auth.getUser as jest.Mock).mockResolvedValue({
+      data: { user: { id: 'test-dealer-id' } },
+      error: null
+    });
+    
     // Mock Supabase insertion failure
     const mockFrom = supabase.from as jest.Mock;
     const mockInsert = jest.fn().mockReturnThis();
-    const mockSelect = jest.fn().mockResolvedValue({
+    const mockSelect = jest.fn().mockReturnThis();
+    const mockSingle = jest.fn().mockResolvedValue({
       data: null,
       error: { message: 'Database error' }
     });
     
     mockFrom.mockReturnValue({
       insert: mockInsert,
-      select: mockSelect
+      select: mockSelect,
+      single: mockSingle
     });
     
     render(<AddDealerVehiclePage />);
