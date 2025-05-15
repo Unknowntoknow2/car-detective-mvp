@@ -19,8 +19,8 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
   const [formData, setFormData] = useState<ManualEntryFormData>({
     make: '',
     model: '',
-    year: new Date().getFullYear().toString(),
-    mileage: '',
+    year: new Date().getFullYear(),
+    mileage: 0,
     condition: ConditionLevel.Good,
     zipCode: '',
     fuelType: 'Gasoline',
@@ -28,11 +28,9 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
     vin: '',
     valuationId: '',
     confidenceScore: 0,
-    accident: 'no',
+    accident: false,
     accidentDetails: {
-      count: '0',
-      severity: 'Minor',
-      area: ''
+      severity: 'Minor'
     },
     selectedFeatures: []
   });
@@ -44,7 +42,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (name: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -68,12 +66,22 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
     setFormData(prev => ({ ...prev, selectedFeatures: updated }));
   };
 
+  const handleAccidentDetailChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      accidentDetails: {
+        ...prev.accidentDetails,
+        [name]: value
+      }
+    }));
+  };
+
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     if (!formData.make) errors.make = 'Make is required';
     if (!formData.model) errors.model = 'Model is required';
     if (!formData.year) errors.year = 'Year is required';
-    if (!formData.mileage) errors.mileage = 'Mileage is required';
+    if (!formData.mileage && formData.mileage !== 0) errors.mileage = 'Mileage is required';
     if (!formData.zipCode) errors.zipCode = 'ZIP Code is required';
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -87,7 +95,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
   };
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 30 }, (_, i) => (currentYear - i).toString());
+  const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
   const features = [
     'Leather Seats',
@@ -99,6 +107,8 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
     'Third Row Seating',
     'Premium Sound System'
   ];
+
+  const accidentSeverities = ['Minor', 'Moderate', 'Severe'];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -119,13 +129,13 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Year</Label>
-            <Select value={formData.year} onValueChange={(val) => handleSelectChange('year', val)}>
+            <Select value={formData.year.toString()} onValueChange={(val) => handleSelectChange('year', parseInt(val))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select Year" />
               </SelectTrigger>
               <SelectContent>
                 {years.map((year) => (
-                  <SelectItem key={year} value={year}>
+                  <SelectItem key={year} value={year.toString()}>
                     {year}
                   </SelectItem>
                 ))}
@@ -139,8 +149,8 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
             <Input
               name="mileage"
               type="number"
-              value={formData.mileage}
-              onChange={handleInputChange}
+              value={formData.mileage.toString()}
+              onChange={(e) => handleSelectChange('mileage', parseInt(e.target.value))}
               placeholder="e.g. 45000"
             />
             {validationErrors.mileage && <p className="text-sm text-red-500">{validationErrors.mileage}</p>}
@@ -174,6 +184,25 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
               setZipCode={handleZipCodeChange}
             />
             {validationErrors.zipCode && <p className="text-sm text-red-500">{validationErrors.zipCode}</p>}
+          </div>
+        </div>
+
+        <div>
+          <Label>Accident Details</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Severity</Label>
+              <Select value={formData.accidentDetails.severity} onValueChange={(val) => handleAccidentDetailChange('severity', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Severity" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accidentSeverities.map((severity) => (
+                    <SelectItem key={severity} value={severity}>{severity}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
