@@ -176,7 +176,7 @@ export const VehicleUploadModal: React.FC<VehicleUploadModalProps> = ({
         </Tabs>
         
         <DialogFooter>
-          {!((activeTab === 'manual' || (activeTab === 'vin' && vinVehicle)))) && (
+          {!((activeTab === 'manual' || (activeTab === 'vin' && vinVehicle))) && (
             <Button variant="outline" onClick={handleCancel}>Cancel</Button>
           )}
         </DialogFooter>
