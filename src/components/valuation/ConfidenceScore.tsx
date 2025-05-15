@@ -1,52 +1,53 @@
 
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
-import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
+import { Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ConfidenceScoreProps {
   score: number;
-  showTooltip?: boolean;
+  comparableVehicles: number;
 }
 
-export function ConfidenceScore({ score, showTooltip = true }: ConfidenceScoreProps) {
-  // Determine color based on score
+export const ConfidenceScore = ({ score, comparableVehicles }: ConfidenceScoreProps) => {
+  // Calculate color based on score
   const getColorClass = () => {
-    if (score >= 80) return 'text-green-700';
-    if (score >= 60) return 'text-amber-700';
-    return 'text-red-700';
+    if (score >= 90) return "bg-green-500";
+    if (score >= 75) return "bg-blue-500";
+    if (score >= 60) return "bg-amber-500";
+    return "bg-red-500";
   };
-  
-  // Determine progress color
-  const getProgressClass = () => {
-    if (score >= 80) return 'bg-green-600';
-    if (score >= 60) return 'bg-amber-600';
-    return 'bg-red-600';
-  };
-  
-  // Determine confidence level text
-  const getConfidenceText = () => {
-    if (score >= 80) return 'High';
-    if (score >= 60) return 'Medium';
-    return 'Low';
-  };
-  
+
   return (
-    <div className="space-y-1">
-      <div className="flex items-center space-x-1">
-        <span className="text-sm font-medium">Confidence Score</span>
-        {showTooltip && (
-          <VehicleFormTooltip 
-            content="This score indicates how confident we are in the accuracy of the valuation based on the data provided."
-          />
-        )}
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-medium text-muted-foreground">Confidence Score</p>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <div>
+                <p className="font-medium mb-1">Data Confidence Rating</p>
+                <p className="text-sm">Based on {comparableVehicles} comparable vehicles in your area.</p>
+                <ul className="text-sm list-disc pl-4 mt-2">
+                  <li>Market sample size</li>
+                  <li>Data completeness</li>
+                  <li>Regional price accuracy</li>
+                </ul>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
-      
-      <div className="flex items-center space-x-2">
-        <Progress value={score} className="h-2 flex-1" indicatorClassName={getProgressClass()} />
-        <span className={`text-sm font-medium min-w-10 ${getColorClass()}`}>
-          {score}% <span className="text-xs">({getConfidenceText()})</span>
-        </span>
-      </div>
+      <p className="text-lg font-semibold text-primary">
+        {score}%
+      </p>
+      <Progress 
+        value={score} 
+        className={`h-2`}
+      />
     </div>
   );
-}
+};

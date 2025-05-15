@@ -1,144 +1,140 @@
 
 import React, { useState } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
+import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
+import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
+import { toast } from 'sonner';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 
-const formSchema = z.object({
-  make: z.string().min(1, { message: 'Make is required' }),
-  model: z.string().min(1, { message: 'Model is required' }),
-  year: z.string().refine(val => {
-    const year = parseInt(val);
-    return !isNaN(year) && year >= 1900 && year <= new Date().getFullYear() + 1;
-  }, { message: 'Please enter a valid year' }),
-  trim: z.string().optional(),
-  mileage: z.string().refine(val => {
-    if (!val) return true;
-    const mileage = parseInt(val);
-    return !isNaN(mileage) && mileage >= 0;
-  }, { message: 'Please enter a valid mileage' }).optional(),
-});
-
-export interface ManualLookupProps {
+interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
-  isLoading: boolean;
-  submitButtonText?: string;
+  isLoading?: boolean;
+  onCancel?: () => void;
+  initialData?: Partial<ManualEntryFormData>;
 }
 
-export function ManualLookup({ onSubmit, isLoading, submitButtonText = "Submit" }: ManualLookupProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      make: '',
-      model: '',
-      year: '',
-      trim: '',
-      mileage: '',
-    },
-  });
-
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // Create a ManualEntryFormData object without the trim property
-    const manualEntryData: ManualEntryFormData = {
-      make: values.make,
-      model: values.model,
-      year: values.year,
-      mileage: values.mileage || '',
+export function ManualLookup({
+  onSubmit,
+  isLoading = false,
+  onCancel,
+  initialData
+}: ManualLookupProps) {
+  // States for form fields
+  const [make, setMake] = useState(initialData?.make || '');
+  const [model, setModel] = useState(initialData?.model || '');
+  const [year, setYear] = useState(initialData?.year || new Date().getFullYear());
+  const [mileage, setMileage] = useState(initialData?.mileage || 0);
+  const [condition, setCondition] = useState<ConditionLevel>(
+    initialData?.condition || ConditionLevel.Good
+  );
+  const [zipCode, setZipCode] = useState(initialData?.zipCode || '');
+  const [fuelType, setFuelType] = useState(initialData?.fuelType || 'Gasoline');
+  const [transmission, setTransmission] = useState(initialData?.transmission || 'Automatic');
+  const [trim, setTrim] = useState(initialData?.trim || '');
+  const [color, setColor] = useState(initialData?.color || '');
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!make) {
+      toast.error('Make is required');
+      return;
+    }
+    
+    if (!model) {
+      toast.error('Model is required');
+      return;
+    }
+    
+    if (!zipCode) {
+      toast.error('ZIP code is required');
+      return;
+    }
+    
+    // Convert string values to numbers for year and mileage
+    const formData: ManualEntryFormData = {
+      make,
+      model,
+      year: Number(year),
+      mileage: Number(mileage),
+      condition,
+      zipCode,
+      fuelType,
+      transmission,
+      trim,
+      color
     };
-    onSubmit(manualEntryData);
+    
+    onSubmit(formData);
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="make"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Make</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Toyota" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+    <Card className="shadow-sm border-2">
+      <CardHeader>
+        <CardTitle>Vehicle Details</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-6">
+          <VehicleDetailsInputs
+            make={make}
+            setMake={setMake}
+            model={model}
+            setModel={setModel}
+            year={year}
+            setYear={setYear}
+            mileage={mileage}
+            setMileage={setMileage}
+            trim={trim}
+            setTrim={setTrim}
+            color={color}
+            setColor={setColor}
           />
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Camry" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          
+          <ConditionAndFuelInputs
+            condition={condition}
+            setCondition={setCondition}
+            fuelType={fuelType}
+            setFuelType={setFuelType}
+            transmission={transmission}
+            setTransmission={setTransmission}
           />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. 2020" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          
+          <ZipCodeInput
+            zipCode={zipCode}
+            setZipCode={setZipCode}
           />
-          <FormField
-            control={form.control}
-            name="trim"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Trim (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. SE" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="mileage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mileage (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. 50000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            submitButtonText
+        </CardContent>
+        <CardFooter className="flex justify-between gap-4">
+          {onCancel && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
           )}
-        </Button>
+          <Button 
+            type="submit" 
+            className="flex-1"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'Continue'
+            )}
+          </Button>
+        </CardFooter>
       </form>
-    </Form>
+    </Card>
   );
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -180,7 +179,7 @@ export function ValuationFlow() {
   if (showResult && vehicleInfo && valuationResult) {
     return (
       <div className="space-y-6">
-        <Alert variant="success" className="bg-green-50 border-green-200">
+        <Alert variant="default" className="bg-green-50 border-green-200">
           <Check className="h-4 w-4 text-green-600" />
           <AlertTitle>Valuation Complete</AlertTitle>
           <AlertDescription>

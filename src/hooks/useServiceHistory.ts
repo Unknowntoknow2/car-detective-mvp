@@ -1,122 +1,112 @@
 
 import { useState, useEffect } from 'react';
-import { ServiceRecord } from '@/types/serviceRecord';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/utils/supabaseClient';
 
-interface UseServiceHistoryProps {
+// Export the ServiceRecord type
+export interface ServiceRecord {
+  id: string;
+  vin: string;
+  service_date: string;
+  mileage: number;
+  description: string;
+  receipt_url?: string;
+  created_at: string;
+}
+
+export interface UseServiceHistoryProps {
   vin: string;
 }
 
 export function useServiceHistory({ vin }: UseServiceHistoryProps) {
   const [records, setRecords] = useState<ServiceRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
-  const fetchServiceHistory = async () => {
-    if (!vin) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
+  
+  const fetchRecords = async () => {
     try {
-      const { data, error } = await supabase
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
         .from('service_records')
         .select('*')
         .eq('vin', vin)
         .order('service_date', { ascending: false });
       
-      if (error) {
-        throw new Error(error.message);
+      if (fetchError) {
+        throw new Error(fetchError.message);
       }
       
-      if (data) {
-        // Convert the numeric id to string to match ServiceRecord type
-        const formattedRecords: ServiceRecord[] = data.map(record => ({
-          ...record,
-          id: String(record.id) // Convert number to string
-        }));
-        setRecords(formattedRecords);
-      }
+      // Convert database record IDs from number to string if needed
+      const formattedRecords = data.map(record => ({
+        ...record,
+        id: String(record.id) // Ensure id is string type
+      })) as ServiceRecord[];
+      
+      setRecords(formattedRecords);
     } catch (err) {
-      console.error('Error fetching service history:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch service history'));
+      setError(err instanceof Error ? err : new Error('Unknown error fetching records'));
+      console.error('Error fetching service records:', err);
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchServiceHistory();
-  }, [vin]);
-
+  
   const addServiceRecord = async (record: Omit<ServiceRecord, 'id' | 'created_at'>) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      const { data, error } = await supabase
+      const { data, error: insertError } = await supabase
         .from('service_records')
-        .insert([{ ...record, vin }])
+        .insert([record])
         .select()
         .single();
       
-      if (error) {
-        throw new Error(error.message);
+      if (insertError) {
+        throw new Error(insertError.message);
       }
       
-      if (data) {
-        // Convert the numeric id to string
-        const newRecord: ServiceRecord = {
-          ...data,
-          id: String(data.id)
-        };
-        setRecords(prev => [newRecord, ...prev]);
-      }
-      
-      return true;
+      return { success: true, data };
     } catch (err) {
       console.error('Error adding service record:', err);
-      setError(err instanceof Error ? err : new Error('Failed to add service record'));
-      return false;
-    } finally {
-      setIsLoading(false);
+      return { success: false, error: err instanceof Error ? err : new Error('Failed to add record') };
     }
   };
-
+  
   const deleteServiceRecord = async (recordId: string) => {
-    setIsLoading(true);
-    setError(null);
-    
     try {
-      // Convert string ID back to number for database operation
-      const numericId = Number(recordId);
-      
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('service_records')
         .delete()
-        .eq('id', numericId);
+        .eq('id', recordId);
       
-      if (error) {
-        throw new Error(error.message);
+      if (deleteError) {
+        throw new Error(deleteError.message);
       }
       
-      setRecords(prev => prev.filter(record => record.id !== recordId));
-      return true;
+      return { success: true };
     } catch (err) {
       console.error('Error deleting service record:', err);
-      setError(err instanceof Error ? err : new Error('Failed to delete service record'));
-      return false;
-    } finally {
-      setIsLoading(false);
+      return { success: false, error: err instanceof Error ? err : new Error('Failed to delete record') };
     }
   };
-
+  
+  // Function to manually refresh records
+  const refreshRecords = async () => {
+    await fetchRecords();
+  };
+  
+  // Initial fetch on component mount
+  useEffect(() => {
+    if (vin) {
+      fetchRecords();
+    }
+  }, [vin]);
+  
   return {
     records,
     isLoading,
     error,
     addServiceRecord,
     deleteServiceRecord,
-    refreshRecords: fetchServiceHistory
+    refreshRecords
   };
 }

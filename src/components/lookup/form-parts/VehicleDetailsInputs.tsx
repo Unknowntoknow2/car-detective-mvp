@@ -1,95 +1,168 @@
 
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
-import { ManualEntryFormData } from '../types/manualEntry';
-import { ZipCodeInput } from './ZipCodeInput';
-import { toast } from 'sonner';
-import { ZipCodeField } from '@/components/premium/lookup/form-parts/fields/ZipCodeField';
+import { Label } from '@/components/ui/label';
+import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
 
 interface VehicleDetailsInputsProps {
-  form: UseFormReturn<ManualEntryFormData>;
+  make: string;
+  setMake: (value: string) => void;
+  model: string;
+  setModel: (value: string) => void;
+  year: number;
+  setYear: (value: number) => void;
+  mileage: number;
+  setMileage: (value: number) => void;
+  trim?: string;
+  setTrim?: (value: string) => void;
+  color?: string;
+  setColor?: (value: string) => void;
+  showAdvanced?: boolean;
 }
 
-export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({ form }) => {
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1990 + 1 }, (_, i) => currentYear - i);
-
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (value: number) => void) => {
+export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
+  make,
+  setMake,
+  model,
+  setModel,
+  year,
+  setYear,
+  mileage,
+  setMileage,
+  trim,
+  setTrim,
+  color,
+  setColor,
+  showAdvanced = true
+}) => {
+  const [yearError, setYearError] = useState<string | null>(null);
+  const [mileageError, setMileageError] = useState<string | null>(null);
+  
+  const currentYear = new Date().getFullYear() + 1;
+  
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const numberValue = parseInt(value, 10);
+    const numValue = parseInt(value, 10);
     
-    if (value === '') {
-      onChange(0);
-    } else if (!isNaN(numberValue) && numberValue >= 0 && numberValue <= 500000) {
-      onChange(numberValue);
-    } else {
-      toast.error('Please enter a valid mileage between 0 and 500,000');
+    // Clear previous error
+    setYearError(null);
+    
+    // Validate year
+    if (isNaN(numValue)) {
+      setYearError('Year must be a valid number');
+      return;
     }
+    
+    if (numValue < 1900 || numValue > currentYear) {
+      setYearError(`Year must be between 1900 and ${currentYear}`);
+    }
+    
+    setYear(numValue);
+  };
+  
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numValue = parseInt(value, 10);
+    
+    // Clear previous error
+    setMileageError(null);
+    
+    // Validate mileage
+    if (isNaN(numValue)) {
+      setMileageError('Mileage must be a valid number');
+      return;
+    }
+    
+    if (numValue < 0) {
+      setMileageError('Mileage cannot be negative');
+    }
+    
+    setMileage(numValue);
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <FormField
-        control={form.control}
-        name="year"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Year</FormLabel>
-            <Select
-              onValueChange={(value) => field.onChange(value)}
-              value={field.value ? field.value.toString() : undefined}
-            >
-              <FormControl>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent className="max-h-[300px]">
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="make">Make</Label>
+          <Input
+            id="make"
+            value={make}
+            onChange={(e) => setMake(e.target.value)}
+            placeholder="e.g., Toyota"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="model">Model</Label>
+          <Input
+            id="model"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            placeholder="e.g., Camry"
+          />
+        </div>
+      </div>
       
-      <FormField
-        control={form.control}
-        name="mileage"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Mileage</FormLabel>
-            <FormControl>
-              <Input 
-                type="number"
-                min={0}
-                max={500000}
-                step={100}
-                placeholder="e.g., 25000"
-                {...field}
-                value={field.value === '0' ? '' : field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                className="h-12"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <Label htmlFor="year">Year</Label>
+            <VehicleFormTooltip 
+              content={`Enter a year between 1900 and ${currentYear}.`}
+            />
+          </div>
+          <Input
+            id="year"
+            type="number"
+            value={year || ''}
+            onChange={handleYearChange}
+            placeholder="e.g., 2019"
+          />
+          {yearError && <p className="text-sm text-red-500">{yearError}</p>}
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <Label htmlFor="mileage">Mileage</Label>
+            <VehicleFormTooltip 
+              content="Current odometer reading in miles."
+            />
+          </div>
+          <Input
+            id="mileage"
+            type="number" 
+            value={mileage || ''}
+            onChange={handleMileageChange}
+            placeholder="e.g., 45000"
+          />
+          {mileageError && <p className="text-sm text-red-500">{mileageError}</p>}
+        </div>
+      </div>
       
-      <ZipCodeField
-        form={form}
-        name="zipCode"
-        label="ZIP Code"
-        placeholder="Enter ZIP code"
-      />
+      {showAdvanced && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="trim">Trim (Optional)</Label>
+            <Input
+              id="trim"
+              value={trim || ''}
+              onChange={(e) => setTrim && setTrim(e.target.value)}
+              placeholder="e.g., SE, Limited"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="color">Color (Optional)</Label>
+            <Input
+              id="color"
+              value={color || ''}
+              onChange={(e) => setColor && setColor(e.target.value)}
+              placeholder="e.g., Blue, Silver"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

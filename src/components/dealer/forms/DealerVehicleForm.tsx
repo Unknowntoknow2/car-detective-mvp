@@ -1,280 +1,283 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface DealerVehicleFormProps {
-  initialData?: Partial<DealerVehicleFormData>;
-  onSubmit: (data: DealerVehicleFormData) => Promise<void>;
-  isSubmitting?: boolean;
-  submitLabel?: string;
-  showCancel?: boolean;
-  onCancel?: () => void;
+// Update the interface to include missing fields and isEditing property
+export interface DealerVehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number;
+  condition: string;
+  description?: string;
+  status: string;
+  photos: string[];
+  id?: string;
+  vehicleId?: string;
+  color?: string;
+  features?: string[];
 }
 
-export function DealerVehicleForm({
-  initialData = {},
-  onSubmit,
-  isSubmitting = false,
-  submitLabel = "Submit",
-  showCancel = false,
-  onCancel
-}: DealerVehicleFormProps) {
-  const [formData, setFormData] = useState<DealerVehicleFormData>({
-    make: initialData.make || '',
-    model: initialData.model || '',
-    year: initialData.year || new Date().getFullYear(),
-    price: initialData.price || 0,
-    mileage: initialData.mileage || 0,
-    condition: initialData.condition || 'Good',
-    fuel_type: initialData.fuel_type || 'Gasoline',
-    transmission: initialData.transmission || 'Automatic',
-    description: initialData.description || '',
-    status: initialData.status || 'available',
-    vin: initialData.vin || '',
-    color: initialData.color || '',
-    zip_code: initialData.zip_code || '',
-    features: initialData.features || [],
-    photos: initialData.photos || [],
-    vehicleId: initialData.vehicleId || '' // ID field as a string
+export interface DealerVehicleFormProps {
+  onSuccess: (data: DealerVehicleFormData) => void;
+  vehicleData?: Partial<DealerVehicleFormData>;
+  isEditing?: boolean; // Add isEditing property
+}
+
+export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({ 
+  onSuccess, 
+  vehicleData = {},
+  isEditing = false 
+}) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Set default values using the vehicleData or empty values
+  const defaultValues: Partial<DealerVehicleFormData> = {
+    make: vehicleData.make || '',
+    model: vehicleData.model || '',
+    year: vehicleData.year || new Date().getFullYear(),
+    price: vehicleData.price || 0,
+    mileage: vehicleData.mileage || 0,
+    condition: vehicleData.condition || 'Good',
+    description: vehicleData.description || '',
+    status: vehicleData.status || 'Available',
+    photos: vehicleData.photos || [],
+    color: vehicleData.color || '',
+    features: vehicleData.features || [],
+    vehicleId: vehicleData.vehicleId || '',
+    id: vehicleData.id || '',
+  };
+
+  // Create form schema with Zod
+  const formSchema = z.object({
+    make: z.string().min(1, 'Make is required'),
+    model: z.string().min(1, 'Model is required'),
+    year: z.coerce.number().min(1900, 'Year must be at least 1900').max(new Date().getFullYear() + 1),
+    price: z.coerce.number().min(0, 'Price cannot be negative'),
+    mileage: z.coerce.number().min(0, 'Mileage cannot be negative'),
+    condition: z.string().min(1, 'Condition is required'),
+    description: z.string().optional(),
+    status: z.string().min(1, 'Status is required'),
+    photos: z.array(z.string()),
+    color: z.string().optional(),
+    features: z.array(z.string()).optional(),
+    vehicleId: z.string().optional(),
+    id: z.string().optional(),
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const form = useForm<DealerVehicleFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues
+  });
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleSubmit = async (data: DealerVehicleFormData) => {
+    setIsSubmitting(true);
+    try {
+      // If editing, ensure ID is preserved
+      const submissionData = {
+        ...data,
+        id: isEditing ? vehicleData.id || vehicleData.vehicleId : undefined
+      };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSubmit(formData);
+      // Call the onSuccess callback with the form data
+      await onSuccess(submissionData);
+    } catch (error) {
+      console.error('Error submitting vehicle data:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  // Check if form is an update form (has vehicleId) or a new vehicle form
-  const isUpdateForm = Boolean(formData.vehicleId);
 
   return (
-    <form onSubmit={handleFormSubmit} className="space-y-6">
-      {/* Basic Information */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* VIN */}
-        <div>
-          <Label htmlFor="vin">VIN</Label>
-          <Input
-            id="vin"
-            name="vin"
-            value={formData.vin}
-            onChange={handleInputChange}
-            placeholder="Vehicle Identification Number"
-          />
-        </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{isEditing ? 'Edit Vehicle' : 'Add New Vehicle'}</CardTitle>
+      </CardHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="make"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Make</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Toyota" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Model</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Camry" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        {/* Make */}
-        <div>
-          <Label htmlFor="make">Make</Label>
-          <Input
-            id="make"
-            name="make"
-            value={formData.make}
-            onChange={handleInputChange}
-            placeholder="Brand (e.g., Toyota)"
-            required
-          />
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="year"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price ($)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="mileage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mileage</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        {/* Model */}
-        <div>
-          <Label htmlFor="model">Model</Label>
-          <Input
-            id="model"
-            name="model"
-            value={formData.model}
-            onChange={handleInputChange}
-            placeholder="Model (e.g., Camry)"
-            required
-          />
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="condition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Condition</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <Select.Trigger>
+                        <Select.Value placeholder="Select condition" />
+                      </Select.Trigger>
+                      <Select.Content>
+                        <Select.Item value="Excellent">Excellent</Select.Item>
+                        <Select.Item value="Good">Good</Select.Item>
+                        <Select.Item value="Fair">Fair</Select.Item>
+                        <Select.Item value="Poor">Poor</Select.Item>
+                      </Select.Content>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <Select.Trigger>
+                        <Select.Value placeholder="Select status" />
+                      </Select.Trigger>
+                      <Select.Content>
+                        <Select.Item value="Available">Available</Select.Item>
+                        <Select.Item value="Sold">Sold</Select.Item>
+                        <Select.Item value="Pending">Pending</Select.Item>
+                        <Select.Item value="Reserved">Reserved</Select.Item>
+                      </Select.Content>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        {/* Year */}
-        <div>
-          <Label htmlFor="year">Year</Label>
-          <Input
-            id="year"
-            name="year"
-            type="number"
-            value={formData.year}
-            onChange={handleInputChange}
-            min={1900}
-            max={new Date().getFullYear() + 1}
-            required
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Color (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Silver" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Price */}
-        <div>
-          <Label htmlFor="price">Price ($)</Label>
-          <Input
-            id="price"
-            name="price"
-            type="number"
-            value={formData.price}
-            onChange={handleInputChange}
-            min={0}
-            placeholder="Listing price"
-            required
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Vehicle details..."
+                      className="resize-y"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Mileage */}
-        <div>
-          <Label htmlFor="mileage">Mileage</Label>
-          <Input
-            id="mileage"
-            name="mileage"
-            type="number"
-            value={formData.mileage}
-            onChange={handleInputChange}
-            min={0}
-            placeholder="Current mileage"
-            required
-          />
-        </div>
-
-        {/* Color */}
-        <div>
-          <Label htmlFor="color">Color</Label>
-          <Input
-            id="color"
-            name="color"
-            value={formData.color}
-            onChange={handleInputChange}
-            placeholder="Exterior color"
-          />
-        </div>
-
-        {/* ZIP Code */}
-        <div>
-          <Label htmlFor="zip_code">ZIP Code</Label>
-          <Input
-            id="zip_code"
-            name="zip_code"
-            value={formData.zip_code}
-            onChange={handleInputChange}
-            placeholder="Vehicle location"
-          />
-        </div>
-      </div>
-
-      {/* Vehicle Details */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {/* Condition */}
-        <div>
-          <Label htmlFor="condition">Condition</Label>
-          <Select
-            onValueChange={(value) => handleSelectChange('condition', value)}
-            defaultValue={formData.condition}
-          >
-            <SelectTrigger id="condition">
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Excellent">Excellent</SelectItem>
-              <SelectItem value="Good">Good</SelectItem>
-              <SelectItem value="Fair">Fair</SelectItem>
-              <SelectItem value="Poor">Poor</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Fuel Type */}
-        <div>
-          <Label htmlFor="fuel_type">Fuel Type</Label>
-          <Select
-            onValueChange={(value) => handleSelectChange('fuel_type', value)}
-            defaultValue={formData.fuel_type}
-          >
-            <SelectTrigger id="fuel_type">
-              <SelectValue placeholder="Select fuel type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Gasoline">Gasoline</SelectItem>
-              <SelectItem value="Diesel">Diesel</SelectItem>
-              <SelectItem value="Electric">Electric</SelectItem>
-              <SelectItem value="Hybrid">Hybrid</SelectItem>
-              <SelectItem value="Plug-in Hybrid">Plug-in Hybrid</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Transmission */}
-        <div>
-          <Label htmlFor="transmission">Transmission</Label>
-          <Select
-            onValueChange={(value) => handleSelectChange('transmission', value)}
-            defaultValue={formData.transmission}
-          >
-            <SelectTrigger id="transmission">
-              <SelectValue placeholder="Select transmission" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Automatic">Automatic</SelectItem>
-              <SelectItem value="Manual">Manual</SelectItem>
-              <SelectItem value="CVT">CVT</SelectItem>
-              <SelectItem value="Semi-Automatic">Semi-Automatic</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Status */}
-      <div>
-        <Label htmlFor="status">Listing Status</Label>
-        <Select
-          onValueChange={(value) => handleSelectChange('status', value)}
-          defaultValue={formData.status}
-        >
-          <SelectTrigger id="status">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="available">Available</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="sold">Sold</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Description */}
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleInputChange}
-          placeholder="Vehicle description and details"
-          rows={4}
-        />
-      </div>
-
-      {/* Form Actions */}
-      <div className="flex justify-end gap-2">
-        {showCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : submitLabel}
-        </Button>
-      </div>
-    </form>
+            {/* Photo upload would be added here */}
+            <div>
+              <Label htmlFor="photos">Vehicle Photos</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Upload up to 10 photos of the vehicle
+              </p>
+              {/* Photo upload component would go here */}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? 'Saving...' : isEditing ? 'Update Vehicle' : 'Add Vehicle'}
+            </Button>
+          </CardFooter>
+        </form>
+      </Form>
+    </Card>
   );
-}
+};
+
+export default DealerVehicleForm;
