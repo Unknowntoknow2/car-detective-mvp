@@ -73,11 +73,16 @@ export const AddDealerVehiclePage = () => {
     setIsSubmitting(true);
     
     try {
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) throw userError;
+      
       // Insert into Supabase
       const { data: vehicleData, error } = await supabase
         .from('dealer_vehicles')
         .insert({
-          dealer_id: supabase.auth.getUser()?.data?.user?.id,
+          dealer_id: userData?.user?.id,
           make: data.make,
           model: data.model,
           year: data.year,
