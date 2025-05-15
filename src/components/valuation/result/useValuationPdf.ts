@@ -44,10 +44,10 @@ export const useValuationPdf = ({
         zipCode: valuationData.zipCode || valuationData.zip || '',
         vin: valuationData.vin || '',
         trim: valuationData.trim || '',
-        fuelType: valuationData.fuelType || valuationData.fuel_type || '',
+        fuelType: valuationData.fuelType || (valuationData as any).fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
-        bodyType: valuationData.bodyType || valuationData.body_type || '',
+        bodyType: valuationData.bodyType || (valuationData as any).body_type || '',
         confidenceScore: valuationData.confidenceScore || 75,
         isPremium: isPremium,
         priceRange: valuationData.priceRange || [
@@ -64,8 +64,6 @@ export const useValuationPdf = ({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          // Make sure we're using the correct property name as defined in the AICondition type
-          // If aiSummary doesn't exist, provide a fallback or empty string
           aiSummary: conditionData.aiSummary || ''
         };
       } else if (valuationData.aiCondition) {
@@ -73,8 +71,8 @@ export const useValuationPdf = ({
       }
       
       // Add photo data if available
-      if (valuationData.bestPhotoUrl || valuationData.photo_url) {
-        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
+      if (valuationData.bestPhotoUrl || (valuationData as any).photo_url) {
+        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || (valuationData as any).photo_url;
       }
       
       // Generate the PDF

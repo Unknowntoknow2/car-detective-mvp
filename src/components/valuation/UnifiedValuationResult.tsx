@@ -1,174 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { AIConditionAssessment } from './AIConditionAssessment';
-import { UnifiedValuationHeader } from './header';
-import { ValuationResults } from './ValuationResults';
-import { ExplanationSection } from './result/ExplanationSection';
-import { useValuationData } from './result/useValuationData';
-import { useAICondition } from '@/hooks/useAICondition';
+import React from 'react';
+import { ValuationResult } from '@/types/valuation';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { getConditionValueImpact } from '@/utils/valuation/conditionHelpers';
-import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock4,
+  CreditCard,
+  FileText,
+  Lock,
+  Percent,
+  ShieldCheck,
+  SlidersHorizontal,
+  TrendingUp,
+  Upload,
+  XCircle,
+} from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { format, formatDistanceToNow } from 'date-fns';
 
-export interface VehicleInfoProps {
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  trim?: string;
-  vin?: string;
+import { PhotoAnalysis } from '@/modules/valuation-result/sections/PhotoAnalysis';
+import { ValuationSummary } from '@/modules/valuation-result/sections/ValuationSummary';
+import { ValuationDetails } from '@/modules/valuation-result/sections/ValuationDetails';
+import { ValuationAdjustments } from '@/modules/valuation-result/sections/ValuationAdjustments';
+import { useValuationPdf } from './result/useValuationPdf';
+import { PremiumBadge } from '@/components/ui/premium-badge';
+import { AICondition } from '@/types/photo';
+
+interface UnifiedValuationHeaderProps {
+  valuationData: ValuationResult | null;
+  isLoading: boolean;
+  isPremium: boolean;
+  onUpgrade: () => void;
 }
 
-interface UnifiedValuationResultProps {
-  valuationId: string;
-  displayMode?: 'compact' | 'full';
-  vehicleInfo: VehicleInfoProps;
-  estimatedValue: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
-  onDownloadPdf?: () => Promise<void> | void;
-  onEmailReport?: () => Promise<void> | void;
-}
+export function UnifiedValuationHeader({
+  valuationData,
+  isLoading,
+  isPremium,
+  onUpgrade
+}: UnifiedValuationHeaderProps) {
+  const navigate = useNavigate();
+  const { isGenerating, handleDownloadPdf } = useValuationPdf({
+    valuationData,
+    conditionData: valuationData?.aiCondition as AICondition,
+    isPremium
+  });
 
-export function UnifiedValuationResult({
-  valuationId,
-  displayMode = 'full',
-  vehicleInfo,
-  estimatedValue,
-  confidenceScore = 75,
-  priceRange: propsPriceRange,
-  adjustments = [],
-  onDownloadPdf,
-  onEmailReport
-}: UnifiedValuationResultProps) {
-  const { conditionData, isLoading: isLoadingCondition } = useAICondition(valuationId);
-  const [explanation, setExplanation] = useState<string>('');
-  const [isLoadingExplanation, setIsLoadingExplanation] = useState<boolean>(false);
-  const [explanationError, setExplanationError] = useState<string>('');
-  
-  // Calculate price range if not provided
-  const priceRange: [number, number] = propsPriceRange || [
-    Math.round(estimatedValue * 0.95),
-    Math.round(estimatedValue * 1.05)
-  ];
-  
-  // Add condition adjustment if not already in the adjustments array
-  useEffect(() => {
-    if (vehicleInfo.condition && !adjustments.some(adj => adj.factor === 'Condition')) {
-      const conditionImpact = getConditionValueImpact(vehicleInfo.condition);
-      adjustments.push({
-        factor: 'Condition',
-        impact: conditionImpact,
-        description: `${vehicleInfo.condition} condition`
-      });
-    }
-  }, [vehicleInfo.condition, adjustments]);
-  
-  // Fetch explanation on initial load
-  useEffect(() => {
-    const fetchExplanation = async () => {
-      if (!vehicleInfo.make || !vehicleInfo.model) return;
-      
-      setIsLoadingExplanation(true);
-      setExplanationError('');
-      try {
-        const result = await generateValuationExplanation({
-          make: vehicleInfo.make,
-          model: vehicleInfo.model,
-          year: vehicleInfo.year,
-          mileage: vehicleInfo.mileage || 0,
-          condition: vehicleInfo.condition || 'Good',
-          location: 'your area',
-          valuation: estimatedValue,
-        });
-        setExplanation(result);
-      } catch (e: any) {
-        console.error(e);
-        setExplanationError('Failed to load explanation.');
-      } finally {
-        setIsLoadingExplanation(false);
-      }
-    };
-    
-    fetchExplanation();
-  }, [vehicleInfo, estimatedValue]);
-  
-  const handleRegenerateExplanation = async () => {
-    setIsLoadingExplanation(true);
-    setExplanationError('');
-    try {
-      const result = await generateValuationExplanation({
-        make: vehicleInfo.make,
-        model: vehicleInfo.model,
-        year: vehicleInfo.year,
-        mileage: vehicleInfo.mileage || 0,
-        condition: vehicleInfo.condition || 'Good',
-        location: 'your area',
-        valuation: estimatedValue,
-      });
-      setExplanation(result);
-    } catch (e: any) {
-      console.error(e);
-      setExplanationError('Failed to regenerate explanation.');
-    } finally {
-      setIsLoadingExplanation(false);
-    }
+  const handleEditValuation = () => {
+    if (!valuationData) return;
+    navigate(`/valuation/${valuationData.id}/edit`);
   };
-  
+
   return (
     <div className="space-y-6">
-      <UnifiedValuationHeader
-        vehicleInfo={vehicleInfo}
-        estimatedValue={estimatedValue}
-        confidenceScore={confidenceScore}
-        photoCondition={conditionData}
-        isPremium={displayMode === 'full'}
-      />
-      
-      {displayMode === 'full' && (
-        <>
-          <AIConditionAssessment
-            conditionData={conditionData}
-            isLoading={isLoadingCondition}
-            bestPhotoUrl={conditionData?.photoUrl}
-          />
-          
-          <ValuationResults
-            estimatedValue={estimatedValue}
-            confidenceScore={confidenceScore}
-            adjustments={adjustments}
-            priceRange={priceRange}
-            vehicleInfo={vehicleInfo}
-            valuationId={valuationId}
-            onEmailReport={onEmailReport}
-            onDownloadPdf={onDownloadPdf}
-          />
-          
-          <ExplanationSection
-            explanation={explanation}
-            loading={isLoadingExplanation}
-            error={explanationError}
-            onRegenerate={handleRegenerateExplanation}
-          />
-        </>
-      )}
-      
-      {displayMode === 'compact' && (
-        <Card>
-          <CardContent className="p-4">
+      {/* Top Section: Title and Actions */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-semibold">
+            Valuation Result
+          </h2>
+          {valuationData?.createdAt && (
             <p className="text-sm text-muted-foreground">
-              View the full report for detailed condition analysis, market comparisons, and value adjustments.
+              Created {formatDistanceToNow(new Date(valuationData.createdAt), {
+                addSuffix: true,
+              })}{' '}
+              ({format(new Date(valuationData.createdAt), 'MMM d, yyyy h:mm a')})
             </p>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </div>
+        <div className="space-x-2">
+          <Button variant="outline" onClick={handleEditValuation} disabled={isLoading}>
+            Edit Valuation
+          </Button>
+          <Button onClick={downloadPdfHandler} disabled={isLoading || isGenerating}>
+            {isGenerating ? (
+              <>
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                Download PDF
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content Card */}
+      <Card className="bg-white">
+        <CardContent className="p-6 space-y-6">
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[300px]" />
+                <Skeleton className="h-4 w-[350px]" />
+                <Skeleton className="h-4 w-[250px]" />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Valuation Summary Section */}
+              <ValuationSummary
+                estimatedValue={valuationData?.estimatedValue}
+                priceRange={valuationData?.priceRange}
+                isPremium={isPremium}
+                onUpgrade={onUpgrade}
+              />
+
+              {/* Separator */}
+              <Separator />
+
+              {/* Details and Photo Analysis Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Vehicle Details */}
+                <ValuationDetails valuationData={valuationData} />
+
+                {/* Photo Analysis */}
+                <PhotoAnalysis 
+                  photoUrl={valuationData?.bestPhotoUrl || valuationData?.photo_url} 
+                  photoScore={valuationData?.photoScore}
+                  condition={valuationData?.aiCondition}
+                  isPremium={isPremium}
+                  onUpgrade={onUpgrade}
+                />
+              </div>
+
+              {/* Separator */}
+              <Separator />
+
+              {/* Valuation Adjustments Section */}
+              <ValuationAdjustments adjustments={valuationData?.adjustments} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-export default UnifiedValuationResult;
+export default UnifiedValuationHeader;
