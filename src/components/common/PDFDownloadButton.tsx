@@ -48,9 +48,14 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         mileage: valuationResult.mileage,
         condition: valuationResult.condition,
         zipCode: valuationResult.zip || valuationResult.zipCode,
-        valuation: valuationResult.estimated_value || valuationResult.estimatedValue,
+        // Fix: Using estimatedValue instead of valuation
+        estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue,
         adjustments: valuationResult.adjustments || [],
-        // Add other fields needed for PDF generation
+        // Fix: Adding the required generatedAt property
+        generatedAt: new Date().toISOString(),
+        // Add additional fields needed for PDF generation
+        confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore,
+        priceRange: valuationResult.price_range || valuationResult.priceRange
       };
       
       // Generate the PDF
