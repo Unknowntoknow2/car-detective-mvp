@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConditionLevel, ManualEntryFormData } from '@/components/lookup/types/manualEntry';
@@ -19,7 +20,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
   const [formData, setFormData] = useState<ManualEntryFormData>({
     make: '',
     model: '',
-    year: new Date().getFullYear().toString(),
+    year: new Date().getFullYear(),
     mileage: '',
     condition: ConditionLevel.Good,
     zipCode: '',
@@ -82,7 +83,13 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      // Ensure numeric fields are properly converted
+      const processedData = {
+        ...formData,
+        year: typeof formData.year === 'string' ? parseInt(formData.year) : formData.year,
+        mileage: typeof formData.mileage === 'string' ? parseInt(formData.mileage as string) : formData.mileage
+      };
+      onSubmit(processedData);
     }
   };
 
