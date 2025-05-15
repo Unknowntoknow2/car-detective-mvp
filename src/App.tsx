@@ -22,6 +22,7 @@ import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import NotFound from '@/pages/NotFound';
 import Premium from '@/pages/Premium';
 import AuthLandingPage from '@/pages/AuthLandingPage';
+import UserDashboard from '@/pages/dashboard/UserDashboard'; // Add import
 
 // Components for route protection
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -94,6 +95,11 @@ function App() {
             <Route path="dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="user-dashboard" element={
+              <ProtectedRoute>
+                <UserDashboard />
               </ProtectedRoute>
             } />
             <Route path="settings" element={
