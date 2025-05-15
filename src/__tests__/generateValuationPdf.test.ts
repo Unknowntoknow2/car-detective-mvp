@@ -11,17 +11,17 @@ vi.mock('@react-pdf/renderer', () => ({
       toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock pdf content')),
     }),
   },
-  Document: ({ children }) => <div>{children}</div>,
-  Page: ({ children }) => <div>{children}</div>,
-  Text: ({ children }) => <div>{children}</div>,
-  View: ({ children }) => <div>{children}</div>,
+  Document: vi.fn(({ children }) => children),
+  Page: vi.fn(({ children }) => children),
+  Text: vi.fn(({ children }) => children),
+  View: vi.fn(({ children }) => children),
   StyleSheet: {
     create: vi.fn().mockReturnValue({}),
   },
   Font: {
     register: vi.fn(),
   },
-  Image: () => <div>Image</div>,
+  Image: vi.fn(() => 'Image'),
 }));
 
 describe('generateValuationPdf', () => {
