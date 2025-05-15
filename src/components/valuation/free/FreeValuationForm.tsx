@@ -59,10 +59,14 @@ export const FreeValuationForm = () => {
     setError(null);
 
     try {
-      const result = await generateValuation({
+      // Make zipCode required to match ValuationInput interface
+      const valuationData = {
         ...data,
         isPremium: false,
-      });
+        zipCode: data.zipCode // Ensure this is not optional
+      };
+
+      const result = await generateValuation(valuationData);
 
       if (result.success && result.valuationId) {
         navigate(`/valuation/${result.valuationId}`);

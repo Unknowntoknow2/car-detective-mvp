@@ -1,108 +1,140 @@
 
 import React from 'react';
-import { AccidentDetailsForm } from './AccidentDetailsForm';
-import { AccidentDetails } from '../types/manualEntry';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, ShieldAlert, CheckCircle } from 'lucide-react';
-import { DesignCard } from '@/components/ui/design-system';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { VehicleFormTooltip } from '@/components/form/VehicleFormToolTip';
+import { AccidentDetails } from '../types/manualEntry';
 
 interface PremiumFieldsProps {
-  accident: 'no' | 'yes';
-  setAccident: (value: string) => void;
+  trim: string;
+  setTrim: (value: string) => void;
+  color: string;
+  setColor: (value: string) => void;
+  bodyType: string;
+  setBodyType: (value: string) => void;
   accidentDetails: AccidentDetails;
   setAccidentDetails: (details: AccidentDetails) => void;
-  isDisabled: boolean;
+  features: string[];
+  setFeatures: (features: string[]) => void;
 }
 
 export const PremiumFields: React.FC<PremiumFieldsProps> = ({
-  accident,
-  setAccident,
+  trim,
+  setTrim,
+  color,
+  setColor,
+  bodyType,
+  setBodyType,
   accidentDetails,
   setAccidentDetails,
-  isDisabled
+  features,
+  setFeatures
 }) => {
+  // Function to handle accident radio change
+  const handleAccidentChange = (value: string) => {
+    setAccidentDetails({
+      ...accidentDetails,
+      hasAccident: value === 'yes'
+    });
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-primary" />
-          Accident History
-        </h3>
+    <div className="space-y-6 border-t pt-6 mt-6">
+      <h3 className="text-lg font-medium">Additional Details</h3>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="trim">Trim Level</Label>
+          <Input
+            id="trim"
+            value={trim}
+            onChange={(e) => setTrim(e.target.value)}
+            placeholder="e.g., SE, Limited, Sport"
+          />
+        </div>
         
-        <p className="text-sm text-text-secondary mb-4">
-          Providing accurate accident information helps us deliver a more precise valuation.
-          This information is validated against CARFAX® records in premium reports.
-        </p>
-        
-        <div className="flex items-center gap-6">
-          <Label className="font-medium">Has this vehicle been in an accident?</Label>
-          <RadioGroup
-            value={accident}
-            onValueChange={setAccident}
-            className="flex space-x-6"
-            disabled={isDisabled}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="no" />
-              <Label htmlFor="no" className="font-normal">No</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="yes" />
-              <Label htmlFor="yes" className="font-normal">Yes</Label>
-            </div>
-          </RadioGroup>
+        <div className="space-y-2">
+          <Label htmlFor="color">Color</Label>
+          <Input
+            id="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            placeholder="e.g., Red, Silver, Blue"
+          />
         </div>
       </div>
-
-      {accident === "yes" ? (
-        <DesignCard
-          variant="outline"
-          className="border-primary/20 bg-primary-light/10"
+      
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <Label htmlFor="bodyType">Body Style</Label>
+          <VehicleFormTooltip 
+            content="The body style of your vehicle affects its valuation."
+          />
+        </div>
+        <Select
+          value={bodyType}
+          onValueChange={setBodyType}
         >
-          <div className="space-y-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-              <div>
-                <h4 className="font-medium">Accident Details</h4>
-                <p className="text-sm text-text-secondary mt-1">
-                  Provide additional information about the accident(s) to improve valuation accuracy.
-                  Premium reports include full CARFAX® accident history verification.
-                </p>
-              </div>
-            </div>
-            
-            <AccidentDetailsForm
-              accidentDetails={accidentDetails}
-              setAccidentDetails={setAccidentDetails}
-              disabled={isDisabled}
+          <SelectTrigger id="bodyType">
+            <SelectValue placeholder="Select body style" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Sedan">Sedan</SelectItem>
+            <SelectItem value="SUV">SUV</SelectItem>
+            <SelectItem value="Coupe">Coupe</SelectItem>
+            <SelectItem value="Truck">Truck</SelectItem>
+            <SelectItem value="Convertible">Convertible</SelectItem>
+            <SelectItem value="Wagon">Wagon</SelectItem>
+            <SelectItem value="Hatchback">Hatchback</SelectItem>
+            <SelectItem value="Van">Van/Minivan</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Has this vehicle been in an accident?</Label>
+        <div className="flex space-x-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="radio"
+              id="accident-yes"
+              name="accident"
+              value="yes"
+              checked={accidentDetails.hasAccident === true}
+              onChange={() => handleAccidentChange('yes')}
+              className="h-4 w-4 text-primary"
             />
+            <Label htmlFor="accident-yes" className="cursor-pointer">Yes</Label>
           </div>
-        </DesignCard>
-      ) : (
-        <DesignCard
-          variant="outline"
-          className="border-success/20 bg-success-light/10"
-        >
-          <div className="flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium">No Accidents Reported</h4>
-              <p className="text-sm text-text-secondary mt-1">
-                Vehicles without accident history typically maintain higher resale value.
-                Our premium report will verify this status through CARFAX® records.
-              </p>
-            </div>
+          <div className="flex items-center space-x-2">
+            <input
+              type="radio"
+              id="accident-no"
+              name="accident"
+              value="no"
+              checked={accidentDetails.hasAccident === false}
+              onChange={() => handleAccidentChange('no')}
+              className="h-4 w-4 text-primary"
+            />
+            <Label htmlFor="accident-no" className="cursor-pointer">No</Label>
           </div>
-        </DesignCard>
-      )}
+        </div>
+      </div>
+      
+      {/* Feature selection would go here, simplified for now */}
+      <div className="space-y-2">
+        <div className="flex items-center">
+          <Label>Premium Features</Label>
+          <VehicleFormTooltip 
+            content="Select premium features that your vehicle has. These can increase its value."
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Feature selection is available in the premium valuation flow.
+        </p>
+      </div>
     </div>
   );
 };

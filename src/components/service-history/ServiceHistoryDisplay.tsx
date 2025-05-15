@@ -1,75 +1,67 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, PlusCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { useServiceHistory, ServiceRecord } from '@/hooks/useServiceHistory';
+import { ServiceRecordsEmpty } from './ServiceRecordsEmpty';
 import { ServiceRecordsList } from './ServiceRecordsList';
-import { LoadingState } from './LoadingState';
-import { ErrorState } from './ErrorState';
-import { EmptyState } from './EmptyState';
-import { useServiceHistory } from '@/hooks/useServiceHistory';
-import { ServiceHistoryUploader } from './ServiceHistoryUploader';
+import { AddServiceForm } from './AddServiceForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 interface ServiceHistoryDisplayProps {
   vin: string;
 }
 
-export function ServiceHistoryDisplay({ vin }: ServiceHistoryDisplayProps) {
-  const { records, isLoading, error, refetch } = useServiceHistory(vin);
-  const [showAddForm, setShowAddForm] = useState(false);
-
-  const handleUploadComplete = () => {
-    setShowAddForm(false);
-    refetch();
+export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vin }) => {
+  // Updated useServiceHistory call to pass vin correctly and use refreshRecords instead of refetch
+  const { records, isLoading, error, addServiceRecord, deleteServiceRecord, refreshRecords } = 
+    useServiceHistory({ vin });
+  
+  // Function to handle record deletion with proper refreshing
+  const handleDeleteRecord = async (id: string) => {
+    await deleteServiceRecord(id);
+    await refreshRecords();
   };
-
+  
+  // Function to handle adding a new record
+  const handleAddRecord = async (record: Omit<ServiceRecord, 'id' | 'created_at'>) => {
+    await addServiceRecord(record);
+    await refreshRecords();
+  };
+  
   if (isLoading) {
-    return <LoadingState />;
+    return (
+      <div className="flex justify-center items-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
-
+  
   if (error) {
-    return <ErrorState message={error} />;
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error.message || 'Failed to load service history'}</AlertDescription>
+      </Alert>
+    );
   }
-
+  
   return (
-    <div className="space-y-6">
-      {showAddForm ? (
-        <ServiceHistoryUploader 
-          initialVin={vin} 
-          onUploadComplete={handleUploadComplete} 
-        />
-      ) : (
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Service History</CardTitle>
-              {records.length > 0 && (
-                <Badge variant="outline" className="ml-2">
-                  {records.length} {records.length === 1 ? 'record' : 'records'}
-                </Badge>
-              )}
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowAddForm(true)}
-              className="gap-1"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Add Record
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {records.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <ServiceRecordsList records={records} />
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl">Service History</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0 space-y-6">
+        <AddServiceForm vin={vin} onSubmit={handleAddRecord} />
+        
+        {records.length === 0 ? (
+          <ServiceRecordsEmpty />
+        ) : (
+          <ServiceRecordsList records={records} onDelete={handleDeleteRecord} />
+        )}
+      </CardContent>
+    </Card>
   );
-}
+};

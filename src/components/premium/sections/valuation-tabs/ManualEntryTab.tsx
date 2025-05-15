@@ -1,109 +1,152 @@
 
-import { TabContentWrapper } from "./TabContentWrapper";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ManualEntryFormData, AccidentDetails, ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
+import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
+import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
+import { PremiumFields } from '@/components/lookup/form-parts/PremiumFields';
+import { AccidentDetailsForm } from '@/components/lookup/form-parts/AccidentDetailsForm';
 
 interface ManualEntryTabProps {
   onSubmit: (data: ManualEntryFormData) => void;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
-export function ManualEntryTab({ onSubmit, isLoading }: ManualEntryTabProps) {
-  const navigate = useNavigate();
-  const [vehicle, setVehicle] = useState<ManualEntryFormData | null>(null);
-
-  const handleFormSubmit = async (data: ManualEntryFormData) => {
-    try {
-      // Call the parent onSubmit handler
-      onSubmit(data);
-      setVehicle(data);
-      toast.success("Vehicle details submitted successfully");
-    } catch (error) {
-      toast.error("Failed to submit vehicle details");
-      console.error("Error submitting manual entry:", error);
+export const ManualEntryTab: React.FC<ManualEntryTabProps> = ({
+  onSubmit,
+  isLoading = false
+}) => {
+  // Basic vehicle info
+  const [make, setMake] = useState('');
+  const [model, setModel] = useState('');
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [mileage, setMileage] = useState(0);
+  const [condition, setCondition] = useState<ConditionLevel>(ConditionLevel.Good);
+  const [zipCode, setZipCode] = useState('');
+  
+  // Additional details
+  const [fuelType, setFuelType] = useState('Gasoline');
+  const [transmission, setTransmission] = useState('Automatic');
+  const [trim, setTrim] = useState('');
+  const [color, setColor] = useState('');
+  const [bodyType, setBodyType] = useState('');
+  
+  // Premium fields
+  const [accident, setAccident] = useState(false);
+  const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
+    hasAccident: false
+  });
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!make) {
+      toast.error('Make is required');
+      return;
     }
-  };
-
-  const handleContinueToValuation = () => {
-    if (!vehicle) return;
     
-    // Save the vehicle details to local storage for the premium form
-    localStorage.setItem("premium_vehicle", JSON.stringify({
-      identifierType: 'manual',
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      mileage: vehicle.mileage,
-      fuelType: vehicle.fuelType,
-      condition: vehicle.condition,
-      zipCode: vehicle.zipCode,
-      accident: vehicle.accident,
-      accidentDetails: vehicle.accidentDetails,
-      selectedFeatures: vehicle.selectedFeatures
-    }));
+    if (!model) {
+      toast.error('Model is required');
+      return;
+    }
     
-    toast.success("Vehicle information saved. Continuing to premium valuation.");
-    navigate("/premium-valuation");
+    if (!zipCode) {
+      toast.error('ZIP code is required');
+      return;
+    }
+    
+    // Create form data object
+    const formData: ManualEntryFormData = {
+      make,
+      model,
+      year,
+      mileage,
+      condition,
+      zipCode,
+      fuelType,
+      transmission,
+      trim,
+      color,
+      bodyType,
+      accident,
+      accidentDetails,
+      selectedFeatures,
+      features: selectedFeatures // Map selectedFeatures to features for compatibility
+    };
+    
+    onSubmit(formData);
   };
-
+  
   return (
-    <TabContentWrapper
-      title="Manual Vehicle Entry"
-      description="Enter your vehicle details manually for a comprehensive valuation"
-    >
-      <ManualEntryForm 
-        onSubmit={handleFormSubmit} 
-        isLoading={isLoading}
-        submitButtonText="Submit Vehicle Details"
-        isPremium={true}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <VehicleDetailsInputs
+        make={make}
+        setMake={setMake}
+        model={model}
+        setModel={setModel}
+        year={year}
+        setYear={setYear}
+        mileage={mileage}
+        setMileage={setMileage}
+        trim={trim}
+        setTrim={setTrim}
+        color={color}
+        setColor={setColor}
       />
       
-      {vehicle && (
-        <Card className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
-          <h4 className="font-semibold text-xl mb-4">Vehicle Details Submitted</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-slate-500">Year, Make, Model</p>
-              <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Mileage</p>
-              <p className="font-medium">{vehicle.mileage?.toLocaleString() || 0} miles</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Fuel Type</p>
-              <p className="font-medium">{vehicle.fuelType || "Not specified"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Condition</p>
-              <p className="font-medium capitalize">{vehicle.condition}</p>
-            </div>
-            {vehicle.selectedFeatures && vehicle.selectedFeatures.length > 0 && (
-              <div className="col-span-2">
-                <p className="text-sm text-slate-500 mb-2">Selected Features</p>
-                <div className="flex flex-wrap gap-2">
-                  {vehicle.selectedFeatures.map((feature, index) => (
-                    <div key={index} className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs flex items-center">
-                      <Check className="h-3 w-3 mr-1" />
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <Button className="bg-primary" onClick={handleContinueToValuation}>Continue to Valuation</Button>
-          </div>
-        </Card>
+      <ConditionAndFuelInputs
+        condition={condition}
+        setCondition={setCondition}
+        fuelType={fuelType}
+        setFuelType={setFuelType}
+        transmission={transmission}
+        setTransmission={setTransmission}
+      />
+      
+      <ZipCodeInput
+        zipCode={zipCode}
+        setZipCode={setZipCode}
+      />
+      
+      <PremiumFields
+        trim={trim}
+        setTrim={setTrim}
+        color={color}
+        setColor={setColor}
+        bodyType={bodyType}
+        setBodyType={setBodyType}
+        accidentDetails={accidentDetails}
+        setAccidentDetails={setAccidentDetails}
+        features={selectedFeatures}
+        setFeatures={setSelectedFeatures}
+      />
+      
+      {accidentDetails.hasAccident && (
+        <AccidentDetailsForm
+          accidentDetails={accidentDetails}
+          setAccidentDetails={setAccidentDetails}
+        />
       )}
-    </TabContentWrapper>
+      
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          'Submit Vehicle Details'
+        )}
+      </Button>
+    </form>
   );
-}
+};

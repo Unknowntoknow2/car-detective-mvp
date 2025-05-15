@@ -1,99 +1,88 @@
 
 import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
-import { VehicleDetailsForm } from '../../form/steps/vehicle-details/VehicleDetailsForm';
-import { ValuationResults } from '@/components/valuation/ValuationResults';
-import { ValuationErrorState } from './ValuationErrorState';
+import { Loader2, CheckCircle, AlertTriangle, CarFront } from 'lucide-react';
 
-type Stage = 'initial' | 'lookup_in_progress' | 'lookup_failed' | 'vehicle_found' | 'details_required' | 'valuation_in_progress' | 'valuation_complete' | 'valuation_failed';
+export type ValuationStage = 'decode' | 'analyze' | 'valuation' | 'complete' | 'error';
 
 interface ValuationStagesProps {
-  stage: Stage;
-  vehicleInfo: any | null;
-  requiredInputs: any | null;
-  valuationResult: any | null;
-  error: string | null;
-  isLoading: boolean;
-  onDetailsSubmit: (details: any) => Promise<void>;
-  initialContent: React.ReactNode;
+  stage: ValuationStage;
+  error?: string | null;
 }
 
-export function ValuationStages({
-  stage,
-  vehicleInfo,
-  requiredInputs,
-  valuationResult,
-  error,
-  isLoading,
-  onDetailsSubmit,
-  initialContent
-}: ValuationStagesProps) {
+export const ValuationStages: React.FC<ValuationStagesProps> = ({ stage, error }) => {
+  const stages = [
+    { id: 'decode', label: 'Vehicle Decoding', icon: CarFront },
+    { id: 'analyze', label: 'Data Analysis', icon: Loader2 },
+    { id: 'valuation', label: 'Generating Report', icon: Loader2 },
+    { id: 'complete', label: 'Valuation Complete', icon: CheckCircle },
+    { id: 'error', label: 'Error Occurred', icon: AlertTriangle },
+  ];
   
-  const handleEmailReport = () => {
-    console.log('Email report functionality to be implemented');
-  };
+  const currentStageIndex = stages.findIndex(s => s.id === stage);
   
-  if (stage === 'initial' || stage === 'lookup_in_progress' || stage === 'lookup_failed') {
-    return initialContent;
-  }
-  
-  if (stage === 'details_required') {
-    return (
-      <div className="space-y-6">
-        <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-          <div className="flex items-start">
-            <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-green-800">Vehicle Found!</h3>
-              <p className="text-green-700">
-                {vehicleInfo?.year} {vehicleInfo?.make} {vehicleInfo?.model}
-                {vehicleInfo?.trim && ` ${vehicleInfo.trim}`}
-              </p>
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col space-y-2">
+        {stages.map((s, index) => {
+          const isActive = s.id === stage;
+          const isPast = index < currentStageIndex;
+          const isComplete = s.id === 'complete' && stage === 'complete';
+          const isError = s.id === 'error' && stage === 'error';
+          
+          return (
+            <div 
+              key={s.id}
+              className={`flex items-center space-x-3 p-3 rounded ${
+                isActive ? 'bg-primary/10' : 
+                isPast ? 'bg-green-50' : 
+                isError ? 'bg-red-50' : 
+                'bg-muted'
+              }`}
+            >
+              <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                isActive ? 'bg-primary text-white' : 
+                isPast || isComplete ? 'bg-green-500 text-white' : 
+                isError ? 'bg-red-500 text-white' : 
+                'bg-muted-foreground/20 text-muted-foreground'
+              }`}>
+                {isPast ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <s.icon className={`h-5 w-5 ${isActive && s.id !== 'complete' && s.id !== 'error' ? 'animate-spin' : ''}`} />
+                )}
+              </div>
+              <div>
+                <div className="font-medium">{s.label}</div>
+                {isActive && s.id === 'decode' && (
+                  <div className="text-sm text-muted-foreground">
+                    Retrieving vehicle information...
+                  </div>
+                )}
+                {isActive && s.id === 'analyze' && (
+                  <div className="text-sm text-muted-foreground">
+                    Analyzing market data...
+                  </div>
+                )}
+                {isActive && s.id === 'valuation' && (
+                  <div className="text-sm text-muted-foreground">
+                    Creating your customized valuation...
+                  </div>
+                )}
+                {isActive && s.id === 'complete' && (
+                  <div className="text-sm text-green-600">
+                    Your valuation is ready!
+                  </div>
+                )}
+                {isActive && s.id === 'error' && (
+                  <div className="text-sm text-red-600">
+                    {error || 'An error occurred during valuation.'}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-        
-        {requiredInputs && (
-          <VehicleDetailsForm
-            initialData={requiredInputs}
-            onSubmit={onDetailsSubmit}
-            isLoading={isLoading}
-          />
-        )}
+          );
+        })}
       </div>
-    );
-  }
-  
-  if (stage === 'valuation_complete') {
-    return (
-      <ValuationResults
-        estimatedValue={valuationResult?.estimated_value || 0}
-        confidenceScore={valuationResult?.confidence_score || 0}
-        basePrice={valuationResult?.base_price}
-        adjustments={valuationResult?.adjustments}
-        priceRange={valuationResult?.price_range}
-        demandFactor={valuationResult?.zip_demand_factor}
-        vehicleInfo={{
-          year: vehicleInfo?.year || 0,
-          make: vehicleInfo?.make || '',
-          model: vehicleInfo?.model || '',
-          trim: vehicleInfo?.trim || '',
-          mileage: requiredInputs?.mileage || undefined,
-          condition: requiredInputs?.conditionLabel
-        }}
-        onEmailReport={handleEmailReport}
-      />
-    );
-  }
-  
-  if (stage === 'valuation_failed') {
-    return (
-      <ValuationErrorState 
-        error={error}
-        onRetry={() => onDetailsSubmit(requiredInputs!)}
-      />
-    );
-  }
-  
-  return null;
-}
+    </div>
+  );
+};
