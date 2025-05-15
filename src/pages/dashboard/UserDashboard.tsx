@@ -63,7 +63,9 @@ export default function UserDashboard() {
     checkPremiumStatus();
   }, [user, navigate]);
 
-  if (isSavedLoading || isHistoryLoading) {
+  const isLoading = isSavedLoading || isHistoryLoading;
+
+  if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col">
         <Navbar />
@@ -186,7 +188,7 @@ export default function UserDashboard() {
                         .map((valuation, index) => (
                           <PremiumReportCard
                             key={valuation.id}
-                            valuation={valuation}
+                            valuation={valuation as ValuationData}
                             index={index}
                           />
                         ))
@@ -290,7 +292,7 @@ function PremiumReportCard({ valuation, index }: PremiumReportCardProps) {
               Premium Report
             </Badge>
             <CardTitle className="text-xl mt-2">
-              {valuation.year} {valuation.make} {valuation.model}
+              {valuation.year} {valuation.make || "Unknown"} {valuation.model || "Vehicle"}
             </CardTitle>
           </div>
         </div>

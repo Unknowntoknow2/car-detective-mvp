@@ -15,4 +15,5 @@ export interface Valuation {
   is_premium?: boolean;
   premium_unlocked?: boolean;
   confidence_score?: number;
+  condition_score?: number; // Add this to fix the error
 }
