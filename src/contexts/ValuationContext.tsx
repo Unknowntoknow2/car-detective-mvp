@@ -8,7 +8,10 @@ export type ValuationContextType = {
   purchaseReport: () => Promise<void>;
   downloadPdf: () => Promise<void>;
   isLoading: boolean;
+  isProcessing: boolean;
   error: Error | null;
+  processFreeValuation: (valuationData: any) => Promise<{ valuationId?: string } | null>;
+  processPremiumValuation: (valuationData: any) => Promise<{ valuationId?: string } | null>;
 };
 
 // Create context with default values
@@ -18,7 +21,10 @@ const ValuationContext = createContext<ValuationContextType>({
   purchaseReport: async () => {},
   downloadPdf: async () => {},
   isLoading: false,
+  isProcessing: false,
   error: null,
+  processFreeValuation: async () => null,
+  processPremiumValuation: async () => null,
 });
 
 // Provider component
@@ -26,6 +32,7 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [isPremium, setIsPremium] = useState(false);
   const [hasPurchasedReport, setHasPurchasedReport] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   // Mock functions for demonstration
@@ -58,6 +65,74 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
+  // Process a free valuation
+  const processFreeValuation = async (valuationData: any) => {
+    console.log('Processing free valuation:', valuationData);
+    setIsProcessing(true);
+    
+    try {
+      // Simulate API call to process valuation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate a mock valuation ID
+      const valuationId = `free-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      // Mock saving data to localStorage for demo purposes
+      localStorage.setItem(`valuation_${valuationId}`, JSON.stringify({
+        ...valuationData,
+        valuationId,
+        estimatedValue: Math.floor(15000 + Math.random() * 10000),
+        timestamp: new Date().toISOString(),
+      }));
+      
+      return { valuationId };
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to process free valuation'));
+      toast.error('Failed to process valuation');
+      return null;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Process a premium valuation
+  const processPremiumValuation = async (valuationData: any) => {
+    console.log('Processing premium valuation:', valuationData);
+    setIsProcessing(true);
+    
+    try {
+      // Check if user has premium access
+      if (!isPremium && !hasPurchasedReport) {
+        toast.info('Premium access required for this feature');
+        return null;
+      }
+      
+      // Simulate API call to process premium valuation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate a mock valuation ID
+      const valuationId = `premium-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      // Mock saving data to localStorage for demo purposes
+      localStorage.setItem(`valuation_${valuationId}`, JSON.stringify({
+        ...valuationData,
+        valuationId,
+        isPremium: true,
+        estimatedValue: Math.floor(18000 + Math.random() * 12000),
+        confidenceScore: 95,
+        timestamp: new Date().toISOString(),
+      }));
+      
+      return { valuationId };
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to process premium valuation'));
+      toast.error('Failed to process premium valuation');
+      return null;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <ValuationContext.Provider
       value={{
@@ -66,7 +141,10 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
         purchaseReport,
         downloadPdf,
         isLoading,
+        isProcessing,
         error,
+        processFreeValuation,
+        processPremiumValuation,
       }}
     >
       {children}
