@@ -12,7 +12,7 @@ export interface ManualEntryFormData {
   transmission?: string;
   trim?: string;
   color?: string;
-  bodyType?: string; // Added missing property
+  bodyType?: string; 
   vin?: string;
   valuationId?: string;
   valuation?: number;
@@ -20,11 +20,12 @@ export interface ManualEntryFormData {
   accident?: string | boolean;
   accidentDetails?: AccidentDetails;
   selectedFeatures?: string[];
+  features?: string[]; // Added features property
 }
 
 export interface AccidentDetails {
   description?: string;
-  count?: string; // Added missing property
+  count?: string; 
   severity?: 'Minor' | 'Moderate' | 'Severe';
   repaired?: boolean;
   hasAccident?: boolean;

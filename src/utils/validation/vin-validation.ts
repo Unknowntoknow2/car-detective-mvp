@@ -1,8 +1,16 @@
+
 /**
  * Validates a Vehicle Identification Number (VIN)
  * @param vin The VIN to validate
  * @returns An object containing isValid (boolean) and error (string if invalid)
  */
+
+export interface VinValidationResult {
+  isValid: boolean;
+  message?: string;
+  error?: string;
+}
+
 export function validateVin(vin: string): VinValidationResult {
   // Remove any whitespace
   const trimmedVin = vin.trim().toUpperCase();
