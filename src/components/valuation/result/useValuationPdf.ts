@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { ValuationResult } from '@/types/valuation';
-import { AICondition } from '@/types/photo';
+import { AICondition, AdjustmentBreakdown } from '@/types/photo';
 import { ReportData } from '@/utils/pdf/types';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { saveAs } from 'file-saver';
@@ -32,7 +32,7 @@ export const useValuationPdf = ({
     setIsGenerating(true);
     
     try {
-      // Format data for PDF generation
+      // Format data for PDF generation - fixing type issues
       const reportData: ReportData = {
         id: valuationData.id || crypto.randomUUID(),
         make: valuationData.make || 'Unknown',
@@ -47,15 +47,23 @@ export const useValuationPdf = ({
         fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
-        bodyType: valuationData.bodyType || valuationData.body_type || '',
+        bodyType: valuationData.bodyType || valuationData.bodyStyle || '', // Fixed from body_type to bodyType
         confidenceScore: valuationData.confidenceScore || 75,
         isPremium: isPremium,
         priceRange: valuationData.priceRange || [
           Math.floor((valuationData.estimatedValue || 0) * 0.95),
           Math.ceil((valuationData.estimatedValue || 0) * 1.05)
         ],
-        adjustments: valuationData.adjustments || [],
+        // Convert adjustments to match AdjustmentBreakdown format
+        adjustments: valuationData.adjustments?.map(adj => ({
+          name: adj.factor || '',
+          value: adj.impact || 0,
+          factor: adj.factor || '',
+          impact: adj.impact || 0,
+          description: adj.description || ''
+        })) || [],
         generatedAt: new Date().toISOString(),
+        explanation: valuationData.explanation || valuationData.gptExplanation || '',
       };
       
       // Add AI condition data if available
@@ -64,7 +72,7 @@ export const useValuationPdf = ({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          summary: conditionData.aiSummary || conditionData.summary || ''
+          summary: conditionData.summary || conditionData.aiSummary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = valuationData.aiCondition;

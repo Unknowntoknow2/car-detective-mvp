@@ -1,7 +1,7 @@
 
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
-import { AdjustmentBreakdown } from '@/utils/rules/types';
+import { AdjustmentBreakdown } from '@/types/photo';
 
 /**
  * Convert vehicle information to report data format
@@ -41,11 +41,7 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
       Math.round(additionalData.estimatedValue * 0.90), 
       Math.round(additionalData.estimatedValue * 1.10)
     ],
-    adjustments: additionalData.adjustments.map(adj => ({
-      factor: adj.factor || '',
-      impact: adj.impact || 0,
-      description: adj.description
-    })),
+    adjustments: additionalData.adjustments,
     generatedAt: new Date().toISOString()
   };
 }
@@ -58,6 +54,8 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
 export function convertValuationToReportData(valuation: any): ReportData {
   // Extract adjustments or create empty array
   const adjustments = valuation.adjustments?.map((adj: any) => ({
+    name: adj.factor || adj.name || '',
+    value: adj.impact || adj.value || 0,
     factor: adj.factor || adj.name || '',
     impact: adj.impact || adj.value || 0,
     description: adj.description || '',
@@ -93,7 +91,6 @@ export function convertValuationToReportData(valuation: any): ReportData {
     color: valuation.color || '',
     bodyType: valuation.bodyType || valuation.bodyStyle || '',
     fuelType: valuation.fuelType || valuation.fuel_type || '',
-    transmission: valuation.transmission || '',
-    photoExplanation: valuation.photoExplanation || ''
+    transmission: valuation.transmission || ''
   };
 }
