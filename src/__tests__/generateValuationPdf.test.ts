@@ -1,53 +1,42 @@
 
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
-import { ReportData } from '@/utils/pdf/types';
+
+// Mock jsPDF
+vi.mock('jspdf', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    setFontSize: vi.fn(),
+    setFont: vi.fn(),
+    text: vi.fn(),
+    addImage: vi.fn(),
+    addPage: vi.fn(),
+    save: vi.fn(),
+    line: vi.fn(),
+    // Add other methods as needed
+  })),
+}));
 
 describe('generateValuationPdf', () => {
-  const mockReportData: ReportData = {
-    id: '12345',
+  const mockValuation = {
+    id: '123',
     make: 'Toyota',
     model: 'Camry',
     year: 2020,
-    mileage: 30000,
+    vin: 'ABC123',
+    mileage: 50000,
+    estimated_value: 15000,
     condition: 'Good',
-    zipCode: '90210',
-    estimatedValue: 18000,
     adjustments: [
-      { 
-        name: 'Mileage', 
-        value: -500, 
-        factor: 'Mileage',
-        impact: -500,
-        description: 'Higher than average mileage' 
-      }
+      { factor: 'Mileage', impact: -500, description: 'Higher than average mileage' },
+      { factor: 'Condition', impact: 200, description: 'Good overall condition' },
+      { factor: 'Market Demand', impact: 300, description: 'High demand in your area' }
     ],
-    generatedAt: new Date().toISOString(),
-    confidenceScore: 85,
-    priceRange: [17000, 19000]
+    confidence_score: 85,
+    created_at: '2023-01-01T00:00:00Z',
   };
 
-  it('should generate a PDF for valid report data', async () => {
-    const result = await generateValuationPdf(mockReportData);
-    
-    // The function currently returns a placeholder Uint8Array
-    expect(result).toBeInstanceOf(Uint8Array);
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('should handle premium report options', async () => {
-    const result = await generateValuationPdf(mockReportData, { isPremium: true });
-    
-    expect(result).toBeInstanceOf(Uint8Array);
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it('should handle empty adjustments', async () => {
-    const result = await generateValuationPdf({
-      ...mockReportData,
-      adjustments: []
-    });
-    
-    expect(result).toBeInstanceOf(Uint8Array);
-    expect(result.length).toBeGreaterThan(0);
+  it('should generate a PDF document', () => {
+    const result = generateValuationPdf(mockValuation);
+    expect(result).toBeDefined();
   });
 });

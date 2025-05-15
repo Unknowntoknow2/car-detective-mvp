@@ -4,15 +4,15 @@ import { useVehicleUpload } from './useVehicleUpload';
 import { DealerVehicleFormData } from '@/types/dealerVehicle';
 
 export function useVehicleUploadModal() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const { uploadVehicle, isUploading, uploadProgress, uploadError } = useVehicleUpload();
 
   const openModal = () => {
-    setIsModalOpen(true);
+    setIsOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
+    setIsOpen(false);
   };
 
   const handleSubmit = async (data: DealerVehicleFormData, photos?: File[]) => {
@@ -25,7 +25,7 @@ export function useVehicleUploadModal() {
   };
 
   return {
-    isModalOpen,
+    isOpen,
     openModal,
     closeModal,
     isUploading,

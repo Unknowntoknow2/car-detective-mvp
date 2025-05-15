@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { DealerVehicle } from '@/types/dealerVehicle';
+import { DealerVehicle, DealerVehicleStatus } from '@/types/dealerVehicle';
 
 export function useDealerInventory() {
   const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
@@ -30,7 +30,19 @@ export function useDealerInventory() {
         
       if (error) throw error;
       
-      setVehicles(data || []);
+      // Transform the data to ensure status is of type DealerVehicleStatus
+      const typedVehicles: DealerVehicle[] = (data || []).map(vehicle => ({
+        ...vehicle,
+        status: vehicle.status as DealerVehicleStatus,
+        // Ensure photos is an array of strings
+        photos: Array.isArray(vehicle.photos) ? vehicle.photos : [],
+        // Convert any null values to undefined for optional fields
+        fuel_type: vehicle.fuel_type || undefined,
+        transmission: vehicle.transmission || undefined,
+        zip_code: vehicle.zip_code || undefined
+      }));
+      
+      setVehicles(typedVehicles);
     } catch (err: any) {
       console.error('Error fetching inventory:', err);
       setError(err.message || 'Failed to load inventory');
