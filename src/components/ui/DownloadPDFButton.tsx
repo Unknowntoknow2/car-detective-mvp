@@ -59,11 +59,10 @@ export function DownloadPDFButton({
           isPremium: isPremium,
           generatedAt: new Date().toISOString(),
           
-          // These are now optional in the ReportData interface
+          // These are now supported in the ReportData interface
           estimatedValue: valuationData.estimatedValue,
           confidenceScore: valuationData.confidenceScore,
           priceRange: valuationData.priceRange,
-          // Include zipCode if available
           zipCode: valuationData.zipCode,
           
           // Optional properties
@@ -73,12 +72,13 @@ export function DownloadPDFButton({
         };
 
         // Add conditional data if available
-        if ('aiCondition' in valuationData && valuationData.aiCondition) {
+        if (valuationData.aiCondition) {
+          const aiConditionData = valuationData.aiCondition as any;
           reportData.aiCondition = {
-            condition: valuationData.aiCondition.condition,
-            confidenceScore: valuationData.aiCondition.confidenceScore,
-            issuesDetected: valuationData.aiCondition.issuesDetected,
-            summary: valuationData.aiCondition.summary || ''
+            condition: aiConditionData.condition,
+            confidenceScore: aiConditionData.confidenceScore,
+            issuesDetected: aiConditionData.issuesDetected,
+            summary: aiConditionData.summary || ''
           };
         }
 

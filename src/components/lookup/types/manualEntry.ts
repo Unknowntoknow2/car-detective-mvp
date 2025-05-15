@@ -19,7 +19,7 @@ export interface ManualEntryFormData {
 
 export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void | Promise<void>;
-  isLoading?: boolean; // Make isLoading an optional prop to fix the error
+  isLoading?: boolean; // Make isLoading an explicitly defined property
   submitButtonText?: string;
   isPremium?: boolean;
   initialData?: Partial<ManualEntryFormData>;
