@@ -1,121 +1,188 @@
 
+import { PDFPage, rgb } from 'pdf-lib';
 import { ReportData, SectionParams } from '../types';
 
-export function drawVehicleInfoSection(
-  params: SectionParams, 
-  reportData: ReportData, 
-  yPosition: number
-): number {
-  const { page, regularFont, boldFont, margin, width } = params;
+export const drawVehicleInfoSection = (
+  params: SectionParams,
+  reportData: ReportData
+): number => {
+  const { page, y, margin, width, regularFont, boldFont } = params;
+  let currentY = y - 20;
   
-  // Draw section header
+  // Draw section title
   page.drawText('Vehicle Information', {
     x: margin,
-    y: yPosition,
-    size: 16,
-    font: boldFont,
-    color: { r: 0.1, g: 0.1, b: 0.1 }
-  });
-  yPosition -= 25;
-  
-  // Draw vehicle name
-  const vehicleName = `${reportData.year} ${reportData.make} ${reportData.model}`;
-  page.drawText(vehicleName, {
-    x: margin,
-    y: yPosition,
+    y: currentY,
     size: 14,
     font: boldFont,
-    color: { r: 0.2, g: 0.2, b: 0.2 }
-  });
-  yPosition -= 20;
-  
-  // Draw VIN if available
-  if (reportData.vin) {
-    page.drawText(`VIN: ${reportData.vin}`, {
-      x: margin,
-      y: yPosition,
-      size: 12,
-      font: regularFont,
-      color: { r: 0.4, g: 0.4, b: 0.4 }
-    });
-    yPosition -= 20;
-  }
-  
-  // Create two columns for vehicle details
-  const col1X = margin;
-  const col2X = margin + (width - margin * 2) / 2;
-  let leftColY = yPosition;
-  let rightColY = yPosition;
-  
-  // Left column details
-  leftColY = drawDetailRow(page, 'Mileage:', formatMileage(reportData.mileage), col1X, leftColY, regularFont, boldFont);
-  leftColY = drawDetailRow(page, 'Condition:', reportData.condition, col1X, leftColY, regularFont, boldFont);
-  leftColY = drawDetailRow(page, 'Location:', reportData.zipCode, col1X, leftColY, regularFont, boldFont);
-  
-  // Optional left column details
-  if (reportData.trim) {
-    leftColY = drawDetailRow(page, 'Trim:', reportData.trim, col1X, leftColY, regularFont, boldFont);
-  }
-  
-  // Right column details
-  if (reportData.fuelType) {
-    rightColY = drawDetailRow(page, 'Fuel Type:', reportData.fuelType, col2X, rightColY, regularFont, boldFont);
-  }
-  
-  if (reportData.transmission) {
-    rightColY = drawDetailRow(page, 'Transmission:', reportData.transmission, col2X, rightColY, regularFont, boldFont);
-  }
-  
-  if (reportData.color) {
-    rightColY = drawDetailRow(page, 'Exterior Color:', reportData.color, col2X, rightColY, regularFont, boldFont);
-  }
-  
-  if (reportData.bodyType) {
-    rightColY = drawDetailRow(page, 'Body Type:', reportData.bodyType, col2X, rightColY, regularFont, boldFont);
-  }
-  
-  // Return the lower of the two Y positions
-  return Math.min(leftColY, rightColY) - 20;
-}
-
-function drawDetailRow(
-  page: any,
-  label: string,
-  value: string | number,
-  x: number,
-  y: number,
-  regularFont: any,
-  boldFont: any
-): number {
-  // Draw label
-  page.drawText(label, {
-    x,
-    y,
-    size: 12,
-    font: boldFont,
-    color: { r: 0.4, g: 0.4, b: 0.4 }
+    color: rgb(0.1, 0.1, 0.1)
   });
   
-  // Draw value
-  page.drawText(String(value), {
-    x: x + 100,
-    y,
-    size: 12,
+  currentY -= 30;
+  
+  // Draw make and model
+  page.drawText('Make / Model:', {
+    x: margin,
+    y: currentY,
+    size: 11,
     font: regularFont,
-    color: { r: 0.2, g: 0.2, b: 0.2 }
+    color: rgb(0.3, 0.3, 0.3)
   });
   
-  return y - 20;
-}
-
-function formatMileage(mileage: string | number): string {
-  if (typeof mileage === 'number') {
-    return mileage.toLocaleString() + ' mi';
-  } else {
-    const numMileage = parseInt(mileage, 10);
-    if (!isNaN(numMileage)) {
-      return numMileage.toLocaleString() + ' mi';
-    }
-    return mileage;
+  page.drawText(`${reportData.make} ${reportData.model}`, {
+    x: margin + width / 3,
+    y: currentY,
+    size: 11,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1)
+  });
+  
+  currentY -= 20;
+  
+  // Draw year
+  page.drawText('Year:', {
+    x: margin,
+    y: currentY,
+    size: 11,
+    font: regularFont,
+    color: rgb(0.3, 0.3, 0.3)
+  });
+  
+  page.drawText(`${reportData.year}`, {
+    x: margin + width / 3,
+    y: currentY,
+    size: 11,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1)
+  });
+  
+  currentY -= 20;
+  
+  // Draw mileage if available
+  if (reportData.mileage) {
+    page.drawText('Mileage:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    page.drawText(`${reportData.mileage.toLocaleString()} miles`, {
+      x: margin + width / 3,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+    
+    currentY -= 20;
   }
-}
+  
+  // Draw vin if available
+  if (reportData.vin) {
+    page.drawText('VIN:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    page.drawText(reportData.vin, {
+      x: margin + width / 3,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+    
+    currentY -= 20;
+  }
+  
+  // Draw condition if available
+  if (reportData.condition) {
+    page.drawText('Condition:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    page.drawText(reportData.condition, {
+      x: margin + width / 3,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+    
+    currentY -= 20;
+  }
+  
+  // Draw color if available
+  if (reportData.color) {
+    page.drawText('Color:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    page.drawText(reportData.color, {
+      x: margin + width / 3,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+    
+    currentY -= 20;
+  }
+  
+  // Draw fuel type if available
+  if (reportData.fuelType) {
+    page.drawText('Fuel Type:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    page.drawText(reportData.fuelType, {
+      x: margin + width / 3,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+    
+    currentY -= 20;
+  }
+  
+  // Draw transmission if available
+  if (reportData.transmission) {
+    page.drawText('Transmission:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    page.drawText(reportData.transmission, {
+      x: margin + width / 3,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+    
+    currentY -= 20;
+  }
+  
+  return currentY;
+};

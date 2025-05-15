@@ -1,5 +1,5 @@
 
-import { PDFPage, PDFFont, Color } from 'pdf-lib';
+import { PDFPage, PDFFont, Color, RGB, rgb } from 'pdf-lib';
 
 export interface AICondition {
   condition: string;
@@ -31,7 +31,7 @@ export interface ReportData {
   fuelType?: string;
   explanation?: string;
   transmission?: string;
-  // Additional properties that were missing
+  // Additional properties
   userId?: string;
   isPremium?: boolean;
   aiCondition?: AICondition;
@@ -55,6 +55,8 @@ export interface ReportOptions {
   // Additional properties
   includeBreakdown?: boolean;
   includeHeader?: boolean;
+  includeFooter?: boolean;
+  includeMarketTrends?: boolean;
   isPremium?: boolean;
 }
 

@@ -8,6 +8,11 @@ export * from './formatVin';
 export * from './formatPercent';
 export * from './stringFormatters';
 
+// Export formatCurrency and formatDate directly for backward compatibility
+export { formatCurrency } from './formatCurrency';
+export { formatDate } from './formatDate';
+export { formatNumber } from './formatNumber';
+
 // Legacy formatter functions for backward compatibility
 export const formatRelativeTime = (date: Date | string): string => {
   const now = new Date();

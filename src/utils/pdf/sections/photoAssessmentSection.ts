@@ -1,133 +1,198 @@
 
+import { PDFPage, PDFFont, Color, rgb } from 'pdf-lib';
 import { ReportData, SectionParams } from '../types';
 
-export function drawPhotoAssessmentSection(
-  params: SectionParams, 
-  reportData: ReportData, 
-  yPosition: number
-): number {
-  const { page, regularFont, boldFont, margin, contentWidth } = params;
+export const drawPhotoAssessmentSection = (
+  params: SectionParams,
+  reportData: ReportData
+): number => {
+  const { page, y, margin, contentWidth, regularFont, boldFont, textColor, primaryColor } = params;
+  let currentY = y - 20;
   
-  // If no photo data, skip this section
-  if (!reportData.bestPhotoUrl && !reportData.photoScore) {
-    return yPosition;
+  // Check if we have a photo URL and/or photo score to display
+  if (!reportData.bestPhotoUrl && !reportData.photoScore && !reportData.aiCondition) {
+    return currentY;
   }
   
-  // Header
-  page.drawText('Photo Assessment', {
+  // Draw section title
+  page.drawText('Visual Assessment', {
     x: margin,
-    y: yPosition,
-    size: 16,
+    y: currentY,
+    size: 14,
     font: boldFont,
-    color: { r: 0.1, g: 0.1, b: 0.1 }
+    color: rgb(0.1, 0.1, 0.1)
   });
-  yPosition -= 25;
-
-  // Draw photo score if available
+  
+  currentY -= 30;
+  
+  // If we have a photo score, display it
   if (reportData.photoScore) {
+    // Draw photo score label
     page.drawText('Photo Quality Score:', {
       x: margin,
-      y: yPosition,
-      size: 12,
+      y: currentY,
+      size: 11,
       font: boldFont,
-      color: { r: 0.3, g: 0.3, b: 0.3 }
+      color: rgb(0.3, 0.3, 0.3)
     });
     
-    const score = `${Math.round(reportData.photoScore)}%`;
-    page.drawText(score, {
-      x: margin + 150,
-      y: yPosition,
-      size: 12,
-      font: regularFont,
-      color: { r: 0.2, g: 0.6, b: 0.2 }
+    // Calculate color based on score
+    const score = reportData.photoScore;
+    const scoreColor = score > 80 ? rgb(0.2, 0.7, 0.3) : 
+                      score > 60 ? rgb(0.9, 0.6, 0.2) : 
+                      rgb(0.8, 0.2, 0.2);
+    
+    // Draw score
+    page.drawText(`${score}%`, {
+      x: margin + 140,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: scoreColor
     });
-    yPosition -= 20;
+    
+    currentY -= 20;
   }
   
-  // Draw AI condition if available
+  // If we have AI condition data, display it
   if (reportData.aiCondition) {
-    page.drawText('AI-Detected Condition:', {
+    // Draw condition label
+    page.drawText('Condition Assessment:', {
       x: margin,
-      y: yPosition,
-      size: 12,
+      y: currentY,
+      size: 11,
       font: boldFont,
-      color: { r: 0.3, g: 0.3, b: 0.3 }
+      color: rgb(0.3, 0.3, 0.3)
     });
     
+    // Draw condition value
     page.drawText(reportData.aiCondition.condition, {
-      x: margin + 150,
-      y: yPosition,
-      size: 12,
-      font: regularFont,
-      color: { r: 0.2, g: 0.6, b: 0.2 }
+      x: margin + 140,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.2, 0.5, 0.7)
     });
-    yPosition -= 20;
     
-    // Add confidence score
+    currentY -= 20;
+    
+    // Draw confidence label
     page.drawText('Confidence:', {
       x: margin,
-      y: yPosition,
-      size: 12,
-      font: boldFont,
-      color: { r: 0.3, g: 0.3, b: 0.3 }
-    });
-    
-    page.drawText(`${Math.round(reportData.aiCondition.confidenceScore)}%`, {
-      x: margin + 150,
-      y: yPosition,
-      size: 12,
+      y: currentY,
+      size: 11,
       font: regularFont,
-      color: { r: 0.2, g: 0.6, b: 0.2 }
+      color: rgb(0.3, 0.3, 0.3)
     });
-    yPosition -= 20;
+    
+    // Draw confidence value
+    page.drawText(`${reportData.aiCondition.confidenceScore}%`, {
+      x: margin + 140,
+      y: currentY,
+      size: 11,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    currentY -= 30;
   }
   
-  // Draw explanation if available
-  if (reportData.explanation) {
-    page.drawText('Photo Analysis:', {
+  // If we have issues detected, display them
+  if (reportData.aiCondition?.issuesDetected && reportData.aiCondition.issuesDetected.length > 0) {
+    // Draw issues label
+    page.drawText('Issues Detected:', {
       x: margin,
-      y: yPosition,
-      size: 12,
+      y: currentY,
+      size: 11,
       font: boldFont,
-      color: { r: 0.3, g: 0.3, b: 0.3 }
+      color: rgb(0.3, 0.3, 0.3)
     });
-    yPosition -= 20;
     
-    // Wrap text to fit
-    const explanation = reportData.explanation;
-    const words = explanation.split(' ');
-    let line = '';
+    currentY -= 20;
     
-    for (const word of words) {
-      const testLine = line + (line ? ' ' : '') + word;
-      const lineWidth = regularFont.widthOfTextAtSize(testLine, 12);
-      
-      if (lineWidth > contentWidth) {
-        page.drawText(line, {
-          x: margin,
-          y: yPosition,
-          size: 12,
-          font: regularFont,
-          color: { r: 0.3, g: 0.3, b: 0.3 }
-        });
-        yPosition -= 15;
-        line = word;
-      } else {
-        line = testLine;
-      }
-    }
-    
-    if (line) {
-      page.drawText(line, {
-        x: margin,
-        y: yPosition,
-        size: 12,
+    // Draw each issue
+    reportData.aiCondition.issuesDetected.forEach((issue, index) => {
+      // Draw bullet point
+      page.drawText('•', {
+        x: margin + 10,
+        y: currentY,
+        size: 11,
         font: regularFont,
-        color: { r: 0.3, g: 0.3, b: 0.3 }
+        color: rgb(0.3, 0.3, 0.3)
       });
-      yPosition -= 20;
-    }
+      
+      // Draw issue text
+      page.drawText(issue, {
+        x: margin + 25,
+        y: currentY,
+        size: 10,
+        font: regularFont,
+        color: rgb(0.3, 0.3, 0.3)
+      });
+      
+      currentY -= 15;
+    });
+    
+    currentY -= 10;
   }
   
-  return yPosition;
-}
+  // If we have a summary, display it
+  if (reportData.aiCondition?.summary) {
+    const summary = reportData.aiCondition.summary;
+    const maxWidth = contentWidth - 40;
+    const fontSize = 10;
+    const lineHeight = 15;
+    
+    // Function to word wrap text
+    const wrapText = (text: string, maxWidth: number, fontSize: number, font: PDFFont): string[] => {
+      const words = text.split(' ');
+      const lines: string[] = [];
+      let currentLine = '';
+      
+      for (const word of words) {
+        const width = font.widthOfTextAtSize(`${currentLine} ${word}`.trim(), fontSize);
+        
+        if (width < maxWidth) {
+          currentLine = `${currentLine} ${word}`.trim();
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      
+      return lines;
+    };
+    
+    // Draw summary label
+    page.drawText('AI Assessment:', {
+      x: margin,
+      y: currentY,
+      size: 11,
+      font: boldFont,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    currentY -= 20;
+    
+    // Draw wrapped summary text
+    const lines = wrapText(summary, maxWidth, fontSize, regularFont);
+    
+    lines.forEach(line => {
+      page.drawText(line, {
+        x: margin + 10,
+        y: currentY,
+        size: fontSize,
+        font: regularFont,
+        color: rgb(0.3, 0.3, 0.3)
+      });
+      
+      currentY -= lineHeight;
+    });
+  }
+  
+  return currentY - 10; // Add a bit of extra padding at the bottom
+};
