@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { render } from '@testing-library/react';
 import { CDButton } from '../CDButton';
@@ -36,7 +37,7 @@ describe('CDButton', () => {
   });
 
   it('renders loading and disabled states correctly', () => {
-    const { rerender } = render(<CDButton loading>Loading</CDButton>);
+    const { rerender } = render(<CDButton isLoading>Loading</CDButton>);
     expect(screen.getByRole('button')).toBeDisabled();
     
     rerender(<CDButton disabled>Disabled</CDButton>);
