@@ -1,7 +1,11 @@
 
 import React from 'react';
-import Home from './Home';
+import { useNavigate } from 'react-router-dom';
+import AppLayout from '@/components/layout/AppLayout';
+import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
 
 export default function HomePage() {
-  return <Home />;
+  return (
+    <EnhancedHomePage />
+  );
 }
