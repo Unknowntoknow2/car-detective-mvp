@@ -39,13 +39,14 @@ vi.mock('react-router-dom', async () => {
 
 // Test component using the auth context
 const TestComponent = () => {
-  const { user, signIn, signUp, signOut, isLoading, error } = useAuth();
+  const { user, signIn, signUp, signOut, isLoading, error, session } = useAuth();
   
   return (
     <div>
       <div data-testid="loading-state">{isLoading ? 'Loading' : 'Not Loading'}</div>
       <div data-testid="user-state">{user ? user.email : 'No User'}</div>
       <div data-testid="error-state">{error || 'No Error'}</div>
+      <div data-testid="session-state">{session ? 'Session Active' : 'No Session'}</div>
       <button onClick={() => signIn('test@example.com', 'password')}>Sign In</button>
       <button onClick={() => signUp('test@example.com', 'password')}>Sign Up</button>
       <button onClick={() => signOut()}>Sign Out</button>
