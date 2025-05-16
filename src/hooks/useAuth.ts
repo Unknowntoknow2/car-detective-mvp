@@ -37,7 +37,7 @@ export function useAuth() {
           // Get user profile details from profiles table
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, email, role, username, avatar_url')
+            .select('id, email, role, full_name, avatar_url')
             .eq('id', user.id)
             .single();
           
@@ -48,7 +48,7 @@ export function useAuth() {
               id: data.id,
               email: data.email || user.email,
               role: data.role,
-              name: data.username,
+              name: data.full_name,
               avatar_url: data.avatar_url
             });
           }
@@ -70,7 +70,7 @@ export function useAuth() {
         // Get user profile details
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, email, role, username, avatar_url')
+          .select('id, email, role, full_name, avatar_url')
           .eq('id', session.user.id)
           .single();
         
@@ -79,7 +79,7 @@ export function useAuth() {
             id: data.id,
             email: data.email || session.user.email,
             role: data.role,
-            name: data.username,
+            name: data.full_name,
             avatar_url: data.avatar_url
           });
         }
@@ -112,13 +112,33 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string): Promise<AuthResponse> => {
+  const signUp = async (email: string, password: string, fullName?: string): Promise<AuthResponse> => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      // Include fullName in user metadata if provided
+      const userData = fullName 
+        ? { email, password, options: { data: { full_name: fullName } } }
+        : { email, password };
+        
+      const { error, data } = await supabase.auth.signUp(userData);
+      
       if (error) throw error;
+      
+      // If sign up is successful, create a profile entry
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            role: 'individual',
+            email: email,
+            full_name: fullName || null,
+          });
+          
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+        }
+      }
+      
       return { success: true };
     } catch (error: any) {
       console.error('Error signing up:', error);
