@@ -10,7 +10,10 @@ interface MarketTrendContentProps {
     direction: 'up' | 'down' | 'neutral';
     percentage: string;
   };
-  forecastData: any;
+  forecastData: {
+    forecast: Array<{ month: string; value: number }>;
+    analysis?: string;
+  };
   year: number;
   make: string;
   model: string;
@@ -28,7 +31,7 @@ export function MarketTrendContent({ trend, forecastData, year, make, model }: M
       <CardContent className="pt-6">
         <MarketTrendChart data={forecastData.forecast} />
         <AnalysisSection 
-          analysis={forecastData.analysis} 
+          analysis={forecastData.analysis || ''} 
           fallbackAnalysis={`Based on market data, your ${year} ${make} ${model} is projected to 
             ${trend.direction === 'up' ? 'increase' : trend.direction === 'down' ? 'decrease' : 'maintain'} 
             in value by approximately ${trend.percentage}% over the next 12 months. 

@@ -11,6 +11,29 @@ interface ForecastParams {
   isPremium: boolean;
 }
 
+interface ForecastPoint {
+  month: string;
+  value: number;
+}
+
+interface ForecastData {
+  forecast: ForecastPoint[];
+  analysis?: string;
+  percentageChange: string;
+  bestTimeToSell?: string;
+  confidenceScore: number;
+}
+
+interface ForecastResult {
+  forecastData: ForecastData | null;
+  loading: boolean;
+  error: string | null;
+  trend: {
+    direction: 'up' | 'down' | 'neutral';
+    percentage: string;
+  };
+}
+
 export function useForecastData({
   valuationId,
   make,
@@ -18,8 +41,8 @@ export function useForecastData({
   year,
   estimatedValue,
   isPremium
-}: ForecastParams) {
-  const [forecastData, setForecastData] = useState<any>(null);
+}: ForecastParams): ForecastResult {
+  const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +67,19 @@ export function useForecastData({
         });
         
         if (error) throw error;
-        setForecastData(data);
+        
+        // Transform the data into a more structured format
+        const formattedData: ForecastData = {
+          forecast: data.months.map((month: string, index: number) => ({
+            month,
+            value: data.values[index]
+          })),
+          percentageChange: data.percentageChange,
+          bestTimeToSell: data.bestTimeToSell,
+          confidenceScore: data.confidenceScore
+        };
+        
+        setForecastData(formattedData);
       } catch (err) {
         console.error('Error fetching forecast data:', err);
         setError('Failed to load market trend data');
