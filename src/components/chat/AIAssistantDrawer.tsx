@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerFooter } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Send, X, Loader2, Sparkles, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { askAI } from '@/api/askAI';
+import { useValuationContext } from '@/hooks/useValuationContext';
 
 // GPT_AI_ASSISTANT_V1
 interface Message {
@@ -25,6 +27,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { vehicle, valuationId } = useValuationContext();
 
   // Load messages from localStorage on first render
   useEffect(() => {
@@ -77,7 +80,15 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
       const userContext = user ? {
         userId: user.id,
         email: user.email,
-        // Add other contextual information as needed
+        // Add vehicle context if available
+        vehicleInfo: vehicle ? {
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          mileage: vehicle.mileage,
+          trim: vehicle.trim,
+          bodyType: vehicle.bodyType
+        } : undefined
       } : null;
       
       // Get chat history for context (last 3 messages)
@@ -86,7 +97,8 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
       const result = await askAI({
         question: userMessage.content,
         userContext,
-        chatHistory
+        chatHistory,
+        valuationId
       });
       
       if (result.error) {
@@ -116,7 +128,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold">CarDetective AI Assistant</h2>
+              <h2 className="text-lg font-semibold">AIN — Auto Intelligence Network™</h2>
             </div>
             <Button 
               variant="ghost" 
@@ -135,6 +147,12 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
               <Sparkles className="h-8 w-8 mb-4 text-primary" />
               <p className="mb-2 font-medium">How can I help with your car valuation?</p>
               <p className="text-sm">Ask me about car prices, market trends, or what affects your vehicle's value.</p>
+              {vehicle ? (
+                <div className="mt-4 p-3 bg-muted rounded-lg text-sm">
+                  <p className="font-medium">Your current vehicle:</p>
+                  <p>{vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}</p>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="space-y-4">
