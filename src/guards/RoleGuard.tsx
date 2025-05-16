@@ -15,7 +15,7 @@ interface RoleGuardProps {
 const RoleGuard: React.FC<RoleGuardProps> = ({ 
   allowedRoles, 
   children, 
-  redirectTo = '/auth/signin'
+  redirectTo = '/auth'
 }) => {
   const { user, userRole, isLoading } = useAuth();
   const location = useLocation();

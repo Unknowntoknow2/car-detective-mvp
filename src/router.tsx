@@ -1,14 +1,14 @@
-
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
+import DealerLayout from '@/layouts/DealerLayout';
 import AuthGuard from '@/guards/AuthGuard';
 import GuestGuard from '@/guards/GuestGuard';
+import RoleGuard from '@/guards/RoleGuard';
+import DealerGuard from '@/guards/DealerGuard';
 import VinLookupPage from '@/pages/VinLookupPage';
 import LookupPage from '@/pages/LookupPage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
 import { AdminAnalyticsDashboard } from '@/components/admin/dashboard/AdminAnalyticsDashboard';
 import SettingsPage from '@/pages/SettingsPage';
 import ViewOfferPage from '@/pages/view-offer/[token]';
@@ -21,6 +21,14 @@ import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
 import DealerInsightsPage from '@/pages/DealerInsightsPage';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
 import PremiumPage from '@/pages/PremiumPage';
+import AccessDeniedPage from '@/pages/AccessDeniedPage';
+
+// Auth pages
+import LoginUserPage from '@/pages/auth/LoginUserPage';
+import LoginDealerPage from '@/pages/auth/LoginDealerPage';
+import RegisterPage from '@/pages/auth/RegisterPage';
+import DealerSignupPage from '@/pages/auth/DealerSignupPage';
+import AuthLandingPage from '@/pages/auth/AuthLandingPage';
 
 // Lazy-loaded components
 const LazyDealerInsightsPage = lazy(() => import('@/pages/DealerInsightsPage'));
@@ -44,10 +52,26 @@ const router = createBrowserRouter([
     element: <AuthLayout />,
     children: [
       {
-        path: 'login',
+        path: 'auth',
         element: (
           <GuestGuard>
-            <LoginPage />
+            <AuthLandingPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'login-user',
+        element: (
+          <GuestGuard>
+            <LoginUserPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'login-dealer',
+        element: (
+          <GuestGuard>
+            <LoginDealerPage />
           </GuestGuard>
         ),
       },
@@ -56,6 +80,14 @@ const router = createBrowserRouter([
         element: (
           <GuestGuard>
             <RegisterPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'dealer-signup',
+        element: (
+          <GuestGuard>
+            <DealerSignupPage />
           </GuestGuard>
         ),
       },
@@ -81,7 +113,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // Dashboard routes
+  // Dashboard routes - for regular users
   {
     path: '/',
     element: <DashboardLayout />,
@@ -95,16 +127,6 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: 'dealer-dashboard',
-        element: (
-          <AuthGuard>
-            <EnhancedErrorBoundary context="dealer-dashboard">
-              <DealerDashboard />
-            </EnhancedErrorBoundary>
-          </AuthGuard>
-        ),
-      },
-      {
         path: 'settings',
         element: (
           <AuthGuard>
@@ -112,32 +134,56 @@ const router = createBrowserRouter([
           </AuthGuard>
         ),
       },
+    ],
+  },
+  // Dealer routes
+  {
+    path: '/',
+    element: <DealerLayout />,
+    children: [
+      {
+        path: 'dealer-dashboard',
+        element: (
+          <DealerGuard>
+            <EnhancedErrorBoundary context="dealer-dashboard">
+              <DealerDashboard />
+            </EnhancedErrorBoundary>
+          </DealerGuard>
+        ),
+      },
       {
         path: 'dealer-insights',
         element: (
-          <AuthGuard>
+          <DealerGuard>
             <EnhancedErrorBoundary context="dealer-insights">
               <Suspense fallback={<PageLoader />}>
                 <LazyDealerInsightsPage />
               </Suspense>
             </EnhancedErrorBoundary>
-          </AuthGuard>
+          </DealerGuard>
         ),
       },
+    ],
+  },
+  // Admin routes
+  {
+    path: '/',
+    element: <DashboardLayout />,
+    children: [
       {
         path: 'admin/dealers',
         element: (
-          <AuthGuard>
+          <RoleGuard allowedRoles={['admin']}>
             <DealerManagement />
-          </AuthGuard>
+          </RoleGuard>
         ),
       },
       {
         path: 'admin/premium-dealers',
         element: (
-          <AuthGuard>
+          <RoleGuard allowedRoles={['admin']}>
             <PremiumDealerManagementPage />
-          </AuthGuard>
+          </RoleGuard>
         ),
       },
     ],
@@ -174,6 +220,11 @@ const router = createBrowserRouter([
         <PaymentCancelledPage />
       </EnhancedErrorBoundary>
     ),
+  },
+  // Access Denied route
+  {
+    path: '/access-denied',
+    element: <AccessDeniedPage />,
   },
 ]);
 

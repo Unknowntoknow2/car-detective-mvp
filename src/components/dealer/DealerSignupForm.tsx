@@ -10,6 +10,7 @@ import {
   EmailField,
   PasswordField
 } from './components/DealerFormFields';
+import { Loader2 } from 'lucide-react';
 
 export function DealerSignupForm() {
   const {
@@ -43,7 +44,14 @@ export function DealerSignupForm() {
           className="w-full" 
           disabled={isLoading}
         >
-          {isLoading ? 'Creating Account...' : 'Create Dealer Account'}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            'Create Dealer Account'
+          )}
         </Button>
 
         <div className="text-center mt-4">
