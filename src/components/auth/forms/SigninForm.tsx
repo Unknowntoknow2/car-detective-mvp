@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Mail, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -43,11 +43,11 @@ export const SigninForm = ({ isLoading, setIsLoading, redirectPath }: SigninForm
       const result = await signIn(email, password);
       
       if (result?.error) {
-        if (result.error.includes('Invalid login')) {
+        if (result.error.toString().includes('Invalid login')) {
           toast.error('Invalid email or password');
         } else {
-          setError(result.error || 'Failed to sign in');
-          toast.error(result.error || 'Failed to sign in');
+          setError(result.error.toString() || 'Failed to sign in');
+          toast.error(result.error.toString() || 'Failed to sign in');
         }
         setIsLoading(false);
         return;

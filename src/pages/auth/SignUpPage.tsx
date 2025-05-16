@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SignupForm } from '@/components/auth/forms/SignupForm';
 import MainLayout from '@/components/layout/MainLayout';
+import { SignupForm } from '@/components/auth/forms/SignupForm';
 
 const SignUpPage: React.FC = () => {
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <MainLayout>

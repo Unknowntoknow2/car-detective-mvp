@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Mail, KeyRound, User, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -61,13 +61,13 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     try {
       console.log("SignupForm: Attempting signup with", email);
       // Call signUp with user metadata including the name
-      const result = await signUp(email, password, fullName);
+      const result = await signUp(email, password);
       
       if (result?.error) {
-        if (result.error.includes('already registered')) {
+        if (result.error.toString().includes('already registered')) {
           toast.error('This email is already registered. Please sign in instead.');
         } else {
-          setError(result.error || 'Failed to create account');
+          setError(result.error.toString() || 'Failed to create account');
         }
         setIsLoading(false);
         return;
