@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Mail, KeyRound } from 'lucide-react';
+import { Loader2, Mail, KeyRound, User, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -15,14 +15,22 @@ interface SignupFormProps {
 }
 
 export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   
   const navigate = useNavigate();
   const { signUp } = useAuth();
+
+  // Form validation
+  const isEmailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isPasswordValid = () => password.length >= 6;
+  const isFormValid = fullName && isEmailValid() && isPasswordValid() && 
+                     password === confirmPassword && termsAccepted;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,17 +44,31 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       setError('You must accept the terms and conditions');
       return;
     }
+
+    if (!isPasswordValid()) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (!fullName) {
+      setError('Please enter your full name');
+      return;
+    }
     
     setError(null);
     setIsLoading(true);
     
     try {
       console.log("SignupForm: Attempting signup with", email);
-      // Ensure we only pass email and password to signUp
-      const result = await signUp(email, password);
+      // Call signUp with user metadata including the name
+      const result = await signUp(email, password, fullName);
       
       if (result?.error) {
-        setError(result.error || 'Failed to create account');
+        if (result.error.includes('already registered')) {
+          toast.error('This email is already registered. Please sign in instead.');
+        } else {
+          setError(result.error || 'Failed to create account');
+        }
         setIsLoading(false);
         return;
       }
@@ -54,11 +76,12 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       // Navigate to login page after successful signup
       toast.success("Account created successfully! Please sign in.");
       setTimeout(() => {
-        navigate('/auth', { state: { tab: 'login' } });
+        navigate('/sign-in');
       }, 1000);
-    } catch (err) {
+    } catch (err: any) {
       setError('An unexpected error occurred');
       console.error('Signup error:', err);
+      toast.error(err.message || 'Failed to create account');
       setIsLoading(false);
     }
   };
@@ -70,6 +93,24 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
           {error}
         </div>
       )}
+      
+      <div className="space-y-2">
+        <Label htmlFor="fullName">Full Name</Label>
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="fullName"
+            name="fullName"
+            type="text"
+            placeholder="Your full name"
+            className="pl-10"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
+      </div>
       
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
@@ -85,8 +126,12 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={isLoading}
+            aria-invalid={email ? !isEmailValid() : false}
           />
         </div>
+        {email && !isEmailValid() && (
+          <p className="text-xs text-red-500">Please enter a valid email address</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -96,15 +141,28 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
           <Input
             id="password"
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Create a strong password"
-            className="pl-10"
+            className="pl-10 pr-10"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={isLoading}
+            aria-invalid={password ? !isPasswordValid() : false}
           />
+          <Button 
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </div>
+        {password && !isPasswordValid() && (
+          <p className="text-xs text-red-500">Password must be at least 6 characters</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -114,15 +172,19 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
           <Input
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Confirm your password"
             className="pl-10"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             disabled={isLoading}
+            aria-invalid={confirmPassword ? password !== confirmPassword : false}
           />
         </div>
+        {confirmPassword && password !== confirmPassword && (
+          <p className="text-xs text-red-500">Passwords do not match</p>
+        )}
       </div>
       
       <div className="flex items-center space-x-2">
@@ -141,7 +203,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       <Button 
         type="submit" 
         className="w-full"
-        disabled={isLoading || !termsAccepted}
+        disabled={isLoading || !isFormValid}
       >
         {isLoading ? (
           <>
