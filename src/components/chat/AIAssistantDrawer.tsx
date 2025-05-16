@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { askAI } from '@/api/askAI';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
+import { ChatMessage } from './ChatMessage';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -144,54 +145,43 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-md md:max-w-lg w-full p-0 flex flex-col h-full">
-        <SheetHeader className="p-4 border-b">
-          <SheetTitle className="flex items-center">
-            <Sparkles className="h-5 w-5 mr-2 text-primary" />
-            <span>AIN — Auto Intelligence Network™</span>
-          </SheetTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={clearChat}
-            className="text-xs text-muted-foreground"
-          >
-            Clear Chat
-          </Button>
+      <SheetContent className="sm:max-w-md md:max-w-lg w-full p-0 flex flex-col h-full bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+        <SheetHeader className="p-4 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="relative mr-3">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 animate-pulse opacity-30"></div>
+                <div className="relative bg-white dark:bg-slate-800 rounded-full p-2">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <SheetTitle className="text-lg">AIN — Auto Intelligence Network™</SheetTitle>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearChat}
+              className="text-xs text-muted-foreground"
+            >
+              Clear Chat
+            </Button>
+          </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-white/80 to-white dark:from-slate-900/80 dark:to-slate-900">
           {messages.map((message, index) => (
-            <div
+            <ChatMessage
               key={index}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                {message.timestamp && (
-                  <p className="text-xs opacity-70 mt-1">
-                    {new Date(message.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                )}
-              </div>
-            </div>
+              role={message.role}
+              content={message.content}
+              timestamp={message.timestamp ? new Date(message.timestamp).toISOString() : undefined}
+            />
           ))}
           
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-muted rounded-lg p-3">
-                <div className="flex items-center">
+              <div className="bg-muted rounded-xl p-3 max-w-[80%]">
+                <div className="flex items-center space-x-2">
                   <span className="typing-dot"></span>
                   <span className="typing-dot"></span>
                   <span className="typing-dot"></span>
@@ -203,10 +193,10 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 border-t mt-auto">
+        <div className="p-4 border-t bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <div className="flex items-center space-x-2">
             <textarea
-              className="flex-1 min-h-[40px] max-h-[120px] p-2 rounded-md border resize-none bg-background"
+              className="flex-1 min-h-[40px] max-h-[120px] p-3 rounded-xl border resize-none bg-background focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
               placeholder="Ask me anything about your vehicle..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -217,7 +207,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
             <Button 
               onClick={handleSendMessage} 
               disabled={!input.trim() || isLoading}
-              className="h-10 w-10 p-2 rounded-full"
+              className="h-10 w-10 p-2 rounded-full bg-primary hover:bg-primary/90 transition-colors shadow-md"
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
