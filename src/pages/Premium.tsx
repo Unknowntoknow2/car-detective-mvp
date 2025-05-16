@@ -1,11 +1,11 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { PremiumHero } from '@/components/premium/PremiumHero';
 import { Container } from '@/components/ui/container';
 import PremiumManualEntryForm from '@/components/lookup/manual/PremiumManualEntryForm';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useValuation } from '@/contexts/ValuationContext';
+import { PremiumHero } from '@/components/premium/PremiumHero';
 
 const Premium: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
