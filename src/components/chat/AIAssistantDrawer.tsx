@@ -8,10 +8,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { askAI } from '@/api/askAI';
 import { useValuationContext } from '@/hooks/useValuationContext';
+import { supabase } from '@/integrations/supabase/client';
 
-// GPT_AI_ASSISTANT_V1
+// Updated interface for structured message history
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
 }
@@ -25,9 +26,36 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
   const [question, setQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { vehicle, valuationId } = useValuationContext();
+  const [userProfile, setUserProfile] = useState<{ first_name?: string } | null>(null);
+
+  // Load user profile if logged in
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('first_name')
+            .eq('id', user.id)
+            .single();
+          
+          if (!error && data) {
+            setUserProfile(data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+      }
+    };
+
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
 
   // Load messages from localStorage on first render
   useEffect(() => {
@@ -35,11 +63,21 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
       const storedMessages = localStorage.getItem('carDetective_chatHistory');
       if (storedMessages) {
         setMessages(JSON.parse(storedMessages));
+      } else {
+        // Set welcome message if no previous messages
+        const welcomeMessage: Message = {
+          role: 'assistant',
+          content: userProfile?.first_name 
+            ? `Hello ${userProfile.first_name}! I'm AIN — Auto Intelligence Network™. How can I help with your vehicle questions today?` 
+            : 'Hello! I'm AIN — Auto Intelligence Network™. How can I help with your vehicle questions today?',
+          timestamp: Date.now()
+        };
+        setMessages([welcomeMessage]);
       }
     } catch (error) {
       console.error('Failed to load chat history:', error);
     }
-  }, []);
+  }, [userProfile]);
 
   // Save messages to localStorage whenever messages change
   useEffect(() => {
@@ -59,6 +97,17 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
     }
   }, [messages]);
 
+  // Simulated typing effect
+  useEffect(() => {
+    let typingTimer: NodeJS.Timeout;
+    if (isTyping) {
+      typingTimer = setTimeout(() => {
+        setIsTyping(false);
+      }, 2000);
+    }
+    return () => clearTimeout(typingTimer);
+  }, [isTyping]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -74,12 +123,15 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
     setMessages(prev => [...prev, userMessage]);
     setQuestion('');
     setIsLoading(true);
+    setIsTyping(true);
     
     try {
       // Prepare context from user data if available
-      const userContext = user ? {
-        userId: user.id,
-        email: user.email,
+      const userContext = {
+        userId: user?.id,
+        email: user?.email,
+        role: user?.user_metadata?.role || 'individual',
+        firstName: userProfile?.first_name,
         // Add vehicle context if available
         vehicleInfo: vehicle ? {
           make: vehicle.make,
@@ -88,8 +140,10 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
           mileage: vehicle.mileage,
           trim: vehicle.trim,
           bodyType: vehicle.bodyType
-        } : undefined
-      } : null;
+        } : undefined,
+        // Only include last 3 messages for context
+        valuationId
+      };
       
       // Get chat history for context (last 3 messages)
       const chatHistory = messages.slice(-3);
@@ -116,6 +170,13 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
     } catch (error: any) {
       console.error('Failed to get AI response:', error);
       toast.error('Failed to get a response. Please try again later.');
+      
+      // Add error message to chat
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "I'm sorry, I couldn't process your request. Please try again later.",
+        timestamp: Date.now()
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +250,15 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
                   </div>
                 </div>
               ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-lg p-3 flex items-center gap-1">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
           )}

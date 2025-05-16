@@ -1,5 +1,4 @@
 
-// GPT_AI_ASSISTANT_V1
 // Rate limiting variables
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
 const MAX_REQUESTS_PER_WINDOW = 5;
@@ -50,8 +49,8 @@ export default async function handler(
   ipRequestCounts[clientIp].count += 1;
 
   try {
-    // Extract question from request body
-    const { question, userContext, chatHistory } = await req.json();
+    // Extract data from request body
+    const { question, userContext, systemPrompt, chatHistory } = await req.json();
     
     if (!question || typeof question !== 'string') {
       return new Response(JSON.stringify({ error: 'Question is required' }), {
@@ -72,7 +71,7 @@ export default async function handler(
     const messages = [
       {
         role: 'system',
-        content: `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+        content: systemPrompt || `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
 
 Use the user's context (make, model, year, mileage, condition, ZIP, premium status, dealer role) to give smart, helpful answers. Always respond in a confident, conversational tone.
 

@@ -1,7 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// GPT_AI_ASSISTANT_V1
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -14,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, userContext, chatHistory } = await req.json();
+    const { question, userContext, chatHistory, systemPrompt } = await req.json();
     
     if (!question || typeof question !== 'string') {
       return new Response(
@@ -37,7 +36,7 @@ serve(async (req) => {
     const messages = [
       {
         role: 'system',
-        content: `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+        content: systemPrompt || `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
 
 Use the user's context (make, model, year, mileage, condition, ZIP, premium status, dealer role) to give smart, helpful answers. Always respond in a confident, conversational tone.
 
