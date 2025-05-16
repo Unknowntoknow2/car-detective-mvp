@@ -56,6 +56,7 @@ export interface ValuationResultProps {
   valuation?: number;
   isManualValuation?: boolean;
   features?: string[];
+  color?: string; // Added for compatibility with other usages
 }
 
 export interface ValuationInput {
