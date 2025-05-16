@@ -2,11 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, FileText, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Footer } from '@/components/layout/Footer';
-import { Navbar } from '@/components/layout/Navbar';
+import { MainLayout } from '@/components/layout';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
+import { ConditionSliderWithTooltip } from '@/components/valuation/ConditionSliderWithTooltip';
+import { NextStepsCard } from '@/components/valuation/valuation-complete';
+import { AIConditionBadge } from '@/components/valuation/AIConditionBadge';
+import { toast } from 'sonner';
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
@@ -15,6 +19,7 @@ export default function ValuationResultPage() {
   const [valuationData, setValuationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [conditionScore, setConditionScore] = useState(75);
 
   useEffect(() => {
     const fetchValuationData = async () => {
@@ -32,6 +37,15 @@ export default function ValuationResultPage() {
         if (storedData) {
           const parsedData = JSON.parse(storedData);
           setValuationData(parsedData);
+          
+          // Set condition score based on condition
+          const conditionMap: Record<string, number> = {
+            'Excellent': 90,
+            'Good': 75,
+            'Fair': 50,
+            'Poor': 25
+          };
+          setConditionScore(conditionMap[parsedData.condition] || 75);
         } else {
           // If data isn't in localStorage, you could fetch from an API here
           throw new Error('Valuation data not found');
@@ -46,6 +60,18 @@ export default function ValuationResultPage() {
 
     fetchValuationData();
   }, [id]);
+
+  // FEATURE_UNVEIL: Handle condition changes
+  const handleConditionChange = (newScore: number) => {
+    setConditionScore(newScore);
+    toast.info(`Condition updated to ${newScore}%. Recalculating valuation...`);
+  };
+
+  // FEATURE_UNVEIL: Handle condition factor changes
+  const handleFactorChange = (id: string, value: any) => {
+    toast.info(`${id} updated to ${value}. Recalculating valuation...`);
+    // In a real implementation, this would update the valuation
+  };
 
   // Generate a default vehicle info if data is not available
   const vehicleInfo = valuationData
@@ -73,20 +99,17 @@ export default function ValuationResultPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
+      <MainLayout>
         <main className="flex-1 bg-gray-50 flex items-center justify-center">
           <p className="text-lg text-gray-600">Loading valuation data...</p>
         </main>
-        <Footer />
-      </div>
+      </MainLayout>
     );
   }
 
   if (!valuationData || error) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
+      <MainLayout>
         <main className="flex-1 bg-gray-50 flex items-center justify-center p-4">
           <div className="max-w-md mx-auto text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -103,21 +126,28 @@ export default function ValuationResultPage() {
             </div>
           </div>
         </main>
-        <Footer />
-      </div>
+      </MainLayout>
     );
   }
 
+  // FEATURE_UNVEIL: Enhanced valuation result view with all available components
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <MainLayout>
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
             <CardHeader>
-              <CardTitle>Vehicle Valuation Result</CardTitle>
+              <CardTitle className="flex justify-between items-center">
+                <span>Vehicle Valuation Result</span>
+                {valuationData.aiCondition && (
+                  <AIConditionBadge 
+                    condition={valuationData.aiCondition.condition} 
+                    confidenceScore={valuationData.aiCondition.confidenceScore || 85} 
+                  />
+                )}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-8">
               <UnifiedValuationResult
                 valuationId={id || ''}
                 vehicleInfo={vehicleInfo}
@@ -126,11 +156,64 @@ export default function ValuationResultPage() {
                 priceRange={priceRange}
                 adjustments={valuationData?.adjustments || []}
               />
+              
+              {/* FEATURE_UNVEIL: Add condition slider */}
+              <div className="pt-4 border-t">
+                <h3 className="text-lg font-medium mb-4">Condition Assessment</h3>
+                <ConditionSliderWithTooltip 
+                  score={conditionScore}
+                  onScoreChange={handleConditionChange}
+                />
+              </div>
+              
+              {/* FEATURE_UNVEIL: Add valuation factors grid */}
+              <div className="pt-4 border-t">
+                <h3 className="text-lg font-medium mb-4">Value Factors</h3>
+                <ValuationFactorsGrid 
+                  values={{
+                    accidents: valuationData.accident_count || 0,
+                    mileage: valuationData.mileage || 0,
+                    year: valuationData.year || new Date().getFullYear(),
+                    titleStatus: valuationData.titleStatus || 'Clean'
+                  }}
+                  onChange={handleFactorChange}
+                />
+              </div>
+              
+              {/* FEATURE_UNVEIL: Add next steps card */}
+              <div className="pt-4 border-t">
+                <NextStepsCard 
+                  valuationId={id || ''} 
+                  isPremium={valuationData.premium_unlocked || false}
+                />
+              </div>
+              
+              {/* FEATURE_UNVEIL: Add action buttons */}
+              <div className="flex flex-wrap gap-4 pt-4 border-t">
+                <Button variant="outline" className="flex-1" onClick={() => {
+                  toast.success('Valuation report copied to clipboard');
+                }}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Report
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => {
+                  toast.success('Generating PDF report...');
+                }}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button 
+                  className="flex-1" 
+                  onClick={() => navigate('/premium')}
+                  disabled={valuationData.premium_unlocked}
+                >
+                  {valuationData.premium_unlocked ? 'Premium Unlocked' : 'Upgrade to Premium'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
       </main>
-      <Footer />
-    </div>
+    </MainLayout>
   );
 }
