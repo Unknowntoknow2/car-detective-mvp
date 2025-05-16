@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -6,8 +5,11 @@ import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function VinLookupPage() {
+  const { user } = useAuth();
   const [showManualEntry, setShowManualEntry] = useState(false);
 
   const toggleManualEntry = () => {
@@ -21,7 +23,22 @@ export default function VinLookupPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="container mx-auto px-4 py-8">
+      {/* Add Auth Button at the top if not logged in */}
+      {!user && (
+        <div className="flex justify-end mb-6">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2" 
+            asChild
+          >
+            <Link to="/auth">
+              Sign In / Register
+            </Link>
+          </Button>
+        </div>
+      )}
+      
       <AnnouncementBar />
       <Navbar />
       <main className="flex-1 container max-w-2xl py-8 sm:py-12 px-4 sm:px-6 lg:px-8">

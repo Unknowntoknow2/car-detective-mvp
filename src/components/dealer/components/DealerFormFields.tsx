@@ -1,165 +1,134 @@
 
+import React from 'react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { UseFormReturn } from 'react-hook-form';
-import { DealerSignupFormData } from '../hooks/useDealerSignup';
+import { Building, Mail, User, Phone, KeyRound } from 'lucide-react';
 
-// Full Name Field
-export const FullNameField = ({ 
-  form, 
-  isLoading 
-}: { 
-  form: UseFormReturn<DealerSignupFormData>,
-  isLoading: boolean 
-}) => (
+export const FullNameField = ({ form, isLoading }) => (
   <FormField
     control={form.control}
     name="fullName"
     render={({ field }) => (
       <FormItem>
         <FormLabel>Full Name</FormLabel>
-        <FormControl>
-          <Input 
-            placeholder="Enter your full name"
-            {...field}
-            disabled={isLoading}
-          />
-        </FormControl>
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <FormControl>
+            <Input 
+              placeholder="Your full name" 
+              className="pl-10" 
+              {...field} 
+              disabled={isLoading} 
+            />
+          </FormControl>
+        </div>
         <FormMessage />
       </FormItem>
     )}
   />
 );
 
-// Dealership Name Field
-export const DealershipNameField = ({ 
-  form, 
-  isLoading, 
-  dealershipError,
-  setDealershipError 
-}: { 
-  form: UseFormReturn<DealerSignupFormData>,
-  isLoading: boolean,
-  dealershipError: string,
-  setDealershipError: (error: string) => void
-}) => (
+export const DealershipNameField = ({ form, isLoading, dealershipError, setDealershipError }) => (
   <FormField
     control={form.control}
     name="dealershipName"
     render={({ field }) => (
       <FormItem>
         <FormLabel>Dealership Name</FormLabel>
-        <FormControl>
-          <Input 
-            placeholder="Enter your dealership name"
-            {...field}
-            disabled={isLoading}
-            onChange={(e) => {
-              field.onChange(e);
-              setDealershipError('');
-            }}
-          />
-        </FormControl>
-        {dealershipError && (
+        <div className="relative">
+          <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <FormControl>
+            <Input 
+              placeholder="Your dealership name" 
+              className="pl-10"
+              {...field} 
+              disabled={isLoading} 
+              onChange={(e) => {
+                field.onChange(e);
+                if (dealershipError) setDealershipError('');
+              }}
+            />
+          </FormControl>
+        </div>
+        {dealershipError ? (
           <p className="text-sm font-medium text-destructive">{dealershipError}</p>
+        ) : (
+          <FormMessage />
         )}
-        <FormMessage />
       </FormItem>
     )}
   />
 );
 
-// Phone Number Field
-export const PhoneField = ({ 
-  form, 
-  isLoading 
-}: { 
-  form: UseFormReturn<DealerSignupFormData>,
-  isLoading: boolean 
-}) => (
+export const PhoneField = ({ form, isLoading }) => (
   <FormField
     control={form.control}
     name="phone"
     render={({ field }) => (
       <FormItem>
-        <FormLabel>Phone Number (Optional)</FormLabel>
-        <FormControl>
-          <Input 
-            placeholder="Enter phone number (e.g. +1234567890)"
-            {...field}
-            type="tel"
-            disabled={isLoading}
-          />
-        </FormControl>
-        <FormDescription>
-          Include country code (e.g. +1 for US)
-        </FormDescription>
+        <FormLabel>Phone (optional)</FormLabel>
+        <div className="relative">
+          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <FormControl>
+            <Input 
+              placeholder="Contact phone number" 
+              type="tel"
+              className="pl-10"
+              {...field} 
+              disabled={isLoading} 
+            />
+          </FormControl>
+        </div>
         <FormMessage />
       </FormItem>
     )}
   />
 );
 
-// Email Field
-export const EmailField = ({ 
-  form, 
-  isLoading 
-}: { 
-  form: UseFormReturn<DealerSignupFormData>,
-  isLoading: boolean 
-}) => (
+export const EmailField = ({ form, isLoading }) => (
   <FormField
     control={form.control}
     name="email"
     render={({ field }) => (
       <FormItem>
         <FormLabel>Email</FormLabel>
-        <FormControl>
-          <Input 
-            type="email"
-            placeholder="Enter your email"
-            {...field}
-            disabled={isLoading}
-          />
-        </FormControl>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <FormControl>
+            <Input 
+              placeholder="Your email address" 
+              type="email"
+              className="pl-10"
+              {...field} 
+              disabled={isLoading} 
+            />
+          </FormControl>
+        </div>
         <FormMessage />
       </FormItem>
     )}
   />
 );
 
-// Password Field
-export const PasswordField = ({ 
-  form, 
-  isLoading 
-}: { 
-  form: UseFormReturn<DealerSignupFormData>,
-  isLoading: boolean 
-}) => (
+export const PasswordField = ({ form, isLoading }) => (
   <FormField
     control={form.control}
     name="password"
     render={({ field }) => (
       <FormItem>
         <FormLabel>Password</FormLabel>
-        <FormControl>
-          <Input 
-            type="password"
-            placeholder="Create a password"
-            {...field}
-            disabled={isLoading}
-          />
-        </FormControl>
-        <FormDescription>
-          Password must contain at least 8 characters, including uppercase, lowercase, and numbers
-        </FormDescription>
+        <div className="relative">
+          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <FormControl>
+            <Input 
+              placeholder="Create a secure password" 
+              type="password"
+              className="pl-10"
+              {...field} 
+              disabled={isLoading} 
+            />
+          </FormControl>
+        </div>
         <FormMessage />
       </FormItem>
     )}
