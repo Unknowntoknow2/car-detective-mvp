@@ -4,14 +4,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { BrainCircuit } from 'lucide-react';
 import { format } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp?: string;
+  isPremiumContent?: boolean;
 }
 
-export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
+export function ChatMessage({ role, content, timestamp, isPremiumContent }: ChatMessageProps) {
   const isUser = role === 'user';
   // System messages are styled like assistant messages
   const isSystem = role === 'system';
@@ -46,7 +48,21 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
               ? "bg-muted/80 border border-muted-foreground/10 rounded-tl-none"
               : "bg-muted rounded-tl-none"
         )}>
-          <p className="whitespace-pre-wrap text-sm">{content}</p>
+          {isUser ? (
+            <p className="whitespace-pre-wrap text-sm">{content}</p>
+          ) : (
+            <ReactMarkdown 
+              className="whitespace-pre-wrap text-sm prose prose-sm dark:prose-invert max-w-none"
+            >
+              {content}
+            </ReactMarkdown>
+          )}
+          
+          {isPremiumContent && !isUser && (
+            <div className="text-xs mt-2 text-yellow-600 dark:text-yellow-400 italic">
+              🔒 Premium required to access this insight.
+            </div>
+          )}
         </div>
         
         {timestamp && (
