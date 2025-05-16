@@ -1,5 +1,12 @@
+// src/components/lookup/types/manualEntry.ts
 
-// src/types/manualEntry.ts
+export enum ConditionLevel {
+  Excellent = "Excellent",
+  VeryGood = "Very Good",
+  Good = "Good",
+  Fair = "Fair",
+  Poor = "Poor"
+}
 
 export interface ManualEntryFormData {
   make: string;
@@ -20,7 +27,7 @@ export interface ManualEntryFormData {
   accident?: string | boolean;
   accidentDetails?: AccidentDetails;
   selectedFeatures?: string[];
-  features?: string[]; // Added features property
+  features?: string[];
 }
 
 export interface AccidentDetails {
@@ -30,11 +37,4 @@ export interface AccidentDetails {
   repaired?: boolean;
   hasAccident?: boolean;
   area?: string;
-}
-
-export enum ConditionLevel {
-  Excellent = 'excellent',
-  Good = 'good',
-  Fair = 'fair',
-  Poor = 'poor'
 }
