@@ -11,13 +11,21 @@ export interface LookupTabsProps {
   onLookupChange?: (value: 'vin' | 'plate' | 'manual') => void;
   onSubmit?: (type: string, value: string, state?: string) => void;
   isLoading?: boolean;
+  formProps?: {
+    onSubmit: (data: ManualEntryFormData) => void;
+    isLoading: boolean;
+    submitButtonText: string;
+    onVinLookup?: (vin: string) => Promise<any>;
+    onPlateLookup?: (plate: string, state: string) => Promise<any>;
+  };
 }
 
 export function LookupTabs({ 
   lookup = 'vin',
   onLookupChange,
   onSubmit,
-  isLoading = false
+  isLoading = false,
+  formProps
 }: LookupTabsProps) {
   const [activeTab, setActiveTab] = useState<'vin' | 'plate' | 'manual'>(lookup);
   
@@ -31,21 +39,27 @@ export function LookupTabs({
   
   const handleVinSubmit = (vin: string) => {
     console.log("VIN submitted:", vin);
-    if (onSubmit) {
+    if (formProps?.onVinLookup) {
+      formProps.onVinLookup(vin);
+    } else if (onSubmit) {
       onSubmit('vin', vin);
     }
   };
   
   const handlePlateSubmit = (plate: string, state: string) => {
     console.log("Plate submitted:", plate, state);
-    if (onSubmit) {
+    if (formProps?.onPlateLookup) {
+      formProps.onPlateLookup(plate, state);
+    } else if (onSubmit) {
       onSubmit('plate', plate, state);
     }
   };
   
   const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log("Manual data submitted:", data);
-    if (onSubmit) {
+    if (formProps?.onSubmit) {
+      formProps.onSubmit(data);
+    } else if (onSubmit) {
       // Convert the data to a string for consistent handling
       onSubmit('manual', JSON.stringify(data));
     }
@@ -70,8 +84,8 @@ export function LookupTabs({
       <TabsContent value="manual" className="mt-4">
         <PremiumManualEntryForm 
           onSubmit={handleManualSubmit}
-          isLoading={isLoading}
-          submitButtonText="Submit for Premium Valuation"
+          isLoading={formProps?.isLoading || isLoading}
+          submitButtonText={formProps?.submitButtonText || "Submit for Premium Valuation"}
         />
       </TabsContent>
     </Tabs>
