@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 interface MainLayoutProps {
@@ -7,6 +7,13 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  // Add diagnostic logging
+  console.log('🔄 MainLayout rendering...');
+  
+  useEffect(() => {
+    console.log('✅ MainLayout mounted');
+  }, []);
+  
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white shadow-sm dark:bg-gray-800">
@@ -25,6 +32,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </header>
       
       <main className="w-full">
+        {/* Fallback to ensure children are rendered */}
+        {!children && (
+          <div className="p-4 bg-red-100 text-red-800">
+            Warning: No children passed to MainLayout!
+          </div>
+        )}
         {children}
       </main>
       

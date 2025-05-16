@@ -16,37 +16,41 @@ import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 const App = () => {
+  console.log('🔄 App component rendering...');
+  
   return (
     <AuthProvider>
       <Toaster richColors position="top-center" />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
-        <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/access-denied" element={<AccessDeniedPage />} />
-        <Route path="/premium" element={<Premium />} />
+      <div className="app-root">
+        <Routes>
+          {/* Public Routes - with fallback rendering */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/access-denied" element={<AccessDeniedPage />} />
+          <Route path="/premium" element={<Premium />} />
 
-        {/* Protected User Dashboard */}
-        <Route
-          path="/dashboard"
-          element={
-            <AuthenticatedLayout>
-              <Dashboard />
-            </AuthenticatedLayout>
-          }
-        />
+          {/* Protected User Dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              <AuthenticatedLayout>
+                <Dashboard />
+              </AuthenticatedLayout>
+            }
+          />
 
-        {/* Protected Dealer Dashboard */}
-        <Route
-          path="/dealer/*"
-          element={
-            <AuthenticatedLayout requireRole="dealer">
-              <DealerDashboardRoutes />
-            </AuthenticatedLayout>
-          }
-        />
-      </Routes>
+          {/* Protected Dealer Dashboard */}
+          <Route
+            path="/dealer/*"
+            element={
+              <AuthenticatedLayout requireRole="dealer">
+                <DealerDashboardRoutes />
+              </AuthenticatedLayout>
+            }
+          />
+        </Routes>
+      </div>
     </AuthProvider>
   );
 };
