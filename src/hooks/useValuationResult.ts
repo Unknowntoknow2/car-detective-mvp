@@ -76,10 +76,8 @@ export function useValuationResult(valuationId: string) {
             ];
           }
           
-          // Set id property to match valuationId if not present
-          if (!parsedData.id) {
-            parsedData.id = valuationId;
-          }
+          // Ensure id property is set and is not optional for the returned data
+          parsedData.id = parsedData.id || valuationId;
           
           // Add created_at if not present
           if (!parsedData.created_at) {
