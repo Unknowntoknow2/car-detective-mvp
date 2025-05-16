@@ -14,6 +14,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  isLoading: boolean; // Alias for loading
 }
 
 // Create a mock implementation for development
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signOut: async () => {},
   loading: false,
+  isLoading: false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -92,7 +94,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, userRole, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      userRole, 
+      signIn, 
+      signOut, 
+      loading,
+      isLoading: loading // Add alias for compatibility
+    }}>
       {children}
     </AuthContext.Provider>
   );

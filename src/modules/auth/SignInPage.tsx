@@ -9,7 +9,7 @@ const SignInPage: React.FC = () => {
       <h1 className="text-2xl font-bold mb-4">Sign In</h1>
       <LoginForm />
       <p className="mt-4">
-        Don't have an account? <Link to="/signup" className="text-blue-500 hover:underline">Sign up</Link>
+        Don't have an account? <Link to="/sign-up" className="text-blue-500 hover:underline">Sign up</Link>
       </p>
     </div>
   );
