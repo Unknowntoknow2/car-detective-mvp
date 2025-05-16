@@ -1,3 +1,4 @@
+
 import { Routes, Route } from 'react-router-dom';
 import HomePage from '@/pages/HomePage';
 import { Toaster } from 'sonner';
@@ -12,7 +13,7 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 import DealerDashboardRoutes from '@/pages/dealer/DealerDashboardRoutes';
 
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
-import { AuthProvider } from '@/hooks/useAuth'; // ✅ This assumes your `useAuth.tsx` exports `AuthProvider`
+import { AuthProvider } from '@/components/auth/AuthProvider'; // Updating import to use the correct AuthProvider
 
 const App = () => {
   return (
