@@ -42,7 +42,7 @@ export interface ValuationResult {
   zip?: string;
   created_at?: string; 
   createdAt?: string; // Add this for compatibility
-  premium_unlocked?: boolean;
+  premium_unlocked?: boolean; // Add this property for premium features
 }
 
 export interface ValuationResultProps {

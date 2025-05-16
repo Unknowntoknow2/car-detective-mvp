@@ -83,6 +83,9 @@ export function useValuationResult(valuationId: string) {
           // Add created_at if not present, make sure it's not optional
           parsedData.created_at = parsedData.created_at || new Date().toISOString();
           
+          // Add premium_unlocked if not present
+          parsedData.premium_unlocked = parsedData.premium_unlocked || false;
+          
           setData(parsedData as ValuationResult);
         } else {
           // In a real app, you'd fetch from an API here
