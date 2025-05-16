@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
+import { MainLayout } from '@/components/layout';
 import { useSearchParams, useParams } from 'react-router-dom';
 import ValuationResult from '@/components/valuation/ValuationResult';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -20,9 +19,8 @@ export default function ResultsPage() {
   }, [valuationId]);
   
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1 py-8">
+    <MainLayout>
+      <main className="py-8">
         {error ? (
           <div className="container mx-auto px-4">
             <Alert variant="destructive">
@@ -37,7 +35,6 @@ export default function ResultsPage() {
           />
         )}
       </main>
-      <Footer />
-    </div>
+    </MainLayout>
   );
 }
