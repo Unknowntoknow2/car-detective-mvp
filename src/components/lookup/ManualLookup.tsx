@@ -1,6 +1,5 @@
-
 import React from 'react';
-import ManualEntryForm from '@/components/lookup/manual/ManualEntryForm';
+import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface ManualLookupProps {
@@ -29,3 +28,4 @@ export function ManualLookup({
     </Card>
   );
 }
+

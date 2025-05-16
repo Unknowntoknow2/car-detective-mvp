@@ -10,6 +10,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import ValuationResultPage from './pages/ValuationResultPage';
+import ResultPage from './pages/ResultPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
 import DealerLayoutPage from './pages/dealer/DealerLayoutPage';
@@ -54,6 +55,10 @@ const routes: RouteObject[] = [
       {
         path: 'valuation/result/:id',
         element: <ValuationResultPage />
+      },
+      {
+        path: 'result',
+        element: <ResultPage />
       },
       {
         path: 'profile',

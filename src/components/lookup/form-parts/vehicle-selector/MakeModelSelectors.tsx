@@ -1,9 +1,21 @@
 
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React from 'react';
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface MakeModelSelectorsProps {
   selectedMake: string;
@@ -14,8 +26,8 @@ interface MakeModelSelectorsProps {
   setMakesOpen: (open: boolean) => void;
   modelsOpen: boolean;
   setModelsOpen: (open: boolean) => void;
-  filteredMakes: any[];
-  filteredModels: any[];
+  filteredMakes: string[];
+  filteredModels: string[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   modelSearchTerm: string;
@@ -24,7 +36,7 @@ interface MakeModelSelectorsProps {
   required?: boolean;
 }
 
-export const MakeModelSelectors = ({
+export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
   selectedMake,
   setSelectedMake,
   selectedModel,
@@ -33,34 +45,21 @@ export const MakeModelSelectors = ({
   setMakesOpen,
   modelsOpen,
   setModelsOpen,
-  filteredMakes,
-  filteredModels,
+  filteredMakes = [],
+  filteredModels = [],
   searchTerm,
   setSearchTerm,
   modelSearchTerm,
   setModelSearchTerm,
   disabled = false,
   required = false
-}: MakeModelSelectorsProps) => {
-  const handleMakeSelect = (make: string) => {
-    if (make !== selectedMake) {
-      setSelectedMake(make);
-      setSelectedModel('');
-      setModelSearchTerm('');
-    }
-    setMakesOpen(false);
-  };
-
-  const handleModelSelect = (model: string) => {
-    setSelectedModel(model);
-    setModelsOpen(false);
-  };
-
+}) => {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="space-y-2">
-        <label htmlFor="make" className="text-sm font-medium">
-          Make {required && <span className="text-destructive">*</span>}
+    <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+      {/* Make Selector */}
+      <div className="flex-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Make {required && <span className="text-red-500">*</span>}
         </label>
         <Popover open={makesOpen} onOpenChange={setMakesOpen}>
           <PopoverTrigger asChild>
@@ -68,11 +67,7 @@ export const MakeModelSelectors = ({
               variant="outline"
               role="combobox"
               aria-expanded={makesOpen}
-              className={cn(
-                "w-full justify-between bg-white",
-                !selectedMake && "text-muted-foreground",
-                disabled && "opacity-50 cursor-not-allowed"
-              )}
+              className="w-full justify-between"
               disabled={disabled}
             >
               {selectedMake || "Select make..."}
@@ -86,43 +81,41 @@ export const MakeModelSelectors = ({
                 value={searchTerm}
                 onValueChange={setSearchTerm}
               />
-              <CommandGroup>
-                {filteredMakes.map(make => (
-                  <CommandItem
-                    key={make.id}
-                    value={make.make_name}
-                    onSelect={handleMakeSelect}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedMake === make.make_name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex items-center">
-                      {make.logo_url && (
-                        <img 
-                          src={make.logo_url} 
-                          alt={`${make.make_name} logo`} 
-                          className="h-5 w-5 mr-2 object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
+              <CommandList>
+                <CommandEmpty>No makes found.</CommandEmpty>
+                {Array.isArray(filteredMakes) && filteredMakes.length > 0 && (
+                  <CommandGroup>
+                    {filteredMakes.map((make) => (
+                      <CommandItem
+                        key={make}
+                        value={make}
+                        onSelect={(currentValue) => {
+                          setSelectedMake(currentValue === selectedMake ? "" : currentValue);
+                          setMakesOpen(false);
+                          setSelectedModel("");
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedMake === make ? "opacity-100" : "opacity-0"
+                          )}
                         />
-                      )}
-                      {make.make_name}
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+                        {make}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="model" className="text-sm font-medium">
-          Model {required && <span className="text-destructive">*</span>}
+      {/* Model Selector */}
+      <div className="flex-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Model {required && <span className="text-red-500">*</span>}
         </label>
         <Popover open={modelsOpen} onOpenChange={setModelsOpen}>
           <PopoverTrigger asChild>
@@ -130,11 +123,7 @@ export const MakeModelSelectors = ({
               variant="outline"
               role="combobox"
               aria-expanded={modelsOpen}
-              className={cn(
-                "w-full justify-between bg-white",
-                !selectedModel && "text-muted-foreground",
-                (disabled || !selectedMake) && "opacity-50 cursor-not-allowed"
-              )}
+              className="w-full justify-between"
               disabled={disabled || !selectedMake}
             >
               {selectedModel || "Select model..."}
@@ -148,23 +137,31 @@ export const MakeModelSelectors = ({
                 value={modelSearchTerm}
                 onValueChange={setModelSearchTerm}
               />
-              <CommandGroup>
-                {filteredModels.map(model => (
-                  <CommandItem
-                    key={model.id}
-                    value={model.model_name}
-                    onSelect={handleModelSelect}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedModel === model.model_name ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {model.model_name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList>
+                <CommandEmpty>No models found.</CommandEmpty>
+                {Array.isArray(filteredModels) && filteredModels.length > 0 && (
+                  <CommandGroup>
+                    {filteredModels.map((model) => (
+                      <CommandItem
+                        key={model}
+                        value={model}
+                        onSelect={(currentValue) => {
+                          setSelectedModel(currentValue === selectedModel ? "" : currentValue);
+                          setModelsOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedModel === model ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {model}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>

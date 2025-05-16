@@ -25,10 +25,10 @@ export function ManualLookup({
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
   const [model, setModel] = useState(initialData?.model || '');
-  const [year, setYear] = useState<number>(initialData?.year || new Date().getFullYear());
-  const [mileage, setMileage] = useState<number>(initialData?.mileage || 0);
+  const [year, setYear] = useState<number>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
+  const [mileage, setMileage] = useState<number>(initialData?.mileage ? Number(initialData.mileage) : 0);
   const [condition, setCondition] = useState<ConditionLevel>(
-    initialData?.condition || ConditionLevel.Good
+    (initialData?.condition as ConditionLevel) || ConditionLevel.Good
   );
   const [zipCode, setZipCode] = useState(initialData?.zipCode || '');
   const [fuelType, setFuelType] = useState(initialData?.fuelType || 'Gasoline');

@@ -73,7 +73,7 @@ export function ValuationResultStep({
     );
   }
 
-  if (error || !result) {
+  if (isError || !result) {
     return (
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />

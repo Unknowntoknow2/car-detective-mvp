@@ -1,109 +1,77 @@
 
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usePremiumPayment } from '@/hooks/usePremiumPayment';
+import { Container } from '@/components/ui/container';
 
-const PremiumSuccessPage = () => {
-  const location = useLocation();
+export default function PremiumSuccessPage() {
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
+  const valuationId = searchParams.get('valuation_id');
   const navigate = useNavigate();
   const { verifyPaymentSession, isLoading } = usePremiumPayment();
-  const [verified, setVerified] = useState(false);
-  const [valuationId, setValuationId] = useState<string | null>(null);
+  const [verificationComplete, setVerificationComplete] = useState(false);
   
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const sessionId = params.get('session_id');
-    
     if (sessionId) {
-      verifyPaymentSession(sessionId).then((result) => {
-        setVerified(result.success);
-        if (result.valuationId) {
-          setValuationId(result.valuationId);
+      // Store the valuation ID as premium in localStorage for demo purposes
+      if (valuationId) {
+        const premiumIds = JSON.parse(localStorage.getItem('premium_valuations') || '[]');
+        if (!premiumIds.includes(valuationId)) {
+          premiumIds.push(valuationId);
+          localStorage.setItem('premium_valuations', JSON.stringify(premiumIds));
         }
-      });
+      }
+      
+      // Verify the payment session
+      verifyPaymentSession(sessionId)
+        .then(() => {
+          setVerificationComplete(true);
+        })
+        .catch(console.error);
     }
-  }, [location.search]);
+  }, [sessionId, valuationId, verifyPaymentSession]);
+  
+  const handleViewReport = () => {
+    if (valuationId) {
+      navigate(`/valuation/${valuationId}`);
+    } else {
+      navigate('/dashboard');
+    }
+  };
   
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        {isLoading ? (
-          <div className="py-10">
-            <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Verifying Payment</h2>
-            <p className="text-muted-foreground">
-              Please wait while we confirm your payment...
-            </p>
-          </div>
-        ) : verified ? (
-          <>
-            <div className="flex justify-center mb-6">
-              <div className="bg-green-100 p-3 rounded-full">
-                <CheckCircle className="h-12 w-12 text-green-500" />
-              </div>
-            </div>
-            
-            <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
-            
-            <p className="text-gray-600 mb-6">
-              Thank you for your purchase! Your premium valuation report is now available.
-            </p>
-            
-            <div className="space-y-3">
-              <Button
-                onClick={() => navigate(valuationId ? `/valuation/${valuationId}` : '/my-valuations')}
-                className="w-full"
-              >
-                View Premium Report
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="w-full"
-              >
-                Return to Home
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex justify-center mb-6">
-              <div className="bg-amber-100 p-3 rounded-full">
-                <CheckCircle className="h-12 w-12 text-amber-500" />
-              </div>
-            </div>
-            
-            <h1 className="text-2xl font-bold mb-2">Payment Processing</h1>
-            
-            <p className="text-gray-600 mb-6">
-              Your payment is being processed. This may take a few moments. 
-              We'll notify you when your premium features are unlocked.
-            </p>
-            
-            <div className="space-y-3">
-              <Button
-                onClick={() => navigate('/my-valuations')}
-                className="w-full"
-              >
-                View My Valuations
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="w-full"
-              >
-                Return to Home
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <Container className="py-16">
+      <Card className="max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-2" />
+          <CardTitle className="text-2xl">Payment Successful</CardTitle>
+          <CardDescription>
+            Your premium valuation report is now available
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground">
+            Thank you for your purchase. You now have full access to all premium features
+            including detailed valuation breakdown, comparable listings, and dealer offers.
+          </p>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          {isLoading && !verificationComplete ? (
+            <Button disabled className="w-full sm:w-auto">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying payment...
+            </Button>
+          ) : (
+            <Button onClick={handleViewReport} className="w-full sm:w-auto">
+              View Premium Report <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    </Container>
   );
-};
-
-export default PremiumSuccessPage;
+}
