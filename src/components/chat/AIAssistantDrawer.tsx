@@ -1,589 +1,494 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
+import { X, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { ChatMessage } from './ChatMessage';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { BrainCircuit, Send, Loader2, Mail, Link as LinkIcon, UserRound, Building2 } from 'lucide-react';
-import { askAI } from '@/api/askAI';
-import { useValuationContext } from '@/hooks/useValuationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useValuationContext } from '@/hooks/useValuationContext';
+import { getValuationContext } from '@/utils/getValuationContext';
 import { toast } from 'sonner';
 
-interface AIAssistantDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-// Interface for UI display
+// Define types for our messages
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp?: string; // Keep as string for our UI
+  timestamp: string;
   isPremiumContent?: boolean;
   suggestedQuestions?: string[];
 }
 
-// Type for API communication - to match askAI.ts expectations
+// Define an interface specifically for API messages with number timestamp
 interface ApiMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp?: number; // API expects number
+  timestamp: number;
+}
+
+export interface AIAssistantDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [messageInput, setMessageInput] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { vehicle, valuationId } = useValuationContext();
+  const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
-  const [isEmailLoading, setIsEmailLoading] = useState(false);
-  const [isLinkLoading, setIsLinkLoading] = useState(false);
-  
-  // Initialize context for the assistant
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      // System message to provide context to the assistant
-      const systemMessage: Message = {
-        role: 'system',
-        content: `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. 
-Your job is to assist users with car valuations, market trends, dealer offers, and CARFAX insights.
-${vehicle ? `Current vehicle context: ${vehicle.year} ${vehicle.make} ${vehicle.model} with ${vehicle.mileage} miles in condition: ${vehicle.exteriorColor || 'unknown color'}. User has ${valuationId ? 'completed' : 'not completed'} a valuation.` : 'No vehicle context available.'}
-${user ? `User is logged in as ${user.email}.` : 'User is not logged in.'}
-${valuationId ? `Current valuation ID: ${valuationId}` : 'No valuation ID available.'}
-${valuationId && vehicle?.premium_unlocked ? 'User has premium access.' : 'User does not have premium access.'}
-Always be helpful, friendly, and conversational.`,
-        timestamp: new Date().toISOString(),
-      };
-      
-      setMessages([systemMessage]);
-      
-      // Initial assistant greeting
-      const welcomeMessage: Message = {
-        role: 'assistant',
-        content: `👋 Hi there! I'm AIN, your Auto Intelligence Network™ assistant.${vehicle ? `\n\nI see you're looking at a ${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.mileage ? ' with ' + vehicle.mileage + ' miles' : ''}.` : ''}\n\nHow can I help you today?`,
-        timestamp: new Date().toISOString(),
-        suggestedQuestions: getInitialSuggestions(),
-      };
-      
-      setMessages(prev => [...prev, welcomeMessage]);
-    }
-  }, [isOpen, vehicle, valuationId, user]);
-  
-  // Get initial suggestions based on context
-  const getInitialSuggestions = () => {
-    if (vehicle && valuationId) {
-      return [
-        "What's my car worth?",
-        "How can I increase my car's value?",
-        "Should I sell now or wait?"
-      ];
-    } else if (vehicle) {
-      return [
-        "How can I complete my valuation?",
-        "What information do you need?",
-        "How accurate are your valuations?"
-      ];
-    } else {
-      return [
-        "How do I get a car valuation?",
-        "What's Car Detective?",
-        "How accurate are your valuations?"
-      ];
-    }
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { vehicle, valuationId } = useValuationContext();
+  const [valuationContext, setValuationContext] = useState<any>(null);
 
-  // Generate smart follow-up questions based on context and previous messages
-  const generateSmartFollowUps = (content: string) => {
-    const lowerContent = content.toLowerCase();
+  // Fetch valuation context if available
+  useEffect(() => {
+    const fetchValuationData = async () => {
+      if (valuationId) {
+        const data = await getValuationContext(valuationId);
+        setValuationContext(data);
+      }
+    };
     
-    // Value-related questions
-    if (lowerContent.includes('value') || lowerContent.includes('worth') || lowerContent.includes('price')) {
-      return [
-        "Want to see price trends in your ZIP?",
-        "How does my car compare to similar models?",
-        "What factors affect my car's value the most?"
-      ];
+    fetchValuationData();
+  }, [valuationId]);
+
+  // Determine if premium is unlocked based on valuation context
+  const isPremiumUnlocked = valuationContext?.premium_unlocked || false;
+
+  useEffect(() => {
+    // Initialize with a welcome message when first opened
+    if (isOpen && messages.length === 0) {
+      let welcomeMessage = "👋 Hi there! I'm Car Detective's AI Assistant. I can help you with vehicle valuations, market insights, and more.";
+      
+      // If we have vehicle context, provide a more personalized welcome
+      if (vehicle) {
+        welcomeMessage = `👋 Hi there! I'm Car Detective's AI Assistant. I see you're looking at a ${vehicle.year} ${vehicle.make} ${vehicle.model}. How can I help you with this vehicle?`;
+      }
+      
+      setMessages([
+        {
+          role: 'assistant',
+          content: welcomeMessage,
+          timestamp: new Date().toISOString(),
+          suggestedQuestions: [
+            'How accurate is this valuation?',
+            'What affects my car\'s value?',
+            'How can I improve my car\'s value?'
+          ]
+        }
+      ]);
     }
-    
-    // Accident or CARFAX related questions
-    if (lowerContent.includes('accident') || lowerContent.includes('carfax') || lowerContent.includes('damage')) {
-      return [
-        "Need help interpreting your CARFAX?",
-        "How do accidents impact my car's value?",
-        "What should I disclose to potential buyers?"
-      ];
-    }
-    
-    // Next steps questions
-    if (lowerContent.includes('what next') || lowerContent.includes('what should i do') || lowerContent.includes('next step')) {
-      return [
-        "Compare dealer offers now",
-        "How can I prepare my car for sale?",
-        "What documents do I need when selling?"
-      ];
-    }
-    
-    // Premium or upgrade related
-    if (lowerContent.includes('premium') || lowerContent.includes('upgrade') || lowerContent.includes('paid')) {
-      return [
-        "What's included in Premium?",
-        "How much does Premium cost?",
-        "Is Premium worth it for me?"
-      ];
-    }
-    
-    // Default follow-ups
-    return [
-      "Tell me more about my car's market value",
-      "How can I get the best offer?",
-      "What services does Car Detective offer?"
-    ];
-  };
-  
-  // Prepare valuation context for the AI
-  const valuationContext = {
-    user: user ? { email: user.email } : null,
-    valuation: vehicle ? {
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      mileage: vehicle.mileage,
-      condition: vehicle.condition,
-      premium: vehicle.premium_unlocked,
-    } : null,
-    valuationId
-  };
-  
-  // Auto-scroll to bottom when messages change
+  }, [isOpen, messages.length, vehicle]);
+
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
-  
-  // Handle sending message to the assistant
-  const handleSendMessage = async () => {
-    if (!messageInput.trim() || isLoading) return;
     
-    // Handle special commands
-    if (shouldHandleEmailReport(messageInput)) {
-      await handleEmailReport();
-      return;
+    // Focus input when drawer opens
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [messages, isOpen]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleSuggestedQuestionClick = (question: string) => {
+    setInputValue(question);
+    handleSendMessage(question);
+  };
+
+  const processApiMessage = (content: string): string => {
+    // This function processes the message content to handle any API-specific formatting
+    return content;
+  };
+
+  const getSuggestedFollowups = (question: string, content: string): string[] => {
+    const lowerQuestion = question.toLowerCase();
+    const lowerContent = content.toLowerCase();
+    
+    // Valuation-related questions
+    if (lowerQuestion.includes('value') || lowerQuestion.includes('worth') || lowerContent.includes('valuation')) {
+      return [
+        'Want to see price trends in your ZIP?',
+        'How can I improve my car\'s value?',
+        'How does mileage affect value?'
+      ];
     }
     
-    if (shouldHandleShareableLink(messageInput)) {
-      await handleShareableLink();
-      return;
+    // Accident-related questions
+    if (lowerQuestion.includes('accident') || lowerQuestion.includes('damage') || lowerContent.includes('carfax')) {
+      return [
+        'Need help interpreting your CARFAX?',
+        'How do accidents affect resale value?',
+        'What repairs improve value most?'
+      ];
     }
     
-    if (shouldHandleContact(messageInput)) {
-      handleContactOptions();
-      return;
+    // Next steps queries
+    if (lowerQuestion.includes('what next') || lowerQuestion.includes('next step') || lowerQuestion.includes('now what')) {
+      return [
+        'Compare dealer offers now',
+        'Download your valuation report',
+        'Share this valuation with someone'
+      ];
     }
     
-    // Regular message flow
+    // If nothing specific, return general follow-ups
+    return [
+      'Tell me more about car values',
+      'What factors affect my car\'s value?',
+      'How does Car Detective work?'
+    ];
+  };
+
+  const detectActionRequests = (message: string): boolean => {
+    const lowerMessage = message.toLowerCase();
+    
+    // Share/send detection
+    if (
+      lowerMessage.includes('share') || 
+      lowerMessage.includes('send') || 
+      lowerMessage.includes('email') || 
+      lowerMessage.includes('show someone')
+    ) {
+      if (valuationId) {
+        const shareResponse = `I can help you share your valuation results:
+        
+- 📤 **Send report to email**: I'll send the full PDF report to your email
+- 🔗 **Get shareable link**: I'll generate a link you can share with anyone
+        
+What would you like to do?`;
+        
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: shareResponse,
+          timestamp: new Date().toISOString(),
+          suggestedQuestions: [
+            'Send report to my email',
+            'Get shareable link',
+            'I need something else'
+          ]
+        }]);
+        
+        return true;
+      }
+    }
+    
+    // Contact request detection
+    if (
+      lowerMessage.includes('speak with someone') || 
+      lowerMessage.includes('real person') || 
+      lowerMessage.includes('talk to someone') || 
+      lowerMessage.includes('need help') || 
+      lowerMessage.includes('dealer')
+    ) {
+      const contactResponse = `I can connect you to a support agent or a verified local dealer. Who would you like to talk to?`;
+      
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: contactResponse,
+        timestamp: new Date().toISOString(),
+        suggestedQuestions: [
+          '🧑‍💼 Contact Support',
+          '🚗 Contact Dealer',
+          'I\'ll continue with AI'
+        ]
+      }]);
+      
+      return true;
+    }
+    
+    // If vehicle context is available and user asks for vehicle condition
+    if (
+      valuationContext && 
+      (lowerMessage.includes('condition') || lowerMessage.includes('how good') || lowerMessage.includes('shape'))
+    ) {
+      const conditionInfo = valuationContext.condition || 'Unknown';
+      const isPremium = valuationContext.premium_unlocked || false;
+      
+      let conditionResponse = `Based on the information provided, your vehicle's condition is rated as **${conditionInfo}**.`;
+      
+      if (!isPremium) {
+        conditionResponse += `\n\n🔒 For a detailed condition analysis with specific observations, upgrade to Premium.`;
+      }
+      
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: conditionResponse,
+        timestamp: new Date().toISOString(),
+        isPremiumContent: !isPremium,
+        suggestedQuestions: !isPremium ? 
+          ['Upgrade to Premium', 'What affects condition?', 'How can I improve condition?'] :
+          ['What affects condition?', 'How can I improve condition?', 'How does condition affect value?']
+      }]);
+      
+      return true;
+    }
+    
+    return false;
+  };
+
+  const handleSpecialActions = async (message: string): Promise<boolean> => {
+    const lowerMessage = message.toLowerCase();
+    
+    // Handle email report request
+    if (lowerMessage.includes('send report') || lowerMessage.includes('email')) {
+      if (valuationId) {
+        setIsLoading(true);
+        
+        try {
+          // Call the email-valuation-pdf edge function
+          const { error } = await supabase.functions.invoke('email-valuation-pdf', {
+            body: { valuationId }
+          });
+          
+          if (error) throw error;
+          
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: "✅ Great! I've sent the valuation report to your email. It should arrive shortly. Let me know if you need anything else!",
+            timestamp: new Date().toISOString(),
+            suggestedQuestions: [
+              'I need dealer quotes',
+              'How can I improve my car\'s value?',
+              'What affects car value most?'
+            ]
+          }]);
+          
+          toast.success("Report sent to your email!");
+        } catch (error) {
+          console.error("Error sending email:", error);
+          
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: "Sorry, I wasn't able to send the email. Please try again later or contact support if the problem persists.",
+            timestamp: new Date().toISOString()
+          }]);
+          
+          toast.error("Failed to send email");
+        }
+        
+        setIsLoading(false);
+        return true;
+      }
+    }
+    
+    // Handle share link request
+    if (lowerMessage.includes('shareable link') || lowerMessage.includes('get link')) {
+      if (valuationId) {
+        setIsLoading(true);
+        
+        try {
+          // Call the create-public-token edge function
+          const { data, error } = await supabase.functions.invoke('create-public-token', {
+            body: { valuationId }
+          });
+          
+          if (error) throw error;
+          
+          const shareableLink = `${window.location.origin}/share/${data.token}`;
+          
+          navigator.clipboard.writeText(shareableLink);
+          
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `✅ I've generated a shareable link and copied it to your clipboard:\n\n**${shareableLink}**\n\nThis link will let anyone view your valuation results without needing to sign in.`,
+            timestamp: new Date().toISOString(),
+            suggestedQuestions: [
+              'How long is this link valid?',
+              'Can I revoke access?',
+              'Thanks, that\'s all I needed'
+            ]
+          }]);
+          
+          toast.success("Link copied to clipboard!");
+        } catch (error) {
+          console.error("Error creating share link:", error);
+          
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: "Sorry, I wasn't able to create a shareable link. Please try again later or contact support if the problem persists.",
+            timestamp: new Date().toISOString()
+          }]);
+          
+          toast.error("Failed to create link");
+        }
+        
+        setIsLoading(false);
+        return true;
+      }
+    }
+    
+    // Handle contact support
+    if (lowerMessage.includes('contact support')) {
+      window.location.href = 'mailto:support@cardetective.com?subject=Support%20Request';
+      
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "I've opened your email client to contact our support team at support@cardetective.com. If it didn't open automatically, please send them an email directly.",
+        timestamp: new Date().toISOString()
+      }]);
+      
+      return true;
+    }
+    
+    // Handle contact dealer
+    if (lowerMessage.includes('contact dealer')) {
+      if (valuationId) {
+        // Redirect to dealer leads form
+        window.location.href = `/dealer-leads?valuationId=${valuationId}`;
+        
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: "I'm connecting you with verified dealers in your area who can provide offers on your vehicle.",
+          timestamp: new Date().toISOString()
+        }]);
+      } else {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: "To connect you with dealers, I'll need a vehicle valuation first. Would you like to start a valuation now?",
+          timestamp: new Date().toISOString(),
+          suggestedQuestions: [
+            'Start a valuation',
+            'I already have a valuation',
+            'No thanks'
+          ]
+        }]);
+      }
+      
+      return true;
+    }
+    
+    return false;
+  };
+
+  const handleSendMessage = async (messageText: string = inputValue) => {
+    if (!messageText.trim()) return;
+    
+    // Add user message to chat
     const userMessage: Message = {
       role: 'user',
-      content: messageInput,
-      timestamp: new Date().toISOString(),
+      content: messageText,
+      timestamp: new Date().toISOString()
     };
     
     setMessages(prev => [...prev, userMessage]);
-    setMessageInput('');
+    setInputValue('');
+    setMessageCount(prev => prev + 1);
+    
+    // Check for action requests first (share, contact, etc.)
+    if (await handleSpecialActions(messageText)) {
+      return;
+    }
+    
+    // Check for other types of action requests
+    if (detectActionRequests(messageText)) {
+      return;
+    }
+    
+    // If no special actions, proceed with AI response
     setIsLoading(true);
     
-    try {
-      // Convert UI messages to API format
-      const apiMessages = messages
-        .filter(m => m.role !== 'system')
-        .map(m => ({
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
-        })) as ApiMessage[];
+    // Build context for the AI
+    let context = "You are Car Detective's AI assistant. You help users understand vehicle valuations and market trends.";
+    
+    // Add vehicle context if available
+    if (valuationContext) {
+      context += ` The user is currently looking at a ${valuationContext.year} ${valuationContext.make} ${valuationContext.model} with ${valuationContext.mileage} miles, in ${valuationContext.condition} condition, with an estimated value of $${valuationContext.estimatedValue}.`;
       
-      const response = await askAI({
-        question: messageInput,
-        userContext: valuationContext,
-        chatHistory: apiMessages,
-      });
-      
-      if (response.error) {
-        throw new Error(response.error);
+      if (valuationContext.zipCode) {
+        context += ` The location is in ZIP code ${valuationContext.zipCode}.`;
       }
       
-      // Detect if response contains premium content references
-      const isPremiumContent = detectPremiumContent(response.answer || '');
+      if (!valuationContext.premium_unlocked) {
+        context += " The user does not have premium access, so mention premium-only insights as locked features.";
+      }
+    }
+    
+    try {
+      // Convert messages to API format (number timestamps)
+      const apiMessages: ApiMessage[] = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp).getTime()
+      }));
       
-      // Generate smart follow-up questions
-      const suggestedQuestions = generateSmartFollowUps(response.answer || '');
+      // Add current user message
+      apiMessages.push({
+        role: 'user',
+        content: messageText,
+        timestamp: Date.now()
+      });
       
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: response.answer || "I'm sorry, I couldn't generate a response. Please try again.",
-        timestamp: new Date().toISOString(),
-        isPremiumContent,
-        suggestedQuestions
-      };
+      // This would normally call an API, but for this example, we'll simulate a response
+      // In a real implementation, you would call your AI backend
+      setTimeout(() => {
+        // Process the response
+        const responseContent = processApiMessage(`I'm happy to help with your query about "${messageText}". This is a simulated AI response. In a real implementation, this would connect to your backend AI service.`);
+        
+        // Generate suggested follow-up questions based on the user's query and the response
+        const suggestedQuestions = getSuggestedFollowups(messageText, responseContent);
+        
+        const aiResponse: Message = {
+          role: 'assistant',
+          content: responseContent,
+          timestamp: new Date().toISOString(),
+          suggestedQuestions
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+        setIsLoading(false);
+      }, 1000);
       
-      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.error("Error in AI response:", error);
       
-      const errorMessage: Message = {
+      // Add error message
+      setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "I'm sorry, I encountered an error while processing your request. Please try again later.",
-        timestamp: new Date().toISOString(),
-      };
+        content: "I'm sorry, I encountered an error processing your request. Please try again later.",
+        timestamp: new Date().toISOString()
+      }]);
       
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
       setIsLoading(false);
     }
   };
-  
-  // Detect premium content in the response
-  const detectPremiumContent = (text: string): boolean => {
-    const premiumKeywords = [
-      'carfax',
-      'vehicle history',
-      'accident history',
-      'service records',
-      'detailed history',
-      'title status',
-      'premium feature',
-      'premium users',
-      'premium report',
-      'premium access'
-    ];
-    
-    const lowerText = text.toLowerCase();
-    return premiumKeywords.some(keyword => lowerText.includes(keyword));
-  };
-  
-  // Check if message is about emailing report
-  const shouldHandleEmailReport = (message: string): boolean => {
-    const lowerMessage = message.toLowerCase();
-    return (
-      (lowerMessage.includes('email') || 
-       lowerMessage.includes('send') || 
-       lowerMessage.includes('report')) && 
-      (lowerMessage.includes('report') || 
-       lowerMessage.includes('valuation') || 
-       lowerMessage.includes('result'))
-    );
-  };
-  
-  // Check if message is about sharing link
-  const shouldHandleShareableLink = (message: string): boolean => {
-    const lowerMessage = message.toLowerCase();
-    return (
-      (lowerMessage.includes('share') || 
-       lowerMessage.includes('link') || 
-       lowerMessage.includes('copy') || 
-       lowerMessage.includes('show someone')) && 
-      (lowerMessage.includes('valuation') || 
-       lowerMessage.includes('report') || 
-       lowerMessage.includes('result'))
-    );
-  };
-  
-  // Check if message is about contacting someone
-  const shouldHandleContact = (message: string): boolean => {
-    const lowerMessage = message.toLowerCase();
-    return (
-      lowerMessage.includes('speak with someone') || 
-      lowerMessage.includes('real person') || 
-      lowerMessage.includes('help from a dealer') || 
-      lowerMessage.includes('contact support') || 
-      lowerMessage.includes('talk to someone') || 
-      lowerMessage.includes('human') || 
-      lowerMessage.includes('agent')
-    );
-  };
-  
-  // Handle emailing valuation report
-  const handleEmailReport = async () => {
-    if (!user || !valuationId) {
-      const message: Message = {
-        role: 'assistant',
-        content: user 
-          ? "I need a completed valuation to email you a report. Would you like to start a valuation now?" 
-          : "You'll need to log in and complete a valuation before I can email you a report. Would you like to sign in now?",
-        timestamp: new Date().toISOString(),
-        suggestedQuestions: user 
-          ? ["Start a valuation", "How does valuation work?"] 
-          : ["Sign in", "Create an account"]
-      };
-      
-      setMessages(prev => [...prev, {
-        role: 'user',
-        content: messageInput,
-        timestamp: new Date().toISOString(),
-      }, message]);
-      
-      setMessageInput('');
-      return;
-    }
-    
-    setMessages(prev => [...prev, {
-      role: 'user',
-      content: messageInput,
-      timestamp: new Date().toISOString(),
-    }]);
-    
-    setMessageInput('');
-    setIsEmailLoading(true);
-    
-    try {
-      // Call the email valuation PDF edge function
-      const { data, error } = await supabase.functions.invoke('email-valuation-pdf', {
-        body: { 
-          valuationId, 
-          email: user.email,
-          userName: localStorage.getItem('userName') || undefined
-        }
-      });
-      
-      if (error) throw new Error(error.message);
-      
-      const successMessage: Message = {
-        role: 'assistant',
-        content: `📤 Great! I've sent the valuation report to ${user.email}. It should arrive in your inbox shortly. Is there anything else you'd like to know about your vehicle?`,
-        timestamp: new Date().toISOString(),
-        suggestedQuestions: [
-          "What else can I do with my valuation?",
-          "How accurate is this report?",
-          "Show me dealer offers"
-        ]
-      };
-      
-      setMessages(prev => [...prev, successMessage]);
-      toast.success("Valuation report sent to your email");
-    } catch (error) {
-      console.error('Error sending email report:', error);
-      
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error while trying to email your report. Please try again later or contact our support team for assistance.",
-        timestamp: new Date().toISOString(),
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      toast.error("Failed to send valuation report");
-    } finally {
-      setIsEmailLoading(false);
-    }
-  };
-  
-  // Handle generating shareable link
-  const handleShareableLink = async () => {
-    if (!user || !valuationId) {
-      const message: Message = {
-        role: 'assistant',
-        content: user 
-          ? "I need a completed valuation to generate a shareable link. Would you like to start a valuation now?" 
-          : "You'll need to log in and complete a valuation before I can create a shareable link. Would you like to sign in now?",
-        timestamp: new Date().toISOString(),
-        suggestedQuestions: user 
-          ? ["Start a valuation", "How does valuation work?"] 
-          : ["Sign in", "Create an account"]
-      };
-      
-      setMessages(prev => [...prev, {
-        role: 'user',
-        content: messageInput,
-        timestamp: new Date().toISOString(),
-      }, message]);
-      
-      setMessageInput('');
-      return;
-    }
-    
-    setMessages(prev => [...prev, {
-      role: 'user',
-      content: messageInput,
-      timestamp: new Date().toISOString(),
-    }]);
-    
-    setMessageInput('');
-    setIsLinkLoading(true);
-    
-    try {
-      // Call the create public token edge function
-      const { data, error } = await supabase.functions.invoke('create-public-token', {
-        body: { valuationId }
-      });
-      
-      if (error) throw new Error(error.message);
-      
-      // Create the full shareable URL
-      const shareUrl = `${window.location.origin}${data.shareUrl}`;
-      
-      // Copy to clipboard
-      await navigator.clipboard.writeText(shareUrl);
-      
-      const successMessage: Message = {
-        role: 'assistant',
-        content: `🔗 Perfect! I've created a shareable link for your valuation and copied it to your clipboard:\n\n\`${shareUrl}\`\n\nYou can share this with anyone, and they'll be able to view your valuation details. The link will expire after 30 days. Is there anything else you'd like to do?`,
-        timestamp: new Date().toISOString(),
-        suggestedQuestions: [
-          "Email me the report too",
-          "How do I update this valuation?",
-          "Can dealers see this?"
-        ]
-      };
-      
-      setMessages(prev => [...prev, successMessage]);
-      toast.success("Shareable link copied to clipboard");
-    } catch (error) {
-      console.error('Error generating shareable link:', error);
-      
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error while trying to generate a shareable link. Please try again later or contact our support team for assistance.",
-        timestamp: new Date().toISOString(),
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      toast.error("Failed to generate shareable link");
-    } finally {
-      setIsLinkLoading(false);
-    }
-  };
-  
-  // Handle contact options
-  const handleContactOptions = () => {
-    const userMessage: Message = {
-      role: 'user',
-      content: messageInput,
-      timestamp: new Date().toISOString(),
-    };
-    
-    const assistantMessage: Message = {
-      role: 'assistant',
-      content: "I can connect you to a support agent or a verified local dealer. Who would you like to talk to?",
-      timestamp: new Date().toISOString(),
-    };
-    
-    setMessages(prev => [...prev, userMessage, assistantMessage]);
-    setMessageInput('');
-    
-    // Add contact option buttons after a short delay
-    setTimeout(() => {
-      const contactOptionsMessage: Message = {
-        role: 'assistant',
-        content: "Please select one of the options below:",
-        timestamp: new Date().toISOString(),
-        suggestedQuestions: [
-          "🧑‍💼 Contact Support",
-          "🚗 Contact Dealer"
-        ]
-      };
-      
-      setMessages(prev => [...prev, contactOptionsMessage]);
-    }, 500);
-  };
-  
-  // Handle suggested question click
-  const handleSuggestedQuestionClick = (question: string) => {
-    // For contact options
-    if (question === "🧑‍💼 Contact Support") {
-      handleContactSupport();
-      return;
-    }
-    
-    if (question === "🚗 Contact Dealer") {
-      handleContactDealer();
-      return;
-    }
-    
-    // For regular suggested questions
-    setMessageInput(question);
-    
-    // Small delay before sending to make it feel more natural
-    setTimeout(() => {
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
-    }, 100);
-  };
-  
-  // Handle contact support
-  const handleContactSupport = () => {
-    const userMessage: Message = {
-      role: 'user',
-      content: "🧑‍💼 Contact Support",
-      timestamp: new Date().toISOString(),
-    };
-    
-    const assistantMessage: Message = {
-      role: 'assistant',
-      content: "I'll connect you with our support team. They can be reached at support@cardetective.com. Would you like me to send them an email on your behalf now?",
-      timestamp: new Date().toISOString(),
-      suggestedQuestions: [
-        "Yes, email support for me",
-        "I'll email them myself",
-        "Go back to car valuation"
-      ]
-    };
-    
-    setMessages(prev => [...prev, userMessage, assistantMessage]);
-  };
-  
-  // Handle contact dealer
-  const handleContactDealer = () => {
-    const userMessage: Message = {
-      role: 'user',
-      content: "🚗 Contact Dealer",
-      timestamp: new Date().toISOString(),
-    };
-    
-    const assistantMessage: Message = {
-      role: 'assistant',
-      content: `I can help you get in touch with verified local dealers who may be interested in your ${vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'vehicle'}. Would you like to:`,
-      timestamp: new Date().toISOString(),
-      suggestedQuestions: [
-        "Submit my info to dealers",
-        "See dealer offers first",
-        "Go back to car valuation"
-      ]
-    };
-    
-    setMessages(prev => [...prev, userMessage, assistantMessage]);
+    }
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose} direction="right">
-      <DrawerContent className="h-full max-w-md">
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DrawerContent className="h-[80vh] sm:h-[85vh] max-w-md sm:max-w-lg md:max-w-xl mx-auto rounded-t-lg">
         <DrawerHeader className="border-b">
-          <DrawerTitle className="flex items-center">
-            <BrainCircuit className="mr-2 h-5 w-5 text-primary" />
-            <span>AIN — Auto Intelligence Network™</span>
-          </DrawerTitle>
+          <DrawerTitle className="text-center text-lg">Car Detective AI Assistant</DrawerTitle>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute right-4 top-3" 
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DrawerHeader>
         
-        {/* Vehicle context if available */}
-        {vehicle && (
-          <div className="px-4 py-2 bg-muted/50 border-b text-xs text-muted-foreground">
-            <p className="flex items-center gap-1">
-              📌 {vehicle.year} {vehicle.make} {vehicle.model} • 
-              {vehicle.mileage && ` ${vehicle.mileage.toLocaleString()} miles • `}
-              {vehicle.zipCode && ` ZIP ${vehicle.zipCode} • `}
-              Premium: {vehicle.premium_unlocked ? '✅' : '❌'}
-            </p>
-          </div>
-        )}
-        
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.filter(m => m.role !== 'system').map((message, index) => (
-              <ChatMessage 
-                key={index} 
-                role={message.role} 
-                content={message.content} 
+        <ScrollArea className="p-4 h-[calc(80vh-10rem)] sm:h-[calc(85vh-10rem)]">
+          <div className="flex flex-col space-y-4 mb-4">
+            {messages.map((message, index) => (
+              <ChatMessage
+                key={index}
+                role={message.role}
+                content={message.content}
                 timestamp={message.timestamp}
                 isPremiumContent={message.isPremiumContent}
                 suggestedQuestions={message.suggestedQuestions}
@@ -592,16 +497,9 @@ Always be helpful, friendly, and conversational.`,
             ))}
             
             {isLoading && (
-              <div className="flex items-center space-x-2 text-muted-foreground text-sm pl-10">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span>AIN is thinking...</span>
-              </div>
-            )}
-            
-            {(isEmailLoading || isLinkLoading) && (
-              <div className="flex items-center space-x-2 text-muted-foreground text-sm pl-10">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span>{isEmailLoading ? 'Sending email report...' : 'Generating shareable link...'}</span>
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span className="ml-2 text-sm text-muted-foreground">AI is thinking...</span>
               </div>
             )}
             
@@ -609,74 +507,28 @@ Always be helpful, friendly, and conversational.`,
           </div>
         </ScrollArea>
         
-        <DrawerFooter className="border-t pt-2">
+        <DrawerFooter className="border-t pt-4">
           <div className="flex items-center space-x-2">
             <Input
-              placeholder="Ask AIN anything about your car..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              disabled={isLoading || isEmailLoading || isLinkLoading}
+              ref={inputRef}
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message..."
+              disabled={isLoading}
               className="flex-1"
             />
-            <Button 
-              size="icon" 
-              onClick={handleSendMessage}
-              disabled={!messageInput.trim() || isLoading || isEmailLoading || isLinkLoading}
+            <Button
+              size="icon"
+              onClick={() => handleSendMessage()}
+              disabled={!inputValue.trim() || isLoading}
             >
-              {isLoading || isEmailLoading || isLinkLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+              <Send className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="flex justify-between pt-2">
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 text-xs"
-                onClick={() => setMessageInput("Share my valuation report")}
-              >
-                <Mail className="h-3 w-3" />
-                Email
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 text-xs"
-                onClick={() => setMessageInput("Generate shareable link")}
-              >
-                <LinkIcon className="h-3 w-3" />
-                Share
-              </Button>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 text-xs"
-                onClick={() => setMessageInput("Can I speak with someone?")}
-              >
-                <UserRound className="h-3 w-3" />
-                Support
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 text-xs"
-                onClick={() => setMessageInput("I'd like to contact a dealer")}
-              >
-                <Building2 className="h-3 w-3" />
-                Dealer
-              </Button>
-            </div>
-          </div>
-          
-          <p className="text-center text-xs text-muted-foreground pt-2">
-            AIN is an AI assistant and may provide incorrect information.
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Car Detective AI provides general information and is not a substitute for professional advice.
           </p>
         </DrawerFooter>
       </DrawerContent>
