@@ -35,7 +35,7 @@ export function LookupTabs({
       <TabsContent value="vin" className="mt-4">
         <VINLookupForm
           onSubmit={formProps.onVinLookup || ((vin) => {})}
-          isLoading={formProps.isLoading}
+          isLoading={formProps.isLoading || false}
           submitButtonText={formProps.submitButtonText}
         />
       </TabsContent>
@@ -43,7 +43,7 @@ export function LookupTabs({
       <TabsContent value="plate" className="mt-4">
         <PlateLookup
           onSubmit={formProps.onPlateLookup || ((plate, state) => {})}
-          isLoading={formProps.isLoading}
+          isLoading={formProps.isLoading || false}
         />
       </TabsContent>
       
