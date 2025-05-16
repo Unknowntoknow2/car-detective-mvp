@@ -61,7 +61,7 @@ export function PremiumValuationForm() {
     }
   };
 
-  // Use the isFormValid function with the current step
+  // Fix: Boolean is not callable - use isFormValid directly as a boolean value
   const currentStepValid = isFormValid(currentStep);
 
   return (
