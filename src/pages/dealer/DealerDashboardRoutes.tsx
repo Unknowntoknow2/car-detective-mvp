@@ -22,7 +22,7 @@ const DealerDashboardRoutes = () => {
 
   // If not logged in or not a dealer, redirect to login
   if (!user || userRole !== 'dealer') {
-    return <Navigate to="/auth/signin" replace />;
+    return <Navigate to="/sign-in" replace />;
   }
 
   return (
