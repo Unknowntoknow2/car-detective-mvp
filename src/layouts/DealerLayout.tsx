@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import DealerSidebar from '@/components/dealer/DealerSidebar';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
+import { AIAssistantTrigger } from '@/components/chat/AIAssistantTrigger';
 
 interface DealerLayoutProps {
   children?: React.ReactNode;
@@ -67,6 +68,9 @@ const DealerLayout: React.FC<DealerLayoutProps> = ({ children }) => {
           {children || <Outlet />}
         </div>
       </div>
+      
+      {/* AI Assistant Trigger */}
+      <AIAssistantTrigger />
     </div>
   );
 };
