@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { LookupTabs } from "@/components/home/LookupTabs";
 import { useValuation } from "@/contexts/ValuationContext";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface PremiumTabsProps {
   showFreeValuation?: boolean;
@@ -20,18 +22,19 @@ export function PremiumTabs({
   const defaultTab = showFreeValuation ? "basic" : "premium";
   const { processPremiumValuation, isProcessing } = useValuation();
   const [upgrading, setUpgrading] = useState(false);
+  const navigate = useNavigate();
   
   const handlePremiumUpgrade = async () => {
     console.log("PREMIUM: Upgrade button clicked");
     setUpgrading(true);
     try {
       // Here we would typically handle the payment flow
-      // For now, we'll just show a toast
+      // For now, we'll just show a toast and redirect
       toast.success("Redirecting to premium checkout...");
       // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       console.log("PREMIUM: Redirecting to premium checkout page");
-      window.location.href = "/premium";
+      navigate("/premium#premium-form");
     } catch (error) {
       console.error("PREMIUM: Error during upgrade:", error);
       toast.error("Failed to process premium upgrade");
@@ -64,10 +67,12 @@ export function PremiumTabs({
           if (result?.valuationId) {
             console.log(`PREMIUM ${type.toUpperCase()}: Valuation ID:`, result.valuationId);
             localStorage.setItem('latest_valuation_id', result.valuationId);
+            navigate(`/valuation-result?id=${result.valuationId}`);
           }
         })
         .catch(err => {
           console.error(`PREMIUM ${type.toUpperCase()}: Error:`, err);
+          toast.error("Failed to process valuation");
         });
     }
   };
