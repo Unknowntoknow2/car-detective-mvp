@@ -108,6 +108,11 @@ export default function ValuationDetailPage() {
   // Check if premium features are unlocked, safely accessing the premium_unlocked property
   const isPremiumUnlocked = Boolean(data?.premium_unlocked);
 
+  // Fix accidents_count to use accident_count if available, or default to 0
+  const accidentCount = data.accident_count || 0;
+  // Fix titleStatus access to use a default if not provided
+  const titleStatus = data.titleStatus || 'Clean';
+
   return (
     <MainLayout>
       <div className="container mx-auto py-8 space-y-8">
@@ -144,10 +149,10 @@ export default function ValuationDetailPage() {
           <CardContent>
             <ValuationFactorsGrid 
               values={{
-                accidents: data.accident_count || 0,
+                accidents: accidentCount,
                 mileage: data.mileage || 0,
                 year: data.year || new Date().getFullYear(),
-                titleStatus: data.titleStatus || 'Clean'
+                titleStatus: titleStatus
               }}
               onChange={handleFactorChange}
             />

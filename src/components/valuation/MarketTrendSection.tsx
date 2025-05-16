@@ -40,7 +40,7 @@ export function MarketTrendSection({
       
       setLoading(true);
       try {
-        // Call the valuation-forecast edge function to get trend data
+        // Fix: Call the valuation-forecast edge function with only one object parameter
         const { data, error } = await supabase.functions.invoke('valuation-forecast', {
           body: {
             make,

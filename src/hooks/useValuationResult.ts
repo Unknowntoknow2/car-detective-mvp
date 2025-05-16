@@ -20,6 +20,8 @@ interface ValuationResult {
   explanation?: string;
   created_at?: string; // Add created_at property
   premium_unlocked?: boolean; // Add premium_unlocked property to match usage
+  accident_count?: number; // Add accident_count property
+  titleStatus?: string; // Add titleStatus property
 }
 
 export function useValuationResult(valuationId: string) {
@@ -85,6 +87,12 @@ export function useValuationResult(valuationId: string) {
           
           // Add premium_unlocked if not present
           parsedData.premium_unlocked = parsedData.premium_unlocked || false;
+          
+          // Add accident_count if not present
+          parsedData.accident_count = parsedData.accident_count || 0;
+          
+          // Add titleStatus if not present
+          parsedData.titleStatus = parsedData.titleStatus || 'Clean';
           
           setData(parsedData as ValuationResult);
         } else {
