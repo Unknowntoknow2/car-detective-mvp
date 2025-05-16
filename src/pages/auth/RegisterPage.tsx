@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -41,7 +40,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const result = await signUp(email, password, 'individual');
+      const result = await signUp(email, password);
       
       if (result?.error) {
         throw new Error(result.error);

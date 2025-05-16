@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     
     try {
       console.log("SignupForm: Attempting signup with", email);
+      // Ensure we only pass email and password to signUp
       const result = await signUp(email, password);
       
       if (result?.error) {
