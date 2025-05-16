@@ -1,7 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import Homepage from '@/pages/Homepage';
+import HomePage from '@/pages/HomePage';
 import ValuationPage from '@/pages/ValuationPage';
 import ValuationDetailPage from '@/pages/ValuationDetailPage';
 import NotFoundPage from '@/pages/NotFoundPage';
@@ -20,7 +20,7 @@ function App() {
     <>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Homepage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/valuation" element={<ValuationPage />} />
           <Route path="/valuation/:id" element={<ValuationDetailPage />} />
           <Route path="/result" element={<ResultPage />} />
