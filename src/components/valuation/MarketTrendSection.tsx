@@ -40,14 +40,15 @@ export function MarketTrendSection({
       
       setLoading(true);
       try {
-        // Fix: Call the valuation-forecast edge function with only one object parameter
+        // Fix: Call the valuation-forecast edge function with a single object parameter
         const { data, error } = await supabase.functions.invoke('valuation-forecast', {
           body: {
             make,
             model,
             year,
             currentValue: estimatedValue,
-            months: 12
+            months: 12,
+            valuationId
           }
         });
         
