@@ -18,7 +18,7 @@ export function MarketTrendChart({ data }: MarketTrendChartProps) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
           <YAxis 
-            tickFormatter={(value) => formatCurrency(value, { notation: 'compact' })}
+            tickFormatter={(value) => formatCurrency(value)}
             domain={['auto', 'auto']}
           />
           <Tooltip 
