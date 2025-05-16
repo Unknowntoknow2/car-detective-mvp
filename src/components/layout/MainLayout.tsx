@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </header>
       
-      <main>
+      <main className="w-full">
         {children}
       </main>
       
