@@ -12,12 +12,14 @@ import { supabase } from '@/integrations/supabase/client';
 interface PhotoUploadAndScoreProps {
   valuationId?: string;
   onPhotoAnalysisComplete?: (data: any) => void;
+  onScoreChange?: (score: number, condition?: any) => void; // Add this missing prop
   isPremium?: boolean;
 }
 
 export function PhotoUploadAndScore({
   valuationId,
   onPhotoAnalysisComplete,
+  onScoreChange, // Add this to the destructuring
   isPremium = false
 }: PhotoUploadAndScoreProps) {
   const [photos, setPhotos] = useState<File[]>([]);
@@ -130,6 +132,15 @@ export function PhotoUploadAndScore({
           );
           
           onPhotoAnalysisComplete(bestResult);
+        }
+
+        // Call onScoreChange if provided
+        if (onScoreChange && analysisResults.length > 0) {
+          const bestResult = analysisResults.reduce(
+            (best, current) => (current.score > best.score ? current : best),
+            { score: 0 }
+          );
+          onScoreChange(bestResult.score, bestResult);
         }
       }
       
