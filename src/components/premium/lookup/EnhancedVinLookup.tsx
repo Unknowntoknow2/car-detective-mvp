@@ -24,6 +24,7 @@ export function EnhancedVinLookup({
   error,
   existingVehicle
 }: EnhancedVinLookupProps) {
+  // Define validation state with proper typing that matches what we're going to set
   const [validationResult, setValidationResult] = useState<{ isValid: boolean; error: string | null }>({
     isValid: false,
     error: null
@@ -32,7 +33,10 @@ export function EnhancedVinLookup({
   useEffect(() => {
     if (value) {
       const result = validateVin(value);
-      setValidationResult(result);
+      setValidationResult({
+        isValid: result.isValid,
+        error: result.message || result.error || null
+      });
     } else {
       setValidationResult({ isValid: false, error: null });
     }

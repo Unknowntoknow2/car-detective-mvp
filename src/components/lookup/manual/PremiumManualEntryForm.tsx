@@ -4,12 +4,9 @@ import { ConditionLevel, ManualEntryFormData } from '@/components/lookup/types/m
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
 import { AutoCompleteVehicleSelector } from '@/components/lookup/form-parts/AutoCompleteVehicleSelector';
 import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface PremiumManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -37,7 +34,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -60,9 +57,7 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
 
   const handleFeatureChange = (feature: string, checked: boolean) => {
     const current = formData.selectedFeatures || [];
-    const updated = checked
-      ? [...current, feature]
-      : current.filter(f => f !== feature);
+    const updated = checked ? [...current, feature] : current.filter(f => f !== feature);
     setFormData(prev => ({ ...prev, selectedFeatures: updated }));
   };
 
@@ -90,7 +85,12 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      const processedData = {
+        ...formData,
+        year: typeof formData.year === 'string' ? parseInt(formData.year) : formData.year,
+        mileage: typeof formData.mileage === 'string' ? parseInt(formData.mileage) : formData.mileage
+      };
+      onSubmit(processedData);
     }
   };
 
@@ -129,7 +129,10 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Year</Label>
-            <Select value={formData.year.toString()} onValueChange={(val) => handleSelectChange('year', parseInt(val))}>
+            <Select
+              value={formData.year.toString()}
+              onValueChange={(val) => handleSelectChange('year', parseInt(val))}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Year" />
               </SelectTrigger>
@@ -192,7 +195,10 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Severity</Label>
-              <Select value={formData.accidentDetails.severity} onValueChange={(val) => handleAccidentDetailChange('severity', val)}>
+              <Select
+                value={formData.accidentDetails.severity}
+                onValueChange={(val) => handleAccidentDetailChange('severity', val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Severity" />
                 </SelectTrigger>

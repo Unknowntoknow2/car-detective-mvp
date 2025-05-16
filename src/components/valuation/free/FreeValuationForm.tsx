@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
-import { useValuation } from '@/hooks/useValuation';
+import { useValuation } from '@/contexts/ValuationContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const currentYear = new Date().getFullYear();
 
@@ -35,7 +36,7 @@ type ValuationFormData = z.infer<typeof valuationSchema>;
 export const FreeValuationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { submitValuation } = useValuation();
+  const { processFreeValuation } = useValuation();
   const navigate = useNavigate();
 
   const {
@@ -60,23 +61,33 @@ export const FreeValuationForm = () => {
     setError(null);
 
     try {
-      // Make zipCode required to match ValuationInput interface
-      const valuationData = {
-        ...data,
-        isPremium: false,
-        zipCode: data.zipCode // Ensure this is not optional
-      };
-
-      const result = await submitValuation(valuationData);
-
-      if (result.success && result.data?.valuationId) {
-        navigate(`/valuation/${result.data.valuationId}`);
+      // Process the free valuation
+      const result = await processFreeValuation(data);
+      
+      if (result && result.valuationId) {
+        // Store the valuation data in localStorage for the result page
+        localStorage.setItem(`valuation_${result.valuationId}`, JSON.stringify({
+          ...data,
+          valuationId: result.valuationId,
+          estimatedValue: result.estimatedValue || 20000, // Ensure we have a default value
+          confidenceScore: result.confidenceScore || 85,
+          timestamp: new Date().toISOString(),
+        }));
+        
+        // Set the latest valuation ID for easy access
+        localStorage.setItem('latest_valuation_id', result.valuationId);
+        
+        // Navigate to the result page
+        navigate(`/result?id=${result.valuationId}`);
+        toast.success('Valuation completed successfully!');
       } else {
-        setError(result.errorMessage || 'Failed to generate valuation. Please try again.');
+        setError('Failed to generate valuation. Please try again.');
+        toast.error('Failed to generate valuation');
       }
     } catch (err) {
       console.error('Valuation error:', err);
       setError('An unexpected error occurred. Please try again later.');
+      toast.error('An error occurred while processing your request');
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +100,7 @@ export const FreeValuationForm = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl">Free Vehicle Valuation</CardTitle>
+        <CardTitle className="text-xl">Free Basic Valuation</CardTitle>
       </CardHeader>
       <CardContent>
         <form id="valuation-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">

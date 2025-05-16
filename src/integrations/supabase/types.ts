@@ -600,6 +600,66 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_entry_valuations: {
+        Row: {
+          accident: boolean | null
+          accident_severity: string | null
+          condition: string
+          confidence_score: number | null
+          created_at: string | null
+          fuel_type: string
+          id: string
+          make: string
+          mileage: number
+          model: string
+          selected_features: string[] | null
+          transmission: string
+          user_id: string | null
+          valuation_id: string | null
+          vin: string | null
+          year: number
+          zip_code: string
+        }
+        Insert: {
+          accident?: boolean | null
+          accident_severity?: string | null
+          condition: string
+          confidence_score?: number | null
+          created_at?: string | null
+          fuel_type: string
+          id?: string
+          make: string
+          mileage: number
+          model: string
+          selected_features?: string[] | null
+          transmission: string
+          user_id?: string | null
+          valuation_id?: string | null
+          vin?: string | null
+          year: number
+          zip_code: string
+        }
+        Update: {
+          accident?: boolean | null
+          accident_severity?: string | null
+          condition?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          fuel_type?: string
+          id?: string
+          make?: string
+          mileage?: number
+          model?: string
+          selected_features?: string[] | null
+          transmission?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          vin?: string | null
+          year?: number
+          zip_code?: string
+        }
+        Relationships: []
+      }
       market_adjustments: {
         Row: {
           last_updated: string

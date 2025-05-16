@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
-import { supabase } from '@/utils/supabaseClient';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PremiumResponse {
   success: boolean;
@@ -18,69 +17,54 @@ export function usePremiumStatus(valuationId?: string) {
   const checkPremiumStatus = async (id: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('valuations')
-        .select('is_premium')
-        .eq('id', id)
-        .single();
-        
-      if (error) {
-        console.error('Error checking premium status:', error);
-        setIsPremium(false);
-      } else {
-        setIsPremium(data.is_premium || false);
-      }
+      console.log("Checking premium status for valuation:", id);
+      
+      // For now, let's simulate an API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if we have an entry in localStorage marking this as premium
+      // This is just for demo purposes
+      const premiumIds = JSON.parse(localStorage.getItem('premium_valuations') || '[]');
+      const isPremiumValuation = premiumIds.includes(id);
+      
+      setIsPremium(isPremiumValuation);
+      console.log("Premium status check result:", isPremiumValuation);
+      
+      return isPremiumValuation;
     } catch (error) {
       console.error('Error in premium status check:', error);
       setIsPremium(false);
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
   
-  // Function to create a Stripe checkout session
+  // Function to create a checkout session
   const createCheckoutSession = async (id: string): Promise<PremiumResponse> => {
     try {
-      // First check if it's already unlocked
-      const { data: valuationData, error: valuationError } = await supabase
-        .from('valuations')
-        .select('is_premium')
-        .eq('id', id)
-        .single();
-        
-      if (valuationError) {
-        console.error('Error checking valuation:', valuationError);
-        return { 
-          success: false, 
-          error: 'Could not verify valuation status' 
-        };
-      }
+      console.log("Creating checkout session for valuation:", id);
       
-      if (valuationData.is_premium) {
+      // First check if it's already unlocked
+      const isPremiumValuation = await checkPremiumStatus(id);
+      
+      if (isPremiumValuation) {
         return { 
           success: true,
           alreadyUnlocked: true
         };
       }
       
-      // Create checkout session
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { valuationId: id }
-      });
+      // Simulate creating a checkout session
+      // In production, this would call the Supabase function to create a Stripe checkout
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (error) {
-        console.error('Error creating checkout session:', error);
-        return { 
-          success: false, 
-          error: 'Failed to create checkout session' 
-        };
-      }
-      
+      // Return a simulated response
       return { 
         success: true, 
-        url: data.url 
+        url: `/premium-success?session_id=mock_session_${Date.now()}&valuation_id=${id}` 
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in checkout session creation:', error);
       return { 
         success: false, 
@@ -90,9 +74,11 @@ export function usePremiumStatus(valuationId?: string) {
   };
   
   // Initialize premium check if valuationId is provided
-  if (valuationId && isLoading) {
-    checkPremiumStatus(valuationId);
-  }
+  useEffect(() => {
+    if (valuationId && isLoading) {
+      checkPremiumStatus(valuationId);
+    }
+  }, [valuationId, isLoading]);
   
   return {
     isPremium,

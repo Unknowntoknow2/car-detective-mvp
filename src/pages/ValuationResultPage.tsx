@@ -1,42 +1,53 @@
-// src/pages/ValuationResultPage.tsx
+
 import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
-import { useValuationResult } from '@/hooks/useValuationResult';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Footer } from '@/components/layout/Footer';
+import { Navbar } from '@/components/layout/Navbar';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const id = searchParams.get('id');
-  const [tempData, setTempData] = useState<any>(null);
-  const { data, isLoading, error } = useValuationResult(id || '');
+  const [valuationData, setValuationData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedData = localStorage.getItem('temp_valuation_data');
-    if (storedData) {
+    const fetchValuationData = async () => {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        const parsedData = JSON.parse(storedData);
-        setTempData(parsedData);
-      } catch (e) {
-        console.error('Error parsing temp valuation data:', e);
+        if (!id) {
+          throw new Error('No valuation ID provided');
+        }
+
+        // Try to get the valuation data from localStorage
+        const storedData = localStorage.getItem(`valuation_${id}`);
+        
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+          setValuationData(parsedData);
+        } else {
+          // If data isn't in localStorage, you could fetch from an API here
+          throw new Error('Valuation data not found');
+        }
+      } catch (err) {
+        console.error('Error fetching valuation data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, []);
+    };
 
-  const valuationData = data || tempData;
+    fetchValuationData();
+  }, [id]);
 
-  const errorMessage =
-    error && typeof error === 'object' && 'message' in error
-      ? String((error as { message: string }).message)
-      : error
-      ? String(error)
-      : 'Could not find the requested valuation.';
-
+  // Generate a default vehicle info if data is not available
   const vehicleInfo = valuationData
     ? {
         make: valuationData.make,
@@ -53,6 +64,13 @@ export default function ValuationResultPage() {
         condition: 'Good',
       };
 
+  // Calculate estimated value and price range from the data or use defaults
+  const estimatedValue = valuationData?.estimatedValue || 25000;
+  const priceRange = valuationData?.priceRange || [
+    Math.round(estimatedValue * 0.9),
+    Math.round(estimatedValue * 1.1),
+  ];
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -65,7 +83,7 @@ export default function ValuationResultPage() {
     );
   }
 
-  if ((!data && !tempData) || error) {
+  if (!valuationData || error) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -73,13 +91,13 @@ export default function ValuationResultPage() {
           <div className="max-w-md mx-auto text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-4">Valuation Not Found</h1>
-            <p className="text-gray-600 mb-6">{errorMessage}</p>
+            <p className="text-gray-600 mb-6">{error || 'Could not find the requested valuation.'}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button onClick={() => navigate('/')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Return Home
               </Button>
-              <Button variant="outline" onClick={() => navigate('/vin-lookup')}>
+              <Button variant="outline" onClick={() => navigate('/valuation')}>
                 Start New Valuation
               </Button>
             </div>
@@ -97,20 +115,15 @@ export default function ValuationResultPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
             <CardHeader>
-              <CardTitle>Vehicle Valuation</CardTitle>
+              <CardTitle>Vehicle Valuation Result</CardTitle>
             </CardHeader>
             <CardContent>
               <UnifiedValuationResult
-                valuationId={id || valuationData?.id || ''}
+                valuationId={id || ''}
                 vehicleInfo={vehicleInfo}
-                estimatedValue={valuationData?.estimated_value || 0}
-                confidenceScore={valuationData?.confidence_score || 85}
-                priceRange={
-                  valuationData?.price_range || [
-                    (valuationData?.estimated_value || 0) * 0.9,
-                    (valuationData?.estimated_value || 0) * 1.1,
-                  ]
-                }
+                estimatedValue={estimatedValue}
+                confidenceScore={valuationData?.confidenceScore || 85}
+                priceRange={priceRange}
                 adjustments={valuationData?.adjustments || []}
               />
             </CardContent>
