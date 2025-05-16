@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import SignUpPage from '@/pages/auth/SignUpPage';
 import SignInPage from '@/pages/auth/SignInPage';
 import AccessDeniedPage from '@/pages/auth/AccessDeniedPage';
+import Premium from '@/pages/Premium';
 
 import Dashboard from '@/pages/dashboard/Dashboard';
 import DealerDashboardRoutes from '@/pages/dealer/DealerDashboardRoutes';
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/access-denied" element={<AccessDeniedPage />} />
+        <Route path="/premium" element={<Premium />} />
 
         {/* Protected User Dashboard */}
         <Route
