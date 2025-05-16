@@ -24,9 +24,15 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface PremiumManualEntryFormProps {
   onSubmit: (data: any) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
 }
 
-const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmit }) => {
+const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ 
+  onSubmit, 
+  isLoading = false, 
+  submitButtonText = "Get Premium Valuation" 
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<FormValues>({
@@ -233,14 +239,14 @@ const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({ onSubmi
         </div>
         
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
+          <Button type="submit" disabled={isSubmitting || isLoading}>
+            {isSubmitting || isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
             ) : (
-              'Get Premium Valuation'
+              submitButtonText
             )}
           </Button>
         </div>

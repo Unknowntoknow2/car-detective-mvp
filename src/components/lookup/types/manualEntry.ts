@@ -12,6 +12,7 @@ export interface AccidentDetails {
   severity?: string;
   description?: string;
   repairQuality?: string;
+  repaired?: boolean;
 }
 
 export interface ManualEntryFormData {
