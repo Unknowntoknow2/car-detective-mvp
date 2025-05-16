@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -40,7 +39,7 @@ export function MarketTrendSection({
       
       setLoading(true);
       try {
-        // Fix: Call the valuation-forecast edge function with a single object parameter
+        // Fixed: Call the valuation-forecast edge function with a single object parameter
         const { data, error } = await supabase.functions.invoke('valuation-forecast', {
           body: {
             make,
