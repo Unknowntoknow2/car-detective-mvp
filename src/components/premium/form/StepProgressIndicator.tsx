@@ -1,7 +1,7 @@
 
 import React from 'react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CheckCircle2 } from 'lucide-react';
 
 interface StepProgressIndicatorProps {
   currentStep: number;
@@ -16,53 +16,47 @@ export function StepProgressIndicator({
   stepValidities = {},
   stepCompletionStatus = {}
 }: StepProgressIndicatorProps) {
-  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
-
   return (
     <div className="flex items-center justify-between w-full">
-      {steps.map((step) => {
-        const isCurrentStep = step === currentStep;
-        const isPastStep = step < currentStep;
-        const isCompleted = stepCompletionStatus[step] === true;
-        const isValid = stepValidities[step] === true;
+      {Array.from({ length: totalSteps }).map((_, index) => {
+        const step = index + 1;
+        const isActive = step === currentStep;
+        const isCompleted = Boolean(stepCompletionStatus[step]) || step < currentStep;
         
         return (
           <React.Fragment key={step}>
-            {/* Step circle */}
-            <div className="relative flex items-center justify-center">
-              <div 
+            <div className="flex flex-col items-center">
+              <div
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all",
-                  isCurrentStep && "border-primary bg-primary text-white",
-                  isPastStep && isValid && "border-primary bg-primary/10 text-primary",
-                  isPastStep && !isValid && "border-amber-500 bg-amber-50 text-amber-600",
-                  !isPastStep && !isCurrentStep && "border-gray-200 text-gray-400"
+                  "h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all",
+                  isActive
+                    ? "border-primary text-primary-foreground bg-primary"
+                    : isCompleted
+                    ? "border-green-600 bg-green-600 text-white"
+                    : "border-gray-200 text-gray-400"
                 )}
               >
-                {isPastStep && isValid ? (
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                ) : (
-                  step
-                )}
+                {isCompleted ? <Check className="h-4 w-4" /> : step}
               </div>
-              
-              {/* Label below step */}
-              <span className={cn(
-                "absolute -bottom-6 text-xs whitespace-nowrap",
-                isCurrentStep && "font-medium text-primary",
-                isPastStep && "text-gray-600",
-                !isPastStep && !isCurrentStep && "text-gray-400"
-              )}>
+              <span 
+                className={cn(
+                  "mt-2 text-xs transition-all",
+                  isActive ? "text-primary font-medium" : "text-gray-500"
+                )}
+              >
                 Step {step}
               </span>
             </div>
             
-            {/* Connector line between steps */}
             {step < totalSteps && (
-              <div className={cn(
-                "flex-1 h-0.5",
-                currentStep > step ? "bg-primary" : "bg-gray-200"
-              )} />
+              <div
+                className={cn(
+                  "h-0.5 flex-1 mx-1",
+                  step < currentStep || (step === currentStep && isCompleted)
+                    ? "bg-green-500"
+                    : "bg-gray-200"
+                )}
+              />
             )}
           </React.Fragment>
         );

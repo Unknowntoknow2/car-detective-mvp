@@ -16,7 +16,7 @@ export function useStepTransition(
 ) {
   const [stepConfigs, setStepConfigs] = useState<Record<number, StepConfig>>({});
 
-  // Define step visibility logic
+  // Define step visibility logic - ensure all steps are properly connected
   useEffect(() => {
     setStepConfigs({
       1: {
@@ -26,56 +26,48 @@ export function useStepTransition(
       },
       2: {
         component: 'VehicleDetailsStep',
-        shouldShow: !!formData.make && !!formData.model && !!formData.year
+        // Step 2 should be shown as long as we have basic vehicle info
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       3: {
         component: 'FeatureSelectionStep',
-        shouldShow: formData.mileage !== undefined && formData.mileage > 0
+        // Step 3 should follow after step 2, requiring vehicle details
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       4: {
         component: 'ConditionStep',
-        shouldShow: !!formData.fuelType
+        // Step 4 should follow after step 3
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       5: {
         component: 'PhotoUploadStep',
-        shouldShow: !!formData.condition
+        // Step 5 should follow after step 4
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       6: {
         component: 'DrivingBehaviorStep',
-        shouldShow: true
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       7: {
         component: 'ReviewSubmitStep',
-        shouldShow: true
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       8: {
         component: 'ValuationResultStep',
-        shouldShow: !!formData.valuationId
+        shouldShow: Boolean(formData.valuationId)
       }
     });
-  }, [formData.make, formData.model, formData.year, formData.mileage, formData.fuelType, formData.condition, formData.valuationId, isLoading, lookupVehicle]);
+  }, [formData.make, formData.model, formData.year, formData.valuationId, isLoading, lookupVehicle]);
 
   const getStepConfig = useCallback((step: number): StepConfig | null => {
     return stepConfigs[step] || null;
   }, [stepConfigs]);
 
-  // Add the findNextValidStep method
+  // Add the findNextValidStep method to ensure we move sequentially
   const findNextValidStep = useCallback((currentStep: number, direction: number): number => {
-    const maxStep = Object.keys(stepConfigs).length;
-    let step = currentStep + direction;
-    
-    // Loop through steps until we find a valid one or reach a boundary
-    while (step >= 1 && step <= maxStep) {
-      const config = stepConfigs[step];
-      if (config && config.shouldShow) {
-        return step;
-      }
-      step += direction;
-    }
-    
-    // If no valid step found, return the original step
-    return currentStep;
-  }, [stepConfigs]);
+    // Simply increment or decrement by one to ensure sequential navigation
+    return currentStep + direction;
+  }, []);
 
   return {
     getStepConfig,
