@@ -19,6 +19,7 @@ interface ValuationResult {
   }>;
   explanation?: string;
   created_at?: string; // Add created_at property
+  premium_unlocked?: boolean; // Add premium_unlocked property to match usage
 }
 
 export function useValuationResult(valuationId: string) {
