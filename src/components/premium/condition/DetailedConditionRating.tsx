@@ -125,7 +125,7 @@ export function DetailedConditionRating({ onConditionChange, initialValues = {} 
 
       <div className="grid gap-6">
         {categories.map((category) => (
-          <Card key={category.id} className={`border-l-4 ${ratings[category.id] === activeTipCategory ? 'border-l-primary' : 'border-l-transparent'}`}>
+          <Card key={category.id} className={`border-l-4 ${ratings[category.id] === ratings[activeTipCategory] && activeTipCategory === category.id ? 'border-l-primary' : 'border-l-transparent'}`}>
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-2">
                 <div>
