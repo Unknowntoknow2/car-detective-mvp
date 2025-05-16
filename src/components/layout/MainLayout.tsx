@@ -24,7 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </header>
       
-      <main className="container mx-auto px-4">
+      <main>
         {children}
       </main>
       

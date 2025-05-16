@@ -19,7 +19,6 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
   };
   
   const handlePremiumClick = () => {
-    console.log("Premium button clicked");
     navigate('/premium');
   };
   
