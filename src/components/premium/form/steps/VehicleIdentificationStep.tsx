@@ -69,6 +69,7 @@ export function VehicleIdentificationStep({
         
         toast.success(`Added: ${data.year} ${data.make} ${data.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       } else {
         // Even if no result from API, still use the manually entered data
@@ -89,6 +90,7 @@ export function VehicleIdentificationStep({
         
         toast.success(`Added: ${data.year} ${data.make} ${data.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       }
     } catch (error) {
@@ -118,6 +120,7 @@ export function VehicleIdentificationStep({
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       }
     } catch (error) {
@@ -142,6 +145,7 @@ export function VehicleIdentificationStep({
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       }
     } catch (error) {

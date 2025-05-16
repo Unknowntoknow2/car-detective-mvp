@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { FormStepLayout } from './FormStepLayout';
 import { FormInitializer } from './initialization/FormInitializer';
@@ -60,12 +61,15 @@ export function PremiumValuationForm() {
     }
   };
 
+  // Use the isFormValid function with the current step
+  const currentStepValid = isFormValid(currentStep);
+
   return (
     <div className="px-2 sm:px-4">
       <FormStepLayout
         currentStep={currentStep}
         totalSteps={totalSteps}
-        isStepValid={stepValidities[currentStep]}
+        isStepValid={currentStepValid}
         onNext={goToNextStep}
         onPrevious={goToPreviousStep}
         stepValidities={stepValidities}
@@ -86,7 +90,7 @@ export function PremiumValuationForm() {
             formData={formData}
             setFormData={setFormData}
             updateStepValidity={updateStepValidity}
-            isFormValid={isFormValid}
+            isFormValid={currentStepValid}
             handleSubmit={handleSubmit}
             handleReset={handleFullReset}
             valuationId={valuationId}
