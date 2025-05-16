@@ -52,16 +52,17 @@ export function PremiumValuationForm() {
     switch (currentStep) {
       case 1: return "Start by identifying your vehicle";
       case 2: return "Great! Now let's gather some key details";
-      case 3: return "Almost halfway there! Every detail helps with accuracy";
-      case 4: return "You're making great progress! Let's assess condition now";
-      case 5: return "Great! Now share some photos for a more accurate valuation";
-      case 6: return "Almost done! Let's finalize with driving behavior";
-      case 7: return "Perfect! Review your information and get your valuation";
+      case 3: return "Tell us about any accident history";
+      case 4: return "Select premium features for your vehicle";
+      case 5: return "Let's assess the condition of your vehicle";
+      case 6: return "Share some photos for a more accurate valuation";
+      case 7: return "Tell us about your driving behavior";
+      case 8: return "Perfect! Review your information and get your valuation";
       default: return "";
     }
   };
 
-  // Fix: Use isFormValid directly as a boolean value, not as a function
+  // Use stepValidities directly as a boolean value
   const currentStepValid = stepValidities[currentStep];
 
   return (

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { useStepNavigation } from './useStepNavigation';
@@ -24,7 +25,7 @@ const initialFormData: FormData = {
   transmission: '',
   bodyType: '',
   features: [],
-  photos: [], // Removed duplicate photos property
+  photos: [],
   drivingProfile: 'average',
   isPremium: true
 };
@@ -34,11 +35,12 @@ export function usePremiumValuationForm() {
   const [stepValidities, setStepValidities] = useState<Record<number, boolean>>({
     1: false, // Vehicle Identification
     2: false, // Vehicle Details
-    3: true,  // Feature Selection (optional)
-    4: true,  // Condition (default value provided)
-    5: true,  // Photo Upload (optional)
-    6: true,  // Driving Behavior (default value provided)
-    7: true   // Review & Submit
+    3: true,  // Accident History (default to true since "no" is pre-selected)
+    4: true,  // Feature Selection (optional)
+    5: true,  // Condition (default value provided)
+    6: true,  // Photo Upload (optional)
+    7: true,  // Driving Behavior (default value provided)
+    8: true   // Review & Submit
   });
   
   const [isFormValid, setIsFormValid] = useState(false);
@@ -101,7 +103,8 @@ export function usePremiumValuationForm() {
       4: true,
       5: true,
       6: true,
-      7: true
+      7: true,
+      8: true
     });
     setValuationId(null);
     localStorage.removeItem('premium_valuation_form');
@@ -133,10 +136,11 @@ export function usePremiumValuationForm() {
           condition: formData.conditionLabel || formData.condition || 'Good',
           zipCode: formData.zipCode,
           features: formData.features || [],
-          fuelType: formData.fuelType,
+          fuelType: formData.fuelType, // Make sure we're using fuelType, not fuel
           transmission: formData.transmission,
           bodyType: formData.bodyType,
           hasAccident: formData.hasAccident === 'yes',
+          accidentDescription: formData.accidentDescription,
           drivingProfile: formData.drivingProfile
         }
       });
@@ -152,7 +156,7 @@ export function usePremiumValuationForm() {
         model: formData.model,
         year: formData.year,
         mileage: formData.mileage,
-        fuel_type: formData.fuelType,
+        fuel_type: formData.fuelType, // Ensure using the correct column name
         condition_score: formData.conditionScore || 75,
         accident_count: formData.hasAccident === 'yes' ? 1 : 0,
         body_type: formData.bodyType,

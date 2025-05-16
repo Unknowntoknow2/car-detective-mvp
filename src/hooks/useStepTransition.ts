@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { FormData } from '@/types/premium-valuation';
 
@@ -30,29 +29,34 @@ export function useStepTransition(
         shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       3: {
-        component: 'FeatureSelectionStep',
+        component: 'AccidentHistoryStep',
         // Step 3 should follow after step 2, requiring vehicle details
         shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       4: {
-        component: 'ConditionStep',
+        component: 'FeatureSelectionStep',
         // Step 4 should follow after step 3
         shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       5: {
-        component: 'PhotoUploadStep',
+        component: 'ConditionStep',
         // Step 5 should follow after step 4
         shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       6: {
-        component: 'DrivingBehaviorStep',
+        component: 'PhotoUploadStep',
+        // Step 6 should follow after step 5
         shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       7: {
-        component: 'ReviewSubmitStep',
+        component: 'DrivingBehaviorStep',
         shouldShow: Boolean(formData.make && formData.model && formData.year)
       },
       8: {
+        component: 'ReviewSubmitStep',
+        shouldShow: Boolean(formData.make && formData.model && formData.year)
+      },
+      9: {
         component: 'ValuationResultStep',
         shouldShow: Boolean(formData.valuationId)
       }

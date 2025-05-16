@@ -1013,6 +1013,7 @@ export type Database = {
           id: string
           is_premium_dealer: boolean | null
           premium_expires_at: string | null
+          role: string | null
           updated_at: string | null
           user_role: string | null
           username: string | null
@@ -1027,6 +1028,7 @@ export type Database = {
           id: string
           is_premium_dealer?: boolean | null
           premium_expires_at?: string | null
+          role?: string | null
           updated_at?: string | null
           user_role?: string | null
           username?: string | null
@@ -1041,6 +1043,7 @@ export type Database = {
           id?: string
           is_premium_dealer?: boolean | null
           premium_expires_at?: string | null
+          role?: string | null
           updated_at?: string | null
           user_role?: string | null
           username?: string | null
