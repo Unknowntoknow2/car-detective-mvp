@@ -1,27 +1,35 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { AIAssistantDrawer } from './AIAssistantDrawer';
 
-// GPT_AI_ASSISTANT_V1
 export const AIAssistantTrigger: React.FC = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleOpenDrawer = () => {
+    setIsOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setIsOpen(false);
+  };
 
   return (
     <>
-      <Button
-        onClick={() => setIsDrawerOpen(true)}
-        className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-50 rounded-full shadow-lg h-14 w-14 p-0 flex items-center justify-center bg-primary hover:bg-primary/90"
-        aria-label="Open AIN Assistant"
-      >
-        <Sparkles className="h-6 w-6" />
-      </Button>
-      
-      <AIAssistantDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
+      {/* Floating button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={handleOpenDrawer}
+          className="rounded-full shadow-lg h-12 w-12 p-0 flex items-center justify-center bg-primary hover:bg-primary/90"
+          aria-label="Open AI Assistant"
+        >
+          <Sparkles className="h-5 w-5 text-white" />
+        </Button>
+      </div>
+
+      {/* AI Assistant Drawer */}
+      <AIAssistantDrawer isOpen={isOpen} onClose={handleCloseDrawer} />
     </>
   );
 };

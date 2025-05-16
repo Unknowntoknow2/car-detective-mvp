@@ -6,7 +6,6 @@ import { Footer } from './Footer';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AIAssistantTrigger } from '@/components/chat/AIAssistantTrigger';
 
-// GPT_AI_ASSISTANT_V1
 const AppLayout = () => {
   return (
     <TooltipProvider>
