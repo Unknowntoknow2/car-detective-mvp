@@ -6,10 +6,21 @@ import { useNavigate } from 'react-router-dom';
 
 interface PremiumTabsProps {
   showFreeValuation?: boolean;
+  onSubmit?: (type: string, value: string, state?: string, data?: any) => void;
 }
 
-export function PremiumTabs({ showFreeValuation = false }: PremiumTabsProps) {
+export function PremiumTabs({ showFreeValuation = false, onSubmit }: PremiumTabsProps) {
   const navigate = useNavigate();
+  
+  const handlePremiumButtonClick = () => {
+    if (onSubmit) {
+      // If onSubmit is provided, call it
+      onSubmit('premium', 'premium-valuation', undefined, undefined);
+    } else {
+      // Otherwise use the original scrolling behavior
+      document.getElementById('premium-form')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   return (
     <Tabs defaultValue="premium" className="w-full">
@@ -89,10 +100,7 @@ export function PremiumTabs({ showFreeValuation = false }: PremiumTabsProps) {
           </ul>
           <Button 
             className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white"
-            onClick={() => {
-              // For now go to the form below, later this would trigger payment
-              document.getElementById('premium-form')?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={handlePremiumButtonClick}
           >
             Get Premium Valuation ($29.99)
           </Button>
