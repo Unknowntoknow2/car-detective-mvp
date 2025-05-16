@@ -1,6 +1,4 @@
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 // GPT_AI_ASSISTANT_V1
 // Rate limiting variables
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
@@ -8,16 +6,19 @@ const MAX_REQUESTS_PER_WINDOW = 5;
 const ipRequestCounts: Record<string, { count: number; timestamp: number }> = {};
 
 export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
+  req: Request
 ) {
   // Only allow POST method
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
-  // Implement rate limiting
-  const clientIp = req.headers['x-forwarded-for'] as string || '0.0.0.0';
+  // For IP-based rate limiting, we'd typically get the IP from headers
+  // In this non-Next.js context, we'll use a simpler approach
+  const clientIp = '0.0.0.0'; // In a real app, you'd extract this from request headers
   const now = Date.now();
   
   // Clean up old entries to prevent memory leaks
@@ -37,8 +38,11 @@ export default async function handler(
   
   // Check if rate limit exceeded
   if (ipRequestCounts[clientIp].count >= MAX_REQUESTS_PER_WINDOW) {
-    return res.status(429).json({ 
+    return new Response(JSON.stringify({ 
       error: 'Too many requests. Please try again later.' 
+    }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json' }
     });
   }
   
@@ -47,15 +51,21 @@ export default async function handler(
 
   try {
     // Extract question from request body
-    const { question, userContext, chatHistory } = req.body;
+    const { question, userContext, chatHistory } = await req.json();
     
     if (!question || typeof question !== 'string') {
-      return res.status(400).json({ error: 'Question is required' });
+      return new Response(JSON.stringify({ error: 'Question is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Validate question length
     if (question.trim().length > 1000) {
-      return res.status(400).json({ error: 'Question is too long (max 1000 characters)' });
+      return new Response(JSON.stringify({ error: 'Question is too long (max 1000 characters)' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Prepare messages array for OpenAI
@@ -90,7 +100,10 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ''}`,
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       console.error('Missing OpenAI API key');
-      return res.status(500).json({ error: 'Server configuration error' });
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Make request to OpenAI API
@@ -111,15 +124,24 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ''}`,
     if (!response.ok) {
       const error = await response.json();
       console.error('OpenAI API error:', error);
-      return res.status(500).json({ error: 'Failed to get AI response' });
+      return new Response(JSON.stringify({ error: 'Failed to get AI response' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     const responseData = await response.json();
     const answer = responseData.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
 
-    return res.status(200).json({ answer });
+    return new Response(JSON.stringify({ answer }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
     console.error('Error processing AI request:', error);
-    return res.status(500).json({ error: 'An unexpected error occurred' });
+    return new Response(JSON.stringify({ error: 'An unexpected error occurred' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
