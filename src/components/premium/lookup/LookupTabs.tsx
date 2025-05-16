@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { VinLookupForm } from '@/components/lookup/vin/VINLookupForm';
+import { VINLookupForm } from '@/components/lookup/vin/VINLookupForm';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/premium/lookup/PremiumManualLookup';
 
@@ -15,12 +15,14 @@ interface LookupTabsProps {
     onVinLookup?: (vin: string) => void;
     onPlateLookup?: (plate: string, state: string) => void;
   };
+  onSubmit?: (type: string, value: string, state?: string) => void;
 }
 
 export function LookupTabs({
   lookup,
   onLookupChange,
-  formProps
+  formProps,
+  onSubmit
 }: LookupTabsProps) {
   return (
     <Tabs value={lookup} onValueChange={onLookupChange as (value: string) => void} className="w-full">
@@ -31,7 +33,7 @@ export function LookupTabs({
       </TabsList>
       
       <TabsContent value="vin" className="mt-4">
-        <VinLookupForm
+        <VINLookupForm
           onSubmit={formProps.onVinLookup || ((vin) => {})}
           isLoading={formProps.isLoading}
           submitButtonText={formProps.submitButtonText}
@@ -42,7 +44,6 @@ export function LookupTabs({
         <PlateLookup
           onSubmit={formProps.onPlateLookup || ((plate, state) => {})}
           isLoading={formProps.isLoading}
-          submitButtonText={formProps.submitButtonText}
         />
       </TabsContent>
       
@@ -50,6 +51,7 @@ export function LookupTabs({
         <ManualLookup
           onSubmit={formProps.onSubmit}
           isLoading={formProps.isLoading}
+          submitButtonText={formProps.submitButtonText}
         />
       </TabsContent>
     </Tabs>

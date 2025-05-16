@@ -24,6 +24,9 @@ export function PremiumTabs({
   const [upgrading, setUpgrading] = useState(false);
   const navigate = useNavigate();
   
+  // Add state for the lookup tabs
+  const [lookupType, setLookupType] = useState<'vin' | 'plate' | 'manual'>('vin');
+  
   const handlePremiumUpgrade = async () => {
     console.log("PREMIUM: Upgrade button clicked");
     setUpgrading(true);
@@ -107,7 +110,18 @@ export function PremiumTabs({
               <CardDescription>Get a quick, AI-powered estimate based on market data.</CardDescription>
             </CardHeader>
             <CardContent>
-              <LookupTabs onSubmit={handleLookupSubmit} />
+              <LookupTabs 
+                lookup={lookupType}
+                onLookupChange={setLookupType}
+                formProps={{
+                  onSubmit: (data) => handleLookupSubmit('manual', JSON.stringify(data)),
+                  onVinLookup: (vin) => handleLookupSubmit('vin', vin),
+                  onPlateLookup: (plate, state) => handleLookupSubmit('plate', plate, state),
+                  isLoading: isProcessing,
+                  submitButtonText: "Get Valuation"
+                }}
+                onSubmit={handleLookupSubmit}
+              />
             </CardContent>
           </Card>
         </TabsContent>
