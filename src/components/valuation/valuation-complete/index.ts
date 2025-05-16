@@ -1,5 +1,6 @@
 
-export * from './ValuationHeader';
+// Export valuation-complete components
 export * from './NextStepsCard';
-export { ValuationHeader } from './ValuationHeader';
 export { NextStepsCard } from './NextStepsCard';
+export { default as CompletionHeader } from './ValuationHeader';
+export { ValuationHeader as CompletionValuationHeader } from './ValuationHeader';
