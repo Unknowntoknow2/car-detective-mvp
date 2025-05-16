@@ -35,3 +35,55 @@ export const manualEntryToJson = (formData: any): string => {
   
   return JSON.stringify(cleanedData);
 };
+
+/**
+ * Format a number with thousands separators
+ */
+export const formatNumber = (value: number, decimals: number = 0): string => {
+  if (value == null) return '0';
+  
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
+};
+
+/**
+ * Format a date relative to the current time (e.g., "2 hours ago")
+ */
+export const formatRelativeTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  
+  // Convert to seconds
+  const diffSecs = Math.floor(diffMs / 1000);
+  
+  if (diffSecs < 60) {
+    return 'Just now';
+  }
+  
+  // Convert to minutes
+  const diffMins = Math.floor(diffSecs / 60);
+  
+  if (diffMins < 60) {
+    return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+  }
+  
+  // Convert to hours
+  const diffHours = Math.floor(diffMins / 60);
+  
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  }
+  
+  // Convert to days
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffDays < 30) {
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  }
+  
+  // For older dates, use the formatDate function
+  return formatDate(dateString);
+};
