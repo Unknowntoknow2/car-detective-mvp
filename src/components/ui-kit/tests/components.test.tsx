@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import { CDButton } from '../CDButton';
+import CDButton from '../button/CDButton';
 import { CDCard, CDCardHeader, CDCardBody, CDCardFooter } from '../CDCard';
 import { CDInput } from '../CDInput';
 import { CDBadge } from '../CDBadge';
@@ -23,10 +23,10 @@ describe('CDButton', () => {
     expect(screen.getByText('Primary')).toHaveClass('bg-primary');
 
     rerender(<CDButton variant="secondary">Secondary</CDButton>);
-    expect(screen.getByText('Secondary')).toHaveClass('bg-neutral-lighter');
+    expect(screen.getByText('Secondary')).toHaveClass('bg-secondary');
 
     rerender(<CDButton variant="ghost">Ghost</CDButton>);
-    expect(screen.getByText('Ghost')).toHaveClass('bg-transparent');
+    expect(screen.getByText('Ghost')).toHaveClass('hover:bg-accent');
   });
 
   it('handles click events', () => {

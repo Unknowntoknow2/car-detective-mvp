@@ -14,7 +14,7 @@ export interface CDButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElem
   asChild?: boolean;
   className?: string;
   icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
+  iconPosition?: 'left' | 'right' | string;
   block?: boolean;
   ariaLabel?: string;
 }
