@@ -11,9 +11,18 @@ interface ChatMessageProps {
   content: string;
   timestamp?: string;
   isPremiumContent?: boolean;
+  suggestedQuestions?: string[];
+  onSuggestedQuestionClick?: (question: string) => void;
 }
 
-export function ChatMessage({ role, content, timestamp, isPremiumContent }: ChatMessageProps) {
+export function ChatMessage({ 
+  role, 
+  content, 
+  timestamp, 
+  isPremiumContent,
+  suggestedQuestions,
+  onSuggestedQuestionClick
+}: ChatMessageProps) {
   const isUser = role === 'user';
   // System messages are styled like assistant messages
   const isSystem = role === 'system';
@@ -69,6 +78,20 @@ export function ChatMessage({ role, content, timestamp, isPremiumContent }: Chat
           <span className="text-xs text-muted-foreground mt-1">
             {formattedTime}
           </span>
+        )}
+        
+        {!isUser && suggestedQuestions && suggestedQuestions.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {suggestedQuestions.map((question, index) => (
+              <button
+                key={index}
+                className="text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded-full px-3 py-1 transition-colors"
+                onClick={() => onSuggestedQuestionClick?.(question)}
+              >
+                {question}
+              </button>
+            ))}
+          </div>
         )}
       </div>
       
