@@ -1,953 +1,715 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import MainLayout from '@/layouts/MainLayout';
 import { motion } from 'framer-motion';
-import { ArrowRightCircle, Brain, Check, Photo, ChartBar, Search, FileText, Users, Star, Car } from 'lucide-react';
+import { Brain, Car, ChartBar, FileText, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LookupTabs } from '@/components/home/LookupTabs';
-import { toast } from 'sonner';
-import { MarketTrendChart } from '@/components/valuation/market-trend/MarketTrendChart';
-import { useValuation } from '@/contexts/ValuationContext';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { useAnimatedInView } from '@/hooks/useAnimatedInView';
 
-const mockChartData = [
-  { month: 'Jan', value: 22000 },
-  { month: 'Feb', value: 21500 },
-  { month: 'Mar', value: 22500 },
-  { month: 'Apr', value: 23000 },
-  { month: 'May', value: 22800 },
-  { month: 'Jun', value: 23200 },
-];
-
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Private Seller',
-    avatar: '/images/avatars/avatar-1.png',
-    text: 'Car Detective's valuation was spot-on. I sold my Honda CR-V for $2,300 more than the dealer offered!',
-    stars: 5
-  },
-  {
-    name: 'Michael Chen',
-    role: 'First-time Buyer',
-    avatar: '/images/avatars/avatar-2.png',
-    text: 'The AI photo analysis caught undisclosed damage the seller never mentioned. Saved me thousands.',
-    stars: 5
-  },
-  {
-    name: 'James Williams',
-    role: 'Car Enthusiast',
-    avatar: '/images/avatars/avatar-3.png',
-    text: 'Premium report's 12-month forecast helped me decide the perfect time to sell my BMW. Worth every penny.',
-    stars: 5
-  },
-  {
-    name: 'Emma Davis',
-    role: 'Family Car Owner',
-    avatar: '/images/avatars/avatar-4.png',
-    text: 'I was skeptical, but the valuation was within $300 of what I eventually sold for. Incredibly accurate!',
-    stars: 4
-  }
-];
-
-export function EnhancedHomePage() {
+export const EnhancedHomePage = () => {
   const navigate = useNavigate();
-  const valuationRef = useRef<HTMLDivElement>(null);
+  const [selectedTab, setSelectedTab] = useState('vin');
   const [zipCode, setZipCode] = useState('90210');
-  const [testimonialsIndex, setTestimonialsIndex] = useState(0);
-  const [valuationType, setValuationType] = useState<'free' | 'premium'>('free');
   
-  // Create mockValuationFunctions in case ValuationProvider is not available
-  const defaultValuationFunctions = {
-    processFreeValuation: async (data: any) => {
-      console.log("Mock process free valuation", data);
-      toast.error("Valuation service unavailable");
-      return { error: "Valuation service unavailable" };
-    },
-    processPremiumValuation: async (data: any) => {
-      console.log("Mock process premium valuation", data);
-      toast.error("Premium valuation service unavailable");
-      return { error: "Premium valuation service unavailable" };
-    }
-  };
-  
-  // Try to use the real valuation context, but fall back to mock if it's not available
-  let valuationContext;
-  try {
-    valuationContext = useValuation();
-  } catch (error) {
-    console.error("ValuationContext not available:", error);
-    valuationContext = defaultValuationFunctions;
-  }
-  
-  const { processFreeValuation, processPremiumValuation } = valuationContext;
-  
-  const scrollToValuation = () => {
-    valuationRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Animation hooks for each section
+  const { ref: heroRef, isInView: heroInView } = useAnimatedInView();
+  const { ref: aiRef, isInView: aiInView } = useAnimatedInView({ delay: 0.2 });
+  const { ref: photoRef, isInView: photoInView } = useAnimatedInView({ delay: 0.3 });
+  const { ref: marketRef, isInView: marketInView } = useAnimatedInView({ delay: 0.4 });
+  const { ref: searchRef, isInView: searchInView } = useAnimatedInView({ delay: 0.5 });
+  const { ref: comparisonRef, isInView: comparisonInView } = useAnimatedInView({ delay: 0.6 });
+  const { ref: featuresRef, isInView: featuresInView } = useAnimatedInView({ delay: 0.7 });
+  const { ref: dealerRef, isInView: dealerInView } = useAnimatedInView({ delay: 0.8 });
+  const { ref: testimonialsRef, isInView: testimonialsInView } = useAnimatedInView({ delay: 0.9 });
+  const { ref: pdfRef, isInView: pdfInView } = useAnimatedInView({ delay: 1.0 });
+  const { ref: trustRef, isInView: trustInView } = useAnimatedInView({ delay: 1.1 });
+
+  const handleFreeValuationClick = () => {
+    navigate('/valuation');
   };
 
-  const handleValuationTypeChange = (value: string) => {
-    setValuationType(value as 'free' | 'premium');
-    
-    try {
-      // Analytics tracking would go here
-      console.log(`User selected ${value} valuation type`);
-    } catch (error) {
-      console.error("Error tracking valuation type selection:", error);
-    }
-  };
-
-  const goToFreeLookup = () => {
-    scrollToValuation();
-  };
-
-  const goToPremium = () => {
+  const handlePremiumClick = () => {
     navigate('/premium');
   };
 
+  const handleDealerToolsClick = () => {
+    navigate('/dealer');
+  };
+
   return (
-    <div className="flex-1 animate-fade-in overflow-x-hidden">
-      {/* 1. HERO SECTION */}
-      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white to-primary-light/20 pointer-events-none">
-          <div className="absolute inset-0 opacity-10">
-            <svg width="100%" height="100%" className="opacity-20">
-              <pattern id="pattern-circles" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse">
-                <circle id="pattern-circle" cx="20" cy="20" r="6" fill="none" stroke="currentColor" strokeWidth="1"></circle>
-              </pattern>
-              <rect x="0" y="0" width="100%" height="100%" fill="url(#pattern-circles)"></rect>
-            </svg>
-          </div>
-          <div className="absolute right-0 bottom-0 opacity-20 pointer-events-none">
-            <svg width="480" height="420" viewBox="0 0 480 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M140 168C140 168 176 96 240 96C304 96 340 168 340 168" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M374 174C374 174 368 172 364 172C360 172 354 174 354 174" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M126 174C126 174 132 172 136 172C140 172 146 174 146 174" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="262" cy="166" r="8" fill="currentColor"/>
-              <circle cx="218" cy="166" r="8" fill="currentColor"/>
-              <rect x="76" y="236" width="328" height="16" rx="8" fill="currentColor"/>
-              <rect x="44" y="264" width="392" height="24" rx="12" fill="currentColor"/>
-              <rect x="96" y="208" width="288" height="16" rx="8" fill="currentColor"/>
-              <rect x="120" y="300" width="240" height="16" rx="8" fill="currentColor"/>
-              <rect x="168" y="328" width="144" height="16" rx="8" fill="currentColor"/>
-              <path d="M240 96C240 96 188 148 240 148C292 148 240 96 240 96Z" fill="currentColor"/>
-            </svg>
-          </div>
-        </div>
-
-        <div className="relative z-10 text-center px-4 py-16 md:py-24 max-w-4xl mx-auto">
-          <motion.h1 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6 font-display"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            Know your car's true value <span className="text-primary">in 60 seconds</span>
-          </motion.h1>
-          
-          <motion.p 
-            className="text-xl md:text-2xl text-slate-700 max-w-3xl mx-auto mb-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            No more guesswork. Get instant AI-powered valuation with confidence.
-          </motion.p>
-          
-          <motion.div 
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <Button 
-              size="lg" 
-              onClick={goToFreeLookup}
-              className="w-full sm:w-auto px-8 py-6 h-auto text-lg font-medium"
-            >
-              Free Valuation
-              <ArrowRightCircle className="ml-2 h-5 w-5" />
-            </Button>
-            
-            <Button 
-              variant="premium" 
-              size="lg" 
-              onClick={goToPremium}
-              className="w-full sm:w-auto px-8 py-6 h-auto text-lg font-medium premium-shine"
-            >
-              Try Premium for $29.99
-              <ArrowRightCircle className="ml-2 h-5 w-5" />
-            </Button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 2. AI CHAT / ASSISTANT TEASER */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div 
-              className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl p-8 md:p-10 shadow-sm relative overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <div className="absolute -right-12 -top-12 w-40 h-40 bg-gradient-to-br from-indigo-100 to-white rounded-full blur-2xl opacity-70"></div>
-              
-              <h2 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900 relative z-10">
-                Ask our AI about your car's value
-              </h2>
-              
-              <p className="text-lg text-slate-700 mb-6 relative z-10">
-                Get instant answers to your valuation questions with our advanced AI assistant.
+    <MainLayout>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* 1. Hero Section */}
+        <motion.section 
+          ref={heroRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-24 text-center md:text-left relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 to-purple-50 opacity-70"></div>
+          <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+                Know your car's <span className="text-primary">true value</span> in 60 seconds
+              </h1>
+              <p className="text-lg md:text-xl text-gray-700 max-w-xl">
+                No more guesswork. Get instant AI-powered valuation with confidence.
               </p>
-              
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 mb-6 max-w-lg">
-                <div className="flex gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-                    <Brain size={18} />
-                  </div>
-                  <div className="flex-1 bg-slate-100 p-3 rounded-lg text-slate-800 text-sm">
-                    Hello! I can help you understand your car's value. What would you like to know?
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 justify-end">
-                  <div className="flex-1 bg-indigo-100 p-3 rounded-lg text-slate-800 text-sm ml-12">
-                    How much is my 2019 Honda Accord worth with 45,000 miles?
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                    <span className="text-xs font-medium">You</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="relative z-10">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="relative overflow-hidden group"
-                >
-                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-indigo-700 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
-                  <Brain className="mr-2 h-5 w-5 text-indigo-600" />
-                  Chat with AI Assistant
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Button size="lg" onClick={handleFreeValuationClick} className="hover-lift">
+                  Free Valuation
+                </Button>
+                <Button size="lg" variant="outline" onClick={handlePremiumClick} className="border-primary/30 text-primary hover:bg-primary-light/20 hover-lift">
+                  Try Premium for $29.99
                 </Button>
               </div>
-            </motion.div>
+              <div className="pt-4 flex items-center text-sm text-primary-accent">
+                <Sparkles className="h-4 w-4 mr-2" />
+                <span>Includes CARFAX® report ($44 value)</span>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <motion.div 
+                className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              >
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">My Car's Value</h3>
+                  <div className="text-4xl font-bold text-primary mb-4">$22,450</div>
+                  <div className="flex justify-center gap-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Great Price</Badge>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">High Confidence</Badge>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </motion.section>
 
-      {/* 3. AI PHOTO SCORING DEMO */}
-      <section className="py-16 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-5xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-12 text-slate-900">AI Photo Scoring</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-slate-900">Upload your car photos</h3>
-                  <p className="text-slate-600 mb-6">
-                    Our advanced AI analyzes your car's condition from photos to provide a more accurate valuation.
-                  </p>
-                  
-                  <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-8 flex flex-col items-center justify-center mb-4">
-                    <Photo className="h-12 w-12 text-slate-400 mb-3" />
-                    <p className="text-sm text-slate-500 text-center">
-                      Drag & drop photos here or click to browse
-                    </p>
-                  </div>
-                  
-                  <Button className="w-full">
-                    Upload Photos for Instant Scoring
-                  </Button>
+        {/* 2. AI Chat / Assistant Teaser */}
+        <motion.section
+          ref={aiRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={aiInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ask our AI about your car's value</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Our advanced AI can answer any questions about your car's valuation, market trends, and more.
+            </p>
+          </div>
+          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+            <div className="bg-primary/5 p-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                <h3 className="font-medium">Car Detective AI Assistant</h3>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <p className="text-gray-700">How much is my 2018 Honda Accord worth?</p>
+              </div>
+              <div className="bg-primary/10 rounded-lg p-4 mb-4">
+                <p className="text-gray-800">
+                  Based on market data, a 2018 Honda Accord in good condition with average mileage is 
+                  worth between $18,200 and $22,400 in your area. Would you like to get a more precise 
+                  valuation by answering a few questions about your specific vehicle?
+                </p>
+              </div>
+              <div className="mt-4">
+                <Button className="w-full group hover-lift" size="lg">
+                  <span>Chat with AI Assistant</span>
+                  <Sparkles className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* 3. AI Photo Scoring Demo */}
+        <motion.section
+          ref={photoRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={photoInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20 bg-gray-50 rounded-3xl"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">AI Photo Scoring</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Our AI analyzes your car photos to provide an accurate condition assessment.
+            </p>
+          </div>
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-100 relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-sm text-gray-500">Exterior Front</div>
                 </div>
               </div>
-              
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-4 text-slate-900">AI Condition Analysis</h3>
-                  <p className="text-slate-600 mb-6">
-                    See how our AI scores photos to assess your vehicle's condition.
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div className="relative rounded-lg overflow-hidden">
-                      <img src="/demo-car-front.jpg" alt="Car front" className="w-full h-32 object-cover" />
-                      <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        95%
-                      </div>
-                    </div>
-                    <div className="relative rounded-lg overflow-hidden">
-                      <img src="/demo-car-side.jpg" alt="Car side" className="w-full h-32 object-cover" />
-                      <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        90%
-                      </div>
-                    </div>
-                    <div className="relative rounded-lg overflow-hidden">
-                      <img src="/demo-car-interior.jpg" alt="Car interior" className="w-full h-32 object-cover" />
-                      <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        75%
-                      </div>
-                    </div>
-                    <div className="relative rounded-lg overflow-hidden">
-                      <img src="/demo-car-rear.jpg" alt="Car rear" className="w-full h-32 object-cover" />
-                      <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        88%
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-slate-50 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-slate-700">Overall Condition</span>
-                      <span className="text-sm font-semibold text-slate-900">Excellent (87%)</span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2.5">
-                      <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '87%' }}></div>
-                    </div>
-                  </div>
+              <div className="p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Condition Score</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700">Excellent</Badge>
                 </div>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 4. MARKET SNAPSHOT (ZIP-BASED) */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-4xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-2 text-slate-900">Market Snapshot</h2>
-            <p className="text-lg text-center text-slate-600 mb-10">
-              See average vehicle prices in your area
-            </p>
-            
-            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 p-6 md:p-8">
-              <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-center md:items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="px-3 py-1.5 bg-slate-100 rounded-md text-sm font-medium text-slate-600">
-                      ZIP: {zipCode}
-                    </div>
-                    <Button variant="outline" size="sm" className="text-xs h-8">
-                      Change
-                    </Button>
-                  </div>
-                  
-                  <h3 className="text-4xl font-bold text-slate-900 mb-2">$22,430</h3>
-                  <p className="text-slate-600 mb-4">Average vehicle price in your area</p>
-                  
-                  <div className="flex flex-wrap gap-3 mb-4">
-                    <div className="px-3 py-1.5 bg-slate-100 rounded-full text-sm font-medium text-slate-600 flex items-center">
-                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                      Sedans: $19,250
-                    </div>
-                    <div className="px-3 py-1.5 bg-slate-100 rounded-full text-sm font-medium text-slate-600 flex items-center">
-                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                      SUVs: $27,800
-                    </div>
-                    <div className="px-3 py-1.5 bg-slate-100 rounded-full text-sm font-medium text-slate-600 flex items-center">
-                      <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                      Trucks: $32,150
-                    </div>
-                  </div>
-                  
-                  <Button size="sm" variant="outline" className="text-primary">
-                    View detailed market report
-                    <ArrowRightCircle className="ml-2 h-4 w-4" />
-                  </Button>
+            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-100 relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-sm text-gray-500">Interior</div>
                 </div>
-                
-                <div className="w-full md:w-64 h-40">
-                  <h4 className="text-sm font-medium text-slate-600 mb-2">6-Month Trend</h4>
-                  <MarketTrendChart data={mockChartData} />
+              </div>
+              <div className="p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Condition Score</span>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700">Good</Badge>
                 </div>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+              <div className="aspect-video bg-gray-100 relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-sm text-gray-500">Exterior Side</div>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Condition Score</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700">Very Good</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-10">
+            <Button size="lg" className="hover-lift">
+              Upload Your Photos for Instant Scoring
+            </Button>
+          </div>
+        </motion.section>
 
-      {/* 5. SMART SEARCH BOX TABS */}
-      <section ref={valuationRef} className="py-16 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-2 text-slate-900">Get Your Vehicle Valuation</h2>
-            <p className="text-lg text-center text-slate-600 mb-10">
-              Find your car's value in under a minute — no signup required
+        {/* 4. Market Snapshot */}
+        <motion.section
+          ref={marketRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={marketInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Market Snapshot</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              See real-time market data for your area.
             </p>
-            
-            <Tabs 
-              defaultValue="free" 
-              value={valuationType} 
-              onValueChange={handleValuationTypeChange}
-              className="w-full mb-8"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="free">Free Valuation</TabsTrigger>
-                <TabsTrigger value="premium">Premium Report</TabsTrigger>
+          </div>
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Average Price in {zipCode}</CardTitle>
+                <CardDescription>Based on recent transactions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">$22,430</div>
+                <div className="text-sm text-green-600 flex items-center mt-1">
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                  2.4% from last month
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Market Demand</CardTitle>
+                <CardDescription>Time on market</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">34 days</div>
+                <div className="text-sm text-red-600 flex items-center mt-1">
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                  5.1% from last month
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">ZIP Code</CardTitle>
+                <CardDescription>Enter your ZIP for local data</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex">
+                  <Input 
+                    type="text" 
+                    placeholder="Enter ZIP" 
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    className="mr-2"
+                    maxLength={5}
+                  />
+                  <Button variant="outline">Update</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.section>
+
+        {/* 5. Smart Search Box Tabs */}
+        <motion.section
+          ref={searchRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={searchInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Quick Vehicle Lookup</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Choose your preferred method to lookup your vehicle.
+            </p>
+          </div>
+          <div className="max-w-2xl mx-auto">
+            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+              <TabsList className="grid grid-cols-3 mb-8">
+                <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
+                <TabsTrigger value="plate">Plate Lookup</TabsTrigger>
+                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="free" className="mt-6">
-                <div className="text-center mb-6">
-                  <p className="text-lg text-slate-600">
-                    Get a quick, AI-powered estimate based on market data.
+              <TabsContent value="vin" className="space-y-4">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-medium mb-4">Enter your Vehicle Identification Number</h3>
+                  <div className="space-y-4">
+                    <Input placeholder="Enter VIN (e.g., 1HGCM82633A004352)" />
+                    <Button className="w-full">Lookup VIN</Button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-4">
+                    Your VIN is a 17-character code that can be found on your vehicle registration, insurance card, or inside the driver's door jamb.
                   </p>
                 </div>
-                <Card className="border-2 border-slate-200">
-                  <CardContent className="pt-6">
-                    <LookupTabs defaultTab="vin" />
-                  </CardContent>
-                </Card>
               </TabsContent>
-              
-              <TabsContent value="premium" className="mt-6">
-                <div className="text-center mb-6">
-                  <p className="text-lg text-slate-600">
-                    Get comprehensive analysis with CARFAX® report and dealer-competitive offers.
+              <TabsContent value="plate" className="space-y-4">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-medium mb-4">Enter your License Plate</h3>
+                  <div className="space-y-4 grid grid-cols-2 gap-4">
+                    <Input placeholder="License Plate" />
+                    <Input placeholder="State" />
+                    <Button className="w-full col-span-2">Lookup Plate</Button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-4">
+                    Enter your license plate number and state to retrieve your vehicle information.
                   </p>
                 </div>
-                <Card className="border-2 border-indigo-100 shadow-lg bg-gradient-to-br from-white to-indigo-50/30">
-                  <CardContent className="pt-6">
-                    <LookupTabs defaultTab="vin" />
-                  </CardContent>
-                </Card>
+              </TabsContent>
+              <TabsContent value="manual" className="space-y-4">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <h3 className="text-lg font-medium mb-4">Enter Vehicle Details</h3>
+                  <div className="space-y-4 grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <Input placeholder="Year (e.g., 2019)" />
+                    </div>
+                    <Input placeholder="Make (e.g., Honda)" />
+                    <Input placeholder="Model (e.g., Civic)" />
+                    <Button className="w-full col-span-2">Continue</Button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-4">
+                    Can't find your VIN? Enter your vehicle details manually.
+                  </p>
+                </div>
               </TabsContent>
             </Tabs>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </motion.section>
 
-      {/* 6. FREE VS PREMIUM COMPARISON */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-6xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-2 text-slate-900">Free vs Premium Comparison</h2>
-            <p className="text-lg text-center text-slate-600 mb-10 max-w-3xl mx-auto">
-              See how our Premium service provides the most comprehensive valuation data available anywhere
+        {/* 6. Free vs Premium Comparison Cards */}
+        <motion.section
+          ref={comparisonRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={comparisonInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white rounded-3xl"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Valuation Plan</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Select the plan that best fits your needs.
             </p>
+          </div>
+          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Free Plan */}
+            <Card className="border border-gray-200 hover:border-gray-300 transition-all">
+              <CardHeader>
+                <CardTitle>Free Valuation</CardTitle>
+                <CardDescription>Basic vehicle value estimate</CardDescription>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold">$0</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Basic vehicle valuation</span>
+                </div>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>VIN and plate lookup</span>
+                </div>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Basic vehicle details</span>
+                </div>
+                <div className="flex items-start text-gray-400">
+                  <svg className="h-5 w-5 text-gray-300 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>No CARFAX® report</span>
+                </div>
+                <div className="flex items-start text-gray-400">
+                  <svg className="h-5 w-5 text-gray-300 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>No dealer offers</span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" onClick={handleFreeValuationClick} className="w-full">
+                  Start Free Valuation
+                </Button>
+              </CardFooter>
+            </Card>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-              {/* Free Card */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 transition-all hover:shadow-lg">
-                <div className="p-6 border-b border-slate-100">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-1">Free Valuation</h3>
-                  <p className="text-slate-600">Basic market estimate</p>
-                </div>
-                
-                <div className="p-6">
-                  <div className="text-3xl font-bold text-slate-900 mb-6">$0</div>
-                  
-                  <ul className="space-y-4 mb-8">
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">VIN/Plate/Manual Lookup</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Basic Market Estimate</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Single Photo AI Scoring</span>
-                    </li>
-                    <li className="flex items-start opacity-50">
-                      <Check className="h-5 w-5 text-slate-300 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-500">Multi-Photo AI Analysis</span>
-                    </li>
-                    <li className="flex items-start opacity-50">
-                      <Check className="h-5 w-5 text-slate-300 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-500">Full CARFAX® History Report</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Limited CARFAX® Preview</span>
-                    </li>
-                    <li className="flex items-start opacity-50">
-                      <Check className="h-5 w-5 text-slate-300 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-500">Feature-Based Value Adjustments</span>
-                    </li>
-                    <li className="flex items-start opacity-50">
-                      <Check className="h-5 w-5 text-slate-300 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-500">Dealer-Beat Offers</span>
-                    </li>
-                  </ul>
-                  
-                  <Button variant="outline" size="lg" className="w-full" onClick={goToFreeLookup}>
-                    Get Free Valuation
-                  </Button>
-                </div>
+            {/* Premium Plan */}
+            <Card className="border-2 border-primary shadow-lg relative">
+              <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 text-sm font-medium rounded-bl-lg rounded-tr-lg">
+                Recommended
               </div>
-              
-              {/* Premium Card */}
-              <div className="bg-gradient-to-br from-white to-indigo-50/50 rounded-xl shadow-lg overflow-hidden border border-indigo-100 transition-all hover:shadow-xl relative">
-                <div className="absolute -top-6 -right-6 w-32 h-32 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
-                <div className="absolute top-3 right-3 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  RECOMMENDED
+              <CardHeader>
+                <CardTitle>Premium Valuation</CardTitle>
+                <CardDescription>Complete vehicle analysis with CARFAX®</CardDescription>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold">$29.99</span>
                 </div>
-                
-                <div className="p-6 border-b border-indigo-100 relative z-10">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-1">Premium Report</h3>
-                  <p className="text-slate-600">Comprehensive analysis with CARFAX®</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Comprehensive vehicle valuation</span>
                 </div>
-                
-                <div className="p-6 relative z-10">
-                  <div className="text-3xl font-bold text-slate-900 mb-1">$29.99</div>
-                  <p className="text-indigo-600 text-sm font-medium mb-6">Includes CARFAX® report ($44 value)</p>
-                  
-                  <ul className="space-y-4 mb-8">
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">VIN/Plate/Manual Lookup</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Enhanced Market Estimate</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Multi-Photo AI Analysis</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Full CARFAX® History Report</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Feature-Based Value Adjustments</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Dealer-Beat Offers</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">Open Marketplace Pricing</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-slate-700">12-Month Value Forecast</span>
-                    </li>
-                  </ul>
-                  
-                  <Button variant="premium" size="lg" className="w-full premium-shine" onClick={goToPremium}>
-                    Get Premium Report
-                  </Button>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Complete CARFAX® report ($44 value)</span>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Multi-photo AI condition scoring</span>
+                </div>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Dealer offers in your area</span>
+                </div>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Downloadable PDF report</span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handlePremiumClick} className="w-full">
+                  Get Premium Valuation
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </motion.section>
 
-      {/* 7. FEATURE EXPLAINER SECTION */}
-      <section className="py-16 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-6xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-2 text-slate-900">Premium Features</h2>
-            <p className="text-lg text-center text-slate-600 mb-10 max-w-3xl mx-auto">
-              Our premium report includes these powerful features to give you the most accurate valuation
+        {/* 7. Feature Explainer Section */}
+        <motion.section
+          ref={featuresRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={featuresInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Premium Features</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Get the most accurate valuation with our advanced features.
             </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* CARFAX® Feature */}
-              <motion.div 
-                className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 transition-all hover:shadow-md"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="p-6">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="h-6 w-6 text-red-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">CARFAX® Report</h3>
-                  <p className="text-slate-600 mb-4">
-                    Full vehicle history including accidents, service records, and ownership details.
-                  </p>
-                  <p className="text-sm text-indigo-600 font-medium">$44 value included</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="hover:shadow-md transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4">
+                  <FileText className="h-6 w-6" />
                 </div>
-              </motion.div>
-              
-              {/* AI Photo Scoring */}
-              <motion.div 
-                className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 transition-all hover:shadow-md"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="p-6">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                    <Photo className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">AI Photo Scoring</h3>
-                  <p className="text-slate-600 mb-4">
-                    Upload multiple photos for our AI to analyze and score your vehicle's condition.
-                  </p>
-                  <p className="text-sm text-indigo-600 font-medium">Up to 10 photos</p>
-                </div>
-              </motion.div>
-              
-              {/* Dealer Offers */}
-              <motion.div 
-                className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 transition-all hover:shadow-md"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="p-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                    <Users className="h-6 w-6 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Dealer Offers</h3>
-                  <p className="text-slate-600 mb-4">
-                    Compare offers from multiple dealers in your area to get the best deal.
-                  </p>
-                  <p className="text-sm text-indigo-600 font-medium">Dealer-beat guarantee</p>
-                </div>
-              </motion.div>
-              
-              {/* 12-Month Forecast */}
-              <motion.div 
-                className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 transition-all hover:shadow-md"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="p-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <ChartBar className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">12-Month Forecast</h3>
-                  <p className="text-slate-600 mb-4">
-                    Predict your vehicle's future value with our advanced market analysis.
-                  </p>
-                  <p className="text-sm text-indigo-600 font-medium">Exclusive to premium</p>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 8. DEALER CTA SECTION */}
-      <section className="py-16 bg-slate-900 text-white">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-5xl mx-auto"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h2 className="text-3xl font-bold mb-4">For Dealers</h2>
-                <p className="text-xl text-slate-300 mb-6">
-                  Run bulk valuations. Get more leads. Grow your business.
+                <CardTitle>CARFAX® Report</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Get a complete vehicle history report including accidents, service records, and previous owners.
                 </p>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-300">Bulk VIN processing</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-300">Consumer-to-dealer matching</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-300">Advanced analytics dashboard</span>
-                  </li>
-                </ul>
-                <div className="flex flex-wrap gap-4">
-                  <Button variant="outline" className="text-white border-white/20 hover:bg-white/10">
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 mb-4">
+                  <Car className="h-6 w-6" />
+                </div>
+                <CardTitle>AI Photo Scoring</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Our AI analyzes your car photos to provide an accurate condition assessment and valuation adjustment.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 mb-4">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <CardTitle>Dealer Offers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  Receive actual purchase offers from dealerships in your area interested in your vehicle.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 mb-4">
+                  <ChartBar className="h-6 w-6" />
+                </div>
+                <CardTitle>12-Month Forecast</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  View projected value changes for your vehicle over the next 12 months to time your sale perfectly.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.section>
+
+        {/* 8. Dealer CTA Section */}
+        <motion.section
+          ref={dealerRef}
+          initial={{ opacity: 0, x: -50 }}
+          animate={dealerInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20 bg-gradient-to-r from-slate-900 to-blue-900 text-white rounded-3xl"
+        >
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Are You a Dealer?</h2>
+                <p className="text-lg opacity-80 mb-6">
+                  Run bulk valuations, get more leads, and grow your business with our dealer tools.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    size="lg" 
+                    onClick={handleDealerToolsClick}
+                    className="bg-white text-slate-900 hover:bg-gray-200 hover-lift"
+                  >
                     View Dealer Tools
                   </Button>
-                  <Button>
-                    Sign Up for Dealer Access
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="border-white text-white hover:bg-white/10 hover-lift"
+                  >
+                    Learn More
                   </Button>
                 </div>
               </div>
-              
-              <div className="relative">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/10 shadow-lg p-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                      <Car className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Dealer Dashboard</h3>
-                      <p className="text-sm text-slate-300">Manage your inventory and leads</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/5 rounded-lg p-4 mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm">Total Leads</span>
-                      <span className="text-lg font-bold">247</span>
-                    </div>
-                    <div className="w-full bg-white/10 rounded-full h-1.5 mb-4">
-                      <div className="bg-primary h-1.5 rounded-full" style={{ width: '70%' }}></div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <div className="text-lg font-bold">124</div>
-                        <div className="text-xs text-slate-400">New</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold">89</div>
-                        <div className="text-xs text-slate-400">In Progress</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold">34</div>
-                        <div className="text-xs text-slate-400">Converted</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <Button variant="outline" size="sm" className="text-white border-white/20 hover:bg-white/10">
-                      View Demo Dashboard
-                    </Button>
-                  </div>
+              <div className="hidden md:block">
+                <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl">
+                  <h3 className="text-xl font-semibold mb-4">Dealer Advantages</h3>
+                  <ul className="space-y-3">
+                    <li className="flex items-center">
+                      <svg className="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Bulk VIN lookup and valuations</span>
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Direct customer leads</span>
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Market analytics dashboard</span>
+                    </li>
+                    <li className="flex items-center">
+                      <svg className="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Inventory management tools</span>
+                    </li>
+                  </ul>
                 </div>
-                
-                <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/20 rounded-full blur-3xl"></div>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </motion.section>
 
-      {/* 9. TESTIMONIALS CAROUSEL */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-4xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-2 text-slate-900">What Our Users Say</h2>
-            <p className="text-lg text-center text-slate-600 mb-10">
-              Join thousands of satisfied users who've found their car's true value
+        {/* 9. Testimonials Carousel */}
+        <motion.section
+          ref={testimonialsRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={testimonialsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Thousands of car owners trust our valuations every day.
             </p>
-            
-            <div className="relative">
-              <motion.div 
-                className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 p-6 md:p-8"
-                animate={{ opacity: 1 }}
-                initial={{ opacity: 0 }}
-                key={testimonialsIndex}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="flex items-center mb-6">
-                  <div className="w-14 h-14 rounded-full bg-slate-200 overflow-hidden mr-4">
-                    <img 
-                      src={testimonials[testimonialsIndex].avatar || "/images/avatars/placeholder.jpg"} 
-                      alt={testimonials[testimonialsIndex].name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900">{testimonials[testimonialsIndex].name}</h3>
-                    <p className="text-slate-600">{testimonials[testimonialsIndex].role}</p>
-                  </div>
-                  <div className="ml-auto flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i}
-                        className={`h-5 w-5 ${i < testimonials[testimonialsIndex].stars ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                
-                <blockquote className="text-xl text-slate-700 mb-6 italic">
-                  "{testimonials[testimonialsIndex].text}"
-                </blockquote>
-                
-                <div className="flex justify-center gap-2">
-                  {testimonials.map((_, i) => (
-                    <button 
-                      key={i}
-                      className={`w-2.5 h-2.5 rounded-full ${i === testimonialsIndex ? 'bg-primary' : 'bg-slate-300'}`}
-                      onClick={() => setTestimonialsIndex(i)}
-                      aria-label={`View testimonial ${i + 1}`}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-              
-              <div className="absolute top-1/2 -translate-y-1/2 -left-4 md:-left-6">
-                <button 
-                  onClick={() => setTestimonialsIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
-                  className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200 hover:bg-slate-50"
-                  aria-label="Previous testimonial"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              </div>
-              
-              <div className="absolute top-1/2 -translate-y-1/2 -right-4 md:-right-6">
-                <button 
-                  onClick={() => setTestimonialsIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
-                  className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200 hover:bg-slate-50"
-                  aria-label="Next testimonial"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 10. PREMIUM PDF PREVIEW */}
-      <section className="py-16 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-5xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-center mb-2 text-slate-900">Premium PDF Report</h2>
-            <p className="text-lg text-center text-slate-600 mb-10 max-w-3xl mx-auto">
-              Get a professional, detailed PDF report that you can download, print, or share
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-4 text-slate-900">What's inside:</h3>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">Detailed vehicle specifications</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">Complete CARFAX® history</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">Dealer competitive offers</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">12-month value forecast</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">AI photo analysis score</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-700">Feature value breakdown</span>
-                  </li>
-                </ul>
-                
-                <Button 
-                  variant="premium" 
-                  size="lg" 
-                  className="w-full sm:w-auto premium-shine"
-                  onClick={goToPremium}
-                >
-                  Unlock Premium Report ($29.99)
-                </Button>
-                <div className="mt-3 text-sm text-slate-600 flex items-center gap-1">
-                  <span className="inline-flex px-2 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">Includes $44 CARFAX® report</span>
-                </div>
-              </div>
-              
-              <div className="relative">
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-slate-200 aspect-[8.5/11] max-w-sm mx-auto relative">
-                  <div className="absolute inset-0 backdrop-blur-[3px] flex items-center justify-center z-10">
-                    <div className="bg-slate-900/70 rounded-full px-6 py-3 text-white font-medium">
-                      Premium Feature
+          </div>
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border border-gray-200 hover:border-gray-300 transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex items-center mb-4">
+                    <div className="text-yellow-400 flex">
+                      {[...Array(5)].map((_, i) => (
+                        <svg key={i} className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
                     </div>
                   </div>
-                  <img 
-                    src="/images/premium-report-preview.jpg" 
-                    alt="Premium report preview" 
-                    className="w-full h-full object-cover opacity-70"
-                  />
-                </div>
-                
-                <div className="absolute -top-4 -right-4 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full transform rotate-12">
-                  Professional Report
-                </div>
-              </div>
+                  <p className="text-gray-700 mb-6">
+                    "Car Detective gave me an accurate valuation that was spot on with what the dealer offered. The CARFAX report saved me from buying a car with hidden damage. Worth every penny!"
+                  </p>
+                  <div className="flex items-center">
+                    <div className="ml-3">
+                      <h4 className="font-semibold">Michael T.</h4>
+                      <p className="text-sm text-gray-500">Toyota Camry Owner</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border border-gray-200 hover:border-gray-300 transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex items-center mb-4">
+                    <div className="text-yellow-400 flex">
+                      {[...Array(5)].map((_, i) => (
+                        <svg key={i} className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-6">
+                    "The AI photo scoring was incredibly accurate! It detected minor scratches I hadn't even mentioned and adjusted the valuation accordingly. This is next-level technology."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="ml-3">
+                      <h4 className="font-semibold">Sarah L.</h4>
+                      <p className="text-sm text-gray-500">BMW X5 Owner</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </motion.section>
 
-      {/* 11. TRUST LOGOS BAR */}
-      <section className="py-12 bg-white border-t border-slate-100">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-5xl mx-auto"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <p className="text-xs uppercase tracking-wider text-slate-500 text-center mb-8">
-              Trusted by thousands of customers
+        {/* 10. Premium PDF Preview */}
+        <motion.section
+          ref={pdfRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={pdfInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20 bg-gray-50 rounded-3xl"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Premium PDF Report</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Get a comprehensive PDF report with all the details about your vehicle.
             </p>
-            
-            <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12 md:gap-16">
-              <div className="h-10 grayscale opacity-60 transition-opacity hover:opacity-100">
-                <img src="/logos/carfax.png" alt="CARFAX" className="h-full" />
+          </div>
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="bg-white p-6 rounded-xl shadow-md relative overflow-hidden">
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <Lock className="h-12 w-12 text-primary mx-auto" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Premium Report Preview</h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    Unlock the full report with CARFAX® history, market analysis, and more.
+                  </p>
+                  <Button onClick={handlePremiumClick} size="lg" className="hover-lift">
+                    Unlock Premium Report ($29.99)
+                  </Button>
+                  <div className="mt-3 text-sm text-primary flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    <span>Includes $44 CARFAX® report</span>
+                  </div>
+                </div>
               </div>
-              <div className="h-8 grayscale opacity-60 transition-opacity hover:opacity-100">
-                <img src="/logos/stripe.png" alt="Stripe" className="h-full" />
-              </div>
-              <div className="h-9 grayscale opacity-60 transition-opacity hover:opacity-100">
-                <img src="/logos/military.png" alt="Military-grade security" className="h-full" />
-              </div>
+              <div className="aspect-[8.5/11] bg-gray-100 rounded-lg"></div>
             </div>
-          </motion.div>
-        </div>
-      </section>
-    </div>
+          </div>
+        </motion.section>
+
+        {/* 11. Trust Logos Bar */}
+        <motion.section
+          ref={trustRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={trustInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="py-16 md:py-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold mb-4">Trusted Partners</h2>
+          </div>
+          <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8 items-center justify-items-center">
+            <div className="grayscale hover:grayscale-0 transition duration-300">
+              <img src="/logos/carfax.png" alt="CARFAX" className="h-12 object-contain" />
+            </div>
+            <div className="grayscale hover:grayscale-0 transition duration-300">
+              <img src="/logos/stripe.png" alt="Stripe" className="h-12 object-contain" />
+            </div>
+            <div className="grayscale hover:grayscale-0 transition duration-300">
+              <img src="/logos/military.png" alt="Military Grade Security" className="h-12 object-contain" />
+            </div>
+          </div>
+        </motion.section>
+      </div>
+    </MainLayout>
   );
-}
+};
