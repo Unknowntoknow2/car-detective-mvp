@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const AuthForm = ({ mode }: { mode: AuthMode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, user } = useAuth();
 
   // Redirect to home if already authenticated
-  if (session) {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (session && user) {
+      navigate('/');
+    }
+  }, [session, user, navigate]);
 
   const getTitle = () => {
     switch (mode) {
@@ -100,6 +101,9 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
     
     return null;
   };
+
+  // Don't render if redirecting
+  if (session && user) return null;
 
   return (
     <Card className="w-full max-w-md shadow-lg rounded-2xl overflow-hidden">
