@@ -1,14 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Car, FileText, Download, Share2 } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
-import { useValuation } from '@/contexts/ValuationContext';
-import { toast } from 'sonner';
+import { formatNumber } from '@/utils/formatters/formatNumber';
 
-interface VehicleInfo {
+export interface VehicleInfo {
   make: string;
   model: string;
   year: number;
@@ -16,22 +11,22 @@ interface VehicleInfo {
   condition: string;
 }
 
-interface Adjustment {
+export interface Adjustment {
   factor: string;
   impact: number;
   description: string;
 }
 
-interface UnifiedValuationResultProps {
+export interface UnifiedValuationResultProps {
   valuationId: string;
   vehicleInfo: VehicleInfo;
   estimatedValue: number;
   confidenceScore: number;
   priceRange?: [number, number];
   adjustments?: Adjustment[];
-  displayMode?: 'compact' | 'full';
-  onDownloadPdf?: () => Promise<void> | void;
-  onEmailReport?: () => Promise<void> | void;
+  displayMode?: 'simple' | 'full';
+  onDownloadPdf?: () => void;
+  onEmailReport?: () => void;
 }
 
 const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
@@ -39,181 +34,87 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   vehicleInfo,
   estimatedValue,
   confidenceScore,
-  priceRange = [0, 0],
+  priceRange,
   adjustments = [],
-  displayMode = 'full',
+  displayMode = 'simple',
   onDownloadPdf,
   onEmailReport
 }) => {
-  const { isPremium, hasPurchasedReport, downloadPdf } = useValuation();
+  // Generate price range if not provided
+  const valuationRange = priceRange || [
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05)
+  ];
   
-  const { make, model, year, mileage, condition } = vehicleInfo;
-  
-  // Default price range if not provided
-  const [minPrice, maxPrice] = priceRange[0] === 0 ? 
-    [Math.round(estimatedValue * 0.9), Math.round(estimatedValue * 1.1)] : 
-    priceRange;
-  
-  const handleDownloadPdf = async () => {
-    if (onDownloadPdf) {
-      return onDownloadPdf();
-    }
-    
-    if (!isPremium && !hasPurchasedReport) {
-      toast.info('Premium access required to download the PDF report.');
-      return;
-    }
-    
-    try {
-      await downloadPdf();
-      toast.success('PDF report downloaded successfully');
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast.error('Failed to download the PDF report');
-    }
-  };
-  
-  const handleShareClick = () => {
-    // Copy valuation link to clipboard
-    const shareUrl = `${window.location.origin}/valuation-result?id=${valuationId}`;
-    navigator.clipboard.writeText(shareUrl)
-      .then(() => toast.success('Valuation link copied to clipboard!'))
-      .catch(() => toast.error('Failed to copy link to clipboard'));
-  };
-  
-  const handleEmailPdf = async () => {
-    if (onEmailReport) {
-      return onEmailReport();
-    }
-    
-    // Default email functionality if no handler provided
-    toast.info('Email functionality not configured.');
-  };
-  
-  // Calculate confidence level text and color
-  const confidenceLevelText = 
-    confidenceScore >= 90 ? 'Very High' :
-    confidenceScore >= 80 ? 'High' :
-    confidenceScore >= 70 ? 'Good' :
-    confidenceScore >= 60 ? 'Moderate' : 'Low';
-  
-  const confidenceColor = 
-    confidenceScore >= 90 ? 'bg-green-100 text-green-800' :
-    confidenceScore >= 80 ? 'bg-emerald-100 text-emerald-800' :
-    confidenceScore >= 70 ? 'bg-blue-100 text-blue-800' :
-    confidenceScore >= 60 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800';
-  
+  // Format values for display
+  const formattedValue = formatNumber(estimatedValue, 0);
+  const formattedMileage = formatNumber(vehicleInfo.mileage, 0);
+  const formattedLowRange = formatNumber(valuationRange[0], 0);
+  const formattedHighRange = formatNumber(valuationRange[1], 0);
+
   return (
-    <div className="space-y-8">
-      {/* Vehicle Details */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <div className="flex items-center gap-3 mb-4 md:mb-0">
-          <div className="bg-primary/10 p-2 rounded-full">
-            <Car className="h-6 w-6 text-primary" />
-          </div>
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
           <div>
-            <h3 className="font-bold text-xl">
-              {year} {make} {model}
-            </h3>
-            <div className="flex flex-wrap gap-2 mt-1">
-              <Badge variant="outline">{condition} Condition</Badge>
-              <Badge variant="outline">{mileage.toLocaleString()} miles</Badge>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+            </h2>
+            <p className="text-gray-600">
+              {formattedMileage} miles • {vehicleInfo.condition} condition
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-500">Estimated Value</p>
+            <p className="text-3xl font-bold text-primary">${formattedValue}</p>
+            <p className="text-sm text-gray-600">
+              Range: ${formattedLowRange} - ${formattedHighRange}
+            </p>
           </div>
         </div>
-        
-        {displayMode === 'full' && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleShareClick}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
-              <Download className="h-4 w-4 mr-2" />
-              PDF Report
-            </Button>
+
+        {displayMode === 'full' && adjustments.length > 0 && (
+          <div className="mt-6">
+            <h3 className="font-semibold text-lg mb-2">Valuation Factors</h3>
+            <div className="bg-gray-50 rounded-md p-4">
+              {adjustments.map((adjustment, index) => (
+                <div key={index} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
+                  <div>
+                    <p className="font-medium">{adjustment.factor}</p>
+                    <p className="text-sm text-gray-600">{adjustment.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={adjustment.impact >= 0 ? 'text-green-500' : 'text-red-500'}>
+                      {adjustment.impact >= 0 ? '+' : ''}{formatNumber(adjustment.impact, 0)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {displayMode === 'full' && (onDownloadPdf || onEmailReport) && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {onDownloadPdf && (
+              <button 
+                onClick={onDownloadPdf}
+                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Download PDF Report
+              </button>
+            )}
+            {onEmailReport && (
+              <button 
+                onClick={onEmailReport}
+                className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Email Report
+              </button>
+            )}
           </div>
         )}
       </div>
-      
-      {/* Valuation Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="md:col-span-2">
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-muted-foreground mb-1">Estimated Value</p>
-              <h2 className="text-4xl font-bold text-primary">
-                {formatCurrency(estimatedValue)}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Retail Price Range: {formatCurrency(minPrice)} - {formatCurrency(maxPrice)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <p className="text-muted-foreground mb-1">Confidence Score</p>
-              <div className={`inline-block px-2 py-1 rounded ${confidenceColor}`}>
-                <span className="font-semibold">{confidenceScore}% - {confidenceLevelText}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Price Adjustments */}
-      {displayMode === 'full' && adjustments.length > 0 && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">Price Adjustments</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impact</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {adjustments.map((adjustment, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{adjustment.factor}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {adjustment.impact >= 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{adjustment.description}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      
-      {/* Premium Features Teaser */}
-      {displayMode === 'full' && !isPremium && !hasPurchasedReport && (
-        <Card className="mt-8 bg-amber-50 border-amber-200">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <FileText className="h-8 w-8 text-amber-600 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-lg font-semibold text-amber-800 mb-2">
-                  Unlock Premium Valuation Report
-                </h3>
-                <p className="text-amber-700 mb-4">
-                  Get detailed market analysis, comparative sales data, and a comprehensive PDF report to help negotiate the best deal.
-                </p>
-                <Button className="bg-amber-600 hover:bg-amber-700 text-white">
-                  Upgrade to Premium
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

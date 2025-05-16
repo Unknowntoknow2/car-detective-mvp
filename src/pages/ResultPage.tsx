@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'react-router-dom';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 import { useValuationResult } from '@/hooks/useValuationResult';
+import { formatNumber } from '@/utils/formatters/formatNumber';
 
 export default function ResultPage() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  const { data, isLoading } = useValuationResult(id || '');
+  const { data, isLoading, error } = useValuationResult(id || '');
 
   // Default vehicle info if data is not available
   const vehicleInfo = data ? {
@@ -27,6 +28,10 @@ export default function ResultPage() {
     condition: 'Good'
   };
 
+  // Format values for display
+  const formattedMileage = data?.mileage ? formatNumber(data.mileage, 0) : '0';
+  const estimatedValue = data?.estimatedValue || 0;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -40,7 +45,7 @@ export default function ResultPage() {
               <UnifiedValuationResult 
                 valuationId={id || ''} 
                 vehicleInfo={vehicleInfo}
-                estimatedValue={data?.estimatedValue || 0}
+                estimatedValue={estimatedValue}
                 confidenceScore={data?.confidenceScore || 85}
                 priceRange={data?.priceRange}
                 adjustments={data?.adjustments}
