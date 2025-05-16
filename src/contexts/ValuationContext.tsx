@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 
 export type ValuationContextType = {
@@ -10,7 +10,7 @@ export type ValuationContextType = {
   isLoading: boolean;
   isProcessing: boolean;
   error: Error | null;
-  processFreeValuation: (valuationData: any) => Promise<{ valuationId?: string } | null>;
+  processFreeValuation: (valuationData: any) => Promise<{ valuationId?: string; estimatedValue?: number; confidenceScore?: number } | null>;
   processPremiumValuation: (valuationData: any) => Promise<{ valuationId?: string } | null>;
 };
 
@@ -76,16 +76,10 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
       
       // Generate a mock valuation ID
       const valuationId = `free-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const estimatedValue = Math.floor(15000 + Math.random() * 10000);
+      const confidenceScore = Math.floor(70 + Math.random() * 25);
       
-      // Mock saving data to localStorage for demo purposes
-      localStorage.setItem(`valuation_${valuationId}`, JSON.stringify({
-        ...valuationData,
-        valuationId,
-        estimatedValue: Math.floor(15000 + Math.random() * 10000),
-        timestamp: new Date().toISOString(),
-      }));
-      
-      return { valuationId };
+      return { valuationId, estimatedValue, confidenceScore };
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to process free valuation'));
       toast.error('Failed to process valuation');
@@ -112,16 +106,6 @@ export const ValuationProvider: React.FC<{ children: ReactNode }> = ({ children 
       
       // Generate a mock valuation ID
       const valuationId = `premium-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      // Mock saving data to localStorage for demo purposes
-      localStorage.setItem(`valuation_${valuationId}`, JSON.stringify({
-        ...valuationData,
-        valuationId,
-        isPremium: true,
-        estimatedValue: Math.floor(18000 + Math.random() * 12000),
-        confidenceScore: 95,
-        timestamp: new Date().toISOString(),
-      }));
       
       return { valuationId };
     } catch (err) {

@@ -69,6 +69,8 @@ export const FreeValuationForm = () => {
         localStorage.setItem(`valuation_${result.valuationId}`, JSON.stringify({
           ...data,
           valuationId: result.valuationId,
+          estimatedValue: result.estimatedValue || 20000, // Ensure we have a default value
+          confidenceScore: result.confidenceScore || 85,
           timestamp: new Date().toISOString(),
         }));
         
