@@ -11,6 +11,11 @@ interface UserDetails {
   avatar_url?: string;
 }
 
+interface AuthResponse {
+  success: boolean;
+  error?: string;
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
@@ -89,8 +94,8 @@ export function useAuth() {
     };
   }, []);
 
-  // Add the missing auth functions
-  const signIn = async (email: string, password: string) => {
+  // Update the auth functions to return error information
+  const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -98,13 +103,16 @@ export function useAuth() {
       });
       if (error) throw error;
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in:', error);
-      throw error;
+      return { 
+        success: false, 
+        error: error.message || 'An error occurred during sign in' 
+      };
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -112,35 +120,44 @@ export function useAuth() {
       });
       if (error) throw error;
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing up:', error);
-      throw error;
+      return { 
+        success: false, 
+        error: error.message || 'An error occurred during sign up' 
+      };
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<AuthResponse> => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error resetting password:', error);
-      throw error;
+      return { 
+        success: false, 
+        error: error.message || 'An error occurred while resetting password' 
+      };
     }
   };
 
-  const updatePassword = async (password: string) => {
+  const updatePassword = async (password: string): Promise<AuthResponse> => {
     try {
       const { error } = await supabase.auth.updateUser({
         password,
       });
       if (error) throw error;
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating password:', error);
-      throw error;
+      return { 
+        success: false, 
+        error: error.message || 'An error occurred while updating password' 
+      };
     }
   };
 
