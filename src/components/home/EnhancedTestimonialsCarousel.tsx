@@ -123,7 +123,6 @@ export function EnhancedTestimonialsCarousel() {
         </p>
         
         <Carousel
-          className="w-full"
           setApi={(api) => {
             api?.on('select', () => {
               setActiveIndex(api.selectedScrollSnap());
