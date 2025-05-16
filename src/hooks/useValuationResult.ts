@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 
 interface ValuationResult {
   valuationId: string;
+  id?: string; // Add id property to match expectations in ValuationDetailPage
   make: string;
   model: string;
   year: number;
@@ -17,12 +18,14 @@ interface ValuationResult {
     description: string;
   }>;
   explanation?: string;
+  created_at?: string; // Add created_at property
 }
 
 export function useValuationResult(valuationId: string) {
   const [data, setData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false); // Add isError property
 
   useEffect(() => {
     const fetchValuationData = async () => {
@@ -33,6 +36,7 @@ export function useValuationResult(valuationId: string) {
 
       setIsLoading(true);
       setError(null);
+      setIsError(false); // Reset error state
 
       try {
         // Try to get data from localStorage first (for demo purposes)
@@ -72,6 +76,16 @@ export function useValuationResult(valuationId: string) {
             ];
           }
           
+          // Set id property to match valuationId if not present
+          if (!parsedData.id) {
+            parsedData.id = valuationId;
+          }
+          
+          // Add created_at if not present
+          if (!parsedData.created_at) {
+            parsedData.created_at = new Date().toISOString();
+          }
+          
           setData(parsedData as ValuationResult);
         } else {
           // In a real app, you'd fetch from an API here
@@ -80,6 +94,7 @@ export function useValuationResult(valuationId: string) {
       } catch (err) {
         console.error('Error fetching valuation data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
+        setIsError(true); // Set error state
       } finally {
         setIsLoading(false);
       }
@@ -88,5 +103,17 @@ export function useValuationResult(valuationId: string) {
     fetchValuationData();
   }, [valuationId]);
 
-  return { data, isLoading, error };
+  // Add refetch function to match expected API
+  const refetch = () => {
+    setIsLoading(true);
+    setError(null);
+    setIsError(false);
+    
+    // Re-trigger the effect by setting a new state
+    setTimeout(() => {
+      setIsLoading(state => !state);
+    }, 0);
+  };
+
+  return { data, isLoading, error, isError, refetch };
 }

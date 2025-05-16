@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { AIChatBubble } from '@/components/chat/AIChatBubble';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading, error } = useValuationResult(id);
+  const { data, isLoading, error } = useValuationResult(id || '');
 
   if (isLoading) {
     return (
@@ -53,6 +54,9 @@ export default function ValuationDetailPage() {
     );
   }
 
+  // Use valuationId or id property as needed
+  const reportId = data.id || data.valuationId;
+
   return (
     <>
       <Card>
@@ -60,12 +64,12 @@ export default function ValuationDetailPage() {
           <CardTitle className="text-lg">Valuation Report</CardTitle>
         </CardHeader>
         <CardContent>
-          <PredictionResult valuationId={data.id} />
+          <PredictionResult valuationId={reportId} />
         </CardContent>
       </Card>
 
       <div className="mt-8">
-        <DealerOffersList reportId={data.id} showActions />
+        <DealerOffersList reportId={reportId} showActions />
       </div>
 
       <div className="mt-8">
