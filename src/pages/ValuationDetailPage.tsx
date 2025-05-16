@@ -97,6 +97,9 @@ export default function ValuationDetailPage() {
     created_at: data.created_at || new Date().toISOString() // Ensure created_at is always defined
   };
 
+  // Check if premium features are unlocked, default to false if undefined
+  const isPremiumUnlocked = data.premium_unlocked || false;
+
   return (
     <MainLayout>
       <div className="container mx-auto py-8 space-y-8">
@@ -136,7 +139,7 @@ export default function ValuationDetailPage() {
         </div>
 
         {/* FEATURE_UNVEIL: Vehicle History Section (if premium) */}
-        {data.premium_unlocked && (
+        {isPremiumUnlocked && (
           <Card className="mt-8">
             <CardHeader>
               <CardTitle className="text-lg">Vehicle History</CardTitle>
