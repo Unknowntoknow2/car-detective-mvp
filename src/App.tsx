@@ -1,6 +1,9 @@
 
 import { Routes, Route } from 'react-router-dom';
-import HomePage from '@/pages/HomePage';
+// src/pages/HomePage.tsx
+import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
+
+export default EnhancedHomePage;
 import { Toaster } from 'sonner';
 
 // Auth pages - with case-sensitive imports
