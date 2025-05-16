@@ -15,6 +15,10 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  // Add isLoading as an alias for loading for compatibility with other components
+  const isLoading = loading;
+  // Add userRole derived from userDetails.role
+  const userRole = userDetails?.role || null;
 
   useEffect(() => {
     // Get current user and set in state
@@ -85,6 +89,61 @@ export function useAuth() {
     };
   }, []);
 
+  // Add the missing auth functions
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error signing in:', error);
+      throw error;
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw error;
+    }
+  };
+
   // Sign out function
   const signOut = async () => {
     try {
@@ -100,7 +159,13 @@ export function useAuth() {
     user,
     userDetails,
     loading,
-    signOut
+    isLoading,
+    userRole,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
+    updatePassword
   };
 }
 
