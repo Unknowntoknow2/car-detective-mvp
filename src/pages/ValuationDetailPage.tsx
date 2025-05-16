@@ -61,6 +61,7 @@ export default function ValuationDetailPage() {
   const valuationWithRequiredId = {
     ...data,
     id: reportId, // Ensure id is always defined
+    created_at: data.created_at || new Date().toISOString() // Ensure created_at is always defined
   };
 
   return (

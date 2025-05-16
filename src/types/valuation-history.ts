@@ -6,14 +6,6 @@ export interface Valuation {
   year?: number;
   mileage?: number;
   condition?: string;
-  created_at: string;
-  vin?: string;
-  plate?: string;
-  state?: string;
-  valuation?: number;
-  estimated_value?: number;
-  is_premium?: boolean;
-  premium_unlocked?: boolean;
-  confidence_score?: number;
-  condition_score?: number; // Add this to fix the error
+  estimatedValue?: number;
+  created_at: string; // This is required
 }
