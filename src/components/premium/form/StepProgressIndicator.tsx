@@ -7,12 +7,14 @@ interface StepProgressIndicatorProps {
   currentStep: number;
   totalSteps: number;
   stepCompletionStatus: Record<number, boolean>;
+  stepValidities?: Record<number, boolean>; // Add this prop
 }
 
 export function StepProgressIndicator({ 
   currentStep, 
   totalSteps, 
-  stepCompletionStatus 
+  stepCompletionStatus,
+  stepValidities 
 }: StepProgressIndicatorProps) {
   // Define steps with icons and labels
   const steps = [

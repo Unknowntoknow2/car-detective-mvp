@@ -62,8 +62,8 @@ export function PremiumValuationForm() {
     }
   };
 
-  // Use stepValidities directly as a boolean value
-  const currentStepValid = stepValidities[currentStep];
+  // Use stepValidities directly as a boolean
+  const currentStepValid = Boolean(stepValidities[currentStep]);
 
   return (
     <div className="px-2 sm:px-4">
