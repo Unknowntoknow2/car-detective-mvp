@@ -14,13 +14,15 @@ interface ManualLookupProps {
   isLoading?: boolean;
   onCancel?: () => void;
   initialData?: Partial<ManualEntryFormData>;
+  submitButtonText?: string;
 }
 
 export function ManualLookup({
   onSubmit,
   isLoading = false,
   onCancel,
-  initialData
+  initialData,
+  submitButtonText = "Continue"
 }: ManualLookupProps) {
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
@@ -145,7 +147,7 @@ export function ManualLookup({
               </>
             ) : (
               <>
-                Continue <ArrowRight className="ml-2 h-4 w-4" />
+                {submitButtonText} <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}
           </Button>
