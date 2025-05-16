@@ -21,10 +21,10 @@ export const AIAssistantTrigger: React.FC = () => {
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={handleOpenDrawer}
-          className="rounded-full shadow-lg h-12 w-12 p-0 flex items-center justify-center bg-primary hover:bg-primary/90"
+          className="rounded-full shadow-lg h-14 w-14 p-0 flex items-center justify-center bg-primary hover:bg-primary/90"
           aria-label="Open AI Assistant"
         >
-          <Sparkles className="h-5 w-5 text-white" />
+          <Sparkles className="h-6 w-6 text-white" />
         </Button>
       </div>
 
