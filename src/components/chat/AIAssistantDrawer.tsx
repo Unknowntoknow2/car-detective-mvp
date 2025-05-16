@@ -16,11 +16,19 @@ interface AIAssistantDrawerProps {
   onClose: () => void;
 }
 
+// Updated to align with the Message interface in askAI.ts
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp?: string;
+  timestamp?: string; // Keep as string for our UI
   isPremiumContent?: boolean;
+}
+
+// Type for API communication - to match askAI.ts expectations
+interface ApiMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: number; // API expects number
 }
 
 export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, onClose }) => {
@@ -109,10 +117,19 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
     setIsLoading(true);
     
     try {
+      // Convert UI messages to API format
+      const apiMessages = messages
+        .filter(m => m.role !== 'system')
+        .map(m => ({
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
+        })) as ApiMessage[];
+      
       const response = await askAI({
         question: messageInput,
         userContext: valuationContext,
-        chatHistory: messages.filter(m => m.role !== 'system'),
+        chatHistory: apiMessages,
       });
       
       if (response.error) {
