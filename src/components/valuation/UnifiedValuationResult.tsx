@@ -30,6 +30,8 @@ interface UnifiedValuationResultProps {
   priceRange?: [number, number];
   adjustments?: Adjustment[];
   displayMode?: 'compact' | 'full';
+  onDownloadPdf?: () => Promise<void> | void;
+  onEmailReport?: () => Promise<void> | void;
 }
 
 const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
@@ -40,6 +42,8 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   priceRange = [0, 0],
   adjustments = [],
   displayMode = 'full',
+  onDownloadPdf,
+  onEmailReport
 }) => {
   const { isPremium, hasPurchasedReport, downloadPdf } = useValuation();
   
@@ -51,6 +55,10 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
     priceRange;
   
   const handleDownloadPdf = async () => {
+    if (onDownloadPdf) {
+      return onDownloadPdf();
+    }
+    
     if (!isPremium && !hasPurchasedReport) {
       toast.info('Premium access required to download the PDF report.');
       return;
@@ -71,6 +79,15 @@ const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
     navigator.clipboard.writeText(shareUrl)
       .then(() => toast.success('Valuation link copied to clipboard!'))
       .catch(() => toast.error('Failed to copy link to clipboard'));
+  };
+  
+  const handleEmailPdf = async () => {
+    if (onEmailReport) {
+      return onEmailReport();
+    }
+    
+    // Default email functionality if no handler provided
+    toast.info('Email functionality not configured.');
   };
   
   // Calculate confidence level text and color
