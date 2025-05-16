@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +44,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       const result = await signUp(email, password);
       
       if (result?.error) {
-        setError(result.error.message || 'Failed to create account');
+        setError(result.error || 'Failed to create account');
         setIsLoading(false);
         return;
       }
