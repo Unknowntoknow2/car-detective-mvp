@@ -75,8 +75,8 @@ export const FreeValuationForm = () => {
         // Set the latest valuation ID for easy access
         localStorage.setItem('latest_valuation_id', result.valuationId);
         
-        // Navigate to the valuation result page
-        navigate(`/valuation-result?id=${result.valuationId}`);
+        // Navigate to the result page
+        navigate(`/result?id=${result.valuationId}`);
         toast.success('Valuation completed successfully!');
       } else {
         setError('Failed to generate valuation. Please try again.');
