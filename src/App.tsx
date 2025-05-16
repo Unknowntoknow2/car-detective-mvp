@@ -9,6 +9,10 @@ import NotFoundPage from '@/pages/NotFoundPage';
 import Premium from '@/pages/Premium';
 import PremiumSuccessPage from '@/pages/PremiumSuccessPage';
 import AppLayout from '@/components/layout/AppLayout';
+import Dashboard from '@/pages/Dashboard';
+import IndividualDashboard from '@/pages/dashboard/IndividualDashboard';
+import DealerDashboard from '@/pages/dashboard/DealerDashboard';
+import AdminDashboard from '@/pages/dashboard/AdminDashboard';
 
 function App() {
   return (
@@ -21,6 +25,10 @@ function App() {
           <Route path="/valuation/:id" element={<ValuationDetailPage />} />
           <Route path="/premium" element={<Premium />} />
           <Route path="/premium-success" element={<PremiumSuccessPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/individual" element={<IndividualDashboard />} />
+          <Route path="/dashboard/dealer" element={<DealerDashboard />} />
+          <Route path="/dashboard/admin" element={<AdminDashboard />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
