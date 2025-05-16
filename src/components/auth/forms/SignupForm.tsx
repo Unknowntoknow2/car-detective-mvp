@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Mail, KeyRound, User, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, KeyRound, Eye, EyeOff, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -15,13 +14,12 @@ interface SignupFormProps {
 }
 
 export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const { signUp } = useAuth();
@@ -29,29 +27,19 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   // Form validation
   const isEmailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordValid = () => password.length >= 6;
-  const isFormValid = fullName && isEmailValid() && isPasswordValid() && 
-                     password === confirmPassword && termsAccepted;
+  const doPasswordsMatch = () => password === confirmPassword;
+  const isFormValid = isEmailValid() && isPasswordValid() && doPasswordsMatch() && fullName.trim().length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    if (!isFormValid) {
+      setError('Please fill in all required fields correctly');
       return;
     }
     
-    if (!termsAccepted) {
-      setError('You must accept the terms and conditions');
-      return;
-    }
-
-    if (!isPasswordValid()) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    if (!fullName) {
-      setError('Please enter your full name');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
     
@@ -59,29 +47,21 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     setIsLoading(true);
     
     try {
-      console.log("SignupForm: Attempting signup with", email);
-      // Call signUp with user metadata including the name
-      const result = await signUp(email, password);
+      const result = await signUp(email, password, fullName);
       
       if (result?.error) {
-        if (result.error.toString().includes('already registered')) {
-          toast.error('This email is already registered. Please sign in instead.');
-        } else {
-          setError(result.error.toString() || 'Failed to create account');
-        }
+        setError(result.error.toString() || 'Failed to sign up');
+        toast.error(result.error.toString() || 'Failed to sign up');
         setIsLoading(false);
         return;
       }
       
-      // Navigate to login page after successful signup
-      toast.success("Account created successfully! Please sign in.");
-      setTimeout(() => {
-        navigate('/sign-in');
-      }, 1000);
+      toast.success('Account created! You can now sign in');
+      navigate('/sign-in');
     } catch (err: any) {
+      console.error('Sign up error:', err);
       setError('An unexpected error occurred');
-      console.error('Signup error:', err);
-      toast.error(err.message || 'Failed to create account');
+      toast.error(err.message || 'Failed to sign up');
       setIsLoading(false);
     }
   };
@@ -102,7 +82,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
             id="fullName"
             name="fullName"
             type="text"
-            placeholder="Your full name"
+            placeholder="John Doe"
             className="pl-10"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
@@ -142,13 +122,12 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="Create a strong password"
+            placeholder="Create a password"
             className="pl-10 pr-10"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={isLoading}
-            aria-invalid={password ? !isPasswordValid() : false}
           />
           <Button 
             type="button"
@@ -174,30 +153,16 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
             name="confirmPassword"
             type={showPassword ? "text" : "password"}
             placeholder="Confirm your password"
-            className="pl-10"
+            className="pl-10 pr-10"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             disabled={isLoading}
-            aria-invalid={confirmPassword ? password !== confirmPassword : false}
           />
         </div>
-        {confirmPassword && password !== confirmPassword && (
+        {confirmPassword && !doPasswordsMatch() && (
           <p className="text-xs text-red-500">Passwords do not match</p>
         )}
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Checkbox 
-          id="termsAccepted" 
-          name="termsAccepted"
-          checked={termsAccepted} 
-          onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-          disabled={isLoading}
-        />
-        <Label htmlFor="termsAccepted" className="text-sm text-muted-foreground">
-          I agree to the terms of service and privacy policy
-        </Label>
       </div>
       
       <Button 

@@ -2,28 +2,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShieldX } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
+import { ShieldX } from 'lucide-react';
 
 const AccessDeniedPage: React.FC = () => {
   return (
     <MainLayout>
-      <div className="container max-w-md mx-auto py-12">
-        <div className="text-center space-y-6">
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-            <ShieldX className="w-8 h-8 text-red-600" />
+      <div className="container max-w-md mx-auto py-16 text-center">
+        <div className="bg-white p-8 rounded-lg shadow-md dark:bg-gray-800">
+          <div className="mb-6 flex justify-center">
+            <div className="bg-red-100 p-3 rounded-full">
+              <ShieldX className="h-10 w-10 text-red-600" />
+            </div>
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Access Denied</h1>
-          
-          <p className="text-muted-foreground">
-            You don't have permission to access this page. Please contact an administrator
-            if you believe this is an error.
+          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">
+            You don't have permission to access this page. This area may require specific access rights or a premium account.
           </p>
           
-          <div className="pt-4">
-            <Button asChild>
+          <div className="space-y-4">
+            <Button asChild className="w-full">
               <Link to="/">Return to Home</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
           </div>
         </div>
