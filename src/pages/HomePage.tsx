@@ -2,26 +2,29 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import MainLayout from '@/components/layout/MainLayout';
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Welcome to Our Application</h1>
-      
-      <div className="space-y-4">
-        <p className="text-lg">Please sign in or create an account to continue.</p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <Link to="/sign-in">
-            <Button variant="default" size="lg">Sign In</Button>
-          </Link>
+    <MainLayout>
+      <div className="py-12">
+        <div className="text-center max-w-3xl mx-auto">
+          <h1 className="text-4xl font-bold mb-4">Welcome to CarDetective</h1>
+          <p className="text-xl text-muted-foreground mb-8">
+            Your trusted source for car valuation and automotive insights
+          </p>
           
-          <Link to="/sign-up">
-            <Button variant="outline" size="lg">Sign Up</Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button asChild size="lg">
+              <Link to="/sign-up">Get Started</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/sign-in">Sign In</Link>
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

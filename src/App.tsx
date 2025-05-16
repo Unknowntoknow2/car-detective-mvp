@@ -13,7 +13,7 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 import DealerDashboardRoutes from '@/pages/dealer/DealerDashboardRoutes';
 
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
-import { AuthProvider } from '@/components/auth/AuthProvider'; // Updating import to use the correct AuthProvider
+import { AuthProvider } from '@/contexts/AuthContext'; // Using the correct AuthContext
 
 const App = () => {
   return (
