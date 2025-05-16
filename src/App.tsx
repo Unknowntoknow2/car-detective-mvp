@@ -2,8 +2,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from '@/pages/HomePage';
 import { Toaster } from 'sonner';
-import SignupPage from '@/pages/auth/SignupPage';
-import SigninPage from '@/pages/auth/SigninPage';
+import SignUpPage from '@/pages/auth/SignUpPage';
+import SignInPage from '@/pages/auth/SignInPage';
 import DealerSignupPage from '@/pages/auth/DealerSignupPage';
 import LoginDealerPage from '@/pages/auth/LoginDealerPage';
 import Dashboard from '@/pages/dashboard/Dashboard';
@@ -18,8 +18,8 @@ const App = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/sign-up" element={<SignupPage />} />
-        <Route path="/sign-in" element={<SigninPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/dealer/sign-up" element={<DealerSignupPage />} />
         <Route path="/dealer/sign-in" element={<LoginDealerPage />} />
         <Route path="/access-denied" element={<AccessDeniedPage />} />
