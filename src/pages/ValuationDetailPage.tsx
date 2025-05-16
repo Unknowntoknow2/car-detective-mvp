@@ -12,27 +12,35 @@ import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import { MainLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
+import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, error } = useValuationResult(id || '');
 
-  // FEATURE_UNVEIL: Handle PDF download
+  // Handle PDF download
   const handleDownloadPdf = () => {
     toast.success("Generating PDF report...");
     // In a real implementation, this would download a PDF
   };
 
-  // FEATURE_UNVEIL: Handle email report
+  // Handle email report
   const handleEmailReport = () => {
     toast.success("Report sent to your email");
     // In a real implementation, this would send an email
   };
 
-  // FEATURE_UNVEIL: Handle share report
+  // Handle share report
   const handleShareReport = () => {
     toast.success("Share link copied to clipboard");
     // In a real implementation, this would generate and copy a share link
+  };
+
+  // Handle condition factor changes
+  const handleFactorChange = (id: string, value: any) => {
+    toast.info(`${id} updated to ${value}. Recalculating valuation...`);
+    // In a real implementation, this would update the valuation
   };
 
   if (isLoading) {
@@ -103,7 +111,7 @@ export default function ValuationDetailPage() {
   return (
     <MainLayout>
       <div className="container mx-auto py-8 space-y-8">
-        {/* FEATURE_UNVEIL: Action buttons */}
+        {/* Action buttons */}
         <div className="flex flex-wrap gap-4 justify-end">
           <Button variant="outline" onClick={handleShareReport}>
             <Share2 className="h-4 w-4 mr-2" />
@@ -128,6 +136,30 @@ export default function ValuationDetailPage() {
           </CardContent>
         </Card>
 
+        {/* Value Factors Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Value Factors</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ValuationFactorsGrid 
+              values={{
+                accidents: data.accident_count || 0,
+                mileage: data.mileage || 0,
+                year: data.year || new Date().getFullYear(),
+                titleStatus: data.titleStatus || 'Clean'
+              }}
+              onChange={handleFactorChange}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Next Steps */}
+        <NextStepsCard 
+          valuationId={reportId} 
+          isPremium={isPremiumUnlocked}
+        />
+
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Dealer Offers</h2>
           <DealerOffersList reportId={reportId} showActions />
@@ -138,7 +170,7 @@ export default function ValuationDetailPage() {
           <AIChatBubble valuation={valuationWithRequiredId} />
         </div>
 
-        {/* FEATURE_UNVEIL: Vehicle History Section (if premium) */}
+        {/* Vehicle History Section (if premium) */}
         {isPremiumUnlocked && (
           <Card className="mt-8">
             <CardHeader>

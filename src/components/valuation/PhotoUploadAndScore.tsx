@@ -1,234 +1,263 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Camera, AlertCircle, CheckCircle } from 'lucide-react';
+import { Camera, Upload, X, Check, AlertCircle, Image } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { PhotoUploader } from './photo-upload/PhotoUploader';
-import { getBestPhotoAssessment } from '@/services/valuationService';
-import { AICondition } from '@/types/photo';
+import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PhotoUploadAndScoreProps {
-  valuationId: string;
-  onScoreChange?: (score: number, condition?: AICondition) => void;
+  valuationId?: string;
+  onPhotoAnalysisComplete?: (data: any) => void;
   isPremium?: boolean;
 }
 
 export function PhotoUploadAndScore({
   valuationId,
-  onScoreChange,
+  onPhotoAnalysisComplete,
   isPremium = false
 }: PhotoUploadAndScoreProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [photoScore, setPhotoScore] = useState<number | null>(null);
-  const [bestPhotoUrl, setBestPhotoUrl] = useState<string | null>(null);
-  const [aiCondition, setAiCondition] = useState<AICondition | null>(null);
-  const [isUploadComplete, setIsUploadComplete] = useState(false);
-  
-  // Fetch existing photo assessment if available
-  useEffect(() => {
-    async function fetchPhotoData() {
-      if (!valuationId) return;
-      
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const result = await getBestPhotoAssessment(valuationId);
-        
-        if (result) {
-          // Take the first photo as the best one for now
-          const bestPhoto = result.photoScores.find(p => p.isPrimary) || result.photoScores[0];
-          
-          setPhotoScore(bestPhoto.score * 100);
-          setBestPhotoUrl(bestPhoto.url);
-          setAiCondition(result.aiCondition);
-          setIsUploadComplete(true);
-          
-          // Call parent's callback
-          if (onScoreChange) {
-            onScoreChange(bestPhoto.score * 100, result.aiCondition);
+  const [photoScores, setPhotoScores] = useState<any[]>([]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.heic']
+    },
+    maxFiles: 5,
+    maxSize: 10 * 1024 * 1024, // 10MB
+    onDrop: (acceptedFiles, rejectedFiles) => {
+      if (rejectedFiles.length > 0) {
+        const errors = rejectedFiles.map(file => {
+          if (file.errors[0].code === 'file-too-large') {
+            return 'File is too large. Maximum size is 10MB.';
           }
-        }
-      } catch (err) {
-        console.error('Error fetching photo data:', err);
-        // Don't set error state here, just log it
-      } finally {
-        setIsLoading(false);
+          return file.errors[0].message;
+        });
+        setError(errors.join(' '));
+        return;
+      }
+      
+      if (acceptedFiles.length > 0) {
+        setError(null);
+        // Add new files to existing array
+        setPhotos(prevPhotos => [...prevPhotos, ...acceptedFiles]);
+        
+        // Generate preview URLs
+        const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
+        setPreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
       }
     }
+  });
+
+  const removePhoto = (index: number) => {
+    // Remove photo and its preview
+    setPhotos(photos.filter((_, i) => i !== index));
     
-    fetchPhotoData();
-  }, [valuationId, onScoreChange]);
-  
-  const handleScoreUpdate = (score: number, bestPhoto?: string) => {
-    setPhotoScore(score * 100);
-    if (bestPhoto) setBestPhotoUrl(bestPhoto);
-    setIsUploadComplete(true);
+    // Revoke object URL to avoid memory leaks
+    URL.revokeObjectURL(previews[index]);
+    setPreviews(previews.filter((_, i) => i !== index));
     
-    // For demo purposes, generate a mock AI condition
-    const mockAICondition: AICondition = {
-      condition: score > 0.8 ? 'Excellent' : score > 0.6 ? 'Good' : score > 0.4 ? 'Fair' : 'Poor',
-      confidenceScore: Math.round(score * 100),
-      issuesDetected: score < 0.7 ? ['Minor scratches', 'Worn interior'] : [],
-      summary: score > 0.8 
-        ? 'Vehicle appears to be in excellent condition with no visible issues.'
-        : score > 0.6
-        ? 'Vehicle is in good condition with minor cosmetic issues.'
-        : score > 0.4
-        ? 'Vehicle shows signs of wear and may need some repairs.'
-        : 'Vehicle has significant wear and damage visible.'
-    };
+    // Remove score if it exists
+    setPhotoScores(photoScores.filter((_, i) => i !== index));
+  };
+
+  const handleUpload = async () => {
+    if (!valuationId || photos.length === 0) return;
     
-    setAiCondition(mockAICondition);
+    setIsUploading(true);
+    setUploadProgress(0);
     
-    // Call parent's callback
-    if (onScoreChange) {
-      onScoreChange(score * 100, mockAICondition);
+    try {
+      const uploadPromises = photos.map(async (photo, index) => {
+        // Create a unique filename
+        const fileExt = photo.name.split('.').pop();
+        const fileName = `${valuationId}_${Date.now()}_${index}.${fileExt}`;
+        const filePath = `${valuationId}/${fileName}`;
+        
+        // Upload to storage
+        const { data, error } = await supabase.storage
+          .from('vehicle_photos')
+          .upload(filePath, photo, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        
+        if (error) throw error;
+        
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('vehicle_photos')
+          .getPublicUrl(filePath);
+        
+        // Update progress
+        setUploadProgress(prev => prev + (100 / photos.length));
+        
+        return urlData.publicUrl;
+      });
+      
+      const uploadedUrls = await Promise.all(uploadPromises);
+      
+      // Now analyze photos if premium
+      if (isPremium) {
+        const analysisPromises = uploadedUrls.map(async (url) => {
+          const { data, error } = await supabase.functions.invoke('analyze-vehicle-photo', {
+            body: {
+              photoUrl: url,
+              valuationId
+            }
+          });
+          
+          if (error) throw error;
+          return data;
+        });
+        
+        const analysisResults = await Promise.all(analysisPromises);
+        setPhotoScores(analysisResults);
+        
+        if (onPhotoAnalysisComplete) {
+          // Find the best photo based on score
+          const bestResult = analysisResults.reduce(
+            (best, current) => (current.score > best.score ? current : best),
+            { score: 0 }
+          );
+          
+          onPhotoAnalysisComplete(bestResult);
+        }
+      }
+      
+      toast.success("Photos uploaded successfully");
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError('Failed to upload photos. Please try again.');
+      toast.error("Error uploading photos");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(100);
     }
   };
-  
+
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg">Vehicle Photos</CardTitle>
-            <CardDescription>
-              Upload photos to improve valuation accuracy
-            </CardDescription>
-          </div>
-          
-          {isPremium && (
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-              Premium Feature
-            </Badge>
-          )}
-        </div>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Camera className="h-5 w-5" />
+          <span>Vehicle Photos</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="py-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-            <p className="text-muted-foreground">Loading photo data...</p>
-          </div>
-        ) : isUploadComplete && photoScore !== null ? (
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              {bestPhotoUrl ? (
-                <div className="w-24 h-24 rounded-md overflow-hidden bg-muted">
-                  <img 
-                    src={bestPhotoUrl} 
-                    alt="Vehicle" 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-md overflow-hidden flex items-center justify-center bg-muted">
-                  <Camera className="h-10 w-10 text-muted-foreground/50" />
-                </div>
-              )}
-              
-              <div className="flex-1">
-                <div className="flex justify-between items-center mb-1">
-                  <p className="font-medium">Photo Quality Score</p>
-                  <span className="text-sm font-medium">{Math.round(photoScore)}%</span>
-                </div>
-                <Progress value={photoScore} className="h-2 mb-2" />
-                
-                <div className="text-sm text-muted-foreground">
-                  {photoScore > 80 ? (
-                    <p className="flex items-center text-green-600">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Excellent photo quality
-                    </p>
-                  ) : photoScore > 60 ? (
-                    <p>Good photo quality</p>
-                  ) : (
-                    <p className="text-yellow-600">Fair photo quality</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {isPremium && aiCondition && (
-              <div className="space-y-3 border-t border-border pt-4 mt-4">
-                <h3 className="font-medium">AI Condition Assessment</h3>
-                <div className="bg-primary/5 p-3 rounded-md">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm font-medium">Condition Rating</p>
-                    <Badge 
-                      variant="outline" 
-                      className={
-                        aiCondition.condition === 'Excellent' ? 'bg-green-50 text-green-700 border-green-200' :
-                        aiCondition.condition === 'Good' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                        aiCondition.condition === 'Fair' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                        'bg-red-50 text-red-700 border-red-200'
-                      }
-                    >
-                      {aiCondition.condition}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="text-xs text-muted-foreground">Confidence</p>
-                    <span className="text-xs font-medium">{aiCondition.confidenceScore}%</span>
-                  </div>
-                  <Progress value={aiCondition.confidenceScore} className="h-1.5 mb-3" />
-                  
-                  {aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs font-medium mb-1">Issues Detected:</p>
-                      <ul className="text-xs text-muted-foreground list-disc list-inside">
-                        {aiCondition.issuesDetected.map((issue, index) => (
-                          <li key={index}>{issue}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {(aiCondition.summary || aiCondition.aiSummary) && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {aiCondition.summary || aiCondition.aiSummary}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <Button 
-              variant="outline" 
-              onClick={() => setIsUploadComplete(false)}
-              className="mt-4"
-            >
-              Upload Different Photos
-            </Button>
-          </div>
-        ) : error ? (
-          <Alert variant="destructive">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {error}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setError(null)}
-                className="mt-2"
-              >
-                Try Again
-              </Button>
-            </AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
-        ) : (
-          <PhotoUploader
-            valuationId={valuationId}
-            onScoreUpdate={handleScoreUpdate}
-            isPremium={isPremium}
-          />
+        )}
+        
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors mb-4 
+            ${isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:bg-muted/50'}`}
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center gap-2">
+            <Upload className="h-8 w-8 text-muted-foreground" />
+            {isDragActive ? (
+              <p>Drop the files here...</p>
+            ) : (
+              <>
+                <p className="text-sm font-medium">Drag & drop photos here or click to browse</p>
+                <p className="text-xs text-muted-foreground">
+                  Upload up to 5 photos of your vehicle (max 10MB each)
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {previews.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+            {previews.map((preview, index) => (
+              <div key={index} className="relative group">
+                <div className="overflow-hidden rounded-md aspect-square bg-muted">
+                  <img
+                    src={preview}
+                    alt={`Vehicle preview ${index + 1}`}
+                    className="h-full w-full object-cover transition-all group-hover:scale-105"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removePhoto(index)}
+                  className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-foreground hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                {photoScores[index] && (
+                  <div className="absolute bottom-2 left-2 right-2 bg-background/80 rounded-md p-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span>Quality:</span>
+                      <span className={`font-medium
+                        ${photoScores[index].score > 80 ? 'text-green-600' : 
+                          photoScores[index].score > 60 ? 'text-amber-600' : 'text-red-600'}
+                      `}>
+                        {photoScores[index].score}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {isUploading && (
+          <div className="mb-4">
+            <Progress value={uploadProgress} className="h-2 mb-2" />
+            <p className="text-xs text-center text-muted-foreground">
+              Uploading photos... {Math.round(uploadProgress)}%
+            </p>
+          </div>
+        )}
+        
+        {previews.length > 0 && (
+          <div className="flex justify-end">
+            <Button
+              onClick={handleUpload}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>Processing...</>
+              ) : photoScores.length > 0 ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Photos Analyzed
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload & Analyze
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+        
+        {previews.length === 0 && (
+          <div className="py-8 flex flex-col items-center justify-center text-center text-muted-foreground">
+            <Image className="h-12 w-12 mb-3 opacity-30" />
+            <p>No photos added yet</p>
+            <p className="text-xs mt-1">
+              Adding clear photos helps improve valuation accuracy
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
