@@ -79,10 +79,8 @@ export function useValuationResult(valuationId: string) {
           // Ensure id property is set and is not optional for the returned data
           parsedData.id = parsedData.id || valuationId;
           
-          // Add created_at if not present
-          if (!parsedData.created_at) {
-            parsedData.created_at = new Date().toISOString();
-          }
+          // Add created_at if not present, make sure it's not optional
+          parsedData.created_at = parsedData.created_at || new Date().toISOString();
           
           setData(parsedData as ValuationResult);
         } else {
