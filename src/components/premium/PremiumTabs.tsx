@@ -1,176 +1,102 @@
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check } from "lucide-react";
-import { LookupTabs } from "@/components/premium/lookup/LookupTabs";
-import { useValuation } from "@/contexts/ValuationContext";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface PremiumTabsProps {
   showFreeValuation?: boolean;
-  onSubmit?: (type: string, value: string, state?: string, data?: any) => void;
 }
 
-export function PremiumTabs({ 
-  showFreeValuation = true,
-  onSubmit
-}: PremiumTabsProps) {
-  // If showFreeValuation is false, we'll default to premium tab
-  const defaultTab = showFreeValuation ? "basic" : "premium";
-  const { processPremiumValuation, isProcessing } = useValuation();
-  const [upgrading, setUpgrading] = useState(false);
+export function PremiumTabs({ showFreeValuation = false }: PremiumTabsProps) {
   const navigate = useNavigate();
   
-  // Add state for the lookup tabs
-  const [lookupType, setLookupType] = useState<'vin' | 'plate' | 'manual'>('vin');
-  
-  const handlePremiumUpgrade = async () => {
-    console.log("PREMIUM: Upgrade button clicked");
-    setUpgrading(true);
-    try {
-      // Here we would typically handle the payment flow
-      // For now, we'll just show a toast and redirect
-      toast.success("Redirecting to premium checkout...");
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log("PREMIUM: Redirecting to premium checkout page");
-      navigate("/premium#premium-form");
-    } catch (error) {
-      console.error("PREMIUM: Error during upgrade:", error);
-      toast.error("Failed to process premium upgrade");
-    } finally {
-      setUpgrading(false);
-    }
-  };
-
-  const handleLookupSubmit = (type: string, value: string, state?: string) => {
-    console.log(`PREMIUM ${type.toUpperCase()}: Form submitted:`, { value, state });
-    
-    if (onSubmit) {
-      onSubmit(type, value, state);
-    } else {
-      // Default handling if no onSubmit provided - We need to create a valuationData object
-      const valuationData = {
-        type,
-        value,
-        state,
-        // Add any other required fields for the valuation context
-        make: type === 'manual' ? JSON.parse(value).make : undefined,
-        model: type === 'manual' ? JSON.parse(value).model : undefined,
-        year: type === 'manual' ? JSON.parse(value).year : undefined,
-        zipCode: type === 'manual' ? JSON.parse(value).zipCode : undefined,
-      };
-      
-      processPremiumValuation(valuationData)
-        .then(result => {
-          console.log(`PREMIUM ${type.toUpperCase()}: Result:`, result);
-          if (result?.valuationId) {
-            console.log(`PREMIUM ${type.toUpperCase()}: Valuation ID:`, result.valuationId);
-            localStorage.setItem('latest_valuation_id', result.valuationId);
-            navigate(`/valuation-result?id=${result.valuationId}`);
-          }
-        })
-        .catch(err => {
-          console.error(`PREMIUM ${type.toUpperCase()}: Error:`, err);
-          toast.error("Failed to process valuation");
-        });
-    }
-  };
-  
   return (
-    <Tabs defaultValue={defaultTab} className="max-w-4xl mx-auto">
-      {showFreeValuation ? (
-        <TabsList className="grid w-full grid-cols-2 h-auto p-1">
-          <TabsTrigger 
-            value="basic" 
-            className="py-3 px-4 rounded-md data-[state=active]:shadow-sm"
-          >
+    <Tabs defaultValue="premium" className="w-full">
+      <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+        {showFreeValuation && (
+          <TabsTrigger value="free" className="py-3">
             Free Valuation
           </TabsTrigger>
-          <TabsTrigger 
-            value="premium" 
-            className="py-3 px-4 rounded-md data-[state=active]:bg-primary data-[state=active]:text-white"
-          >
-            Premium Report
-          </TabsTrigger>
-        </TabsList>
-      ) : (
-        // When showFreeValuation is false, don't show tabs selector - only premium content
-        <div className="mb-6"></div>
-      )}
-
+        )}
+        <TabsTrigger value="premium" className="py-3 relative">
+          Premium Valuation
+          <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-200">
+            $29.99
+          </Badge>
+        </TabsTrigger>
+      </TabsList>
+      
       {showFreeValuation && (
-        <TabsContent value="basic" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Free Valuation</CardTitle>
-              <CardDescription>Get a quick, AI-powered estimate based on market data.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LookupTabs 
-                lookup={lookupType}
-                onLookupChange={setLookupType}
-                formProps={{
-                  onSubmit: (data) => handleLookupSubmit('manual', JSON.stringify(data)),
-                  onVinLookup: (vin) => handleLookupSubmit('vin', vin),
-                  onPlateLookup: (plate, state) => handleLookupSubmit('plate', plate, state),
-                  isLoading: isProcessing,
-                  submitButtonText: "Get Valuation"
-                }}
-                onSubmit={handleLookupSubmit}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      )}
-
-      <TabsContent value="premium" className="mt-6">
-        <Card className="border-2 border-primary">
-          <CardHeader className="bg-primary/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Premium Valuation</CardTitle>
-                <CardDescription className="mt-1">Complete vehicle history and premium insights</CardDescription>
-              </div>
-              <div className="text-lg font-bold">$29.99</div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ul className="space-y-3 mb-6">
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Full CARFAX® History Report</span>
+        <TabsContent value="free" className="mt-6 p-6 border rounded-lg">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Basic Valuation</h3>
+            <p className="text-muted-foreground">
+              Get a quick estimate of your vehicle's value with our free basic valuation tool.
+            </p>
+            <ul className="space-y-2">
+              <li className="flex items-start">
+                <span className="bg-gray-100 text-gray-600 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                <span className="ml-2">Basic vehicle valuation</span>
               </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Verified Dealer Offers</span>
+              <li className="flex items-start">
+                <span className="bg-gray-100 text-gray-600 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                <span className="ml-2">Simple condition assessment</span>
               </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>12-Month Resale Trend Forecast</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Detailed Confidence Score</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Professional PDF Report</span>
+              <li className="flex items-start">
+                <span className="bg-gray-100 text-gray-600 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+                <span className="ml-2">Regional market adjustments</span>
               </li>
             </ul>
             <Button 
               className="w-full mt-4" 
-              size="lg" 
-              onClick={handlePremiumUpgrade}
-              disabled={upgrading || isProcessing}
+              variant="outline"
+              onClick={() => navigate('/valuation')}
             >
-              {upgrading || isProcessing ? "Processing..." : "Get Premium Report for $29.99"}
+              Start Free Valuation
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </TabsContent>
+      )}
+      
+      <TabsContent value="premium" className="mt-6 p-6 border border-amber-200 bg-amber-50 rounded-lg">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-amber-800">Premium Valuation</h3>
+          <p className="text-amber-700">
+            Get the most accurate and comprehensive valuation with our premium service.
+          </p>
+          <ul className="space-y-2">
+            <li className="flex items-start">
+              <span className="bg-amber-200 text-amber-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+              <span className="ml-2">Full CARFAX® Vehicle History Report ($44 value)</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-200 text-amber-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+              <span className="ml-2">Detailed market analysis with similar vehicles</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-200 text-amber-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+              <span className="ml-2">Connect with dealers for competitive offers</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-200 text-amber-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+              <span className="ml-2">12-month value prediction forecast</span>
+            </li>
+            <li className="flex items-start">
+              <span className="bg-amber-200 text-amber-800 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">✓</span>
+              <span className="ml-2">Professional PDF export for sharing</span>
+            </li>
+          </ul>
+          <Button 
+            className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white"
+            onClick={() => {
+              // For now go to the form below, later this would trigger payment
+              document.getElementById('premium-form')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Get Premium Valuation ($29.99)
+          </Button>
+        </div>
       </TabsContent>
     </Tabs>
   );

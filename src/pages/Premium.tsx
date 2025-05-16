@@ -60,12 +60,7 @@ const Premium: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection
-        scrollToFeatures={scrollToFeatures}
-        scrollToForm={scrollToForm}
-        cardRef={cardRef}
-        cardRotation={cardRotation}
-      />
+      <PremiumHero scrollToForm={scrollToForm} />
       
       <div className="py-16 bg-white" ref={featuresRef}>
         <Container>

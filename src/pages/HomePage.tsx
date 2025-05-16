@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import MainLayout from '@/components/layout/MainLayout';
 import { HeroSection } from '@/components/home/HeroSection';
+import { ValuePropositionSection } from '@/components/home/ValuePropositionSection';
+import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
 
 const HomePage: React.FC = () => {
   return (
@@ -27,6 +29,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ValuePropositionSection />
+      <PremiumServicesGrid />
     </MainLayout>
   );
 };
