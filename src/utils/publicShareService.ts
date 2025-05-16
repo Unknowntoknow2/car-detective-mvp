@@ -55,9 +55,23 @@ export async function getValuationByToken(token: string) {
       return { expired: true };
     }
 
+    // Fix the type issue by transforming the array to a single object if needed
+    const valuation = Array.isArray(data.valuations) 
+      ? {
+          id: data.valuations[0].id,
+          make: data.valuations[0].make,
+          model: data.valuations[0].model,
+          year: Number(data.valuations[0].year),
+          mileage: Number(data.valuations[0].mileage),
+          condition_score: Number(data.valuations[0].condition_score),
+          estimated_value: Number(data.valuations[0].estimated_value),
+          created_at: data.valuations[0].created_at
+        } as SharedValuation
+      : data.valuations as SharedValuation;
+
     return {
       token: data.token,
-      valuation: data.valuations as SharedValuation,
+      valuation,
       created_at: data.created_at,
       expires_at: data.expires_at
     };

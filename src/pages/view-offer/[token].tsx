@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +12,7 @@ interface LeadData {
   valuation_id: string;
   secure_token: string;
   created_at: string;
-  valuations?: {
+  valuations: {
     make: string;
     model: string;
     year: number;
@@ -83,7 +82,24 @@ export default function ViewOfferPage() {
           return;
         }
 
-        setLead(leadData);
+        // Transform the data to match the LeadData type
+        if (leadData && leadData.valuations && leadData.valuations.length > 0) {
+          const transformedData: LeadData = {
+            id: leadData.id,
+            valuation_id: leadData.valuation_id,
+            secure_token: leadData.secure_token,
+            created_at: leadData.created_at,
+            valuations: {
+              make: leadData.valuations[0].make,
+              model: leadData.valuations[0].model,
+              year: Number(leadData.valuations[0].year),
+              mileage: leadData.valuations[0].mileage,
+              state: leadData.valuations[0].state,
+              condition_score: leadData.valuations[0].condition_score
+            }
+          };
+          setLead(transformedData);
+        }
 
         // Fetch offers for this lead
         const { data: offersData, error: offersError } = await supabase
