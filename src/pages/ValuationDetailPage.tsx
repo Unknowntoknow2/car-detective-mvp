@@ -97,8 +97,8 @@ export default function ValuationDetailPage() {
     created_at: data.created_at || new Date().toISOString() // Ensure created_at is always defined
   };
 
-  // Check if premium features are unlocked, default to false if undefined
-  const isPremiumUnlocked = data.premium_unlocked || false;
+  // Check if premium features are unlocked, safely accessing the premium_unlocked property
+  const isPremiumUnlocked = Boolean(data?.premium_unlocked);
 
   return (
     <MainLayout>
