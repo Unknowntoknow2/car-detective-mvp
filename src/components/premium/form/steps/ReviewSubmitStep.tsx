@@ -4,12 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FormData } from '@/types/premium-valuation';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { VehicleSummary } from '../review/VehicleSummary';
-import { VehicleDetailsSummary } from '../review/VehicleDetailsSummary';
-import { FeaturesSummary } from '../review/FeaturesSummary';
-import { ConditionSummary } from '../review/ConditionSummary';
-import { PhotosSummary } from '../review/PhotosSummary';
-import { DrivingBehaviorSummary } from '../review/DrivingBehaviorSummary';
+import { VehicleSummary } from './review/VehicleSummary';
+import { VehicleDetailsSummary } from './review/VehicleDetailsSummary';
+import { FeaturesSummary } from './review/FeaturesSummary';
+import { ConditionSummary } from './review/ConditionSummary';
+import { PhotosSummary } from './review/PhotosSummary';
+import { DrivingBehaviorSummary } from './review/DrivingBehaviorSummary';
 
 interface ReviewSubmitStepProps {
   step: number;
