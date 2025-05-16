@@ -1,9 +1,6 @@
-
+// src/App.tsx
 import { Routes, Route } from 'react-router-dom';
-// src/pages/HomePage.tsx
-import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
-
-export default EnhancedHomePage;
+import HomePage from '@/pages/HomePage'; // ✅ Automatically uses EnhancedHomePage
 import { Toaster } from 'sonner';
 
 // Auth pages - with case-sensitive imports
@@ -26,14 +23,12 @@ const App = () => {
       <Toaster richColors position="top-center" />
       <div className="app-root">
         <Routes>
-          {/* Public Routes - with fallback rendering */}
           <Route path="/" element={<HomePage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/access-denied" element={<AccessDeniedPage />} />
           <Route path="/premium" element={<Premium />} />
 
-          {/* Protected User Dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -43,7 +38,6 @@ const App = () => {
             }
           />
 
-          {/* Protected Dealer Dashboard */}
           <Route
             path="/dealer/*"
             element={
