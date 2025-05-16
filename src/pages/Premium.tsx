@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { PremiumHero } from '@/components/premium/PremiumHero';
 import { Container } from '@/components/ui/container';
 import PremiumManualEntryForm from '@/components/lookup/manual/PremiumManualEntryForm';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useValuation } from '@/contexts/ValuationContext';
 
@@ -11,6 +11,7 @@ const Premium: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { processPremiumValuation } = useValuation();
   
   useEffect(() => {
@@ -18,7 +19,13 @@ const Premium: React.FC = () => {
     if (window.location.hash === '#premium-form') {
       scrollToForm();
     }
-  }, []);
+    
+    // Check if there's a canceled payment
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('canceled') === 'true') {
+      toast.error('Payment was canceled. Please try again if you want to unlock premium features.');
+    }
+  }, [location]);
   
   const scrollToForm = () => {
     console.log("Scrolling to premium form");
