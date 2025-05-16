@@ -2,7 +2,7 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
-interface LoadingProps {
+export interface LoadingProps {
   size?: number;
   message?: string;
   className?: string;
@@ -16,7 +16,7 @@ const Loading: React.FC<LoadingProps> = ({
   minHeight = '300px'
 }) => {
   return (
-    <div className={`flex items-center justify-center h-full min-h-[${minHeight}] w-full ${className}`}>
+    <div className={`flex items-center justify-center h-full min-h-[${minHeight}] w-full ${className}`} role="status">
       <div className="flex flex-col items-center space-y-4">
         <Loader2 className={`h-${size} w-${size} animate-spin text-primary`} />
         {message && <p className="text-lg font-medium">{message}</p>}
