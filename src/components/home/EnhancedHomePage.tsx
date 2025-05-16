@@ -1,779 +1,333 @@
 
-import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MainLayout from '@/layouts/MainLayout';
-import { Button } from '@/components/ui/button';
-import { LockIcon, FileBarChart, Shield, TrendingUp, Camera, Award, FileText, Zap, BadgeDollarSign } from 'lucide-react';
-import { Container } from '@/components/ui/container';
-import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { PremiumTabs } from '@/components/premium/PremiumTabs';
+import React from 'react';
 import { useInView } from 'react-intersection-observer';
+import { motion } from 'framer-motion';
+import { Container } from "@/components/ui/container";
+import { KeyFeatures } from "./KeyFeatures";
+import { FeaturesOverview } from "./FeaturesOverview";
+import { EnhancedFeatures } from "./EnhancedFeatures";
+import { Lock } from "lucide-react";
+import { useAnimatedInView } from '@/hooks/useAnimatedInView';
 
-// PREMIUM_PAGE_ELEVATED_V1
-export const EnhancedHomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
-  const [zipCode, setZipCode] = useState('');
-  const scrollToFormRef = useRef<HTMLDivElement>(null);
-  
-  // Animation refs for scroll view
-  const [featureRef, featureInView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-  
-  const [pdfRef, pdfInView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-  
-  const [testimonialsRef, testimonialsInView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
-
-  const handleGetStarted = () => {
-    navigate('/valuation');
-  };
-  
-  const scrollToForm = () => {
-    scrollToFormRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  const scrollToFeatures = () => {
-    featureRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  // Card 3D effect
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!heroRef.current) return;
-      
-      const { left, top, width, height } = heroRef.current.getBoundingClientRect();
-      const centerX = left + width / 2;
-      const centerY = top + height / 2;
-      
-      const rotateY = ((event.clientX - centerX) / width) * 5;
-      const rotateX = ((centerY - event.clientY) / height) * 5;
-      
-      setCardRotation({ x: rotateX, y: rotateY });
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+export function EnhancedHomePage() {
+  // Use our custom hook for animated sections
+  const { ref: heroRef, isInView: heroInView } = useAnimatedInView({ delay: 0.2 });
+  const { ref: featuresRef, isInView: featuresInView } = useAnimatedInView({ delay: 0.3 });
+  const { ref: overviewRef, isInView: overviewInView } = useAnimatedInView({ delay: 0.4 });
 
   return (
-    <MainLayout>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <section ref={heroRef} className="py-16 md:py-24 px-4 relative overflow-hidden bg-gradient-to-b from-primary/5 to-background">
-        <div className="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-10"></div>
-        <Container className="relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              transition={{ duration: 0.6 }}
-              className="space-y-6"
+      <section className="relative py-20 overflow-hidden">
+        <Container>
+          <div 
+            ref={heroRef}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={heroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, ease: "easeOut" }}
             >
-              <div className="space-y-2">
-                <motion.div 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-1.5 bg-green-100 px-3 py-1 rounded-full text-green-700 text-sm font-medium mb-2"
-                >
-                  <Badge variant="outline" className="bg-white border-green-200 text-green-700">
-                    <BadgeDollarSign className="h-3 w-3 mr-1" />
-                    $44 CARFAX® Value Included
-                  </Badge>
-                </motion.div>
-                <h1 className="text-4xl md:text-5xl font-bold">
-                  Know Your Car's True Worth — <span className="text-primary">Backed by AI + CARFAX®</span>
-                </h1>
-                <p className="text-xl text-gray-600 mt-4">
-                  Pay once. Sell smart. Get premium insights, market forecasts, and a complete CARFAX® report.
-                </p>
-              </div>
-              
-              <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                transition={{ delay: 0.4 }}
-                className="flex flex-col sm:flex-row gap-4 mt-8"
-              >
-                <Button 
-                  size="lg" 
-                  className="gap-2 text-base font-medium"
-                  onClick={scrollToForm}
-                >
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark">
+                Know Your Car's True Worth — Backed by AI + CARFAX®
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                $44 value included. Pay once. Sell smart.
+              </p>
+              <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+                <button className="px-8 py-3 bg-primary hover:bg-primary-dark text-white rounded-full font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                   Start My Premium Valuation
-                  <TrendingUp className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="gap-2 text-base"
-                  onClick={scrollToFeatures}
-                >
-                  See What's Included
-                </Button>
-              </motion.div>
-              
-              <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                transition={{ delay: 0.5 }}
-                className="mt-8 flex items-center gap-3"
-              >
-                <div className="flex items-center gap-1.5 text-amber-700">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                    </svg>
-                  ))}
+                </button>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-full px-4 py-2 flex items-center">
+                  <span className="font-semibold text-yellow-800">One-Time • $29.99</span>
                 </div>
-                <span className="text-sm text-gray-500">
-                  Trusted by <span className="font-medium">10,000+</span> vehicle sellers
-                </span>
-              </motion.div>
+              </div>
             </motion.div>
-            
-            <div className="relative hidden lg:block">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="absolute -top-8 right-4 z-20 transform translate-x-0 translate-y-0"
-              >
-                <Card className="w-full max-w-md border-2 border-primary/20 bg-white/90 backdrop-blur-sm shadow-xl rounded-xl overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 rounded-full bg-primary flex items-center justify-center">
-                        <FileBarChart className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold">Premium Analysis</h3>
-                        <p className="text-sm text-muted-foreground">CARFAX® Integration</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="bg-muted/30 border border-border rounded-lg p-4">
-                          <h4 className="text-sm text-muted-foreground font-medium mb-1">Estimated Value</h4>
-                          <p className="text-2xl font-bold text-primary">$24,350</p>
-                        </div>
-                        <div className="bg-muted/30 border border-border rounded-lg p-4">
-                          <h4 className="text-sm text-muted-foreground font-medium mb-1">Confidence</h4>
-                          <p className="text-2xl font-bold text-green-600">95%</p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>Feature Adjustments</span>
-                          <span className="font-medium text-green-600">+$1,240</span>
-                        </div>
-                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                          <div className="h-full w-3/4 bg-gradient-to-r from-primary to-green-500 rounded-full"></div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-muted/20 border border-border rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="text-sm font-medium">CARFAX® Highlights</h4>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Clean
-                          </Badge>
-                        </div>
-                        <ul className="text-sm space-y-1 text-muted-foreground">
-                          <li className="flex items-center gap-2">
-                            <Zap className="h-3 w-3 text-primary" />
-                            <span>2 owners, no accidents</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Zap className="h-3 w-3 text-primary" />
-                            <span>Regular service history</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Zap className="h-3 w-3 text-primary" />
-                            <span>Clean title verified</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="absolute bottom-8 left-12 z-10"
-                style={{
-                  perspective: "1000px",
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                <div
-                  style={{
-                    transform: `rotateX(${cardRotation.x}deg) rotateY(${cardRotation.y}deg)`,
-                    transition: "transform 0.1s ease-out",
-                  }}
-                  className="w-full max-w-sm"
-                >
-                  <Card className="border-2 border-border bg-white/80 backdrop-blur-sm shadow-lg rounded-xl overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 rounded-full bg-green-100 flex items-center justify-center">
-                          <TrendingUp className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">Market Forecast</h3>
-                          <p className="text-xs text-muted-foreground">12-Month Projection</p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div className="h-32 bg-muted/30 rounded-lg border border-border flex items-center justify-center p-4">
-                          <svg className="w-full h-full" viewBox="0 0 200 80">
-                            <path
-                              d="M0,40 C30,10 60,60 90,40 C120,20 150,80 180,60 L180,80 L0,80 Z"
-                              fill="rgba(59, 130, 246, 0.1)"
-                            />
-                            <path
-                              d="M0,40 C30,10 60,60 90,40 C120,20 150,80 180,60"
-                              fill="none"
-                              stroke="#3b82f6"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Best time to sell</span>
-                          <span className="font-medium text-primary">3 months</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </motion.div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Trust Indicators */}
+      <section className="py-8 bg-gray-50">
+        <Container>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">Military-Grade Security</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">CARFAX® Verified</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">Used by 10,000+ sellers</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">Secure Checkout by Stripe™</span>
             </div>
           </div>
         </Container>
       </section>
 
       {/* Features Section */}
-      <section ref={featureRef} className="py-16 bg-white">
+      <section 
+        ref={featuresRef}
+        className="py-16"
+      >
         <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Premium Report Features</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto">
-              Get the complete picture of your vehicle's value with our comprehensive premium report, backed by AI technology and industry-leading data.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={featureInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="hover-lift premium-shine"
-              >
-                <Card className="h-full border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                      <feature.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            <h2 className="text-3xl font-bold text-center mb-12">Premium Valuation Features</h2>
+            <KeyFeatures />
+          </motion.div>
         </Container>
       </section>
 
-      {/* PDF Preview Section */}
-      <section ref={pdfRef} className="py-16 bg-gray-50">
+      {/* AI Photo Scoring Widget Preview */}
+      <section className="py-12 bg-gray-50">
         <Container>
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/2">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={pdfInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-3xl font-bold mb-4">Professional PDF Report</h2>
-                <p className="text-gray-600 mb-6">
-                  Get a comprehensive, printable report with detailed analysis and market data to share with potential buyers or your insurance company.
-                </p>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-green-100 p-2 rounded-full mt-0.5">
-                      <Zap className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Complete CARFAX® History</h4>
-                      <p className="text-gray-500 text-sm">Accident history, service records, and ownership details.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-green-100 p-2 rounded-full mt-0.5">
-                      <Zap className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Market Value Analysis</h4>
-                      <p className="text-gray-500 text-sm">Detailed breakdown of factors affecting your vehicle's value.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-green-100 p-2 rounded-full mt-0.5">
-                      <Zap className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">12-Month Value Forecast</h4>
-                      <p className="text-gray-500 text-sm">Predicted value trends to help you time your sale perfectly.</p>
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  className="mt-8 gap-2"
-                  onClick={scrollToForm}
-                >
-                  Unlock Full Report
-                  <LockIcon size={16} />
-                </Button>
-                <p className="text-xs text-gray-500 mt-2">Includes title check, photos, forecasts & more</p>
-              </motion.div>
-            </div>
-            <div className="md:w-1/2">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={pdfInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="relative"
-              >
-                <div className="relative max-w-md mx-auto">
-                  <div className="relative overflow-hidden rounded-lg border-4 border-white shadow-xl">
-                    <div className="absolute inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-10">
-                      <div className="bg-primary/90 text-white py-2 px-4 rounded-full font-bold transform -rotate-12 shadow-lg">
-                        PREMIUM ONLY
-                      </div>
-                    </div>
-                    <img 
-                      src="/images/report-preview.png" 
-                      alt="PDF Report Preview" 
-                      className="w-full"
-                      onError={(e) => { 
-                        e.currentTarget.src = "https://placehold.co/600x800/e2e8f0/64748b?text=Premium+Valuation+Report";
-                      }} 
-                    />
-                  </div>
-                  <div className="absolute -bottom-4 -right-4 bg-primary text-white p-3 rounded-full shadow-lg">
-                    <FileText className="h-6 w-6" />
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* AI Photo Scoring Section */}
-      <section className="py-16 bg-white">
-        <Container>
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/2 order-2 md:order-1">
-              <div className="relative max-w-md">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="relative rounded-lg overflow-hidden">
-                    <img 
-                      src="/images/car-front.jpg" 
-                      alt="Car Front" 
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => { 
-                        e.currentTarget.src = "https://placehold.co/300x300/e2e8f0/64748b?text=Front";
-                      }} 
-                    />
-                    <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs py-1 px-2 rounded-full">
-                      Excellent
-                    </div>
-                  </div>
-                  <div className="relative rounded-lg overflow-hidden">
-                    <img 
-                      src="/images/car-side.jpg" 
-                      alt="Car Side" 
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => { 
-                        e.currentTarget.src = "https://placehold.co/300x300/e2e8f0/64748b?text=Side";
-                      }} 
-                    />
-                    <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs py-1 px-2 rounded-full">
-                      Excellent
-                    </div>
-                  </div>
-                  <div className="relative rounded-lg overflow-hidden">
-                    <img 
-                      src="/images/car-interior.jpg" 
-                      alt="Car Interior" 
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => { 
-                        e.currentTarget.src = "https://placehold.co/300x300/e2e8f0/64748b?text=Interior";
-                      }} 
-                    />
-                    <div className="absolute bottom-2 left-2 bg-amber-500 text-white text-xs py-1 px-2 rounded-full">
-                      Good
-                    </div>
-                  </div>
-                  <div className="relative rounded-lg overflow-hidden">
-                    <img 
-                      src="/images/car-rear.jpg" 
-                      alt="Car Rear" 
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => { 
-                        e.currentTarget.src = "https://placehold.co/300x300/e2e8f0/64748b?text=Rear";
-                      }} 
-                    />
-                    <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs py-1 px-2 rounded-full">
-                      Excellent
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Camera className="h-4 w-4 text-primary" />
-                      <span className="font-medium">AI Condition Score</span>
-                    </div>
-                    <Badge className="bg-primary">94%</Badge>
-                  </div>
-                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full w-[94%] bg-gradient-to-r from-green-400 to-primary rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="md:w-1/2 order-1 md:order-2">
-              <h2 className="text-3xl font-bold mb-4">AI Photo Analysis</h2>
-              <p className="text-gray-600 mb-6">
-                Our AI technology analyzes your vehicle photos to provide an accurate condition assessment, helping you get the most accurate valuation.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-primary/10 p-2 rounded-full mt-0.5">
-                    <Award className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">AI-Verified Condition</h4>
-                    <p className="text-gray-500 text-sm">Computer vision technology detects scratches, dents, and wear.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-primary/10 p-2 rounded-full mt-0.5">
-                    <Award className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Higher Confidence Score</h4>
-                    <p className="text-gray-500 text-sm">Photo analysis increases valuation accuracy by up to 18%.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-primary/10 p-2 rounded-full mt-0.5">
-                    <Award className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Dealer-Ready Assessment</h4>
-                    <p className="text-gray-500 text-sm">The same technology dealers use to determine trade-in value.</p>
-                  </div>
-                </div>
-              </div>
-              <Button
-                className="mt-8"
-                onClick={scrollToForm}
-              >
-                Get AI Photo Analysis
-              </Button>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* Free vs Premium Comparison */}
-      <section className="py-16 bg-gray-50">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Free vs Premium Valuation</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto">
-              See what you're missing with the free version.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold">Free Valuation</h3>
-                  <Badge variant="outline" className="text-gray-500">$0</Badge>
-                </div>
-                <ul className="space-y-3">
-                  {comparisonFeatures.map((feature) => (
-                    <li key={feature.name} className="flex items-start gap-2">
-                      <div className="mt-0.5 flex-shrink-0">
-                        {feature.free ? (
-                          <div className="h-5 w-5 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg className="h-3 w-3 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <div className="h-5 w-5 bg-gray-100 rounded-full flex items-center justify-center">
-                            <svg className="h-3 w-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <span className={feature.free ? "" : "text-gray-400"}>{feature.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            <Card className="border-2 border-primary relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-white px-4 py-1 text-sm font-bold">
-                RECOMMENDED
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold">Premium Valuation</h3>
-                    <p className="text-sm text-gray-500">One-time payment</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold">$29.99</div>
-                    <div className="text-xs text-gray-500">Includes $44 CARFAX®</div>
-                  </div>
-                </div>
-                <ul className="space-y-3">
-                  {comparisonFeatures.map((feature) => (
-                    <li key={feature.name} className="flex items-start gap-2">
-                      <div className="mt-0.5 flex-shrink-0">
-                        <div className="h-5 w-5 bg-primary/10 rounded-full flex items-center justify-center">
-                          <svg className="h-3 w-3 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      </div>
-                      <span>{feature.name}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button className="mt-6 w-full" onClick={scrollToForm}>
-                  Start Premium Valuation
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </Container>
-      </section>
-
-      {/* Testimonial Section */}
-      <section ref={testimonialsRef} className="py-16 bg-white">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What Our Users Say</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto">
-              See what customers like you have to say about our premium valuation service.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={testimonialsInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-              >
-                <Card className="h-full border border-gray-100 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                        <img 
-                          src={testimonial.avatar} 
-                          alt={testimonial.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { 
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${testimonial.name.replace(' ', '+')}&color=7F9CF5&background=EBF4FF`;
-                          }} 
-                        />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{testimonial.name}</h3>
-                        <div className="flex items-center">
-                          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">{testimonial.carModel}</span>
-                          <span className="text-xs ml-2 text-gray-500">{testimonial.role}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex pb-3">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <svg key={star} className="w-4 h-4 text-yellow-500 fill-current" viewBox="0 0 24 24">
-                          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <p className="text-gray-600 text-sm">{testimonial.testimonial}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* Trust Row */}
-      <section className="py-8 bg-gray-50 border-y border-gray-200">
-        <Container>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium text-gray-600">Military-grade Security</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium text-gray-600">CARFAX® Partner</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <BadgeDollarSign className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium text-gray-600">Secure Payments</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium text-gray-600">Used by 10,000+ sellers</span>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* Form Section */}
-      <section ref={scrollToFormRef} id="premium-form" className="py-16 bg-white">
-        <Container>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Start Your Premium Valuation</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto">
-              Enter your vehicle information to get started with your comprehensive premium valuation.
-            </p>
-          </div>
-
           <div className="max-w-4xl mx-auto">
-            <Card className="border-2 border-primary/20">
-              <CardContent className="p-6 md:p-8">
-                <PremiumTabs showFreeValuation={false} />
-              </CardContent>
-            </Card>
+            <div className="bg-white p-6 rounded-xl shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">AI Photo Condition Analysis</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="relative rounded-lg overflow-hidden">
+                    <div className="aspect-w-4 aspect-h-3 bg-gray-200 flex items-center justify-center">
+                      <Lock className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="absolute bottom-0 right-0 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-tl-lg">
+                      {["Good", "Fair", "Great", "Excellent"][i-1]}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center mb-2">
+                <div className="text-sm font-medium">Overall Condition Score:</div>
+                <div className="ml-2 bg-green-100 text-green-800 font-medium px-2 py-0.5 rounded text-sm">
+                  Very Good
+                </div>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="bg-green-500 h-full rounded-full" style={{ width: "75%" }}></div>
+              </div>
+              <div className="mt-4 text-sm text-gray-500">
+                *Condition scoring affects your final valuation. Premium valuations include detailed photo analysis.
+              </div>
+            </div>
           </div>
         </Container>
       </section>
 
-      {/* Floating CTA Button (Mobile Only) */}
-      <div className="md:hidden fixed bottom-4 inset-x-4 z-50">
-        <Button
-          size="lg"
-          className="w-full flex items-center justify-center shadow-lg gap-2"
-          onClick={scrollToForm}
-        >
+      {/* PDF Report Preview */}
+      <section className="py-16">
+        <Container>
+          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-8">
+            <div className="md:w-1/2">
+              <h2 className="text-3xl font-bold mb-4">Professional PDF Report</h2>
+              <p className="text-gray-600 mb-6">
+                Download and share a comprehensive report including title check, photos, 
+                forecasts, and detailed valuation breakdown.
+              </p>
+              <ul className="space-y-2 mb-6">
+                {['CARFAX® history summary', 'Market comparison', '12-month value trend', 'Dealer network access'].map((item, i) => (
+                  <li key={i} className="flex items-start">
+                    <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button className="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-all shadow hover:shadow-lg">
+                Unlock Full Report
+              </button>
+            </div>
+            <div className="md:w-1/2 relative">
+              <div className="aspect-w-8.5 aspect-h-11 bg-white rounded-lg shadow-xl overflow-hidden relative">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                  <div className="absolute inset-0 backdrop-blur-sm"></div>
+                  <div className="absolute rotate-45 text-9xl font-bold text-red-200 opacity-30">SAMPLE</div>
+                  <Lock className="w-16 h-16 text-gray-400 z-10" />
+                </div>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-yellow-500 text-white px-4 py-2 rounded-full transform rotate-12 shadow-lg">
+                $44 Value!
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* 12-Month Forecast Preview */}
+      <section className="py-12 bg-gray-50">
+        <Container>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-6">12-Month Value Forecast</h2>
+            <p className="text-center text-gray-600 mb-10">
+              See how your vehicle's value may change over time and find the perfect time to sell.
+            </p>
+            <div className="bg-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold">Market Trends</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Your ZIP:</span>
+                  <div className="w-20 h-8 bg-gray-200 rounded flex items-center justify-center text-gray-400">
+                    <Lock className="w-4 h-4 mr-1" />
+                    <span className="text-xs font-medium">Unlock</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Blurred chart preview */}
+              <div className="h-64 backdrop-blur-sm relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Lock className="w-10 h-10 text-gray-400" />
+                  <span className="ml-2 font-medium text-gray-500">Premium Feature</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4 mt-4 text-center">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-500">Current</div>
+                  <div className="font-bold">$23,450</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-500">6 Months</div>
+                  <div className="font-bold">$22,800</div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-500">12 Months</div>
+                  <div className="font-bold">$21,950</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Get Started VIN Lookup Section */}
+      <section className="py-16">
+        <Container>
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
+            <p className="text-gray-600 mb-10 max-w-2xl mx-auto">
+              Enter your VIN number, license plate, or vehicle details to begin your premium valuation 
+              with CARFAX® report included.
+            </p>
+            <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+              <div className="flex flex-col items-center">
+                <button className="w-full max-w-md px-6 py-4 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl text-lg mb-4">
+                  Start My Premium Valuation
+                </button>
+                <span className="text-sm text-gray-500">One-time payment of $29.99 • Includes $44 CARFAX® report</span>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Premium vs. Free Comparison */}
+      <section 
+        ref={overviewRef}
+        className="py-16 bg-gray-50"
+      >
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={overviewInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            <h2 className="text-3xl font-bold text-center mb-12">Compare Plans</h2>
+            <FeaturesOverview />
+          </motion.div>
+        </Container>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16">
+        <Container>
+          <h2 className="text-3xl font-bold text-center mb-10">What Our Customers Say</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Michael T.",
+                role: "Seller",
+                car: "2019 Toyota RAV4",
+                quote: "The premium report helped me negotiate $2,200 more for my RAV4 than the initial dealer offer."
+              },
+              {
+                name: "Sarah L.",
+                role: "Buyer",
+                car: "2017 Honda Accord",
+                quote: "I used the CARFAX report to avoid a car with undisclosed accident history. Best $30 I've spent."
+              },
+              {
+                name: "Robert K.",
+                role: "Dealer",
+                car: "Multiple Vehicles",
+                quote: "As a small dealership owner, I use this service for all my inventory valuations. The AI condition scoring is spot-on."
+              }
+            ].map((testimonial, i) => (
+              <div key={i} className="bg-white p-6 rounded-xl shadow border border-gray-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="text-sm text-gray-500">{testimonial.role} • {testimonial.car}</div>
+                  </div>
+                </div>
+                <p className="text-gray-600 italic">"{testimonial.quote}"</p>
+                <div className="mt-4 flex text-yellow-400">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <svg key={star} className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 bg-gradient-to-r from-primary/10 to-primary/5">
+        <Container>
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-bold mb-6">Don't Sell Yourself Short</h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Get the complete picture of your vehicle's worth with our comprehensive premium valuation.
+            </p>
+            <button className="px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-full font-medium transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 text-lg">
+              Start My Premium Valuation — $29.99
+            </button>
+            <p className="mt-4 text-sm text-gray-500">Includes $44 CARFAX® report • One-time payment</p>
+          </div>
+        </Container>
+      </section>
+
+      {/* Floating CTA for Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200 shadow-lg z-50">
+        <button className="w-full px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-all shadow">
           Start Premium ($29.99)
-          <Badge variant="outline" className="bg-white/20 border-white/30 text-white">
-            Includes CARFAX®
-          </Badge>
-        </Button>
+        </button>
       </div>
-    </MainLayout>
+    </div>
   );
-};
-
-// Feature data
-const features = [
-  {
-    title: "CARFAX® Report ($44 value)",
-    description: "Complete vehicle history including accidents, maintenance records, and title information.",
-    icon: FileText
-  },
-  {
-    title: "AI Condition Analysis",
-    description: "Advanced AI technology analyzes photos to accurately assess your vehicle's condition.",
-    icon: Camera
-  },
-  {
-    title: "Market Value Insights",
-    description: "Comprehensive analysis of your vehicle's value based on current market trends.",
-    icon: BadgeDollarSign
-  },
-  {
-    title: "12-Month Forecast",
-    description: "Predictive analysis of your vehicle's value over the next 12 months to time your sale perfectly.",
-    icon: TrendingUp
-  },
-  {
-    title: "Professional PDF Report",
-    description: "Downloadable report with all valuation details to share with potential buyers or insurance.",
-    icon: FileBarChart
-  },
-  {
-    title: "Dealer-Level Insights",
-    description: "Access the same data and insights that dealers use when making purchase decisions.",
-    icon: Award
-  }
-];
-
-// Comparison data
-const comparisonFeatures = [
-  { name: "Basic Vehicle Value Estimate", free: true },
-  { name: "Make, Model, Year Identification", free: true },
-  { name: "Simple Condition Assessment", free: true },
-  { name: "CARFAX® Vehicle History Report", free: false },
-  { name: "AI Photo Condition Analysis", free: false },
-  { name: "Title & VIN Verification", free: false },
-  { name: "12-Month Value Forecast", free: false },
-  { name: "Professional PDF Report", free: false },
-  { name: "Dealer Network Offers", free: false },
-  { name: "Detailed Market Comparison", free: false }
-];
-
-// Testimonial data
-const testimonials = [
-  {
-    name: "Michael Johnson",
-    role: "Seller",
-    carModel: "Tesla Model 3",
-    avatar: "/images/testimonial-1.jpg",
-    testimonial: "The premium valuation was spot on. I received $2,200 more than I expected by using the detailed report to negotiate with the dealer."
-  },
-  {
-    name: "Sarah Williams",
-    role: "Buyer",
-    carModel: "Honda Accord",
-    avatar: "/images/testimonial-2.jpg",
-    testimonial: "The CARFAX® report saved me from buying a car with hidden flood damage. Best $30 I've ever spent on car shopping."
-  },
-  {
-    name: "David Chen",
-    role: "Seller",
-    carModel: "BMW X5",
-    avatar: "/images/testimonial-3.jpg",
-    testimonial: "The AI photo analysis gave my listing credibility. Sold my car in 3 days with multiple competing offers."
-  }
-];
-
-export default EnhancedHomePage;
+}
