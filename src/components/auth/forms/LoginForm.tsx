@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -70,7 +69,7 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
       const result = await signIn(values.email, values.password);
       
       if (result?.error) {
-        setFormError(result.error.message || 'Invalid email or password');
+        setFormError(result.error || 'Invalid email or password');
         setIsLoading(false);
         return;
       }

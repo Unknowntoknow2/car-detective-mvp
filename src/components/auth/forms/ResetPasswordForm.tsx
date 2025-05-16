@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,8 +46,8 @@ export const ResetPasswordForm = ({ isLoading, setIsLoading }: ResetPasswordForm
     try {
       const result = await updatePassword(values.password);
       
-      if (result?.error) {
-        setFormError(result.error.message || 'Failed to update password');
+      if (result.error) {
+        setFormError(result.error || 'Failed to update password');
         return;
       }
       
