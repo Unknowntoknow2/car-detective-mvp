@@ -1,5 +1,7 @@
+// ✅ File: src/components/lookup/VinLookup.tsx
 
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { VINLookupForm } from './vin/VINLookupForm';
 import { VinDecoderResults } from './vin/VinDecoderResults';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
@@ -10,47 +12,45 @@ import ManualEntryForm from './ManualEntryForm';
 import { useValuationFallback } from '@/hooks/useValuationFallback';
 import { toast } from 'sonner';
 
-interface VinLookupProps {
-  onSubmit?: (vin: string) => void;
-}
-
-export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
+export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState('');
   const { isLoading, error, result, lookupVin } = useVinDecoder();
+  const navigate = useNavigate();
   const [carfaxData, setCarfaxData] = useState(null);
   const { fallbackState, setFallbackForVin, shouldShowManualEntry } = useValuationFallback();
-  
+
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
   }, []);
-  
+
   const handleLookup = useCallback(async () => {
     if (vinNumber) {
       console.log('VIN LOOKUP: Submitting form with VIN:', vinNumber);
-      
-      if (onSubmit) {
-        onSubmit(vinNumber);
-        return;
-      }
-      
+
       try {
         const response = await lookupVin(vinNumber);
         console.log('VIN LOOKUP: Response from API:', response);
-        
+
         if (!response) {
           console.error('VIN LOOKUP: No response received');
           setFallbackForVin();
+          return;
         }
+
+        // ✅ Store in localStorage
+        localStorage.setItem(`vin_lookup_${vinNumber}`, JSON.stringify(response));
+
+        // ✅ Navigate to /result?vin=...
+        navigate(`/result?vin=${vinNumber}`);
       } catch (error) {
         console.error('VIN LOOKUP: Error during lookup:', error);
         setFallbackForVin();
       }
     }
-  }, [vinNumber, lookupVin, onSubmit, setFallbackForVin]);
-  
+  }, [vinNumber, lookupVin, navigate, setFallbackForVin]);
+
   const onReset = useCallback(() => {
     console.log('VIN LOOKUP: Reset form triggered');
-    // Reset the form
     setVinNumber('');
   }, []);
 
@@ -58,8 +58,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
     console.log('VIN LOOKUP: Fallback to manual entry with data:', data);
     toast.success('Vehicle information submitted manually');
   }, []);
-  
-  // If lookup failed and in fallback mode, show manual entry
+
   if (shouldShowManualEntry) {
     return (
       <div className="space-y-4">
@@ -70,12 +69,11 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
             <p className="text-sm">Please enter your vehicle details manually</p>
           </div>
         </div>
-        
         <ManualEntryForm onSubmit={handleManualSubmit} />
       </div>
     );
   }
-  
+
   if (!result) {
     return (
       <div className="w-full">
@@ -86,7 +84,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
           isLoading={isLoading}
           error={error}
         />
-        
+
         {error && error.includes('Carfax') ? (
           <CarfaxErrorAlert error="Unable to retrieve Carfax vehicle history report." />
         ) : error ? (
@@ -98,7 +96,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
       </div>
     );
   }
-  
+
   return (
     <>
       <VinDecoderResults 

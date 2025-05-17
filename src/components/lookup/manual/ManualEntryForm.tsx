@@ -92,8 +92,9 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     onSubmit(formattedData);
   };
 
-  const conditionOptions = [
+    const conditionOptions = [
     { value: ConditionLevel.Excellent, label: 'Excellent' },
+    { value: ConditionLevel.VeryGood, label: 'Very Good' },
     { value: ConditionLevel.Good, label: 'Good' },
     { value: ConditionLevel.Fair, label: 'Fair' },
     { value: ConditionLevel.Poor, label: 'Poor' }
