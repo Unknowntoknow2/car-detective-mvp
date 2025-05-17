@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import React from 'react';
-import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
-import Home from './Home';
-=======
 
 import React, { useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
@@ -24,7 +19,6 @@ const HomePage: React.FC = () => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
->>>>>>> origin/main
 
   return (
     <MainLayout>
