@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { render } from '@testing-library/react';
-import { CDButton } from '../CDButton';
+import CDButton from '../button/CDButton';
 import { CDCard, CDCardHeader, CDCardBody, CDCardFooter } from '../CDCard';
 import { CDInput } from '../CDInput';
 import { CDBadge } from '../CDBadge';
@@ -22,10 +23,10 @@ describe('CDButton', () => {
     expect(screen.getByText('Primary')).toHaveClass('bg-primary');
 
     rerender(<CDButton variant="secondary">Secondary</CDButton>);
-    expect(screen.getByText('Secondary')).toHaveClass('bg-neutral-lighter');
+    expect(screen.getByText('Secondary')).toHaveClass('bg-secondary');
 
     rerender(<CDButton variant="ghost">Ghost</CDButton>);
-    expect(screen.getByText('Ghost')).toHaveClass('bg-transparent');
+    expect(screen.getByText('Ghost')).toHaveClass('hover:bg-accent');
   });
 
   it('handles click events', () => {
@@ -36,7 +37,7 @@ describe('CDButton', () => {
   });
 
   it('renders loading and disabled states correctly', () => {
-    const { rerender } = render(<CDButton loading>Loading</CDButton>);
+    const { rerender } = render(<CDButton isLoading>Loading</CDButton>);
     expect(screen.getByRole('button')).toBeDisabled();
     
     rerender(<CDButton disabled>Disabled</CDButton>);

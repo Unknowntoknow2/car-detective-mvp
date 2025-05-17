@@ -1,103 +1,173 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
 
-export type User = {
+// 👤 User context shape
+interface UserDetails {
   id: string;
-  email: string;
-  displayName?: string;
-} | null;
-
-export interface AuthContextType {
-  user: User;
-  userRole: 'user' | 'dealer' | 'admin' | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  loading: boolean;
+  email?: string;
+  role?: string;
+  name?: string;
+  avatar_url?: string;
 }
 
-// Create a mock implementation for development
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  userRole: null,
-  signIn: async () => {},
-  signOut: async () => {},
-  loading: false,
-});
+interface AuthResponse {
+  success: boolean;
+  error?: string;
+}
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User>(null);
-  const [userRole, setUserRole] = useState<'user' | 'dealer' | 'admin' | null>(null);
-  const [loading, setLoading] = useState(true);
+interface AuthContextType {
+  user: User | null;
+  userDetails: UserDetails | null;
+  userRole: string | null;
+  loading: boolean;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<AuthResponse>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<AuthResponse>;
+  updatePassword: (password: string) => Promise<AuthResponse>;
+}
+
+// 🌐 Context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// ✅ AuthProvider wrapper
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const isLoading = loading;
+  const userRole = userDetails?.role || null;
 
   useEffect(() => {
-    // Check for stored user in localStorage (mock auth)
-    const storedUser = localStorage.getItem('authUser');
-    const storedRole = localStorage.getItem('userRole');
-    
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setUserRole((storedRole as 'user' | 'dealer' | 'admin') || 'user');
-    }
-    
-    setLoading(false);
+    const getUser = async () => {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email, role, full_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (data) {
+          setUserDetails({
+            id: data.id,
+            email: data.email,
+            role: data.role,
+            name: data.full_name,
+            avatar_url: data.avatar_url,
+          });
+        }
+      }
+      setLoading(false);
+    };
+
+    getUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setUserDetails(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
-      setLoading(true);
-      
-      // Mock authentication - in a real app, this would call an auth API
-      const mockUser = { id: '123', email };
-      setUser(mockUser);
-      
-      // For demo purposes, set dealer role if email contains 'dealer'
-      const role = email.includes('dealer') ? 'dealer' : 'user';
-      setUserRole(role);
-      
-      // Store in localStorage for persistence
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
-      localStorage.setItem('userRole', role);
-      
-      console.log('User signed in:', email, 'with role:', role);
-      
-      // In a real app we'd return the user here
-      return;
-    } catch (error) {
-      console.error('Error signing in:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Sign-in error' };
+    }
+  };
+
+  const signUp = async (email: string, password: string, fullName?: string): Promise<AuthResponse> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
+      });
+      if (error) throw error;
+
+      if (data.user) {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          role: 'individual',
+          email,
+          full_name: fullName,
+        });
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Sign-up error' };
+    }
+  };
+
+  const resetPassword = async (email: string): Promise<AuthResponse> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updatePassword = async (password: string): Promise<AuthResponse> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   };
 
   const signOut = async () => {
-    try {
-      setLoading(true);
-      
-      // Clear state and localStorage
-      setUser(null);
-      setUserRole(null);
-      localStorage.removeItem('authUser');
-      localStorage.removeItem('userRole');
-      
-      console.log('User signed out');
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    } finally {
-      setLoading(false);
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    setUserDetails(null);
+    navigate('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, userRole, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      userDetails,
+      userRole,
+      loading,
+      isLoading,
+      signIn,
+      signUp,
+      signOut,
+      resetPassword,
+      updatePassword
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
-
-export default AuthContext;
+// ✅ Hook
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
+};

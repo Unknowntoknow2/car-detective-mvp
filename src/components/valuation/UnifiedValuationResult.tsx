@@ -1,121 +1,131 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { formatNumber } from '@/utils/formatters/formatNumber';
-
-export interface VehicleInfo {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-}
-
-export interface Adjustment {
-  factor: string;
-  impact: number;
-  description: string;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Download, Mail, FileText } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 export interface UnifiedValuationResultProps {
   valuationId: string;
-  vehicleInfo: VehicleInfo;
+  displayMode?: 'summary' | 'full';
   estimatedValue: number;
-  confidenceScore: number;
+  confidenceScore?: number;
   priceRange?: [number, number];
-  adjustments?: Adjustment[];
-  displayMode?: 'simple' | 'full';
-  onDownloadPdf?: () => void;
-  onEmailReport?: () => void;
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  vehicleInfo?: {
+    year?: number;
+    make?: string;
+    model?: string;
+    mileage?: number;
+    condition?: string;
+  };
+  onDownloadPdf?: () => Promise<void> | void; // Add this missing prop
+  onEmailReport?: () => Promise<void> | void; // Add this missing prop
 }
 
 const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   valuationId,
-  vehicleInfo,
+  displayMode = 'summary',
   estimatedValue,
-  confidenceScore,
+  confidenceScore = 85,
   priceRange,
   adjustments = [],
-  displayMode = 'simple',
-  onDownloadPdf,
-  onEmailReport
+  vehicleInfo = {},
+  onDownloadPdf, // Add this to destructuring
+  onEmailReport // Add this to destructuring
 }) => {
-  // Generate price range if not provided
-  const valuationRange = priceRange || [
+  // Calculate price range if not provided
+  const calculatedPriceRange = priceRange || [
     Math.round(estimatedValue * 0.95),
     Math.round(estimatedValue * 1.05)
   ];
-  
-  // Format values for display
-  const formattedValue = formatNumber(estimatedValue, 0);
-  const formattedMileage = formatNumber(vehicleInfo.mileage, 0);
-  const formattedLowRange = formatNumber(valuationRange[0], 0);
-  const formattedHighRange = formatNumber(valuationRange[1], 0);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center">
+          <span>Estimated Value</span>
+          <span className="text-3xl font-bold text-primary">{formatCurrency(estimatedValue)}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Vehicle information */}
+        {vehicleInfo && (
+          <div className="mb-4 p-4 bg-muted rounded-md">
+            <h3 className="font-semibold text-lg mb-2">
               {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-            </h2>
-            <p className="text-gray-600">
-              {formattedMileage} miles • {vehicleInfo.condition} condition
-            </p>
+            </h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {vehicleInfo.mileage && (
+                <div>
+                  <span className="text-muted-foreground">Mileage:</span> {vehicleInfo.mileage.toLocaleString()} mi
+                </div>
+              )}
+              {vehicleInfo.condition && (
+                <div>
+                  <span className="text-muted-foreground">Condition:</span> {vehicleInfo.condition}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Estimated Value</p>
-            <p className="text-3xl font-bold text-primary">${formattedValue}</p>
-            <p className="text-sm text-gray-600">
-              Range: ${formattedLowRange} - ${formattedHighRange}
-            </p>
+        )}
+
+        {/* Price range and confidence */}
+        <div className="space-y-3 mb-6">
+          <div>
+            <span className="text-muted-foreground">Price Range:</span>{' '}
+            <span className="font-medium">
+              {formatCurrency(calculatedPriceRange[0])} - {formatCurrency(calculatedPriceRange[1])}
+            </span>
           </div>
+          {confidenceScore && (
+            <div>
+              <span className="text-muted-foreground">Confidence Score:</span>{' '}
+              <span className="font-medium">{confidenceScore}%</span>
+            </div>
+          )}
         </div>
 
-        {displayMode === 'full' && adjustments.length > 0 && (
-          <div className="mt-6">
-            <h3 className="font-semibold text-lg mb-2">Valuation Factors</h3>
-            <div className="bg-gray-50 rounded-md p-4">
+        {/* Adjustments (only in full mode) */}
+        {displayMode === 'full' && adjustments && adjustments.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Value Adjustments</h3>
+            <div className="space-y-2">
               {adjustments.map((adjustment, index) => (
-                <div key={index} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
-                  <div>
-                    <p className="font-medium">{adjustment.factor}</p>
-                    <p className="text-sm text-gray-600">{adjustment.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={adjustment.impact >= 0 ? 'text-green-500' : 'text-red-500'}>
-                      {adjustment.impact >= 0 ? '+' : ''}{formatNumber(adjustment.impact, 0)}
-                    </span>
-                  </div>
+                <div key={index} className="flex justify-between text-sm">
+                  <span>{adjustment.factor}</span>
+                  <span className={adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {adjustment.impact > 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {displayMode === 'full' && (onDownloadPdf || onEmailReport) && (
-          <div className="mt-6 flex flex-wrap gap-2">
+        {/* Action buttons */}
+        {(onDownloadPdf || onEmailReport) && (
+          <div className="flex gap-3 mt-6">
             {onDownloadPdf && (
-              <button 
-                onClick={onDownloadPdf}
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-              >
-                Download PDF Report
-              </button>
+              <Button variant="outline" onClick={onDownloadPdf} className="flex-1">
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
             )}
             {onEmailReport && (
-              <button 
-                onClick={onEmailReport}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
+              <Button variant="outline" onClick={onEmailReport} className="flex-1">
+                <Mail className="h-4 w-4 mr-2" />
                 Email Report
-              </button>
+              </Button>
             )}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

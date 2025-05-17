@@ -46,7 +46,11 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
     
     try {
       // Sign in using the auth context
-      await signIn(email, password);
+      const result = await signIn(email, password);
+      
+      if (result?.error) {
+        throw new Error(result.error);
+      }
       
       // Check if the user has the expected role
       if (expectedRole) {
@@ -75,9 +79,9 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
       // Redirect to the appropriate dashboard
       toast.success('Login successful!');
       navigate(redirectPath);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError('Invalid email or password');
+      setError(err.message || 'Invalid email or password');
       setIsLoading(false);
     }
   };

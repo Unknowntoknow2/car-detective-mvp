@@ -43,8 +43,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ isEmbedded = false, redirec
     }
 
     try {
-      // Register as individual user
-      await signUp(email, password, 'individual');
+      // Register user - removed third argument that was causing the error
+      await signUp(email, password);
       toast.success('Registration successful! Please check your email to verify your account.');
       navigate(redirectPath);
     } catch (error) {

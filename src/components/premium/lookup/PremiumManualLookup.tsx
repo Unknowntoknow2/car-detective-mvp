@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
 import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
 import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
@@ -14,13 +14,15 @@ interface ManualLookupProps {
   isLoading?: boolean;
   onCancel?: () => void;
   initialData?: Partial<ManualEntryFormData>;
+  submitButtonText?: string;
 }
 
 export function ManualLookup({
   onSubmit,
   isLoading = false,
   onCancel,
-  initialData
+  initialData,
+  submitButtonText = "Continue"
 }: ManualLookupProps) {
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
@@ -35,6 +37,20 @@ export function ManualLookup({
   const [transmission, setTransmission] = useState(initialData?.transmission || 'Automatic');
   const [trim, setTrim] = useState(initialData?.trim || '');
   const [color, setColor] = useState(initialData?.color || '');
+  
+  // Add validation state to enable/disable the Continue button
+  const [isValid, setIsValid] = useState(false);
+  
+  // Validate form whenever key fields change
+  useEffect(() => {
+    const isValidForm = Boolean(
+      make.trim() !== '' && 
+      model.trim() !== '' && 
+      year > 1900 && 
+      zipCode.length === 5
+    );
+    setIsValid(isValidForm);
+  }, [make, model, year, zipCode]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,8 +137,8 @@ export function ManualLookup({
           )}
           <Button 
             type="submit" 
-            className="flex-1"
-            disabled={isLoading}
+            className="flex-1 flex items-center justify-center"
+            disabled={isLoading || !isValid}
           >
             {isLoading ? (
               <>
@@ -130,7 +146,9 @@ export function ManualLookup({
                 Processing...
               </>
             ) : (
-              'Continue'
+              <>
+                {submitButtonText} <ArrowRight className="ml-2 h-4 w-4" />
+              </>
             )}
           </Button>
         </CardFooter>

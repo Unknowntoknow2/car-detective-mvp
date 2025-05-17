@@ -1,13 +1,17 @@
 
-import React from 'react';
-import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { Shield } from "lucide-react";
 
 export function CarfaxBadge() {
   return (
-    <div className="flex justify-center sm:justify-start">
-      <Badge variant="outline" className="bg-primary/5 text-primary py-1.5 px-3 mb-2 font-medium">
-        CARFAX® Report Included ($44 value)
-      </Badge>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="inline-flex items-center bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium border border-blue-100"
+    >
+      <Shield className="h-4 w-4 mr-1.5" />
+      CARFAX® Reports Included
+    </motion.div>
   );
 }

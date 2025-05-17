@@ -1,16 +1,18 @@
+<<<<<<< HEAD
 // ✅ File: src/main.tsx
 
+=======
+// src/main.tsx
+>>>>>>> origin/main
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App'; // ✅ FIXED: Removed .tsx extension
 import './index.css';
-import { Toaster } from 'sonner';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Toaster position="top-right" richColors />
       <App />
     </BrowserRouter>
   </React.StrictMode>

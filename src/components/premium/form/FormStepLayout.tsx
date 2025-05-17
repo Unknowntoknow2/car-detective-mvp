@@ -40,7 +40,6 @@ export function FormStepLayout({
         <StepProgressIndicator 
           currentStep={currentStep} 
           totalSteps={totalSteps}
-          stepValidities={stepValidities}
           stepCompletionStatus={stepCompletionStatus}
         />
         

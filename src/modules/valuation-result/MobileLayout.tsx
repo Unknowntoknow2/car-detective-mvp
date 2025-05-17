@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CDButton } from '@/components/ui-kit/CDButton';
@@ -30,7 +29,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       {children}
       
       {/* Mobile Action Bar */}
-      <AnimatePresence exitBeforeEnter>
+      <AnimatePresence mode="wait">
         {!isLoading && (
           <motion.div
             className={styles.mobile.actionBar}

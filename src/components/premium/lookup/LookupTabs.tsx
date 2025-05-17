@@ -1,40 +1,31 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ManualLookup } from './ManualLookup';
-import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
-import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { VINLookupForm } from '@/components/lookup/vin/VINLookupForm';
+import { PlateLookup } from '@/components/lookup/PlateLookup';
+import { ManualLookup } from '@/components/premium/lookup/PremiumManualLookup';
 
-export interface LookupTabsProps {
-  lookup?: 'vin' | 'plate' | 'manual';
-  onLookupChange?: (value: 'vin' | 'plate' | 'manual') => void;
-  formProps?: {
-    onSubmit?: (data: ManualEntryFormData) => void;
+interface LookupTabsProps {
+  lookup: 'vin' | 'plate' | 'manual';
+  onLookupChange: (value: 'vin' | 'plate' | 'manual') => void;
+  formProps: {
+    onSubmit: (data: any) => void;
     isLoading?: boolean;
     submitButtonText?: string;
     onVinLookup?: (vin: string) => void;
     onPlateLookup?: (plate: string, state: string) => void;
   };
+  onSubmit?: (type: string, value: string, state?: string) => void;
 }
 
-export function LookupTabs({ 
-  lookup = 'vin',
+export function LookupTabs({
+  lookup,
   onLookupChange,
-  formProps = {}
+  formProps,
+  onSubmit
 }: LookupTabsProps) {
-  const [activeTab, setActiveTab] = useState<'vin' | 'plate' | 'manual'>(lookup);
-  
-  const handleTabChange = (value: string) => {
-    const tabValue = value as 'vin' | 'plate' | 'manual';
-    setActiveTab(tabValue);
-    if (onLookupChange) {
-      onLookupChange(tabValue);
-    }
-  };
-  
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+    <Tabs value={lookup} onValueChange={onLookupChange as (value: string) => void} className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="vin">VIN</TabsTrigger>
         <TabsTrigger value="plate">License Plate</TabsTrigger>
@@ -42,17 +33,25 @@ export function LookupTabs({
       </TabsList>
       
       <TabsContent value="vin" className="mt-4">
-        <VinDecoderForm onSubmit={formProps.onVinLookup} />
+        <VINLookupForm
+          onSubmit={formProps.onVinLookup || ((vin) => {})}
+          isLoading={formProps.isLoading || false}
+          submitButtonText={formProps.submitButtonText}
+        />
       </TabsContent>
       
       <TabsContent value="plate" className="mt-4">
-        <PlateDecoderForm onSubmit={formProps.onPlateLookup} />
+        <PlateLookup
+          onSubmit={formProps.onPlateLookup || ((plate, state) => {})}
+          isLoading={formProps.isLoading || false}
+        />
       </TabsContent>
       
       <TabsContent value="manual" className="mt-4">
         <ManualLookup
-          onSubmit={formProps.onSubmit || (() => {})}
+          onSubmit={formProps.onSubmit}
           isLoading={formProps.isLoading}
+          submitButtonText={formProps.submitButtonText}
         />
       </TabsContent>
     </Tabs>

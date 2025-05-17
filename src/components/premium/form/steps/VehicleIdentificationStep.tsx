@@ -47,24 +47,50 @@ export function VehicleIdentificationStep({
 
   const handleManualSubmit = async (data: ManualEntryFormData) => {
     try {
+      console.log("Manual submit with data:", data);
       const result = await lookupVehicle('manual', 'manual-entry', undefined, data);
       
       if (result) {
         setFormData(prev => ({
           ...prev,
-          make: result.make,
-          model: result.model,
-          year: result.year,
-          trim: result.trim,
+          make: data.make || result.make,
+          model: data.model || result.model,
+          year: data.year || result.year,
+          mileage: data.mileage,
+          zipCode: data.zipCode,
+          condition: data.condition,
+          fuelType: data.fuelType,
+          transmission: data.transmission,
+          trim: data.trim || result.trim,
           bodyType: result.bodyType,
-          fuelType: result.fuelType,
-          transmission: result.transmission,
           identifierType: 'manual',
-          identifier: `${result.year} ${result.make} ${result.model}`
+          identifier: `${data.year} ${data.make} ${data.model}`
         }));
         
-        toast.success(`Added: ${result.year} ${result.make} ${result.model}`);
+        toast.success(`Added: ${data.year} ${data.make} ${data.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
+        goToNextStep();
+      } else {
+        // Even if no result from API, still use the manually entered data
+        setFormData(prev => ({
+          ...prev,
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          mileage: data.mileage,
+          zipCode: data.zipCode,
+          condition: data.condition,
+          fuelType: data.fuelType,
+          transmission: data.transmission,
+          trim: data.trim,
+          identifierType: 'manual',
+          identifier: `${data.year} ${data.make} ${data.model}`
+        }));
+        
+        toast.success(`Added: ${data.year} ${data.make} ${data.model}`);
+        updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       }
     } catch (error) {
@@ -94,6 +120,7 @@ export function VehicleIdentificationStep({
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       }
     } catch (error) {
@@ -118,6 +145,7 @@ export function VehicleIdentificationStep({
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
         updateValidity(step, true);
+        // Proceed to the next step (step 2), not skipping any steps
         goToNextStep();
       }
     } catch (error) {
