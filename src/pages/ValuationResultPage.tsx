@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -6,20 +5,30 @@ import { AlertCircle, ArrowLeft, FileText, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+<<<<<<< HEAD
+import FollowUpForm from '@/components/followup/FollowUpForm';
+=======
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { ConditionSliderWithTooltip } from '@/components/valuation/ConditionSliderWithTooltip';
 import { NextStepsCard } from '@/components/valuation/valuation-complete';
 import { AIConditionBadge } from '@/components/valuation/AIConditionBadge';
 import { toast } from 'sonner';
+>>>>>>> origin/main
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const id = searchParams.get('id');
+  const vin = searchParams.get('vin');
+
   const [valuationData, setValuationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+<<<<<<< HEAD
+  const [showFollowUpSubmitted, setShowFollowUpSubmitted] = useState(false);
+=======
   const [conditionScore, setConditionScore] = useState(75);
+>>>>>>> origin/main
 
   useEffect(() => {
     const fetchValuationData = async () => {
@@ -27,14 +36,15 @@ export default function ValuationResultPage() {
       setError(null);
 
       try {
-        if (!id) {
-          throw new Error('No valuation ID provided');
-        }
+        if (!id && !vin) throw new Error('No valuation ID or VIN provided');
 
-        // Try to get the valuation data from localStorage
-        const storedData = localStorage.getItem(`valuation_${id}`);
-        
+        const key = id ? `valuation_${id}` : `vin_lookup_${vin}`;
+        const storedData = localStorage.getItem(key);
+
         if (storedData) {
+<<<<<<< HEAD
+          setValuationData(JSON.parse(storedData));
+=======
           const parsedData = JSON.parse(storedData);
           setValuationData(parsedData);
           
@@ -46,12 +56,11 @@ export default function ValuationResultPage() {
             'Poor': 25
           };
           setConditionScore(conditionMap[parsedData.condition] || 75);
+>>>>>>> origin/main
         } else {
-          // If data isn't in localStorage, you could fetch from an API here
           throw new Error('Valuation data not found');
         }
       } catch (err) {
-        console.error('Error fetching valuation data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
       } finally {
         setIsLoading(false);
@@ -59,8 +68,10 @@ export default function ValuationResultPage() {
     };
 
     fetchValuationData();
-  }, [id]);
+  }, [id, vin]);
 
+<<<<<<< HEAD
+=======
   // FEATURE_UNVEIL: Handle condition changes
   const handleConditionChange = (newScore: number) => {
     setConditionScore(newScore);
@@ -74,6 +85,7 @@ export default function ValuationResultPage() {
   };
 
   // Generate a default vehicle info if data is not available
+>>>>>>> origin/main
   const vehicleInfo = valuationData
     ? {
         make: valuationData.make,
@@ -90,7 +102,6 @@ export default function ValuationResultPage() {
         condition: 'Good',
       };
 
-  // Calculate estimated value and price range from the data or use defaults
   const estimatedValue = valuationData?.estimatedValue || 25000;
   const priceRange = valuationData?.priceRange || [
     Math.round(estimatedValue * 0.9),
@@ -135,7 +146,7 @@ export default function ValuationResultPage() {
     <MainLayout>
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Card>
+          <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Vehicle Valuation Result</span>
@@ -149,7 +160,7 @@ export default function ValuationResultPage() {
             </CardHeader>
             <CardContent className="space-y-8">
               <UnifiedValuationResult
-                valuationId={id || ''}
+                valuationId={id || vin || ''}
                 vehicleInfo={vehicleInfo}
                 estimatedValue={estimatedValue}
                 confidenceScore={valuationData?.confidenceScore || 85}
@@ -212,6 +223,26 @@ export default function ValuationResultPage() {
               </div>
             </CardContent>
           </Card>
+
+          {!showFollowUpSubmitted ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Finalize Valuation with Vehicle History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FollowUpForm
+                  onSubmit={(data) => {
+                    console.log('Follow-up answers:', data);
+                    setShowFollowUpSubmitted(true);
+                  }}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center text-green-600 text-lg font-medium mt-6">
+              ✅ Thank you! Your additional details have been saved.
+            </div>
+          )}
         </div>
       </main>
     </MainLayout>
