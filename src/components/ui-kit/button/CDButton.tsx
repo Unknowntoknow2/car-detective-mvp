@@ -2,23 +2,41 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
 
-export type CDButtonVariant = 'primary' | 'secondary' | 'outline' | 'destructive' | 'danger' | 'link' | 'ghost';
+export type CDButtonVariant = 'primary' | 'secondary' | 'outline' | 'destructive' | 'danger' | 'link' | 'ghost' | 'default';
 export type CDButtonSize = 'default' | 'xs' | 'sm' | 'lg' | 'icon';
 
 export interface CDButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: CDButtonVariant;
   size?: CDButtonSize;
   isLoading?: boolean;
+  loading?: boolean; // Added for backward compatibility
   disabled?: boolean;
   asChild?: boolean;
   className?: string;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right' | string;
+  block?: boolean;
+  ariaLabel?: string;
 }
 
 /**
  * Button component that follows the design system
  */
 const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
-  ({ className, variant = 'primary', size = 'default', isLoading = false, disabled, children, ...props }, ref) => {
+  ({ 
+    className, 
+    variant = 'primary', 
+    size = 'default', 
+    isLoading = false, 
+    loading = false, // For backward compatibility
+    disabled, 
+    children, 
+    icon,
+    iconPosition = 'left',
+    block = false,
+    ariaLabel,
+    ...props 
+  }, ref) => {
     // Base button styles
     const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
     
@@ -30,7 +48,8 @@ const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
       destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600',
       link: 'text-primary underline-offset-4 hover:underline',
-      ghost: 'hover:bg-accent hover:text-accent-foreground'
+      ghost: 'hover:bg-accent hover:text-accent-foreground',
+      default: 'bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary', // Same as primary for backward compatibility
     };
     
     // Size styles
@@ -41,6 +60,9 @@ const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
       lg: 'h-11 px-8 text-base',
       icon: 'h-10 w-10'
     };
+
+    // For backwards compatibility - prioritize isLoading over loading
+    const isButtonLoading = isLoading || loading;
     
     return (
       <button
@@ -49,13 +71,15 @@ const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
           baseStyles,
           variantStyles[variant],
           sizeStyles[size],
-          isLoading && 'cursor-not-allowed opacity-70',
+          block && 'w-full',
+          isButtonLoading && 'cursor-not-allowed opacity-70',
           className
         )}
-        disabled={disabled || isLoading}
+        disabled={disabled || isButtonLoading}
+        aria-label={ariaLabel}
         {...props}
       >
-        {isLoading ? (
+        {isButtonLoading ? (
           <>
             <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -68,7 +92,15 @@ const CDButton = React.forwardRef<HTMLButtonElement, CDButtonProps>(
             Loading...
           </>
         ) : (
-          children
+          <>
+            {icon && iconPosition === 'left' && (
+              <span className="mr-2">{icon}</span>
+            )}
+            {children}
+            {icon && iconPosition === 'right' && (
+              <span className="ml-2">{icon}</span>
+            )}
+          </>
         )}
       </button>
     );

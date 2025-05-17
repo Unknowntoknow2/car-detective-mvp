@@ -1,54 +1,45 @@
 
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
+import { FileText, DollarSign, BarChart3 } from "lucide-react";
 
 export function FeatureCards() {
+  const features = [
+    {
+      icon: <FileText className="h-5 w-5" />,
+      title: "Complete Vehicle History",
+      description: "Full CARFAX® history report with accident records, service history, and ownership details."
+    },
+    {
+      icon: <DollarSign className="h-5 w-5" />,
+      title: "Dealer Offers",
+      description: "See what dealers in your area would actually pay for your vehicle."
+    },
+    {
+      icon: <BarChart3 className="h-5 w-5" />,
+      title: "Market Forecast",
+      description: "12-month price forecast with ideal selling time and market trend analysis."
+    }
+  ];
+  
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-4 mt-4">
-        <Button 
-          size="lg" 
-          className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white transition-all duration-300"
-          asChild
+    <div className="mt-8 grid grid-cols-1 gap-4">
+      {features.map((feature, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+          className="flex items-start gap-3 p-4 rounded-lg border border-border bg-card/50"
         >
-          <a href="#premium-form">
-            Purchase Premium <ArrowRight className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-      </div>
-      
-      <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        <div className="bg-white p-4 rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-full bg-primary/10">
-              <Check className="h-4 w-4 text-primary" />
-            </div>
-            <h3 className="font-semibold text-sm">Full CARFAX Report</h3>
+          <div className="p-2 bg-primary/10 rounded-full text-primary">
+            {feature.icon}
           </div>
-          <p className="text-xs text-slate-600 ml-9">Complete vehicle history with accident records</p>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-full bg-primary/10">
-              <Check className="h-4 w-4 text-primary" />
-            </div>
-            <h3 className="font-semibold text-sm">Dealer-beat Offers</h3>
+          <div>
+            <h3 className="font-medium mb-1">{feature.title}</h3>
+            <p className="text-sm text-muted-foreground">{feature.description}</p>
           </div>
-          <p className="text-xs text-slate-600 ml-9">Compare real-time offers from dealers</p>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-full bg-primary/10">
-              <Check className="h-4 w-4 text-primary" />
-            </div>
-            <h3 className="font-semibold text-sm">12-Month Forecast</h3>
-          </div>
-          <p className="text-xs text-slate-600 ml-9">AI-powered price prediction for selling</p>
-        </div>
-      </div>
+        </motion.div>
+      ))}
     </div>
   );
 }

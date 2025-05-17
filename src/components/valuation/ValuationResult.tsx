@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { ValuationHeader } from './valuation-complete/ValuationHeader';
+import { CompletionValuationHeader } from './valuation-complete';
 import { NextStepsCard } from './valuation-complete/NextStepsCard';
 import { ValuationFactorsGrid } from './condition/factors/ValuationFactorsGrid';
 import { ConditionValues } from './condition/types';
@@ -152,7 +151,7 @@ export default function ValuationResult({
   return (
     <div className="container mx-auto p-4 space-y-6">
       {/* Header Section */}
-      <ValuationHeader
+      <CompletionValuationHeader
         vehicleInfo={{
           make,
           model,

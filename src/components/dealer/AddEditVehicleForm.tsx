@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -6,11 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { vehicleSchema, VehicleFormValues } from './schemas/vehicleSchema';
 import { useVehicleUpload } from './hooks/useVehicleUpload';
-import Loading from '@/components/ui/loading';
+import { Loading } from '@/components/ui/loading';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { VehicleForm } from './modals/VehicleForm';
-import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { DealerVehicleFormData } from '@/types/vehicle';
 
 interface AddEditVehicleFormProps {
   vehicleId?: string;

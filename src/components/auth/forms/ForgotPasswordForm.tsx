@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -162,16 +161,16 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       
       if (result?.error) {
         console.error('[PasswordReset] Error sending reset email:', {
-          message: result.error.message,
+          message: result.error,
           details: result.error,
           // Use optional chaining and type assertion for potentially missing properties
           code: (result.error as any)?.code,
           status: (result.error as any)?.status
         });
         
-        setFormError(result.error.message || 'Failed to send password reset email');
+        setFormError(result.error || 'Failed to send password reset email');
         toast.error('Failed to send password reset email', {
-          description: result.error.message || 'Please try again or contact support if the issue persists.'
+          description: result.error || 'Please try again or contact support if the issue persists.'
         });
         return;
       }
@@ -229,7 +228,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
       
       if (result?.error) {
         console.error('[PasswordReset] Error resending reset email:', {
-          message: result.error.message,
+          message: result.error,
           details: result.error,
           // Use optional chaining and type assertion for potentially missing properties
           code: (result.error as any)?.code,
@@ -237,7 +236,7 @@ export const ForgotPasswordForm = ({ isLoading, setIsLoading }: ForgotPasswordFo
         });
         
         toast.error('Failed to resend email', {
-          description: result.error.message || 'Please try again or contact support.'
+          description: result.error || 'Please try again or contact support.'
         });
         return;
       }

@@ -1,10 +1,9 @@
 
-
 export type VehicleStatus = 'available' | 'sold' | 'pending';
 
 export interface Vehicle {
   id: string;
-  dealer_id: string;
+  dealer_id?: string;
   make: string;
   model: string;
   year: number;
@@ -31,6 +30,7 @@ export interface DecodedVehicleInfo {
   year?: number;
   trim?: string;
   bodyType?: string;
+  bodyStyle?: string; // Adding this for compatibility
   engine?: string;
   transmission?: string;
   drivetrain?: string;
@@ -41,3 +41,47 @@ export interface DecodedVehicleInfo {
   zipCode?: string;
 }
 
+// Dealer Vehicle Types - consolidated from dealerVehicle.ts and dealerVehicle.d.ts
+export type DealerVehicleStatus = 'available' | 'sold' | 'pending';
+
+export interface DealerVehicle {
+  id: string;
+  dealer_id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number | null;
+  condition?: string;
+  fuel_type?: string | null;
+  transmission?: string | null;
+  description?: string;
+  status: DealerVehicleStatus;
+  vin?: string;
+  color?: string;
+  zip_code?: string | null;
+  created_at: string;
+  updated_at?: string;
+  features?: string[];
+  photos?: string[];
+  vehicleId?: string; // For backward compatibility
+}
+
+export interface DealerVehicleFormData {
+  vehicleId?: string; // Used for updates, optional for new vehicles
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number | null;
+  condition?: string;
+  fuel_type?: string | null;
+  transmission?: string | null;
+  description?: string;
+  status: DealerVehicleStatus;
+  vin?: string;
+  color?: string;
+  zip_code?: string | null;
+  features?: string[];
+  photos?: string[];
+}

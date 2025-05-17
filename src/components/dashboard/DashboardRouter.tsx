@@ -2,47 +2,51 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import DealerDashboard from '@/pages/DealerDashboard';
-import UserDashboardPage from '@/pages/UserDashboardPage';
+import { toast } from 'sonner';
 
 const DashboardRouter: React.FC = () => {
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
-
+    const checkUserRole = async () => {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('user_role')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching user role:', error);
-          setIsLoading(false);
+        // Check if the user is authenticated
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          console.error('Authentication error:', error);
+          navigate('/auth/login');
           return;
         }
 
-        setUserRole(data?.user_role || 'individual');
+        // Get the user's role from metadata
+        const role = user.user_metadata?.role;
+
+        // Route based on role
+        switch (role) {
+          case 'dealer':
+            navigate('/dashboard/dealer');
+            break;
+          case 'admin':
+            navigate('/dashboard/admin');
+            break;
+          default:
+            navigate('/dashboard/individual');
+            break;
+        }
       } catch (err) {
-        console.error('Error in fetchUserRole:', err);
+        console.error('Error checking user role:', err);
+        toast.error('Failed to load dashboard. Please try again.');
+        navigate('/auth/login');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserRole();
-  }, [user, navigate]);
+    checkUserRole();
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -56,12 +60,7 @@ const DashboardRouter: React.FC = () => {
     );
   }
 
-  // Route to appropriate dashboard based on role
-  if (userRole === 'dealer') {
-    return <DealerDashboard />;
-  }
-
-  return <UserDashboardPage />;
+  return null;
 };
 
 export default DashboardRouter;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ✅ File: src/App.tsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
@@ -11,9 +12,30 @@ import ValuationDetailPage from '@/pages/ValuationDetailPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import PremiumPage from '@/pages/Premium';
 import PremiumSuccessPage from '@/pages/PremiumSuccessPage';
+=======
+// src/App.tsx
+import { Routes, Route } from 'react-router-dom';
+import HomePage from '@/pages/HomePage'; // ✅ Automatically uses EnhancedHomePage
+import { Toaster } from 'sonner';
+>>>>>>> origin/main
 
-function App() {
+// Auth pages - with case-sensitive imports
+import SignUpPage from '@/pages/auth/SignUpPage';
+import SignInPage from '@/pages/auth/SignInPage';
+import AccessDeniedPage from '@/pages/auth/AccessDeniedPage';
+import Premium from '@/pages/Premium';
+
+import Dashboard from '@/pages/dashboard/Dashboard';
+import DealerDashboardRoutes from '@/pages/dealer/DealerDashboardRoutes';
+
+import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
+import { AuthProvider } from '@/contexts/AuthContext';
+
+const App = () => {
+  console.log('🔄 App component rendering...');
+  
   return (
+<<<<<<< HEAD
     <AppLayout>
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -26,7 +48,39 @@ function App() {
       </Routes>
       <Toaster />
     </AppLayout>
+=======
+    <AuthProvider>
+      <Toaster richColors position="top-center" />
+      <div className="app-root">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/access-denied" element={<AccessDeniedPage />} />
+          <Route path="/premium" element={<Premium />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <AuthenticatedLayout>
+                <Dashboard />
+              </AuthenticatedLayout>
+            }
+          />
+
+          <Route
+            path="/dealer/*"
+            element={
+              <AuthenticatedLayout requireRole="dealer">
+                <DealerDashboardRoutes />
+              </AuthenticatedLayout>
+            }
+          />
+        </Routes>
+      </div>
+    </AuthProvider>
+>>>>>>> origin/main
   );
-}
+};
 
 export default App;

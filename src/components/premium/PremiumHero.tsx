@@ -1,7 +1,8 @@
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Check } from "lucide-react";
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Zap, ChevronDown, Check } from 'lucide-react';
 
 interface PremiumHeroProps {
   scrollToForm: () => void;
@@ -9,64 +10,63 @@ interface PremiumHeroProps {
 
 export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
   return (
-    <div className="bg-gradient-to-b from-slate-50 to-white py-16 border-b">
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-6">
-          <Badge variant="outline" className="bg-primary/5 text-primary py-1.5 px-3 mb-4 font-medium">
-            CARFAX® Report Included ($44 value)
-          </Badge>
+    <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 md:py-24 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none"></div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-3xl mx-auto text-center">
+          <div>
+            <Badge className="mb-4 bg-white/20 text-white hover:bg-white/30 transition-colors">
+              Premium Experience
+            </Badge>
+          </div>
           
-          <h1 className="text-4xl font-display font-bold text-slate-900 sm:text-5xl">
-            Premium Valuation — $29.99
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            Advanced Vehicle Valuation & Analytics
           </h1>
           
-          <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-            Get the most accurate valuation with our professional-grade service
+          <p className="text-lg md:text-xl mb-8 text-white/90">
+            Get dealer-competitive offers, full vehicle history, and pricing forecasts 
+            with our comprehensive premium valuation tools.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-white transition-all duration-300"
+              className="bg-white text-indigo-700 hover:bg-white/90"
               onClick={scrollToForm}
             >
-              Get Started <ArrowRight className="ml-2 h-4 w-4" />
+              <Zap className="mr-2 h-5 w-5" />
+              Try Premium for $29.99
+            </Button>
+            
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="bg-transparent border-white text-white hover:bg-white/10"
+            >
+              <ChevronDown className="mr-2 h-5 w-5" />
+              Learn More
             </Button>
           </div>
           
-          <div className="grid sm:grid-cols-3 gap-6 mt-12 text-left">
-            <div className="bg-white p-6 rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Check className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold">Full CARFAX Report</h3>
-              </div>
-              <p className="text-sm text-slate-600">Complete vehicle history with accident records and service data</p>
+          <div className="mt-10 flex items-center justify-center gap-6 text-sm">
+            <div className="flex items-center">
+              <Check className="mr-2 h-4 w-4 text-green-300" />
+              <span>CARFAX® Included</span>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Check className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold">Dealer-beat Offers</h3>
-              </div>
-              <p className="text-sm text-slate-600">Compare real-time offers from local dealerships</p>
+            <div className="flex items-center">
+              <Check className="mr-2 h-4 w-4 text-green-300" />
+              <span>One-Time Payment</span>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Check className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold">12-Month Forecast</h3>
-              </div>
-              <p className="text-sm text-slate-600">AI-powered price prediction for optimal selling time</p>
+            <div className="flex items-center">
+              <Check className="mr-2 h-4 w-4 text-green-300" />
+              <span>No Subscription</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

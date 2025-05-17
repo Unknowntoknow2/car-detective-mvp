@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('./premium-effects.css');
+
 /* Base styles */
 @layer base {
   :root {

@@ -1,35 +1,32 @@
 
 import React from 'react';
-import { cn } from '@/utils/cn';
+import { cn } from '@/lib/utils';
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  children: React.ReactNode;
+  size?: 'default' | 'small' | 'large';
 }
 
-export const Container: React.FC<ContainerProps> = ({
-  children,
-  className,
-  size = 'lg',
-  ...props
-}) => {
-  const sizeClasses = {
-    sm: 'max-w-screen-sm',
-    md: 'max-w-screen-md',
-    lg: 'max-w-screen-lg',
-    xl: 'max-w-screen-xl',
-    full: 'max-w-full'
-  };
-
+export function Container({ 
+  children, 
+  className, 
+  size = 'default', 
+  ...props 
+}: ContainerProps) {
   return (
-    <div
+    <div 
       className={cn(
-        'mx-auto px-4 sm:px-6',
-        sizeClasses[size],
+        'mx-auto w-full px-4 sm:px-6', 
+        {
+          'max-w-7xl': size === 'default',
+          'max-w-5xl': size === 'small',
+          'max-w-screen-2xl': size === 'large'
+        },
         className
-      )}
+      )} 
       {...props}
     >
       {children}
     </div>
   );
-};
+}

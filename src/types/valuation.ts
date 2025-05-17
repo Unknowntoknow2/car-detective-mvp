@@ -42,7 +42,9 @@ export interface ValuationResult {
   zip?: string;
   created_at?: string; 
   createdAt?: string; // Add this for compatibility
-  premium_unlocked?: boolean;
+  premium_unlocked?: boolean; // Add this property for premium features
+  accident_count?: number; // Add this property for compatibility
+  titleStatus?: string; // Add this property for compatibility
 }
 
 export interface ValuationResultProps {
@@ -56,6 +58,7 @@ export interface ValuationResultProps {
   valuation?: number;
   isManualValuation?: boolean;
   features?: string[];
+  color?: string; // Added for compatibility with other usages
 }
 
 export interface ValuationInput {

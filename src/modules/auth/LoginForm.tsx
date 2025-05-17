@@ -3,23 +3,28 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Authentication logic would go here
-      console.log('Login with:', email, password);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await signIn(email, password);
+      toast.success('Successfully signed in!');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
+      toast.error('Failed to sign in');
     } finally {
       setIsLoading(false);
     }

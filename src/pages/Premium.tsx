@@ -1,18 +1,41 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { PremiumHero } from '@/components/premium/PremiumHero';
 import { Container } from '@/components/ui/container';
-import PremiumManualEntryForm from '@/components/lookup/manual/PremiumManualEntryForm';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { PremiumValuationForm } from '@/components/premium/form/PremiumValuationForm';
+import { EnhancedPremiumFeaturesTabs } from '@/components/premium/features/EnhancedPremiumFeaturesTabs';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useValuation } from '@/contexts/ValuationContext';
+import { Button } from '@/components/ui/button';
+import { PremiumHero } from '@/components/premium/PremiumHero';
+import { PremiumTabs } from '@/components/premium/PremiumTabs';
+import MainLayout from '@/components/layout/MainLayout';
 
 const Premium: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const navigate = useNavigate();
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const [cardRotation, setCardRotation] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
-  const { processPremiumValuation } = useValuation();
+  const navigate = useNavigate();
+  
+  // Track mouse for 3D card effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (cardRef.current) {
+        const rect = cardRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const rotateY = ((e.clientX - centerX) / (rect.width / 2)) * 5;
+        const rotateX = -((e.clientY - centerY) / (rect.height / 2)) * 5;
+        
+        setCardRotation({ x: rotateX, y: rotateY });
+      }
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
   
   useEffect(() => {
     // Check if URL has a fragment identifier pointing to the form
@@ -28,51 +51,48 @@ const Premium: React.FC = () => {
   }, [location]);
   
   const scrollToForm = () => {
-    console.log("Scrolling to premium form");
-    setIsFormVisible(true);
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  const handleSubmit = (data: any) => {
-    console.log("Premium form submitted:", data);
-    
-    // Store form data in localStorage to retrieve after authentication if needed
-    localStorage.setItem('pendingPremiumData', JSON.stringify(data));
-    
-    // Process the premium valuation
-    processPremiumValuation(data).then(result => {
-      if (result && result.valuationId) {
-        toast.success("Premium valuation processed successfully!");
-        navigate(`/valuation-result?id=${result.valuationId}`);
-      } else {
-        // Redirect to auth page if valuation couldn't be processed
-        // (this could be due to not having premium access)
-        toast.info("Please sign in to continue with premium valuation");
-        navigate('/auth', { state: { returnTo: '/premium#premium-form' } });
-      }
-    }).catch(error => {
-      console.error("Error processing premium valuation:", error);
-      toast.error("Failed to process premium valuation");
-    });
+  const scrollToFeatures = () => {
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
   return (
-    <div>
-      <PremiumHero scrollToForm={scrollToForm} />
-      
-      <div id="premium-form" ref={formRef} className="py-16 bg-white">
-        {isFormVisible && (
+    <MainLayout>
+      <div className="min-h-screen bg-background">
+        <PremiumHero scrollToForm={scrollToForm} />
+        
+        <div className="py-16 bg-white" ref={featuresRef}>
           <Container>
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold text-center mb-8">Premium Vehicle Valuation</h2>
-              <PremiumManualEntryForm onSubmit={handleSubmit} />
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-center mb-8">Start Your Premium Valuation</h2>
+              <PremiumTabs showFreeValuation={true} />
             </div>
           </Container>
-        )}
+        </div>
+        
+        <EnhancedPremiumFeaturesTabs />
+        
+        <div className="py-16 bg-gradient-to-b from-background to-primary/5" id="premium-form" ref={formRef}>
+          <Container>
+            <div className="max-w-4xl mx-auto text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Premium Valuation Form</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+                Get the most accurate valuation with our premium multi-step form that considers every detail of your vehicle.
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button variant="outline" onClick={() => navigate('/valuation')}>
+                  Back to Basic Valuation
+                </Button>
+              </div>
+            </div>
+            
+            <PremiumValuationForm />
+          </Container>
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

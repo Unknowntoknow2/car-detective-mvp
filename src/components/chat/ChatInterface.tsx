@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { useValuationChat, ChatMessage as ChatMessageType } from '@/hooks/useValuationChat';
 import { ChatMessage } from './ChatMessage';
@@ -27,7 +26,7 @@ export function ChatInterface({
   onNewMessage,
   title = 'Car Detective Chat'
 }: ChatInterfaceProps) {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const navigate = useNavigate();
   const { messages, isLoading, error, sendMessage, regenerateLastResponse } = useValuationChat(valuationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -91,6 +90,37 @@ export function ChatInterface({
       }
     }
   }, [messages]);
+
+  // Generate dealer-specific suggested questions if in dealer context
+  useEffect(() => {
+    if (userRole === 'dealer' && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant') {
+        if (lastMessage.content.includes("inventory") || lastMessage.content.includes("vehicle")) {
+          setSuggestedQuestions([
+            "Which ZIP codes bring highest margins?",
+            "How many high-confidence vehicles submitted this week?",
+            "Show me undervalued vehicles",
+            "What's my top performing make/model?"
+          ]);
+        } else if (lastMessage.content.includes("lead") || lastMessage.content.includes("customer")) {
+          setSuggestedQuestions([
+            "How many active leads do I have?",
+            "Which leads are most likely to convert?",
+            "Show me leads from premium users",
+            "What's my lead response time?"
+          ]);
+        } else if (lastMessage.content.includes("trend") || lastMessage.content.includes("market")) {
+          setSuggestedQuestions([
+            "What are the price trends for SUVs?",
+            "Which models are selling fastest?",
+            "Show me market analysis for my area",
+            "What vehicles should I focus on acquiring?"
+          ]);
+        }
+      }
+    }
+  }, [messages, userRole]);
 
   const handleSuggestedQuestion = (question: string) => {
     sendMessage(question);

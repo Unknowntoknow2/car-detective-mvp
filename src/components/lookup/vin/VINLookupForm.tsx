@@ -17,6 +17,7 @@ interface VINLookupFormProps {
   value?: string;
   onChange?: (vin: string) => void;
   error?: string | null;
+  submitButtonText?: string;
 }
 
 export const VINLookupForm: React.FC<VINLookupFormProps> = ({ 
@@ -25,7 +26,8 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
   existingVehicle,
   value: externalValue,
   onChange: externalOnChange,
-  error: externalError
+  error: externalError,
+  submitButtonText = "Lookup VIN"
 }) => {
   const [vin, setVin] = useState(externalValue || '');
   const [error, setError] = useState<string | null>(externalError || null);
@@ -88,7 +90,7 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
             Looking Up VIN...
           </>
         ) : (
-          'Lookup VIN'
+          submitButtonText
         )}
       </Button>
       {existingVehicle && (
