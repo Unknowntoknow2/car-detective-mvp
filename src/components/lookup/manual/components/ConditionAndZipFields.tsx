@@ -1,61 +1,57 @@
+// src/components/lookup/manual/components/ConditionAndZipFields.tsx
 
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { UseFormReturn } from 'react-hook-form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ConditionLevel } from '@/components/lookup/types/manualEntry';
+import React from "react";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { UseFormReturn } from "react-hook-form";
+import { ConditionLevel } from "@/components/lookup/types/manualEntry";
+import { ConditionSelectorSegmented } from "@/components/lookup/ConditionSelectorSegmented";
 
 interface ConditionAndZipFieldsProps {
   form: UseFormReturn<any>;
-  conditionOptions: Array<{value: string, label: string}>;
+  conditionOptions?: Array<{ value: string; label: string }>;
 }
 
-export const ConditionAndZipFields: React.FC<ConditionAndZipFieldsProps> = ({ 
+export const ConditionAndZipFields: React.FC<ConditionAndZipFieldsProps> = ({
   form,
-  conditionOptions
+  conditionOptions,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Vehicle Condition Selector (Segmented Bar) */}
       <FormField
         control={form.control}
         name="condition"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="col-span-1">
             <FormLabel>Vehicle Condition</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value || ConditionLevel.Good}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {conditionOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              How would you rate the overall condition of your vehicle?
-            </FormDescription>
+            <FormControl>
+              <ConditionSelectorSegmented
+                value={field.value as ConditionLevel}
+                onChange={field.onChange}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      {/* ZIP Code Input */}
       <FormField
         control={form.control}
         name="zipCode"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="col-span-1">
             <FormLabel>ZIP Code</FormLabel>
             <FormControl>
               <Input placeholder="e.g. 90210" {...field} />
             </FormControl>
-            <FormDescription>
-              Your location helps us determine local market value
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
