@@ -1,47 +1,50 @@
 
-import { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/types/auth';
 import { Loader2 } from 'lucide-react';
 
 interface AuthenticatedLayoutProps {
   children: ReactNode;
-  requireRole?: string;
+  requireRole?: UserRole;
 }
 
-export default function AuthenticatedLayout({ children, requireRole }: AuthenticatedLayoutProps) {
-  const { user, userRole, isLoading } = useAuth();
+const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ 
+  children, 
+  requireRole 
+}) => {
+  const { user, userDetails, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If not loading and no user, redirect to login
     if (!isLoading && !user) {
-      navigate('/sign-in');
-      return;
+      navigate('/sign-in', { state: { from: window.location.pathname } });
     }
-
-    // If role is required and user doesn't have it, redirect to access-denied
-    if (!isLoading && user && requireRole && userRole !== requireRole) {
+    
+    if (!isLoading && user && requireRole && userDetails?.role !== requireRole) {
       navigate('/access-denied');
-      return;
     }
-  }, [user, userRole, isLoading, navigate, requireRole]);
+  }, [user, userDetails, isLoading, navigate, requireRole]);
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg text-muted-foreground">Verifying your access...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-lg">Loading...</span>
       </div>
     );
   }
 
-  // If authentication check is not complete or role check fails, don't render children
-  if (!user || (requireRole && userRole !== requireRole)) {
-    return null;
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
+
+  if (requireRole && userDetails?.role !== requireRole) {
+    return null; // Will redirect in useEffect
   }
 
   return <>{children}</>;
-}
+};
+
+export default AuthenticatedLayout;
