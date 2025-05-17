@@ -6,16 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import FollowUpForm from '@/components/followup/FollowUpForm';
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const id = searchParams.get('id');
-  const vin = searchParams.get('vin'); // ✅ New: handle VIN-based lookups
+  const vin = searchParams.get('vin');
 
   const [valuationData, setValuationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFollowUpSubmitted, setShowFollowUpSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchValuationData = async () => {
@@ -23,31 +25,17 @@ export default function ValuationResultPage() {
       setError(null);
 
       try {
-        if (!id && !vin) {
-          throw new Error('No valuation ID or VIN provided');
-        }
+        if (!id && !vin) throw new Error('No valuation ID or VIN provided');
 
-        if (id) {
-          const storedData = localStorage.getItem(`valuation_${id}`);
-          if (storedData) {
-            setValuationData(JSON.parse(storedData));
-            return;
-          } else {
-            throw new Error('Valuation data not found for given ID');
-          }
-        }
+        const key = id ? `valuation_${id}` : `vin_lookup_${vin}`;
+        const storedData = localStorage.getItem(key);
 
-        if (vin) {
-          const storedVinData = localStorage.getItem(`vin_lookup_${vin}`);
-          if (storedVinData) {
-            setValuationData(JSON.parse(storedVinData));
-            return;
-          } else {
-            throw new Error('No valuation found for this VIN');
-          }
+        if (storedData) {
+          setValuationData(JSON.parse(storedData));
+        } else {
+          throw new Error('Valuation data not found');
         }
       } catch (err) {
-        console.error('Error fetching valuation data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
       } finally {
         setIsLoading(false);
@@ -121,7 +109,7 @@ export default function ValuationResultPage() {
       <Navbar />
       <main className="flex-1 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Card>
+          <Card className="mb-8">
             <CardHeader>
               <CardTitle>Vehicle Valuation Result</CardTitle>
             </CardHeader>
@@ -136,6 +124,26 @@ export default function ValuationResultPage() {
               />
             </CardContent>
           </Card>
+
+          {!showFollowUpSubmitted ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Finalize Valuation with Vehicle History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FollowUpForm
+                  onSubmit={(data) => {
+                    console.log('Follow-up answers:', data);
+                    setShowFollowUpSubmitted(true);
+                  }}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center text-green-600 text-lg font-medium mt-6">
+              ✅ Thank you! Your additional details have been saved.
+            </div>
+          )}
         </div>
       </main>
       <Footer />

@@ -1,21 +1,17 @@
+// ✅ File: src/components/layout/AppLayout.tsx
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import React, { ReactNode } from 'react';
 
-const AppLayout = () => {
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
-    <TooltipProvider>
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
-        <main className="flex-grow">
-          <Outlet />
-        </main>
-        <Footer />
-      </div>
-    </TooltipProvider>
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* You can include Navbar or Footer here if global */}
+      {children}
+    </div>
   );
 };
 

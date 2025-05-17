@@ -1,31 +1,31 @@
+// ✅ File: src/App.tsx
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import AppLayout from '@/components/layout/AppLayout';
+
 import HomePage from '@/pages/HomePage';
 import ValuationPage from '@/pages/ValuationPage';
 import ValuationResultPage from '@/pages/ValuationResultPage';
 import ValuationDetailPage from '@/pages/ValuationDetailPage';
 import NotFoundPage from '@/pages/NotFoundPage';
-import Premium from '@/pages/Premium';
+import PremiumPage from '@/pages/Premium';
 import PremiumSuccessPage from '@/pages/PremiumSuccessPage';
-import AppLayout from '@/components/layout/AppLayout';
 
 function App() {
   return (
-    <>
+    <AppLayout>
       <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/valuation" element={<ValuationPage />} />
-          <Route path="/valuation-result" element={<ValuationResultPage />} />
-          <Route path="/valuation/:id" element={<ValuationDetailPage />} />
-          <Route path="/result" element={<ValuationResultPage />} /> {/* ✅ NEW ROUTE */}
-          <Route path="/premium" element={<Premium />} />
-          <Route path="/premium-success" element={<PremiumSuccessPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/valuation" element={<ValuationPage />} />
+        <Route path="/result" element={<ValuationResultPage />} />
+        <Route path="/valuation/detail/:id" element={<ValuationDetailPage />} />
+        <Route path="/premium" element={<PremiumPage />} />
+        <Route path="/premium/success" element={<PremiumSuccessPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster />
-    </>
+    </AppLayout>
   );
 }
 
