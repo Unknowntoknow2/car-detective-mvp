@@ -1,3 +1,4 @@
+// tsconfig.json
 {
   "compilerOptions": {
     "baseUrl": "./src",
@@ -6,6 +7,7 @@
     }
   },
   "include": ["src", "vite-env.d.ts"],
+  "exclude": ["node_modules"],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

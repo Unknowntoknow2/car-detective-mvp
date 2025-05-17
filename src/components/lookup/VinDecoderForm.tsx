@@ -1,3 +1,4 @@
+// ✅ File: src/components/lookup/VinDecoderForm.tsx
 
 import React from 'react';
 import { VinLookup } from './VinLookup';
@@ -19,5 +20,3 @@ export const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
     </Card>
   );
 };
-
-export default VinDecoderForm;

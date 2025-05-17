@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
 import Home from './Home';

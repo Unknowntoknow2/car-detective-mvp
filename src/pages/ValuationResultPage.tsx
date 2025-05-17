@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -12,6 +11,8 @@ export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const id = searchParams.get('id');
+  const vin = searchParams.get('vin'); // ✅ New: handle VIN-based lookups
+
   const [valuationData, setValuationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,19 +23,28 @@ export default function ValuationResultPage() {
       setError(null);
 
       try {
-        if (!id) {
-          throw new Error('No valuation ID provided');
+        if (!id && !vin) {
+          throw new Error('No valuation ID or VIN provided');
         }
 
-        // Try to get the valuation data from localStorage
-        const storedData = localStorage.getItem(`valuation_${id}`);
-        
-        if (storedData) {
-          const parsedData = JSON.parse(storedData);
-          setValuationData(parsedData);
-        } else {
-          // If data isn't in localStorage, you could fetch from an API here
-          throw new Error('Valuation data not found');
+        if (id) {
+          const storedData = localStorage.getItem(`valuation_${id}`);
+          if (storedData) {
+            setValuationData(JSON.parse(storedData));
+            return;
+          } else {
+            throw new Error('Valuation data not found for given ID');
+          }
+        }
+
+        if (vin) {
+          const storedVinData = localStorage.getItem(`vin_lookup_${vin}`);
+          if (storedVinData) {
+            setValuationData(JSON.parse(storedVinData));
+            return;
+          } else {
+            throw new Error('No valuation found for this VIN');
+          }
         }
       } catch (err) {
         console.error('Error fetching valuation data:', err);
@@ -45,9 +55,8 @@ export default function ValuationResultPage() {
     };
 
     fetchValuationData();
-  }, [id]);
+  }, [id, vin]);
 
-  // Generate a default vehicle info if data is not available
   const vehicleInfo = valuationData
     ? {
         make: valuationData.make,
@@ -64,7 +73,6 @@ export default function ValuationResultPage() {
         condition: 'Good',
       };
 
-  // Calculate estimated value and price range from the data or use defaults
   const estimatedValue = valuationData?.estimatedValue || 25000;
   const priceRange = valuationData?.priceRange || [
     Math.round(estimatedValue * 0.9),
@@ -119,7 +127,7 @@ export default function ValuationResultPage() {
             </CardHeader>
             <CardContent>
               <UnifiedValuationResult
-                valuationId={id || ''}
+                valuationId={id || vin || ''}
                 vehicleInfo={vehicleInfo}
                 estimatedValue={estimatedValue}
                 confidenceScore={valuationData?.confidenceScore || 85}
