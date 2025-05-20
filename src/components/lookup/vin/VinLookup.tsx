@@ -1,45 +1,35 @@
-
 import React, { useState, useCallback } from 'react';
 import { VINLookupForm } from './VINLookupForm';
-import { VinDecoderResults } from './VinDecoderResults';
+import VinDecoderResults from './VinDecoderResults'; // ✅ Fixed default import
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './CarfaxErrorAlert';
+import { DecodedVehicleInfo } from '@/types/vehicle'; // ✅ Assuming you have this
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState('');
   const { isLoading, error, result, lookupVin } = useVinDecoder();
-  
+
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
   }, []);
-  
+
   const handleLookup = useCallback(() => {
     if (vinNumber) {
-      console.log('FREE VIN: Submitting form with VIN:', vinNumber);
-      lookupVin(vinNumber).then(response => {
-        console.log('FREE VIN: Response from API:', response);
-        if (response) {
-          console.log('FREE VIN: Lookup successful, result available');
-        } else {
-          console.warn('FREE VIN: No response or error occurred during lookup');
-        }
-      }).catch(error => {
-        console.error('FREE VIN: Error during lookup:', error);
-      });
+      lookupVin(vinNumber);
     }
   }, [vinNumber, lookupVin]);
-  
+
   const onReset = useCallback(() => {
-    console.log('FREE VIN: Reset form triggered');
-    // Reset the form
     setVinNumber('');
   }, []);
-  
+
+  const typedResult = result as DecodedVehicleInfo | null;
+
   return (
     <div className="w-full">
-      {!result ? (
+      {!typedResult ? (
         <VINLookupForm 
           value={vinNumber}
           onChange={handleVinChange}
@@ -50,8 +40,8 @@ export const VinLookup = () => {
       ) : (
         <>
           <VinDecoderResults 
-            stage="initial" 
-            result={result} 
+            stage="initial"
+            result={typedResult}
             pipelineVehicle={null}
             requiredInputs={null}
             valuationResult={null}
@@ -63,15 +53,15 @@ export const VinLookup = () => {
             onDownloadPdf={() => {}}
           />
           <Button 
-            variant="outline" 
-            className="mt-4" 
+            variant="outline"
+            className="mt-4"
             onClick={onReset}
           >
             Lookup Another VIN
           </Button>
         </>
       )}
-      
+
       {error && error.includes('Carfax') ? (
         <CarfaxErrorAlert error="Unable to retrieve Carfax vehicle history report." />
       ) : error ? (

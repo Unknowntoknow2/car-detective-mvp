@@ -1,6 +1,12 @@
+// src/types/vehicle.ts
 
+<<<<<<< HEAD
+=======
+// ---- Global Vehicle Status Type ----
+>>>>>>> 1f281f57 (Save local changes before pull)
 export type VehicleStatus = 'available' | 'sold' | 'pending';
 
+// ---- Marketplace Vehicle Table (DB) ----
 export interface Vehicle {
   id: string;
   dealer_id?: string;
@@ -14,6 +20,7 @@ export interface Vehicle {
   updated_at: string;
 }
 
+// ---- Marketplace Vehicle Creation/Edit Form ----
 export interface VehicleFormData {
   make: string;
   model: string;
@@ -23,12 +30,14 @@ export interface VehicleFormData {
   status: VehicleStatus;
 }
 
+// ---- Decoded Vehicle Info (for VIN, Plate, Manual) ----
 export interface DecodedVehicleInfo {
   vin?: string;
   make?: string;
   model?: string;
   year?: number;
   trim?: string;
+<<<<<<< HEAD
   bodyType?: string;
   bodyStyle?: string; // Adding this for compatibility
   engine?: string;
@@ -39,6 +48,17 @@ export interface DecodedVehicleInfo {
   condition?: string;
   fuelType?: string;
   zipCode?: string;
+=======
+  bodyType?: string;        // "Sedan", "SUV", etc
+  engine?: string;          // "2.5L I4", "V6", etc
+  transmission?: string;    // "Automatic", "CVT", etc
+  drivetrain?: string;      // "FWD", "AWD", etc
+  color?: string;           // Main/primary color
+  mileage?: number;         // Optionally pulled from odometer reading
+  condition?: string;       // "Excellent", "Good", etc
+  fuelType?: string;        // "Gasoline", "Electric", etc
+  zipCode?: string;         // User's zip/location
+>>>>>>> 1f281f57 (Save local changes before pull)
 }
 
 // Dealer Vehicle Types - consolidated from dealerVehicle.ts and dealerVehicle.d.ts

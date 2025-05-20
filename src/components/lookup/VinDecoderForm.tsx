@@ -1,14 +1,14 @@
-// ✅ File: src/components/lookup/VinDecoderForm.tsx
+// src/components/lookup/VinDecoderForm.tsx
 
-import React from 'react';
-import { VinLookup } from './VinLookup';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import VinLookup from "./VinLookup";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface VinDecoderFormProps {
+export interface VinDecoderFormProps {
   onSubmit?: (vin: string) => void;
 }
 
-export const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
+const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
   return (
     <Card className="bg-white">
       <CardHeader className="pb-2">
@@ -20,3 +20,5 @@ export const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
     </Card>
   );
 };
+
+export default VinDecoderForm;
