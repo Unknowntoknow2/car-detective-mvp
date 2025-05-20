@@ -1,8 +1,8 @@
-// ✅ File: src/pages/ValuationResultPage.tsx
+// ✅ File: src/pages/ValuationDetailPage.tsx
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, FileText, Mail, Share2 } from 'lucide-react';
@@ -15,131 +15,136 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
+// Bring in FollowUpForm if you want to use it
+import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm';
 
-export default function ValuationResultPage() {
+export default function ValuationDetailPage() {
   const { id } = useParams<{ id?: string }>();
+  // Type guard: fallback to empty string if undefined
   const valuationId = id ?? '';
 
-  // useValuationResult returns { data, isLoading, error }
-  const { data, isLoading, error } = useValuationResult(valuationId);
+  const result = useValuationResult(valuationId);
 
-  // Action handlers
+  // Handlers for UI actions
   const handleDownloadPdf = () => {
     toast.success("Generating PDF report...");
-    // TODO: implement PDF download logic
+    // In a real implementation, this would download a PDF
   };
-
   const handleEmailReport = () => {
     toast.success("Report sent to your email");
-    // TODO: implement email report logic
+    // In a real implementation, this would send an email
   };
-
   const handleShareReport = () => {
     toast.success("Share link copied to clipboard");
-    // TODO: implement share logic
+    // In a real implementation, this would generate and copy a share link
   };
-
   const handleFactorChange = (id: string, value: any) => {
     toast.info(`${id} updated to ${value}. Recalculating valuation...`);
-    // TODO: implement factor update logic
+    // In a real implementation, this would update the valuation
   };
 
-  if (isLoading) {
+  // Error/skeleton/data loading UI
+  if (result.isLoading) {
     return (
       <MainLayout>
-        <main>
-          <div className="container mx-auto py-8">
-            <div className="w-full p-4 border rounded shadow bg-white">
-              <h2 className="text-lg font-bold mb-2">Valuation Details</h2>
-              <div className="space-y-4">
-                <Skeleton className="h-10 w-1/3" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            </div>
-          </div>
-        </main>
+        <div className="container mx-auto py-8">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-lg">Valuation Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardContent>
+          </Card>
+        </div>
       </MainLayout>
     );
   }
 
-  if (error) {
+  if (result.isError) {
     return (
       <MainLayout>
-        <main>
-          <div className="container mx-auto py-8">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>
-                {typeof error === 'string' ? error : 'Something went wrong while fetching the valuation.'}
-              </AlertDescription>
-            </Alert>
-          </div>
-        </main>
+        <div className="container mx-auto py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {typeof result.error === 'string' ? result.error : 'Something went wrong while fetching the valuation.'}
+            </AlertDescription>
+          </Alert>
+        </div>
       </MainLayout>
     );
   }
 
-  if (!data) {
+  if (!result.data) {
     return (
       <MainLayout>
-        <main>
-          <div className="container mx-auto py-8">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>No Valuation Found</AlertTitle>
-              <AlertDescription>
-                We couldn't find the valuation data for this report.
-              </AlertDescription>
-            </Alert>
-          </div>
-        </main>
+        <div className="container mx-auto py-8">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No Valuation Found</AlertTitle>
+            <AlertDescription>
+              We couldn't find the valuation data for this report.
+            </AlertDescription>
+          </Alert>
+        </div>
       </MainLayout>
     );
   }
 
-  // Post-load data setup
+  // Unpack data, apply defaults for missing fields
+  const data = result.data;
   const reportId = data.id || data.valuationId;
-  const isPremiumUnlocked = Boolean(data?.premium_unlocked);
-  const accidentCount = data.accident_count || 0;
-  const titleStatus = data.titleStatus || 'Clean';
-
-  // For AIChatBubble, make sure required fields are set
   const valuationWithRequiredId = {
     ...data,
     id: reportId,
     created_at: data.created_at || new Date().toISOString()
   };
 
+  const isPremiumUnlocked = Boolean(data?.premium_unlocked);
+  const accidentCount = data.accident_count || 0;
+  const titleStatus = data.titleStatus || 'Clean';
+
   return (
     <MainLayout>
-      <main>
-        <div className="container mx-auto py-8 space-y-8">
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-4 justify-end">
-            <Button variant="outline" onClick={handleShareReport}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Share Report
-            </Button>
-            <Button variant="outline" onClick={handleDownloadPdf}>
-              <FileText className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-            <Button variant="outline" onClick={handleEmailReport}>
-              <Mail className="h-4 w-4 mr-2" />
-              Email Report
-            </Button>
-          </div>
+      <div className="container mx-auto py-8 space-y-8">
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-4 justify-end">
+          <Button variant="outline" onClick={handleShareReport}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Share Report
+          </Button>
+          <Button variant="outline" onClick={handleDownloadPdf}>
+            <FileText className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+          <Button variant="outline" onClick={handleEmailReport}>
+            <Mail className="h-4 w-4 mr-2" />
+            Email Report
+          </Button>
+        </div>
 
-          <div className="p-4 border rounded shadow bg-white">
-            <h2 className="text-lg font-bold mb-2">Valuation Report</h2>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Valuation Report</CardTitle>
+          </CardHeader>
+          <CardContent>
             <PredictionResult valuationId={reportId} />
-          </div>
+            {/* (OPTIONAL) Add FollowUpForm here if you want */}
+            {/* <FollowUpForm /> */}
+          </CardContent>
+        </Card>
 
-          <div className="p-4 border rounded shadow bg-white">
-            <h2 className="text-lg font-bold mb-2">Value Factors</h2>
+        {/* Value Factors Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Value Factors</CardTitle>
+          </CardHeader>
+          <CardContent>
             <ValuationFactorsGrid
               values={{
                 accidents: accidentCount,
@@ -149,29 +154,29 @@ export default function ValuationResultPage() {
               }}
               onChange={handleFactorChange}
             />
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="p-4 border rounded shadow bg-white">
-            <NextStepsCard
-              valuationId={reportId}
-              isPremium={isPremiumUnlocked}
-            />
-          </div>
+        {/* Next Steps */}
+        <NextStepsCard valuationId={reportId} isPremium={isPremiumUnlocked} />
 
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Dealer Offers</h2>
-            <DealerOffersList reportId={reportId} showActions />
-          </div>
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Dealer Offers</h2>
+          <DealerOffersList reportId={reportId} showActions />
+        </div>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Chat with AI Assistant</h2>
-            <AIChatBubble valuation={valuationWithRequiredId} />
-          </div>
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Chat with AI Assistant</h2>
+          <AIChatBubble valuation={valuationWithRequiredId} />
+        </div>
 
-          {/* Vehicle History Section (if premium) */}
-          {isPremiumUnlocked && (
-            <div className="p-4 border rounded shadow bg-white mt-8">
-              <h2 className="text-lg font-bold mb-2">Vehicle History</h2>
+        {/* Vehicle History Section (if premium) */}
+        {isPremiumUnlocked && (
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle className="text-lg">Vehicle History</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="p-4 rounded-md bg-slate-50">
                 <h3 className="font-medium mb-2">CARFAX Report Summary</h3>
                 <ul className="list-disc pl-5 space-y-1 text-sm">
@@ -184,11 +189,10 @@ export default function ValuationResultPage() {
                   View Full CARFAX Report
                 </Button>
               </div>
-            </div>
-          )}
-               </div>
-      </main>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </MainLayout>
   );
 }
-
