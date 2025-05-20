@@ -1,9 +1,8 @@
-// ✅ File: src/pages/ValuationDetailPage.tsx
+// ✅ File: src/pages/ValuationResultPage.tsx
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, FileText, Mail, Share2 } from 'lucide-react';
@@ -16,9 +15,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
-import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm'; // optional: only if needed
 
-export default function ValuationDetailPage() {
+export default function ValuationResultPage() {
   const { id } = useParams<{ id?: string }>();
   const valuationId = id ?? '';
 
@@ -49,19 +47,19 @@ export default function ValuationDetailPage() {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="text-lg">Valuation Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-10 w-1/3" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-2/3" />
-              <Skeleton className="h-4 w-1/2" />
-            </CardContent>
-          </Card>
-        </div>
+        <main>
+          <div className="container mx-auto py-8">
+            <div className="w-full p-4 border rounded shadow bg-white">
+              <h2 className="text-lg font-bold mb-2">Valuation Details</h2>
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-1/3" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            </div>
+          </div>
+        </main>
       </MainLayout>
     );
   }
@@ -69,15 +67,17 @@ export default function ValuationDetailPage() {
   if (error) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {typeof error === 'string' ? error : 'Something went wrong while fetching the valuation.'}
-            </AlertDescription>
-          </Alert>
-        </div>
+        <main>
+          <div className="container mx-auto py-8">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                {typeof error === 'string' ? error : 'Something went wrong while fetching the valuation.'}
+              </AlertDescription>
+            </Alert>
+          </div>
+        </main>
       </MainLayout>
     );
   }
@@ -85,15 +85,17 @@ export default function ValuationDetailPage() {
   if (!data) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>No Valuation Found</AlertTitle>
-            <AlertDescription>
-              We couldn't find the valuation data for this report.
-            </AlertDescription>
-          </Alert>
-        </div>
+        <main>
+          <div className="container mx-auto py-8">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>No Valuation Found</AlertTitle>
+              <AlertDescription>
+                We couldn't find the valuation data for this report.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </main>
       </MainLayout>
     );
   }
@@ -113,39 +115,32 @@ export default function ValuationDetailPage() {
 
   return (
     <MainLayout>
-      <div className="container mx-auto py-8 space-y-8">
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-4 justify-end">
-          <Button variant="outline" onClick={handleShareReport}>
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Report
-          </Button>
-          <Button variant="outline" onClick={handleDownloadPdf}>
-            <FileText className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
-          <Button variant="outline" onClick={handleEmailReport}>
-            <Mail className="h-4 w-4 mr-2" />
-            Email Report
-          </Button>
-        </div>
+      <main>
+        <div className="container mx-auto py-8 space-y-8">
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-4 justify-end">
+            <Button variant="outline" onClick={handleShareReport}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Report
+            </Button>
+            <Button variant="outline" onClick={handleDownloadPdf}>
+              <FileText className="h-4 w-4 mr-2" />
+              Download PDF
+            </Button>
+            <Button variant="outline" onClick={handleEmailReport}>
+              <Mail className="h-4 w-4 mr-2" />
+              Email Report
+            </Button>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Valuation Report</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <div className="p-4 border rounded shadow bg-white">
+            <h2 className="text-lg font-bold mb-2">Valuation Report</h2>
             <PredictionResult valuationId={reportId} />
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Value Factors Grid */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Value Factors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ValuationFactorsGrid 
+          <div className="p-4 border rounded shadow bg-white">
+            <h2 className="text-lg font-bold mb-2">Value Factors</h2>
+            <ValuationFactorsGrid
               values={{
                 accidents: accidentCount,
                 mileage: data.mileage || 0,
@@ -154,32 +149,29 @@ export default function ValuationDetailPage() {
               }}
               onChange={handleFactorChange}
             />
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Next Steps */}
-        <NextStepsCard 
-          valuationId={reportId} 
-          isPremium={isPremiumUnlocked}
-        />
+          <div className="p-4 border rounded shadow bg-white">
+            <NextStepsCard
+              valuationId={reportId}
+              isPremium={isPremiumUnlocked}
+            />
+          </div>
 
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Dealer Offers</h2>
-          <DealerOffersList reportId={reportId} showActions />
-        </div>
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Dealer Offers</h2>
+            <DealerOffersList reportId={reportId} showActions />
+          </div>
 
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Chat with AI Assistant</h2>
-          <AIChatBubble valuation={valuationWithRequiredId} />
-        </div>
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Chat with AI Assistant</h2>
+            <AIChatBubble valuation={valuationWithRequiredId} />
+          </div>
 
-        {/* Vehicle History Section (if premium) */}
-        {isPremiumUnlocked && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="text-lg">Vehicle History</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Vehicle History Section (if premium) */}
+          {isPremiumUnlocked && (
+            <div className="p-4 border rounded shadow bg-white mt-8">
+              <h2 className="text-lg font-bold mb-2">Vehicle History</h2>
               <div className="p-4 rounded-md bg-slate-50">
                 <h3 className="font-medium mb-2">CARFAX Report Summary</h3>
                 <ul className="list-disc pl-5 space-y-1 text-sm">
@@ -192,16 +184,11 @@ export default function ValuationDetailPage() {
                   View Full CARFAX Report
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* (Optional) Follow-up Form for user feedback or actions */}
-        {/* <div className="mt-8">
-          <FollowUpForm />
-        </div> */}
-
-      </div>
+            </div>
+          )}
+               </div>
+      </main>
     </MainLayout>
   );
 }
+
