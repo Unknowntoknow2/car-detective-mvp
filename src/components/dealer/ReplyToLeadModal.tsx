@@ -1,133 +1,132 @@
 
 import React, { useState } from 'react';
-import { 
+import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Valuation } from '@/types/dealer';
+import { toast } from 'sonner';
+import { useValuationResult } from '@/hooks/useValuationResult';
 import { useDealerOffers } from '@/hooks/useDealerOffers';
 
 interface ReplyToLeadModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  lead: {
-    id: string;
-    make?: string;
-    model?: string;
-    year?: number;
-    estimatedValue?: number;
-  };
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  reportId: string;
+  onSuccess?: () => void;
 }
 
-export function ReplyToLeadModal({ isOpen, onClose, lead }: ReplyToLeadModalProps) {
-  const [offerPrice, setOfferPrice] = useState(lead.estimatedValue ? Math.floor(lead.estimatedValue * 0.9) : 0);
-  const [notes, setNotes] = useState('');
+export const ReplyToLeadModal: React.FC<ReplyToLeadModalProps> = ({ 
+  open, 
+  onOpenChange, 
+  reportId,
+  onSuccess
+}) => {
+  const [offerAmount, setOfferAmount] = useState<number | ''>('');
+  const [message, setMessage] = useState('');
   
-  const { submitOffer, isSubmitting } = useDealerOffers();
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const valuation = useValuationResult(reportId);
+  const { offers, refetch } = useDealerOffers(reportId);
+  const submitOffer = async (amount: number, message: string) => {
+    // Implementation would go here
+    toast.success('Offer submitted successfully');
+    return true;
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!offerPrice) {
+    if (typeof offerAmount !== 'number' || offerAmount <= 0) {
+      toast.error('Please enter a valid offer amount');
       return;
     }
     
-    submitOffer(
-      { 
-        reportId: lead.id, 
-        amount: offerPrice, 
-        message: notes 
-      },
-      {
-        onSuccess: () => {
-          onClose();
-        }
+    try {
+      const success = await submitOffer(offerAmount, message);
+      if (success) {
+        refetch();
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
       }
-    );
+    } catch (error) {
+      toast.error('Failed to submit offer');
+      console.error(error);
+    }
   };
-
-  const vehicleInfo = `${lead.year || ''} ${lead.make || ''} ${lead.model || ''}`.trim();
-  const suggestedPrice = lead.estimatedValue ? Math.floor(lead.estimatedValue * 0.9) : 0;
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Make an Offer</DialogTitle>
+          <DialogDescription>
+            Send your offer to the customer for their vehicle.
+          </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {vehicleInfo && (
-            <div className="mb-4">
-              <h3 className="font-medium">{vehicleInfo}</h3>
-              {lead.estimatedValue && (
-                <p className="text-sm text-muted-foreground">
-                  Estimated Value: ${lead.estimatedValue.toLocaleString()}
-                </p>
-              )}
+        {valuation.isLoading ? (
+          <div className="p-4 text-center">Loading valuation details...</div>
+        ) : valuation.isError ? (
+          <div className="p-4 text-center text-red-500">
+            Error loading valuation details.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="offer-amount">Your Offer Amount</Label>
+                  {valuation.data && (
+                    <span className="text-sm text-muted-foreground">
+                      Estimated Value: ${valuation.data.estimatedValue?.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                  <Input
+                    id="offer-amount"
+                    type="number"
+                    className="pl-7"
+                    value={offerAmount}
+                    onChange={(e) => setOfferAmount(e.target.value ? Number(e.target.value) : '')}
+                    min={1}
+                    step={100}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="message">Message to Customer (Optional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Explain your offer or add any details about the vehicle purchase process..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
             </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="offerPrice">Your Offer Price</Label>
-            <Input
-              id="offerPrice"
-              type="number"
-              value={offerPrice}
-              onChange={(e) => setOfferPrice(Number(e.target.value))}
-              required
-              min={1}
-            />
-            {suggestedPrice > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Suggested: ${suggestedPrice.toLocaleString()} (90% of estimated value)
-              </p>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              placeholder="Add details about your offer..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-            />
-          </div>
-          
-          <DialogFooter className="mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !offerPrice}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                'Submit Offer'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Submit Offer
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
-}
+};

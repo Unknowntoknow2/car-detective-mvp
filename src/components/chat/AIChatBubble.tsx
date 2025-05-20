@@ -28,10 +28,10 @@ export function AIChatBubble({ valuation, position = 'bottom-right' }: AIChatBub
 
   return (
     <ChatBubble 
-      valuationId={valuation.id}
       initialMessage={initialMessage}
       position={position}
       title="Ask about your valuation"
+      valuationId={valuation.id}
     />
   );
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +8,7 @@ import { Loader2, Mail, KeyRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { errorToString } from '@/utils/errorHandling';
 
 interface SharedLoginFormProps {
   isLoading: boolean;
@@ -49,7 +49,7 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
       const result = await signIn(email, password);
       
       if (result?.error) {
-        throw new Error(result.error);
+        throw new Error(errorToString(result.error));
       }
       
       // Check if the user has the expected role
@@ -81,7 +81,7 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
       navigate(redirectPath);
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Invalid email or password');
+      setError(errorToString(err));
       setIsLoading(false);
     }
   };

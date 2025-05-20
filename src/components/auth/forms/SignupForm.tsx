@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Mail, KeyRound, Eye, EyeOff, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { errorToString } from '@/utils/errorHandling';
 
 interface SignupFormProps {
   isLoading: boolean;
@@ -49,8 +50,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       const result = await signUp(email, password, fullName);
       
       if (result?.error) {
-        setError(result.error.toString() || 'Failed to sign up');
-        toast.error(result.error.toString() || 'Failed to sign up');
+        setError(errorToString(result.error));
+        toast.error(errorToString(result.error));
         setIsLoading(false);
         return;
       }
@@ -59,8 +60,8 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       navigate('/sign-in');
     } catch (err: any) {
       console.error('Sign up error:', err);
-      setError('An unexpected error occurred');
-      toast.error(err.message || 'Failed to sign up');
+      setError(errorToString(err));
+      toast.error(errorToString(err));
       setIsLoading(false);
     }
   };

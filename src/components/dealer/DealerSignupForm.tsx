@@ -3,14 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Link } from 'react-router-dom';
 import { useDealerSignup } from './hooks/useDealerSignup';
-import {
-  FullNameField,
-  DealershipNameField,
-  PhoneField,
-  EmailField,
-  PasswordField
-} from './components/DealerFormFields';
 import { Loader2 } from 'lucide-react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 export function DealerSignupForm() {
   const {
@@ -24,20 +19,109 @@ export function DealerSignupForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        <FullNameField form={form} isLoading={isLoading} />
-        
-        <DealershipNameField 
-          form={form} 
-          isLoading={isLoading} 
-          dealershipError={dealershipError}
-          setDealershipError={setDealershipError}
+        {/* Full Name Field */}
+        <FormField
+          control={form.control}
+          name="fullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="John Doe" 
+                  disabled={isLoading} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         
-        <PhoneField form={form} isLoading={isLoading} />
+        {/* Dealership Name Field */}
+        <FormField
+          control={form.control}
+          name="dealershipName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dealership Name</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="ABC Motors" 
+                  disabled={isLoading}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    setDealershipError(null);
+                  }}
+                />
+              </FormControl>
+              {dealershipError && (
+                <p className="text-xs text-red-500 mt-1">{dealershipError}</p>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
-        <EmailField form={form} isLoading={isLoading} />
+        {/* Phone Field */}
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="(555) 123-4567" 
+                  disabled={isLoading} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
-        <PasswordField form={form} isLoading={isLoading} />
+        {/* Email Field */}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email Address</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="email"
+                  placeholder="you@example.com" 
+                  disabled={isLoading} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        {/* Password Field */}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="password"
+                  placeholder="Enter a secure password" 
+                  disabled={isLoading} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button 
           type="submit" 
