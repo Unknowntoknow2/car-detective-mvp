@@ -1,6 +1,5 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
 import HomePage from '@/pages/HomePage';
 import ValuationPage from '@/pages/ValuationPage';
 import ValuationResultPage from '@/pages/ValuationResultPage';
@@ -25,7 +24,6 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
-      <Toaster />
     </>
   );
 };
