@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-<<<<<<< HEAD
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -16,40 +16,34 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
-=======
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { PredictionResult } from '@/components/valuation/PredictionResult';
-import { useValuationResult } from '@/hooks/useValuationResult';
-import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm';
->>>>>>> 1f281f57 (Save local changes before pull)
+import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm'; // optional: only if needed
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id?: string }>();
+  const valuationId = id ?? '';
 
-<<<<<<< HEAD
-  // Handle PDF download
+  // useValuationResult returns { data, isLoading, error }
+  const { data, isLoading, error } = useValuationResult(valuationId);
+
+  // Action handlers
   const handleDownloadPdf = () => {
     toast.success("Generating PDF report...");
-    // In a real implementation, this would download a PDF
+    // TODO: implement PDF download logic
   };
 
-  // Handle email report
   const handleEmailReport = () => {
     toast.success("Report sent to your email");
-    // In a real implementation, this would send an email
+    // TODO: implement email report logic
   };
 
-  // Handle share report
   const handleShareReport = () => {
     toast.success("Share link copied to clipboard");
-    // In a real implementation, this would generate and copy a share link
+    // TODO: implement share logic
   };
 
-  // Handle condition factor changes
   const handleFactorChange = (id: string, value: any) => {
     toast.info(`${id} updated to ${value}. Recalculating valuation...`);
-    // In a real implementation, this would update the valuation
+    // TODO: implement factor update logic
   };
 
   if (isLoading) {
@@ -104,32 +98,20 @@ export default function ValuationDetailPage() {
     );
   }
 
-  // Use valuationId or id property as needed
+  // Post-load data setup
   const reportId = data.id || data.valuationId;
-
-  // Ensure data has a non-optional id property to satisfy the Valuation type
-  const valuationWithRequiredId = {
-    ...data,
-    id: reportId, // Ensure id is always defined
-    created_at: data.created_at || new Date().toISOString() // Ensure created_at is always defined
-  };
-=======
-  // ✅ Type guard: fallback to empty string if undefined
-  const valuationId = id ?? '';
-
-  const result = useValuationResult(valuationId);
->>>>>>> 1f281f57 (Save local changes before pull)
-
-  // Check if premium features are unlocked, safely accessing the premium_unlocked property
   const isPremiumUnlocked = Boolean(data?.premium_unlocked);
-
-  // Fix accidents_count to use accident_count if available, or default to 0
   const accidentCount = data.accident_count || 0;
-  // Fix titleStatus access to use a default if not provided
   const titleStatus = data.titleStatus || 'Clean';
 
+  // For AIChatBubble, make sure required fields are set
+  const valuationWithRequiredId = {
+    ...data,
+    id: reportId,
+    created_at: data.created_at || new Date().toISOString()
+  };
+
   return (
-<<<<<<< HEAD
     <MainLayout>
       <div className="container mx-auto py-8 space-y-8">
         {/* Action buttons */}
@@ -213,30 +195,13 @@ export default function ValuationDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* (Optional) Follow-up Form for user feedback or actions */}
+        {/* <div className="mt-8">
+          <FollowUpForm />
+        </div> */}
+
       </div>
     </MainLayout>
-=======
-    <>
-      <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold mb-6">Vehicle Valuation Result</h1>
-
-        {result.isLoading && <p>Loading valuation...</p>}
-        {result.isError && <p className="text-red-600">Error: {result.error}</p>}
-
-        {result.data && (
-          <>
-            <PredictionResult {...result.data} />
-
-            {/* ✅ Follow-up form section */}
-            <div className="mt-10">
-              <FollowUpForm />
-            </div>
-          </>
-        )}
-      </main>
-      <Footer />
-    </>
->>>>>>> 1f281f57 (Save local changes before pull)
   );
 }
