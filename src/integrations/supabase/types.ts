@@ -91,6 +91,39 @@ export type Database = {
         }
         Relationships: []
       }
+      competitor_prices: {
+        Row: {
+          carvana_value: string | null
+          fetched_at: string | null
+          id: string
+          kbb_value: string | null
+          make: string | null
+          model: string | null
+          vin: string
+          year: string | null
+        }
+        Insert: {
+          carvana_value?: string | null
+          fetched_at?: string | null
+          id?: string
+          kbb_value?: string | null
+          make?: string | null
+          model?: string | null
+          vin: string
+          year?: string | null
+        }
+        Update: {
+          carvana_value?: string | null
+          fetched_at?: string | null
+          id?: string
+          kbb_value?: string | null
+          make?: string | null
+          model?: string | null
+          vin?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
       condition_descriptions: {
         Row: {
           condition_level: string
@@ -341,13 +374,19 @@ export type Database = {
       }
       decoded_vehicles: {
         Row: {
+          bodytype: string | null
           bodyType: string | null
           created_at: string
+          displacementl: string | null
+          doors: string | null
           drivetrain: string | null
           engine: string | null
+          enginecylinders: string | null
+          fueltype: string | null
           id: string
           make: string | null
           model: string | null
+          seats: string | null
           timestamp: string | null
           transmission: string | null
           trim: string | null
@@ -355,13 +394,19 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          bodytype?: string | null
           bodyType?: string | null
           created_at?: string
+          displacementl?: string | null
+          doors?: string | null
           drivetrain?: string | null
           engine?: string | null
+          enginecylinders?: string | null
+          fueltype?: string | null
           id?: string
           make?: string | null
           model?: string | null
+          seats?: string | null
           timestamp?: string | null
           transmission?: string | null
           trim?: string | null
@@ -369,13 +414,19 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          bodytype?: string | null
           bodyType?: string | null
           created_at?: string
+          displacementl?: string | null
+          doors?: string | null
           drivetrain?: string | null
           engine?: string | null
+          enginecylinders?: string | null
+          fueltype?: string | null
           id?: string
           make?: string | null
           model?: string | null
+          seats?: string | null
           timestamp?: string | null
           transmission?: string | null
           trim?: string | null
@@ -1462,8 +1513,12 @@ export type Database = {
           confidence_score: number | null
           created_at: string
           dealer_avg_price: number | null
+          displacement_l: string | null
+          drivetrain: string | null
+          engine_cylinders: string | null
           estimated_value: number | null
           feature_value_total: number | null
+          fuel_type: string | null
           has_open_recall: boolean | null
           id: string
           is_vin_lookup: boolean
@@ -1476,6 +1531,7 @@ export type Database = {
           sale_date: string | null
           seasonal_multiplier: number | null
           state: string | null
+          transmission: string | null
           user_id: string
           vin: string | null
           warranty_status: string | null
@@ -1493,8 +1549,12 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           dealer_avg_price?: number | null
+          displacement_l?: string | null
+          drivetrain?: string | null
+          engine_cylinders?: string | null
           estimated_value?: number | null
           feature_value_total?: number | null
+          fuel_type?: string | null
           has_open_recall?: boolean | null
           id?: string
           is_vin_lookup?: boolean
@@ -1507,6 +1567,7 @@ export type Database = {
           sale_date?: string | null
           seasonal_multiplier?: number | null
           state?: string | null
+          transmission?: string | null
           user_id: string
           vin?: string | null
           warranty_status?: string | null
@@ -1524,8 +1585,12 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           dealer_avg_price?: number | null
+          displacement_l?: string | null
+          drivetrain?: string | null
+          engine_cylinders?: string | null
           estimated_value?: number | null
           feature_value_total?: number | null
+          fuel_type?: string | null
           has_open_recall?: boolean | null
           id?: string
           is_vin_lookup?: boolean
@@ -1538,6 +1603,7 @@ export type Database = {
           sale_date?: string | null
           seasonal_multiplier?: number | null
           state?: string | null
+          transmission?: string | null
           user_id?: string
           vin?: string | null
           warranty_status?: string | null
