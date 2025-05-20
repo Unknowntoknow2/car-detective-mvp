@@ -1,101 +1,103 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { DealerVehicle, DealerVehicleStatus } from '@/types/dealerVehicle';
+import { toast } from 'sonner';
 
-export function useDealerInventory() {
-  const [vehicles, setVehicles] = useState<DealerVehicle[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export interface Vehicle {
+  id: string;
+  dealer_id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number;
+  condition: string;
+  status: string;
+  photos?: string[];
+  created_at: string;
+  updated_at: string;
+  transmission?: string;
+  fuel_type?: string;
+  zip_code?: string;
+  description?: string;
+}
+
+export const useDealerInventory = () => {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const { user } = useAuth();
-  
-  const fetchInventory = async () => {
-    if (!user) {
-      setError('Not authenticated');
-      setIsLoading(false);
-      return;
-    }
-    
+
+  const fetchInventory = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const { data, error } = await supabase
-        .from('dealer_vehicles')
+      const { data: userResponse, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
+      const { data, error: fetchError } = await supabase
+        .from('dealer_inventory')
         .select('*')
-        .eq('dealer_id', user.id)
+        .eq('dealer_id', userResponse.user?.id)
         .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      // Transform the data to ensure status is of type DealerVehicleStatus
-      const typedVehicles: DealerVehicle[] = (data || []).map(vehicle => ({
-        ...vehicle,
-        status: vehicle.status as DealerVehicleStatus,
-        // Ensure photos is an array of strings
-        photos: Array.isArray(vehicle.photos) 
-          ? vehicle.photos.map(photo => String(photo))
-          : [],
-        // Convert any null values to undefined for optional fields
-        fuel_type: vehicle.fuel_type || undefined,
-        transmission: vehicle.transmission || undefined,
-        zip_code: vehicle.zip_code || undefined
-      }));
-      
-      setVehicles(typedVehicles);
+
+      if (fetchError) throw fetchError;
+      setVehicles(data || []);
     } catch (err: any) {
-      console.error('Error fetching inventory:', err);
-      setError(err.message || 'Failed to load inventory');
+      console.error('Error fetching dealer inventory:', err);
+      setError(err.message || 'Failed to fetch inventory');
+      toast.error('Failed to load inventory');
     } finally {
       setIsLoading(false);
     }
-  };
-  
-  const deleteVehicle = async (id: string) => {
-    if (!user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-    
+  }, []);
+
+  const deleteVehicle = useCallback(async (id: string) => {
     try {
-      // Check if the vehicle belongs to this dealer
-      const { data: vehicle, error: checkError } = await supabase
-        .from('dealer_vehicles')
-        .select('dealer_id')
-        .eq('id', id)
-        .single();
-        
-      if (checkError) throw checkError;
-      
-      if (vehicle.dealer_id !== user.id) {
-        return { success: false, error: 'Not authorized to delete this vehicle' };
-      }
-      
-      // Perform the deletion
-      const { error: deleteError } = await supabase
-        .from('dealer_vehicles')
+      const { error } = await supabase
+        .from('dealer_inventory')
         .delete()
         .eq('id', id);
-        
-      if (deleteError) throw deleteError;
+
+      if (error) throw error;
       
-      return { success: true };
+      // Update local state
+      setVehicles(prev => prev.filter(vehicle => vehicle.id !== id));
+      toast.success('Vehicle removed from inventory');
     } catch (err: any) {
       console.error('Error deleting vehicle:', err);
-      return { success: false, error: err.message || 'Failed to delete vehicle' };
+      toast.error('Failed to delete vehicle');
+      throw err;
     }
-  };
-  
-  useEffect(() => {
-    fetchInventory();
-  }, [user]);
-  
+  }, []);
+
+  const uploadPhoto = useCallback(async (photo: File): Promise<string> => {
+    try {
+      const fileName = `${Date.now()}-${photo.name}`;
+      const { data, error } = await supabase.storage
+        .from('vehicle-photos')
+        .upload(fileName, photo);
+
+      if (error) throw error;
+      
+      const { data: urlData } = supabase.storage
+        .from('vehicle-photos')
+        .getPublicUrl(data.path);
+        
+      return urlData.publicUrl;
+    } catch (err: any) {
+      console.error('Error uploading photo:', err);
+      toast.error('Failed to upload photo');
+      throw err;
+    }
+  }, []);
+
   return {
     vehicles,
     isLoading,
     error,
-    refetch: fetchInventory,
-    deleteVehicle
+    fetchInventory,
+    deleteVehicle,
+    uploadPhoto
   };
-}
+};

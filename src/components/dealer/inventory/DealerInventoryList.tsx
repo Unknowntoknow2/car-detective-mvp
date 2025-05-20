@@ -1,187 +1,130 @@
-
-import React, { useState, useEffect } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import React from 'react';
+import { formatDate } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { useDealerInventory } from '../hooks/useDealerInventory';
-import { useVehicleUploadModal } from '../hooks/useVehicleUploadModal';
-import { VehicleGrid } from './VehicleGrid';
-import { SearchAndFilterBar } from './SearchAndFilterBar';
-import { EmptyState } from './EmptyState';
-import { LoadingState } from './LoadingState';
-import { NoSearchResults } from './NoSearchResults';
-import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
-import { DealerVehicle } from '@/types/dealerVehicle';
+import { Pencil, Trash2 } from 'lucide-react';
 
-export const DealerInventoryList: React.FC = () => {
-  const { 
-    vehicles, 
-    isLoading, 
-    error, 
-    refetch,
-    deleteVehicle 
-  } = useDealerInventory();
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortOption, setSortOption] = useState<string>('newest');
-  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  
-  const { openModal } = useVehicleUploadModal();
+interface Vehicle {
+  id: string;
+  dealer_id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number;
+  condition: string;
+  status: string;
+  photos?: string[];
+  created_at: string;
+  updated_at: string;
+  transmission?: string;
+  fuel_type?: string;
+  zip_code?: string;
+  description?: string;
+}
 
-  // Filter vehicles based on search term and status
-  const filteredVehicles = vehicles.filter(vehicle => {
-    // Search filter
-    const matchesSearch = 
-      searchTerm === '' ||
-      vehicle.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.year.toString().includes(searchTerm);
-    
-    // Status filter
-    const matchesStatus = 
-      statusFilter === 'all' || 
-      vehicle.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+interface DealerInventoryListProps {
+  vehicles: Vehicle[] | undefined;
+  isLoading: boolean;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+}
 
-  // Sort vehicles based on selected option
-  const sortedVehicles = [...filteredVehicles].sort((a, b) => {
-    switch (sortOption) {
-      case 'newest':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'oldest':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'price-high':
-        return b.price - a.price;
-      case 'price-low':
-        return a.price - b.price;
-      case 'year-new':
-        return b.year - a.year;
-      case 'year-old':
-        return a.year - b.year;
-      default:
-        return 0;
-    }
-  });
-
-  // Handle delete confirmation
-  const handleDeleteClick = (vehicle: DealerVehicle) => {
-    setVehicleToDelete(vehicle);
-  };
-
-  // Handle confirm delete
-  const handleConfirmDelete = async () => {
-    if (!vehicleToDelete) return;
-    
-    setIsDeleting(true);
-    try {
-      await deleteVehicle(vehicleToDelete.id);
-      refetch();
-    } finally {
-      setIsDeleting(false);
-      setVehicleToDelete(null);
-    }
-  };
-
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  // Clear all filters
-  const clearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setSortOption('newest');
-  };
-
+// Define your component
+const DealerInventoryList = ({ vehicles, isLoading, onEdit, onDelete }: DealerInventoryListProps) => {
   if (isLoading) {
-    return <LoadingState itemCount={6} />;
+    return <div className="text-center p-4">Loading inventory...</div>;
   }
 
-  if (error) {
-    return (
-      <div className="rounded-md border border-red-200 bg-red-50 p-4">
-        <h3 className="font-medium text-red-800">Error loading inventory</h3>
-        <p className="mt-2 text-sm text-red-700">{error}</p>
-        <Button onClick={refetch} variant="outline" className="mt-4">
-          Try Again
-        </Button>
-      </div>
-    );
+  if (!vehicles || vehicles.length === 0) {
+    return <div className="text-center p-4">No vehicles in inventory.</div>;
   }
 
-  if (vehicles.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Vehicle Inventory</h1>
-          <Button onClick={openModal} className="flex items-center gap-1">
-            <Plus className="h-4 w-4" />
-            Add Vehicle
-          </Button>
-        </div>
-        <EmptyState 
-          onAddClick={openModal} 
-        />
-      </div>
-    );
-  }
+  // Helper function for formatted date display
+  const getFormattedDate = (dateString: string | undefined) => {
+    return formatDate(dateString, 'N/A');
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header with title and add button */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Vehicle Inventory</h1>
-        <Button onClick={openModal} className="flex items-center gap-1">
-          <Plus className="h-4 w-4" />
-          Add Vehicle
-        </Button>
-      </div>
-      
-      {/* Search and Filter Bar */}
-      <SearchAndFilterBar
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        sortOption={sortOption}
-        onSortOptionChange={setSortOption}
-        totalVehicles={vehicles.length}
-        filteredCount={filteredVehicles.length}
-        onClearFilters={clearFilters}
-      />
-      
-      {/* No Results Message */}
-      {filteredVehicles.length === 0 ? (
-        <NoSearchResults 
-          query={searchTerm}
-          onClearFilters={clearFilters} 
-        />
-      ) : (
-        <VehicleGrid 
-          vehicles={sortedVehicles} 
-          onDeleteClick={handleDeleteClick}
-        />
-      )}
-      
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog 
-        open={vehicleToDelete !== null}
-        onOpenChange={(open) => !open && setVehicleToDelete(null)}
-        onConfirmDelete={handleConfirmDelete}
-        isDeleting={isDeleting}
-      />
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Make
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Model
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Year
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Price
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Mileage
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Condition
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Created At
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Updated At
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {vehicles.map((vehicle) => (
+            <tr key={vehicle.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {vehicle.make}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {vehicle.model}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {vehicle.year}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                ${vehicle.price}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {vehicle.mileage}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {vehicle.condition}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {vehicle.status}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {getFormattedDate(vehicle.created_at)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {getFormattedDate(vehicle.updated_at)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <Button variant="ghost" size="sm" onClick={() => onEdit(vehicle.id)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onDelete(vehicle.id)}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
