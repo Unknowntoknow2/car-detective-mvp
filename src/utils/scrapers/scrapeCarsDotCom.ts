@@ -18,7 +18,9 @@ export async function fetchCarsDotComListings(
     });
 
     const $ = cheerio.load(html);
-    $('div.vehicle-card').each((_, el) => {
+    const cards = $('div.vehicle-card');
+
+    cards.each((_: unknown, el: cheerio.Element) => {
       if (listings.length >= maxResults) return;
 
       const title = $(el).find('h2.title').text().trim();

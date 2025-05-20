@@ -1,6 +1,6 @@
 
 import { TabContentWrapper } from "./TabContentWrapper";
-import { VinLookup } from "../../lookup/VinLookup";
+import VinLookup from "../../lookup/VinLookup";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

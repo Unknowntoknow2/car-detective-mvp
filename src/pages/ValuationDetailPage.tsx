@@ -1,6 +1,8 @@
+// ✅ File: src/pages/ValuationDetailPage.tsx
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+<<<<<<< HEAD
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -14,11 +16,18 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
+=======
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { PredictionResult } from '@/components/valuation/PredictionResult';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm';
+>>>>>>> 1f281f57 (Save local changes before pull)
 
 export default function ValuationDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data, isLoading, error } = useValuationResult(id || '');
+  const { id } = useParams<{ id?: string }>();
 
+<<<<<<< HEAD
   // Handle PDF download
   const handleDownloadPdf = () => {
     toast.success("Generating PDF report...");
@@ -104,6 +113,12 @@ export default function ValuationDetailPage() {
     id: reportId, // Ensure id is always defined
     created_at: data.created_at || new Date().toISOString() // Ensure created_at is always defined
   };
+=======
+  // ✅ Type guard: fallback to empty string if undefined
+  const valuationId = id ?? '';
+
+  const result = useValuationResult(valuationId);
+>>>>>>> 1f281f57 (Save local changes before pull)
 
   // Check if premium features are unlocked, safely accessing the premium_unlocked property
   const isPremiumUnlocked = Boolean(data?.premium_unlocked);
@@ -114,6 +129,7 @@ export default function ValuationDetailPage() {
   const titleStatus = data.titleStatus || 'Clean';
 
   return (
+<<<<<<< HEAD
     <MainLayout>
       <div className="container mx-auto py-8 space-y-8">
         {/* Action buttons */}
@@ -199,5 +215,28 @@ export default function ValuationDetailPage() {
         )}
       </div>
     </MainLayout>
+=======
+    <>
+      <Navbar />
+      <main className="max-w-5xl mx-auto px-4 py-10">
+        <h1 className="text-3xl font-bold mb-6">Vehicle Valuation Result</h1>
+
+        {result.isLoading && <p>Loading valuation...</p>}
+        {result.isError && <p className="text-red-600">Error: {result.error}</p>}
+
+        {result.data && (
+          <>
+            <PredictionResult {...result.data} />
+
+            {/* ✅ Follow-up form section */}
+            <div className="mt-10">
+              <FollowUpForm />
+            </div>
+          </>
+        )}
+      </main>
+      <Footer />
+    </>
+>>>>>>> 1f281f57 (Save local changes before pull)
   );
 }

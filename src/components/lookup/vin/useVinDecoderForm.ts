@@ -1,27 +1,26 @@
-import { useState, useCallback } from 'react';
-import { useVinDecoder } from '@/hooks/useVinDecoder';
-import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
-import { toast } from 'sonner';
-import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
-import { convertVehicleInfoToReportData } from '@/utils/pdf';
-import { useAICondition } from '@/hooks/useAICondition';
+// ✅ File: src/components/lookup/vin/useVinDecoderForm.ts
 
-// Interface for adjustment format needed by PDF
-interface PdfAdjustment {
-  factor: string;
-  impact: number;
-  description: string;
-}
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
+import { useVinDecoder } from '@/hooks/useVinDecoder';
+import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 
 export function useVinDecoderForm() {
   const [vin, setVin] = useState('');
   const [zipCode, setZipCode] = useState('');
-  const { result, isLoading, error, lookupVin } = useVinDecoder();
-  const [carfaxData, setCarfaxData] = useState(null);
+  const [carfaxData, setCarfaxData] = useState<any>(null);
+  const [carfaxError, setCarfaxError] = useState<string | null>(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
-  const [carfaxError, setCarfaxError] = useState(null);
-  
-  // Add the valuation pipeline for enhanced functionality
+
+  const {
+    result,
+    isLoading,
+    error,
+    lookupVin,
+    valuationId,
+  } = useVinDecoder();
+
   const {
     stage,
     vehicle: pipelineVehicle,
@@ -30,102 +29,53 @@ export function useVinDecoderForm() {
     error: valuationError,
     isLoading: pipelineLoading,
     runLookup,
-    submitValuation: runSubmitValuation
+    submitValuation,
   } = useFullValuationPipeline();
 
+  // ✅ VIN → Decode → Pipeline → Save to LocalStorage
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (vin) {
+
+    if (!vin) {
+      toast.error('Please enter a valid VIN');
+      return;
+    }
+
+    try {
       setCarfaxData(null);
       setCarfaxError(null);
-      
-      // Original VIN lookup for backward compatibility
-      await lookupVin(vin);
-      
-      // Also run our new valuation pipeline
+
+      const decoded = await lookupVin(vin);
+      if (!decoded) {
+        toast.error('VIN lookup failed. Try again.');
+        return;
+      }
+
       await runLookup('vin', vin);
-      
-      // Fetch CARFAX data after VIN lookup succeeds
-      try {
-        setIsLoadingCarfax(true);
-        const carfaxReport = await getCarfaxReport(vin);
-        setCarfaxData(carfaxReport);
-        setIsLoadingCarfax(false);
-      } catch (err) {
-        console.error('Error fetching CARFAX data:', err);
-        setCarfaxError('Unable to retrieve vehicle history report.');
-        setIsLoadingCarfax(false);
-        toast.error('Could not retrieve vehicle history report.');
-      }
+
+      setIsLoadingCarfax(true);
+      const report = await getCarfaxReport(vin);
+      setCarfaxData(report);
+      setIsLoadingCarfax(false);
+    } catch (err) {
+      console.error('CARFAX error:', err);
+      setCarfaxError('Unable to retrieve vehicle history report.');
+      setIsLoadingCarfax(false);
+      toast.error('Could not retrieve vehicle history report.');
+    }
+
+    if (valuationResult?.id && result) {
+      localStorage.setItem('latest_valuation_id', valuationResult.id);
+      localStorage.setItem(`vin_lookup_${vin}`, JSON.stringify(result));
     }
   };
 
-  // Modified function signature to return Promise<void> to fix type error
   const handleDetailsSubmit = async (details: any): Promise<void> => {
-    await runSubmitValuation({
+    await submitValuation({
       ...details,
-      // Add ZIP code if available
       zipCode: zipCode || details.zipCode,
-      // Add Carfax data if available
-      carfaxData: carfaxData || undefined
+      carfaxData: carfaxData || undefined,
     });
-    // We don't return the result anymore, making it void
-  };
-
-  const handleDownloadPdf = () => {
-    if (!result) return;
-    
-    // Get AI condition data if available
-    const { conditionData } = useAICondition(vin);
-    
-    // Default adjustments if none available from valuation
-    const defaultAdjustments: PdfAdjustment[] = [
-      { factor: "Mileage", impact: -3.5, description: "Based on mileage comparison to average" },
-      { factor: "Condition", impact: 2.0, description: "Based on reported condition" },
-      { factor: "Market Demand", impact: 4.0, description: "Current market trends" }
-    ];
-    
-    // Add accident adjustment if carfax data is available
-    if (carfaxData && carfaxData.accidentsReported > 0) {
-      defaultAdjustments.push({ 
-        factor: "Accident History", 
-        impact: -3.0,
-        description: "Vehicle has reported accidents"
-      });
-    }
-    
-    const reportData = convertVehicleInfoToReportData(result, {
-      mileage: requiredInputs?.mileage || 76000,
-      estimatedValue: valuationResult?.estimated_value || 24500,
-      condition: requiredInputs?.conditionLabel || "Good",
-      zipCode: zipCode || requiredInputs?.zipCode || "10001",
-      confidenceScore: valuationResult?.confidence_score || (carfaxData ? 92 : 85),
-      adjustments: valuationResult?.adjustments 
-        ? valuationResult.adjustments.map(adj => ({
-            factor: adj.factor || "Adjustment",
-            impact: adj.impact || 0,
-            description: adj.description || ""
-          }))
-        : defaultAdjustments,
-      aiCondition: conditionData, // Pass AI condition data to PDF generator
-      isPremium: carfaxData ? true : false // Set premium flag based on carfaxData existence
-    });
-    
-    toast.success("PDF report generated successfully!");
-    return reportData;
-  };
-
-  const handleValuationSubmit = async (details: any) => {
-    try {
-      // Add code to save the valuationId to localStorage
-      if (valuationResult?.id) {
-        localStorage.setItem('latest_valuation_id', valuationResult.id);
-      }
-      
-      // Rest of function remains the same
-    } catch (error) {
-      // ... keep existing error handling
-    }
   };
 
   return {
@@ -147,8 +97,7 @@ export function useVinDecoderForm() {
     pipelineLoading,
     handleSubmit,
     handleDetailsSubmit,
-    submitValuation: handleValuationSubmit,
-    handleDownloadPdf,
-    valuationId: valuationResult?.id
+    submitValuation,
+    valuationId,
   };
 }
