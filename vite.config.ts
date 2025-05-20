@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { componentTagger } from "lovable-tagger";
+import path from 'path'; // <-- Add this line
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -17,4 +18,4 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
-});
+}));
