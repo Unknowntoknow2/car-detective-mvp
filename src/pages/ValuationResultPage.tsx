@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -6,6 +5,13 @@ import { AlertCircle, ArrowLeft, FileText, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import { toast } from 'sonner';
+
+import { ConditionSliderWithTooltip } from '@/components/valuation/ConditionSliderWithTooltip';
+import { AIConditionBadge } from '@/components/valuation/AIConditionBadge';
+import { ValuationFactorsGrid } from '@/components/valuation/ValuationFactorsGrid';
+import { NextStepsCard } from '@/components/valuation/NextStepsCard';
+import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm';
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
@@ -16,6 +22,9 @@ export default function ValuationResultPage() {
   const [valuationData, setValuationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [conditionScore, setConditionScore] = useState<number>(75);
+  const [showFollowUpSubmitted, setShowFollowUpSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchValuationData = async () => {
@@ -54,19 +63,15 @@ export default function ValuationResultPage() {
     fetchValuationData();
   }, [id, vin]);
 
-  // Handle condition changes
   const handleConditionChange = (newScore: number) => {
     setConditionScore(newScore);
     toast.info(`Condition updated to ${newScore}%. Recalculating valuation...`);
   };
 
-  // Handle condition factor changes
   const handleFactorChange = (id: string, value: any) => {
     toast.info(`${id} updated to ${value}. Recalculating valuation...`);
-    // In a real implementation, this would update the valuation
   };
 
-  // Generate a default vehicle info if data is not available
   const vehicleInfo = valuationData
     ? {
         make: valuationData.make,
@@ -122,7 +127,6 @@ export default function ValuationResultPage() {
     );
   }
 
-  // Enhanced valuation result view with all available components
   return (
     <MainLayout>
       <main className="flex-1 bg-gray-50">
@@ -149,7 +153,6 @@ export default function ValuationResultPage() {
                 adjustments={valuationData?.adjustments || []}
               />
               
-              {/* Add condition slider */}
               <div className="pt-4 border-t">
                 <h3 className="text-lg font-medium mb-4">Condition Assessment</h3>
                 <ConditionSliderWithTooltip 
@@ -158,7 +161,6 @@ export default function ValuationResultPage() {
                 />
               </div>
               
-              {/* Add valuation factors grid */}
               <div className="pt-4 border-t">
                 <h3 className="text-lg font-medium mb-4">Value Factors</h3>
                 <ValuationFactorsGrid 
@@ -172,7 +174,6 @@ export default function ValuationResultPage() {
                 />
               </div>
               
-              {/* Add next steps card */}
               <div className="pt-4 border-t">
                 <NextStepsCard 
                   valuationId={id || ''} 
@@ -180,7 +181,6 @@ export default function ValuationResultPage() {
                 />
               </div>
               
-              {/* Add action buttons */}
               <div className="flex flex-wrap gap-4 pt-4 border-t">
                 <Button variant="outline" className="flex-1" onClick={() => {
                   toast.success('Valuation report copied to clipboard');
