@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
@@ -6,6 +7,31 @@ import { Footer } from '@/components/layout/Footer';
 import { Navbar } from '@/components/layout/Navbar';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
 import FollowUpForm from '@/components/followup/FollowUpForm';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+// Interface for the valuation result data
+interface ValuationResultData {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  adjustments?: Array<{ factor: string; impact: number; description: string }>;
+}
+
+// MainLayout component for consistent page layout
+const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      {children}
+      <Footer />
+    </div>
+  );
+};
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
@@ -143,6 +169,7 @@ export default function ValuationResultPage() {
           )}
         </div>
       </main>
-    </MainLayout>
+      <Footer />
+    </div>
   );
 }
