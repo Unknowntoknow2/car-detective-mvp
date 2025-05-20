@@ -1,3 +1,4 @@
+
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import HomePage from '@/pages/HomePage';
@@ -18,8 +19,8 @@ function App() {
           <Route path="/valuation" element={<ValuationPage />} />
           <Route path="/valuation-result" element={<ValuationResultPage />} />
           <Route path="/valuation/:id" element={<ValuationDetailPage />} />
-          <Route path="/result" element={<ValuationResultPage />} /> {/* ✅ NEW ROUTE */}
-          <Route path="/premium" element={<Premium />} />
+          <Route path="/result" element={<ValuationResultPage />} />
+          <Route path="/premium" element={<PremiumPage />} />
           <Route path="/premium-success" element={<PremiumSuccessPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
