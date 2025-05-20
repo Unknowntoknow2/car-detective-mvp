@@ -6,12 +6,6 @@ import { AlertCircle, ArrowLeft, FileText, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout';
 import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
-import FollowUpForm from '@/components/followup/FollowUpForm';
-import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
-import { ConditionSliderWithTooltip } from '@/components/valuation/ConditionSliderWithTooltip';
-import { NextStepsCard } from '@/components/valuation/valuation-complete';
-import { AIConditionBadge } from '@/components/valuation/AIConditionBadge';
-import { toast } from 'sonner';
 
 export default function ValuationResultPage() {
   const [searchParams] = useSearchParams();
@@ -22,8 +16,6 @@ export default function ValuationResultPage() {
   const [valuationData, setValuationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showFollowUpSubmitted, setShowFollowUpSubmitted] = useState(false);
-  const [conditionScore, setConditionScore] = useState(75);
 
   useEffect(() => {
     const fetchValuationData = async () => {
@@ -33,23 +25,24 @@ export default function ValuationResultPage() {
       try {
         if (!id && !vin) throw new Error('No valuation ID or VIN provided');
 
-        const key = id ? `valuation_${id}` : `vin_lookup_${vin}`;
-        const storedData = localStorage.getItem(key);
+        if (id) {
+          const storedData = localStorage.getItem(`valuation_${id}`);
+          if (storedData) {
+            setValuationData(JSON.parse(storedData));
+            return;
+          } else {
+            throw new Error('Valuation data not found for given ID');
+          }
+        }
 
-        if (storedData) {
-          const parsedData = JSON.parse(storedData);
-          setValuationData(parsedData);
-          
-          // Set condition score based on condition
-          const conditionMap: Record<string, number> = {
-            'Excellent': 90,
-            'Good': 75,
-            'Fair': 50,
-            'Poor': 25
-          };
-          setConditionScore(conditionMap[parsedData.condition] || 75);
-        } else {
-          throw new Error('Valuation data not found');
+        if (vin) {
+          const storedVinData = localStorage.getItem(`vin_lookup_${vin}`);
+          if (storedVinData) {
+            setValuationData(JSON.parse(storedVinData));
+            return;
+          } else {
+            throw new Error('No valuation found for this VIN');
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
