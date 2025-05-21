@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,7 +58,7 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         {showReplyModal && (
           <ReplyToLeadModal
             open={showReplyModal}
-            onClose={() => setShowReplyModal(false)}
+            onOpenChange={(open) => setShowReplyModal(open)}
             lead={lead}
           />
         )}

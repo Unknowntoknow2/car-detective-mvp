@@ -15,6 +15,9 @@ export interface DecodedVehicleInfo {
   fuelType?: string;
   mileage?: number;
   drivetrainType?: string;
+  // Add missing fields needed by components
+  engine?: string;
+  drivetrain?: string;
 }
 
 export interface VehicleDetails extends DecodedVehicleInfo {

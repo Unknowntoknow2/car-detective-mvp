@@ -1,11 +1,12 @@
+
 import React, { useState, useCallback } from 'react';
 import { VINLookupForm } from './VINLookupForm';
-import VinDecoderResults from './VinDecoderResults'; // ✅ Fixed default import
+import VinDecoderResults from './VinDecoderResults'; 
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './CarfaxErrorAlert';
-import { DecodedVehicleInfo } from '@/types/vehicle'; // ✅ Assuming you have this
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState('');
