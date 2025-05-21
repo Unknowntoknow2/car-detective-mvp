@@ -7,18 +7,23 @@ interface PremiumBadgeProps {
   variant?: 'default' | 'outline' | 'gold';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  small?: boolean;
 }
 
 export function PremiumBadge({ 
   variant = 'default', 
   size = 'md',
-  className 
+  className,
+  small = false
 }: PremiumBadgeProps) {
   const variants = {
     default: "bg-primary/10 text-primary border border-primary/20",
     outline: "bg-transparent text-primary border border-primary",
     gold: "bg-amber-100 text-amber-800 border border-amber-300",
   };
+  
+  // If small is true, default to sm size
+  const actualSize = small ? 'sm' : size;
   
   const sizes = {
     sm: "text-xs px-2 py-0.5",
@@ -30,7 +35,7 @@ export function PremiumBadge({
     <div className={cn(
       "rounded-full inline-flex items-center font-medium",
       variants[variant],
-      sizes[size],
+      sizes[actualSize],
       className
     )}>
       <BadgeCheck className="h-3.5 w-3.5 mr-1" />
