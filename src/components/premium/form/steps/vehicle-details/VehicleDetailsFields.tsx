@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +25,7 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      mileage: value === '' ? undefined : Number(value)
+      mileage: value === '' ? 0 : Number(value)
     }));
   };
 

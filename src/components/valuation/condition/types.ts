@@ -12,23 +12,32 @@ export interface ConditionValues {
   mileage: number;
   year: number;
   titleStatus: string;
-  zipCode?: string;
   exteriorGrade?: number;
   interiorGrade?: number;
   mechanicalGrade?: number;
   tireCondition?: number;
-}
-
-export interface ConditionFactor {
-  id: string;
-  label: string;
-  description?: string;
-  options: ConditionOption[];
+  [key: string]: string | number | undefined;
 }
 
 export interface ConditionOption {
   value: string;
   label: string;
-  description?: string;
-  impact: number;
+  description: string;
+  imageUrl?: string;
+  tip?: string;
+  score: number;
+}
+
+export interface ConditionCategory {
+  id: string;
+  name: string;
+  description: string;
+  options: ConditionOption[];
+}
+
+export interface ConditionTipsProps {
+  category: string;
+  rating: string;
+  tip: string;
+  selectedRatings: Record<string, ConditionOption>;
 }

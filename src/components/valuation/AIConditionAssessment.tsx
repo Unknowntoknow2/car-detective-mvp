@@ -79,7 +79,7 @@ export function AIConditionAssessment({
   
   // Helper to get summary, check both properties for backward compatibility
   const getSummary = (data: AICondition) => {
-    return data.summary || data.aiSummary || '';
+    return data.summary || '';
   };
   
   return (

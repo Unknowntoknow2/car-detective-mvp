@@ -15,9 +15,9 @@ interface SummaryField {
 export function VehicleSummary({ formData }: VehicleSummaryProps) {
   const getSummaryFields = (): SummaryField[] => {
     const fields: (SummaryField | undefined)[] = [
-      formData.identifierType && formData.identifier ? { 
+      formData.identifierType && formData.vin ? { 
         label: 'Identification', 
-        value: `${formData.identifierType.toUpperCase()}: ${formData.identifier}` 
+        value: `${formData.identifierType.toUpperCase()}: ${formData.vin}` 
       } : undefined,
       { label: 'Vehicle', value: `${formData.make} ${formData.model} ${formData.year}` },
       { label: 'Mileage', value: formData.mileage ? `${formData.mileage.toLocaleString()} miles` : 'Not specified' },

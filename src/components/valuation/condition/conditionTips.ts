@@ -1,5 +1,5 @@
 
-import { ConditionRatingOption } from './types';
+import { ConditionOption } from './types';
 
 // Condition improvement tips based on selected rating categories
 export const getConditionTips = (selectedRatings: Record<string, any>) => {

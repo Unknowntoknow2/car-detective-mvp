@@ -25,6 +25,7 @@ export interface ValuationResult {
   condition: string;
   zipCode?: string;
   zip_code?: string; // For backward compatibility
+  zip?: string; // For backward compatibility
   estimatedValue: number;
   estimated_value?: number; // For backward compatibility
   confidenceScore: number;
@@ -51,6 +52,11 @@ export interface ValuationResult {
   pdfUrl?: string; // Added for PDF downloads
   gptExplanation?: string; // Added for AI explanations
   explanation?: string; // Alternative field for explanations
+  bestPhotoUrl?: string; // For photo-based valuations
+  photo_url?: string; // For backward compatibility
+  vin?: string; // Vehicle identification number
+  trim?: string; // Vehicle trim
+  color?: string; // Vehicle color
   aiCondition?: {
     condition: string;
     confidenceScore: number;
