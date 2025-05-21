@@ -1,5 +1,6 @@
+
 // Export main component
-export { default as ValuationResult } from './ValuationResult';
+export { default } from './ValuationResult';
 
 // Export section components
 export { Header } from './sections/Header';

@@ -1,67 +1,49 @@
 
-import { ValuationAdjustment } from '@/utils/valuation/types';
-
-// Add the getFeatureAdjustments function that was missing
-export const getFeatureAdjustments = (
-  features: string[] = [], 
-  baseValue: number = 0, 
-  valueMultiplier: number = 1.0
-): number => {
-  // If no features or invalid values, return 0
-  if (!features || features.length === 0 || !baseValue || baseValue <= 0) {
+/**
+ * Calculate feature adjustments for a vehicle based on selected features and base value
+ * @param selectedFeatures Array of feature identifiers
+ * @param baseValue Base value of the vehicle
+ * @returns Total adjustment amount
+ */
+export const getFeatureAdjustments = (selectedFeatures: string[], baseValue: number): number => {
+  if (!selectedFeatures || selectedFeatures.length === 0 || !baseValue) {
     return 0;
   }
   
-  // Calculate total feature value
-  const featureValueAdjustment = calculateTotalFeatureValue(features);
-  
-  // Return the weighted adjustment
-  return valueMultiplier * featureValueAdjustment;
-};
-
-export const calculateFeatureAdjustments = (
-  baseValue: number,
-  features: string[] = [], 
-  valueMultiplier: number = 1.0
-): ValuationAdjustment[] => {
-  const adjustments: ValuationAdjustment[] = [];
-  
-  // If no features or invalid values, return empty adjustments
-  if (!features || features.length === 0 || !baseValue || baseValue <= 0) {
-    return adjustments;
-  }
-  
-  // Feature value adjustment
-  const featureValueAdjustment = calculateTotalFeatureValue(features);
-  if (featureValueAdjustment > 0) {
-    adjustments.push({
-      factor: 'Premium Features',
-      impact: valueMultiplier * featureValueAdjustment,
-      description: `${features.length} premium features adding value`,
-      percentAdjustment: (featureValueAdjustment / baseValue) * 100,
-      adjustment: valueMultiplier * featureValueAdjustment
-    });
-  }
-  
-  return adjustments;
-};
-
-function calculateTotalFeatureValue(features: string[]): number {
-  // Map of feature values
+  // Feature adjustment values as a percentage of the base value
   const featureValues: Record<string, number> = {
-    'leather': 800,
-    'sunroof': 600,
-    'navigation': 500,
-    'premium_audio': 700,
-    'heated_seats': 400,
-    'power_seats': 350,
-    'third_row': 1000,
-    'awd': 1200,
-    'alloy_wheels': 450,
-    'tow_package': 800
+    'leather_seats': 0.03,
+    'sunroof': 0.02,
+    'navigation': 0.015,
+    'premium_audio': 0.02,
+    'heated_seats': 0.01,
+    'bluetooth': 0.005,
+    'backup_camera': 0.01,
+    'third_row': 0.025,
+    'alloy_wheels': 0.01,
+    'remote_start': 0.01,
+    'towing_package': 0.03,
+    'lane_assist': 0.015,
+    'blind_spot': 0.015,
+    'parking_sensors': 0.01,
+    'adaptive_cruise': 0.02,
+    'premium_package': 0.05
   };
   
-  return features.reduce((total, feature) => {
-    return total + (featureValues[feature] || 0);
-  }, 0);
-}
+  // Calculate total adjustment
+  let totalAdjustment = 0;
+  
+  selectedFeatures.forEach(feature => {
+    if (featureValues[feature]) {
+      totalAdjustment += baseValue * featureValues[feature];
+    }
+  });
+  
+  // Apply a diminishing return for large numbers of features
+  if (selectedFeatures.length > 5) {
+    const diminishingFactor = 1 - ((selectedFeatures.length - 5) * 0.05);
+    totalAdjustment *= Math.max(0.7, diminishingFactor);
+  }
+  
+  return Math.round(totalAdjustment);
+};

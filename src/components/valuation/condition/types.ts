@@ -13,4 +13,18 @@ export interface ConditionValues {
   year: number;
   titleStatus: string;
   zipCode?: string;
+  [key: string]: string | number | undefined;
+}
+
+export interface ConditionTipsProps {
+  category: string;
+  rating: number | string;
+  tip?: string;
+  selectedRatings?: Record<string, { value: number; description: string }>;
+}
+
+export interface ConditionOption {
+  value: number;
+  label: string;
+  description: string;
 }

@@ -1,4 +1,3 @@
-
 import { ValuationParams, ValuationResult } from '@/utils/valuation/types';
 import { generatePdf } from '@/utils/pdf/pdfGenerator';
 import { formatCurrency } from '@/utils/formatters';
