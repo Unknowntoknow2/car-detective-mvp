@@ -1,3 +1,4 @@
+
 import { DecodedVehicleInfo } from './vehicle';
 
 export interface APIResponse<T> {
@@ -8,6 +9,25 @@ export interface APIResponse<T> {
 }
 
 export interface DecodedVINResponse {
+  success: boolean;
+  data?: DecodedVehicleInfo;
+  error?: string;
+}
+
+export interface PlateLookupResponse {
+  success: boolean;
+  data?: {
+    plate: string;
+    state: string;
+    make?: string;
+    model?: string;
+    year?: number;
+    vin?: string;
+  };
+  error?: string;
+}
+
+export interface VinDecoderResponse {
   success: boolean;
   data?: DecodedVehicleInfo;
   error?: string;
@@ -42,8 +62,8 @@ export interface Valuation {
   condition: string;
   estimated_value: number;
   confidence_score: number;
+  condition_score?: number;
   created_at: string;
   features?: string[];
   isPremium?: boolean;
-  condition_score?: number;
 }

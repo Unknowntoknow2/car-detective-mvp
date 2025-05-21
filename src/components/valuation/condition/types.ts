@@ -14,6 +14,10 @@ export interface ConditionValues {
   titleStatus: string;
   zipCode?: string;
   [key: string]: string | number | undefined;
+  exteriorGrade?: number;
+  interiorGrade?: number;
+  mechanicalGrade?: number;
+  tireCondition?: number;
 }
 
 export interface ConditionTipsProps {

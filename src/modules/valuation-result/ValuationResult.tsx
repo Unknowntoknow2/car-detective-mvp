@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from './sections/Header';
@@ -10,7 +11,7 @@ import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
 import { useValuationData } from './hooks/useValuationData';
 import { useValuationPdfHelper } from './hooks/useValuationPdfHelper';
-import { ValuationContextProvider } from './context/ValuationContext';
+import { ValuationProvider } from './context/ValuationContext';
 import { AICondition } from '@/types/photo';
 
 interface ValuationResultProps {
@@ -36,10 +37,9 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   const { data, isLoading, error, refetch } = useValuationData(id || '');
   
   // PDF generation helpers
-  const { isGenerating: isDownloading, handleDownloadPdf } = useValuationPdfHelper({
+  const { isDownloading, handleDownloadPdf } = useValuationPdfHelper({
     valuationData: data,
-    conditionData: photoCondition,
-    isPremium
+    conditionData: photoCondition
   });
   
   const [isEmailSending, setIsEmailSending] = useState(false);
@@ -88,7 +88,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   const estimatedValue = data.estimatedValue || data.estimated_value || 0;
   
   return (
-    <ValuationContextProvider
+    <ValuationProvider
       value={{
         valuationData: data,
         isPremium,
@@ -115,9 +115,11 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         
         <Summary
           confidenceScore={data.confidenceScore || data.confidence_score || 75}
-          priceRange={data.priceRange || {
-            min: Math.round(estimatedValue * 0.95),
-            max: Math.round(estimatedValue * 1.05)
+          priceRange={{
+            low: data.priceRange ? (Array.isArray(data.priceRange) ? data.priceRange[0] : data.priceRange.min) 
+                : Math.round(estimatedValue * 0.95),
+            high: data.priceRange ? (Array.isArray(data.priceRange) ? data.priceRange[1] : data.priceRange.max) 
+                : Math.round(estimatedValue * 1.05)
           }}
           marketTrend="stable"
           recommendationText="Based on current market conditions, this vehicle is priced competitively."
@@ -126,7 +128,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <PhotoAnalysis
             photoUrl={data.bestPhotoUrl || data.photo_url}
-            photoScore={data.photoScore}
+            photoScoreValue={data.photoScore}
             condition={photoCondition}
             isPremium={isPremium}
             onUpgrade={handleUpgrade}
@@ -154,7 +156,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
           isEmailSending={isEmailSending}
         />
       </div>
-    </ValuationContextProvider>
+    </ValuationProvider>
   );
 };
 
