@@ -36,10 +36,10 @@ export async function askAI({ question, userContext, chatHistory, valuationId }:
             year: valuation.year,
             mileage: valuation.mileage,
             condition: valuation.condition || 'Unknown',
-            zipCode: valuation.zip_code || valuation.zipCode || '',
-            estimatedValue: valuation.estimated_value || valuation.estimatedValue,
-            confidenceScore: valuation.confidence_score || valuation.confidenceScore,
-            isPremium: valuation.premium_unlocked
+            zipCode: valuation.zipCode || valuation.zip_code || '',
+            estimatedValue: valuation.estimatedValue || valuation.estimated_value,
+            confidenceScore: valuation.confidenceScore || valuation.confidence_score,
+            isPremium: valuation.isPremium || valuation.premium_unlocked
           }
         };
       }

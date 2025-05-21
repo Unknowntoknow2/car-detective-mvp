@@ -11,7 +11,7 @@ export function AccidentToggle({ hasAccident, onToggle }: AccidentToggleProps) {
   // Convert hasAccident to string for comparison
   const hasAccidentStr = typeof hasAccident === 'boolean'
     ? hasAccident ? 'yes' : 'no'
-    : hasAccident;
+    : hasAccident || 'no';
     
   return (
     <div className="flex space-x-4">

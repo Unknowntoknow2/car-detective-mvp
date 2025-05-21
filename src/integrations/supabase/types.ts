@@ -1812,6 +1812,30 @@ export type Database = {
         }
         Relationships: []
       }
+      vin_lookup_requests: {
+        Row: {
+          id: string
+          requested_at: string
+          requested_by: string | null
+          status: string | null
+          vin: string
+        }
+        Insert: {
+          id?: string
+          requested_at?: string
+          requested_by?: string | null
+          status?: string | null
+          vin: string
+        }
+        Update: {
+          id?: string
+          requested_at?: string
+          requested_by?: string | null
+          status?: string | null
+          vin?: string
+        }
+        Relationships: []
+      }
       vpic_cache: {
         Row: {
           fetched_at: string | null

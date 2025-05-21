@@ -8,7 +8,7 @@ export interface PhotoScore {
 export interface AICondition {
   condition: string;
   confidenceScore: number;
-  issuesDetected: any[];
+  issuesDetected: string[];
   summary: string;
 }
 
