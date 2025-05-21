@@ -39,7 +39,8 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   // PDF generation helpers
   const { isDownloading, handleDownloadPdf } = useValuationPdfHelper({
     valuationData: data,
-    conditionData: photoCondition
+    conditionData: photoCondition,
+    isPremium
   });
   
   const [isEmailSending, setIsEmailSending] = useState(false);
@@ -87,6 +88,16 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   // Calculate estimated value
   const estimatedValue = data.estimatedValue || data.estimated_value || 0;
   
+  // Determine price range
+  const priceRange = {
+    low: data.priceRange ? (Array.isArray(data.priceRange) ? data.priceRange[0] : 
+         (data.priceRange as any).min || Math.round(estimatedValue * 0.95)) : 
+         Math.round(estimatedValue * 0.95),
+    high: data.priceRange ? (Array.isArray(data.priceRange) ? data.priceRange[1] : 
+         (data.priceRange as any).max || Math.round(estimatedValue * 1.05)) : 
+         Math.round(estimatedValue * 1.05)
+  };
+  
   return (
     <ValuationProvider
       value={{
@@ -115,12 +126,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         
         <Summary
           confidenceScore={data.confidenceScore || data.confidence_score || 75}
-          priceRange={{
-            low: data.priceRange ? (Array.isArray(data.priceRange) ? data.priceRange[0] : data.priceRange.min) 
-                : Math.round(estimatedValue * 0.95),
-            high: data.priceRange ? (Array.isArray(data.priceRange) ? data.priceRange[1] : data.priceRange.max) 
-                : Math.round(estimatedValue * 1.05)
-          }}
+          priceRange={priceRange}
           marketTrend="stable"
           recommendationText="Based on current market conditions, this vehicle is priced competitively."
         />
@@ -128,7 +134,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <PhotoAnalysis
             photoUrl={data.bestPhotoUrl || data.photo_url}
-            photoScoreValue={data.photoScore}
+            photoScore={data.photoScore}
             condition={photoCondition}
             isPremium={isPremium}
             onUpgrade={handleUpgrade}
@@ -161,3 +167,4 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
 };
 
 export default ValuationResult;
+export { ValuationResult };

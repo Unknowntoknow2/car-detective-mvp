@@ -1,42 +1,45 @@
 
 import { useState } from 'react';
-import { ValuationResult } from '@/types/valuation';
 import { AICondition } from '@/types/photo';
 
-interface UseValuationPdfHelperProps {
-  valuationData: ValuationResult | null;
+export interface UseValuationPdfHelperProps {
+  valuationData: any;
   conditionData: AICondition | null;
+  isPremium?: boolean;
 }
 
-export function useValuationPdfHelper({ 
-  valuationData, 
-  conditionData 
-}: UseValuationPdfHelperProps) {
+export const useValuationPdfHelper = ({
+  valuationData,
+  conditionData,
+  isPremium
+}: UseValuationPdfHelperProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
-  
-  const handleDownloadPdf = async (): Promise<void> => {
+
+  const handleDownloadPdf = async () => {
     if (!valuationData) {
-      console.error('Cannot download PDF: No valuation data');
+      console.error('No valuation data available');
       return;
     }
-    
+
     setIsDownloading(true);
     
     try {
-      // Simulating PDF download for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('PDF would be downloaded for:', valuationData.id);
+      // Simulate PDF generation (would be actual implementation in real code)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('PDF downloaded with data:', { valuationData, conditionData, isPremium });
       
-      // In a real implementation, this would call an API to generate and download a PDF
+      // In a real implementation, this would generate and download the PDF
     } catch (error) {
       console.error('Error downloading PDF:', error);
     } finally {
       setIsDownloading(false);
     }
   };
-  
+
   return {
     isDownloading,
     handleDownloadPdf
   };
-}
+};
+
+export default useValuationPdfHelper;

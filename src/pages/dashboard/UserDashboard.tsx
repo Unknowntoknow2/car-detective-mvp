@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -131,7 +130,7 @@ export default function UserDashboard() {
                           year={valuation.year || new Date().getFullYear()}
                           estimatedValue={valuation.estimated_value || 0}
                           confidenceScore={valuation.confidence_score}
-                          condition={getConditionLabel(valuation.condition_score)}
+                          condition={getConditionLabel((valuation as any).condition_score || valuation.confidenceScore || 0)}
                           isPremium={!!valuation.premium_unlocked}
                           created_at={valuation.created_at}
                           index={index}
