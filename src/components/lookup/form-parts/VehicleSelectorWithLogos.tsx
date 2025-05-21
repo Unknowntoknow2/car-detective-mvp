@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getModelsByMakeId } from '@/api/vehicleApi';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { useLocalization } from '@/i18n/useLocalization';
+import { errorHandler } from '@/utils/error-handling';
+import ErrorBoundary from '@/components/lookup/ErrorBoundary';
+import { ComboBoxItem } from '@/types/ui-components';
 
 interface VehicleSelectorWithLogosProps {
   selectedMake: string;
@@ -13,6 +14,8 @@ interface VehicleSelectorWithLogosProps {
   selectedModel: string;
   onModelChange: (model: string) => void;
   disabled?: boolean;
+  required?: boolean;
+  onValidChange?: (isValid: boolean) => void;
 }
 
 export function VehicleSelectorWithLogos({
@@ -20,22 +23,22 @@ export function VehicleSelectorWithLogos({
   onMakeChange,
   selectedModel,
   onModelChange,
-  disabled = false
+  disabled = false,
+  required = false,
+  onValidChange
 }: VehicleSelectorWithLogosProps) {
-  const { makes, isLoading, error, refreshData } = useVehicleData();
-  const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
+  const { makes, getModelsByMake, isLoading, error } = useVehicleData();
+  const [modelOptions, setModelOptions] = useState<ComboBoxItem[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
-  const [loadingError, setLoadingError] = useState<string | null>(null);
-
-  // Debug effect to log component props
+  const { t, isRTL } = useLocalization();
+  
+  // Validate selection and notify parent if necessary
   useEffect(() => {
-    console.log("VehicleSelectorWithLogos: Props", { 
-      selectedMake, 
-      selectedModel, 
-      disabled,
-      makesCount: makes?.length || 0
-    });
-  }, [selectedMake, selectedModel, disabled, makes]);
+    if (onValidChange) {
+      const isValid = !required || (!!selectedMake && !!selectedModel);
+      onValidChange(isValid);
+    }
+  }, [selectedMake, selectedModel, required, onValidChange]);
 
   // Effect to update model options when make changes
   useEffect(() => {
@@ -45,28 +48,16 @@ export function VehicleSelectorWithLogos({
       if (selectedMake) {
         try {
           setLoadingModels(true);
-          setLoadingError(null);
-          
-          // Find the make by name first
-          const selectedMakeObj = makes.find(make => make.make_name === selectedMake);
-          
-          if (selectedMakeObj) {
-            console.log("VehicleSelectorWithLogos: Found make ID", selectedMakeObj.id);
-            // Fetch models for this make ID
-            const models = await getModelsByMakeId(selectedMakeObj.id);
-            const mappedModels = models.map(model => ({
-              value: model.model_name,
-              label: model.model_name
-            }));
-            console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
-            setModelOptions(mappedModels);
-          } else {
-            console.warn("VehicleSelectorWithLogos: Make not found for name", selectedMake);
-            setModelOptions([]);
-          }
+          const fetchedModels = await getModelsByMake(selectedMake);
+          const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
+          const mappedModels = safeModels.map(model => ({
+            value: model.model_name,
+            label: model.model_name
+          }));
+          console.log(`VehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
+          setModelOptions(mappedModels);
         } catch (error) {
-          console.error("Error fetching models:", error);
-          setLoadingError("Failed to load models. Please try again.");
+          errorHandler.handle(error, 'VehicleSelector.fetchModels');
           setModelOptions([]);
         } finally {
           setLoadingModels(false);
@@ -74,68 +65,40 @@ export function VehicleSelectorWithLogos({
       } else {
         console.log("VehicleSelectorWithLogos: No make selected, clearing models");
         setModelOptions([]);
-        setLoadingError(null);
       }
     }
     
     fetchModels();
-  }, [selectedMake, makes]);
-
-  const handleRefresh = async () => {
-    console.log("VehicleSelectorWithLogos: Manual refresh requested");
-    await refreshData(true); // Force refresh from API
-  };
+  }, [selectedMake, getModelsByMake]);
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" aria-busy="true" aria-label={t('vehicle.selector.loadingMakes', 'Loading vehicle makes...')}>
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-10 w-full" />
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="p-4 border border-red-200 rounded-md bg-red-50">
-        <p className="text-red-700">Failed to load vehicle data. Please try again later.</p>
-        <p className="text-sm text-red-500 mt-1">{error}</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="mt-2"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" /> Refresh Data
-        </Button>
+        <p className="text-red-700 text-sm">
+          {t('common.errors.dataLoad', 'Failed to load vehicle data')}
+        </p>
+        <p className="text-red-600 text-xs mt-1">
+          {typeof error === 'string' ? error : 'Unknown error'}
+        </p>
       </div>
     );
   }
 
-  if (!makes || makes.length === 0) {
-    return (
-      <div className="p-4 border border-amber-200 rounded-md bg-amber-50">
-        <p className="text-amber-700">No vehicle data available.</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="mt-2"
-          onClick={handleRefresh}
-        >
-          <RefreshCw className="h-4 w-4 mr-2" /> Refresh Data
-        </Button>
-      </div>
-    );
-  }
-
-  // Ensure makes is properly mapped to ComboBox items
-  const makesOptions = Array.isArray(makes) ? makes.map(make => ({
+  // Map makes to ComboBox items and filter out null icons
+  const makesOptions: ComboBoxItem[] = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
-    icon: make.logo_url
+    icon: make.logo_url || undefined  // Convert null to undefined
   })) : [];
-  
-  console.log("VehicleSelectorWithLogos: Available makes count:", makesOptions.length);
 
   const handleMakeChange = (make: string) => {
     console.log("VehicleSelectorWithLogos: Make selection changed to:", make);
@@ -150,44 +113,51 @@ export function VehicleSelectorWithLogos({
   };
 
   return (
-    <div className="space-y-4">
-      <ComboBox
-        items={makesOptions}
-        value={selectedMake}
-        onChange={handleMakeChange}
-        placeholder="Select a make"
-        emptyText="No makes found"
-        disabled={disabled}
-        className="w-full"
-      />
-      
-      {loadingError && (
-        <div className="text-xs text-red-500 mt-1 mb-2">{loadingError}</div>
-      )}
-      
-      <ComboBox
-        items={modelOptions}
-        value={selectedModel}
-        onChange={handleModelChange}
-        placeholder={selectedMake 
-          ? (loadingModels ? "Loading models..." : "Select a model") 
-          : "Select a make first"}
-        emptyText="No models found"
-        disabled={!selectedMake || disabled || loadingModels}
-        className="w-full"
-      />
-      
-      {(makes.length === 0 || makesOptions.length === 0) && (
-        <div className="mt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" /> Refresh Vehicle Data
-          </Button>
+    <ErrorBoundary>
+      <div className={`space-y-4 ${isRTL ? 'rtl' : 'ltr'}`}>
+        <div className="space-y-2">
+          <label htmlFor="make" className="text-sm font-medium flex items-center">
+            {t('vehicle.selector.makeLabel', 'Make')}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </label>
+          
+          <ComboBox
+            items={makesOptions}
+            value={selectedMake}
+            onChange={handleMakeChange}
+            placeholder={t('vehicle.selector.makePlaceholder', 'Select a make')}
+            emptyText={t('vehicle.selector.noMakesFound', 'No makes found')}
+            disabled={disabled}
+            className="w-full"
+          />
         </div>
-      )}
-    </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="model" className="text-sm font-medium flex items-center">
+            {t('vehicle.selector.modelLabel', 'Model')}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </label>
+          
+          <ComboBox
+            items={modelOptions}
+            value={selectedModel}
+            onChange={handleModelChange}
+            placeholder={
+              selectedMake 
+                ? (loadingModels 
+                  ? t('vehicle.selector.loadingModels', 'Loading models...') 
+                  : t('vehicle.selector.modelPlaceholder', 'Select a model')
+                ) 
+                : t('vehicle.selector.selectMakeFirst', 'Select a make first')
+            }
+            emptyText={t('vehicle.selector.noModelsFound', 'No models found')}
+            disabled={!selectedMake || disabled || loadingModels}
+            className="w-full"
+          />
+        </div>
+      </div>
+    </ErrorBoundary>
   );
 }
+
+export default VehicleSelectorWithLogos;

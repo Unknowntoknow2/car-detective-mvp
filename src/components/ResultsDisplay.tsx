@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Flame, Shield, Star, Zap } from "lucide-react";
@@ -31,6 +32,10 @@ const conditionTips = {
   }
 };
 
+// Valid condition types
+type ValidCondition = keyof typeof conditionTips;
+type ValidCategory = keyof typeof categoryIcons;
+
 export default function ResultsDisplay({ valuation }: { valuation: any }) {
   const [features, setFeatures] = useState<any[]>([]);
   const [dealerOffers, setDealerOffers] = useState<any[]>([]);
@@ -62,13 +67,21 @@ export default function ResultsDisplay({ valuation }: { valuation: any }) {
     ]);
   }, [valuation]);
 
+  // Type guard to check if the condition is valid
+  const isValidCondition = (condition: string): condition is ValidCondition => 
+    condition in conditionTips;
+  
+  // Type guard for category
+  const isValidCategory = (category: string): category is ValidCategory =>
+    category in categoryIcons;
+
   return (
     <div className="bg-white rounded-xl shadow p-6 mt-6">
       <h3 className="text-xl font-bold mb-4">Your Vehicle Valuation</h3>
       <p className="text-lg">Estimated Value: <strong>${valuation.estimatedValue}</strong></p>
       <p className="text-sm text-gray-500">Confidence: {valuation.confidence}%</p>
 
-      {valuation.condition && (
+      {valuation.condition && isValidCondition(valuation.condition) && (
         <div className="mt-4 bg-gray-50 p-3 rounded-md">
           <h4 className="font-semibold text-lg mb-2">Vehicle Condition: {valuation.condition}</h4>
           <div className="flex items-start space-x-3">
@@ -96,7 +109,7 @@ export default function ResultsDisplay({ valuation }: { valuation: any }) {
                   className="bg-gray-50 p-3 rounded-md shadow-sm flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-2">
-                    {categoryIcons[f.category] || null}
+                    {isValidCategory(f.category) ? categoryIcons[f.category] : null}
                     <span className="text-sm">{f.name}</span>
                   </div>
                   <span className="text-green-600 font-medium text-sm">+${f.value_impact}</span>

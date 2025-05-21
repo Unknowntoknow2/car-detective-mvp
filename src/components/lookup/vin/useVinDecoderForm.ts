@@ -1,4 +1,3 @@
-// ✅ File: src/components/lookup/vin/useVinDecoderForm.ts
 
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -45,8 +44,9 @@ export function useVinDecoderForm() {
       setCarfaxData(null);
       setCarfaxError(null);
 
-      const decoded = await lookupVin(vin);
-      if (!decoded) {
+      await lookupVin(vin);
+      // Check result after async operation, not the promise itself
+      if (!result) {
         toast.error('VIN lookup failed. Try again.');
         return;
       }

@@ -12,8 +12,91 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { DealerVehicleFormData } from '@/types/dealerVehicle';
-import { ImageUploadSection } from './vehicle-upload/ImageUploadSection';
-import { ConditionSelector } from './vehicle-upload/ConditionSelector';
+
+// Define ImageUploadSectionProps interface
+interface ImageUploadSectionProps {
+  onPhotosChange: (newPhotos: File[]) => void;
+  photos?: File[];
+}
+
+// Simple implementation of ImageUploadSection
+const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({ 
+  onPhotosChange, 
+  photos = [] 
+}) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFiles = Array.from(e.target.files);
+      onPhotosChange(selectedFiles);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Label>Vehicle Photos</Label>
+      <div className="border-2 border-dashed rounded-md p-4 text-center">
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="file-upload"
+        />
+        <Label htmlFor="file-upload" className="cursor-pointer">
+          <div className="py-8 flex flex-col items-center justify-center">
+            <p className="text-sm text-gray-500">
+              Click to upload or drag and drop
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              PNG, JPG, WEBP up to 10MB
+            </p>
+          </div>
+        </Label>
+      </div>
+      
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mt-2">
+          {photos.map((photo, index) => (
+            <div key={index} className="relative aspect-square bg-gray-100 rounded overflow-hidden">
+              <img
+                src={URL.createObjectURL(photo)}
+                alt={`Vehicle photo ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Simple implementation of ConditionSelector
+const ConditionSelector: React.FC<{
+  value: "Excellent" | "Good" | "Fair" | "Poor";
+  onChange: (value: "Excellent" | "Good" | "Fair" | "Poor") => void;
+}> = ({ value, onChange }) => {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="condition">Condition</Label>
+      <Select
+        value={value}
+        onValueChange={(val) => onChange(val as "Excellent" | "Good" | "Fair" | "Poor")}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select condition" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="Excellent">Excellent</SelectItem>
+          <SelectItem value="Good">Good</SelectItem>
+          <SelectItem value="Fair">Fair</SelectItem>
+          <SelectItem value="Poor">Poor</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
 
 interface VehicleUploadFormProps {
   onSubmit: (data: DealerVehicleFormData, photos?: File[]) => void;
@@ -47,7 +130,7 @@ export const VehicleUploadForm: React.FC<VehicleUploadFormProps> = ({
   };
   
   const handlePhotosChange = (newPhotos: File[]) => {
-    setPhotos(newPhotos);
+    setPhotos([...photos, ...newPhotos]);
   };
   
   return (
@@ -117,24 +200,10 @@ export const VehicleUploadForm: React.FC<VehicleUploadFormProps> = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="condition">Condition</Label>
-          <Select 
-            value={selectedCondition} 
-            onValueChange={(value) => handleConditionChange(value as "Excellent" | "Good" | "Fair" | "Poor")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Excellent">Excellent</SelectItem>
-              <SelectItem value="Good">Good</SelectItem>
-              <SelectItem value="Fair">Fair</SelectItem>
-              <SelectItem value="Poor">Poor</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.condition && <p className="text-sm text-red-500">{errors.condition.message}</p>}
-        </div>
+        <ConditionSelector
+          value={selectedCondition}
+          onChange={handleConditionChange}
+        />
         
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
@@ -160,7 +229,7 @@ export const VehicleUploadForm: React.FC<VehicleUploadFormProps> = ({
           <Label htmlFor="fuel_type">Fuel Type</Label>
           <Select 
             defaultValue={watch('fuel_type')} 
-            onValueChange={(value) => setValue('fuel_type', value as "Gasoline" | "Diesel" | "Hybrid" | "Electric")}
+            onValueChange={(value) => setValue('fuel_type', value as "Gasoline" | "Diesel" | "Hybrid" | "Electric" | undefined)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select fuel type" />
@@ -172,14 +241,13 @@ export const VehicleUploadForm: React.FC<VehicleUploadFormProps> = ({
               <SelectItem value="Electric">Electric</SelectItem>
             </SelectContent>
           </Select>
-          {errors.fuel_type && <p className="text-sm text-red-500">{errors.fuel_type.message}</p>}
         </div>
         
         <div className="space-y-2">
           <Label htmlFor="transmission">Transmission</Label>
           <Select 
             defaultValue={watch('transmission')} 
-            onValueChange={(value) => setValue('transmission', value as "Automatic" | "Manual")}
+            onValueChange={(value) => setValue('transmission', value as "Automatic" | "Manual" | "CVT" | undefined)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select transmission" />
@@ -187,45 +255,34 @@ export const VehicleUploadForm: React.FC<VehicleUploadFormProps> = ({
             <SelectContent>
               <SelectItem value="Automatic">Automatic</SelectItem>
               <SelectItem value="Manual">Manual</SelectItem>
+              <SelectItem value="CVT">CVT</SelectItem>
             </SelectContent>
           </Select>
-          {errors.transmission && <p className="text-sm text-red-500">{errors.transmission.message}</p>}
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="zip_code">ZIP Code</Label>
-        <Input 
-          id="zip_code" 
-          {...register('zip_code', { 
-            required: 'ZIP code is required',
-            pattern: {
-              value: /^\d{5}$/,
-              message: 'Please enter a valid 5-digit ZIP code'
-            }
-          })} 
-        />
-        {errors.zip_code && <p className="text-sm text-red-500">{errors.zip_code.message}</p>}
-      </div>
-      
-      <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <textarea 
-          id="description" 
-          className="w-full p-2 border rounded-lg min-h-[100px]"
-          {...register('description')} 
-        />
-        {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+        <textarea
+          id="description"
+          {...register('description')}
+          className="w-full rounded-md border border-gray-300 p-2"
+          rows={4}
+        ></textarea>
       </div>
       
-      <div className="space-y-2">
-        <Label>Photos</Label>
-        <ImageUploadSection onPhotosChange={handlePhotosChange} />
-      </div>
+      <ImageUploadSection
+        onPhotosChange={handlePhotosChange}
+        photos={photos}
+      />
       
-      <Button type="submit" className="w-full">
-        Submit Vehicle
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit">
+          Submit
+        </Button>
+      </div>
     </form>
   );
 };
+
+export default VehicleUploadForm;

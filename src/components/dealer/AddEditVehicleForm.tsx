@@ -1,461 +1,302 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
-import { vehicleSchema, VehicleFormValues } from './schemas/vehicleSchema';
-import { useVehicleUpload } from './hooks/useVehicleUpload';
-import { Loading } from '@/components/ui/loading';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DealerVehicleFormData } from '@/types/vehicle';
 
-export interface AddEditVehicleFormProps {
-  vehicleId?: string;
-  onSuccess?: () => void;
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { 
+  Card, CardContent, CardFooter, CardHeader, CardTitle 
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { LoaderCircle, Upload } from 'lucide-react';
+import { DealerVehicleFormData } from '@/types/dealerVehicle';
+
+interface AddEditVehicleFormProps {
+  initialData?: Partial<DealerVehicleFormData>;
+  onSubmit: (data: DealerVehicleFormData, photos?: File[]) => void;
+  isSubmitting?: boolean;
+  title?: string;
+  buttonText?: string;
 }
 
-const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ vehicleId, onSuccess }) => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
+  initialData,
+  onSubmit,
+  isSubmitting = false,
+  title = 'Add Vehicle',
+  buttonText = 'Add Vehicle'
+}) => {
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoNames, setPhotoNames] = useState<string[]>([]);
   
-  const {
-    isUploading,
-    photoUrls,
-    setPhotoUrls,
-    handlePhotoUpload,
-    removePhoto,
-    addVehicle,
-    updateVehicle,
-    fetchVehicle
-  } = useVehicleUpload();
-  
-  const form = useForm<VehicleFormValues>({
-    resolver: zodResolver(vehicleSchema),
-    defaultValues: {
-      make: '',
-      model: '',
-      year: new Date().getFullYear(),
-      price: 0,
-      mileage: 0,
-      condition: 'Good',
-      status: 'available',
-      transmission: undefined,
-      fuel_type: undefined,
-      zip_code: ''
-    }
+  const { register, handleSubmit, formState: { errors } } = useForm<DealerVehicleFormData>({
+    defaultValues: initialData
   });
   
-  useEffect(() => {
-    const loadVehicle = async () => {
-      const idToUse = vehicleId || id;
-      if (idToUse) {
-        setIsLoading(true);
-        try {
-          const vehicle = await fetchVehicle(idToUse);
-          if (vehicle) {
-            form.reset({
-              make: vehicle.make,
-              model: vehicle.model,
-              year: vehicle.year,
-              price: vehicle.price,
-              mileage: vehicle.mileage || 0,
-              condition: vehicle.condition as "Excellent" | "Good" | "Fair" | "Poor",
-              status: vehicle.status as "available" | "pending" | "sold",
-              transmission: vehicle.transmission as "Automatic" | "Manual" | undefined,
-              fuel_type: vehicle.fuel_type as "Gasoline" | "Diesel" | "Hybrid" | "Electric" | undefined,
-              zip_code: vehicle.zip_code || '',
-              description: vehicle.description || ''
-            });
-            
-            if (vehicle.photos && Array.isArray(vehicle.photos)) {
-              // Convert JSON array to string array
-              const photoUrlStrings = vehicle.photos.map(photo => String(photo));
-              setPhotoUrls(photoUrlStrings);
-            }
-          } else {
-            toast.error('Vehicle not found');
-            navigate('/dealer/inventory');
-          }
-        } catch (error) {
-          toast.error('Failed to load vehicle');
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    loadVehicle();
-  }, [vehicleId, id, fetchVehicle, form, navigate, setPhotoUrls]);
+  const onFormSubmit = (data: DealerVehicleFormData) => {
+    onSubmit(data, photos.length > 0 ? photos : undefined);
+  };
   
-  const onSubmit = async (data: VehicleFormValues) => {
-    try {
-      setIsSubmitting(true);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const fileList = Array.from(e.target.files);
+      setPhotos([...photos, ...fileList]);
       
-      // Convert VehicleFormValues to DealerVehicleFormData
-      const vehicleData: DealerVehicleFormData = {
-        make: data.make,
-        model: data.model,
-        year: data.year,
-        price: data.price,
-        mileage: data.mileage,
-        condition: data.condition,
-        status: data.status,
-        transmission: data.transmission,
-        fuel_type: data.fuel_type,
-        zip_code: data.zip_code,
-        description: data.description
-      };
+      // Display file names
+      const names = fileList.map(file => file.name);
+      setPhotoNames([...photoNames, ...names]);
       
-      const idToUpdate = vehicleId || id;
-      if (idToUpdate) {
-        await updateVehicle(idToUpdate, vehicleData);
-        toast.success('Vehicle updated successfully');
-      } else {
-        await addVehicle(vehicleData);
-        toast.success('Vehicle added successfully');
-      }
-      
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        navigate('/dealer/inventory');
-      }
-    } catch (error) {
-      console.error('Error saving vehicle:', error);
-      toast.error('Failed to save vehicle');
-    } finally {
-      setIsSubmitting(false);
+      // Reset input
+      e.target.value = '';
     }
   };
   
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <Loading />
-      </div>
-    );
-  }
+  const removePhoto = (index: number) => {
+    const updatedPhotos = [...photos];
+    updatedPhotos.splice(index, 1);
+    setPhotos(updatedPhotos);
+    
+    const updatedPhotoNames = [...photoNames];
+    updatedPhotoNames.splice(index, 1);
+    setPhotoNames(updatedPhotoNames);
+  };
+  
+  const removePhotoByName = (photoName: string) => {
+    const index = photoNames.findIndex(name => name === photoName);
+    if (index !== -1) {
+      removePhoto(index);
+    }
+  };
   
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Vehicle information fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Make field */}
-          <FormField
-            control={form.control}
-            name="make"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Make</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Toyota" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="make">Make</Label>
+              <Input 
+                id="make" 
+                {...register('make', { required: 'Make is required' })}
+              />
+              {errors.make && <p className="text-red-500 text-sm">{errors.make.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="model">Model</Label>
+              <Input 
+                id="model" 
+                {...register('model', { required: 'Model is required' })}
+              />
+              {errors.model && <p className="text-red-500 text-sm">{errors.model.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="year">Year</Label>
+              <Input 
+                id="year" 
+                type="number" 
+                {...register('year', { 
+                  required: 'Year is required',
+                  valueAsNumber: true,
+                  min: {
+                    value: 1900,
+                    message: 'Year must be at least 1900'
+                  },
+                  max: {
+                    value: new Date().getFullYear() + 1,
+                    message: 'Year cannot be in the future'
+                  }
+                })}
+              />
+              {errors.year && <p className="text-red-500 text-sm">{errors.year.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="price">Price ($)</Label>
+              <Input 
+                id="price" 
+                type="number" 
+                {...register('price', { 
+                  required: 'Price is required',
+                  valueAsNumber: true,
+                  min: {
+                    value: 0,
+                    message: 'Price must be positive'
+                  }
+                })}
+              />
+              {errors.price && <p className="text-red-500 text-sm">{errors.price.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="mileage">Mileage</Label>
+              <Input 
+                id="mileage" 
+                type="number" 
+                {...register('mileage', { 
+                  valueAsNumber: true,
+                  min: {
+                    value: 0,
+                    message: 'Mileage must be positive'
+                  }
+                })}
+              />
+              {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="condition">Condition</Label>
+              <select 
+                id="condition"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                {...register('condition', { required: 'Condition is required' })}
+              >
+                <option value="Excellent">Excellent</option>
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Poor">Poor</option>
+              </select>
+              {errors.condition && <p className="text-red-500 text-sm">{errors.condition.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <select 
+                id="status"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                {...register('status', { required: 'Status is required' })}
+              >
+                <option value="available">Available</option>
+                <option value="pending">Pending</option>
+                <option value="sold">Sold</option>
+              </select>
+              {errors.status && <p className="text-red-500 text-sm">{errors.status.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="transmission">Transmission</Label>
+              <select 
+                id="transmission"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                {...register('transmission')}
+              >
+                <option value="">Select transmission</option>
+                <option value="Automatic">Automatic</option>
+                <option value="Manual">Manual</option>
+                <option value="CVT">CVT</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="fuel_type">Fuel Type</Label>
+              <select 
+                id="fuel_type"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                {...register('fuel_type')}
+              >
+                <option value="">Select fuel type</option>
+                <option value="Gasoline">Gasoline</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Electric">Electric</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="zip_code">ZIP Code</Label>
+              <Input 
+                id="zip_code" 
+                {...register('zip_code')}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="vin">VIN</Label>
+              <Input 
+                id="vin" 
+                {...register('vin')}
+              />
+            </div>
+          </div>
           
-          {/* Model field */}
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Camry" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Year field */}
-          <FormField
-            control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
-                    placeholder="e.g. 2020" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Price field */}
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    placeholder="e.g. 25000" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Mileage field */}
-          <FormField
-            control={form.control}
-            name="mileage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mileage</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    value={field.value ?? 0}
-                    placeholder="e.g. 50000" 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Condition field */}
-          <FormField
-            control={form.control}
-            name="condition"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Condition</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select condition" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Excellent">Excellent</SelectItem>
-                    <SelectItem value="Good">Good</SelectItem>
-                    <SelectItem value="Fair">Fair</SelectItem>
-                    <SelectItem value="Poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Status field */}
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="sold">Sold</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Transmission field */}
-          <FormField
-            control={form.control}
-            name="transmission"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Transmission</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value || ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select transmission" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="">Not specified</SelectItem>
-                    <SelectItem value="Automatic">Automatic</SelectItem>
-                    <SelectItem value="Manual">Manual</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Fuel Type field */}
-          <FormField
-            control={form.control}
-            name="fuel_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fuel Type</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value || ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select fuel type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="">Not specified</SelectItem>
-                    <SelectItem value="Gasoline">Gasoline</SelectItem>
-                    <SelectItem value="Diesel">Diesel</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
-                    <SelectItem value="Electric">Electric</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Zip Code field */}
-          <FormField
-            control={form.control}
-            name="zip_code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Zip Code</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. 10001" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        {/* Description field */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea 
-                  {...field} 
-                  value={field.value || ''}
-                  placeholder="Enter vehicle description" 
-                  className="min-h-[100px]" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {/* Photos upload section */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Photos</h3>
-            <Button 
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById('photo-upload')?.click()}
-              disabled={isSubmitting || isUploading}
-            >
-              Add Photos
-            </Button>
-            <input
-              id="photo-upload"
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => {
-                if (e.target.files) {
-                  handlePhotoUpload(Array.from(e.target.files))
-                }
-              }}
-              className="hidden"
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              id="description" 
+              rows={4}
+              {...register('description')}
+              placeholder="Enter vehicle description"
             />
           </div>
           
-          {/* Photos preview */}
-          {photoUrls.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {photoUrls.map((url, index) => (
-                <div key={index} className="relative group">
-                  <img 
-                    src={url} 
-                    alt={`Vehicle photo ${index + 1}`} 
-                    className="w-full h-32 object-cover rounded-md" 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    X
-                  </button>
-                </div>
-              ))}
+          <div className="space-y-2">
+            <Label htmlFor="photos">Photos</Label>
+            <div className="border-2 border-dashed rounded-md p-4 text-center">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => document.getElementById('photo-upload')?.click()}
+                className="w-full py-8"
+              >
+                <Upload className="h-5 w-5 mr-2" />
+                Upload Photos
+              </Button>
+              <input 
+                id="photo-upload" 
+                type="file" 
+                accept="image/*" 
+                multiple 
+                onChange={handleFileChange}
+                className="hidden" 
+              />
             </div>
-          ) : (
-            <div className="border-2 border-dashed border-gray-300 p-8 text-center rounded-md">
-              <p className="text-gray-500">No photos uploaded</p>
-            </div>
-          )}
-        </div>
-        
-        <div className="flex justify-end gap-4">
+            
+            {photoNames.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm font-medium mb-1">Selected Files:</p>
+                <ul className="text-sm space-y-1">
+                  {photoNames.map((name, index) => (
+                    <li key={index} className="flex justify-between items-center py-1 px-2 bg-gray-50 rounded">
+                      <span className="truncate">{name}</span>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => removePhoto(index)}
+                        className="h-6 w-6 p-0"
+                      >
+                        &times;
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          
           <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => navigate('/dealer/inventory')}
-            disabled={isSubmitting || isUploading}
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting}
           >
-            Cancel
+            {isSubmitting ? (
+              <>
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              buttonText
+            )}
           </Button>
-          <Button 
-            type="submit"
-            disabled={isSubmitting || isUploading}
-          >
-            {isSubmitting || isUploading ? 'Saving...' : id || vehicleId ? 'Update Vehicle' : 'Add Vehicle'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

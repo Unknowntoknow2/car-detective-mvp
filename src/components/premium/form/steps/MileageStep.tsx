@@ -39,7 +39,7 @@ export default function MileageStep({ step, formData, setFormData, updateValidit
       setInputValue(value);
       
       if (value === '') {
-        setFormData(prev => ({ ...prev, mileage: null }));
+        setFormData(prev => ({ ...prev, mileage: undefined }));
         setError('');
         updateValidity(step, false);
       } else {
@@ -62,7 +62,9 @@ export default function MileageStep({ step, formData, setFormData, updateValidit
 
   // Set initial validity state on mount
   useEffect(() => {
-    const isValid = formData.mileage !== null && formData.mileage >= 0 && formData.mileage <= 999999;
+    const mileageValue = formData.mileage;
+    const isValid = mileageValue !== undefined && mileageValue !== null && 
+                    mileageValue >= 0 && mileageValue <= 999999;
     updateValidity(step, isValid);
   }, []);
 
