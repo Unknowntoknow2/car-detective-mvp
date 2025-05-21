@@ -10,12 +10,13 @@ export interface DealerVehicle {
   condition: "Excellent" | "Good" | "Fair" | "Poor";
   status: "available" | "pending" | "sold";
   photos?: string[];
-  transmission?: "Automatic" | "Manual";
+  transmission?: "Automatic" | "Manual" | "CVT";
   fuel_type?: "Gasoline" | "Diesel" | "Hybrid" | "Electric";
   zip_code?: string;
   description?: string;
   created_at: string;
   updated_at: string;
+  vin?: string;
 }
 
 export type DealerVehicleStatus = "available" | "pending" | "sold";
@@ -29,10 +30,11 @@ export interface DealerVehicleFormData {
   condition: "Excellent" | "Good" | "Fair" | "Poor";
   status: "available" | "pending" | "sold";
   photos?: string[];
-  transmission?: "Automatic" | "Manual";
+  transmission?: "Automatic" | "Manual" | "CVT";
   fuel_type?: "Gasoline" | "Diesel" | "Hybrid" | "Electric";
   zip_code?: string;
   description?: string;
+  vin?: string;
 }
 
 export interface DeleteVehicleResult {

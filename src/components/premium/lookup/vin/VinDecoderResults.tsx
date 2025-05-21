@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Card, 
@@ -7,7 +8,6 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import { VehicleInfoCard } from '@/components/lookup/VehicleInfoCard';
 import { VehicleDetailsForm } from '@/components/premium/form/steps/vehicle-details/VehicleDetailsForm';
@@ -15,7 +15,6 @@ import { ValuationResults } from '@/components/valuation/ValuationResults';
 import { VehicleFoundCard } from '@/components/premium/lookup/plate/VehicleFoundCard';
 import { ValuationErrorState } from '@/components/premium/lookup/shared/ValuationErrorState';
 import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
-import { convertNewAdjustmentsToLegacyFormat } from '@/utils/formatters/adjustment-formatter';
 
 interface VinDecoderResultsProps {
   stage: string;
@@ -149,9 +148,9 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
           year: result.year || 0,
           trim: result.trim,
           engine: result.engine,
-          transmission: 'Automatic', 
-          drivetrain: 'FWD', 
-          bodyType: 'Unknown' 
+          transmission: result.transmission || 'Automatic', 
+          drivetrain: result.drivetrain || 'FWD', 
+          bodyType: result.bodyType || 'Unknown' 
         }} 
         onDownloadPdf={onDownloadPdf}
         carfaxData={carfaxData}
@@ -161,3 +160,5 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
   
   return null;
 };
+
+export default VinDecoderResults;
