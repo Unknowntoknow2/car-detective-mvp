@@ -33,14 +33,14 @@ export const useFeatureCalculator = (
     }
     
     // Calculate feature value using the utility function
-    const totalValue = getFeatureAdjustments(selectedFeatures, baseValue);
+    const totalAdjustment = getFeatureAdjustments(selectedFeatures, baseValue);
     
     // Create an adjustment result
     const result: FeatureAdjustmentResult = {
-      totalValue,
+      totalValue: baseValue + totalAdjustment,
       features: selectedFeatures,
       featuresApplied: selectedFeatures.length,
-      totalAdjustment: totalValue
+      totalAdjustment
     };
     
     setFeatureAdjustment(result);
@@ -51,6 +51,6 @@ export const useFeatureCalculator = (
     totalAdjustment: featureAdjustment.totalAdjustment,
     features: featureAdjustment.features,
     featuresApplied: featureAdjustment.featuresApplied,
-    percentageOfBase: baseValue > 0 ? (featureAdjustment.totalValue / baseValue) * 100 : 0
+    percentageOfBase: baseValue > 0 ? (featureAdjustment.totalAdjustment / baseValue) * 100 : 0
   };
 };
