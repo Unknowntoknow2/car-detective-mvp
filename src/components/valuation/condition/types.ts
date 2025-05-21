@@ -32,7 +32,7 @@ export interface ConditionValues {
   tiresCondition: string;
   odometer: string | number;
   
-  // Additional fields with explicit types to avoid index signature issues
+  // Additional fields with explicit types
   accidents?: number;
   mileage?: number;
   year?: number;
@@ -48,6 +48,6 @@ export interface ConditionValues {
   mechanicalGrade?: number;
   tireCondition?: number;
   
-  // Index signature to allow dynamic access with keys
+  // Index signature that accommodates both string and number values
   [key: string]: string | number | undefined;
 }

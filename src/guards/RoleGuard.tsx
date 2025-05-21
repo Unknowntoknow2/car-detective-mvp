@@ -2,45 +2,40 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
-
-type RoleType = 'dealer' | 'admin' | 'user' | string;
 
 interface RoleGuardProps {
-  allowedRoles: RoleType[];
   children: React.ReactNode;
+  allowedRoles: string[];
   redirectTo?: string;
 }
 
-const RoleGuard: React.FC<RoleGuardProps> = ({ 
-  allowedRoles, 
+export const RoleGuard: React.FC<RoleGuardProps> = ({ 
   children, 
-  redirectTo = '/auth'
+  allowedRoles, 
+  redirectTo = '/unauthorized' 
 }) => {
-  const { user, userRole, isLoading } = useAuth();
   const location = useLocation();
-  
+  const { user, userRole, isLoading } = useAuth();
+
+  // Show loading state or spinner while auth state is being determined
   if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg text-muted-foreground">Verifying access...</p>
-        </div>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
-  
+
+  // If no user is logged in, redirect to login page
   if (!user) {
-    // Redirect to login with return URL
-    return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  // If user doesn't have required role, redirect to unauthorized page
+  // Using optional chaining and nullish coalescing to handle undefined userRole
+  const currentRole = userRole ?? '';
   
-  if (!allowedRoles.includes(userRole)) {
-    // Redirect to access denied
-    return <Navigate to="/access-denied" state={{ requiredRole: allowedRoles.join(', ') }} replace />;
+  if (!allowedRoles.includes(currentRole)) {
+    return <Navigate to={redirectTo} replace />;
   }
-  
+
+  // If user is authenticated and has the required role, render children
   return <>{children}</>;
 };
 

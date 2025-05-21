@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -145,11 +144,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (profileData: UserProfile) => {
     setLoading(true);
     try {
-      // Fix: Don't include the id in both places to avoid duplicate id error
+      // Create a copy of the profile data without the id to avoid duplicate id error
+      const { id, ...profileWithoutId } = profileData;
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({
-          ...profileData,
+          id, // Add id here
+          ...profileWithoutId, // Add all other properties
           updated_at: new Date(),
         });
 

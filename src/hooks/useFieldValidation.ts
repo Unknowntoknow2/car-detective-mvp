@@ -1,6 +1,19 @@
 
 import { useState, useCallback } from 'react';
-import { ValidationRules, FieldValidation } from '@/types/premium-valuation';
+
+export interface ValidationRule {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  minValue?: number;
+  maxValue?: number;
+  validate?: (value: any) => boolean | string;
+}
+
+export interface FieldValidation {
+  [key: string]: ValidationRule;
+}
 
 interface ValidationError {
   field: string;
