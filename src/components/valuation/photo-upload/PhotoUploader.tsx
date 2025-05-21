@@ -22,7 +22,7 @@ export function PhotoUploader({
 }: PhotoUploaderProps) {
   const [scoringComplete, setScoringComplete] = useState(false);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
-  const [bestPhotoUrl, setBestPhotoUrl] = useState<string | undefined>(undefined);
+  const [bestPhotoUrl, setBestPhotoUrl] = useState<string>('');
   const [photoAssessment, setPhotoAssessment] = useState<AICondition | null>(null);
   
   const { 
@@ -89,7 +89,10 @@ export function PhotoUploader({
         }
       });
       
-      setBestPhotoUrl(bestPhoto || '');
+      // If we found a best photo, set it
+      if (bestPhoto) {
+        setBestPhotoUrl(bestPhoto);
+      }
       
       // Now analyze photos for AI condition assessment
       const analysis = await analyzePhotos(photos.map(p => p.url!), valuationId);

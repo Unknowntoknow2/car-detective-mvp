@@ -1,9 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { CompletionValuationHeader } from './valuation-complete';
+import { CompletionValuationHeader } from './CompletionValuationHeader';
 import { NextStepsCard } from './valuation-complete/NextStepsCard';
 import { ValuationFactorsGrid } from '../condition/factors/ValuationFactorsGrid';
 import { ConditionValues } from '../condition/types';
@@ -151,8 +152,8 @@ export default function ValuationResult({
   const year = vehicleData.year || new Date().getFullYear();
   const mileage = vehicleData.mileage || 0;
   const condition = vehicleData.condition || 'Good';
-  const estimatedValue = vehicleData.estimatedValue || 0;
-  const fuelType = vehicleData.fuelType;
+  const estimatedValue = vehicleData.estimatedValue || vehicleData.estimated_value || 0;
+  const fuelType = vehicleData.fuelType || vehicleData.fuel_type;
   const transmission = vehicleData.transmission;
   
   // Additional info for badge display
@@ -167,6 +168,8 @@ export default function ValuationResult({
         make={make}
         model={model}
         year={year}
+        mileage={mileage}
+        condition={condition}
         estimatedValue={estimatedValue}
         isPremium={isPremium}
         additionalInfo={additionalInfo}
