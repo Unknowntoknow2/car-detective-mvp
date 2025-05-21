@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { CDButton } from '@/components/ui-kit/CDButton';
 import { CDCard, CDCardHeader, CDCardBody } from '@/components/ui-kit/CDCard';
 import { CDTooltip } from '@/components/ui-kit/CDTooltip';
 import { CDBadge } from '@/components/ui-kit/CDBadge';
 import { Heading, HeadingXL, HeadingL, BodyM, BodyS, Caption } from '@/components/ui-kit/typography';
-import { ValuationResult } from '@/modules/valuation-result';
+import { ValuationResult } from '@/modules/valuation-result/ValuationResult';
 import { InfoIcon, AlertCircle, Check } from 'lucide-react';
 
 const DesignSystem = () => {

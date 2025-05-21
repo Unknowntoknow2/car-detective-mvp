@@ -1,52 +1,49 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { PlateLookupInfo } from '@/types/lookup';
-import { mockPlateLookup } from '@/services/plateService';
+import { supabase } from '@/lib/supabase';
+import { PlateLookupInfo } from '@/types/vehicle';
 
 export function usePlateLookup() {
+  const [plateInfo, setPlateInfo] = useState<PlateLookupInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<PlateLookupInfo | null>(null);
-  const { toast } = useToast();
 
-  const lookupVehicle = async (plate: string, state: string): Promise<PlateLookupInfo | null> => {
+  const lookupPlate = async (plate: string, state: string) => {
+    if (!plate || !state) {
+      setError('Plate number and state are required');
+      return null;
+    }
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      // Use the mockPlateLookup function from plateService
-      const response = await mockPlateLookup(plate, state);
-      
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      
-      if (!response.data) {
-        throw new Error('No data returned from plate lookup');
-      }
-      
-      const plateResult: PlateLookupInfo = response.data;
-      
-      // Add estimated value if not present
-      if (!plateResult.estimatedValue) {
-        plateResult.estimatedValue = 24500; // Default value
-      }
-      
-      setResult(plateResult);
-      toast({
-        description: `${plateResult.year} ${plateResult.make} ${plateResult.model}`,
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('plate-lookup', {
+        body: { plate, state }
       });
-      
-      return plateResult;
+
+      if (error) throw error;
+
+      if (data && data.success && data.data) {
+        // Create a safer version of PlateLookupInfo with default values
+        const safeData: PlateLookupInfo = {
+          plate: data.data.plate,
+          state: data.data.state,
+          make: data.data.make || 'Unknown',
+          model: data.data.model || 'Unknown',
+          year: data.data.year || new Date().getFullYear(),
+          vin: data.data.vin
+        };
+        
+        setPlateInfo(safeData);
+        return safeData;
+      } else {
+        throw new Error(data?.message || 'Failed to lookup plate');
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error during plate lookup';
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
-      toast({
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
       return null;
     } finally {
       setIsLoading(false);
@@ -54,9 +51,9 @@ export function usePlateLookup() {
   };
 
   return {
-    lookupVehicle,
+    plateInfo,
     isLoading,
     error,
-    result
+    lookupPlate
   };
 }

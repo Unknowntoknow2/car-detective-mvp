@@ -55,4 +55,28 @@ export interface DealerVehicleFormData {
   color?: string;
   vehicleId?: string;
   photos?: File[];
+  fuelType?: string;
+  transmission?: string;
+  description?: string;
+  zipCode?: string;
+}
+
+export interface ManualVehicleInfo {
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition?: string;
+  trim?: string;
+  // Replace makeId and modelId with proper fields
+  features?: string[];
+}
+
+export interface PlateLookupInfo {
+  plate: string;
+  state: string;
+  make: string;
+  model: string;
+  year: number;
+  vin?: string;
 }

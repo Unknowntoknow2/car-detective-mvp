@@ -1,33 +1,52 @@
 
-import { Photo, PhotoAnalysisResult } from '@/types/photo';
+import { AICondition, PhotoScore } from '@/types/photo';
+import { supabase } from '@/integrations/supabase/client';
 
-export const analyzePhotos = async (photos: Photo[]): Promise<PhotoAnalysisResult> => {
-  try {
-    console.log('Analyzing photos', photos);
-    
-    // Simulate analysis delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock photo analysis result
-    const result: PhotoAnalysisResult = {
-      photoUrls: photos.map(p => p.url || p.preview || ''),
-      score: 85,
-      aiCondition: {
-        condition: 'Good',
-        confidenceScore: 85,
-        issuesDetected: ['Minor scratch on driver door', 'Light wear on seats'],
-        summary: 'Vehicle appears to be in good condition with minor cosmetic issues'
-      },
-      individualScores: photos.map((p, index) => ({
-        url: p.url || p.preview || '',
-        score: 75 + Math.floor(Math.random() * 20),
-        isPrimary: index === 0
-      }))
-    };
-    
-    return result;
-  } catch (error) {
-    console.error('Error analyzing photos:', error);
-    throw new Error('Failed to analyze photos');
+interface PhotoAnalysisResult {
+  overallScore: number;
+  individualScores: PhotoScore[];
+  aiCondition?: AICondition;
+}
+
+export async function analyzePhotos(photoUrls: string[], valuationId: string): Promise<PhotoAnalysisResult> {
+  if (!photoUrls || photoUrls.length === 0) {
+    throw new Error('No photos provided for analysis');
   }
-};
+
+  try {
+    const { data, error } = await supabase.functions.invoke('score-image', {
+      body: { photoUrls, valuationId }
+    });
+
+    if (error) {
+      throw new Error(`Failed to analyze photos: ${error.message}`);
+    }
+
+    if (!data || !data.scores || !Array.isArray(data.scores)) {
+      throw new Error('Invalid response from photo analysis service');
+    }
+
+    // Calculate overall score based on individual scores
+    const scores = data.scores as { url: string; score: number }[];
+    const overallScore = scores.length > 0 
+      ? scores.reduce((sum, item) => sum + item.score, 0) / scores.length
+      : 0;
+
+    // Map to our PhotoScore type
+    const individualScores: PhotoScore[] = scores.map(score => ({
+      url: score.url,
+      score: score.score,
+      isPrimary: false,
+      explanation: undefined
+    }));
+
+    return {
+      overallScore,
+      individualScores,
+      aiCondition: data.aiCondition
+    };
+  } catch (err) {
+    console.error('Error analyzing photos:', err);
+    throw err;
+  }
+}

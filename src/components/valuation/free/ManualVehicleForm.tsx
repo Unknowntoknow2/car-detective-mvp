@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +28,17 @@ export function ManualVehicleForm({
   const { makes, models, isLoading: isDataLoading, error: dataError, getModelsByMakeId, getYears } = useVehicleDBData();
   const [loadingModels, setLoadingModels] = useState(false);
   const years = getYears();
+  const currentYear = new Date().getFullYear();
+
+  const initialFormData = {
+    make: '',
+    model: '',
+    year: currentYear,
+    mileage: '',
+    condition: 'Good',
+    trim: '',
+    features: []
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,7 +56,7 @@ export function ManualVehicleForm({
     setFormData({ ...formData, [name]: value });
     
     // If changing make, fetch models for this make and reset model
-    if (name === 'makeId') {
+    if (name === 'make') {
       handleMakeChange(value);
     }
     
@@ -62,7 +72,7 @@ export function ManualVehicleForm({
     try {
       setLoadingModels(true);
       // Update formData with the new makeId and reset modelId
-      setFormData({ ...formData, makeId, modelId: '' });
+      setFormData({ ...formData, make: makeId, model: '' });
       
       // Get make name for display
       const selectedMake = makes.find(m => m.id === makeId);
@@ -80,11 +90,11 @@ export function ManualVehicleForm({
   const validateForm = () => {
     const errors: Record<string, string> = {};
     
-    if (!formData.makeId || formData.makeId.trim() === '')
-      errors.makeId = 'Make is required';
+    if (!formData.make || formData.make.trim() === '')
+      errors.make = 'Make is required';
     
-    if (!formData.modelId || formData.modelId.trim() === '')
-      errors.modelId = 'Model is required';
+    if (!formData.model || formData.model.trim() === '')
+      errors.model = 'Model is required';
     
     if (!formData.year || formData.year <= 0)
       errors.year = 'Valid year is required';
@@ -120,16 +130,16 @@ export function ManualVehicleForm({
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="makeId">Make</Label>
+          <Label htmlFor="make">Make</Label>
           {isDataLoading ? (
             <Skeleton className="h-10 w-full" />
           ) : (
             <Select
               disabled={isLoading || isDataLoading}
-              value={formData.makeId}
-              onValueChange={(value) => handleSelectChange('makeId', value)}
+              value={formData.make}
+              onValueChange={(value) => handleSelectChange('make', value)}
             >
-              <SelectTrigger id="makeId" className={validationErrors.makeId ? 'border-red-500' : ''}>
+              <SelectTrigger id="make" className={validationErrors.make ? 'border-red-500' : ''}>
                 <SelectValue placeholder="Select make" />
               </SelectTrigger>
               <SelectContent>
@@ -141,23 +151,23 @@ export function ManualVehicleForm({
               </SelectContent>
             </Select>
           )}
-          {validationErrors.makeId && (
-            <p className="text-sm text-red-500">{validationErrors.makeId}</p>
+          {validationErrors.make && (
+            <p className="text-sm text-red-500">{validationErrors.make}</p>
           )}
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="modelId">Model</Label>
+          <Label htmlFor="model">Model</Label>
           {isDataLoading || loadingModels ? (
             <Skeleton className="h-10 w-full" />
           ) : (
             <Select
-              disabled={isLoading || !formData.makeId}
-              value={formData.modelId}
-              onValueChange={(value) => handleSelectChange('modelId', value)}
+              disabled={isLoading || !formData.make}
+              value={formData.model}
+              onValueChange={(value) => handleSelectChange('model', value)}
             >
-              <SelectTrigger id="modelId" className={validationErrors.modelId ? 'border-red-500' : ''}>
-                <SelectValue placeholder={formData.makeId ? "Select model" : "Select make first"} />
+              <SelectTrigger id="model" className={validationErrors.model ? 'border-red-500' : ''}>
+                <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
               </SelectTrigger>
               <SelectContent>
                 {models.map((model) => (
@@ -168,8 +178,8 @@ export function ManualVehicleForm({
               </SelectContent>
             </Select>
           )}
-          {validationErrors.modelId && (
-            <p className="text-sm text-red-500">{validationErrors.modelId}</p>
+          {validationErrors.model && (
+            <p className="text-sm text-red-500">{validationErrors.model}</p>
           )}
         </div>
         

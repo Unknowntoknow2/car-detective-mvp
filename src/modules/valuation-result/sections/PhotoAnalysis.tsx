@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Heading, BodyM, BodyS } from '@/components/ui-kit/typography';
 import { PremiumBadge } from '@/components/ui/premium-badge';
+import { AICondition } from '@/types/photo';
 
 interface PhotoAnalysisProps {
   photoUrl?: string | null;
   photoScore?: number | null;
-  condition?: any | null;
+  condition?: AICondition | null;
   isPremium: boolean;
   onUpgrade: () => void;
 }
