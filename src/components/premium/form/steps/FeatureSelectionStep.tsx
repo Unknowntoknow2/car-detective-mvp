@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Label } from '@/components/ui/label';
@@ -93,9 +94,10 @@ export function FeatureSelectionStep({
   const handleSeasonalChange = (values: { saleDate: Date | undefined; bodyStyle: string | undefined }) => {
     setFormData(prev => ({
       ...prev,
-      saleDate: values.saleDate,
-      bodyStyle: values.bodyStyle || '', // Provide default value
-      bodyType: values.bodyStyle || ''  // Provide default value
+      // Convert Date to Date object explicitly to match the FormData type
+      saleDate: values.saleDate ? new Date(values.saleDate) : undefined,
+      bodyStyle: values.bodyStyle || undefined, // Use undefined if empty
+      bodyType: values.bodyStyle || undefined  // Keep bodyType in sync with bodyStyle
     }));
   };
   

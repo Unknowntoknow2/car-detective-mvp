@@ -56,9 +56,9 @@ export function VehicleIdentificationStep({
           make: data.make || result.make,
           model: data.model || result.model,
           year: data.year || result.year,
-          mileage: data.mileage,
+          mileage: data.mileage || 0,
           zipCode: data.zipCode || '',
-          condition: data.condition || '',
+          condition: (data.condition || '') as "excellent" | "good" | "fair" | "poor" || "good",
           fuelType: data.fuelType || '',
           transmission: data.transmission || '',
           trim: data.trim || result.trim || '',
@@ -78,9 +78,9 @@ export function VehicleIdentificationStep({
           make: data.make,
           model: data.model,
           year: data.year,
-          mileage: data.mileage,
+          mileage: data.mileage || 0,
           zipCode: data.zipCode || '',
-          condition: data.condition || '',
+          condition: (data.condition || '') as "excellent" | "good" | "fair" | "poor" || "good",
           fuelType: data.fuelType || '',
           transmission: data.transmission || '',
           trim: data.trim || '',
@@ -115,7 +115,8 @@ export function VehicleIdentificationStep({
           fuelType: result.fuelType || '',
           transmission: result.transmission || '',
           identifierType: 'vin',
-          identifier: vin
+          identifier: vin,
+          condition: prev.condition || "good" // Ensure condition is a valid value
         }));
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
@@ -140,7 +141,8 @@ export function VehicleIdentificationStep({
           model: result.model,
           year: result.year,
           identifierType: 'plate',
-          identifier: `${plate} (${state})`
+          identifier: `${plate} (${state})`,
+          condition: prev.condition || "good" // Ensure condition is a valid value
         }));
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
