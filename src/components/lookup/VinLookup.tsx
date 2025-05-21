@@ -1,12 +1,14 @@
 
 import React, { useState, useCallback } from 'react';
-import { VINLookupForm } from './VINLookupForm';
-import VinDecoderResults from './vin/VinDecoderResults'; 
-import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
-import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
+import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+
+// Import the components directly
+import VINLookupForm from './vin/VINLookupForm';
+import VinDecoderResults from './vin/VinDecoderResults'; 
+import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 
 interface VinLookupProps {
   onSubmit?: (vin: string) => void;
@@ -45,19 +47,23 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
         />
       ) : (
         <>
-          <VinDecoderResults 
-            stage="initial"
-            result={result}
-            pipelineVehicle={null}
-            requiredInputs={null}
-            valuationResult={null}
-            valuationError={null}
-            pipelineLoading={false}
-            submitValuation={async () => {}}
-            vin={vinNumber}
-            carfaxData={null}
-            onDownloadPdf={() => {}}
-          />
+          {/* We'll wrap this in a guard to only show when we have data */}
+          {result && (
+            <VinDecoderResults 
+              result={result}
+              vin={vinNumber}
+              carfaxData={null}
+              onDownloadPdf={() => {}}
+              // Add missing props with placeholder values
+              stage="initial"
+              pipelineVehicle={null}
+              requiredInputs={null}
+              valuationResult={null}
+              valuationError={null}
+              pipelineLoading={false}
+              submitValuation={async () => {}}
+            />
+          )}
           <Button 
             variant="outline"
             className="mt-4"

@@ -1,41 +1,39 @@
 
-// src/types/vehicle.ts
-
 export interface DecodedVehicleInfo {
   vin: string;
   make: string;
   model: string;
   year: number;
   trim?: string;
-  bodyType?: string;
-  engineType?: string;
-  transmission?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  fuelType?: string;
-  mileage?: number;
-  drivetrainType?: string;
-  // Add missing fields needed by components
   engine?: string;
+  transmission?: string;
   drivetrain?: string;
+  bodyType?: string;
+  fuelType?: string;
 }
 
-export interface VehicleDetails extends DecodedVehicleInfo {
-  id?: string;
-  userId?: string;
+export interface VehicleInfo {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  price?: number;
   condition?: string;
-  priceHistory?: PriceHistoryItem[];
-  features?: string[];
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  vin?: string;
+  description?: string;
   photos?: string[];
-  titleStatus?: string;
-  accidents?: number;
-  owners?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface PriceHistoryItem {
-  date: string;
-  price: number;
-  source?: string;
+export interface FoundCarCardProps {
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  engine?: string;
 }
