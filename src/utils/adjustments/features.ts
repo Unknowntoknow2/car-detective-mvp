@@ -1,6 +1,24 @@
 
 import { ValuationAdjustment } from '@/utils/valuation/types';
 
+// Add the getFeatureAdjustments function that was missing
+export const getFeatureAdjustments = (
+  features: string[] = [], 
+  baseValue: number = 0, 
+  valueMultiplier: number = 1.0
+): number => {
+  // If no features or invalid values, return 0
+  if (!features || features.length === 0 || !baseValue || baseValue <= 0) {
+    return 0;
+  }
+  
+  // Calculate total feature value
+  const featureValueAdjustment = calculateTotalFeatureValue(features);
+  
+  // Return the weighted adjustment
+  return valueMultiplier * featureValueAdjustment;
+};
+
 export const calculateFeatureAdjustments = (
   baseValue: number,
   features: string[] = [], // Default to empty array if undefined

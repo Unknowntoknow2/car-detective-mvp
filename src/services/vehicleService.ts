@@ -1,3 +1,4 @@
+
 import { DecodedVINResponse } from '@/types/api';
 
 // Export the DecodedVehicleInfo interface
