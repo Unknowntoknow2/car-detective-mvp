@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Photo, PhotoScore, AICondition } from '@/types/photo';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,7 +24,8 @@ export function usePhotoUpload({ valuationId }: UsePhotoUploadProps) {
       type: file.type,
       preview: URL.createObjectURL(file),
       uploading: false,
-      uploaded: false
+      uploaded: false,
+      url: undefined // Explicitly set url to undefined
     }));
 
     setPhotos(prev => [...prev, ...newPhotos]);
@@ -155,14 +157,6 @@ export function usePhotoUpload({ valuationId }: UsePhotoUploadProps) {
       // In a real application, you would call an API for AI analysis
       // Here, we'll simulate a delay and return mock data
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // If using a real API, you'd send the photos and get back an assessment
-      // const response = await fetch('/api/analyze-photos', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ photoUrls, valuationId }),
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
-      // const result = await response.json();
       
       // Mock AI condition assessment
       const mockConditions = ['Excellent', 'Good', 'Fair', 'Poor'] as const;

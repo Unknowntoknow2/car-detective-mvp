@@ -17,12 +17,13 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
   const [photoScores, setPhotoScores] = useState<PhotoScore[]>([]);
   
   const handleFileSelect = useCallback((files: File[]) => {
-    const newPhotos = files.map(file => ({
+    const newPhotos: Photo[] = files.map(file => ({
       id: Math.random().toString(36).substring(2),
       file,
       name: file.name,
       uploading: false,
-      uploaded: false
+      uploaded: false,
+      url: undefined // Explicitly set url to undefined
     }));
     
     setPhotos(prevPhotos => [...prevPhotos, ...newPhotos]);
@@ -69,7 +70,7 @@ export function usePhotoScoring({ valuationId }: UsePhotoScoringOptions) {
     
     try {
       // Get all photos that have been uploaded
-      const uploadedPhotos = photos.filter(photo => photo.uploaded && photo.file);
+      const uploadedPhotos = photos.filter(photo => photo.uploaded && photo.url);
       
       if (uploadedPhotos.length === 0) {
         throw new Error('No uploaded photos to analyze');
