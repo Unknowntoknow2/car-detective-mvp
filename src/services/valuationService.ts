@@ -1,84 +1,27 @@
 
-import { AICondition } from '@/types/photo';
+import { FormData } from '@/types/premium-valuation';
 
 /**
- * Get the best photo assessment for a valuation
+ * Creates a premium valuation based on the provided form data
  */
-export async function getBestPhotoAssessment(valuationId: string) {
-  // This would normally fetch from an API or database
-  console.log('Getting photo assessment for:', valuationId);
+export async function createPremiumValuation(data: FormData) {
+  // In a real implementation, this would make an API call to create the valuation
+  console.log('Creating premium valuation with data:', data);
   
-  // Return mock data for now
+  // Mock implementation - return a mock response
   return {
-    aiCondition: {
-      condition: 'Good',
-      confidenceScore: 85,
-      issuesDetected: ['Minor scratches'],
-      aiSummary: 'Overall good condition with minor cosmetic issues'
-    } as AICondition,
-    photoScores: [
-      {
-        url: 'https://example.com/photo1.jpg',
-        score: 0.85,
-        isPrimary: true
-      },
-      {
-        url: 'https://example.com/photo2.jpg',
-        score: 0.75
-      }
-    ]
+    id: `premium-${Date.now()}`,
+    ...data,
+    estimatedValue: 25000 + Math.floor(Math.random() * 5000),
+    confidenceScore: 85,
+    createdAt: new Date().toISOString()
   };
 }
 
-// Add getValuationById missing function
-export async function getValuationById(id: string) {
-  // Mock implementation
-  const mockData = {
-    accident_count: 0,
-    auction_avg_price: 15000,
-    base_price: 18000,
-    body_style: 'Sedan',
-    body_type: 'Sedan',
-    color: 'Blue',
-    condition_score: 85,
-    confidence_score: 92,
-    created_at: new Date().toISOString(),
-    estimated_value: 17500,
-    id: id,
-    make: 'Toyota',
-    model: 'Camry',
-    vehicle_features: [],
-    year: 2018,
-    mileage: 45000,
-    fuel_type: 'Gasoline'
-  };
-
-  // Access properties safely
-  return {
-    ...mockData,
-    // Parse safely for fuel_type
-    fuelType: mockData.fuel_type || 'Unknown',
-    // Ensure photoUrl is properly handled
-    photoUrl: undefined // Fixed missing photo_url access
-  };
-}
-
-// Add fetchValuation function for [token].tsx
-export async function fetchValuation(token: string) {
-  console.log(`Fetching valuation with token: ${token}`);
-  // Mock implementation similar to getValuationById
-  return getValuationById(token);
-}
-
-// Add missing functions for useValuationHistory.ts
-export async function getUserValuations(userId: string) {
-  return [];
-}
-
-export async function getSavedValuations(userId: string) {
-  return [];
-}
-
-export async function getPremiumValuations(userId: string) {
+/**
+ * Gets premium valuations for the current user
+ */
+export async function getPremiumValuations() {
+  // In a real implementation, this would fetch valuations from an API
   return [];
 }

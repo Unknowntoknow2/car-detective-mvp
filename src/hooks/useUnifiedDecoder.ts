@@ -1,79 +1,81 @@
-import { useState, useEffect } from 'react';
-import { fetchVehicleData } from '@/services/vehicleService';
 
-interface DecodedVehicleInfo {
-  make: string;
-  model: string;
-  year: number;
-  vin: string;
-  bodyType?: string;
-  trim?: string;
-  engine?: string;
-  transmission?: string;
-  driveType?: string;
-  fuelType?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-}
+import { useState, useCallback } from 'react';
+import { decodeVin, decodeLicensePlate, DecodedVehicleInfo } from '@/services/vehicleService';
 
 interface UseUnifiedDecoderProps {
-  identifier: string;
-  identifierType: 'vin' | 'plate';
+  onSuccess?: (data: DecodedVehicleInfo) => void;
+  onError?: (error: Error) => void;
 }
 
-export const useUnifiedDecoder = ({ identifier, identifierType }: UseUnifiedDecoderProps) => {
-  const [decodedData, setDecodedData] = useState<DecodedVehicleInfo | null>(null);
+export function useUnifiedDecoder({ onSuccess, onError }: UseUnifiedDecoderProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
 
-  useEffect(() => {
-    const decodeVehicle = async () => {
-      setIsLoading(true);
-      setError(null);
+  const decodeVehicle = useCallback(async ({
+    type,
+    value,
+    state,
+    zipCode
+  }: {
+    type: 'vin' | 'plate';
+    value: string;
+    state?: string;
+    zipCode?: string;
+  }) => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        let data: any = null;
+    try {
+      let result: DecodedVehicleInfo;
 
-        if (identifierType === 'vin') {
-          data = await fetchVehicleData({ vin: identifier });
-        } else if (identifierType === 'plate') {
-          // Implement plate decoding logic here if needed
-          setError('Plate decoding not yet implemented');
-          return;
-        }
-
-        if (data) {
-          setDecodedData({
-            make: data.make,
-            model: data.model,
-            year: data.year,
-            vin: data.vin,
-            bodyType: data.bodyType,
-            trim: data.trim,
-            engine: data.engine,
-            transmission: data.transmission,
-            driveType: data.driveType,
-            fuelType: data.fuelType,
-            exteriorColor: data.exteriorColor,
-            interiorColor: data.interiorColor,
-            postalCode: data.zipCode, // assuming postalCode is valid in DecodedVehicleInfo
-          });
-        } else {
-          setError('Vehicle data not found');
-        }
-      } catch (err: any) {
-        setError(err.message || 'Failed to decode vehicle');
-      } finally {
-        setIsLoading(false);
+      if (type === 'vin') {
+        result = await decodeVin(value);
+      } else if (type === 'plate' && state) {
+        result = await decodeLicensePlate(value, state);
+      } else {
+        throw new Error('Invalid decoder type or missing state for license plate');
       }
-    };
 
-    if (identifier) {
-      decodeVehicle();
-    } else {
-      setDecodedData(null);
+      // If zipCode is provided, add it to the result
+      if (zipCode) {
+        result = {
+          ...result,
+          zipCode
+        };
+      }
+
+      setVehicleInfo(result);
+      
+      if (onSuccess) {
+        onSuccess(result);
+      }
+      
+      return result;
+    } catch (err: any) {
+      const errorObj = err instanceof Error ? err : new Error(err?.message || 'Failed to decode vehicle');
+      setError(errorObj);
+      
+      if (onError) {
+        onError(errorObj);
+      }
+      
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-  }, [identifier, identifierType]);
+  }, [onSuccess, onError]);
 
-  return { decodedData, isLoading, error };
-};
+  const reset = useCallback(() => {
+    setVehicleInfo(null);
+    setError(null);
+  }, []);
+
+  return {
+    isLoading,
+    error,
+    vehicleInfo,
+    decodeVehicle,
+    reset
+  };
+}
