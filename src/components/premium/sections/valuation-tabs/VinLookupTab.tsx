@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { VinLookup } from "/dev-server/src/components/premium/lookup/VinLookup";
+import { VinLookup } from "@/components/premium/lookup/VinLookup";
 
 interface VinLookupTabProps {
   vinValue: string;
