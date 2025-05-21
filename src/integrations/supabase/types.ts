@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_results_by_vin: {
+        Row: {
+          auction_source: string
+          condition_grade: string | null
+          id: string
+          inserted_at: string
+          location: string | null
+          odometer: string
+          photo_urls: string[]
+          price: string
+          sold_date: string
+          vin: string
+        }
+        Insert: {
+          auction_source: string
+          condition_grade?: string | null
+          id?: string
+          inserted_at?: string
+          location?: string | null
+          odometer: string
+          photo_urls?: string[]
+          price: string
+          sold_date: string
+          vin: string
+        }
+        Update: {
+          auction_source?: string
+          condition_grade?: string | null
+          id?: string
+          inserted_at?: string
+          location?: string | null
+          odometer?: string
+          photo_urls?: string[]
+          price?: string
+          sold_date?: string
+          vin?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string

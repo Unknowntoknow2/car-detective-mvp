@@ -1,68 +1,100 @@
 
-import { PhotoScore, PhotoScoringResult, AICondition, PhotoAnalysisResult } from '@/types/photo';
+import { PhotoScoringResult, AICondition, PhotoScore } from '@/types/photo';
 
 /**
- * Mock photo scoring service
- * In a real application, this would call an API to analyze and score photos
+ * Score photos from provided URLs
  */
-export async function scorePhotos(photoUrls: string[], valuationId: string): Promise<PhotoScoringResult> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Generate random scores for each photo
-  const individualScores: PhotoScore[] = photoUrls.map((url, index) => {
-    // Create random score between 0.65 and 0.95
-    const score = Math.round((0.65 + Math.random() * 0.3) * 100) / 100;
+export async function scorePhotos(
+  photoUrls: string[],
+  valuationId: string
+): Promise<PhotoScoringResult> {
+  try {
+    // Mock implementation since we have no real API
+    const mockScores: PhotoScore[] = photoUrls.map((url, index) => ({
+      url,
+      score: 0.5 + Math.random() * 0.5, // Random score between 0.5 and 1.0
+      isPrimary: index === 0 // First photo is primary
+    }));
+
+    // Sort by score and select highest scoring image as best
+    const sortedScores = [...mockScores].sort((a, b) => b.score - a.score);
+    const bestPhotoUrl = sortedScores[0]?.url;
+
+    // Mock AI condition assessment
+    const aiCondition: AICondition = {
+      condition: 'Good',
+      confidenceScore: 85,
+      issuesDetected: ['Minor scratches on front bumper', 'Light wear on driver seat'],
+      summary: 'Vehicle appears to be in good condition overall with minor cosmetic issues.'
+    };
+
+    const averageScore = mockScores.reduce((sum, item) => sum + item.score, 0) / mockScores.length;
+
+    return {
+      photoScore: averageScore * 100, // Convert to 0-100 scale
+      score: averageScore * 100,
+      individualScores: mockScores,
+      photoUrls,
+      bestPhotoUrl,
+      aiCondition
+    };
+  } catch (error) {
+    console.error('Error in photo scoring:', error);
+    
+    // Return a default error result
+    const mockAICondition: AICondition = {
+      condition: 'Unknown',
+      confidenceScore: 0,
+      issuesDetected: [],
+      summary: 'Could not analyze photos'
+    };
     
     return {
-      url,
-      score,
-      isPrimary: index === 0 // Mark first photo as primary
+      photoScore: 0,
+      score: 0,
+      individualScores: [],
+      photoUrls,
+      aiCondition: mockAICondition,
+      error: error instanceof Error ? error.message : 'Unknown error in photo scoring'
     };
-  });
-  
-  // Calculate overall photo score (average of individual scores)
-  const photoScore = individualScores.reduce((sum, item) => sum + item.score, 0) / 
-    Math.max(individualScores.length, 1);
-  
-  // Generate mock AI condition data
-  const conditions = ['Excellent', 'Good', 'Fair', 'Poor'];
-  const conditionIndex = Math.min(
-    Math.floor((1 - photoScore) * 4), 
-    conditions.length - 1
-  );
-  
-  const aiCondition: AICondition = {
-    condition: conditions[conditionIndex],
-    confidenceScore: Math.round(photoScore * 100),
-    issuesDetected: [],
-    summary: `Vehicle appears to be in ${conditions[conditionIndex]} condition based on photos.`
-  };
-  
-  // Find the best photo (highest score)
-  const bestPhoto = [...individualScores].sort((a, b) => b.score - a.score)[0];
-  
-  return {
-    photoScore,
-    score: photoScore,
-    individualScores,
-    photoUrls,
-    bestPhotoUrl: bestPhoto?.url,
-    aiCondition
-  };
+  }
 }
 
-export async function analyzePhotos(
-  photoUrls: string[], 
+/**
+ * Upload and analyze photos for a vehicle
+ */
+export async function uploadAndAnalyzePhotos(
+  files: File[],
   valuationId: string
-): Promise<PhotoAnalysisResult> {
-  // Reuse the scoring logic
-  const scoringResult = await scorePhotos(photoUrls, valuationId);
-  
-  return {
-    photoUrls,
-    score: scoringResult.photoScore,
-    aiCondition: scoringResult.aiCondition,
-    individualScores: scoringResult.individualScores
-  };
+): Promise<PhotoScoringResult> {
+  try {
+    // In a real implementation, you would upload the files to storage first
+    console.log(`Uploading ${files.length} photos for valuation ${valuationId}`);
+    
+    // Then create mock URLs as if they were uploaded
+    const photoUrls = files.map((_, index) => 
+      `https://example.com/storage/vehicle-photos/${valuationId}/${index}.jpg`
+    );
+    
+    // Then score the uploaded photos
+    return await scorePhotos(photoUrls, valuationId);
+  } catch (error) {
+    console.error('Error in photo upload and analysis:', error);
+    
+    const mockAICondition: AICondition = {
+      condition: 'Unknown',
+      confidenceScore: 0,
+      issuesDetected: [],
+      summary: 'Could not analyze photos'
+    };
+    
+    return {
+      photoScore: 0,
+      score: 0,
+      individualScores: [],
+      photoUrls: [],
+      aiCondition: mockAICondition,
+      error: error instanceof Error ? error.message : 'Unknown error in photo upload'
+    };
+  }
 }

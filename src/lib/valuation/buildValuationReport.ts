@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   ValuationInput,
   ValuationResult,
+  RulesEngineInput
 } from '@/types/valuation';
 import {
   EnhancedValuationParams,
@@ -14,7 +15,7 @@ import { CarfaxCalculator } from '@/utils/rules/calculators/carfaxCalculator';
 import { ColorCalculator } from '@/utils/rules/calculators/colorCalculator';
 
 // Instead of importing non-existent rule files, create a placeholder array
-const rules = [];
+const rules: any[] = [];
 
 const engine = new RulesEngine(rules);
 
@@ -46,25 +47,25 @@ const calculateValuation = async (params: EnhancedValuationParams): Promise<Fina
   // Ensure zipCode is defined for ValuationInput
   const valuationInput: ValuationInput = {
     identifierType: params.identifierType || 'manual',
-    make: params.make,
-    model: params.model,
-    year: params.year,
-    mileage: params.mileage,
-    condition: params.condition,
+    make: params.make || 'Unknown',
+    model: params.model || 'Unknown',
+    year: params.year || new Date().getFullYear(),
+    mileage: params.mileage || 0,
+    condition: params.condition || 'Good',
     zipCode: params.zipCode || params.zip || '10001', // Use zipCode or zip with a fallback
     // ... include other properties as needed
   };
 
   const baseValue = await calculateBaseValue(valuationInput);
 
-  const facts = {
+  const facts: RulesEngineInput = {
     baseValue,
     basePrice: baseValue, // Add basePrice property
-    make: params.make,
-    model: params.model,
-    year: params.year,
-    mileage: params.mileage,
-    condition: params.condition,
+    make: params.make || 'Unknown',
+    model: params.model || 'Unknown',
+    year: params.year || new Date().getFullYear(),
+    mileage: params.mileage || 0,
+    condition: params.condition || 'Good',
     trim: params.trim,
     bodyType: params.bodyType,
     fuelType: params.fuelType,
@@ -102,11 +103,11 @@ const calculateValuation = async (params: EnhancedValuationParams): Promise<Fina
     estimatedValue: finalValue,
     explanation: `This valuation is based on ${params.year} ${params.make} ${params.model} in ${params.condition} condition`,
     // Add additional fields needed for testing
-    make: params.make,
-    model: params.model,
-    year: params.year,
-    mileage: params.mileage,
-    condition: params.condition,
+    make: params.make || 'Unknown',
+    model: params.model || 'Unknown',
+    year: params.year || new Date().getFullYear(),
+    mileage: params.mileage || 0,
+    condition: params.condition || 'Good',
     vin: params.vin,
     isPremium: params.isPremium,
     features: params.features,
@@ -136,9 +137,9 @@ export const buildValuationReport = async (
       estimatedValue: 0,
       explanation: 'Failed to generate valuation report due to an error.',
       // Add additional fields needed for testing
-      make: params.make,
-      model: params.model,
-      year: params.year,
+      make: params.make || 'Unknown',
+      model: params.model || 'Unknown',
+      year: params.year || new Date().getFullYear(),
       // Include these fields to match test expectations
       pdfUrl: undefined,
       aiCondition: undefined,
