@@ -14,11 +14,12 @@ export enum ConditionRatingOption {
 }
 
 export interface ConditionOption {
-  value: string;
+  value: string | number;
   label: string;
   description?: string;
   category?: string;
   tip?: string;
+  multiplier?: number;
 }
 
 export interface ConditionValues {
