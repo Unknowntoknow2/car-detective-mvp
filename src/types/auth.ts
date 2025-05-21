@@ -7,3 +7,9 @@ export interface AuthContextType {
   loading: boolean;
   error: string | null;
 }
+
+export enum AuthMode {
+  SIGNIN = 'signin',
+  SIGNUP = 'signup',
+  FORGOT_PASSWORD = 'forgot-password'
+}

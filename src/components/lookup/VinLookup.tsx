@@ -6,7 +6,7 @@ import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 // Import the components directly
-import VINLookupForm from './vin/VINLookupForm';
+import { VINLookupForm } from './vin/VINLookupForm';
 import VinDecoderResults from './vin/VinDecoderResults'; 
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 
@@ -54,7 +54,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
               vin={vinNumber}
               carfaxData={null}
               onDownloadPdf={() => {}}
-              // Add missing props with placeholder values
+              // These props are expected by the component
               stage="initial"
               pipelineVehicle={null}
               requiredInputs={null}

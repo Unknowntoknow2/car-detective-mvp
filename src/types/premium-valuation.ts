@@ -17,6 +17,8 @@ export interface FormData {
   fuelType: string;
   transmission: string;
   bodyType: string;
+  bodyStyle?: string; // Added bodyStyle property
+  saleDate?: Date; // Added saleDate property
   features: string[];
   photos: string[];
   drivingProfile: string;
@@ -27,4 +29,5 @@ export interface FormData {
   colorMultiplier?: number;
   exteriorColor?: string;
   explanation?: string;
+  photoAnalysisResult?: any; // Add photoAnalysisResult for photo uploads
 }

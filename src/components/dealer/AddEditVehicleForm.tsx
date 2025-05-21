@@ -1,302 +1,280 @@
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { 
-  Card, CardContent, CardFooter, CardHeader, CardTitle 
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { DealerVehicleFormData } from '@/types/vehicle';
 import { toast } from 'sonner';
-import { LoaderCircle, Upload } from 'lucide-react';
-import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { ImageUploadSection } from './vehicle-upload/ImageUploadSection';
 
-interface AddEditVehicleFormProps {
+export interface AddEditVehicleFormProps {
+  vehicleId?: string;
+  onSuccess?: () => void;
   initialData?: Partial<DealerVehicleFormData>;
-  onSubmit: (data: DealerVehicleFormData, photos?: File[]) => void;
   isSubmitting?: boolean;
-  title?: string;
-  buttonText?: string;
 }
 
-export const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
-  initialData,
-  onSubmit,
-  isSubmitting = false,
-  title = 'Add Vehicle',
-  buttonText = 'Add Vehicle'
+const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
+  vehicleId,
+  onSuccess,
+  initialData = {},
+  isSubmitting = false
 }) => {
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [photoNames, setPhotoNames] = useState<string[]>([]);
-  
-  const { register, handleSubmit, formState: { errors } } = useForm<DealerVehicleFormData>({
-    defaultValues: initialData
+  const [formData, setFormData] = useState<DealerVehicleFormData>({
+    make: initialData.make || '',
+    model: initialData.model || '',
+    year: initialData.year || new Date().getFullYear(),
+    price: initialData.price,
+    mileage: initialData.mileage,
+    condition: initialData.condition || 'Good',
+    status: initialData.status || 'Available',
+    fuelType: initialData.fuelType,
+    transmission: initialData.transmission,
+    color: initialData.color || '',
+    description: initialData.description || '',
+    photos: initialData.photos || []
   });
-  
-  const onFormSubmit = (data: DealerVehicleFormData) => {
-    onSubmit(data, photos.length > 0 ? photos : undefined);
+
+  const [uploading, setUploading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const fileList = Array.from(e.target.files);
-      setPhotos([...photos, ...fileList]);
-      
-      // Display file names
-      const names = fileList.map(file => file.name);
-      setPhotoNames([...photoNames, ...names]);
-      
-      // Reset input
-      e.target.value = '';
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (value === '') {
+      setFormData(prev => ({ ...prev, [name]: undefined }));
+      return;
     }
-  };
-  
-  const removePhoto = (index: number) => {
-    const updatedPhotos = [...photos];
-    updatedPhotos.splice(index, 1);
-    setPhotos(updatedPhotos);
     
-    const updatedPhotoNames = [...photoNames];
-    updatedPhotoNames.splice(index, 1);
-    setPhotoNames(updatedPhotoNames);
-  };
-  
-  const removePhotoByName = (photoName: string) => {
-    const index = photoNames.findIndex(name => name === photoName);
-    if (index !== -1) {
-      removePhoto(index);
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue)) {
+      setFormData(prev => ({ ...prev, [name]: numValue }));
     }
   };
-  
+
+  const handlePhotosChange = (photos: File[]) => {
+    setFormData(prev => ({ ...prev, photos }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!formData.make || !formData.model || !formData.year) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    try {
+      setUploading(true);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.success(`Vehicle ${vehicleId ? 'updated' : 'added'} successfully!`);
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Error saving vehicle');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="make">Make</Label>
-              <Input 
-                id="make" 
-                {...register('make', { required: 'Make is required' })}
-              />
-              {errors.make && <p className="text-red-500 text-sm">{errors.make.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
-              <Input 
-                id="model" 
-                {...register('model', { required: 'Model is required' })}
-              />
-              {errors.model && <p className="text-red-500 text-sm">{errors.model.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Input 
-                id="year" 
-                type="number" 
-                {...register('year', { 
-                  required: 'Year is required',
-                  valueAsNumber: true,
-                  min: {
-                    value: 1900,
-                    message: 'Year must be at least 1900'
-                  },
-                  max: {
-                    value: new Date().getFullYear() + 1,
-                    message: 'Year cannot be in the future'
-                  }
-                })}
-              />
-              {errors.year && <p className="text-red-500 text-sm">{errors.year.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="price">Price ($)</Label>
-              <Input 
-                id="price" 
-                type="number" 
-                {...register('price', { 
-                  required: 'Price is required',
-                  valueAsNumber: true,
-                  min: {
-                    value: 0,
-                    message: 'Price must be positive'
-                  }
-                })}
-              />
-              {errors.price && <p className="text-red-500 text-sm">{errors.price.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="mileage">Mileage</Label>
-              <Input 
-                id="mileage" 
-                type="number" 
-                {...register('mileage', { 
-                  valueAsNumber: true,
-                  min: {
-                    value: 0,
-                    message: 'Mileage must be positive'
-                  }
-                })}
-              />
-              {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="condition">Condition</Label>
-              <select 
-                id="condition"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                {...register('condition', { required: 'Condition is required' })}
-              >
-                <option value="Excellent">Excellent</option>
-                <option value="Good">Good</option>
-                <option value="Fair">Fair</option>
-                <option value="Poor">Poor</option>
-              </select>
-              {errors.condition && <p className="text-red-500 text-sm">{errors.condition.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <select 
-                id="status"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                {...register('status', { required: 'Status is required' })}
-              >
-                <option value="available">Available</option>
-                <option value="pending">Pending</option>
-                <option value="sold">Sold</option>
-              </select>
-              {errors.status && <p className="text-red-500 text-sm">{errors.status.message}</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="transmission">Transmission</Label>
-              <select 
-                id="transmission"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                {...register('transmission')}
-              >
-                <option value="">Select transmission</option>
-                <option value="Automatic">Automatic</option>
-                <option value="Manual">Manual</option>
-                <option value="CVT">CVT</option>
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="fuel_type">Fuel Type</Label>
-              <select 
-                id="fuel_type"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                {...register('fuel_type')}
-              >
-                <option value="">Select fuel type</option>
-                <option value="Gasoline">Gasoline</option>
-                <option value="Diesel">Diesel</option>
-                <option value="Hybrid">Hybrid</option>
-                <option value="Electric">Electric</option>
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="zip_code">ZIP Code</Label>
-              <Input 
-                id="zip_code" 
-                {...register('zip_code')}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="vin">VIN</Label>
-              <Input 
-                id="vin" 
-                {...register('vin')}
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea 
-              id="description" 
-              rows={4}
-              {...register('description')}
-              placeholder="Enter vehicle description"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="photos">Photos</Label>
-            <div className="border-2 border-dashed rounded-md p-4 text-center">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => document.getElementById('photo-upload')?.click()}
-                className="w-full py-8"
-              >
-                <Upload className="h-5 w-5 mr-2" />
-                Upload Photos
-              </Button>
-              <input 
-                id="photo-upload" 
-                type="file" 
-                accept="image/*" 
-                multiple 
-                onChange={handleFileChange}
-                className="hidden" 
-              />
-            </div>
-            
-            {photoNames.length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm font-medium mb-1">Selected Files:</p>
-                <ul className="text-sm space-y-1">
-                  {photoNames.map((name, index) => (
-                    <li key={index} className="flex justify-between items-center py-1 px-2 bg-gray-50 rounded">
-                      <span className="truncate">{name}</span>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => removePhoto(index)}
-                        className="h-6 w-6 p-0"
-                      >
-                        &times;
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="make">Make <span className="text-red-500">*</span></Label>
+                <Input
+                  id="make"
+                  name="make"
+                  value={formData.make}
+                  onChange={handleChange}
+                  placeholder="e.g., Toyota"
+                  required
+                />
               </div>
-            )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="model">Model <span className="text-red-500">*</span></Label>
+                <Input
+                  id="model"
+                  name="model"
+                  value={formData.model}
+                  onChange={handleChange}
+                  placeholder="e.g., Camry"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="year">Year <span className="text-red-500">*</span></Label>
+                <Input
+                  id="year"
+                  name="year"
+                  type="number"
+                  min="1900"
+                  max={new Date().getFullYear() + 1}
+                  value={formData.year}
+                  onChange={handleNumberChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  min="0"
+                  value={formData.price || ''}
+                  onChange={handleNumberChange}
+                  placeholder="Enter price"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="mileage">Mileage</Label>
+                <Input
+                  id="mileage"
+                  name="mileage"
+                  type="number"
+                  min="0"
+                  value={formData.mileage || ''}
+                  onChange={handleNumberChange}
+                  placeholder="Enter mileage"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="condition">Condition</Label>
+                <select
+                  id="condition"
+                  name="condition"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={formData.condition}
+                  onChange={handleChange}
+                >
+                  <option value="Excellent">Excellent</option>
+                  <option value="Good">Good</option>
+                  <option value="Fair">Fair</option>
+                  <option value="Poor">Poor</option>
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="fuelType">Fuel Type</Label>
+                <select
+                  id="fuelType"
+                  name="fuelType"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={formData.fuelType || ''}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Fuel Type</option>
+                  <option value="Gasoline">Gasoline</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Electric">Electric</option>
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="transmission">Transmission</Label>
+                <select
+                  id="transmission"
+                  name="transmission"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={formData.transmission || ''}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Transmission</option>
+                  <option value="Automatic">Automatic</option>
+                  <option value="Manual">Manual</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="color">Color</Label>
+                <Input
+                  id="color"
+                  name="color"
+                  value={formData.color || ''}
+                  onChange={handleChange}
+                  placeholder="e.g., Silver"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  name="status"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={formData.status}
+                  onChange={handleChange}
+                >
+                  <option value="Available">Available</option>
+                  <option value="Sold">Sold</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Reserved">Reserved</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                name="description"
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={formData.description || ''}
+                onChange={handleChange}
+                placeholder="Enter vehicle description..."
+              />
+            </div>
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              buttonText
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="pt-6">
+          <ImageUploadSection 
+            onChange={handlePhotosChange} 
+            maxPhotos={10} 
+            onPhotosChange={handlePhotosChange}
+          />
+        </CardContent>
+      </Card>
+      
+      <div className="flex justify-end gap-4">
+        <Button type="button" variant="outline">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting || uploading}>
+          {isSubmitting || uploading ? 'Saving...' : vehicleId ? 'Update Vehicle' : 'Add Vehicle'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

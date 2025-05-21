@@ -10,6 +10,7 @@ export interface DecodedVehicleInfo {
   drivetrain?: string;
   bodyType?: string;
   fuelType?: string;
+  mileage?: number;
 }
 
 export interface VehicleInfo {
@@ -36,4 +37,28 @@ export interface FoundCarCardProps {
   model: string;
   trim?: string;
   engine?: string;
+  vin?: string; // Added vin property to fix the type error
+}
+
+export interface DealerVehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  price?: number;
+  mileage?: number;
+  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  status: string;
+  fuelType?: 'Gasoline' | 'Diesel' | 'Hybrid' | 'Electric';
+  transmission?: 'Automatic' | 'Manual';
+  color?: string;
+  description?: string;
+  vehicleId?: string;
+  photos: File[];
+}
+
+export enum DealerVehicleStatus {
+  AVAILABLE = 'Available',
+  SOLD = 'Sold',
+  PENDING = 'Pending',
+  RESERVED = 'Reserved'
 }

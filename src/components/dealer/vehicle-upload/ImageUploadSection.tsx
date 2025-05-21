@@ -8,11 +8,13 @@ import { ImagePlus, X } from 'lucide-react';
 interface ImageUploadSectionProps {
   onChange: (photos: File[]) => void;
   maxPhotos?: number;
+  onPhotosChange?: (newPhotos: File[]) => void; // Add the missing prop
 }
 
 export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   onChange,
-  maxPhotos = 5
+  maxPhotos = 5,
+  onPhotosChange
 }) => {
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -30,8 +32,11 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
     setPreviews(prev => [...prev, ...newPreviews]);
     
-    // Notify parent
+    // Notify parent using either callback
     onChange(updatedPhotos);
+    if (onPhotosChange) {
+      onPhotosChange(updatedPhotos);
+    }
     
     // Reset input
     e.target.value = '';
@@ -47,8 +52,11 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     setPreviews(updatedPreviews);
     setPhotos(updatedPhotos);
     
-    // Notify parent
+    // Notify parent using either callback
     onChange(updatedPhotos);
+    if (onPhotosChange) {
+      onPhotosChange(updatedPhotos);
+    }
   };
   
   return (
