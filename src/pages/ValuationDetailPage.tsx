@@ -1,22 +1,159 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, FileText, Mail, Share2 } from 'lucide-react';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { PredictionResult } from '@/components/valuation/PredictionResult';
+import { DealerOffersList } from '@/components/dealer/DealerOffersList';
+import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import { MainLayout } from '@/components/layout';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
+import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
+// Bring in FollowUpForm if you want to use it
+import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm';
 
-const ValuationDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+export default function ValuationDetailPage() {
+  const { id } = useParams<{ id?: string }>();
+  // Type guard: fallback to empty string if undefined
+  const valuationId = id ?? '';
+
+  const result = useValuationResult(valuationId);
+
+  // Handlers for UI actions
+  const handleDownloadPdf = () => {
+    toast.success("Generating PDF report...");
+    // In a real implementation, this would download a PDF
+  };
+  const handleEmailReport = () => {
+    toast.success("Report sent to your email");
+    // In a real implementation, this would send an email
+  };
+  const handleShareReport = () => {
+    toast.success("Share link copied to clipboard");
+    // In a real implementation, this would generate and copy a share link
+  };
+  const handleFactorChange = (id: string, value: any) => {
+    toast.info(`${id} updated to ${value}. Recalculating valuation...`);
+    // In a real implementation, this would update the valuation
+  };
+
+  // Error/skeleton/data loading UI
+  if (result.isLoading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-8">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="text-lg">Valuation Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardContent>
+          </Card>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (result.isError) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {typeof result.error === 'string' ? result.error : 'Something went wrong while fetching the valuation.'}
+            </AlertDescription>
+          </Alert>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!result.data) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-8">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No Valuation Found</AlertTitle>
+            <AlertDescription>
+              We couldn't find the valuation data for this report.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Unpack data, apply defaults for missing fields
+  const data = result.data;
+  const reportId = data.id || data.valuationId;
+  const valuationWithRequiredId = {
+    ...data,
+    id: reportId,
+    created_at: data.created_at || new Date().toISOString()
+  };
+
+  const isPremiumUnlocked = Boolean(data?.premium_unlocked);
+  const accidentCount = data.accident_count || 0;
+  const titleStatus = data.titleStatus || 'Clean';
 
   return (
     <MainLayout>
-      <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">Valuation Details</h1>
-        <Card className="p-6">
-          <ValuationResult 
-            valuationId={id}
-            isManualValuation={false}
-          />
+      <div className="container mx-auto py-8 space-y-8">
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-4 justify-end">
+          <Button variant="outline" onClick={handleShareReport}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Share Report
+          </Button>
+          <Button variant="outline" onClick={handleDownloadPdf}>
+            <FileText className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+          <Button variant="outline" onClick={handleEmailReport}>
+            <Mail className="h-4 w-4 mr-2" />
+            Email Report
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Valuation Report</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PredictionResult valuationId={reportId} />
+            {/* (OPTIONAL) Add FollowUpForm here if you want */}
+            {/* <FollowUpForm /> */}
+          </CardContent>
+        </Card>
+
+        {/* Value Factors Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Value Factors</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ValuationFactorsGrid
+              values={{
+                accidents: accidentCount,
+                mileage: data.mileage || 0,
+                year: data.year || new Date().getFullYear(),
+                titleStatus: titleStatus
+              }}
+              onChange={handleFactorChange}
+            />
+          </CardContent>
         </Card>
       </div>
     </MainLayout>

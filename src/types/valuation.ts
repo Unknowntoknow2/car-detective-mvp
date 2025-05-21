@@ -1,4 +1,3 @@
-
 export interface ValuationResult {
   id: string;
   vin?: string;
@@ -53,7 +52,27 @@ export interface ValuationResult {
     confidenceScore: number;
     issuesDetected: string[];
     summary?: string;
-  };
+    aiSummary?: string;
+  } | null;
+  priceRange?: [number, number];
+  isPremium?: boolean;
+  pdfUrl?: string;
+  gptExplanation?: string;
+  vin?: string;
+  features?: string[];
+  color?: string;
+  bodyType?: string;
+  bodyStyle?: string;
+  trim?: string;
+  // Additional fields to match database column names
+  fuel_type?: string;
+  photo_url?: string;
+  zip?: string;
+  created_at?: string; 
+  createdAt?: string; // Add this for compatibility
+  premium_unlocked?: boolean; // Add this property for premium features
+  accident_count?: number; // Add this property for compatibility
+  titleStatus?: string; // Add this property for compatibility
 }
 
 export interface ValuationResponse {
