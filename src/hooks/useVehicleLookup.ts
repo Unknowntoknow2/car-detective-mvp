@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { fetchVehicleByVin, fetchVehicleByPlate } from '@/services/vehicleLookupService';
 import { toast } from 'sonner';
@@ -85,6 +86,41 @@ export function useVehicleLookup() {
     }
   }, []);
 
+  const lookupVehicle = useCallback(async (
+    type: 'vin' | 'plate' | 'manual' | 'photo',
+    identifier: string,
+    state?: string,
+    data?: any
+  ) => {
+    if (type === 'vin') {
+      return lookupByVin(identifier);
+    } else if (type === 'plate' && state) {
+      return lookupByPlate(identifier, state);
+    } else if (type === 'manual' && data) {
+      // For manual entry, we just use the data directly
+      setVehicleData({
+        vin: data.vin || 'MANUAL-ENTRY',
+        make: data.make,
+        model: data.model,
+        year: parseInt(data.year),
+        mileage: data.mileage ? parseInt(data.mileage) : undefined,
+        trim: data.trim,
+        bodyType: data.bodyType,
+        fuelType: data.fuelType,
+        transmission: data.transmission,
+        // Add other properties as needed
+      });
+      return data;
+    } else if (type === 'photo') {
+      // Photo lookup would go here
+      setError('Photo lookup not implemented yet');
+      return null;
+    }
+    
+    setError('Invalid lookup type');
+    return null;
+  }, [lookupByVin, lookupByPlate]);
+
   const reset = useCallback(() => {
     setVehicleData(null);
     setError(null);
@@ -96,7 +132,9 @@ export function useVehicleLookup() {
     vehicleData,
     lookupByVin,
     lookupByPlate,
-    reset
+    lookupVehicle,
+    reset,
+    vehicle: vehicleData // Alias for components that expect 'vehicle' prop
   };
 }
 
