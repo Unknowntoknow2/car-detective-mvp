@@ -1,47 +1,83 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input, InputProps } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea, TextareaProps } from "@/components/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserProfile } from "@/types/user";
 
 const profileFormSchema = z.object({
-  username: z.string().min(2).max(50),
-  full_name: z.string().min(2).max(50),
+  username: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }).max(30, {
+    message: "Username must not be longer than 30 characters.",
+  }).optional(),
+  full_name: z.string().max(50).optional(),
+  website: z.string().url({ message: "Please enter a valid URL." }).optional(),
   bio: z.string().max(160).optional(),
-  website: z.string().url().optional(),
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+interface ProfileFormValues extends z.infer<typeof profileFormSchema> {}
 
-interface ProfileFormProps {
-  profileData?: ProfileFormValues | null;
-  onSubmit: (values: ProfileFormValues) => Promise<void>;
-  isSubmitting: boolean;
-}
+const safeValue = (value: string | null | undefined) => value || '';
 
-export function ProfileForm({ profileData, onSubmit, isSubmitting }: ProfileFormProps) {
+export function ProfileForm() {
+  const { toast } = useToast();
+  const { profile, updateProfile } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      username: profileData?.username || "",
-      full_name: profileData?.full_name || "",
-      bio: profileData?.bio || "",
-      website: profileData?.website || "",
+      username: profile?.username || "",
+      full_name: profile?.full_name || "",
+      website: profile?.website || "",
+      bio: profile?.bio || "",
     },
-    mode: "onChange",
   });
 
-  const submitHandler = async (values: ProfileFormValues) => {
-    await onSubmit(values);
-  };
+  useEffect(() => {
+    form.reset({
+      username: profile?.username || "",
+      full_name: profile?.full_name || "",
+      website: profile?.website || "",
+      bio: profile?.bio || "",
+    });
+  }, [profile, form]);
+
+  async function onSubmit(data: ProfileFormValues) {
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        ...profile,
+        username: data.username,
+        full_name: data.full_name,
+        website: data.website,
+        bio: data.bio,
+      } as UserProfile);
+
+      toast({
+        title: "Profile updated successfully!",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error.message,
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submitHandler)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="username"
@@ -49,12 +85,7 @@ export function ProfileForm({ profileData, onSubmit, isSubmitting }: ProfileForm
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Username"
-                  {...field}
-                  value={profileData?.username || ''} // Convert null to empty string
-                  disabled={isSubmitting}
-                />
+                <Input placeholder="Username" {...field} value={safeValue(field.value)} />
               </FormControl>
               <FormDescription>
                 This is your public display name.
@@ -70,16 +101,21 @@ export function ProfileForm({ profileData, onSubmit, isSubmitting }: ProfileForm
             <FormItem>
               <FormLabel>Full name</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Full Name"
-                  {...field}
-                  value={profileData?.full_name || ''} // Convert null to empty string
-                  disabled={isSubmitting}
-                />
+                <Input placeholder="Full name" {...field} value={safeValue(field.value)} />
               </FormControl>
-              <FormDescription>
-                This is your full name.
-              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="website"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Website</FormLabel>
+              <FormControl>
+                <Input placeholder="www.example.com" {...field} value={safeValue(field.value)} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -92,42 +128,21 @@ export function ProfileForm({ profileData, onSubmit, isSubmitting }: ProfileForm
               <FormLabel>Bio</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Bio"
+                  placeholder="Tell us a little bit about yourself."
+                  className="resize-none"
                   {...field}
-                  value={profileData?.bio || ''} // Convert null to empty string
-                  disabled={isSubmitting}
+                  value={safeValue(field.value)}
                 />
               </FormControl>
               <FormDescription>
-                Write a short bio about yourself.
+                Max. 160 characters.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Website"
-                  {...field}
-                  value={profileData?.website || ''} // Convert null to empty string
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormDescription>
-                Add a link to your personal website.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Updating..." : "Update profile"}
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? "Saving..." : "Update profile"}
         </Button>
       </form>
     </Form>

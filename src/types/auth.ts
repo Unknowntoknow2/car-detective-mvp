@@ -1,9 +1,9 @@
-
 export enum AuthMode {
-  SIGNIN = "login",
-  SIGNUP = "signup",
-  FORGOT_PASSWORD = "reset-password",
-  FORGOT_EMAIL = "forgot-email"
+  SIGNIN = 'signin',
+  SIGNUP = 'signup',
+  FORGOT_PASSWORD = 'forgot-password',
+  FORGOT_EMAIL = 'forgot-email',
+  RESET_PASSWORD = 'reset-password'
 }
 
 export interface UserProfile {

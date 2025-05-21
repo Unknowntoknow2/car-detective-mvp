@@ -2,43 +2,38 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  children: ReactNode;
-  context?: string;
+  children?: ReactNode;
   fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  error?: Error;
 }
 
-export default class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null
-  };
+class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    console.error("Error caught by ErrorBoundary:", error, errorInfo);
   }
 
-  public render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
-      
       return (
-        <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800">
-          <h3 className="font-medium mb-2">Something went wrong</h3>
-          <p className="text-sm text-red-600">
-            {this.props.context ? `Error in ${this.props.context}: ` : ''}
-            {this.state.error?.message || 'An unknown error occurred'}
-          </p>
+        <div className="p-4 border border-red-300 bg-red-50 rounded-md text-red-800">
+          <p className="font-semibold">Something went wrong</p>
+          <p className="text-sm mt-1">{this.state.error?.message}</p>
         </div>
       );
     }
@@ -46,3 +41,5 @@ export default class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export default ErrorBoundary;

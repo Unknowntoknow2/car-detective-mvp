@@ -41,7 +41,16 @@ export function Demo({ title = "UI Components Demo", description = "Explore our 
     toast.success(`Switch ${checked ? 'enabled' : 'disabled'}`);
   };
 
-  const columns: TableColumn<{id: number; name: string; price: string; year: number; condition: string}>[] = [
+  // Define specific interfaces for your data types
+  interface CarData {
+    id: number;
+    name: string;
+    price: string;
+    year: number;
+    condition: string;
+  }
+
+  const carColumns: TableColumn<CarData>[] = [
     { header: "ID", accessor: "id" },
     { header: "Name", accessor: "name" },
     { header: "Price", accessor: "price" },
@@ -174,15 +183,15 @@ export function Demo({ title = "UI Components Demo", description = "Explore our 
                 <TableCaption>List of available vehicles</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    {columns.map((column) => (
+                    {carColumns.map((column) => (
                       <TableHead key={column.accessor}>{column.header}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tableData.map((row) => (
+                  {tableData.map((row: any) => (
                     <TableRow key={row.id}>
-                      {columns.map((column) => (
+                      {carColumns.map((column) => (
                         <TableCell key={`${row.id}-${column.accessor}`}>
                           {column.cell ? column.cell(row) : row[column.accessor as keyof typeof row]}
                         </TableCell>

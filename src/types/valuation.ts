@@ -1,3 +1,4 @@
+
 export interface ValuationResult {
   id: string;
   make: string;
@@ -27,11 +28,11 @@ export interface ValuationResult {
     aiSummary?: string;
   } | null;
   priceRange?: [number, number];
-  isPremium?: boolean;
+  isPremium?: boolean; // Added isPremium
   pdfUrl?: string;
   gptExplanation?: string;
   vin?: string;
-  features?: string[];
+  features?: string[]; // Added features
   color?: string;
   bodyType?: string;
   bodyStyle?: string;
@@ -42,7 +43,7 @@ export interface ValuationResult {
   zip?: string;
   created_at?: string; 
   createdAt?: string; // Add this for compatibility
-  premium_unlocked?: boolean; // Add this property for premium features
+  premium_unlocked?: boolean; // Add this for premium features
   accident_count?: number; // Add this property for compatibility
   titleStatus?: string; // Add this property for compatibility
 }
