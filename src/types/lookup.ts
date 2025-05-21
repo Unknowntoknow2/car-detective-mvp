@@ -1,11 +1,11 @@
 
 export interface PlateLookupInfo {
-  vin?: string;
   plate: string;
   state: string;
   make: string;
   model: string;
   year: number;
+  vin?: string;
   color?: string;
   mileage?: number;
   transmission?: string;

@@ -1,106 +1,98 @@
+import nodemailer from 'nodemailer';
 
-import { supabase } from '@/integrations/supabase/client';
+interface EmailOptions {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+}
 
-export type EmailType = 
-  | 'abandoned_valuation' 
-  | 'premium_upsell' 
-  | 'dealer_offer_followup' 
-  | 'photo_upload_prompt' 
-  | 'reactivation';
+interface EmailServiceResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
 
-/**
- * Trigger an email to be sent to a user
- * @param emailType The type of email to send
- * @param email The recipient's email address
- * @param userId Optional user ID for tracking
- * @param valuationId Optional valuation ID for context
- * @returns Promise with the email sending result
- */
-export async function sendEmail(
-  emailType: EmailType,
-  email: string,
-  userId?: string,
-  valuationId?: string
-): Promise<{ success: boolean; message?: string; error?: string }> {
+// Helper function to handle sending errors
+const handleSendError = (err: unknown, type: string): EmailServiceResponse => {
+  const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+  console.error(`Failed to send ${type} email:`, errorMessage);
+  return { success: false, error: errorMessage };
+};
+
+// Create reusable transporter object using the default SMTP transport
+let transporter: nodemailer.Transporter | null = null;
+
+const getTransporter = () => {
+  if (transporter) {
+    return transporter;
+  }
+
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  return transporter;
+};
+
+// Function to send a basic email
+export const sendEmail = async (options: EmailOptions): Promise<EmailServiceResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke('trigger-email-campaign', {
-      body: {
-        emailType,
-        email,
-        userId,
-        valuationId
-      }
-    });
+    const transporter = getTransporter();
 
-    if (error) {
-      console.error('Error sending email:', error);
-      return { success: false, error: error.message };
-    }
-
+    // Send mail with defined transport object
+    const info = await transporter.sendMail(options);
+    console.log('Message sent: %s', info.messageId);
     return { success: true, message: 'Email sent successfully' };
-  } catch (err) {
-    console.error('Exception sending email:', err);
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    return handleSendError(err, 'generic');
   }
-}
+};
 
-/**
- * Trigger the email campaign scheduler to run
- * This would typically be called by an admin or on a schedule
- */
-export async function runEmailCampaignScheduler(): Promise<{ success: boolean; results?: any; error?: string }> {
+// Function to send a welcome email
+export const sendWelcomeEmail = async (to: string, name: string): Promise<EmailServiceResponse> => {
+  const html = `
+    <p>Hello ${name},</p>
+    <p>Welcome to our Vehicle Valuation service! We're excited to have you.</p>
+    <p>Start valuing your vehicles today!</p>
+  `;
+
   try {
-    const { data, error } = await supabase.functions.invoke('schedule-email-campaigns', {
-      body: {}
+    return await sendEmail({
+      from: `"Vehicle Valuation Service" <${process.env.SMTP_USER}>`,
+      to,
+      subject: 'Welcome to Vehicle Valuation Service',
+      html,
     });
-
-    if (error) {
-      console.error('Error running email campaign scheduler:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, results: data.results };
-  } catch (err) {
-    console.error('Exception running email campaign scheduler:', err);
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    return handleSendError(err, 'welcome');
   }
-}
+};
 
-/**
- * Create a new email campaign in the database
- * @param subject Email subject
- * @param body Email body
- * @param audienceType Audience type
- * @param recipientCount Number of recipients
- * @returns Promise with the result of the operation
- */
-export async function createEmailCampaign(
-  subject: string,
-  body: string,
-  audienceType: string,
-  recipientCount: number
-): Promise<{ success: boolean; message?: string; error?: string }> {
+// Function to send a password reset email
+export const sendPasswordResetEmail = async (to: string, token: string): Promise<EmailServiceResponse> => {
+  const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
+  const html = `
+    <p>Hello,</p>
+    <p>You requested a password reset. Click the following link to reset your password:</p>
+    <a href="${resetLink}">Reset Password</a>
+    <p>This link is valid for 24 hours.</p>
+  `;
+
   try {
-    // Get the current user's ID before making the insert
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
-
-    const { error } = await supabase.from('email_campaigns').insert({
-      subject,
-      body,
-      audience_type: audienceType,
-      recipient_count: recipientCount,
-      user_id: userId
+    return await sendEmail({
+      from: `"Vehicle Valuation Service" <${process.env.SMTP_USER}>`,
+      to,
+      subject: 'Password Reset Request',
+      html,
     });
-
-    if (error) {
-      console.error('Error creating email campaign:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, message: 'Email campaign created successfully' };
-  } catch (err) {
-    console.error('Exception creating email campaign:', err);
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    return handleSendError(err, 'password reset');
   }
-}
+};

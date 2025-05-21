@@ -1,7 +1,8 @@
-import { rest } from 'msw';
+
+import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  rest.get('/api/valuation-stats', (req, res, ctx) => {
+  http.get('/api/valuation-stats', () => {
     // Mocked data for valuation statistics
     const stats = {
       totalValuations: 150,
@@ -9,9 +10,7 @@ export const handlers = [
       premiumValuations: 30,
     };
 
-    return res(
-      ctx.status(200),
-      ctx.json(stats)
-    );
+    return HttpResponse.json(stats);
   }),
 ];
+</lov-add-dependency>msw@latest</lov-add-dependency>
