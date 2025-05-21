@@ -1,28 +1,16 @@
 
 {
   "app": {
-    "name": "Detective de Autos",
-    "tagline": "Descubre el verdadero valor de tu vehículo"
+    "name": "Car Detective",
+    "tagline": "Obtenga valoraciones precisas de vehículos al instante"
   },
-  "navigation": {
-    "home": "Inicio",
-    "lookup": "Búsqueda de Vehículos",
-    "premium": "Valoración Premium",
-    "dashboard": "Panel",
-    "profile": "Perfil",
-    "settings": "Configuración",
-    "login": "Iniciar Sesión",
-    "register": "Registrarse",
-    "logout": "Cerrar Sesión"
-  },
-  "actions": {
+  "common": {
+    "loading": "Cargando...",
+    "error": "Se produjo un error",
     "submit": "Enviar",
     "cancel": "Cancelar",
-    "save": "Guardar",
     "continue": "Continuar",
-    "back": "Atrás",
-    "search": "Buscar",
-    "upload": "Subir",
-    "download": "Descargar"
+    "save": "Guardar",
+    "back": "Atrás"
   }
 }

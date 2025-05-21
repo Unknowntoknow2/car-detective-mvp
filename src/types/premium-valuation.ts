@@ -30,6 +30,7 @@ export const premiumValuationSchema = z.object({
   exteriorColor: z.string().optional(),
   interiorColor: z.string().optional(),
   colorMultiplier: z.number().optional(),
+  doors: z.number().optional(),
 });
 
 export type FormData = z.infer<typeof premiumValuationSchema>;
@@ -48,4 +49,26 @@ export interface FeatureOption {
   value: number;
   description?: string;
   category?: string;
+  icon?: string; // Add icon property
+}
+
+// Add ConditionValues interface for condition-related components
+export interface ConditionValues {
+  exteriorBody: number;
+  exteriorPaint: number;
+  interiorSeats: number;
+  interiorDashboard: number;
+  mechanicalEngine: number;
+  mechanicalTransmission: number;
+  tireCondition: number;
+  accidents: number;
+  mileage: number;
+  year: number;
+  titleStatus: string;
+}
+
+// Add ConditionTipsProps for condition tip components
+export interface ConditionTipsProps {
+  category: string;
+  rating: number;
 }

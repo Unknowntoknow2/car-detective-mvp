@@ -1,141 +1,65 @@
 
-import { PhotoScoringResult, PhotoAnalysisResult, AICondition, Photo } from '@/types/photo';
+import { Photo, PhotoScore, AICondition, PhotoAnalysisResult } from '@/types/photo';
 
-// Function to score and analyze uploaded photos
-export async function analyzePhotoQuality(photoUrls: string[]): Promise<PhotoScoringResult> {
+// Implement the uploadAndAnalyzePhotos function
+export const uploadAndAnalyzePhotos = async (photos: Photo[]): Promise<PhotoAnalysisResult> => {
   try {
-    // In a real implementation, this would call an AI service to analyze photos
-    console.log('Analyzing photos:', photoUrls);
+    console.log('Uploading and analyzing photos', photos);
     
-    // Mock implementation - return a mock response
-    return {
-      photoScore: 85,
+    // Simulate upload and analysis delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Mock photo analysis result
+    const result: PhotoAnalysisResult = {
+      photoUrls: photos.map(p => p.url || ''),
       score: 85,
-      individualScores: photoUrls.map((url, index) => ({
-        url,
+      aiCondition: {
+        condition: 'Good',
+        confidenceScore: 85,
+        issuesDetected: ['Minor scratch on driver door', 'Light wear on seats'],
+        summary: 'Vehicle appears to be in good condition with minor cosmetic issues'
+      },
+      individualScores: photos.map((p, index) => ({
+        url: p.url || '',
         score: 75 + Math.floor(Math.random() * 20),
         isPrimary: index === 0
-      })),
-      photoUrls,
-      bestPhotoUrl: photoUrls[0],
-      aiCondition: {
-        condition: 'good',
-        confidenceScore: 83,
-        issuesDetected: ['Minor scratches on driver side door', 'Small dent on rear bumper'],
-        summary: 'Vehicle is in good condition with minor cosmetic issues.'
-      }
+      }))
     };
+    
+    return result;
   } catch (error) {
     console.error('Error analyzing photos:', error);
-    return {
-      photoScore: 0,
-      score: 0,
-      individualScores: [],
-      photoUrls: [],
-      aiCondition: {
-        condition: 'unknown',
-        confidenceScore: 0,
-        issuesDetected: ['Failed to analyze photos'],
-        summary: 'Could not determine vehicle condition'
-      },
-      error: error instanceof Error ? error.message : 'Failed to analyze photos'
-    };
+    throw new Error('Failed to analyze photos');
   }
-}
+};
 
-// Get a detailed analysis of vehicle condition from photos
-export async function getPhotoConditionAnalysis(photoUrls: string[]): Promise<PhotoAnalysisResult> {
+// Implement the scorePhotos function
+export const scorePhotos = async (photos: Photo[]): Promise<PhotoAnalysisResult> => {
   try {
-    // In a real implementation, this would call an AI service for detailed analysis
-    console.log('Getting condition analysis for photos:', photoUrls);
+    // This could call a specialized photo scoring API in a real app
+    console.log('Scoring photos', photos);
     
-    // Mock implementation - return a mock response
+    // Simulate scoring delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Return mock scoring data
     return {
-      photoUrls,
-      score: 87,
+      photoUrls: photos.map(p => p.url || p.preview || ''),
+      score: 80 + Math.floor(Math.random() * 15),
       aiCondition: {
-        condition: 'good',
-        confidenceScore: 85,
-        issuesDetected: [
-          'Light scratches on front bumper',
-          'Minor wear on driver seat',
-          'Small dent on passenger door'
-        ],
-        summary: 'Overall, the vehicle appears to be in good condition with normal wear for its age.'
+        condition: 'Good',
+        confidenceScore: 82,
+        issuesDetected: ['Minor wear on driver seat', 'Light scratches on bumper'],
+        summary: 'The vehicle appears to be well-maintained with only minor cosmetic issues'
       },
-      individualScores: photoUrls.map((url, index) => ({
-        url,
-        score: 80 + Math.floor(Math.random() * 15),
+      individualScores: photos.map((p, index) => ({
+        url: p.url || p.preview || '',
+        score: 70 + Math.floor(Math.random() * 25),
         isPrimary: index === 0
       }))
     };
   } catch (error) {
-    console.error('Error analyzing vehicle condition from photos:', error);
-    return {
-      photoUrls: [],
-      score: 0,
-      aiCondition: {
-        condition: 'unknown',
-        confidenceScore: 0,
-        issuesDetected: ['Failed to analyze photos'],
-        summary: 'Could not determine vehicle condition from provided photos'
-      },
-      individualScores: [],
-      error: error instanceof Error ? error.message : 'Failed to analyze photos'
-    };
-  }
-}
-
-// Function to score photos (used by usePhotoScoring hook)
-export async function scorePhotos(photoUrls: string[], valuationId?: string): Promise<PhotoScoringResult> {
-  try {
-    console.log(`Scoring ${photoUrls.length} photos for valuation: ${valuationId || 'Unknown'}`);
-    
-    // Call the analyze function (reusing existing functionality)
-    return await analyzePhotoQuality(photoUrls);
-  } catch (error) {
     console.error('Error scoring photos:', error);
-    return {
-      photoScore: 0,
-      score: 0,
-      individualScores: [],
-      photoUrls: [],
-      aiCondition: {
-        condition: 'unknown',
-        confidenceScore: 0,
-        issuesDetected: ['Failed to score photos'],
-        summary: 'Could not analyze photos'
-      },
-      error: error instanceof Error ? error.message : 'Failed to score photos'
-    };
+    throw new Error('Failed to score photos');
   }
-}
-
-// Function to upload and analyze photos (used in tests)
-export async function uploadAndAnalyzePhotos(files: File[]): Promise<PhotoScoringResult> {
-  try {
-    // Mock implementation for tests
-    console.log(`Uploading and analyzing ${files.length} photos`);
-    
-    // Simulate photo URLs
-    const photoUrls = files.map((_, index) => `https://example.com/photo${index}.jpg`);
-    
-    // Call the analyze function
-    return await analyzePhotoQuality(photoUrls);
-  } catch (error) {
-    console.error('Error uploading and analyzing photos:', error);
-    return {
-      photoScore: 0,
-      score: 0,
-      individualScores: [],
-      photoUrls: [],
-      aiCondition: {
-        condition: 'unknown',
-        confidenceScore: 0,
-        issuesDetected: ['Failed to upload and analyze photos'],
-        summary: 'Could not process vehicle photos'
-      },
-      error: error instanceof Error ? error.message : 'Failed to process photos'
-    };
-  }
-}
+};

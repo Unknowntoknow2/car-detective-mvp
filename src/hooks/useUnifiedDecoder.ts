@@ -1,81 +1,62 @@
 
-import { useState, useCallback } from 'react';
-import { decodeVin, decodeLicensePlate, DecodedVehicleInfo } from '@/services/vehicleService';
+import { useState } from 'react';
+import { decodeVIN } from '@/services/vinService';
+import { decodeLicensePlate, DecodedVehicleInfo } from '@/services/vehicleService';
+import { toast } from 'sonner';
 
-interface UseUnifiedDecoderProps {
-  onSuccess?: (data: DecodedVehicleInfo) => void;
-  onError?: (error: Error) => void;
-}
-
-export function useUnifiedDecoder({ onSuccess, onError }: UseUnifiedDecoderProps = {}) {
+export const useUnifiedDecoder = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
   const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
-
-  const decodeVehicle = useCallback(async ({
-    type,
-    value,
-    state,
-    zipCode
-  }: {
-    type: 'vin' | 'plate';
-    value: string;
-    state?: string;
-    zipCode?: string;
-  }) => {
+  const [error, setError] = useState<string | null>(null);
+  
+  const decodeVehicle = async (
+    type: 'vin' | 'plate',
+    identifier: string,
+    state?: string
+  ) => {
+    if (!identifier) {
+      setError('Identifier is required');
+      return null;
+    }
+    
     setIsLoading(true);
     setError(null);
-
+    
     try {
       let result: DecodedVehicleInfo;
-
+      
       if (type === 'vin') {
-        result = await decodeVin(value);
-      } else if (type === 'plate' && state) {
-        result = await decodeLicensePlate(value, state);
+        if (identifier.length !== 17) {
+          throw new Error('VIN must be 17 characters');
+        }
+        result = await decodeVIN(identifier);
+      } else if (type === 'plate') {
+        if (!state) {
+          throw new Error('State is required for plate lookup');
+        }
+        result = await decodeLicensePlate(identifier, state);
       } else {
-        throw new Error('Invalid decoder type or missing state for license plate');
+        throw new Error('Invalid decoder type');
       }
-
-      // If zipCode is provided, add it to the result
-      if (zipCode) {
-        result = {
-          ...result,
-          zipCode
-        };
-      }
-
+      
       setVehicleInfo(result);
-      
-      if (onSuccess) {
-        onSuccess(result);
-      }
-      
       return result;
-    } catch (err: any) {
-      const errorObj = err instanceof Error ? err : new Error(err?.message || 'Failed to decode vehicle');
-      setError(errorObj);
-      
-      if (onError) {
-        onError(errorObj);
-      }
-      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Decoding failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, [onSuccess, onError]);
-
-  const reset = useCallback(() => {
-    setVehicleInfo(null);
-    setError(null);
-  }, []);
-
-  return {
-    isLoading,
-    error,
-    vehicleInfo,
-    decodeVehicle,
-    reset
   };
-}
+  
+  return {
+    decodeVehicle,
+    isLoading,
+    vehicleInfo,
+    error,
+    clearVehicleInfo: () => setVehicleInfo(null),
+    clearError: () => setError(null)
+  };
+};

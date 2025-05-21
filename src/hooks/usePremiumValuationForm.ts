@@ -10,6 +10,7 @@ const initialFormState = {
   model: '',
   mileage: 0,
   // Additional fields can be added as optional properties
+  isPremium: false
 };
 
 export function usePremiumValuationForm() {
@@ -66,7 +67,10 @@ export function usePremiumValuationForm() {
   // Upgrade to premium
   const upgradeToPremium = () => {
     setIsPremium(true);
-    updateFormData({ isPremium: true });
+    setFormData(prev => ({
+      ...prev,
+      isPremium: true
+    }));
   };
   
   // Submit the form
