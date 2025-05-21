@@ -37,7 +37,7 @@ export interface FoundCarCardProps {
   model: string;
   trim?: string;
   engine?: string;
-  vin?: string; // Added vin property to fix the type error
+  vin?: string; // Added vin property
 }
 
 export interface DealerVehicleFormData {
@@ -54,6 +54,7 @@ export interface DealerVehicleFormData {
   description?: string;
   vehicleId?: string;
   photos: File[];
+  onSuccess?: () => void; // Add the missing onSuccess prop
 }
 
 export enum DealerVehicleStatus {

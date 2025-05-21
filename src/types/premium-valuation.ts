@@ -20,7 +20,7 @@ export interface FormData {
   bodyStyle?: string; // Added bodyStyle property
   saleDate?: Date; // Added saleDate property
   features: string[];
-  photos: string[];
+  photos: string[] | File[]; // Allow both string[] and File[]
   drivingProfile: string;
   isPremium: boolean;
   valuationId?: string;
@@ -28,6 +28,17 @@ export interface FormData {
   confidenceScore?: number;
   colorMultiplier?: number;
   exteriorColor?: string;
+  interiorColor?: string; // Add missing interiorColor property
   explanation?: string;
   photoAnalysisResult?: any; // Add photoAnalysisResult for photo uploads
+}
+
+// Add FeatureOption interface for features components
+export interface FeatureOption {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  value: number;
+  selected?: boolean;
 }

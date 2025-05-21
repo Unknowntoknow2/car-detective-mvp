@@ -11,5 +11,7 @@ export interface AuthContextType {
 export enum AuthMode {
   SIGNIN = 'signin',
   SIGNUP = 'signup',
-  FORGOT_PASSWORD = 'forgot-password'
+  FORGOT_PASSWORD = 'forgot-password',
+  RESET_PASSWORD = 'reset-password',
+  FORGOT_EMAIL = 'forgot-email'
 }

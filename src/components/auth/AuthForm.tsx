@@ -26,37 +26,37 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
 
   const getTitle = () => {
     switch (mode) {
-      case 'signup': return 'Create Account';
-      case 'login': return 'Sign In';
-      case 'forgot-password': return 'Forgot Password';
-      case 'reset-password': return 'Reset Password';
-      case 'forgot-email': return 'Recover Username';
+      case AuthMode.SIGNUP: return 'Create Account';
+      case AuthMode.SIGNIN: return 'Sign In';
+      case AuthMode.FORGOT_PASSWORD: return 'Forgot Password';
+      case AuthMode.RESET_PASSWORD: return 'Reset Password';
+      case AuthMode.FORGOT_EMAIL: return 'Recover Username';
       default: return 'Authentication';
     }
   };
 
   const getDescription = () => {
     switch (mode) {
-      case 'signup': return 'Create a new account to save your valuations';
-      case 'login': return 'Sign in to access your saved valuations';
-      case 'forgot-password': return 'Receive a password reset link via email';
-      case 'reset-password': return 'Create a new password for your account';
-      case 'forgot-email': return 'Find your account username using your phone number';
+      case AuthMode.SIGNUP: return 'Create a new account to save your valuations';
+      case AuthMode.SIGNIN: return 'Sign in to access your saved valuations';
+      case AuthMode.FORGOT_PASSWORD: return 'Receive a password reset link via email';
+      case AuthMode.RESET_PASSWORD: return 'Create a new password for your account';
+      case AuthMode.FORGOT_EMAIL: return 'Find your account username using your phone number';
       default: return '';
     }
   };
 
   const renderForm = () => {
     switch (mode) {
-      case 'signup':
+      case AuthMode.SIGNUP:
         return <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />;
-      case 'login':
+      case AuthMode.SIGNIN:
         return <LoginForm isLoading={isLoading} setIsLoading={setIsLoading} />;
-      case 'forgot-password':
+      case AuthMode.FORGOT_PASSWORD:
         return <ForgotPasswordForm isLoading={isLoading} setIsLoading={setIsLoading} />;
-      case 'forgot-email':
+      case AuthMode.FORGOT_EMAIL:
         return <ForgotEmailForm isLoading={isLoading} setIsLoading={setIsLoading} />;
-      case 'reset-password':
+      case AuthMode.RESET_PASSWORD:
         return <ResetPasswordForm isLoading={isLoading} setIsLoading={setIsLoading} />;
       default:
         return null;
@@ -64,7 +64,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
   };
 
   const getToggleLink = () => {
-    if (mode === 'signup') {
+    if (mode === AuthMode.SIGNUP) {
       return (
         <Button
           type="button"
@@ -75,7 +75,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           Already have an account? Sign In
         </Button>
       );
-    } else if (mode === 'login') {
+    } else if (mode === AuthMode.SIGNIN) {
       return (
         <Button
           type="button"
@@ -86,7 +86,7 @@ const AuthForm = ({ mode }: { mode: AuthMode }) => {
           Don't have an account? Sign Up
         </Button>
       );
-    } else if (mode === 'forgot-password' || mode === 'forgot-email' || mode === 'reset-password') {
+    } else if (mode === AuthMode.FORGOT_PASSWORD || mode === AuthMode.FORGOT_EMAIL || mode === AuthMode.RESET_PASSWORD) {
       return (
         <Button
           type="button"

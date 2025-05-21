@@ -69,11 +69,11 @@ export default function ResultsDisplay({ valuation }: { valuation: any }) {
 
   // Type guard to check if the condition is valid
   const isValidCondition = (condition: string): condition is ValidCondition => 
-    condition in conditionTips;
+    Object.keys(conditionTips).includes(condition);
   
   // Type guard for category
   const isValidCategory = (category: string): category is ValidCategory =>
-    category in categoryIcons;
+    Object.keys(categoryIcons).includes(category);
 
   return (
     <div className="bg-white rounded-xl shadow p-6 mt-6">
