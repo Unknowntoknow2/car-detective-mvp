@@ -1,24 +1,28 @@
 
-import { AuthError } from '@supabase/supabase-js';
-
 /**
- * Extracts a user-friendly error message from various error types
+ * Converts any error type to a string message
  */
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof AuthError) {
-    return error.message;
-  } else if (error instanceof Error) {
-    return error.message;
-  } else if (typeof error === 'string') {
-    return error;
-  } else {
-    return 'An unknown error occurred';
+export const errorToString = (error: any): string => {
+  if (!error) return 'Unknown error';
+  
+  if (typeof error === 'string') return error;
+  
+  if (error instanceof Error) return error.message;
+  
+  if (typeof error === 'object') {
+    // Check for Supabase error format
+    if (error.message) return error.message;
+    
+    // Check for API error format
+    if (error.error) return typeof error.error === 'string' ? error.error : errorToString(error.error);
+    
+    // Fallback to JSON string
+    try {
+      return JSON.stringify(error);
+    } catch (e) {
+      return 'Unknown error object';
+    }
   }
-}
-
-/**
- * Safely converts an error to a string for React state
- */
-export function errorToString(error: unknown): string {
-  return getErrorMessage(error);
-}
+  
+  return String(error);
+};

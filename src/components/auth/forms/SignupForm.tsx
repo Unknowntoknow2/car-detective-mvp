@@ -1,24 +1,33 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, KeyRound, Eye, EyeOff, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { errorToString } from '@/utils/errorHandling';
 
 interface SignupFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  redirectPath?: string;
+  redirectToLogin?: boolean;
 }
 
-export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
+export const SignupForm = ({ 
+  isLoading, 
+  setIsLoading,
+  redirectPath = '/dashboard',
+  redirectToLogin = true
+}: SignupFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const navigate = useNavigate();
@@ -28,7 +37,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
   const isEmailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordValid = () => password.length >= 6;
   const doPasswordsMatch = () => password === confirmPassword;
-  const isFormValid = isEmailValid() && isPasswordValid() && doPasswordsMatch() && fullName.trim().length > 0;
+  const isFormValid = isEmailValid() && isPasswordValid() && doPasswordsMatch() && fullName.trim().length > 0 && termsAccepted;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,25 +52,38 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
       return;
     }
     
+    if (!termsAccepted) {
+      setError('You must accept the terms and conditions');
+      return;
+    }
+    
     setError(null);
     setIsLoading(true);
     
     try {
-      const result = await signUp(email, password);
+      const result = await signUp(email, password, {
+        full_name: fullName,
+        role: 'user'
+      });
       
       if (result?.error) {
-        setError(errorToString(result.error));
-        toast.error(errorToString(result.error));
+        setError(result.error.toString());
+        toast.error(result.error.toString());
         setIsLoading(false);
         return;
       }
       
-      toast.success('Account created! You can now sign in');
-      navigate('/sign-in');
+      toast.success('Account created successfully! Please check your email for confirmation.');
+      
+      if (redirectToLogin) {
+        navigate('/sign-in');
+      } else {
+        navigate(redirectPath);
+      }
     } catch (err: any) {
       console.error('Sign up error:', err);
-      setError(errorToString(err));
-      toast.error(errorToString(err));
+      setError(err.message || 'An unexpected error occurred');
+      toast.error(err.message || 'Failed to create account');
       setIsLoading(false);
     }
   };
@@ -163,6 +185,18 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
         {confirmPassword && !doPasswordsMatch() && (
           <p className="text-xs text-red-500">Passwords do not match</p>
         )}
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="terms" 
+          checked={termsAccepted}
+          onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+          disabled={isLoading}
+        />
+        <Label htmlFor="terms" className="text-sm font-normal">
+          I accept the terms and conditions
+        </Label>
       </div>
       
       <Button 

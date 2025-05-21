@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { SharedLoginForm } from '@/components/auth/forms/SharedLoginForm';
+import { SigninForm } from '@/components/auth/forms/SigninForm';
 import { Toaster } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building } from 'lucide-react';
@@ -49,10 +49,9 @@ export default function LoginDealerPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <SharedLoginForm 
+              <SigninForm 
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
-                expectedRole="dealer"
                 redirectPath="/dealer-dashboard"
                 alternateLoginPath="/login-user"
                 alternateLoginText="Individual user? Click here to login"
