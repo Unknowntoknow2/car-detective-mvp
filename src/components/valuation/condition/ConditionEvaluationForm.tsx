@@ -1,38 +1,94 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ValuationFactorsGrid } from './factors/ValuationFactorsGrid';
 import { ConditionValues } from './types';
 
-interface ConditionEvaluationFormProps {
-  values: ConditionValues;
-  onChange: (values: ConditionValues) => void;
+export interface ConditionEvaluationFormProps {
+  initialValues?: Partial<ConditionValues>;
+  vehicleInfo?: {
+    year: number;
+    make: string;
+    model: string;
+    vin?: string;
+  };
+  onSubmit?: (values: ConditionValues) => void;
+  onCancel?: () => void;
 }
 
-export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = ({ values, onChange }) => {
-  // Define the categories for evaluation
-  const categories = ['exteriorBody', 'exteriorPaint', 'interiorSeats', 'interiorDashboard', 
-                      'mechanicalEngine', 'mechanicalTransmission', 'tiresCondition'];
-  
-  // Calculate the sum correctly - parse string values to numbers for calculation
-  const sum = categories.reduce((acc, key) => {
-    const value = values[key];
-    const numericValue = typeof value === 'string' ? parseFloat(value) || 0 : (typeof value === 'number' ? value : 0);
-    return acc + numericValue;
-  }, 0);
-  
-  const average = categories.length > 0 ? sum / categories.length : 0;
-  
-  // For demonstration - this would display the average condition score
+export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = ({
+  initialValues,
+  vehicleInfo,
+  onSubmit,
+  onCancel
+}) => {
+  const [values, setValues] = useState<ConditionValues>({
+    exteriorBody: initialValues?.exteriorBody || '',
+    exteriorPaint: initialValues?.exteriorPaint || '',
+    interiorSeats: initialValues?.interiorSeats || '',
+    interiorDashboard: initialValues?.interiorDashboard || '',
+    mechanicalEngine: initialValues?.mechanicalEngine || '',
+    mechanicalTransmission: initialValues?.mechanicalTransmission || '',
+    tiresCondition: initialValues?.tiresCondition || '',
+    odometer: initialValues?.odometer || 0,
+    accidents: initialValues?.accidents || 0,
+    mileage: initialValues?.mileage || 0,
+    year: initialValues?.year || 0,
+    titleStatus: initialValues?.titleStatus || 'Clean',
+    zipCode: initialValues?.zipCode || ''
+  });
+
+  const handleChange = (id: string, value: any) => {
+    setValues(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSubmit) {
+      onSubmit(values);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="bg-muted p-4 rounded-md">
-        <h3 className="font-medium">Average Condition Score: {average.toFixed(1)}</h3>
-        <p className="text-sm text-muted-foreground">
-          Based on your evaluation of all vehicle condition factors
-        </p>
-      </div>
-      
-      {/* Additional form elements would go here */}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Vehicle Condition Evaluation</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          {vehicleInfo && (
+            <div className="bg-gray-50 p-4 rounded-md mb-4">
+              <h3 className="text-lg font-medium">
+                {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+              </h3>
+              {vehicleInfo.vin && (
+                <p className="text-sm text-gray-500 mt-1">VIN: {vehicleInfo.vin}</p>
+              )}
+            </div>
+          )}
+
+          <ValuationFactorsGrid 
+            values={values}
+            onChange={handleChange}
+          />
+
+          <div className="mt-6 flex justify-end space-x-2">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit">
+              Submit Evaluation
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

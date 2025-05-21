@@ -1,112 +1,85 @@
 
+import { DecodedVehicleInfo } from '@/types/vehicle';
+
 /**
- * Mock vehicle service for VIN lookup
+ * Decode a VIN through an API service
  */
-
-export interface DecodedVehicleInfo {
-  vin?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  trim?: string;
-  engine?: string;
-  transmission?: string;
-  fuelType?: string;
-  bodyType?: string;
-  driveTrain?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  zipCode?: string;
-}
-
 export async function decodeVin(vin: string): Promise<DecodedVehicleInfo> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
+  console.log('Decoding VIN:', vin);
   
-  // Mock response based on VIN pattern
-  if (vin.startsWith('1')) {
-    return {
-      vin: vin,
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      trim: 'SE',
-      engine: '2.5L I4',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
-      bodyType: 'Sedan',
-      driveTrain: 'FWD',
-      exteriorColor: 'Silver',
-      interiorColor: 'Black'
-    };
-  } else if (vin.startsWith('2')) {
-    return {
-      vin: vin,
-      make: 'Honda',
-      model: 'Accord',
-      year: 2019,
-      trim: 'EX',
-      engine: '1.5L I4 Turbo',
-      transmission: 'CVT',
-      fuelType: 'Gasoline',
-      bodyType: 'Sedan',
-      driveTrain: 'FWD',
-      exteriorColor: 'White',
-      interiorColor: 'Tan'
-    };
-  } else if (vin.startsWith('3')) {
-    return {
-      vin: vin,
-      make: 'Ford',
-      model: 'F-150',
-      year: 2021,
-      trim: 'XLT',
-      engine: '3.5L V6 EcoBoost',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
-      bodyType: 'Pickup',
-      driveTrain: '4WD',
-      exteriorColor: 'Blue',
-      interiorColor: 'Gray'
-    };
-  }
-  
-  // Default mock response
+  // Mock implementation
   return {
-    vin: vin,
-    make: 'Unknown',
-    model: 'Unknown',
-    year: new Date().getFullYear() - 5,
-    trim: 'Base',
-    engine: 'Unknown',
-    transmission: 'Unknown',
-    fuelType: 'Unknown',
-    bodyType: 'Unknown',
-    driveTrain: 'Unknown',
-    exteriorColor: 'Unknown',
-    interiorColor: 'Unknown'
+    vin,
+    make: 'Toyota',
+    model: 'Camry',
+    year: 2020,
+    trim: 'LE',
+    engine: '2.5L 4-Cylinder',
+    transmission: 'Automatic',
+    drivetrain: 'FWD',
+    bodyType: 'Sedan',
+    fuelType: 'Gasoline',
+    doors: '4',
+    color: 'Silver',
+    isValid: true
   };
 }
 
-export async function decodeLicensePlate(
-  plate: string, 
-  state: string
-): Promise<DecodedVehicleInfo> {
-  // Similar mock implementation as decodeVin
-  await new Promise(resolve => setTimeout(resolve, 1000));
+/**
+ * Lookup vehicle details by license plate
+ */
+export async function decodePlate(plate: string, state: string): Promise<DecodedVehicleInfo> {
+  console.log('Looking up plate:', plate, 'from state:', state);
   
+  // Mock implementation
   return {
-    vin: `MOCK${plate}${state}123456`,
-    make: 'Ford',
-    model: 'Explorer',
-    year: 2018,
-    trim: 'Limited',
-    engine: '3.5L V6',
-    transmission: 'Automatic',
+    vin: 'ABCDEFGH123456789',
+    make: 'Honda',
+    model: 'Accord',
+    year: 2019,
+    trim: 'Sport',
+    engine: '1.5L Turbo',
+    transmission: 'CVT',
+    drivetrain: 'FWD',
+    bodyType: 'Sedan',
     fuelType: 'Gasoline',
-    bodyType: 'SUV',
-    driveTrain: 'AWD',
-    exteriorColor: 'Black',
-    interiorColor: 'Beige'
+    doors: '4',
+    color: 'Blue',
+    isValid: true,
+    plate,
+    state
   };
+}
+
+/**
+ * Get a list of makes for a dropdown
+ */
+export async function getVehicleMakes(): Promise<string[]> {
+  // This would normally fetch from an API or database
+  return [
+    'Acura', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet', 'Chrysler', 
+    'Dodge', 'Ford', 'GMC', 'Honda', 'Hyundai', 'Infiniti', 'Jaguar', 
+    'Jeep', 'Kia', 'Land Rover', 'Lexus', 'Lincoln', 'Mazda', 'Mercedes-Benz', 
+    'Mitsubishi', 'Nissan', 'Porsche', 'Ram', 'Subaru', 'Tesla', 'Toyota', 
+    'Volkswagen', 'Volvo'
+  ];
+}
+
+/**
+ * Get models for a specific make for a dropdown
+ */
+export async function getVehicleModels(make: string): Promise<string[]> {
+  console.log('Getting models for make:', make);
+  
+  // This would normally fetch from an API or database
+  // Mock implementation with some common models
+  const modelsByMake: Record<string, string[]> = {
+    'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma', 'Prius'],
+    'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot', 'Odyssey', 'Fit'],
+    'Ford': ['F-150', 'Escape', 'Explorer', 'Mustang', 'Edge', 'Fusion'],
+    'Chevrolet': ['Silverado', 'Equinox', 'Malibu', 'Traverse', 'Tahoe', 'Suburban'],
+    'Nissan': ['Altima', 'Rogue', 'Sentra', 'Pathfinder', 'Murano', 'Maxima']
+  };
+  
+  return modelsByMake[make] || ['Model data not available'];
 }

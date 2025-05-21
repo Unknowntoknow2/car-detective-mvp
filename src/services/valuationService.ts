@@ -66,4 +66,3 @@ export async function getValuationById(id: string) {
  * Alias for getValuationById to support legacy code
  */
 export const fetchValuation = getValuationById;
-

@@ -4,8 +4,8 @@ import { http, HttpResponse } from 'msw';
 // Define your mock handlers
 export const handlers = [
   // Example handler for VIN lookup
-  http.get('/api/vin/:vin', (req, res, ctx) => {
-    const vin = req.params.vin;
+  http.get('/api/vin/:vin', ({ params }) => {
+    const vin = params.vin as string;
     
     return HttpResponse.json({
       vin,

@@ -1,104 +1,70 @@
 
-export interface ValuationResult {
-  id: string;
-  // Support both naming conventions for backward compatibility
-  make?: string;
-  model?: string;
-  year?: number;
-  estimated_value?: number;
-  estimatedValue?: number;
-  confidence_score?: number;
-  confidenceScore?: number;
-  condition_score?: number;
-  conditionScore?: number;
-  mileage?: number;
-  vin?: string;
-  zip_code?: string;
-  zipCode?: string;
-  created_at?: string;
-  premium_unlocked?: boolean;
-  isPremium?: boolean;
-  
-  // Additional properties needed by components
-  condition?: string;
-  features?: string[];
-  pdfUrl?: string;
-  gptExplanation?: string;
-  explanation?: string;
-  trim?: string;
-  color?: string;
-  bodyType?: string;
-  bodyStyle?: string;
-  fuelType?: string;
-  fuel_type?: string;
-  transmission?: string;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  priceRange?: [number, number];
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected: any[];
-    summary: string;
-    aiSummary?: string;
-  };
-  bestPhotoUrl?: string;
-  photo_url?: string;
-  zip?: string;
-}
-
 export interface ValuationInput {
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  vin?: string;
-  zipCode: string;
-  features?: string[];
-  fuelType?: string;
-  transmission?: string;
-  bodyType?: string;
-  color?: string;
-  trim?: string;
-  hasAccident?: boolean | 'yes' | 'no';
-  isPremium?: boolean;
-}
-
-export interface RulesEngineInput {
+  identifierType: 'vin' | 'plate' | 'manual';
   make: string;
   model: string;
   year: number;
   mileage: number;
   condition: string;
   zipCode: string;
-  baseValue: number;
-  features: string[];
-  carfaxData?: any;
-  [key: string]: any;
+  vin?: string;
+  trim?: string;
+  bodyType?: string;
+  fuelType?: string;
+  features?: string[];
 }
 
-export type ValuationStep = 
-  | 'vehicle-input'
-  | 'condition'
-  | 'photos'
-  | 'features'
-  | 'location'
-  | 'result';
-
-export interface ConditionValues {
-  exteriorBody: number;
-  exteriorPaint: number;
-  interiorSeats: number;
-  interiorDashboard: number;
-  mechanicalEngine: number;
-  mechanicalTransmission: number;
-  tires: number;
-  accidents: number;
-  mileage: number;
+export interface ValuationResult {
+  id: string;
+  make: string;
+  model: string;
   year: number;
-  titleStatus: string;
+  mileage: number;
+  condition: string;
+  zipCode?: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  basePrice?: number;
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
+  priceRange?: [number, number];
+  features?: string[];
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  bodyStyle?: string;
+  createdAt?: string;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary: string;
+  };
+}
+
+export interface RulesEngineInput {
+  baseValue: number;
+  basePrice: number;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  trim?: string;
+  bodyType?: string;
+  fuelType?: string;
+  zipCode?: string;
+  photoScore?: number;
+  accidentCount?: number;
+  premiumFeatures?: string[];
+  mpg?: number;
+  aiConditionData?: any;
+  exteriorColor?: string;
+  colorMultiplier?: number;
+  saleDate?: string;
+  bodyStyle?: string;
+  carfaxData?: any;
 }

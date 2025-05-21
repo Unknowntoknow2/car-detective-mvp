@@ -37,6 +37,12 @@ export interface Photo {
   isPrimary?: boolean;
   score?: number;
   type?: string;
+  name?: string;
+  size?: number;
+  preview?: string;
+  uploading?: boolean;
+  uploaded?: boolean;
+  error?: string;
 }
 
 export interface PhotoFile {
@@ -44,3 +50,7 @@ export interface PhotoFile {
   id: string;
   url?: string;
 }
+
+// Constants for photo uploads
+export const MIN_FILES = 1;
+export const MAX_FILES = 10;
