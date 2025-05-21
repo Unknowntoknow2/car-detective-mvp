@@ -5,18 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
-import { ReplyToLeadModal } from './ReplyToLeadModal';
+import { ReplyToLeadModal, LeadData } from './ReplyToLeadModal';
 
 interface LeadCardProps {
-  lead: {
-    id: string;
-    make?: string;
-    model?: string;
-    year?: number;
-    estimatedValue?: number;
-    created_at: string;
-    condition_score?: number;
-  };
+  lead: LeadData;
 }
 
 export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
@@ -66,3 +58,5 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
     </Card>
   );
 };
+
+export default LeadCard;

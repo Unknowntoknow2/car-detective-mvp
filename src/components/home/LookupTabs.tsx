@@ -1,5 +1,5 @@
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -9,6 +9,9 @@ import { manualEntryToJson } from "@/utils/formatters";
 import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { useNavigate } from "react-router-dom";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+import { ManualLookup } from '@/components/lookup/ManualLookup';
+import { PlateLookup } from '@/components/lookup/PlateLookup';
+import { PhotoUpload } from '@/components/lookup/PhotoUpload';
 
 interface LookupTabsProps {
   defaultTab?: string;
