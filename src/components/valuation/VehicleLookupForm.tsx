@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUnifiedDecoder } from '@/hooks/useUnifiedDecoder';
+import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { VINLookupForm } from '@/components/lookup/vin/VINLookupForm';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
@@ -20,17 +19,17 @@ export const VehicleLookupForm: React.FC<VehicleLookupFormProps> = ({
   onContinue
 }) => {
   const [activeTab, setActiveTab] = useState<string>('vin');
-  const { decode, isLoading, error, vehicleInfo, reset } = useUnifiedDecoder();
+  const { lookupVehicle, isLoading, error, vehicleData, reset } = useVehicleLookup();
   
   const handleVinLookup = async (vin: string) => {
-    const result = await decode('vin', { vin });
+    const result = await lookupVehicle('vin', vin);
     if (result) {
       onVehicleDecoded(result);
     }
   };
   
   const handlePlateLookup = async (plate: string, state: string) => {
-    const result = await decode('plate', { licensePlate: plate, state });
+    const result = await lookupVehicle('plate', plate, state);
     if (result) {
       onVehicleDecoded(result);
     }
@@ -52,7 +51,7 @@ export const VehicleLookupForm: React.FC<VehicleLookupFormProps> = ({
       bodyType: data.bodyType
     };
     
-    const result = await decode('manual', { manual: manualData });
+    const result = await lookupVehicle('manual', 'manual-entry', undefined, manualData);
     if (result) {
       onVehicleDecoded(result);
     }
@@ -65,7 +64,7 @@ export const VehicleLookupForm: React.FC<VehicleLookupFormProps> = ({
 
   return (
     <div className="space-y-6">
-      {!vehicleInfo ? (
+      {!vehicleData ? (
         <Card>
           <CardHeader>
             <CardTitle>Identify Your Vehicle</CardTitle>
@@ -133,43 +132,43 @@ export const VehicleLookupForm: React.FC<VehicleLookupFormProps> = ({
               <div className="flex items-center gap-2 text-success">
                 <Check className="h-5 w-5" />
                 <h3 className="text-xl font-semibold">
-                  {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+                  {vehicleData.year} {vehicleData.make} {vehicleData.model}
                 </h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2 mt-2">
-                {vehicleInfo.trim && (
+                {vehicleData.trim && (
                   <div>
                     <p className="text-xs text-muted-foreground">Trim</p>
-                    <p>{vehicleInfo.trim}</p>
+                    <p>{vehicleData.trim}</p>
                   </div>
                 )}
                 
-                {vehicleInfo.transmission && (
+                {vehicleData.transmission && (
                   <div>
                     <p className="text-xs text-muted-foreground">Transmission</p>
-                    <p>{vehicleInfo.transmission}</p>
+                    <p>{vehicleData.transmission}</p>
                   </div>
                 )}
                 
-                {vehicleInfo.fuelType && (
+                {vehicleData.fuelType && (
                   <div>
                     <p className="text-xs text-muted-foreground">Fuel Type</p>
-                    <p>{vehicleInfo.fuelType}</p>
+                    <p>{vehicleData.fuelType}</p>
                   </div>
                 )}
                 
-                {vehicleInfo.bodyType && (
+                {vehicleData.bodyType && (
                   <div>
                     <p className="text-xs text-muted-foreground">Body Type</p>
-                    <p>{vehicleInfo.bodyType}</p>
+                    <p>{vehicleData.bodyType}</p>
                   </div>
                 )}
                 
-                {vehicleInfo.drivetrain && (
+                {vehicleData.drivetrain && (
                   <div>
                     <p className="text-xs text-muted-foreground">Drivetrain</p>
-                    <p>{vehicleInfo.drivetrain}</p>
+                    <p>{vehicleData.drivetrain}</p>
                   </div>
                 )}
               </div>

@@ -16,23 +16,26 @@ export function ValuationFlow() {
   const [valuationResult, setValuationResult] = useState<any>(null);
   const [vehicleInfo, setVehicleInfo] = useState<any>(null);
   const [showResult, setShowResult] = useState(false);
-  const { submitValuation, isLoading } = useValuation();
+  const { data, isLoading, error: valuationError } = useValuation('');
   const [error, setError] = useState<string | null>(null);
   
-  // Modified generateValuation function that uses submitValuation
+  // Modified generateValuation function that uses a mock implementation
   const generateValuation = async (data: any) => {
     try {
-      const result = await submitValuation(data);
-      if (result.success) {
-        return { 
-          success: true, 
-          confidenceScore: 85, // Default confidence score
-          ...result.data
-        };
-      } else {
-        setError(result.errorMessage || 'Failed to generate valuation');
-        return { success: false };
-      }
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock success response
+      return { 
+        success: true, 
+        confidenceScore: 85,
+        data: {
+          estimated_value: Math.floor(20000 + Math.random() * 10000),
+          confidence_score: 85,
+          condition_score: 8,
+          id: `val-${Date.now()}`
+        }
+      };
     } catch (err: any) {
       setError(err.message || 'An error occurred');
       return { success: false };

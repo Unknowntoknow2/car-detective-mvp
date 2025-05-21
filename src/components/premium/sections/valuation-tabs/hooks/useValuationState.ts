@@ -10,7 +10,7 @@ export function useValuationState() {
   const [vinValue, setVinValue] = useState("");
   const [plateValue, setPlateValue] = useState("");
   const [plateState, setPlateState] = useState("");
-  const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
+  const { lookupVehicle, isLoading, vehicleData: vehicle } = useVehicleLookup();
   
   const handleVinLookup = async () => {
     if (!vinValue || vinValue.length < 17) {
