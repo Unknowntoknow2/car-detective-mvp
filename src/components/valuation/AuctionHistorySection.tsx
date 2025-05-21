@@ -5,22 +5,45 @@ import { AuctionHistoryViewer, AuctionData } from './AuctionHistoryViewer';
 
 export const AuctionHistorySection = ({ vin }: { vin: string }) => {
   const [data, setData] = useState<AuctionData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAuctionHistory = async () => {
       try {
-        const res = await fetch(`/api/auction-results?vin=${vin}`);
-        if (res.ok) {
-          const json = await res.json();
-          setData(json.result);
+        const response = await fetch('https://xltxqqzattxogxtqrggt.functions.supabase.co/fetch-bidcars', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ vin }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch auction data (Status: ${response.status})`);
         }
-      } catch (err) {
-        console.error('Auction fetch failed', err);
+
+        const result = await response.json();
+        if (result?.success && result?.data) {
+          setData(result.data);
+        } else {
+          throw new Error('No valid auction result returned.');
+        }
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Auction fetch error:', err);
       }
     };
 
-    fetchData();
+    fetchAuctionHistory();
   }, [vin]);
+
+  if (error) {
+    return (
+      <div className="text-sm text-red-600 mt-4">
+        ⚠️ Could not load auction history: {error}
+      </div>
+    );
+  }
 
   return data ? <AuctionHistoryViewer data={data} /> : null;
 };
