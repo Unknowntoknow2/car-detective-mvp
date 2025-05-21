@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -43,7 +44,7 @@ export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = (
   const navigate = useNavigate();
 
   // Initialize the form with useForm
-  const form = useForm<ConditionValues>({
+  const form = useForm<any>({
     resolver: zodResolver(conditionEvaluationSchema),
     defaultValues: initialValues || {
       exterior: 50,
@@ -64,9 +65,10 @@ export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = (
     
     // Calculate average score from all category scores
     const categories = Object.keys(values);
-    const overallScore = categories.reduce((sum, key) => {
-      return sum + values[key as keyof ConditionValues];
-    }, 0) / categories.length;
+    const sum = categories.reduce((acc, key) => {
+      return acc + Number(values[key]);
+    }, 0);
+    const overallScore = sum / categories.length;
     
     // Store the overall score if needed
     setLocalOverallScore(overallScore);
@@ -98,31 +100,31 @@ export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = (
             <ConditionCategory 
               name="exterior" 
               label="Exterior" 
-              form={form as any} 
+              form={form} 
               description="Rate the condition of the vehicle's exterior, including paint, body panels, glass, and trim." 
             />
             <ConditionCategory 
               name="interior" 
               label="Interior" 
-              form={form as any} 
+              form={form} 
               description="Rate the condition of the vehicle's interior, including seats, carpets, dashboard, and controls." 
             />
             <ConditionCategory 
               name="mechanical" 
               label="Mechanical" 
-              form={form as any} 
+              form={form} 
               description="Rate the condition of the vehicle's mechanical components, including engine, transmission, brakes, and suspension." 
             />
             <ConditionCategory 
               name="title" 
               label="Title" 
-              form={form as any} 
+              form={form} 
               description="Rate the condition of the vehicle's title, considering factors such as liens, salvage history, and accuracy." 
             />
             <ConditionCategory 
               name="undercarriage" 
               label="Undercarriage" 
-              form={form as any} 
+              form={form} 
               description="Rate the condition of the vehicle's undercarriage, including frame, exhaust, and suspension components." 
             />
           </CardContent>

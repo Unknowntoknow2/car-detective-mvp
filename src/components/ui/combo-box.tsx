@@ -31,6 +31,7 @@ export interface ComboBoxProps {
   disabled?: boolean;
   loading?: boolean;
   error?: string;
+  children?: React.ReactNode;
 }
 
 export function ComboBox({
@@ -42,6 +43,7 @@ export function ComboBox({
   items,
   disabled = false,
   loading = false,
+  children,
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -64,7 +66,7 @@ export function ComboBox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0" align="start" side="bottom">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandEmpty>{emptyMessage}</CommandEmpty>

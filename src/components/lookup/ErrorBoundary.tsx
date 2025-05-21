@@ -2,19 +2,19 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  children?: ReactNode;
+  children: ReactNode;
   fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -22,18 +22,21 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
-  render(): ReactNode {
+  render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
       }
+      
       return (
-        <div className="p-4 border border-red-300 bg-red-50 rounded-md text-red-800">
-          <p className="font-semibold">Something went wrong</p>
-          <p className="text-sm mt-1">{this.state.error?.message}</p>
+        <div className="p-4 border border-red-200 bg-red-50 rounded-md">
+          <h2 className="text-sm font-medium text-red-700">Something went wrong</h2>
+          <p className="text-xs text-red-600 mt-1">
+            {this.state.error?.message || 'An error occurred in this component'}
+          </p>
         </div>
       );
     }

@@ -36,6 +36,7 @@ function MakeModelSelect({
           placeholder={placeholder}
           disabled={loading}
           emptyMessage={error || "No options available"}
+          loading={loading}
         />
         {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
       </div>
