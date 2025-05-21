@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -23,7 +24,7 @@ export const usePremiumValuationForm = () => {
     resolver: zodResolver(premiumValuationSchema),
     defaultValues: {
       vin: '',
-      mileage: '',
+      mileage: null,
       zipCode: '',
       email: '',
       agreeToTerms: false,
@@ -41,7 +42,7 @@ export const usePremiumValuationForm = () => {
     if (vin) {
       form.setValue('vin', vin);
     }
-  }, [vin, form.setValue]);
+  }, [vin, form]);
 
   // Function to proceed to the next step
   const nextStep = () => {

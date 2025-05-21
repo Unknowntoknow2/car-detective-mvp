@@ -7,7 +7,7 @@ interface PremiumBadgeProps {
   variant?: 'default' | 'outline' | 'gold';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-  small?: boolean;
+  small?: boolean; // Add small prop
 }
 
 export function PremiumBadge({ 

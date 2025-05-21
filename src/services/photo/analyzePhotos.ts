@@ -15,7 +15,8 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         photoUrls: [],
         aiCondition: {
           condition: 'Fair',
-          confidenceScore: 0
+          confidenceScore: 0,
+          issuesDetected: [] // Add issuesDetected
         }
       };
     }
@@ -37,9 +38,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         photoUrls: photoUrls,
         aiCondition: {
           condition: 'Fair',
-          confidenceScore: 0
+          confidenceScore: 0,
+          issuesDetected: [] // Add issuesDetected
         },
-        error: error.message || 'Failed to analyze photos' // Valid property now
+        error: error.message || 'Failed to analyze photos'
       };
     }
 
@@ -51,9 +53,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
         photoUrls: photoUrls,
         aiCondition: {
           condition: 'Fair',
-          confidenceScore: 0
+          confidenceScore: 0,
+          issuesDetected: [] // Add issuesDetected
         },
-        error: 'Invalid response from photo analysis service' // Valid property now
+        error: 'Invalid response from photo analysis service'
       };
     }
 
@@ -83,9 +86,10 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
-        confidenceScore: 0
+        confidenceScore: 0,
+        issuesDetected: [] // Add issuesDetected
       },
-      error: error.message || 'Failed to analyze photos' // Valid property now
+      error: error.message || 'Failed to analyze photos'
     };
   }
 }
@@ -119,9 +123,10 @@ export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string)
       bestPhotoUrl: '',
       aiCondition: {
         condition: 'Fair',
-        confidenceScore: 0
+        confidenceScore: 0,
+        issuesDetected: [] // Add issuesDetected
       },
-      error: error.message || 'Failed to upload and analyze photos' // Valid property now
+      error: error.message || 'Failed to upload and analyze photos'
     };
   }
 };

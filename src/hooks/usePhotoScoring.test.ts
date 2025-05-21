@@ -54,14 +54,12 @@ describe('usePhotoScoring', () => {
     const { result } = renderHook(() => usePhotoScoring({ valuationId: 'test-id' }));
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     
-    // Define the type for uploadPromise
     let uploadPromise: Promise<any>;
     
-    act(() => {
+    await act(async () => {
       uploadPromise = result.current.uploadPhoto(mockFile);
+      await uploadPromise;
     });
-    
-    await uploadPromise;
     
     expect(result.current.photos.length).toBe(1);
     expect(result.current.photos[0].uploaded).toBe(true);
@@ -88,14 +86,12 @@ describe('usePhotoScoring', () => {
       ];
     });
     
-    // Define the type for uploadPromise
     let analyzePromise: Promise<any>;
     
-    act(() => {
+    await act(async () => {
       analyzePromise = result.current.analyzePhotos();
+      await analyzePromise;
     });
-    
-    await analyzePromise;
     
     expect(scorePhotos).toHaveBeenCalledWith(['test-url'], 'test-id');
     expect(result.current.analysisResult).toBeTruthy();
@@ -124,11 +120,10 @@ describe('usePhotoScoring', () => {
     
     let uploadPromise: Promise<any>;
     
-    act(() => {
+    await act(async () => {
       uploadPromise = result.current.handleUpload();
+      await uploadPromise;
     });
-    
-    await uploadPromise;
     
     expect(result.current.photoScores.length).toBe(1);
   });

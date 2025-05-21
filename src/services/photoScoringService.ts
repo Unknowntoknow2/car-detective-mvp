@@ -5,7 +5,7 @@ import { PhotoScore, PhotoScoringResult, AICondition, PhotoAnalysisResult } from
  * Mock photo scoring service
  * In a real application, this would call an API to analyze and score photos
  */
-export async function scorePhotos(photoUrls: string[]): Promise<PhotoScoringResult> {
+export async function scorePhotos(photoUrls: string[], valuationId: string): Promise<PhotoScoringResult> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
@@ -57,7 +57,7 @@ export async function analyzePhotos(
   valuationId: string
 ): Promise<PhotoAnalysisResult> {
   // Reuse the scoring logic
-  const scoringResult = await scorePhotos(photoUrls);
+  const scoringResult = await scorePhotos(photoUrls, valuationId);
   
   return {
     photoUrls,
