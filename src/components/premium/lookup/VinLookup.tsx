@@ -9,7 +9,7 @@ import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 
-interface VinLookupProps {
+export interface VinLookupProps {
   value?: string;
   onChange?: (value: string) => void;
   onLookup?: () => void;

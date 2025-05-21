@@ -3,6 +3,6 @@ export interface User {
   id: string;
   email: string;
   created_at: string;
-  last_sign_in_at: string | null; // Allow null but not undefined
+  last_sign_in_at: string | null | undefined; // Allow both null and undefined
   isAdmin: boolean;
 }

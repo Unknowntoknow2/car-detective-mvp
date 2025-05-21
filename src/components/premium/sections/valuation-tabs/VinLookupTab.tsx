@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { VinLookup } from "/dev-server/src/components/premium/lookup/VinLookup";
@@ -21,11 +22,11 @@ export function VinLookupTab({
     <Card>
       <CardContent className="p-6">
         <VinLookup
-          vinValue={vinValue}
-          isLoading={isLoading}
-          vehicle={vehicle}
-          onVinChange={onVinChange}
+          value={vinValue}
+          onChange={onVinChange}
           onLookup={onLookup}
+          isLoading={isLoading}
+          existingVehicle={vehicle}
         />
       </CardContent>
     </Card>

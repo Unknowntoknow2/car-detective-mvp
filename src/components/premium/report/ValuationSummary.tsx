@@ -1,60 +1,111 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency, formatNumber } from '@/utils/formatters';
 
-interface ValuationSummaryProps {
-  valuation: any;
+export interface ValuationSummaryProps {
+  estimatedValue: number;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  year?: number;
+  make?: string;
+  model?: string;
+  mileage?: number;
+  condition?: string;
   showEstimatedValue?: boolean;
 }
 
-export function ValuationSummary({ valuation, showEstimatedValue = false }: ValuationSummaryProps) {
-  if (!valuation) {
-    return (
-      <div className="text-center py-4">
-        <p className="text-muted-foreground">No valuation data available</p>
-      </div>
-    );
-  }
+export function ValuationSummary({
+  estimatedValue,
+  confidenceScore = 85,
+  priceRange = [0, 0],
+  year,
+  make,
+  model,
+  mileage,
+  condition,
+  showEstimatedValue = true
+}: ValuationSummaryProps) {
+  const calculatedPriceRange = priceRange && priceRange[0] > 0 
+    ? priceRange 
+    : [
+        Math.round(estimatedValue * 0.95),
+        Math.round(estimatedValue * 1.05)
+      ];
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Vehicle</p>
-          <p className="font-medium">
-            {valuation.year} {valuation.make} {valuation.model}
-          </p>
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-primary/5 pb-4">
+        <CardTitle className="text-lg text-primary">
+          {year} {make} {model}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-6">
+        {showEstimatedValue && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">Estimated Value</h3>
+            <p className="text-3xl font-bold">{formatCurrency(estimatedValue)}</p>
+            
+            <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Value Range</span>
+                <p>
+                  {formatCurrency(calculatedPriceRange[0])} - {formatCurrency(calculatedPriceRange[1])}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Confidence</span>
+                <p>
+                  {confidenceScore && confidenceScore >= 80 
+                    ? 'High' 
+                    : confidenceScore && confidenceScore >= 60 
+                    ? 'Medium' 
+                    : 'Low'
+                  }
+                  {confidenceScore ? ` (${confidenceScore}%)` : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+          {year && (
+            <div>
+              <span className="text-muted-foreground">Year</span>
+              <p>{year}</p>
+            </div>
+          )}
+          
+          {make && (
+            <div>
+              <span className="text-muted-foreground">Make</span>
+              <p>{make}</p>
+            </div>
+          )}
+          
+          {model && (
+            <div>
+              <span className="text-muted-foreground">Model</span>
+              <p>{model}</p>
+            </div>
+          )}
+          
+          {mileage !== undefined && (
+            <div>
+              <span className="text-muted-foreground">Mileage</span>
+              <p>{formatNumber(mileage)} miles</p>
+            </div>
+          )}
+          
+          {condition && (
+            <div>
+              <span className="text-muted-foreground">Condition</span>
+              <p className="capitalize">{condition}</p>
+            </div>
+          )}
         </div>
-        
-        {valuation.trim && (
-          <div>
-            <p className="text-sm text-muted-foreground">Trim</p>
-            <p className="font-medium">{valuation.trim}</p>
-          </div>
-        )}
-        
-        {valuation.mileage && (
-          <div>
-            <p className="text-sm text-muted-foreground">Mileage</p>
-            <p className="font-medium">{valuation.mileage.toLocaleString()} miles</p>
-          </div>
-        )}
-        
-        {valuation.condition && (
-          <div>
-            <p className="text-sm text-muted-foreground">Condition</p>
-            <p className="font-medium capitalize">{valuation.condition}</p>
-          </div>
-        )}
-      </div>
-      
-      {showEstimatedValue && valuation.estimatedValue && (
-        <div className="mt-4 p-3 bg-primary/10 rounded-md">
-          <p className="text-sm text-muted-foreground">Estimated Value</p>
-          <p className="text-xl font-bold text-primary">
-            ${valuation.estimatedValue.toLocaleString()}
-          </p>
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

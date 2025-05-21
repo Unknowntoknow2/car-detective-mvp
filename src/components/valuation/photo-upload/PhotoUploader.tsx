@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,7 +89,7 @@ export function PhotoUploader({
         }
       });
       
-      setBestPhotoUrl(bestPhoto);
+      setBestPhotoUrl(bestPhoto || '');
       
       // Now analyze photos for AI condition assessment
       const analysis = await analyzePhotos(photos.map(p => p.url!), valuationId);

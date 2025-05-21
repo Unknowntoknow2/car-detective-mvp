@@ -17,8 +17,8 @@ export interface FormData {
   fuelType: string;
   transmission: string;
   bodyType: string;
-  bodyStyle?: string | undefined; // Make bodyStyle optional
-  saleDate?: Date | undefined; // Make saleDate optional
+  bodyStyle?: string; // Make bodyStyle optional
+  saleDate?: Date; // Make saleDate optional
   features: string[];
   photos: string[] | File[]; // Allow both string[] and File[]
   drivingProfile: string;
@@ -28,7 +28,7 @@ export interface FormData {
   confidenceScore?: number;
   colorMultiplier?: number;
   exteriorColor?: string;
-  interiorColor?: string;
+  interiorColor?: string; // Add interiorColor
   explanation?: string;
   photoAnalysisResult?: any; // Add photoAnalysisResult for photo uploads
 }
@@ -41,4 +41,22 @@ export interface FeatureOption {
   description: string;
   value: number;
   selected?: boolean;
+}
+
+// Add validation related types
+export interface ValidationRules {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  min?: number;
+  max?: number;
+  custom?: (value: any) => boolean;
+}
+
+export interface FieldValidation {
+  value: any;
+  rules: ValidationRules;
+  errorMessage?: string;
+  isValid: boolean;
 }
