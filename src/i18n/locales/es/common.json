@@ -1,12 +1,28 @@
 
 {
-  "valuation": {
-    "headline": "Conoce el Verdadero Valor de tu Auto – ¡Sin Conjeturas!",
-    "ctaFree": "Valuación Gratuita",
-    "ctaPremium": "Valuación Premium ($29.99)",
-    "subheadline": "Experimenta valuaciones precisas impulsadas por datos del mercado en tiempo real"
+  "app": {
+    "name": "Detective de Autos",
+    "tagline": "Descubre el verdadero valor de tu vehículo"
   },
-  "announcements": {
-    "premium": "¡Nuevo! Ofertas superiores a concesionarios y promedios de precios del mercado ahora disponibles en Valuación Premium."
+  "navigation": {
+    "home": "Inicio",
+    "lookup": "Búsqueda de Vehículos",
+    "premium": "Valoración Premium",
+    "dashboard": "Panel",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar Sesión"
+  },
+  "actions": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "search": "Buscar",
+    "upload": "Subir",
+    "download": "Descargar"
   }
 }

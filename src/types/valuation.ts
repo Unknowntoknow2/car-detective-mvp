@@ -17,6 +17,7 @@ export interface ValuationResult {
   zipCode?: string;
   created_at?: string;
   premium_unlocked?: boolean;
+  isPremium?: boolean;
   
   // Additional properties needed by components
   condition?: string;
@@ -47,4 +48,57 @@ export interface ValuationResult {
   bestPhotoUrl?: string;
   photo_url?: string;
   zip?: string;
+}
+
+export interface ValuationInput {
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition?: string;
+  vin?: string;
+  zipCode: string;
+  features?: string[];
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  color?: string;
+  trim?: string;
+  hasAccident?: boolean | 'yes' | 'no';
+  isPremium?: boolean;
+}
+
+export interface RulesEngineInput {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  baseValue: number;
+  features: string[];
+  carfaxData?: any;
+  [key: string]: any;
+}
+
+export type ValuationStep = 
+  | 'vehicle-input'
+  | 'condition'
+  | 'photos'
+  | 'features'
+  | 'location'
+  | 'result';
+
+export interface ConditionValues {
+  exteriorBody: number;
+  exteriorPaint: number;
+  interiorSeats: number;
+  interiorDashboard: number;
+  mechanicalEngine: number;
+  mechanicalTransmission: number;
+  tires: number;
+  accidents: number;
+  mileage: number;
+  year: number;
+  titleStatus: string;
 }

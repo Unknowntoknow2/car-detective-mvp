@@ -1,132 +1,140 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { PhotoScoringResult, AICondition, PhotoScore } from '@/types/photo';
+import { PhotoScoringResult, AICondition } from '@/types/photo';
 
 /**
- * Analyzes photos using the photo analysis edge function
+ * Mock analysis of photos for vehicle condition scoring
+ * In a real application, this would use a computer vision API
  */
-export async function analyzePhotos(photoUrls: string[], valuationId: string): Promise<PhotoScoringResult> {
-  try {
-    if (!photoUrls.length) {
-      return {
-        photoScore: 0,
-        individualScores: [],
-        score: 0,
-        photoUrls: [],
-        aiCondition: {
-          condition: 'Fair',
-          confidenceScore: 0,
-          issuesDetected: [] // Add issuesDetected
-        }
-      };
-    }
-
-    // Call the photo analysis edge function
-    const { data, error } = await supabase.functions.invoke('score-image', {
-      body: {
-        photoUrls,
-        valuationId
-      }
-    });
-
-    if (error) {
-      console.error('Error analyzing photos:', error);
-      return {
-        photoScore: 0,
-        individualScores: [],
-        score: 0,
-        photoUrls: photoUrls,
-        aiCondition: {
-          condition: 'Fair',
-          confidenceScore: 0,
-          issuesDetected: [] // Add issuesDetected
-        },
-        error: error.message || 'Failed to analyze photos'
-      };
-    }
-
-    if (!data || !Array.isArray(data.scores)) {
-      return {
-        photoScore: 0,
-        individualScores: [],
-        score: 0,
-        photoUrls: photoUrls,
-        aiCondition: {
-          condition: 'Fair',
-          confidenceScore: 0,
-          issuesDetected: [] // Add issuesDetected
-        },
-        error: 'Invalid response from photo analysis service'
-      };
-    }
-
-    // Process the response data
-    const result: PhotoScoringResult = {
-      photoScore: data.score || 0,
-      individualScores: data.scores.map((score: any) => ({
-        url: score.url,
-        score: score.score,
-        isPrimary: score.isPrimary || false
-      })) || [],
-      photoUrls: photoUrls,
-      // Backward compatibility fields
-      score: data.score || 0,
-      bestPhotoUrl: data.bestPhotoUrl || data.scores[0]?.url || '',
-      aiCondition: data.aiCondition as AICondition
-    };
-
-    return result;
-  } catch (error: any) {
-    console.error('Error in analyzePhotos:', error);
+export function analyzeCondition(photoUrls: string[]): PhotoScoringResult {
+  if (!photoUrls.length) {
     return {
       photoScore: 0,
-      individualScores: [],
-      score: 0,
-      photoUrls: photoUrls,
-      bestPhotoUrl: '',
-      aiCondition: {
-        condition: 'Fair',
-        confidenceScore: 0,
-        issuesDetected: [] // Add issuesDetected
-      },
-      error: error.message || 'Failed to analyze photos'
-    };
-  }
-}
-
-export const uploadAndAnalyzePhotos = async (files: File[], valuationId: string): Promise<PhotoScoringResult> => {
-  try {
-    // Upload files to storage
-    const uploadPromises = files.map(async (file) => {
-      const filename = `${valuationId}/${Math.random().toString(36).substring(2)}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('vehicle-photos')
-        .upload(filename, file);
-        
-      if (error) throw error;
-      
-      const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
-      return url;
-    });
-    
-    const photoUrls = await Promise.all(uploadPromises);
-    
-    // Analyze the photos
-    return await analyzePhotos(photoUrls, valuationId);
-  } catch (error: any) {
-    console.error('Error in uploadAndAnalyzePhotos:', error);
-    return {
-      photoScore: 0,
-      individualScores: [],
       score: 0,
       photoUrls: [],
-      bestPhotoUrl: '',
+      individualScores: [],
       aiCondition: {
-        condition: 'Fair',
+        condition: 'Unknown',
         confidenceScore: 0,
-        issuesDetected: [] // Add issuesDetected
-      },
-      error: error.message || 'Failed to upload and analyze photos'
+        issuesDetected: [],
+        summary: 'No photos provided for analysis'
+      }
     };
   }
-};
+  
+  // Generate mock scores for each photo
+  const individualScores = photoUrls.map(url => {
+    // Create a random score between 0.6 and 0.95
+    const score = 0.6 + Math.random() * 0.35;
+    return {
+      url,
+      score
+    };
+  });
+  
+  // Calculate overall photo score
+  const photoScore = individualScores.reduce((sum, item) => sum + item.score, 0) / individualScores.length;
+  
+  // Determine condition based on score
+  let condition: string;
+  if (photoScore > 0.85) {
+    condition = 'Excellent';
+  } else if (photoScore > 0.7) {
+    condition = 'Good';
+  } else if (photoScore > 0.5) {
+    condition = 'Fair';
+  } else {
+    condition = 'Poor';
+  }
+  
+  const aiCondition: AICondition = {
+    condition,
+    confidenceScore: Math.round(photoScore * 100),
+    issuesDetected: [],
+    summary: `Based on photo analysis, the vehicle appears to be in ${condition} condition.`
+  };
+  
+  if (condition === 'Fair' || condition === 'Poor') {
+    aiCondition.issuesDetected.push(
+      'Visible wear and tear on exterior',
+      'Minor scratches detected'
+    );
+  }
+  
+  return {
+    photoScore,
+    score: photoScore,
+    individualScores,
+    photoUrls,
+    aiCondition
+  };
+}
+
+/**
+ * Analyze a single exterior photo
+ */
+export function analyzeExteriorPhoto(photoUrl: string): PhotoScoringResult {
+  // Random score between 0.6 and 0.9
+  const score = 0.6 + Math.random() * 0.3;
+  
+  // Determine condition based on score
+  let condition: string;
+  if (score > 0.85) {
+    condition = 'Excellent';
+  } else if (score > 0.7) {
+    condition = 'Good';
+  } else if (score > 0.55) {
+    condition = 'Fair';
+  } else {
+    condition = 'Poor';
+  }
+  
+  const aiCondition: AICondition = {
+    condition,
+    confidenceScore: Math.round(score * 100),
+    issuesDetected: [],
+    summary: `Exterior appears to be in ${condition} condition.`
+  };
+  
+  return {
+    photoScore: score,
+    score,
+    individualScores: [{ url: photoUrl, score }],
+    photoUrls: [photoUrl],
+    aiCondition
+  };
+}
+
+/**
+ * Analyze a single interior photo
+ */
+export function analyzeInteriorPhoto(photoUrl: string): PhotoScoringResult {
+  // Random score between 0.65 and 0.95
+  const score = 0.65 + Math.random() * 0.3;
+  
+  // Determine condition based on score
+  let condition: string;
+  if (score > 0.85) {
+    condition = 'Excellent';
+  } else if (score > 0.75) {
+    condition = 'Good';
+  } else if (score > 0.6) {
+    condition = 'Fair';
+  } else {
+    condition = 'Poor';
+  }
+  
+  const aiCondition: AICondition = {
+    condition,
+    confidenceScore: Math.round(score * 100),
+    issuesDetected: [],
+    summary: `Interior appears to be in ${condition} condition.`
+  };
+  
+  return {
+    photoScore: score,
+    score,
+    individualScores: [{ url: photoUrl, score }],
+    photoUrls: [photoUrl],
+    aiCondition
+  };
+}
