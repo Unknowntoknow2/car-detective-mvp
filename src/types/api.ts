@@ -23,6 +23,7 @@ export interface PlateLookupResponse {
     model?: string;
     year?: number;
     vin?: string;
+    color?: string;
   };
   error?: string;
 }

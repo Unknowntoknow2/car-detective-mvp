@@ -37,7 +37,7 @@ export interface ValuationResult {
     impact: number;
     description: string;
   }>;
-  priceRange?: [number, number];
+  priceRange?: [number, number] | { min: number; max: number };
   price_range?: [number, number]; // For backward compatibility
   features?: string[];
   fuelType?: string;

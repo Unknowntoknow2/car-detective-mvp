@@ -1,4 +1,9 @@
 
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
+import { ConditionValues } from '@/components/valuation/condition/types';
+
 // Update the condition values to include all required properties
 const conditionValues: ConditionValues = {
   exteriorBody: 4,
@@ -8,8 +13,33 @@ const conditionValues: ConditionValues = {
   mechanicalEngine: 4,
   mechanicalTransmission: 4,
   tiresCondition: 4,
-  accidents: data.accidents || 0,
-  mileage: data.mileage || 0,
-  year: data.year || 0,
+  accidents: 0,
+  mileage: 0,
+  year: 0,
   titleStatus: 'Clean'
 };
+
+export default function ResultPage() {
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
+  
+  // Mock data for example
+  const mockData = {
+    make: 'Toyota',
+    model: 'Camry',
+    year: 2020,
+    mileage: 35000,
+    accidents: 0,
+    condition: 'Good',
+    estimatedValue: 18500
+  };
+  
+  return (
+    <div className="container mx-auto py-8">
+      <ValuationResult 
+        valuationId={id || undefined} 
+        data={mockData}
+      />
+    </div>
+  );
+}

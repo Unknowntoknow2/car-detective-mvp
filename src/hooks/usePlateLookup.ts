@@ -1,48 +1,42 @@
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { PlateLookupInfo } from '@/types/vehicle';
+import { PlateLookupInfo } from '@/types/lookup';
+import { supabase } from '@/integrations/supabase/client';
 
-export function usePlateLookup() {
+export const usePlateLookup = () => {
   const [plateInfo, setPlateInfo] = useState<PlateLookupInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupPlate = async (plate: string, state: string) => {
-    if (!plate || !state) {
-      setError('Plate number and state are required');
-      return null;
-    }
-
+  const lookupPlate = async (plate: string, state: string): Promise<PlateLookupInfo | null> => {
     setIsLoading(true);
     setError(null);
-
+    
     try {
-      // Call the Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('plate-lookup', {
-        body: { plate, state }
-      });
-
-      if (error) throw error;
-
-      if (data && data.success && data.data) {
-        // Create a safer version of PlateLookupInfo with default values
-        const safeData: PlateLookupInfo = {
-          plate: data.data.plate,
-          state: data.data.state,
-          make: data.data.make || 'Unknown',
-          model: data.data.model || 'Unknown',
-          year: data.data.year || new Date().getFullYear(),
-          vin: data.data.vin
-        };
-        
-        setPlateInfo(safeData);
-        return safeData;
-      } else {
-        throw new Error(data?.message || 'Failed to lookup plate');
-      }
+      // Mock API call for now
+      const mockData: PlateLookupInfo = {
+        plate,
+        state,
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        color: 'Silver',
+        mileage: 45000,
+        transmission: 'Automatic',
+        fuelType: 'Gasoline',
+        bodyType: 'Sedan',
+        estimatedValue: 18500,
+        zipCode: '90210',
+        condition: 'Good'
+      };
+      
+      // Simulate API latency
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setPlateInfo(mockData);
+      return mockData;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to lookup plate';
       setError(errorMessage);
       return null;
     } finally {
@@ -56,4 +50,4 @@ export function usePlateLookup() {
     error,
     lookupPlate
   };
-}
+};

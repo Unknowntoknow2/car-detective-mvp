@@ -17,6 +17,7 @@ export interface DecodedVehicleInfo {
   zipCode?: string;
   mileage?: number;
   color?: string;
+  condition?: string;
 }
 
 export interface VehicleDTO {
@@ -68,7 +69,6 @@ export interface ManualVehicleInfo {
   mileage?: number;
   condition?: string;
   trim?: string;
-  // Replace makeId and modelId with proper fields
   features?: string[];
 }
 

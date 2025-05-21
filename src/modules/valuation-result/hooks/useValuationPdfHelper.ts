@@ -14,6 +14,7 @@ export const useValuationPdfHelper = ({
   isPremium
 }: UseValuationPdfHelperProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownloadPdf = async () => {
     if (!valuationData) {
@@ -38,6 +39,7 @@ export const useValuationPdfHelper = ({
 
   return {
     isDownloading,
+    isGenerating,
     handleDownloadPdf
   };
 };

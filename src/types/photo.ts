@@ -17,6 +17,8 @@ export interface Photo {
   uploading?: boolean;
   uploaded?: boolean;
   error?: string;
+  score?: number;
+  isPrimary?: boolean;
 }
 
 export interface PhotoFile {
@@ -32,10 +34,19 @@ export interface PhotoScore {
   explanation?: string;
 }
 
+export interface PhotoScoringResult {
+  photoUrl: string;
+  score: number;
+  confidenceScore?: number;
+  condition?: string;
+  issues?: string[];
+}
+
 export interface PhotoAnalysisResult {
   overallScore: number;
   individualScores: PhotoScore[];
   aiCondition?: AICondition;
+  photoUrls?: string[]; // Added because several services expect this property
 }
 
 export const MIN_FILES = 1;
