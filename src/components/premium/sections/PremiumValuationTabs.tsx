@@ -45,8 +45,7 @@ export function PremiumValuationTabs() {
   const handleVinLookup = async () => {
     if (!vinValue || vinValue.length !== 17) {
       toast({
-        title: "Invalid VIN",
-        description: "Please enter a valid 17-character VIN number",
+        description: "Invalid VIN. Please enter a valid 17-character VIN number",
         variant: "destructive"
       });
       return;
@@ -56,14 +55,12 @@ export function PremiumValuationTabs() {
       const result = await lookupByVin(vinValue);
       if (!result) {
         toast({
-          title: "Vehicle Not Found",
           description: "No vehicle information found for this VIN",
           variant: "destructive"
         });
       }
     } catch (err) {
       toast({
-        title: "Lookup Failed",
         description: "Failed to retrieve vehicle data. Please try again.",
         variant: "destructive"
       });
@@ -73,7 +70,6 @@ export function PremiumValuationTabs() {
   const handlePlateLookup = async () => {
     if (!plateValue) {
       toast({
-        title: "Invalid Plate",
         description: "Please enter a license plate number",
         variant: "destructive"
       });
@@ -82,7 +78,6 @@ export function PremiumValuationTabs() {
     
     if (!plateState) {
       toast({
-        title: "State Required",
         description: "Please select a state for the license plate",
         variant: "destructive"
       });
@@ -93,14 +88,12 @@ export function PremiumValuationTabs() {
       const result = await lookupByPlate(plateValue, plateState);
       if (!result) {
         toast({
-          title: "Vehicle Not Found",
           description: "No vehicle information found for this license plate",
           variant: "destructive"
         });
       }
     } catch (err) {
       toast({
-        title: "Lookup Failed",
         description: "Failed to retrieve vehicle data. Please try again.",
         variant: "destructive"
       });
@@ -129,7 +122,7 @@ export function PremiumValuationTabs() {
     <div className="space-y-6">
       <Tabs defaultValue="vin" value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid grid-cols-4 mb-6">
-          {services.map(service => (
+          {services.map((service) => (
             <TabsTrigger
               key={service.id}
               value={service.id}

@@ -24,7 +24,7 @@ export const useFeatureCalculator = (
   useEffect(() => {
     if (!selectedFeatures || selectedFeatures.length === 0 || !baseValue) {
       setFeatureAdjustment({
-        totalValue: 0,
+        totalValue: baseValue,
         features: [],
         featuresApplied: 0,
         totalAdjustment: 0
