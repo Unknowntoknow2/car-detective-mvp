@@ -7,9 +7,10 @@ import { Upload, Camera, ImageIcon } from 'lucide-react';
 
 interface PhotoUploadProps {
   onSuccess?: (result: any) => void;
+  onPhotoAnalysisComplete?: (vehicleData: any) => void;
 }
 
-export function PhotoUpload({ onSuccess }: PhotoUploadProps) {
+export function PhotoUpload({ onSuccess, onPhotoAnalysisComplete }: PhotoUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { lookupVehicle, isLoading, error } = useVehicleLookup();
@@ -38,8 +39,14 @@ export function PhotoUpload({ onSuccess }: PhotoUploadProps) {
         fileName: selectedFile.name
       });
       
-      if (result && onSuccess) {
-        onSuccess(result);
+      if (result) {
+        if (onSuccess) {
+          onSuccess(result);
+        }
+        
+        if (onPhotoAnalysisComplete) {
+          onPhotoAnalysisComplete(result);
+        }
       }
     } catch (error) {
       console.error('Error uploading photo:', error);

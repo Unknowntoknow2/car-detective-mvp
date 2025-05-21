@@ -1,6 +1,7 @@
 
 export interface ValuationResult {
   id: string;
+  // Support both naming conventions for backward compatibility
   make?: string;
   model?: string;
   year?: number;

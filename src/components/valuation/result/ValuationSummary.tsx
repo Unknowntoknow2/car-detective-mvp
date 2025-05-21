@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationResult } from '@/types/valuation';
-import { ValuationSummaryProps } from '@/components/premium/types';
 
+// Define the props interface
 export interface ValuationSummaryProps {
-  confidenceScore: number;
-  estimatedValue: number;
+  confidenceScore?: number;
+  estimatedValue?: number;
   vehicleInfo?: any;
   onEmailReport?: () => void;
   valuation?: ValuationResult;
@@ -24,12 +25,12 @@ const ValuationSummary: React.FC<ValuationSummaryProps> = ({
 }) => {
   // Use valuation data if provided, otherwise fall back to props
   const displayValue = showEstimatedValue && valuation 
-    ? valuation.estimatedValue || valuation.estimated_value
-    : estimatedValue;
+    ? valuation.estimatedValue || valuation.estimated_value || 0
+    : estimatedValue || 0;
   
   const displayConfidence = valuation
-    ? valuation.confidenceScore || valuation.confidence_score
-    : confidenceScore;
+    ? valuation.confidenceScore || valuation.confidence_score || 0
+    : confidenceScore || 0;
   
   const formatVehicleInfo = () => {
     // If we have valuation data, use it
@@ -68,10 +69,10 @@ const ValuationSummary: React.FC<ValuationSummaryProps> = ({
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-1">{formatVehicleInfo()}</h3>
           <p className="text-3xl font-bold text-primary">
-            {formatCurrency(displayValue || 0)}
+            {formatCurrency(displayValue)}
           </p>
           <div className="mt-2 text-sm text-muted-foreground">
-            Confidence Score: {displayConfidence || 0}%
+            Confidence Score: {displayConfidence}%
           </div>
         </div>
         

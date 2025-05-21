@@ -1,7 +1,13 @@
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FactorSlider } from '../FactorSlider';
-import { ConditionOption } from '../types';
+
+interface ConditionOption {
+  label: string;
+  value: number;
+  tip: string;
+}
 
 describe('FactorSlider', () => {
   // Define test options with correct type
