@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { Container } from '@/components/ui/container';
+import FollowUpForm from '@/components/lookup/followup/FollowUpForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -15,8 +17,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
-// Bring in FollowUpForm if you want to use it
-import { FollowUpForm } from '@/components/lookup/followup/FollowUpForm';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id?: string }>();
@@ -47,7 +47,7 @@ export default function ValuationDetailPage() {
   if (result.isLoading) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
+        <Container>
           <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-lg">Valuation Details</CardTitle>
@@ -59,7 +59,7 @@ export default function ValuationDetailPage() {
               <Skeleton className="h-4 w-1/2" />
             </CardContent>
           </Card>
-        </div>
+        </Container>
       </MainLayout>
     );
   }
@@ -67,7 +67,7 @@ export default function ValuationDetailPage() {
   if (result.isError) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
+        <Container>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
@@ -75,7 +75,7 @@ export default function ValuationDetailPage() {
               {typeof result.error === 'string' ? result.error : 'Something went wrong while fetching the valuation.'}
             </AlertDescription>
           </Alert>
-        </div>
+        </Container>
       </MainLayout>
     );
   }
@@ -83,7 +83,7 @@ export default function ValuationDetailPage() {
   if (!result.data) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
+        <Container>
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>No Valuation Found</AlertTitle>
@@ -91,7 +91,7 @@ export default function ValuationDetailPage() {
               We couldn't find the valuation data for this report.
             </AlertDescription>
           </Alert>
-        </div>
+        </Container>
       </MainLayout>
     );
   }
@@ -111,7 +111,7 @@ export default function ValuationDetailPage() {
 
   return (
     <MainLayout>
-      <div className="container mx-auto py-8 space-y-8">
+      <Container>
         {/* Action buttons */}
         <div className="flex flex-wrap gap-4 justify-end">
           <Button variant="outline" onClick={handleShareReport}>
@@ -192,7 +192,7 @@ export default function ValuationDetailPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </Container>
     </MainLayout>
   );
 }

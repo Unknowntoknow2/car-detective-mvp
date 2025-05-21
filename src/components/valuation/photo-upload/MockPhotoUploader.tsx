@@ -46,7 +46,7 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
       preview: file.preview,
       uploading: false,
       uploaded: false,
-      url: undefined // Explicitly set url to undefined
+      url: '' // Use empty string instead of undefined
     }));
     
     onPhotosSelected(photos);

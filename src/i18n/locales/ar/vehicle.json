@@ -3,19 +3,9 @@
   "vehicle": {
     "make": "الشركة المصنعة",
     "model": "الطراز",
-    "year": "السنة",
+    "year": "سنة الصنع",
     "mileage": "المسافة المقطوعة",
     "condition": "الحالة",
-    "vin": "رقم تعريف المركبة",
-    "color": "اللون",
-    "bodyType": "نوع الهيكل",
-    "transmission": "ناقل الحركة",
-    "fuelType": "نوع الوقود"
-  },
-  "condition": {
-    "excellent": "ممتاز",
-    "good": "جيد",
-    "fair": "عادل",
-    "poor": "سيء"
+    "zipCode": "الرمز البريدي"
   }
 }

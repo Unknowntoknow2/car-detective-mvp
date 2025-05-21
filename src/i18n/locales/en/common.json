@@ -2,27 +2,15 @@
 {
   "app": {
     "name": "Car Detective",
-    "tagline": "Discover your vehicle's true value"
+    "tagline": "Get accurate vehicle valuations instantly"
   },
-  "navigation": {
-    "home": "Home",
-    "lookup": "Vehicle Lookup",
-    "premium": "Premium Valuation",
-    "dashboard": "Dashboard",
-    "profile": "Profile",
-    "settings": "Settings",
-    "login": "Login",
-    "register": "Register",
-    "logout": "Logout"
-  },
-  "actions": {
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
     "submit": "Submit",
     "cancel": "Cancel",
-    "save": "Save",
     "continue": "Continue",
-    "back": "Back",
-    "search": "Search",
-    "upload": "Upload",
-    "download": "Download"
+    "save": "Save",
+    "back": "Back"
   }
 }
