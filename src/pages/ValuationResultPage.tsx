@@ -8,23 +8,78 @@ import { MarketplaceInsightCard } from '@/components/valuation/MarketplaceInsigh
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useValuationResult } from '@/hooks/useValuationResult';
-import Loading from '@/components/ui/Loading';
-import ErrorMessage from '@/components/ui/ErrorMessage';
-import { usePremiumStatus } from '@/hooks/usePremiumStatus';
+import { Footer } from '@/components/layout/Footer';
+import { Navbar } from '@/components/layout/Navbar';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import FollowUpForm from '@/components/followup/FollowUpForm';
 
-const ValuationResultPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const { data: valuationResult, isLoading, error } = useValuationResult(id || '');
-  const { isPremium } = usePremiumStatus();
+export default function ValuationResultPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const id = searchParams.get('id');
+  const vin = searchParams.get('vin');
+
+  const [valuationData, setValuationData] = useState<ValuationResultData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [conditionScore, setConditionScore] = useState<number>(75);
+  const [showFollowUpSubmitted, setShowFollowUpSubmitted] = useState(false);
+
+  useEffect(() => {
+    const fetchValuationData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        if (!id && !vin) throw new Error('No valuation ID or VIN provided');
+
+        const key = id ? `valuation_${id}` : `vin_lookup_${vin}`;
+        const storedData = localStorage.getItem(key);
+
+        if (storedData) {
+          setValuationData(JSON.parse(storedData));
+        } else {
+          throw new Error('Valuation data not found');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchValuationData();
+  }, [id, vin]);
+
+  const vehicleInfo = valuationData
+    ? {
+        make: valuationData.make,
+        model: valuationData.model,
+        year: valuationData.year,
+        mileage: valuationData.mileage,
+        condition: valuationData.condition,
+      }
+    : {
+        make: 'Unknown',
+        model: 'Vehicle',
+        year: new Date().getFullYear(),
+        mileage: 0,
+        condition: 'Good',
+      };
+
+  const estimatedValue = valuationData?.estimatedValue || 25000;
+  const priceRange = valuationData?.priceRange || [
+    Math.round(estimatedValue * 0.9),
+    Math.round(estimatedValue * 1.1),
+  ];
 
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
-          <Loading />
-        </div>
+        <main className="flex-1 bg-gray-50 flex items-center justify-center">
+          <p className="text-lg text-gray-600">Loading vehicle data...</p>
+        </main>
       </MainLayout>
     );
   }
@@ -32,19 +87,22 @@ const ValuationResultPage = () => {
   if (error || !valuationResult) {
     return (
       <MainLayout>
-        <div className="container mx-auto py-8">
-          <ErrorMessage 
-            message="The valuation result you're looking for doesn't exist or has been removed."
-          />
-          <Button 
-            onClick={() => window.history.back()} 
-            className="mt-4"
-            variant="outline"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
-          </Button>
-        </div>
+        <main className="flex-1 bg-gray-50 flex items-center justify-center p-4">
+          <div className="max-w-md mx-auto text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
+            <p className="text-gray-600 mb-6">{error || 'Could not find the requested vehicle data.'}</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={() => navigate('/')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Return Home
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/valuation')}>
+                Start New Valuation
+              </Button>
+            </div>
+          </div>
+        </main>
       </MainLayout>
     );
   }
@@ -102,7 +160,7 @@ const ValuationResultPage = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
     </MainLayout>
   );
 };

@@ -1,27 +1,13 @@
+// ✅ File: vite.config.ts
 
-// vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { componentTagger } from "lovable-tagger";
-import path from 'path';
 
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    react(),
-    mode === 'development' && componentTagger(),
-  ].filter(Boolean),
+export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, 'src'),
     },
   },
-  build: {
-    rollupOptions: {
-      external: [],
-    },
-  },
-}));
+});
