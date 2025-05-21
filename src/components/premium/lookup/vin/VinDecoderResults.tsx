@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Card, 
@@ -153,7 +152,7 @@ export const VinDecoderResults: React.FC<VinDecoderResultsProps> = ({
           bodyType: result.bodyType || 'Unknown' 
         }} 
         onDownloadPdf={onDownloadPdf}
-        carfaxData={carfaxData}
+        carfaxData={carfaxData || undefined}
       />
     );
   }
