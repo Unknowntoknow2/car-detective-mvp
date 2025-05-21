@@ -40,5 +40,12 @@ export const services: ValuationService[] = [
     description: 'Evaluate your vehicle condition',
     icon: <Star className="h-4 w-4" />,
     premium: true
+  },
+  {
+    id: 'ai',
+    title: 'AI Analysis',
+    description: 'Use AI to get a comprehensive analysis',
+    icon: <BrainCog className="h-4 w-4" />,
+    premium: true
   }
 ];
