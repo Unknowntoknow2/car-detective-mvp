@@ -1,4 +1,3 @@
-
 export interface DecodedVehicleInfo {
   vin: string;
   make: string;
@@ -11,6 +10,7 @@ export interface DecodedVehicleInfo {
   bodyType?: string;
   fuelType?: string;
   mileage?: number;
+  condition?: string; // Adding condition
 }
 
 export interface VehicleInfo {
