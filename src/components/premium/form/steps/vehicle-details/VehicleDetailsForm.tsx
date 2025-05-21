@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Input } from '@/components/ui/input';
@@ -44,11 +43,11 @@ export function VehicleDetailsForm({
       // For the form steps flow
       setFormData(prev => ({
         ...prev,
-        mileage: value ? parseInt(value) : undefined
+        mileage: value ? parseInt(value) : 0
       }));
     } else if (initialData && onSubmit) {
       // For the direct initialData/onSubmit flow
-      initialData.mileage = value ? parseInt(value) : undefined;
+      initialData.mileage = value ? parseInt(value) : 0;
     }
   };
 

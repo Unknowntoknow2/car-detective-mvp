@@ -43,7 +43,7 @@ export const useValuationPdf = ({
         // Use estimated_value or estimatedValue as price
         price: valuationData.estimated_value || valuationData.estimatedValue || 0,
         estimatedValue: valuationData.estimated_value || valuationData.estimatedValue || 0,
-        zipCode: valuationData.zip_code || valuationData.zipCode || valuationData.zip || '',
+        zipCode: valuationData.zipCode || valuationData.zip_code || valuationData.zip || '',
         vin: valuationData.vin || '',
         fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
@@ -73,14 +73,14 @@ export const useValuationPdf = ({
           condition: conditionData.condition,
           confidenceScore: conditionData.confidenceScore,
           issuesDetected: conditionData.issuesDetected,
-          summary: conditionData.summary || conditionData.aiSummary || ''
+          summary: conditionData.summary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = {
           condition: valuationData.aiCondition.condition,
           confidenceScore: valuationData.aiCondition.confidenceScore,
           issuesDetected: valuationData.aiCondition.issuesDetected,
-          summary: valuationData.aiCondition.summary || valuationData.aiCondition.aiSummary || ''
+          summary: valuationData.aiCondition.summary || ''
         };
       }
       

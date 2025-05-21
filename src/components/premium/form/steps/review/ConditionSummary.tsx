@@ -10,9 +10,13 @@ interface ConditionSummaryProps {
 
 export function ConditionSummary({ formData }: ConditionSummaryProps) {
   // Convert condition to a number if it's a string
-  const conditionValue = typeof formData.condition === 'string' 
-    ? parseInt(formData.condition, 10) 
-    : formData.conditionScore || 75;
+  const conditionValue = formData.conditionScore || 
+    (typeof formData.condition === 'string' 
+      ? formData.condition === 'excellent' ? 95 
+        : formData.condition === 'good' ? 75 
+        : formData.condition === 'fair' ? 50 
+        : 30
+      : 75);
 
   return (
     <div className="mb-6">

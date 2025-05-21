@@ -49,6 +49,10 @@ export interface PhotoFile {
   file: File;
   id: string;
   url?: string;
+  preview?: string;
+  name?: string;
+  size?: number;
+  type?: string;
 }
 
 // Constants for photo uploads
