@@ -13,4 +13,3 @@ export const handlers = [
     return HttpResponse.json(stats);
   }),
 ];
-</lov-add-dependency>msw@latest</lov-add-dependency>
