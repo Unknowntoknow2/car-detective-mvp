@@ -2,12 +2,13 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { DealerVehicleFormData } from '@/types/vehicle';
+import { DealerVehicleFormData } from '@/types/dealerVehicle';
 
 export const useVehicleUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const uploadPhoto = useCallback(async (photo: File): Promise<string> => {
     try {
@@ -110,6 +111,28 @@ export const useVehicleUpload = () => {
     }
   }, []);
 
+  // Add the uploadVehicle method
+  const uploadVehicle = useCallback(async (data: DealerVehicleFormData, photos?: File[]) => {
+    setUploadError(null);
+    setIsUploading(true);
+    
+    try {
+      // Upload photos if provided
+      if (photos && photos.length > 0) {
+        await handlePhotoUpload(photos);
+      }
+      
+      // Add the vehicle
+      const result = await addVehicle(data);
+      return { success: true, data: result };
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload vehicle');
+      return { success: false, error: err.message };
+    } finally {
+      setIsUploading(false);
+    }
+  }, [addVehicle, handlePhotoUpload]);
+
   return {
     isUploading,
     photoUrls,
@@ -119,6 +142,8 @@ export const useVehicleUpload = () => {
     removePhoto,
     addVehicle,
     updateVehicle,
-    fetchVehicle
+    fetchVehicle,
+    uploadVehicle,
+    uploadError
   };
 };

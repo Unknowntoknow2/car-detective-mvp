@@ -20,4 +20,9 @@ export interface Valuation {
   premium_unlocked?: boolean;
   accident_count?: number;
   titleStatus?: string;
+  // Add missing fields needed by ValuationTable.tsx
+  vin?: string;
+  plate?: string;
+  state?: string;
+  valuation?: number;
 }
