@@ -30,14 +30,21 @@ export const FactorSlider = ({
   onChange,
   ariaLabel
 }: FactorSliderProps) => {
+  // Ensure value is a number
+  const numericValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+  
   // Find the closest option
   const findClosestOption = (val: number) => {
     return options.reduce((prev, curr) => {
-      return Math.abs(curr.value - val) < Math.abs(prev.value - val) ? curr : prev;
+      // Convert option value to number if it's a string
+      const currValue = typeof curr.value === 'string' ? parseFloat(curr.value) : curr.value;
+      const prevValue = typeof prev.value === 'string' ? parseFloat(prev.value) : prev.value;
+      
+      return Math.abs(currValue - val) < Math.abs(prevValue - val) ? curr : prev;
     });
   };
 
-  const closestOption = findClosestOption(value);
+  const closestOption = findClosestOption(numericValue);
 
   return (
     <div className="space-y-3">
@@ -49,43 +56,48 @@ export const FactorSlider = ({
           min={0}
           max={100}
           step={1}
-          value={[value]}
+          value={[numericValue]}
           onValueChange={(values) => onChange(values[0])}
           aria-label={ariaLabel || `Adjustment for ${label || ''}`}
         />
         
         <div className="flex justify-between text-xs">
-          {options.map((option, idx) => (
-            <div 
-              key={idx} 
-              className={`relative ${
-                Math.abs(option.value - value) < 10 ? 'text-primary font-medium' : 'text-muted-foreground'
-              }`}
-              style={{ 
-                left: `${option.value === 0 ? '0%' : 
-                      option.value === 100 ? '0%' : 
-                      '-10px'}`,
-                textAlign: option.value === 0 ? 'left' : 
-                          option.value === 100 ? 'right' : 'center' 
-              }}
-            >
-              {option.tip ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="text-xs flex items-center">
-                      {option.label}
-                      <Info className="h-3 w-3 ml-0.5 inline" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">{option.tip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ) : (
-                option.label
-              )}
-            </div>
-          ))}
+          {options.map((option, idx) => {
+            // Convert option value to number for comparison
+            const optionValue = typeof option.value === 'string' ? parseFloat(option.value) : option.value;
+            
+            return (
+              <div 
+                key={idx} 
+                className={`relative ${
+                  Math.abs(optionValue - numericValue) < 10 ? 'text-primary font-medium' : 'text-muted-foreground'
+                }`}
+                style={{ 
+                  left: `${optionValue === 0 ? '0%' : 
+                        optionValue === 100 ? '0%' : 
+                        '-10px'}`,
+                  textAlign: optionValue === 0 ? 'left' : 
+                            optionValue === 100 ? 'right' : 'center' 
+                }}
+              >
+                {option.tip ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="text-xs flex items-center">
+                        {option.label}
+                        <Info className="h-3 w-3 ml-0.5 inline" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">{option.tip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  option.label
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

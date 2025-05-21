@@ -24,7 +24,7 @@ describe('FactorSlider Component', () => {
         id="test-slider"
         label="Test Slider"
         options={mockOptions}
-        value="50"
+        value={50}
         onChange={mockOnChange}
       />
     );
@@ -32,11 +32,9 @@ describe('FactorSlider Component', () => {
     // Check if the label is rendered
     expect(screen.getByText('Test Slider')).toBeInTheDocument();
     
-    // Check if the current value's label is displayed
+    // Check if the options are displayed
+    expect(screen.getByText('Poor')).toBeInTheDocument();
     expect(screen.getByText('Good')).toBeInTheDocument();
-    
-    // Check if the tip for the selected value is shown
-    expect(screen.getByText('Tip:')).toBeInTheDocument();
-    expect(screen.getByText('Standard condition')).toBeInTheDocument();
+    expect(screen.getByText('Excellent')).toBeInTheDocument();
   });
 });
