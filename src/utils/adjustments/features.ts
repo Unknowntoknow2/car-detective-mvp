@@ -21,8 +21,8 @@ export const getFeatureAdjustments = (
 
 export const calculateFeatureAdjustments = (
   baseValue: number,
-  features: string[] = [], // Default to empty array if undefined
-  valueMultiplier: number = 1.0 // Default to 1.0 if undefined
+  features: string[] = [], 
+  valueMultiplier: number = 1.0
 ): ValuationAdjustment[] => {
   const adjustments: ValuationAdjustment[] = [];
   
