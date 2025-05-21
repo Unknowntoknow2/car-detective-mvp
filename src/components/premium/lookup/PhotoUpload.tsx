@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { Upload, Camera, ImageIcon } from 'lucide-react';
 
-interface PhotoUploadProps {
+export interface PhotoUploadProps {
   onSuccess?: (result: any) => void;
   onPhotoAnalysisComplete?: (vehicleData: any) => void;
 }
