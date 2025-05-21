@@ -31,9 +31,8 @@ export interface ConditionValues {
   mechanicalTransmission: string;
   tiresCondition: string;
   odometer: string | number;
-  [key: string]: string | number;
   
-  // Additional fields for compatibility with existing code
+  // Additional fields with explicit types to avoid index signature issues
   accidents?: number;
   mileage?: number;
   year?: number;
@@ -48,4 +47,7 @@ export interface ConditionValues {
   interiorGrade?: number;
   mechanicalGrade?: number;
   tireCondition?: number;
+  
+  // Index signature to allow dynamic access with keys
+  [key: string]: string | number | undefined;
 }

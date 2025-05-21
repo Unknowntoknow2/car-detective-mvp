@@ -1,20 +1,27 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { UserProfile } from '@/types/user';
 
-// Modified to include error property
+// Modified to include needed properties
 export interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: UserProfile | null;
-  signUp: (email: string, password: string) => Promise<{ error: any; data: any }>;
+  userRole?: string | null;
+  isLoading: boolean;
+  loading?: boolean;
+  error: string | null;
+  signUp: (email: string, password: string, phone?: string) => Promise<{ error: any; data: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
-  loading: boolean;
-  error: string | null; // Added error property
+  resetPassword?: (email: string) => Promise<void>;
+  updatePassword?: (password: string) => Promise<void>;
+  sendMagicLink?: (email: string) => Promise<void>;
   updateProfile: (profile: UserProfile) => Promise<void>;
+  userDetails?: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [storedUsername, setStoredUsername] = useLocalStorage('username', '');
 
   useEffect(() => {
@@ -73,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setProfile(profileData || null);
+      setUserRole(profileData?.role || 'user');
       if (profileData?.username) {
         setStoredUsername(profileData.username);
       }
@@ -136,10 +145,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (profileData: UserProfile) => {
     setLoading(true);
     try {
+      // Fix: Don't include the id in both places to avoid duplicate id error
       const { error } = await supabase
         .from('profiles')
         .upsert({
-          id: user!.id,
           ...profileData,
           updated_at: new Date(),
         });
@@ -158,17 +167,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
+  
+  const resetPassword = async (email: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || 'Failed to reset password');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const updatePassword = async (password: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const value: AuthContextType = {
     session,
     user,
     profile,
+    userRole,
     signUp,
     signIn,
     signOut,
     loading,
+    isLoading: loading, // Added alias for compatibility
     error,
     updateProfile,
+    resetPassword,
+    updatePassword,
+    userDetails: profile, // Added alias for compatibility
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
