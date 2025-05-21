@@ -86,6 +86,31 @@ export async function getPhotoConditionAnalysis(photoUrls: string[]): Promise<Ph
   }
 }
 
+// Function to score photos (used by usePhotoScoring hook)
+export async function scorePhotos(photoUrls: string[], valuationId?: string): Promise<PhotoScoringResult> {
+  try {
+    console.log(`Scoring ${photoUrls.length} photos for valuation: ${valuationId || 'Unknown'}`);
+    
+    // Call the analyze function (reusing existing functionality)
+    return await analyzePhotoQuality(photoUrls);
+  } catch (error) {
+    console.error('Error scoring photos:', error);
+    return {
+      photoScore: 0,
+      score: 0,
+      individualScores: [],
+      photoUrls: [],
+      aiCondition: {
+        condition: 'unknown',
+        confidenceScore: 0,
+        issuesDetected: ['Failed to score photos'],
+        summary: 'Could not analyze photos'
+      },
+      error: error instanceof Error ? error.message : 'Failed to score photos'
+    };
+  }
+}
+
 // Function to upload and analyze photos (used in tests)
 export async function uploadAndAnalyzePhotos(files: File[]): Promise<PhotoScoringResult> {
   try {

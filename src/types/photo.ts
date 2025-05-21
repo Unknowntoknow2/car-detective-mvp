@@ -32,7 +32,7 @@ export interface PhotoAnalysisResult {
 
 export interface Photo {
   id: string;
-  url: string;
+  url?: string;
   file?: File;
   isPrimary?: boolean;
   score?: number;

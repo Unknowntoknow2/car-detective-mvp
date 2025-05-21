@@ -58,8 +58,8 @@ export const ValuationData: React.FC<ValuationDataProps> = ({
                   {conditionData.condition}
                 </span>
               </h3>
-              {conditionData.aiSummary && (
-                <p className="text-sm text-gray-600 mt-1">{conditionData.aiSummary}</p>
+              {conditionData.summary && (
+                <p className="text-sm text-gray-600 mt-1">{conditionData.summary}</p>
               )}
             </div>
           )}

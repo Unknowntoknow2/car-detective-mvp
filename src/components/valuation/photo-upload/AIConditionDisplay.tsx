@@ -40,7 +40,7 @@ export function AIConditionDisplay({ aiCondition, photoScore }: AIConditionDispl
   
   // Helper to get summary, checking both properties
   const getSummary = () => {
-    return aiCondition.summary || aiCondition.aiSummary || '';
+    return aiCondition.summary || '';
   };
   
   if (!aiCondition || !aiCondition.condition) {

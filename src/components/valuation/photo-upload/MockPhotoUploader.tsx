@@ -46,6 +46,7 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
       preview: file.preview,
       uploading: false,
       uploaded: false,
+      url: undefined // Explicitly set url to undefined
     }));
     
     onPhotosSelected(photos);
@@ -83,11 +84,13 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
           {files.map(file => (
             <div key={file.id} className="relative aspect-square rounded-md overflow-hidden bg-muted">
-              <img 
-                src={file.preview} 
-                alt={file.file.name}
-                className="object-cover w-full h-full"
-              />
+              {file.preview && (
+                <img 
+                  src={file.preview} 
+                  alt={file.file.name}
+                  className="object-cover w-full h-full"
+                />
+              )}
             </div>
           ))}
         </div>
