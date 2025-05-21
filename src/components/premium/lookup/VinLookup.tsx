@@ -8,6 +8,15 @@ import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
+// Create a CarfaxData type
+interface CarfaxData {
+  vin: string;
+  reportUrl?: string;
+  accidentCount?: number;
+  serviceRecordCount?: number;
+  ownerCount?: number;
+}
+
 export interface VinLookupProps {
   value?: string;
   onChange?: (vin: string) => void;
@@ -72,7 +81,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({
             pipelineLoading={false}
             submitValuation={async () => {}}
             vin={vinNumber}
-            carfaxData={undefined} // Fix type issue by using undefined instead of null
+            carfaxData={null}
             onDownloadPdf={() => {}}
           />
           <Button 
