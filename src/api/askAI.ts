@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { getValuationContext } from '@/utils/getValuationContext';
@@ -34,10 +35,10 @@ export async function askAI({ question, userContext, chatHistory, valuationId }:
             model: valuation.model,
             year: valuation.year,
             mileage: valuation.mileage,
-            condition: valuation.condition,
-            zipCode: valuation.zipCode,
-            estimatedValue: valuation.estimatedValue,
-            confidenceScore: valuation.confidenceScore,
+            condition: valuation.condition || 'Unknown',
+            zipCode: valuation.zip_code || valuation.zipCode || '',
+            estimatedValue: valuation.estimated_value || valuation.estimatedValue,
+            confidenceScore: valuation.confidence_score || valuation.confidenceScore,
             isPremium: valuation.premium_unlocked
           }
         };

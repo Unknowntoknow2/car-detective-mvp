@@ -1,124 +1,103 @@
-
-import { useState } from 'react';
-import { useVinDecoder } from './useVinDecoder';
+import { useState, useCallback } from 'react';
+import { fetchVehicleByVin, fetchVehicleByPlate } from '@/services/vehicleLookupService';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
-interface VehicleInfo {
-  id?: string;
-  vin?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  [key: string]: any;
+// Define a proper type for the vehicle data
+interface VehicleData {
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  mileage?: number;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+  exteriorColor?: string;
+  interiorColor?: string;
+  engine?: string;
+  drivetrain?: string;
+  features?: string[];
+  // other properties...
 }
 
 export function useVehicleLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [vehicle, setVehicle] = useState<VehicleInfo | null>(null);
-  const { lookupVin } = useVinDecoder();
+  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
 
-  // Add a reset function to clear vehicle data
-  const reset = () => {
-    setVehicle(null);
-    setError(null);
-  };
+  const lookupByVin = useCallback(async (vin: string) => {
+    if (!vin || vin.length < 17) {
+      setError('Please enter a valid 17-character VIN');
+      return null;
+    }
 
-  const lookupVehicle = async (
-    identifierType: 'vin' | 'plate' | 'manual' | 'photo',
-    identifier: string,
-    state?: string,
-    manualData?: any
-  ) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      let result: VehicleInfo | null = null;
-      let valuationId: string | undefined;
-      
-      if (identifierType === 'vin') {
-        // VIN lookup
-        const lookupResult = await lookupVin(identifier);
-        
-        if (lookupResult) {
-          result = lookupResult;
-          console.log("VIN lookup successful:", result);
-          
-          try {
-            // Create a valuation record to return to the user
-            const { data: valuationData, error: valuationError } = await supabase
-              .from('valuations')
-              .insert({
-                user_id: (await supabase.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000',
-                vin: result.vin || '',
-                make: result.make || '',
-                model: result.model || '',
-                year: result.year || 0,
-                is_vin_lookup: true,
-                confidence_score: 85,
-                condition_score: 7
-              })
-              .select('id')
-              .single();
-              
-            if (valuationError) {
-              console.error('Error creating valuation record:', valuationError);
-              // Create a fallback ID if we can't save to the database
-              valuationId = crypto.randomUUID();
-              console.log('Using fallback ID due to database error:', valuationId);
-            } else {
-              valuationId = valuationData?.id;
-              console.log('Created valuation record with ID:', valuationId);
-            }
-          } catch (dbError) {
-            console.error('Database operation failed:', dbError);
-            // Create a fallback ID if the database operation fails
-            valuationId = crypto.randomUUID();
-            console.log('Using fallback ID due to database error:', valuationId);
-          }
-          
-          if (valuationId) {
-            localStorage.setItem('latest_valuation_id', valuationId);
-            console.log('Saved valuation ID to localStorage:', valuationId);
-            
-            if (result.make && result.model && result.year) {
-              toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
-            } else {
-              toast.success("Vehicle found");
-            }
-          }
-          
-          if (result && typeof result === 'object') {
-            const vehicleWithId = {
-              ...result,
-              id: valuationId
-            };
-            
-            setVehicle(vehicleWithId);
-            return vehicleWithId;
-          }
-        }
+      const result = await fetchVehicleByVin(vin);
+      if (result) {
+        setVehicleData(result);
+        return result;
+      } else {
+        setError('No vehicle found with this VIN');
+        return null;
       }
-      // Add handling for other lookup types here
-      
-      return null;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to lookup vehicle';
-      setError(message);
-      toast.error(message);
+    } catch (err: any) {
+      setError(err.message || 'Failed to lookup vehicle');
+      toast.error('Vehicle lookup failed');
       return null;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const lookupByPlate = useCallback(async (plate: string, state: string) => {
+    if (!plate) {
+      setError('Please enter a license plate');
+      return null;
+    }
+
+    if (!state) {
+      setError('Please select a state');
+      return null;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await fetchVehicleByPlate(plate, state);
+      if (result) {
+        setVehicleData(result);
+        return result;
+      } else {
+        setError('No vehicle found with this license plate');
+        return null;
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to lookup vehicle');
+      toast.error('Vehicle lookup failed');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const reset = useCallback(() => {
+    setVehicleData(null);
+    setError(null);
+  }, []);
 
   return {
-    lookupVehicle,
     isLoading,
     error,
-    vehicle,
-    reset // Export the reset function
+    vehicleData,
+    lookupByVin,
+    lookupByPlate,
+    reset
   };
 }
+
+export default useVehicleLookup;
