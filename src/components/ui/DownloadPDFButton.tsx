@@ -1,53 +1,61 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { Download, Loader2 } from 'lucide-react';
 import { saveAs } from 'file-saver';
-import { toast } from 'sonner';
 
-interface PDFDownloadButtonProps {
-  valuationResult: any;
-  isPremium: boolean;
+interface DownloadPDFButtonProps {
+  valuationId: string;
+  fileName?: string;
+  children?: React.ReactNode;
+  className?: string;
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
 }
 
-export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({ valuationResult, isPremium }) => {
+export function DownloadPDFButton({
+  valuationId,
+  fileName = 'valuation-report.pdf',
+  children,
+  className,
+  variant = 'outline'
+}: DownloadPDFButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDownload = async () => {
+    if (!valuationId) return;
+    
     setIsLoading(true);
     try {
-      const pdfBlob = await generateValuationPdf(valuationResult, isPremium);
-      const { make, model, year } = valuationResult;
-      const filename = `ValuationReport-${year}-${make}-${model}.pdf`;
+      // Fix PDF download implementation
+      const response = await fetch(`/api/pdf-report/${valuationId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF: ${response.statusText}`);
+      }
       
-      // Extract file size from the blob
-      const fileSize = pdfBlob.size;
-      const size = fileSize || 0;
-
-      console.log(`PDF generated successfully with size: ${size} bytes`);
-      saveAs(pdfBlob, filename);
-      toast.success('PDF report downloaded successfully!');
-    } catch (error: any) {
-      console.error('Error generating PDF:', error);
-      toast.error('Failed to generate PDF report.');
+      const blob = await response.blob(); // Get blob instead of arrayBuffer
+      
+      // Use file-saver to download the blob as a file
+      saveAs(blob, fileName);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Button variant="outline" disabled={isLoading} onClick={handleDownload}>
+    <Button
+      variant={variant}
+      onClick={handleDownload}
+      disabled={isLoading}
+      className={className}
+    >
       {isLoading ? (
-        <>
-          <Download className="mr-2 h-4 w-4 animate-spin" />
-          Generating PDF...
-        </>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
-        <>
-          <Download className="mr-2 h-4 w-4" />
-          Download Report (PDF)
-        </>
+        <Download className="mr-2 h-4 w-4" />
       )}
+      {children || 'Download PDF Report'}
     </Button>
   );
-};
+}

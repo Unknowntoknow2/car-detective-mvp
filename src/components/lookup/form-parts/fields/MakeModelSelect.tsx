@@ -1,41 +1,46 @@
+
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { ComboBox } from '@/components/ui/combo-box';
-import ErrorBoundary from '../../ErrorBoundary';
-import { Spinner } from '@/components/ui/spinner';
+import { ComboBox } from "@/components/ui/combo-box";
+import ErrorBoundary from "../../ErrorBoundary";
 
 interface MakeModelSelectProps {
-  label: string;
   value: string;
+  onValueChange: (value: string) => void;
   items: { value: string; label: string }[];
-  onChange: (value: string) => void;
+  placeholder: string;
   loading?: boolean;
   error?: string;
 }
 
-export function MakeModelSelect({
-  label,
+function MakeModelSelect({
   value,
+  onValueChange,
   items,
-  onChange,
+  placeholder,
   loading,
   error
 }: MakeModelSelectProps) {
+  // Convert items to ComboBoxItem format
+  const formattedItems = items.map(item => ({
+    value: item.value,
+    label: item.label
+  }));
+
   return (
-    <div>
-      <Label>{label}</Label>
-      <ErrorBoundary context={`MakeModelSelect - ${label}`}>
+    <ErrorBoundary>
+      <div className="space-y-1">
         <ComboBox
           value={value}
-          onValueChange={onChange}
-          items={items}
-          placeholder={`Select ${label.toLowerCase()}`}
-          loading={loading}
-          error={error}
+          onValueChange={onValueChange}
+          items={formattedItems}
+          placeholder={placeholder}
+          disabled={loading}
+          emptyMessage={error || "No options available"}
         />
-      </ErrorBoundary>
-      {loading && <Spinner />}
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-    </div>
+        {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+      </div>
+    </ErrorBoundary>
   );
 }
+
+export default MakeModelSelect;

@@ -98,31 +98,31 @@ export const ConditionEvaluationForm: React.FC<ConditionEvaluationFormProps> = (
             <ConditionCategory 
               name="exterior" 
               label="Exterior" 
-              form={form} 
+              form={form as any} 
               description="Rate the condition of the vehicle's exterior, including paint, body panels, glass, and trim." 
             />
             <ConditionCategory 
               name="interior" 
               label="Interior" 
-              form={form} 
+              form={form as any} 
               description="Rate the condition of the vehicle's interior, including seats, carpets, dashboard, and controls." 
             />
             <ConditionCategory 
               name="mechanical" 
               label="Mechanical" 
-              form={form} 
+              form={form as any} 
               description="Rate the condition of the vehicle's mechanical components, including engine, transmission, brakes, and suspension." 
             />
             <ConditionCategory 
               name="title" 
               label="Title" 
-              form={form} 
+              form={form as any} 
               description="Rate the condition of the vehicle's title, considering factors such as liens, salvage history, and accuracy." 
             />
             <ConditionCategory 
               name="undercarriage" 
               label="Undercarriage" 
-              form={form} 
+              form={form as any} 
               description="Rate the condition of the vehicle's undercarriage, including frame, exhaust, and suspension components." 
             />
           </CardContent>

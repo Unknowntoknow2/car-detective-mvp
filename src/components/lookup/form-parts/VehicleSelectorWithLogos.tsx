@@ -1,11 +1,6 @@
+
 import React from 'react';
-import {
-  ComboBox,
-  ComboBoxContent,
-  ComboBoxItem,
-  ComboBoxList,
-  ComboBoxTrigger
-} from "@/components/ui/combo-box";
+import { ComboBox, ComboBoxProps, ComboBoxItem } from "@/components/ui/combo-box";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -34,13 +29,6 @@ interface Props {
   className?: string;
 }
 
-// Define a local interface that extends the imported one but with the correct icon type
-interface LocalComboBoxItem {
-  value: string;
-  label: string;
-  icon?: string | null;
-}
-
 export function VehicleSelectorWithLogos({
   makes,
   models,
@@ -53,12 +41,21 @@ export function VehicleSelectorWithLogos({
   onYearChange,
   className,
 }: Props) {
-
-  // Convert the items to the correct format before using them
-  const formattedMakes: LocalComboBoxItem[] = makes.map(make => ({
+  // Convert makes with possible null icons to valid ComboBoxItem[]
+  const formattedMakes = makes.map(make => ({
     value: make.value,
     label: make.label,
-    icon: make.icon
+    icon: make.icon || undefined
+  }));
+
+  const formattedModels = models.map(model => ({
+    value: model.value,
+    label: model.label
+  }));
+
+  const formattedYears = years.map(year => ({
+    value: year.value,
+    label: year.label
   }));
 
   return (
@@ -66,70 +63,34 @@ export function VehicleSelectorWithLogos({
       <div className="grid grid-cols-[1fr_110px] gap-4">
         <div className="space-y-2">
           <Label htmlFor="make">Make</Label>
-          <ComboBox onValueChange={onMakeChange} value={makeValue}>
-            <ComboBoxTrigger className="w-full">
-              {makeValue
-                ? formattedMakes.find((make) => make.value === makeValue)?.label
-                : "Select make..."}
-            </ComboBoxTrigger>
-            <ComboBoxContent>
-              <ScrollArea className="h-[200px] w-full">
-                <ComboBoxList>
-                  {formattedMakes.map((make) => (
-                    <ComboBoxItem key={make.value} value={make.value}>
-                      {make.label}
-                    </ComboBoxItem>
-                  ))}
-                </ComboBoxList>
-              </ScrollArea>
-            </ComboBoxContent>
-          </ComboBox>
+          <ComboBox 
+            value={makeValue} 
+            onValueChange={onMakeChange}
+            items={formattedMakes}
+            placeholder="Select make..."
+          />
         </div>
       </div>
       <div className="grid grid-cols-[1fr_110px] gap-4">
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
-          <ComboBox onValueChange={onModelChange} value={modelValue}>
-            <ComboBoxTrigger className="w-full">
-              {modelValue
-                ? models.find((model) => model.value === modelValue)?.label
-                : "Select model..."}
-            </ComboBoxTrigger>
-            <ComboBoxContent>
-              <ScrollArea className="h-[200px] w-full">
-                <ComboBoxList>
-                  {models.map((model) => (
-                    <ComboBoxItem key={model.value} value={model.value}>
-                      {model.label}
-                    </ComboBoxItem>
-                  ))}
-                </ComboBoxList>
-              </ScrollArea>
-            </ComboBoxContent>
-          </ComboBox>
+          <ComboBox 
+            value={modelValue}
+            onValueChange={onModelChange}
+            items={formattedModels}
+            placeholder="Select model..."
+          />
         </div>
       </div>
       <div className="grid grid-cols-[1fr_110px] gap-4">
         <div className="space-y-2">
           <Label htmlFor="year">Year</Label>
-          <ComboBox onValueChange={onYearChange} value={yearValue}>
-            <ComboBoxTrigger className="w-full">
-              {yearValue
-                ? years.find((year) => year.value === yearValue)?.label
-                : "Select year..."}
-            </ComboBoxTrigger>
-            <ComboBoxContent>
-              <ScrollArea className="h-[200px] w-full">
-                <ComboBoxList>
-                  {years.map((year) => (
-                    <ComboBoxItem key={year.value} value={year.value}>
-                      {year.label}
-                    </ComboBoxItem>
-                  ))}
-                </ComboBoxList>
-              </ScrollArea>
-            </ComboBoxContent>
-          </ComboBox>
+          <ComboBox 
+            value={yearValue}
+            onValueChange={onYearChange}
+            items={formattedYears}
+            placeholder="Select year..."
+          />
         </div>
       </div>
     </div>
