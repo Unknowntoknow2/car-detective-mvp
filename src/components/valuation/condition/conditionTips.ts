@@ -1,31 +1,20 @@
 
-import { ConditionOption } from './types';
+import { ConditionRating } from './types';
 
-// Condition improvement tips based on selected rating categories
-export const getConditionTips = (selectedRatings: Record<string, any>) => {
-  // Extract tips from selected ratings
-  const tips = Object.values(selectedRatings)
-    .filter(rating => rating.tip)
-    .map(rating => ({
-      category: rating.category || '',
-      tip: rating.tip || ''
-    }));
-
-  return tips;
+// Define utility functions for condition tips
+export const getConditionTipForCategory = (
+  category: string,
+  rating: string | number | undefined,
+  ratings: ConditionRating[]
+): string => {
+  if (!rating) return "Select a rating to see condition tips.";
+  
+  const selectedRating = ratings.find(r => r.value === rating);
+  return selectedRating?.description || "No tip available for the selected rating.";
 };
 
-// Condition descriptions for each level
-export const conditionDescriptions = {
-  poor: "Vehicle has mechanical faults, accident history, or significant interior/exterior damage.",
-  fair: "Vehicle shows noticeable wear and tear, might need some minor repairs and maintenance.",
-  good: "Vehicle is well-maintained with only minor cosmetic defects and regular service history.",
-  excellent: "Vehicle is in near-perfect condition with no mechanical issues and pristine appearance."
-};
-
-// Specific improvement tips based on condition level
-export const conditionImprovementTips = {
-  poor: "Focus on critical mechanical repairs first. Address safety issues, then consider cosmetic improvements.",
-  fair: "Regular maintenance and minor repairs can significantly increase value. Consider detailing service.",
-  good: "Maintain current condition with regular service. Address any minor issues promptly to retain value.",
-  excellent: "Continue meticulous maintenance. Preserve documentation of service history for best resale value."
+export const formatCategoryTitle = (category: string): string => {
+  return category
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
 };

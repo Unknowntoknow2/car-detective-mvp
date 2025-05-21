@@ -1,37 +1,37 @@
 
 export interface ConditionValues {
-  exteriorBody: number | string;
-  exteriorPaint: number | string;
-  interiorSeats: number | string;
-  interiorDashboard: number | string;
-  mechanicalEngine: number | string;
-  mechanicalTransmission: number | string;
-  tiresCondition: number | string;
+  exteriorBody: string;
+  exteriorPaint: string;
+  interiorSeats: string;
+  interiorDashboard: string;
+  mechanicalEngine: string;
+  mechanicalTransmission: string;
+  tiresCondition: string;
+  odometer: number;
   accidents: number;
   mileage: number;
   year: number;
   titleStatus: string;
-  exteriorGrade?: number;
-  interiorGrade?: number;
-  mechanicalGrade?: number;
-  tireCondition?: number;
-  odometer?: number;
+  zipCode?: string;
+  [key: string]: string | number | undefined; // Add index signature for dynamic access
 }
 
-export type ConditionRating = "excellent" | "good" | "fair" | "poor";
-
-export interface ConditionRatingOption {
-  id: string;
-  name: string;
-  category: string;
+export interface ConditionTipsProps {
+  category?: string;
+  rating?: string | number;
   tip?: string;
-  value: number;
+  selectedRatings?: Record<string, { value: string | number, description: string }>;
+}
+
+export interface ConditionRating {
+  id: string;
+  name: string;
+  value: number | string;
   description: string;
 }
 
-export interface ConditionCategory {
-  id: string;
-  name: string;
+export type ConditionOption = {
+  value: number | string;
+  label: string;
   description: string;
-  options: ConditionRatingOption[];
-}
+};

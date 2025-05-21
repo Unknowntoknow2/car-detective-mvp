@@ -47,6 +47,10 @@ export interface PhotoAnalysisResult {
   individualScores: PhotoScore[];
   aiCondition?: AICondition;
   photoUrls?: string[]; // Added because several services expect this property
+  photos?: Photo[]; // Added for backward compatibility
+  analysisResult?: any; // Added for backward compatibility
+  isAnalyzing?: boolean; // Added for backward compatibility
+  isUploading?: boolean; // Added for backward compatibility
 }
 
 export const MIN_FILES = 1;

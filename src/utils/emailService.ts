@@ -96,3 +96,38 @@ export const sendPasswordResetEmail = async (to: string, token: string): Promise
     return handleSendError(err, 'password reset');
   }
 };
+
+/**
+ * Creates and starts an email campaign
+ * @param campaignName The name of the campaign
+ * @param templateId The ID of the email template to use
+ * @param recipientIds Array of user IDs to receive the email
+ * @param scheduledDate Optional date to schedule the campaign
+ */
+export const createEmailCampaign = async (
+  campaignName: string,
+  templateId: string,
+  recipientIds: string[],
+  scheduledDate?: Date
+) => {
+  try {
+    console.log(`Creating email campaign: ${campaignName}`);
+    console.log(`Using template ID: ${templateId}`);
+    console.log(`Recipients: ${recipientIds.length}`);
+    if (scheduledDate) {
+      console.log(`Scheduled for: ${scheduledDate.toISOString()}`);
+    }
+    
+    // In a real implementation, this would call an API to create the campaign
+    return {
+      id: `campaign_${Date.now()}`,
+      name: campaignName,
+      status: 'scheduled',
+      recipientCount: recipientIds.length,
+      scheduledDate: scheduledDate?.toISOString() || new Date().toISOString()
+    };
+  } catch (err) {
+    console.error('Error creating email campaign:', err instanceof Error ? err.message : String(err));
+    throw new Error(`Failed to create email campaign: ${err instanceof Error ? err.message : String(err)}`);
+  }
+};
