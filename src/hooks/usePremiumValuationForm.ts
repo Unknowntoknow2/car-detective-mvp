@@ -1,109 +1,100 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { premiumValuationSchema, FormData } from '@/types/premium-valuation';
+import { useState } from 'react';
+import { FormData } from '@/types/premium-valuation';
+import { z } from 'zod';
 import { createPremiumValuation } from '@/services/valuationService';
-import { toast } from 'sonner';
+
+// Schema for form validation
+const premiumValuationSchema = z.object({
+  vin: z.string().optional(),
+  make: z.string().min(1, "Make is required"),
+  model: z.string().min(1, "Model is required"),
+  year: z.coerce.number().min(1900, "Invalid year").max(new Date().getFullYear() + 1, "Year cannot be in the future"),
+  mileage: z.union([z.coerce.number().min(0, "Mileage cannot be negative"), z.null()]).optional(),
+  zipCode: z.string().min(5, "Valid ZIP code required").max(10),
+  condition: z.string().optional(),
+  fuelType: z.string().optional(),
+  transmission: z.string().optional(),
+  bodyType: z.string().optional(),
+  features: z.array(z.string()).optional().default([]),
+  email: z.string().email("Valid email required").optional(),
+  agreeToTerms: z.boolean().optional()
+});
 
 export const usePremiumValuationForm = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
-  const vinFromUrl = searchParams.get('vin');
-
-  const [activeStep, setActiveStep] = useState(1);
-  const [isStepValid, setIsStepValid] = useState<boolean[]>([]);
-  const [valuationId, setValuationId] = useState<string | null>(null);
-  const [vin, setVin] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Initialize form with react-hook-form
-  const form = useForm<FormData>({
-    resolver: zodResolver(premiumValuationSchema),
-    defaultValues: {
-      vin: '',
-      mileage: null,
-      zipCode: '',
-      email: '',
-      agreeToTerms: false,
-    },
-    mode: "onChange"
+  const [formData, setFormData] = useState<FormData>({
+    identifierType: 'vin',
+    identifier: '',
+    vin: '',
+    make: '',
+    model: '',
+    year: 2020,
+    mileage: null,
+    zipCode: '',
+    condition: 'Good',
+    hasAccident: 'no',
+    fuelType: 'Gasoline',
+    transmission: 'Automatic',
+    bodyType: 'Sedan',
+    features: [],
+    photos: [],
+    drivingProfile: 'average',
+    isPremium: true
   });
-
-  // Set vin from URL
-  useEffect(() => {
-    setVin(vinFromUrl ?? null);
-  }, [vinFromUrl]);
-
-  // Update form with vin from URL
-  useEffect(() => {
-    if (vin) {
-      form.setValue('vin', vin);
-    }
-  }, [vin, form]);
-
-  // Function to proceed to the next step
-  const nextStep = () => {
-    if (activeStep < 3) {
-      setActiveStep(activeStep + 1);
-    }
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any | null>(null);
+  const [valuationId, setValuationId] = useState<string | null>(null);
+  
+  const updateFormData = (updates: Partial<FormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
-
-  // Function to go back to the previous step
-  const prevStep = () => {
-    if (activeStep > 1) {
-      setActiveStep(activeStep - 1);
-    }
-  };
-
-  // Function to set the validity of a step
-  const updateValidity = (step: number, isValid: boolean) => {
-    setIsStepValid(prev => {
-      const newValidity = [...prev];
-      newValidity[step] = isValid;
-      return newValidity;
-    });
-  };
-
-  // Function to handle form submission
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+  
+  const submitValuation = async () => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      // Call the createPremiumValuation service
-      const result = await createPremiumValuation(data);
-
-      if (result && result.id) {
-        // Set the valuation ID
-        setValuationId(result.id);
-
-        // Show success message
-        toast.success('Premium Valuation created successfully!');
-
-        // Navigate to the success page
-        navigate(`/premium/success?valuationId=${result.id}`);
-      } else {
-        // Show error message if something goes wrong
-        toast.error('Failed to create premium valuation. Please try again.');
+      const validationResult = premiumValuationSchema.safeParse(formData);
+      
+      if (!validationResult.success) {
+        const errors = validationResult.error.format();
+        setError('Please fix the validation errors and try again.');
+        console.error('Validation errors:', errors);
+        return;
       }
-    } catch (error) {
-      console.error('There was an error submitting the form:', error);
-      toast.error('An error occurred. Please try again.');
+      
+      const response = await createPremiumValuation(formData);
+      
+      // Save response
+      setResult(response);
+      
+      // Save valuation ID
+      if (response.id) {
+        setValuationId(response.id);
+        
+        // Store the ID in localStorage for persistence
+        localStorage.setItem('latest_valuation_id', response.id);
+      }
+      
+      return response;
+    } catch (err) {
+      console.error('Error submitting valuation:', err);
+      setError(err instanceof Error ? err.message : 'Failed to submit valuation.');
+      return null;
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
+  
   return {
-    activeStep,
-    nextStep,
-    prevStep,
-    form,
-    onSubmit,
-    updateValidity,
-    isStepValid,
-    valuationId,
-    isSubmitting
+    formData,
+    updateFormData,
+    isLoading,
+    error,
+    result,
+    submitValuation,
+    valuationId
   };
 };

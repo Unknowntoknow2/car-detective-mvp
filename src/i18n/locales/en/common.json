@@ -1,12 +1,28 @@
 
 {
-  "valuation": {
-    "headline": "Know Your Car's True Value – No More Guesswork!",
-    "ctaFree": "Free Valuation",
-    "ctaPremium": "Premium Valuation ($29.99)",
-    "subheadline": "Experience precise, data‑driven valuations powered by real‑time market data"
+  "app": {
+    "name": "Car Detective",
+    "tagline": "Discover your vehicle's true value"
   },
-  "announcements": {
-    "premium": "New! Dealer-beat Offers & Marketplace Price Averages now live in Premium Valuation."
+  "navigation": {
+    "home": "Home",
+    "lookup": "Vehicle Lookup",
+    "premium": "Premium Valuation",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "actions": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "continue": "Continue",
+    "back": "Back",
+    "search": "Search",
+    "upload": "Upload",
+    "download": "Download"
   }
 }

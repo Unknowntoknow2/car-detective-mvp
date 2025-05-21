@@ -1,22 +1,21 @@
 
 {
-  "selector": {
-    "makeLabel": "الشركة المصنعة",
-    "modelLabel": "الطراز",
-    "yearLabel": "السنة",
-    "makePlaceholder": "اختر الشركة المصنعة",
-    "modelPlaceholder": "اختر الطراز",
-    "yearPlaceholder": "اختر السنة",
-    "loadingMakes": "جاري تحميل الشركات المصنعة...",
-    "loadingModels": "جاري تحميل الطرازات...",
-    "noMakesFound": "لم يتم العثور على شركات مصنعة",
-    "noModelsFound": "لم يتم العثور على طرازات",
-    "selectMakeFirst": "اختر الشركة المصنعة أولاً",
-    "required": "مطلوب"
+  "vehicle": {
+    "make": "الشركة المصنعة",
+    "model": "الطراز",
+    "year": "السنة",
+    "mileage": "المسافة المقطوعة",
+    "condition": "الحالة",
+    "vin": "رقم تعريف المركبة",
+    "color": "اللون",
+    "bodyType": "نوع الهيكل",
+    "transmission": "ناقل الحركة",
+    "fuelType": "نوع الوقود"
   },
-  "validation": {
-    "makeRequired": "الشركة المصنعة مطلوبة",
-    "modelRequired": "الطراز مطلوب",
-    "yearRequired": "السنة مطلوبة"
+  "condition": {
+    "excellent": "ممتاز",
+    "good": "جيد",
+    "fair": "عادل",
+    "poor": "سيء"
   }
 }

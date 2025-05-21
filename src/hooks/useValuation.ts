@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { getValuationById } from '@/services/valuationService';
 
 export const useValuation = (id: string) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [valuationState, setValuationState] = useState<string | null>(null);
