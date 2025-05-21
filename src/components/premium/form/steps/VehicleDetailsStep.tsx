@@ -109,8 +109,8 @@ export function VehicleDetailsStep({
             area: 'front'
           } : undefined,
           includeCarfax: true,
-          exteriorColor: formData.exteriorColor,
-          colorMultiplier: formData.colorMultiplier
+          exteriorColor: formData.exteriorColor || '',
+          colorMultiplier: formData.colorMultiplier || 1.0
         }
       });
 

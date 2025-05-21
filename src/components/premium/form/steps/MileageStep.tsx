@@ -39,7 +39,11 @@ export default function MileageStep({ step, formData, setFormData, updateValidit
       setInputValue(value);
       
       if (value === '') {
-        setFormData(prev => ({ ...prev, mileage: undefined }));
+        // Convert to type-safe version to prevent issues with mileage being undefined
+        setFormData(prev => ({
+          ...prev, 
+          mileage: 0 // Use 0 instead of undefined to ensure type compatibility
+        }));
         setError('');
         updateValidity(step, false);
       } else {

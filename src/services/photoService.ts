@@ -1,5 +1,5 @@
 
-import { PhotoScoringResult, PhotoAnalysisResult, AICondition } from '@/types/photo';
+import { PhotoScoringResult, PhotoAnalysisResult, AICondition, Photo } from '@/types/photo';
 
 // Function to score and analyze uploaded photos
 export async function analyzePhotoQuality(photoUrls: string[]): Promise<PhotoScoringResult> {
@@ -82,6 +82,35 @@ export async function getPhotoConditionAnalysis(photoUrls: string[]): Promise<Ph
       },
       individualScores: [],
       error: error instanceof Error ? error.message : 'Failed to analyze photos'
+    };
+  }
+}
+
+// Function to upload and analyze photos (used in tests)
+export async function uploadAndAnalyzePhotos(files: File[]): Promise<PhotoScoringResult> {
+  try {
+    // Mock implementation for tests
+    console.log(`Uploading and analyzing ${files.length} photos`);
+    
+    // Simulate photo URLs
+    const photoUrls = files.map((_, index) => `https://example.com/photo${index}.jpg`);
+    
+    // Call the analyze function
+    return await analyzePhotoQuality(photoUrls);
+  } catch (error) {
+    console.error('Error uploading and analyzing photos:', error);
+    return {
+      photoScore: 0,
+      score: 0,
+      individualScores: [],
+      photoUrls: [],
+      aiCondition: {
+        condition: 'unknown',
+        confidenceScore: 0,
+        issuesDetected: ['Failed to upload and analyze photos'],
+        summary: 'Could not process vehicle photos'
+      },
+      error: error instanceof Error ? error.message : 'Failed to process photos'
     };
   }
 }

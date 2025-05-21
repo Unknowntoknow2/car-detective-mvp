@@ -12,16 +12,22 @@ export const premiumValuationSchema = z.object({
   photos: z.array(z.any()).optional(),
   vin: z.string().optional(),
   bodyType: z.string().optional(),
+  bodyStyle: z.string().optional(),
   transmission: z.string().optional(),
   fuelType: z.string().optional(),
   color: z.string().optional(),
+  trim: z.string().optional(),
   hasAccident: z.union([z.boolean(), z.enum(['yes', 'no'])]).optional(),
   accidentDescription: z.string().optional(),
   drivingProfile: z.enum(['light', 'average', 'heavy']).optional(),
   identifierType: z.enum(['vin', 'plate', 'manual', 'photo']).optional(),
   conditionLabel: z.enum(['Excellent', 'Good', 'Fair', 'Poor']).optional(),
   valuationId: z.string().optional(),
-  isPremium: z.boolean().optional()
+  isPremium: z.boolean().optional(),
+  saleDate: z.date().optional(),
+  exteriorColor: z.string().optional(),
+  interiorColor: z.string().optional(),
+  colorMultiplier: z.number().optional(),
 });
 
 export type FormData = z.infer<typeof premiumValuationSchema>;
@@ -32,4 +38,12 @@ export interface PremiumValuationStep {
   description: string;
   isComplete: boolean;
   component: React.ComponentType<any>;
+}
+
+export interface FeatureOption {
+  id: string;
+  name: string;
+  value: number;
+  description?: string;
+  category?: string;
 }
