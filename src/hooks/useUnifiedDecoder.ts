@@ -1,62 +1,96 @@
 
 import { useState } from 'react';
-import { decodeVIN } from '@/services/vinService';
+import { decodeVin } from '@/services/vinService';
 import { decodeLicensePlate, DecodedVehicleInfo } from '@/services/vehicleService';
-import { toast } from 'sonner';
+
+export type DecoderType = 'vin' | 'plate';
+
+export interface DecoderState {
+  isLoading: boolean;
+  error: string | null;
+  data: DecodedVehicleInfo | null;
+  decoderType: DecoderType | null;
+  isValid: boolean;
+}
 
 export const useUnifiedDecoder = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  
-  const decodeVehicle = async (
-    type: 'vin' | 'plate',
-    identifier: string,
-    state?: string
-  ) => {
-    if (!identifier) {
-      setError('Identifier is required');
-      return null;
-    }
-    
-    setIsLoading(true);
-    setError(null);
-    
+  const [state, setState] = useState<DecoderState>({
+    isLoading: false,
+    error: null,
+    data: null,
+    decoderType: null,
+    isValid: false
+  });
+
+  // Reset the decoder state
+  const resetDecoder = () => {
+    setState({
+      isLoading: false,
+      error: null,
+      data: null,
+      decoderType: null,
+      isValid: false
+    });
+  };
+
+  // Decode a VIN number
+  const decodeVinNumber = async (vin: string) => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
     try {
-      let result: DecodedVehicleInfo;
-      
-      if (type === 'vin') {
-        if (identifier.length !== 17) {
-          throw new Error('VIN must be 17 characters');
-        }
-        result = await decodeVIN(identifier);
-      } else if (type === 'plate') {
-        if (!state) {
-          throw new Error('State is required for plate lookup');
-        }
-        result = await decodeLicensePlate(identifier, state);
-      } else {
-        throw new Error('Invalid decoder type');
-      }
-      
-      setVehicleInfo(result);
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Decoding failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      const data = await decodeVin(vin);
+      setState({
+        isLoading: false,
+        error: null,
+        data,
+        decoderType: 'vin',
+        isValid: true
+      });
+      return data;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to decode VIN';
+      setState({
+        isLoading: false,
+        error: errorMessage,
+        data: null,
+        decoderType: 'vin',
+        isValid: false
+      });
       return null;
-    } finally {
-      setIsLoading(false);
     }
   };
-  
+
+  // Decode a license plate
+  const decodePlate = async (plate: string, state: string) => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const data = await decodeLicensePlate(plate, state);
+      setState({
+        isLoading: false,
+        error: null,
+        data,
+        decoderType: 'plate',
+        isValid: true
+      });
+      return data;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to decode license plate';
+      setState({
+        isLoading: false,
+        error: errorMessage,
+        data: null,
+        decoderType: 'plate',
+        isValid: false
+      });
+      return null;
+    }
+  };
+
   return {
-    decodeVehicle,
-    isLoading,
-    vehicleInfo,
-    error,
-    clearVehicleInfo: () => setVehicleInfo(null),
-    clearError: () => setError(null)
+    ...state,
+    decodeVin: decodeVinNumber,
+    decodePlate,
+    resetDecoder
   };
 };

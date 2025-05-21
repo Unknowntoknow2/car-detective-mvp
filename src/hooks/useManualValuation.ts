@@ -1,149 +1,130 @@
 
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { buildValuationReport } from '@/lib/valuation/buildValuationReport';
-import { useVehicleDBData } from './useVehicleDBData';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { generateValuationReport, buildValuationReport } from '@/lib/valuation/buildValuationReport';
+import { calculateValuation } from '@/utils/valuation/calculator';
+import { ValuationParams, ValuationResult } from '@/types/valuation';
 
-export interface ManualVehicleInfo {
-  makeId: string;
-  modelId: string;
-  year: number;
-  mileage: number;
-  zipCode: string;
-  condition: 'excellent' | 'good' | 'fair' | 'poor';
-  fuelType?: string;
-  trim?: string;
+export interface ManualValuationState {
+  isLoading: boolean;
+  data: ValuationResult | null;
+  error: string | null;
+  pdfUrl: string | null;
+  isPdfGenerating: boolean;
 }
 
-export function useManualValuation() {
-  const [formData, setFormData] = useState<ManualVehicleInfo>({
-    makeId: '',
-    modelId: '',
-    year: new Date().getFullYear(),
-    mileage: 0,
-    zipCode: '',
-    condition: 'good',
+export const useManualValuation = () => {
+  const [state, setState] = useState<ManualValuationState>({
+    isLoading: false,
+    data: null,
+    error: null,
+    pdfUrl: null,
+    isPdfGenerating: false
   });
-  const [valuation, setValuation] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [valuationId, setValuationId] = useState<string>('');
-  const { getMakeName, getModelName } = useVehicleDBData();
 
-  const resetForm = () => {
-    setValuation(null);
-    setFormData({
-      makeId: '',
-      modelId: '',
-      year: new Date().getFullYear(),
-      mileage: 0,
-      zipCode: '',
-      condition: 'good',
-    });
-    setValuationId('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    if (!formData.makeId || !formData.modelId || !formData.year || !formData.mileage || !formData.zipCode || !formData.condition) {
-      setError('Please fill in all required fields.');
-      setIsLoading(false);
-      return;
-    }
+  // Generate a valuation report for the given vehicle
+  const generateReport = async (params: ValuationParams, isPremium: boolean = false) => {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const makeName = await getMakeName(formData.makeId);
-      const modelName = await getModelName(formData.modelId);
+      // Add isPremium to params
+      const extendedParams = {
+        ...params,
+        isPremium
+      };
 
-      const report = await buildValuationReport({
-        year: formData.year,
-        make: makeName,
-        model: modelName,
-        mileage: formData.mileage,
-        zipCode: formData.zipCode,
-        condition: formData.condition,
-        identifierType: 'manual',
-        fuelType: formData.fuelType || 'gasoline',
-        baseMarketValue: 25000, // Default base market value
+      // Calculate valuation
+      const valuationResult = await calculateValuation(extendedParams);
+
+      // Generate the PDF report
+      const reportResult = await buildValuationReport(extendedParams, valuationResult);
+
+      // Update state with the valuation data and PDF URL
+      setState({
+        isLoading: false,
+        data: valuationResult,
+        error: null,
+        pdfUrl: reportResult.pdfUrl,
+        isPdfGenerating: false
       });
 
-      if (report) {
-        // Generate a UUID for the valuation
-        const newValuationId = crypto.randomUUID();
-        setValuationId(newValuationId);
-        
-        // Get the current user, handling the Promise correctly
-        const userResponse = await supabase.auth.getUser();
-        const userId = userResponse.data.user?.id;
-        
-        // Store the valuation in the database
-        await supabase.from('valuations').insert({
-          id: newValuationId,
-          user_id: userId,
-          year: formData.year,
-          make: makeName,
-          model: modelName,
-          mileage: formData.mileage,
-          state: formData.zipCode,
-          estimated_value: report.estimatedValue,
-          confidence_score: report.confidenceScore || 70,
-          condition_score: formData.condition === 'excellent' ? 90 : 
-                           formData.condition === 'good' ? 75 : 
-                           formData.condition === 'fair' ? 60 : 40,
-          is_vin_lookup: false,
-        });
-
-        setValuation(report);
-        toast.success('Valuation generated successfully!');
-      }
-    } catch (err: any) {
-      console.error('Error during valuation:', err);
-      setError(err.message || 'Failed to generate valuation.');
-      toast.error(err.message || 'Failed to generate valuation.');
-    } finally {
-      setIsLoading(false);
+      return {
+        valuationResult,
+        reportResult
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate valuation';
+      
+      // Set error state
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+        isPdfGenerating: false
+      }));
+      
+      // Show error toast
+      toast.error(`Valuation failed: ${errorMessage}`);
+      
+      return null;
     }
   };
 
-  const calculateValuation = async (vehicleData: Omit<ManualVehicleInfo, 'makeId' | 'modelId'> & { make: string; model: string; }) => {
-    setIsLoading(true);
-    setError(null);
+  // Generate premium report with additional features
+  const generatePremiumReport = async (params: ValuationParams, options = {}) => {
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
     try {
-      const report = await buildValuationReport({
-        year: vehicleData.year,
-        make: vehicleData.make,
-        model: vehicleData.model,
-        mileage: vehicleData.mileage,
-        zipCode: vehicleData.zipCode,
-        condition: vehicleData.condition,
-        identifierType: 'manual',
-        fuelType: vehicleData.fuelType || 'gasoline',
-        baseMarketValue: 25000, // Default base market value
+      // Add premium flag to params
+      const premiumParams = {
+        ...params,
+        isPremium: true
+      };
+
+      // Calculate valuation
+      const valuationResult = await calculateValuation(premiumParams);
+
+      // Generate premium report with additional options
+      const reportResult = await buildValuationReport(premiumParams, valuationResult, options);
+
+      // Update state with the premium data
+      setState({
+        isLoading: false,
+        data: {
+          ...valuationResult,
+          estimatedValue: reportResult.estimatedValue,
+          confidenceScore: reportResult.confidenceScore
+        },
+        error: null,
+        pdfUrl: reportResult.pdfUrl,
+        isPdfGenerating: false
       });
 
-      return report;
-    } catch (err: any) {
-      console.error('Error building valuation report:', err);
-      setError(err.message || 'Failed to build valuation report.');
-      throw err;
-    } finally {
-      setIsLoading(false);
+      return {
+        valuationResult,
+        reportResult
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate premium valuation';
+      
+      // Set error state
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: errorMessage,
+        isPdfGenerating: false
+      }));
+      
+      // Show error toast
+      toast.error(`Premium valuation failed: ${errorMessage}`);
+      
+      return null;
     }
   };
 
   return {
-    formData,
-    setFormData,
-    valuation,
-    isLoading,
-    error,
-    handleSubmit,
-    calculateValuation,
-    valuationId,
-    resetForm
+    ...state,
+    generateReport,
+    generatePremiumReport,
   };
-}
+};

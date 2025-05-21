@@ -1,5 +1,6 @@
+
 import { ValuationParams, ValuationResult } from '@/utils/valuation/types';
-import { generatePDF } from '@/utils/pdf/pdfGenerator';
+import { generatePdf } from '@/utils/pdf/pdfGenerator';
 import { formatCurrency } from '@/utils/formatters';
 import { getVehicleImageUrl } from '@/utils/vehicleImages';
 import { uploadToS3 } from '@/utils/storage';
@@ -8,6 +9,13 @@ import { calculateValuation } from '@/utils/valuation/calculator';
 
 // Update the type to include 'photo'
 type IdentifierType = 'vin' | 'plate' | 'manual' | 'photo';
+
+// Extend ValuationParams to include the missing properties
+interface ExtendedValuationParams extends ValuationParams {
+  identifierType?: IdentifierType;
+  isPremium?: boolean;
+  vin?: string;
+}
 
 interface ValuationReportOptions {
   includeMarketAnalysis?: boolean;
@@ -51,7 +59,7 @@ interface ValuationReportResult {
 }
 
 export async function buildValuationReport(
-  params: ValuationParams,
+  params: ExtendedValuationParams,
   valuationResult: ValuationResult,
   options: ValuationReportOptions = {}
 ): Promise<ValuationReportResult> {
@@ -61,7 +69,7 @@ export async function buildValuationReport(
   const filename = `valuation-${params.make}-${params.model}-${uuidv4().substring(0, 8)}.pdf`;
   
   // Determine the identifier type
-  const identifierType: IdentifierType = params.identifierType as IdentifierType || 'manual';
+  const identifierType: IdentifierType = params.identifierType || 'manual';
   
   // In the report generation function, make sure to handle the 'photo' type
   if (params.identifierType === 'photo') {
@@ -109,7 +117,7 @@ export async function buildValuationReport(
   };
   
   // Generate the PDF
-  const pdfBuffer = await generatePDF(pdfData, {
+  const pdfBuffer = await generatePdf(pdfData, {
     includeMarketAnalysis: options.includeMarketAnalysis || false,
     includeSimilarListings: options.includeSimilarListings || false,
     includeHistoricalData: options.includeHistoricalData || false,
@@ -140,11 +148,11 @@ export async function buildValuationReport(
     priceRange: valuationResult.priceRange,
     photoScore: valuationResult.photoScore,
     bestPhotoUrl: valuationResult.bestPhotoUrl || vehicleImageUrl,
-    aiCondition: valuationResult.aiCondition,
+    aiCondition: valuationResult.condition,
     explanation: valuationResult.explanation,
     isPremium: params.isPremium || false,
-    adjustments: valuationResult.adjustments,
-    features: params.features,
+    adjustments: valuationResult.adjustments || [],
+    features: params.features || [],
     trim: params.trim,
     vin: params.vin,
     color: params.exteriorColor,
@@ -153,7 +161,7 @@ export async function buildValuationReport(
 }
 
 export async function generateValuationReport(
-  params: ValuationParams,
+  params: ExtendedValuationParams,
   options: ValuationReportOptions = {}
 ): Promise<ValuationReportResult> {
   // Calculate the valuation

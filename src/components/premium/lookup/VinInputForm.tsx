@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { useVinInput } from '@/hooks/useVinInput';
@@ -25,10 +24,11 @@ export function VinInputForm({
     touched,
     validationError,
     handleInputChange,
-    isValid
+    isValid,
+    handleVinChange
   } = useVinInput({
     initialValue: value,
-    onValidChange: (valid) => {
+    onValidChange: (valid: boolean) => {
       // Keep parent component updated with changes
       if (valid !== wasValid) {
         setWasValid(valid);
@@ -39,7 +39,7 @@ export function VinInputForm({
   const [wasValid, setWasValid] = useState(false);
 
   // Keep parent value in sync with local value
-  if (value !== vinValue) {
+  if (vinValue !== null && value !== vinValue) {
     onChange(vinValue);
   }
 
@@ -56,7 +56,7 @@ export function VinInputForm({
   };
 
   // Handle the change from input element and convert it to string for parent component
-  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleInputChange(e);
     onChange(e.target.value);
   };
@@ -71,8 +71,8 @@ export function VinInputForm({
       </div>
       
       <VinInput
-        value={vinValue}
-        onChange={handleVinChange}
+        value={vinValue || ''}
+        onChange={handleVinInputChange}
         validationError={validationError}
         externalError={error}
         touched={touched}

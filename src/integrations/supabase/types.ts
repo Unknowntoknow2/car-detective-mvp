@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           auction_source: string
           condition_grade: string | null
+          fetched_at: string | null
           id: string
           inserted_at: string
           location: string | null
@@ -20,11 +21,13 @@ export type Database = {
           photo_urls: string[]
           price: string
           sold_date: string
+          source_priority: number | null
           vin: string
         }
         Insert: {
           auction_source: string
           condition_grade?: string | null
+          fetched_at?: string | null
           id?: string
           inserted_at?: string
           location?: string | null
@@ -32,11 +35,13 @@ export type Database = {
           photo_urls?: string[]
           price: string
           sold_date: string
+          source_priority?: number | null
           vin: string
         }
         Update: {
           auction_source?: string
           condition_grade?: string | null
+          fetched_at?: string | null
           id?: string
           inserted_at?: string
           location?: string | null
@@ -44,6 +49,7 @@ export type Database = {
           photo_urls?: string[]
           price?: string
           sold_date?: string
+          source_priority?: number | null
           vin?: string
         }
         Relationships: []
