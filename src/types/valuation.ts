@@ -1,102 +1,15 @@
-
 export interface ValuationResult {
   id: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  zipCode: string;
-  estimatedValue: number;
-  confidenceScore?: number;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  explanation?: string;
-  fuelType?: string;
-  transmission?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  photoExplanation?: string;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    summary?: string;
-    aiSummary?: string;
-  } | null;
-  priceRange?: [number, number];
-  isPremium?: boolean;
-  pdfUrl?: string;
-  gptExplanation?: string;
-  vin?: string;
-  features?: string[];
-  color?: string;
-  bodyType?: string;
-  bodyStyle?: string;
-  trim?: string;
-  // Additional fields to match database column names
-  fuel_type?: string;
-  photo_url?: string;
-  zip?: string;
-  created_at?: string; 
-  createdAt?: string; // Add this for compatibility
-  premium_unlocked?: boolean; // Add this for premium features
-  accident_count?: number; // Add this property for compatibility
-  titleStatus?: string; // Add this property for compatibility
-}
-
-export interface ValuationResultProps {
-  valuationId?: string;
   make?: string;
   model?: string;
   year?: number;
+  estimated_value?: number;
+  confidence_score?: number;
+  condition_score?: number;
   mileage?: number;
-  condition?: string;
-  location?: string;
-  valuation?: number;
-  isManualValuation?: boolean;
-  features?: string[];
-  color?: string; // Added for compatibility with other usages
-}
-
-export interface ValuationInput {
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
   vin?: string;
-  plate?: string;
-  state?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
-  zipCode: string; // Make required to match expectation in buildValuationReport
-  bodyType?: string;
-  trim?: string;
-  transmission?: string;
-  fuelType?: string;
-  accidentCount?: number;
-  photos?: File[];
-  features?: string[];
-  mpg?: number | null;
-  userId?: string;
-  valuationId?: string;
-  isPremium?: boolean;
-  isTestMode?: boolean;
-  notifyDealers?: boolean;
-  baseMarketValue?: number; // Add this property for compatibility
-  aiConditionOverride?: any; // Add this property for AI condition
-}
-
-export interface AdjustmentBreakdown {
-  name: string;
-  value: number;
-  description: string;
-  percentAdjustment: number;
-  factor: string;
-  impact: number;
-  adjustment?: number;
-  impactPercentage?: number;
+  zip_code?: string;
+  created_at?: string;
+  premium_unlocked?: boolean;
+  // Add other valuation properties as needed
 }

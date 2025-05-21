@@ -4,10 +4,19 @@ import { useVinDecoder } from './useVinDecoder';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+interface VehicleInfo {
+  id?: string;
+  vin?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  [key: string]: any;
+}
+
 export function useVehicleLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [vehicle, setVehicle] = useState<any>(null);
+  const [vehicle, setVehicle] = useState<VehicleInfo | null>(null);
   const { lookupVin } = useVinDecoder();
 
   // Add a reset function to clear vehicle data
@@ -26,14 +35,15 @@ export function useVehicleLookup() {
     setError(null);
     
     try {
-      let result;
-      let valuationId;
+      let result: VehicleInfo | null = null;
+      let valuationId: string | undefined;
       
       if (identifierType === 'vin') {
         // VIN lookup
-        result = await lookupVin(identifier);
+        const lookupResult = await lookupVin(identifier);
         
-        if (result) {
+        if (lookupResult) {
+          result = lookupResult;
           console.log("VIN lookup successful:", result);
           
           try {
@@ -42,10 +52,10 @@ export function useVehicleLookup() {
               .from('valuations')
               .insert({
                 user_id: (await supabase.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000',
-                vin: result.vin,
-                make: result.make,
-                model: result.model,
-                year: result.year,
+                vin: result.vin || '',
+                make: result.make || '',
+                model: result.model || '',
+                year: result.year || 0,
                 is_vin_lookup: true,
                 confidence_score: 85,
                 condition_score: 7
@@ -72,16 +82,23 @@ export function useVehicleLookup() {
           if (valuationId) {
             localStorage.setItem('latest_valuation_id', valuationId);
             console.log('Saved valuation ID to localStorage:', valuationId);
-            toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
+            
+            if (result.make && result.model && result.year) {
+              toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
+            } else {
+              toast.success("Vehicle found");
+            }
           }
           
-          const vehicleWithId = {
-            ...result,
-            id: valuationId
-          };
-          
-          setVehicle(vehicleWithId);
-          return vehicleWithId;
+          if (result && typeof result === 'object') {
+            const vehicleWithId = {
+              ...result,
+              id: valuationId
+            };
+            
+            setVehicle(vehicleWithId);
+            return vehicleWithId;
+          }
         }
       }
       // Add handling for other lookup types here

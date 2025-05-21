@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -44,22 +45,21 @@ export const ResetPasswordForm = ({ isLoading, setIsLoading }: ResetPasswordForm
     setIsLoading(true);
     
     try {
-      const result = await updatePassword(values.password);
-      
-      if (result.error) {
-        setFormError(result.error || 'Failed to update password');
-        return;
+      if (updatePassword) {
+        await updatePassword(values.password);
+        
+        // Show success message
+        setSuccess(true);
+        
+        // After brief delay, redirect to dashboard
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3000);
+      } else {
+        throw new Error('Update password function is not available');
       }
-      
-      // Show success message
-      setSuccess(true);
-      
-      // After brief delay, redirect to dashboard
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
-    } catch (err) {
-      setFormError('An unexpected error occurred');
+    } catch (err: any) {
+      setFormError(err?.message || 'An unexpected error occurred');
       console.error('Password update error:', err);
     } finally {
       setIsLoading(false);

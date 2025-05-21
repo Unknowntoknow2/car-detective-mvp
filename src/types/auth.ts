@@ -44,7 +44,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword?: (email: string) => Promise<void>;
-  updatePassword?: (password: string) => Promise<void>;
+  updatePassword?: (password: string) => Promise<any>;
   sendMagicLink?: (email: string) => Promise<void>;
   updateProfile?: (profile: UserProfile) => Promise<void>;
   userDetails?: any;
