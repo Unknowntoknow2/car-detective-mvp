@@ -1,182 +1,226 @@
 
 import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { dealerFormSchema } from './schemas/dealerSignupSchema';
+import { supabase } from '@/integrations/supabase/client';
 
-const formSchema = z.object({
-  dealershipName: z.string().min(3, 'Dealership name is required'),
-  contactName: z.string().min(2, 'Contact name is required'),
-  email: z.string().email('Valid email is required'),
-  phone: z.string().optional(),
-  message: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormData = {
+  fullName: string;
+  email: string;
+  password: string;
+  dealershipName: string;
+  phone?: string;
+  termsAccepted: boolean;
+};
 
 export function DealerSignupForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [dealershipError, setDealershipError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dealershipError, setDealershipError] = useState('');
+  const navigate = useNavigate();
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormData>({
+    resolver: zodResolver(dealerFormSchema),
     defaultValues: {
-      dealershipName: '',
-      contactName: '',
+      fullName: '',
       email: '',
+      password: '',
+      dealershipName: '',
       phone: '',
-      message: '',
+      termsAccepted: false,
     },
   });
   
-  const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setDealershipError(null);
+  const checkDealershipName = async (name: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('dealership_name', name)
+        .limit(1);
+      
+      if (error) throw error;
+      
+      return data && data.length > 0;
+    } catch (err) {
+      console.error('Error checking dealership name:', err);
+      return false;
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    if (!data.termsAccepted) {
+      toast.error('You must accept the terms and conditions');
+      return;
+    }
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsLoading(true);
+      setDealershipError('');
       
-      if (data.dealershipName.toLowerCase().includes('test')) {
-        setDealershipError('This dealership name is already in use.');
-        setIsSubmitting(false);
+      // Check if dealership name already exists
+      const dealershipExists = await checkDealershipName(data.dealershipName);
+      if (dealershipExists) {
+        setDealershipError('This dealership name is already registered');
+        setIsLoading(false);
         return;
       }
       
-      // Success - would normally save to database
-      toast.success('Application submitted successfully!');
-      form.reset();
-    } catch (error) {
-      console.error('Signup error:', error);
-      setSubmitError('An error occurred while submitting your application. Please try again.');
+      // Sign up the user
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            role: 'dealer',
+            dealership_name: data.dealershipName,
+            phone: data.phone || null,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+      
+      toast.success('Registration successful! Please check your email to verify your account.');
+      navigate('/login-dealer');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      let errorMessage = 'Registration failed';
+      
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'This email is already registered';
+      }
+
+      toast.error(errorMessage, {
+        description: error.message,
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-  
+
   return (
-    <Card className="w-full max-w-lg mx-auto">
-      <CardHeader>
-        <CardTitle>Dealer Application</CardTitle>
-        <CardDescription>
-          Apply to join our network of trusted dealership partners
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="dealershipName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dealership Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter your dealership name" />
-                  </FormControl>
-                  <FormMessage />
-                  {dealershipError && (
-                    <p className="text-sm font-medium text-red-500 mt-1">{dealershipError}</p>
-                  )}
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="contactName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Full name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Email</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="email" placeholder="your@dealership.com" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Phone (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="tel" placeholder="(123) 456-7890" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Additional Information (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Tell us more about your dealership..." 
-                      rows={4}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {submitError && (
-              <div className="p-3 text-sm font-medium text-red-600 bg-red-50 border border-red-100 rounded-md">
-                {submitError}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="fullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="John Doe" {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="dealer@example.com" {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="Create a secure password" {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="dealershipName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dealership Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Your Dealership LLC" {...field} disabled={isLoading} />
+              </FormControl>
+              {dealershipError && <p className="text-sm text-red-500 mt-1">{dealershipError}</p>}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="(555) 123-4567" {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="termsAccepted"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4 border">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="text-sm font-normal">
+                  I accept the terms and conditions
+                </FormLabel>
               </div>
-            )}
-            
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Submitting...' : 'Submit Application'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            'Register Dealership'
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 }

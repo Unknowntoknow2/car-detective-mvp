@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -11,10 +11,18 @@ import { toast } from 'sonner';
 interface SigninFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  redirectPath: string;
+  redirectPath?: string;
+  alternateLoginPath?: string;
+  alternateLoginText?: string;
 }
 
-export const SigninForm = ({ isLoading, setIsLoading, redirectPath }: SigninFormProps) => {
+export const SigninForm = ({ 
+  isLoading, 
+  setIsLoading, 
+  redirectPath = '/dashboard',
+  alternateLoginPath,
+  alternateLoginText
+}: SigninFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,12 +51,8 @@ export const SigninForm = ({ isLoading, setIsLoading, redirectPath }: SigninForm
       const result = await signIn(email, password);
       
       if (result?.error) {
-        if (result.error.toString().includes('Invalid login')) {
-          toast.error('Invalid email or password');
-        } else {
-          setError(result.error.toString() || 'Failed to sign in');
-          toast.error(result.error.toString() || 'Failed to sign in');
-        }
+        setError(result.error.toString() || 'Failed to sign in');
+        toast.error(result.error.toString() || 'Failed to sign in');
         setIsLoading(false);
         return;
       }
@@ -57,7 +61,7 @@ export const SigninForm = ({ isLoading, setIsLoading, redirectPath }: SigninForm
       navigate(redirectPath);
     } catch (err: any) {
       console.error('Login error:', err);
-      setError('An unexpected error occurred');
+      setError(err.message || 'An unexpected error occurred');
       toast.error(err.message || 'Failed to sign in');
       setIsLoading(false);
     }
@@ -139,6 +143,14 @@ export const SigninForm = ({ isLoading, setIsLoading, redirectPath }: SigninForm
           'Sign In'
         )}
       </Button>
+      
+      {alternateLoginPath && alternateLoginText && (
+        <div className="text-center text-sm mt-4">
+          <Link to={alternateLoginPath} className="text-primary hover:underline">
+            {alternateLoginText}
+          </Link>
+        </div>
+      )}
     </form>
   );
 };
