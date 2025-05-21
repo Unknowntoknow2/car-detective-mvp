@@ -39,8 +39,14 @@ export const useShareReport = () => {
     }
   };
 
+  // Adding shareViaEmail method to match the expected interface
+  const shareViaEmail = async (valuationId: string, email?: string) => {
+    return shareReport(valuationId, email);
+  };
+
   return {
     shareReport,
+    shareViaEmail,
     isSharing,
     error
   };

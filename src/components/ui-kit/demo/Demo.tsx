@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   HeadingXL,
   HeadingL,
@@ -31,21 +31,25 @@ const Demo = () => {
     { id: 3, name: 'Ford Mustang', price: '$35,400', year: 2021, condition: 'Good' },
   ];
   
-  const tableColumns = [
+  // Define a proper type for the row parameter
+  const renderActionCell = (row: { id: number; name: string; price: string; year: number; condition: string }) => (
+    <CDBadge 
+      variant={row.condition === 'Excellent' ? 'success' : 'info'}
+      size="sm"
+    >
+      {row.condition}
+    </CDBadge>
+  );
+  
+  // Fix the table columns type
+  const columns: TableColumn<{ id: number; name: string; price: string; year: number; condition: string }>[] = [
     { header: 'Name', accessor: 'name' },
     { header: 'Price', accessor: 'price' },
     { header: 'Year', accessor: 'year' },
     { 
       header: 'Condition', 
       accessor: 'condition',
-      cell: (row) => (
-        <CDBadge 
-          variant={row.condition === 'Excellent' ? 'success' : 'info'}
-          size="sm"
-        >
-          {row.condition}
-        </CDBadge>
-      )
+      cell: renderActionCell
     },
   ];
   
@@ -387,7 +391,7 @@ const Demo = () => {
             <HeadingM>Basic Table</HeadingM>
             <CDTable
               data={tableData}
-              columns={tableColumns}
+              columns={columns}
               caption="Vehicle Pricing Information"
               striped
               onRowClick={(row) => alert(`Selected: ${row.name}`)}
@@ -397,7 +401,7 @@ const Demo = () => {
               <HeadingM>Compact Table</HeadingM>
               <CDTable
                 data={tableData}
-                columns={tableColumns}
+                columns={columns}
                 compact
                 bordered
               />

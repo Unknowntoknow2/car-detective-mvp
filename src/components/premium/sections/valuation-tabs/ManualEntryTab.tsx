@@ -1,152 +1,89 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ManualEntryFormData, ConditionLevel, AccidentDetails } from '@/components/lookup/types/manualEntry';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
-import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
-import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
-import { PremiumFields } from '@/components/lookup/form-parts/PremiumFields';
-import { AccidentDetailsForm } from '@/components/lookup/form-parts/AccidentDetailsForm';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from 'react-router-dom';
+import { VehicleDetailsForm } from './form-parts/VehicleDetailsForm';
+import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 
 interface ManualEntryTabProps {
-  onSubmit: (data: ManualEntryFormData) => void;
-  isLoading?: boolean;
+  onSubmit: (data: any) => void;
+  isLoading: boolean;
 }
 
-export const ManualEntryTab: React.FC<ManualEntryTabProps> = ({
-  onSubmit,
-  isLoading = false
-}) => {
-  // Basic vehicle info
+export function ManualEntryTab({ onSubmit, isLoading }: ManualEntryTabProps) {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
-  const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [mileage, setMileage] = useState<number>(0);
-  const [condition, setCondition] = useState<ConditionLevel>(ConditionLevel.Good);
+  const [year, setYear] = useState('');
+  const [mileage, setMileage] = useState('');
+  const [condition, setCondition] = useState('');
   const [zipCode, setZipCode] = useState('');
-  
-  // Additional details
-  const [fuelType, setFuelType] = useState('Gasoline');
-  const [transmission, setTransmission] = useState('Automatic');
-  const [trim, setTrim] = useState('');
-  const [color, setColor] = useState('');
-  const [bodyType, setBodyType] = useState('');
-  
-  // Premium fields
-  const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>({
-    hasAccident: false
+	const [accidentDetails, setAccidentDetails] = useState({
+    hasAccident: 'no',
+    accidentDescription: ''
   });
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    if (!make) {
-      toast.error('Make is required');
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubmit = useCallback(async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!make || !model || !year || !mileage || !condition || !zipCode) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
       return;
     }
-    
-    if (!model) {
-      toast.error('Model is required');
-      return;
-    }
-    
-    if (!zipCode) {
-      toast.error('ZIP code is required');
-      return;
-    }
-    
-    // Create form data object
-    const formData: ManualEntryFormData = {
+
+    const manualData = {
       make,
       model,
       year,
       mileage,
       condition,
       zipCode,
-      fuelType,
-      transmission,
-      trim,
-      color,
-      bodyType,
-      accidentDetails,
-      selectedFeatures,
-      features: selectedFeatures // Map selectedFeatures to features for compatibility
+			...accidentDetails
     };
-    
-    onSubmit(formData);
-  };
-  
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <VehicleDetailsInputs
-        make={make}
-        setMake={setMake}
-        model={model}
-        setModel={setModel}
-        year={year}
-        setYear={setYear}
-        mileage={mileage}
-        setMileage={setMileage}
-        trim={trim}
-        setTrim={setTrim}
-        color={color}
-        setColor={setColor}
-      />
-      
-      <ConditionAndFuelInputs
-        condition={condition}
-        setCondition={setCondition}
-        fuelType={fuelType}
-        setFuelType={setFuelType}
-        transmission={transmission}
-        setTransmission={setTransmission}
-      />
-      
-      <ZipCodeInput
-        zipCode={zipCode}
-        setZipCode={setZipCode}
-      />
-      
-      <PremiumFields
-        trim={trim}
-        setTrim={setTrim}
-        color={color}
-        setColor={setColor}
-        bodyType={bodyType}
-        setBodyType={setBodyType}
-        accidentDetails={accidentDetails}
-        setAccidentDetails={setAccidentDetails}
-        features={selectedFeatures}
-        setFeatures={setSelectedFeatures}
-      />
-      
-      {accidentDetails.hasAccident && (
-        <AccidentDetailsForm
-          accidentDetails={accidentDetails}
-          setAccidentDetails={setAccidentDetails}
-        />
-      )}
-      
-      <Button 
-        type="submit" 
-        className="w-full"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing...
-          </>
-        ) : (
-          'Submit Vehicle Details'
-        )}
-      </Button>
-    </form>
-  );
-};
 
-export default ManualEntryTab;
+    onSubmit(manualData);
+  }, [make, model, year, mileage, condition, zipCode, onSubmit, accidentDetails, toast]);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Manual Entry</CardTitle>
+        <CardDescription>Enter vehicle details manually</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <VehicleDetailsForm
+            make={make}
+            setMake={setMake}
+            model={model}
+            setModel={setModel}
+            year={year}
+            setYear={setYear}
+            mileage={mileage}
+            setMileage={setMileage}
+            condition={condition}
+            setCondition={setCondition}
+            zipCode={zipCode}
+            setZipCode={setZipCode}
+          />
+					<AccidentDetailsForm
+            onDetailsChange={setAccidentDetails}
+            initialDetails={accidentDetails}
+          />
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? "Submitting..." : "Submit"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

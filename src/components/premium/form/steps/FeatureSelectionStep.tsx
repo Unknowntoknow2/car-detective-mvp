@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Label } from '@/components/ui/label';
@@ -95,8 +94,8 @@ export function FeatureSelectionStep({
     setFormData(prev => ({
       ...prev,
       saleDate: values.saleDate,
-      bodyStyle: values.bodyStyle, // Using bodyStyle as defined in FormData interface
-      bodyType: values.bodyStyle  // Also set bodyType for compatibility
+      bodyStyle: values.bodyStyle || '', // Provide default value
+      bodyType: values.bodyStyle || ''  // Provide default value
     }));
   };
   

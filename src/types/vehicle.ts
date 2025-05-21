@@ -54,7 +54,7 @@ export interface DealerVehicleFormData {
   description?: string;
   vehicleId?: string;
   photos: File[];
-  onSuccess?: () => void; // Add the missing onSuccess prop
+  onSuccess?: () => void; // Add onSuccess prop
 }
 
 export enum DealerVehicleStatus {
