@@ -2,9 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatNumber } from '@/utils/formatters';
+import { ValuationResult } from '@/types/valuation';
 
 export interface ValuationSummaryProps {
-  estimatedValue: number;
+  estimatedValue?: number;
   confidenceScore?: number;
   priceRange?: [number, number];
   year?: number;
@@ -13,6 +14,7 @@ export interface ValuationSummaryProps {
   mileage?: number;
   condition?: string;
   showEstimatedValue?: boolean;
+  valuation?: ValuationResult; // Add valuation prop
 }
 
 export function ValuationSummary({
@@ -24,27 +26,37 @@ export function ValuationSummary({
   model,
   mileage,
   condition,
-  showEstimatedValue = true
+  showEstimatedValue = true,
+  valuation
 }: ValuationSummaryProps) {
+  // Use valuation data if provided, otherwise fall back to individual props
+  const displayValue = valuation?.estimatedValue || valuation?.estimated_value || estimatedValue || 0;
+  const displayConfidence = valuation?.confidenceScore || valuation?.confidence_score || confidenceScore || 0;
+  const displayYear = valuation?.year || year;
+  const displayMake = valuation?.make || make;
+  const displayModel = valuation?.model || model;
+  const displayMileage = valuation?.mileage || mileage;
+  const displayCondition = valuation?.condition || condition;
+  
   const calculatedPriceRange = priceRange && priceRange[0] > 0 
     ? priceRange 
     : [
-        Math.round(estimatedValue * 0.95),
-        Math.round(estimatedValue * 1.05)
+        Math.round(displayValue * 0.95),
+        Math.round(displayValue * 1.05)
       ];
 
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-primary/5 pb-4">
         <CardTitle className="text-lg text-primary">
-          {year} {make} {model}
+          {displayYear} {displayMake} {displayModel}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-6">
         {showEstimatedValue && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-1">Estimated Value</h3>
-            <p className="text-3xl font-bold">{formatCurrency(estimatedValue)}</p>
+            <p className="text-3xl font-bold">{formatCurrency(displayValue)}</p>
             
             <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
               <div>
@@ -56,13 +68,13 @@ export function ValuationSummary({
               <div>
                 <span className="text-muted-foreground">Confidence</span>
                 <p>
-                  {confidenceScore && confidenceScore >= 80 
+                  {displayConfidence && displayConfidence >= 80 
                     ? 'High' 
-                    : confidenceScore && confidenceScore >= 60 
+                    : displayConfidence && displayConfidence >= 60 
                     ? 'Medium' 
                     : 'Low'
                   }
-                  {confidenceScore ? ` (${confidenceScore}%)` : ''}
+                  {displayConfidence ? ` (${displayConfidence}%)` : ''}
                 </p>
               </div>
             </div>
@@ -70,38 +82,38 @@ export function ValuationSummary({
         )}
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-          {year && (
+          {displayYear && (
             <div>
               <span className="text-muted-foreground">Year</span>
-              <p>{year}</p>
+              <p>{displayYear}</p>
             </div>
           )}
           
-          {make && (
+          {displayMake && (
             <div>
               <span className="text-muted-foreground">Make</span>
-              <p>{make}</p>
+              <p>{displayMake}</p>
             </div>
           )}
           
-          {model && (
+          {displayModel && (
             <div>
               <span className="text-muted-foreground">Model</span>
-              <p>{model}</p>
+              <p>{displayModel}</p>
             </div>
           )}
           
-          {mileage !== undefined && (
+          {displayMileage !== undefined && (
             <div>
               <span className="text-muted-foreground">Mileage</span>
-              <p>{formatNumber(mileage)} miles</p>
+              <p>{formatNumber(displayMileage)} miles</p>
             </div>
           )}
           
-          {condition && (
+          {displayCondition && (
             <div>
               <span className="text-muted-foreground">Condition</span>
-              <p className="capitalize">{condition}</p>
+              <p className="capitalize">{displayCondition}</p>
             </div>
           )}
         </div>
