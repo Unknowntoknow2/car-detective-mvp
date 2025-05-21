@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +30,14 @@ export default function ValuationResult({
   const resultId = valuationId || id;
   
   const [conditionValues, setConditionValues] = useState<ConditionValues>({
+    exteriorBody: '',
+    exteriorPaint: '',
+    interiorSeats: '',
+    interiorDashboard: '',
+    mechanicalEngine: '',
+    mechanicalTransmission: '',
+    tiresCondition: '',
+    odometer: 0,
     accidents: 0,
     mileage: 0,
     year: 0,
@@ -38,7 +47,8 @@ export default function ValuationResult({
   useEffect(() => {
     if (data) {
       // Map valuation data to condition values if available
-      setConditionValues({
+      setConditionValues(prevValues => ({
+        ...prevValues,
         accidents: data.accidents || 0,
         mileage: data.mileage || 0,
         year: data.year || 0,
@@ -47,7 +57,7 @@ export default function ValuationResult({
         interiorGrade: data.interiorGrade || 90,
         mechanicalGrade: data.mechanicalGrade || 90,
         tireCondition: data.tireCondition || 90
-      });
+      }));
     }
   }, [data]);
   

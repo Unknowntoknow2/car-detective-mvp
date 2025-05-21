@@ -16,7 +16,7 @@ export interface ConditionCategoryProps {
   // Add these new props
   name: string;
   label: string;
-  form: UseFormReturn<ConditionValues, any, undefined>;
+  form: UseFormReturn<any, any, undefined>;
 }
 
 export function ConditionCategory({ 

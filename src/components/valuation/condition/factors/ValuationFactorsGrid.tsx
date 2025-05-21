@@ -15,15 +15,15 @@ export function ValuationFactorsGrid({ values, onChange }: ValuationFactorsGridP
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <AccidentFactorCard 
-        value={values.accidents || 0} 
+        value={Number(values.accidents) || 0} 
         onChange={(value) => onChange('accidents', value)} 
       />
       <MileageFactorCard 
-        value={values.mileage || 0} 
+        value={Number(values.mileage) || 0} 
         onChange={(value) => onChange('mileage', value)} 
       />
       <YearFactorCard 
-        value={values.year || 0} 
+        value={Number(values.year) || 0} 
         onChange={(value) => onChange('year', value)} 
       />
       <TitleStatusFactorCard 

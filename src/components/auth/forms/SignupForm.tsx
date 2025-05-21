@@ -47,7 +47,7 @@ export const SignupForm = ({ isLoading, setIsLoading }: SignupFormProps) => {
     setIsLoading(true);
     
     try {
-      const result = await signUp(email, password, fullName);
+      const result = await signUp(email, password);
       
       if (result?.error) {
         setError(errorToString(result.error));

@@ -1,8 +1,8 @@
 
-import { ConditionTipsProps, ConditionRatingOption } from './types';
+import { ConditionRatingOption } from './types';
 
 // Condition improvement tips based on selected rating categories
-export const getConditionTips = (selectedRatings: Record<string, ConditionRatingOption>) => {
+export const getConditionTips = (selectedRatings: Record<string, any>) => {
   // Extract tips from selected ratings
   const tips = Object.values(selectedRatings)
     .filter(rating => rating.tip)

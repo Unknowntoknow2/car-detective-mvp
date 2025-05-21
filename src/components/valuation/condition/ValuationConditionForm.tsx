@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ValuationFactorsGrid } from './factors/ValuationFactorsGrid';
@@ -6,15 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { ConditionValues } from './types';
 
 interface ValuationConditionFormProps {
-  initialValues?: {
-    accidents?: number;
-    mileage?: number;
-    year?: number;
-    titleStatus?: string;
-    zipCode?: string;
-  };
+  initialValues?: Partial<ConditionValues>;
   vehicleInfo?: {
     make: string;
     model: string;
@@ -30,7 +26,15 @@ export function ValuationConditionForm({
   valuationId
 }: ValuationConditionFormProps) {
   const navigate = useNavigate();
-  const [conditionValues, setConditionValues] = useState({
+  const [conditionValues, setConditionValues] = useState<ConditionValues>({
+    exteriorBody: '',
+    exteriorPaint: '',
+    interiorSeats: '',
+    interiorDashboard: '',
+    mechanicalEngine: '',
+    mechanicalTransmission: '',
+    tiresCondition: '',
+    odometer: 0,
     accidents: initialValues?.accidents || 0,
     mileage: initialValues?.mileage || 50,
     year: initialValues?.year || 0,
@@ -49,7 +53,7 @@ export function ValuationConditionForm({
     e.preventDefault();
     
     // Validate ZIP code if provided
-    if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode)) {
+    if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode as string)) {
       toast({
         description: "Please enter a valid 5-digit ZIP code.",
         variant: "destructive"
