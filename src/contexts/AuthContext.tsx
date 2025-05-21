@@ -1,47 +1,50 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { UserProfile, UserRole } from '@/types/auth';
+import { UserProfile } from '@/types/auth';
+import { errorToString } from '@/utils/errorHandling';
 
-interface AuthContextType {
+type UserRole = 'admin' | 'dealer' | 'user';
+
+export type AuthContextType = {
   session: Session | null;
   user: User | null;
-  profile: UserProfile | null;
   userRole: UserRole | null;
-  isLoading: boolean;
-  error: string | null;
-  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<{ error: any; data: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any; data: any }>;
+  userDetails: UserProfile | null; // Add userDetails property
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, phone?: string) => Promise<void>;
   signOut: () => Promise<void>;
+  sendMagicLink: (email: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
-}
+  isLoading: boolean;
+  loading: boolean; // Alias for isLoading for backward compatibility
+  error: string | null;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [userDetails, setUserDetails] = useState<UserProfile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // First set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setProfile(null);
-        setUserRole(null);
-      }
+      setIsLoading(false);
     });
 
     // Then check for existing session
@@ -49,7 +52,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       
+      // If user is logged in, fetch their role and profile
       if (session?.user) {
+        fetchUserRole(session.user.id);
         fetchUserProfile(session.user.id);
       }
       
@@ -58,6 +63,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        setUserRole('user'); // Default role
+        return;
+      }
+
+      setUserRole(data.role as UserRole);
+    } catch (err) {
+      console.error('Error in fetchUserRole:', err);
+      setUserRole('user'); // Default role
+    }
+  };
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -72,36 +98,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      setProfile(data as UserProfile);
-      setUserRole(data?.role as UserRole || 'user');
-    } catch (err) {
-      console.error('Error in fetchUserProfile:', err);
-    }
-  };
-
-  const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata
-        }
-      });
-      
-      if (error) {
-        setError(error.message);
-        return { error, data: null };
+      // Convert Date objects to strings for UserProfile compatibility
+      if (data) {
+        const profile: UserProfile = {
+          ...data,
+          created_at: typeof data.created_at === 'string' ? data.created_at : new Date(data.created_at).toISOString(),
+          updated_at: typeof data.updated_at === 'string' ? data.updated_at : new Date(data.updated_at).toISOString(),
+        };
+        setUserDetails(profile);
       }
-      
-      return { error: null, data };
-    } catch (err: any) {
-      setError(err.message || 'Signup failed');
-      return { error: err.message || 'Signup failed', data: null };
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error('Error in fetchUserProfile:', errorToString(err));
     }
   };
 
@@ -128,11 +135,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUp = async (email: string, password: string, phone?: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { phone }
+        }
+      });
+      
+      if (error) {
+        setError(error.message);
+        return { error, data: null };
+      }
+      
+      return { error: null, data };
+    } catch (err: any) {
+      setError(err.message || 'Signup failed');
+      return { error: err.message || 'Signup failed', data: null };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signOut = async () => {
     setIsLoading(true);
     try {
       await supabase.auth.signOut();
-      setProfile(null);
+      setSession(null);
+      setUser(null);
+      setUserDetails(null);
       setUserRole(null);
       toast.success('Successfully signed out');
     } catch (err: any) {
@@ -142,7 +177,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
-  
+
+  const sendMagicLink = async (email: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          type: 'magiclink',
+          redirectTo: `${window.location.origin}/login`,
+        }
+      });
+      
+      if (error) throw error;
+      toast.success('Magic link sent to your email');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send magic link');
+      toast.error(err.message || 'Failed to send magic link');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const resetPassword = async (email: string) => {
     setIsLoading(true);
     setError(null);
@@ -160,7 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
-  
+
   const updatePassword = async (password: string) => {
     setIsLoading(true);
     setError(null);
@@ -177,58 +234,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (profileData: Partial<UserProfile>) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      if (!user) throw new Error('You must be logged in to update your profile');
-      
-      // Merge with existing profile data
-      const updatedProfile = { ...profile, ...profileData, updated_at: new Date() };
-      
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          ...updatedProfile
-        });
-
-      if (error) throw error;
-      
-      setProfile(updatedProfile as UserProfile);
-      if (profileData.role) setUserRole(profileData.role as UserRole);
-      
-      toast.success('Profile updated successfully');
-    } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
-      toast.error(err.message || 'Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const value = {
     session,
     user,
-    profile,
     userRole,
-    signUp,
+    userDetails,
     signIn,
+    signUp,
     signOut,
-    isLoading,
-    error,
+    sendMagicLink,
     resetPassword,
     updatePassword,
-    updateProfile
+    isLoading,
+    loading: isLoading, // Alias for backward compatibility
+    error,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

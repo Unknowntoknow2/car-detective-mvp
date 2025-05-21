@@ -3,3 +3,6 @@
 import { useAuth as useAuthFromContext } from '@/contexts/AuthContext';
 
 export const useAuth = useAuthFromContext;
+
+// Export the type for the Auth context
+export type { AuthContextType } from '@/contexts/AuthContext';

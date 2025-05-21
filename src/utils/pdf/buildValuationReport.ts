@@ -1,29 +1,55 @@
 
 import { ValuationResult } from '@/types/valuation';
 
-export const buildValuationReport = (result: ValuationResult, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
-  // Basic implementation to fix the test issues
+export const buildValuationReport = (result: ValuationResult | null, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
+  if (!result) {
+    return {
+      id: 'N/A',
+      make: 'N/A',
+      model: 'N/A',
+      year: 0,
+      mileage: 0,
+      condition: 'N/A',
+      price: 0,
+      zipCode: 'N/A',
+      vin: 'N/A',
+      fuelType: 'N/A',
+      transmission: 'N/A',
+      color: 'N/A',
+      bodyType: 'N/A',
+      confidenceScore: 0,
+      isPremium: false,
+      priceRange: [0, 0] as [number, number],
+      adjustments: [],
+      generatedAt: new Date().toISOString(),
+      explanation: 'N/A',
+      userId: 'N/A',
+    };
+  }
+
   return {
-    title: `Vehicle Valuation Report - ${result.year} ${result.make} ${result.model}`,
-    estimatedValue: result.estimatedValue || result.estimated_value || 0,
-    meta: {
-      includesCarfax: includeCarfax,
-      template: templateType,
-      generatedAt: new Date().toISOString()
-    },
-    sections: {
-      vehicleInfo: {
-        make: result.make,
-        model: result.model,
-        year: result.year,
-        trim: result.trim,
-        vin: result.vin
-      },
-      valuation: {
-        estimatedValue: result.estimatedValue || result.estimated_value || 0,
-        confidence: result.confidenceScore || result.confidence_score || 75
-      }
-    }
+    id: result.id || 'N/A',
+    make: result.make || 'N/A',
+    model: result.model || 'N/A',
+    year: result.year || 0,
+    mileage: result.mileage || 0,
+    condition: result.condition || 'N/A',
+    price: result.estimatedValue || result.estimated_value || 0,
+    zipCode: result.zipCode || 'N/A',
+    vin: result.vin || 'N/A',
+    fuelType: result.fuelType || result.fuel_type || 'N/A',
+    transmission: result.transmission || 'N/A',
+    color: result.color || 'N/A',
+    bodyType: result.bodyType || result.bodyStyle || 'N/A',
+    confidenceScore: result.confidenceScore || result.confidence_score || 0,
+    isPremium: result.isPremium || false,
+    priceRange: Array.isArray(result.priceRange) && result.priceRange.length >= 2 
+      ? [result.priceRange[0], result.priceRange[1]] as [number, number] 
+      : [0, 0] as [number, number],
+    adjustments: result.adjustments || [],
+    generatedAt: new Date().toISOString(),
+    explanation: result.explanation || 'N/A',
+    userId: result.userId || 'N/A',
   };
 };
 
