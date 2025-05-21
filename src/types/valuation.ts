@@ -28,11 +28,11 @@ export interface ValuationResult {
     aiSummary?: string;
   } | null;
   priceRange?: [number, number];
-  isPremium?: boolean; // Added isPremium
+  isPremium?: boolean;
   pdfUrl?: string;
   gptExplanation?: string;
   vin?: string;
-  features?: string[]; // Added features
+  features?: string[];
   color?: string;
   bodyType?: string;
   bodyStyle?: string;

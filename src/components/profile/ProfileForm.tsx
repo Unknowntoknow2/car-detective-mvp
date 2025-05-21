@@ -1,150 +1,106 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { UserProfile } from "@/types/user";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
-const profileFormSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }).max(30, {
-    message: "Username must not be longer than 30 characters.",
-  }).optional(),
-  full_name: z.string().max(50).optional(),
-  website: z.string().url({ message: "Please enter a valid URL." }).optional(),
-  bio: z.string().max(160).optional(),
-});
+interface ProfileFormProps {
+  onUpdateSuccess?: () => void;
+}
 
-interface ProfileFormValues extends z.infer<typeof profileFormSchema> {}
-
-const safeValue = (value: string | null | undefined) => value || '';
-
-export function ProfileForm() {
-  const { toast } = useToast();
+const ProfileForm: React.FC<ProfileFormProps> = ({ onUpdateSuccess }) => {
   const { profile, updateProfile } = useAuth();
-  const [isSaving, setIsSaving] = useState(false);
-
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      username: profile?.username || "",
-      full_name: profile?.full_name || "",
-      website: profile?.website || "",
-      bio: profile?.bio || "",
-    },
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    username: profile?.username || '',
+    full_name: profile?.full_name || '',
+    website: profile?.website || '',
+    bio: profile?.bio || '',
   });
 
-  useEffect(() => {
-    form.reset({
-      username: profile?.username || "",
-      full_name: profile?.full_name || "",
-      website: profile?.website || "",
-      bio: profile?.bio || "",
-    });
-  }, [profile, form]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  async function onSubmit(data: ProfileFormValues) {
-    setIsSaving(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!updateProfile) return;
+    
+    setIsLoading(true);
+    
     try {
       await updateProfile({
-        ...profile,
-        username: data.username,
-        full_name: data.full_name,
-        website: data.website,
-        bio: data.bio,
-      } as UserProfile);
-
-      toast({
-        title: "Profile updated successfully!",
+        ...profile!,
+        ...formData,
       });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: error.message,
-      });
+      
+      toast.success('Profile updated successfully!');
+      
+      if (onUpdateSuccess) {
+        onUpdateSuccess();
+      }
+    } catch (error) {
+      toast.error('Failed to update profile. Please try again.');
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="Username" {...field} value={safeValue(field.value)} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="full_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full name</FormLabel>
-              <FormControl>
-                <Input placeholder="Full name" {...field} value={safeValue(field.value)} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website</FormLabel>
-              <FormControl>
-                <Input placeholder="www.example.com" {...field} value={safeValue(field.value)} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us a little bit about yourself."
-                  className="resize-none"
-                  {...field}
-                  value={safeValue(field.value)}
-                />
-              </FormControl>
-              <FormDescription>
-                Max. 160 characters.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? "Saving..." : "Update profile"}
-        </Button>
-      </form>
-    </Form>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="full_name">Full Name</Label>
+          <Input
+            id="full_name"
+            name="full_name"
+            value={formData.full_name}
+            onChange={handleChange}
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="website">Website</Label>
+          <Input
+            id="website"
+            name="website"
+            value={formData.website}
+            onChange={handleChange}
+            placeholder="https://example.com"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="bio">Bio</Label>
+          <Textarea
+            id="bio"
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+            rows={4}
+          />
+        </div>
+      </div>
+      
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? 'Saving...' : 'Save Profile'}
+      </Button>
+    </form>
   );
-}
+};
+
+export default ProfileForm;

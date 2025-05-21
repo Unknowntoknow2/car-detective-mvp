@@ -1,29 +1,30 @@
 
-// Define the ConditionValues interface
-export interface ConditionValues {
-  exterior?: number;
-  interior?: number;
-  mechanical?: number;
-  title?: number;
-  undercarriage?: number;
-  accidents?: number;
-  mileage?: number;
-  year?: number;
-  titleStatus?: string;
+export interface ConditionTipsProps {
+  category: string;
+  rating: ConditionRatingOption;
 }
 
-// Define the ConditionCategory type
-export type ConditionCategory = 'exterior' | 'interior' | 'mechanical' | 'title' | 'undercarriage';
+export enum ConditionRatingOption {
+  Excellent = 'excellent',
+  Good = 'good',
+  Fair = 'fair',
+  Poor = 'poor'
+}
 
-// Define the ConditionCategoryInfo interface
-export interface ConditionCategoryInfo {
-  name: ConditionCategory;
+export interface ConditionOption {
+  value: string;
   label: string;
-  description: string;
-  examples: {
-    excellent: string;
-    good: string;
-    fair: string;
-    poor: string;
-  };
+  description?: string;
+}
+
+export interface ConditionValues {
+  exteriorBody: string;
+  exteriorPaint: string;
+  interiorSeats: string;
+  interiorDashboard: string;
+  mechanicalEngine: string;
+  mechanicalTransmission: string;
+  tiresCondition: string;
+  odometer: string | number;
+  [key: string]: string | number;
 }
