@@ -36,7 +36,7 @@ export function PhotoUploader({
     createPhotoScores,
     analyzePhotos
   } = usePhotoUpload({
-    valuationId
+    valuationId: valuationId || ''
   });
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
