@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Car, License, ClipboardEdit, Star, BrainCog } from 'lucide-react';
+import { Car, FileText, ClipboardEdit, Star, BrainCog, Camera, Users, BarChart3, LineChart, FileCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-export type ValuationServiceId = 'vin' | 'plate' | 'manual' | 'ai' | 'condition';
+export type ValuationServiceId = 'vin' | 'plate' | 'manual' | 'ai' | 'condition' | 'photo' | 'dealers' | 'market' | 'forecast' | 'carfax';
 
 export interface ValuationService {
   id: ValuationServiceId;
@@ -28,7 +28,7 @@ export const services: ValuationService[] = [
     id: 'plate',
     title: 'License Plate',
     description: 'Enter your license plate and state',
-    icon: createIconComponent(License),
+    icon: createIconComponent(FileText),
     premium: false
   },
   {
@@ -50,6 +50,41 @@ export const services: ValuationService[] = [
     title: 'AI Analysis',
     description: 'Use AI to get a comprehensive analysis',
     icon: createIconComponent(BrainCog),
+    premium: true
+  },
+  {
+    id: 'photo',
+    title: 'Photo Analysis',
+    description: 'Upload photos for condition assessment',
+    icon: createIconComponent(Camera),
+    premium: true
+  },
+  {
+    id: 'dealers',
+    title: 'Dealer Offers',
+    description: 'Connect with local dealers',
+    icon: createIconComponent(Users),
+    premium: true
+  },
+  {
+    id: 'market',
+    title: 'Market Analysis',
+    description: 'Compare with similar vehicles',
+    icon: createIconComponent(BarChart3),
+    premium: true
+  },
+  {
+    id: 'forecast',
+    title: 'Value Forecast',
+    description: 'See projected future value',
+    icon: createIconComponent(LineChart),
+    premium: true
+  },
+  {
+    id: 'carfax',
+    title: 'CARFAX Report',
+    description: 'Vehicle history information',
+    icon: createIconComponent(FileCheck),
     premium: true
   }
 ];

@@ -54,6 +54,7 @@ export interface ValuationResult {
   explanation?: string; // Alternative field for explanations
   bestPhotoUrl?: string; // For photo-based valuations
   photo_url?: string; // For backward compatibility
+  photoScore?: number; // Added for photo scoring
   vin?: string; // Vehicle identification number
   trim?: string; // Vehicle trim
   color?: string; // Vehicle color

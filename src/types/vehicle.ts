@@ -15,6 +15,8 @@ export interface DecodedVehicleInfo {
   mpg?: string;
   msrp?: number;
   zipCode?: string;
+  mileage?: number;
+  color?: string;
 }
 
 export interface VehicleDTO {
@@ -41,3 +43,16 @@ export interface DealerInventoryItem extends VehicleDTO {
 }
 
 export type ConditionLevel = 'excellent' | 'good' | 'fair' | 'poor';
+
+export interface DealerVehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  condition: string;
+  status: string;
+  price?: number;
+  mileage?: number;
+  color?: string;
+  vehicleId?: string;
+  photos?: File[];
+}
