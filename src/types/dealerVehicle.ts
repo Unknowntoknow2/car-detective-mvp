@@ -18,6 +18,8 @@ export interface DealerVehicle {
   updated_at: string;
 }
 
+export type DealerVehicleStatus = "available" | "pending" | "sold";
+
 export interface DealerVehicleFormData {
   make: string;
   model: string;

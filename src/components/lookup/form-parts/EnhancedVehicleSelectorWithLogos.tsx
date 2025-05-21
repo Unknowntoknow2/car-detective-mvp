@@ -92,11 +92,11 @@ export function EnhancedVehicleSelectorWithLogos({
     );
   }
 
-  // Ensure makes is properly mapped to ComboBox items
+  // Ensure makes is properly mapped to ComboBox items and filter out null icons
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
-    icon: make.logo_url
+    icon: make.logo_url || undefined  // Convert null to undefined
   })) : [];
 
   const handleMakeChange = (make: string) => {

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -18,7 +17,7 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   isLoading: boolean;
-  error: string | null;
+  error: string | null;  // Add the error property
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
