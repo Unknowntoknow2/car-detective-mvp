@@ -1,91 +1,92 @@
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useVinInput } from '@/hooks/useVinInput';
-import { VinInput } from '@/components/premium/lookup/VinInput';
-import { VinSubmitButton } from '@/components/premium/lookup/VinSubmitButton';
+import { CircleAlert } from 'lucide-react';
 
 interface VinInputFormProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
-  isLoading: boolean;
-  error?: string | null;
+  isLoading?: boolean;
+  className?: string;
 }
 
-export function VinInputForm({
-  value,
-  onChange,
-  onSubmit,
-  isLoading,
-  error
+export function VinInputForm({ 
+  value, 
+  onChange, 
+  onSubmit, 
+  isLoading = false,
+  className = ''
 }: VinInputFormProps) {
-  const {
-    vin: vinValue,
+  const { 
+    vin,
+    setVin, 
+    isValid, 
+    error,
     touched,
     validationError,
     handleInputChange,
-    isValid,
-    handleVinChange
-  } = useVinInput({
-    initialValue: value,
-    onValidChange: (valid: boolean) => {
-      // Keep parent component updated with changes
-      if (valid !== wasValid) {
-        setWasValid(valid);
-      }
+    validateVin
+  } = useVinInput();
+
+  // Keep the local state and the parent state in sync
+  React.useEffect(() => {
+    if (value !== vin) {
+      setVin(value);
     }
-  });
+  }, [value, vin, setVin]);
 
-  const [wasValid, setWasValid] = useState(false);
+  // Notify parent of changes
+  React.useEffect(() => {
+    if (vin !== null && vin !== value) {
+      onChange(vin);
+    }
+  }, [vin, onChange, value]);
 
-  // Keep parent value in sync with local value
-  if (vinValue !== null && value !== vinValue) {
-    onChange(vinValue);
-  }
-
-  const handleSubmit = async () => {
-    if (isValid && !isLoading) {
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isValid) {
       onSubmit();
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && isValid && !isLoading) {
-      handleSubmit();
-    }
-  };
-
-  // Handle the change from input element and convert it to string for parent component
-  const handleVinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleInputChange(e);
-    onChange(e.target.value);
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-2">
-        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/30">
-          Recommended
-        </Badge>
-        <p className="text-sm text-slate-500">Fast & Accurate</p>
+    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+      <div>
+        <div className="relative">
+          <Input
+            placeholder="Enter 17-digit VIN number"
+            value={vin || ''}
+            onChange={handleInputChange}
+            className={`pr-12 ${validationError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            maxLength={17}
+          />
+          {touched && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {validationError ? (
+                <CircleAlert className="h-5 w-5 text-destructive" />
+              ) : isValid ? (
+                <div className="h-5 w-5 rounded-full bg-green-500 text-white flex items-center justify-center">
+                  ✓
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+        {validationError && touched && (
+          <p className="text-sm text-destructive mt-1">{validationError}</p>
+        )}
       </div>
-      
-      <VinInput
-        value={vinValue || ''}
-        onChange={handleVinInputChange}
-        validationError={validationError}
-        externalError={error}
-        touched={touched}
-        isValid={isValid}
-        isLoading={isLoading}
-        onKeyPress={handleKeyPress}
-      />
-      
-      <VinSubmitButton 
-        onClick={handleSubmit}
-        disabled={!isValid}
-        isLoading={isLoading}
-      />
-    </div>
+
+      <Button 
+        type="submit" 
+        disabled={!isValid || isLoading}
+        className="w-full"
+      >
+        {isLoading ? 'Loading...' : 'Lookup Vehicle'}
+      </Button>
+    </form>
   );
 }

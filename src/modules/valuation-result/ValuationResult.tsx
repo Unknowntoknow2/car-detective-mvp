@@ -1,304 +1,158 @@
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useValuationResult } from '@/hooks/useValuationResult';
-import { usePremiumStatus } from '@/hooks/usePremiumStatus';
-import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
-import { toast } from 'sonner';
+import React from 'react';
 
-// Import components
-import MobileLayout from './MobileLayout';
-import LoadingState from './components/LoadingState';
-import ErrorState from './components/ErrorState';
-import { Header } from './sections/Header';
-import Summary from './sections/Summary';
-import { PhotoAnalysis } from './sections/PhotoAnalysis';
-import { Breakdown } from './sections/Breakdown';
-import { Explanation } from './sections/Explanation';
-import { PDFActions } from './sections/PDFActions';
-
-// Import context and styles
-import { ValuationProvider } from './context/ValuationContext';
-import { useValuationLogic } from './logic';
-import styles from './styles';
-
-interface ValuationResultProps {
-  valuationId?: string;
-  isManualValuation?: boolean;
-  manualValuationData?: any;
+interface ValuationAdjustment {
+  factor: string;
+  impact: number;
+  description: string;
+  percentAdjustment?: number;
 }
 
-export const ValuationResult: React.FC<ValuationResultProps> = ({
-  valuationId,
-  isManualValuation = false,
-  manualValuationData
-}) => {
-  useEffect(() => {
-    console.log('PREMIUM RESULT: ValuationResult component mounted');
-    console.log('PREMIUM RESULT: Props:', { valuationId, isManualValuation, hasManualData: !!manualValuationData });
-  }, [valuationId, isManualValuation, manualValuationData]);
+interface ValuationResultProps {
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  adjustments?: ValuationAdjustment[];
+  baseValue?: number;
+  explanation?: string;
+  isPremium?: boolean;
+  loadingPdf?: boolean;
+  onDownloadPdf?: () => void;
+  showLock?: boolean;
+  isUnlocking?: boolean;
+  onUnlock?: () => void;
+}
 
-  const [isEmailSending, setIsEmailSending] = useState(false);
-  
-  // Fetch valuation data
-  const { 
-    data: valuation, 
-    isLoading, 
-    error 
-  } = useValuationResult(valuationId || '');
-
-  useEffect(() => {
-    if (isLoading) {
-      console.log('PREMIUM RESULT: Loading valuation data...');
-    } else if (error) {
-      console.error('PREMIUM RESULT: Error loading valuation data:', error);
-    } else if (valuation) {
-      console.log('PREMIUM RESULT: Valuation data loaded:', valuation);
-    }
-  }, [isLoading, valuation, error]);
-  
-  // Check premium status
-  const { 
-    isPremium, 
-    isLoading: isPremiumLoading, 
-    createCheckoutSession
-  } = usePremiumStatus(valuationId);
-
-  useEffect(() => {
-    console.log('PREMIUM RESULT: Premium status:', { isPremium, isLoading: isPremiumLoading });
-  }, [isPremium, isPremiumLoading]);
-  
-  // Combine manual data with fetched data
-  const valuationData = isManualValuation && manualValuationData
-    ? manualValuationData
-    : valuation;
-  
-  // Use derived valuation logic
-  const {
-    priceRange,
-    marketTrend,
-    recommendation,
-    recommendationText,
-    confidenceLevel,
-    confidenceColor
-  } = useValuationLogic(valuationData);
-
-  useEffect(() => {
-    if (valuationData) {
-      console.log('PREMIUM RESULT: Derived valuation logic:', { 
-        priceRange, marketTrend, recommendation, confidenceLevel 
-      });
-    }
-  }, [valuationData, priceRange, marketTrend, recommendation, confidenceLevel]);
-  
-  // PDF generation logic
-  const { 
-    isGenerating, 
-    handleDownloadPdf 
-  } = useValuationPdf({
-    valuationData,
-    conditionData: valuationData?.aiCondition || null
-  });
-
-  const handleUpgrade = async () => {
-    if (!valuationId) {
-      console.error('PREMIUM RESULT: Cannot upgrade - missing valuationId');
-      toast.error("Unable to process premium upgrade without a valuation ID");
-      return;
-    }
-    
-    try {
-      console.log('PREMIUM RESULT: Initiating premium upgrade for valuationId:', valuationId);
-      const result = await createCheckoutSession(valuationId);
-      console.log('PREMIUM RESULT: Checkout session result:', result);
-      
-      if (result.success && result.url) {
-        console.log('PREMIUM RESULT: Redirecting to checkout URL:', result.url);
-        window.location.href = result.url;
-      } else if (result.alreadyUnlocked) {
-        console.log('PREMIUM RESULT: Premium features already unlocked');
-        toast.success("Premium features are already unlocked!");
-        // Refresh the page to show premium content
-        window.location.reload();
-      } else {
-        console.error('PREMIUM RESULT: Failed to create checkout session:', result.error);
-        toast.error(result.error || "Failed to create checkout session");
-      }
-    } catch (err: any) {
-      console.error("PREMIUM RESULT: Error creating checkout:", err);
-      toast.error("An error occurred while processing your request");
-    }
+export function ValuationResult({
+  estimatedValue,
+  confidenceScore,
+  priceRange,
+  adjustments = [],
+  baseValue = 0,
+  explanation,
+  isPremium = false,
+  loadingPdf = false,
+  onDownloadPdf,
+  showLock = false,
+  isUnlocking = false,
+  onUnlock
+}: ValuationResultProps) {
+  // Format currency helper
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD',
+      maximumFractionDigits: 0 
+    }).format(amount);
   };
   
-  const handleEmailPdf = async () => {
-    try {
-      setIsEmailSending(true);
-      // This would call an API endpoint to send the PDF via email
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      toast.success("PDF report sent to your email");
-    } catch (err) {
-      toast.error("Failed to send PDF report");
-    } finally {
-      setIsEmailSending(false);
-    }
-  };
-  
-  const downloadPdfHandler = async () => {
-    if (isGenerating) return; 
-    await handleDownloadPdf();
-  };
-  
-  // Loading state
-  if (isLoading && !isManualValuation) {
-    return <LoadingState />;
-  }
-  
-  // Error state
-  if ((error || !valuationData) && !isManualValuation) {
-    return <ErrorState error={error} />;
-  }
-  
-  if (!valuationData) {
-    return null;
-  }
-
-  const showPremiumContent = isPremium || isManualValuation;
-  
-  // Extract valuation data
-  const {
-    make = '',
-    model = '',
-    year = 0,
-    mileage = 0,
-    condition = 'Good',
-    estimatedValue = 0,
-    confidenceScore = 75,
-    adjustments = [],
-    explanation = '',
-    fuelType,
-    transmission,
-    bestPhotoUrl,
-    photoScore,
-    aiCondition
-  } = valuationData;
-  
-  // Additional info for badge display
-  const additionalInfo: Record<string, string> = {};
-  if (fuelType) additionalInfo.fuelType = fuelType;
-  if (transmission) additionalInfo.transmission = transmission;
-
-  // Create context value
-  const contextValue = {
-    valuationData,
-    isPremium: showPremiumContent,
-    isLoading,
-    error,
-    estimatedValue,
-    onUpgrade: handleUpgrade,
-    onDownloadPdf: downloadPdfHandler,
-    onEmailPdf: handleEmailPdf,
-    isDownloading: isGenerating,
-    isEmailSending
-  };
+  // Calculate total adjustments
+  const totalAdjustmentAmount = adjustments.reduce((sum: number, adj: ValuationAdjustment) => sum + adj.impact, 0);
   
   return (
-    <ValuationProvider value={contextValue}>
-      <MobileLayout
-        isPremium={showPremiumContent}
-        isLoading={isLoading}
-        onUpgrade={handleUpgrade}
-        onDownloadPdf={downloadPdfHandler}
-        estimatedValue={estimatedValue}
-        isDownloading={isGenerating}
-      >
-        <AnimatePresence>
-          <div className={styles.container}>
-            {/* Header Section */}
-            <Header
-              make={make}
-              model={model}
-              year={year}
-              mileage={mileage}
-              condition={condition}
-              estimatedValue={estimatedValue}
-              isPremium={showPremiumContent}
-              additionalInfo={additionalInfo}
-            />
-            
-            {/* Summary Section */}
-            <Summary
-              confidenceScore={confidenceScore}
-              priceRange={priceRange}
-              marketTrend={marketTrend}
-              recommendationText={recommendationText}
-            />
-            
-            {/* Main Content */}
-            <div className={styles.grid.container}>
-              {/* Left Column - Photo Analysis */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <PhotoAnalysis
-                  photoUrl={bestPhotoUrl}
-                  photoScore={photoScore}
-                  condition={aiCondition}
-                  isPremium={showPremiumContent}
-                  onUpgrade={handleUpgrade}
-                />
-              </motion.div>
-              
-              {/* Right Column - Price Breakdown */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <Breakdown
-                  basePrice={estimatedValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)}
-                  adjustments={adjustments}
-                  estimatedValue={estimatedValue}
-                />
-              </motion.div>
-              
-              {/* Full Width - Explanation (GPT) */}
-              <motion.div 
-                className={styles.grid.fullWidth}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                <Explanation
-                  explanation={explanation}
-                  isPremium={showPremiumContent}
-                  onUpgrade={handleUpgrade}
-                />
-              </motion.div>
-              
-              {/* Full Width - PDF Actions */}
-              <motion.div 
-                className={styles.grid.fullWidth + " mb-20 sm:mb-0"} // Add bottom margin on mobile for action bar
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-              >
-                <PDFActions
-                  isPremium={showPremiumContent}
-                  onDownloadPdf={downloadPdfHandler}
-                  onEmailPdf={handleEmailPdf}
-                  onUpgrade={handleUpgrade}
-                  isDownloading={isGenerating}
-                  isEmailSending={isEmailSending}
-                />
-              </motion.div>
-            </div>
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Estimated Value</h2>
+          <div className="flex items-baseline mb-2">
+            <span className="text-3xl font-bold text-primary">
+              {formatCurrency(estimatedValue)}
+            </span>
+            {isPremium && (
+              <span className="ml-2 text-sm px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium">
+                Premium
+              </span>
+            )}
           </div>
-        </AnimatePresence>
-      </MobileLayout>
-    </ValuationProvider>
+          <p className="text-sm text-gray-500">
+            Price range: {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+          </p>
+          
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-medium">Confidence Score</h3>
+              <span className="text-sm font-medium">{confidenceScore}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-primary h-2.5 rounded-full" 
+                style={{ width: `${confidenceScore}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Based on available data and market conditions
+            </p>
+          </div>
+          
+          {onDownloadPdf && (
+            <div className="mt-6">
+              <button
+                onClick={onDownloadPdf}
+                disabled={loadingPdf}
+                className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded flex items-center justify-center"
+              >
+                {loadingPdf ? 'Generating PDF...' : 'Download Valuation Report'}
+              </button>
+            </div>
+          )}
+          
+          {showLock && onUnlock && (
+            <div className="mt-4">
+              <button
+                onClick={onUnlock}
+                disabled={isUnlocking}
+                className="w-full py-2 px-4 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded flex items-center justify-center"
+              >
+                {isUnlocking ? 'Processing...' : 'Unlock Premium Features'}
+              </button>
+            </div>
+          )}
+        </div>
+        
+        <div>
+          <h2 className="text-lg font-medium mb-3">Value Breakdown</h2>
+          {baseValue > 0 && (
+            <div className="flex justify-between py-2 border-b">
+              <span>Base Value</span>
+              <span className="font-medium">{formatCurrency(baseValue)}</span>
+            </div>
+          )}
+          
+          {adjustments.length > 0 ? (
+            <div className="space-y-2 mt-2">
+              {adjustments.map((adjustment, index) => (
+                <div key={index} className="flex justify-between py-1 text-sm">
+                  <div className="flex-1">
+                    <span className="font-medium">{adjustment.factor}</span>
+                    {adjustment.description && (
+                      <p className="text-xs text-gray-500">{adjustment.description}</p>
+                    )}
+                  </div>
+                  <span className={adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {adjustment.impact >= 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
+                  </span>
+                </div>
+              ))}
+              
+              <div className="flex justify-between py-2 border-t mt-2 font-medium">
+                <span>Total Adjustments</span>
+                <span className={totalAdjustmentAmount >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {totalAdjustmentAmount >= 0 ? '+' : ''}{formatCurrency(totalAdjustmentAmount)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 my-4">No price adjustments available.</p>
+          )}
+          
+          {explanation && (
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Why this price?</h3>
+              <p className="text-sm text-gray-600">{explanation}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
-};
-
-export default ValuationResult;
+}

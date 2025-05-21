@@ -66,7 +66,7 @@ export async function buildValuationReport(
   console.log('Building valuation report with params:', params);
   
   // Generate a unique filename for the PDF
-  const filename = `valuation-${params.make}-${params.model}-${uuidv4().substring(0, 8)}.pdf`;
+  const filename = `valuation-${params.make || 'unknown'}-${params.model || 'vehicle'}-${uuidv4().substring(0, 8)}.pdf`;
   
   // Determine the identifier type
   const identifierType: IdentifierType = params.identifierType || 'manual';
@@ -105,11 +105,11 @@ export async function buildValuationReport(
       confidenceScore: `${valuationResult.confidenceScore}%`,
       priceRange: `${formatCurrency(valuationResult.priceRange[0])} - ${formatCurrency(valuationResult.priceRange[1])}`,
       baseValue: formatCurrency(valuationResult.baseValue || 0),
-      adjustments: valuationResult.adjustments.map(adj => ({
+      adjustments: valuationResult.adjustments?.map(adj => ({
         factor: adj.factor,
         impact: formatCurrency(adj.impact),
         description: adj.description,
-      })),
+      })) || [],
     },
     imageUrl: vehicleImageUrl,
     reportDate: new Date().toLocaleDateString(),
