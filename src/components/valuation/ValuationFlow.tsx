@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Check } from 'lucide-react';
-import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
+import VinDecoderForm from '@/components/lookup/VinDecoderForm';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
 import ManualEntryForm from '@/components/lookup/manual/ManualEntryForm';
 import ValuationSummary from './result/ValuationSummary'; 

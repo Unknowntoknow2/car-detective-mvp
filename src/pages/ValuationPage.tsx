@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Award } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ValuationFlow } from '@/components/valuation/ValuationFlow';
 
 const ValuationPage: React.FC = () => {
   const { user } = useAuth();
@@ -31,11 +32,9 @@ const ValuationPage: React.FC = () => {
             <p className="mb-4">Get a quick estimate of your vehicle's value with basic information.</p>
             
             <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-md">
-                <p className="text-center text-muted-foreground">Basic valuation form will be implemented here.</p>
-              </div>
+              <ValuationFlow />
               
-              <Button asChild className="w-full">
+              <Button asChild className="w-full mt-6">
                 <Link to="/valuation/basic">
                   Start Free Valuation <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

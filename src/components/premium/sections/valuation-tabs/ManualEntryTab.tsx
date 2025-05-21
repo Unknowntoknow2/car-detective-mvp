@@ -30,34 +30,22 @@ export function ManualEntryTab({ onSubmit, isLoading }: ManualEntryTabProps) {
   const handleSubmit = () => {
     // Validation
     if (!vehicleDetails.make) {
-      toast({
-        description: "Please enter the vehicle make",
-        variant: "destructive"
-      });
+      toast.error("Please enter the vehicle make");
       return;
     }
     
     if (!vehicleDetails.model) {
-      toast({
-        description: "Please enter the vehicle model",
-        variant: "destructive"
-      });
+      toast.error("Please enter the vehicle model");
       return;
     }
     
     if (!vehicleDetails.year) {
-      toast({
-        description: "Please enter the vehicle year",
-        variant: "destructive"
-      });
+      toast.error("Please enter the vehicle year");
       return;
     }
     
     if (!vehicleDetails.zipCode) {
-      toast({
-        description: "Please enter your ZIP code",
-        variant: "destructive"
-      });
+      toast.error("Please enter your ZIP code");
       return;
     }
 
