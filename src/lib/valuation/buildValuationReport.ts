@@ -25,11 +25,36 @@ interface ValuationReportOptions {
   colorScheme?: 'light' | 'dark' | 'branded';
 }
 
+// Update the return type to include all properties needed by tests
+interface ValuationReportResult {
+  pdfUrl: string;
+  pdfBuffer: Buffer;
+  // Include additional properties from the valuation result
+  make: string;
+  model: string;
+  year: number;
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  photoScore?: number;
+  bestPhotoUrl?: string;
+  aiCondition?: any;
+  explanation?: string;
+  isPremium: boolean;
+  adjustments?: any[];
+  features?: string[];
+  // Other properties that might be needed
+  trim?: string;
+  vin?: string;
+  color?: string;
+  zip?: string;
+}
+
 export async function buildValuationReport(
   params: ValuationParams,
   valuationResult: ValuationResult,
   options: ValuationReportOptions = {}
-): Promise<{ pdfUrl: string; pdfBuffer: Buffer }> {
+): Promise<ValuationReportResult> {
   console.log('Building valuation report with params:', params);
   
   // Generate a unique filename for the PDF
@@ -103,25 +128,39 @@ export async function buildValuationReport(
   // Upload the PDF to S3
   const pdfUrl = await uploadToS3(pdfBuffer, filename, 'application/pdf');
   
+  // Return expanded result with all required properties
   return {
     pdfUrl,
     pdfBuffer,
+    make: params.make || 'Unknown',
+    model: params.model || 'Unknown',
+    year: params.year || new Date().getFullYear(),
+    estimatedValue: valuationResult.estimatedValue,
+    confidenceScore: valuationResult.confidenceScore,
+    priceRange: valuationResult.priceRange,
+    photoScore: valuationResult.photoScore,
+    bestPhotoUrl: valuationResult.bestPhotoUrl || vehicleImageUrl,
+    aiCondition: valuationResult.aiCondition,
+    explanation: valuationResult.explanation,
+    isPremium: params.isPremium || false,
+    adjustments: valuationResult.adjustments,
+    features: params.features,
+    trim: params.trim,
+    vin: params.vin,
+    color: params.exteriorColor,
+    zip: params.zipCode
   };
 }
 
 export async function generateValuationReport(
   params: ValuationParams,
   options: ValuationReportOptions = {}
-): Promise<{ pdfUrl: string; pdfBuffer: Buffer; valuationResult: ValuationResult }> {
+): Promise<ValuationReportResult> {
   // Calculate the valuation
   const valuationResult = await calculateValuation(params);
   
   // Build the report
-  const { pdfUrl, pdfBuffer } = await buildValuationReport(params, valuationResult, options);
+  const result = await buildValuationReport(params, valuationResult, options);
   
-  return {
-    pdfUrl,
-    pdfBuffer,
-    valuationResult,
-  };
+  return result;
 }
