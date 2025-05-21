@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useDealerInventory } from './hooks/useDealerInventory';
-import { DealerVehicle } from '@/types/vehicle'; // Updated import
+import { DealerVehicle } from '@/types/dealerVehicle'; // Updated import
 import { formatCurrency } from '@/utils/formatters';
 import { Loading } from '@/components/ui/loading'; // Updated import
 import { Edit, Trash2, Car } from 'lucide-react';

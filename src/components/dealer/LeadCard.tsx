@@ -1,8 +1,9 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
+import { MessageSquare } from 'lucide-react';
+import { format } from 'date-fns';
 import { ReplyToLeadModal } from './ReplyToLeadModal';
 
 interface LeadCardProps {
@@ -15,63 +16,52 @@ interface LeadCardProps {
     created_at: string;
     condition_score?: number;
   };
-  hasReplied?: boolean;
 }
 
-export function LeadCard({ lead, hasReplied = false }: LeadCardProps) {
-  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
-  
-  const getConditionLabel = (score?: number) => {
-    if (!score) return 'Unknown';
-    if (score >= 85) return 'Excellent';
-    if (score >= 70) return 'Good';
-    if (score >= 50) return 'Fair';
-    return 'Poor';
-  };
+export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
+  const [showReplyModal, setShowReplyModal] = useState(false);
+
+  const formattedDate = format(new Date(lead.created_at), 'MMM dd, yyyy HH:mm');
 
   return (
-    <>
-      <Card className="w-full">
-        <CardContent className="pt-6">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-semibold text-lg">
-              {lead.year} {lead.make} {lead.model}
-            </h3>
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
-            </span>
+    <Card className="shadow-md rounded-md">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardTitle className="text-sm font-medium">
+          {lead.year} {lead.make} {lead.model}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center space-x-4">
+          <Avatar>
+            <AvatarImage src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${lead.make}${lead.model}${lead.year}`} />
+            <AvatarFallback>
+              {lead.make?.charAt(0)}
+              {lead.model?.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-sm font-medium leading-none">
+              Estimated Value: ${lead.estimatedValue?.toLocaleString()}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Created at: {formattedDate}
+            </p>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4 my-4">
-            {lead.estimatedValue && (
-              <div>
-                <p className="text-sm text-muted-foreground">Estimated Value</p>
-                <p className="font-medium">${lead.estimatedValue.toLocaleString()}</p>
-              </div>
-            )}
-            
-            <div>
-              <p className="text-sm text-muted-foreground">Condition</p>
-              <p className="font-medium">{getConditionLabel(lead.condition_score)}</p>
-            </div>
-          </div>
-        </CardContent>
-        
-        <CardFooter className="border-t pt-4 flex justify-end">
-          <Button
-            onClick={() => setIsReplyModalOpen(true)}
-            disabled={hasReplied}
-          >
-            {hasReplied ? 'Offer Sent' : 'Reply with Offer'}
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button size="sm" onClick={() => setShowReplyModal(true)}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Reply to Lead
           </Button>
-        </CardFooter>
-      </Card>
-      
-      <ReplyToLeadModal
-        isOpen={isReplyModalOpen}
-        onClose={() => setIsReplyModalOpen(false)}
-        lead={lead}
-      />
-    </>
+        </div>
+        {showReplyModal && (
+          <ReplyToLeadModal
+            open={showReplyModal}
+            onClose={() => setShowReplyModal(false)}
+            lead={lead}
+          />
+        )}
+      </CardContent>
+    </Card>
   );
-}
+};
