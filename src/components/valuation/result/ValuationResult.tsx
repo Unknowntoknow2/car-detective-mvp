@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -165,13 +164,9 @@ export default function ValuationResult({
     <div className="container mx-auto p-4 space-y-6">
       {/* Header Section */}
       <CompletionValuationHeader
-        vehicleInfo={{
-          make,
-          model,
-          year,
-          mileage,
-          condition
-        }}
+        make={make}
+        model={model}
+        year={year}
         estimatedValue={estimatedValue}
         isPremium={isPremium}
         additionalInfo={additionalInfo}

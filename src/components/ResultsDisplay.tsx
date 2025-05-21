@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ValuationResult } from '@/types/valuation';
 import { formatCurrency } from '@/utils/formatters';
@@ -36,14 +37,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ valuation, isPremium })
     model,
     year,
     mileage,
-    condition,
-    estimatedValue,
-    confidenceScore,
-    features,
     id: valuationId,
-    pdfUrl,
-    gptExplanation
   } = valuation || {};
+
+  // Handle both naming conventions
+  const condition = valuation.condition || 'Unknown';
+  const estimatedValue = valuation.estimatedValue || valuation.estimated_value || 0;
+  const confidenceScore = valuation.confidenceScore || valuation.confidence_score || 75;
+  const features = valuation.features || [];
+  const pdfUrl = valuation.pdfUrl || '';
+  const gptExplanation = valuation.gptExplanation || valuation.explanation || '';
 
   const vehicleName = make && model ? `${year} ${make} ${model}` : 'Vehicle Details Not Available';
   const formattedValue = estimatedValue ? formatCurrency(estimatedValue) : 'Value Not Available';
@@ -68,7 +71,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ valuation, isPremium })
               <h3 className="text-lg font-semibold">Valuation Details</h3>
               <p><strong>Estimated Value:</strong> {formattedValue}</p>
               <p><strong>Confidence Score:</strong> {formattedConfidence}</p>
-              <p><strong>Condition:</strong> {condition || 'Not specified'}</p>
+              <p><strong>Condition:</strong> {condition}</p>
               <p><strong>Mileage:</strong> {mileage ? mileage.toLocaleString() : 'Not specified'}</p>
             </div>
             <div>

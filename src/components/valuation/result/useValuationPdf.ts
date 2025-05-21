@@ -32,7 +32,7 @@ export const useValuationPdf = ({
     setIsGenerating(true);
     
     try {
-      // Format data for PDF generation - fixing type issues
+      // Format data for PDF generation - handling both naming conventions
       const reportData: ReportData = {
         id: valuationData.id || crypto.randomUUID(),
         make: valuationData.make || 'Unknown',
@@ -40,23 +40,23 @@ export const useValuationPdf = ({
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
         condition: valuationData.condition || 'Unknown',
-        // Use estimatedValue as price
-        price: valuationData.estimatedValue || 0,
-        estimatedValue: valuationData.estimatedValue || 0,
-        zipCode: valuationData.zipCode || valuationData.zip || '',
+        // Use estimated_value or estimatedValue as price
+        price: valuationData.estimated_value || valuationData.estimatedValue || 0,
+        estimatedValue: valuationData.estimated_value || valuationData.estimatedValue || 0,
+        zipCode: valuationData.zip_code || valuationData.zipCode || valuationData.zip || '',
         vin: valuationData.vin || '',
         fuelType: valuationData.fuelType || valuationData.fuel_type || '',
         transmission: valuationData.transmission || '',
         color: valuationData.color || '',
         bodyType: valuationData.bodyType || valuationData.bodyStyle || '', 
-        confidenceScore: valuationData.confidenceScore || 75,
+        confidenceScore: valuationData.confidence_score || valuationData.confidenceScore || 75,
         isPremium: isPremium, // This is now a valid property
         priceRange: valuationData.priceRange || [
-          Math.floor((valuationData.estimatedValue || 0) * 0.95),
-          Math.ceil((valuationData.estimatedValue || 0) * 1.05)
+          Math.floor((valuationData.estimated_value || valuationData.estimatedValue || 0) * 0.95),
+          Math.ceil((valuationData.estimated_value || valuationData.estimatedValue || 0) * 1.05)
         ],
         // Convert adjustments to match ReportData format
-        adjustments: valuationData.adjustments?.map(adj => ({
+        adjustments: valuationData.adjustments?.map((adj: any) => ({
           factor: adj.factor || '',
           impact: adj.impact || 0,
           description: adj.description || ''

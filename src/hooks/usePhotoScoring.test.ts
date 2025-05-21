@@ -1,180 +1,131 @@
-
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePhotoScoring } from './usePhotoScoring';
-import { analyzePhotos } from '@/services/photo/analyzePhotos';
-import { uploadPhotos } from '@/services/photo/uploadPhotoService';
 
-// Mock the services
-jest.mock('@/services/photo/analyzePhotos');
-jest.mock('@/services/photo/uploadPhotoService');
+// Mock dependencies
+jest.mock('@/services/photoScoringService', () => ({
+  uploadPhotoForScoring: jest.fn()
+}));
 
-// Create mock photo file
-const createMockFile = (
-  name = 'test-photo.jpg',
-  type = 'image/jpeg',
-  size = 1024
-) => {
-  const file = new File(['mock content'], name, { type });
-  Object.defineProperty(file, 'size', { value: size });
-  return file;
-};
+// Import the mocked module
+import { uploadPhotoForScoring } from '@/services/photoScoringService';
 
 describe('usePhotoScoring', () => {
+  // Reset mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Setup default mock implementations
-    (uploadPhotos as jest.Mock).mockResolvedValue([
-      { id: 'photo1', url: 'https://example.com/photo1.jpg', uploaded: true },
-      { id: 'photo2', url: 'https://example.com/photo2.jpg', uploaded: true }
-    ]);
-    
-    (analyzePhotos as jest.Mock).mockResolvedValue({
-      overallScore: 85,
-      individualScores: [
-        { url: 'https://example.com/photo1.jpg', score: 90, isPrimary: true },
-        { url: 'https://example.com/photo2.jpg', score: 80, isPrimary: false }
-      ],
-      aiCondition: {
-        condition: 'Good',
-        confidenceScore: 85,
-        issuesDetected: ['Minor scratches']
-      }
-    });
   });
-  
+
   it('should initialize with default values', () => {
-    const { result } = renderHook(() => usePhotoScoring({ valuationId: 'test-valuation-id' }));
+    const { result } = renderHook(() => usePhotoScoring('test-valuation-id'));
     
-    expect(result.current.photos).toEqual([]);
     expect(result.current.isUploading).toBe(false);
-    expect(result.current.error).toBe('');
-    expect(typeof result.current.handleFileSelect).toBe('function');
-    expect(typeof result.current.handleUpload).toBe('function');
-    expect(typeof result.current.removePhoto).toBe('function');
+    expect(result.current.photoScore).toBeNull();
+    expect(result.current.error).toBeNull();
   });
-  
-  it('should handle file selection', () => {
-    const { result } = renderHook(() => usePhotoScoring({ valuationId: 'test-valuation-id' }));
-    const mockFiles = [createMockFile(), createMockFile('photo2.jpg')];
-    
-    act(() => {
-      result.current.handleFileSelect(mockFiles);
+
+  it('should handle photo upload success', async () => {
+    // Mock successful upload with a score
+    const mockScore = 85;
+    (uploadPhotoForScoring as jest.Mock).mockResolvedValue({ 
+      score: mockScore, 
+      success: true 
     });
     
-    expect(result.current.photos.length).toBe(2);
-    expect(result.current.photos[0].id).toBeDefined();
-    expect(result.current.photos[0].uploading).toBe(false);
-    expect(result.current.photos[0].uploaded).toBe(false);
-  });
-  
-  it('should upload photos and analyze them', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring({ valuationId: 'test-valuation-id' }));
-    const mockFiles = [createMockFile(), createMockFile('photo2.jpg')];
+    const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     
-    act(() => {
-      result.current.handleFileSelect(mockFiles);
-    });
-    
-    expect(result.current.photos.length).toBe(2);
+    const { result, waitForNextUpdate } = renderHook(() => 
+      usePhotoScoring('test-valuation-id')
+    );
     
     // Start upload
-    let uploadPromise;
-    await act(async () => {
-      uploadPromise = result.current.handleUpload();
-      expect(result.current.isUploading).toBe(true);
-      await waitForNextUpdate();
+    let uploadPromise: Promise<any>;
+    
+    act(() => {
+      uploadPromise = result.current.uploadPhoto(testFile);
     });
+    
+    // Wait for state to update
+    await waitForNextUpdate();
+    
+    // Upload should be in progress
+    expect(result.current.isUploading).toBe(true);
     
     // Wait for upload to complete
-    await act(async () => {
-      await uploadPromise;
-    });
+    await uploadPromise;
+    await waitForNextUpdate();
     
-    expect(uploadPhotos).toHaveBeenCalled();
-    expect(analyzePhotos).toHaveBeenCalled();
+    // Verify final state
     expect(result.current.isUploading).toBe(false);
-    expect(result.current.photos[0].uploaded).toBe(true);
-    // Now check photoScores directly instead of using createPhotoScores
-    expect(result.current.photoScores.length).toBe(2);
-    expect(result.current.photoScores[0].score).toBe(90);
+    expect(result.current.photoScore).toBe(mockScore);
+    expect(result.current.error).toBeNull();
+    
+    // Verify the upload function was called correctly
+    expect(uploadPhotoForScoring).toHaveBeenCalledWith(
+      'test-valuation-id',
+      testFile
+    );
   });
-  
-  it('should handle upload errors', async () => {
-    (uploadPhotos as jest.Mock).mockRejectedValue(new Error('Upload failed'));
+
+  it('should handle photo upload failure', async () => {
+    // Mock a failed upload
+    (uploadPhotoForScoring as jest.Mock).mockRejectedValue(new Error('Upload failed'));
     
-    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring({ valuationId: 'test-valuation-id' }));
-    const mockFiles = [createMockFile()];
+    const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     
-    act(() => {
-      result.current.handleFileSelect(mockFiles);
-    });
-    
-    // Start upload and catch error
-    let caughtError;
-    await act(async () => {
-      try {
-        const uploadPromise = result.current.handleUpload();
-        expect(result.current.isUploading).toBe(true);
-        await waitForNextUpdate();
-        await uploadPromise;
-      } catch (error) {
-        caughtError = error;
-      }
-    });
-    
-    expect(caughtError).toBeDefined();
-    expect(result.current.isUploading).toBe(false);
-    expect(result.current.error).toContain('Upload failed');
-    expect(result.current.photos[0].error).toBeDefined();
-  });
-  
-  it('should remove photos', () => {
-    const { result } = renderHook(() => usePhotoScoring({ valuationId: 'test-valuation-id' }));
-    const mockFiles = [createMockFile(), createMockFile('photo2.jpg')];
-    
-    act(() => {
-      result.current.handleFileSelect(mockFiles);
-    });
-    
-    expect(result.current.photos.length).toBe(2);
-    
-    act(() => {
-      result.current.removePhoto(result.current.photos[0].id);
-    });
-    
-    expect(result.current.photos.length).toBe(1);
-    expect(result.current.photos[0].name).toBe('photo2.jpg');
-  });
-  
-  it('should handle analyze errors', async () => {
-    (uploadPhotos as jest.Mock).mockResolvedValue([
-      { id: 'photo1', url: 'https://example.com/photo1.jpg', uploaded: true }
-    ]);
-    (analyzePhotos as jest.Mock).mockRejectedValue(new Error('Analysis failed'));
-    
-    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring({ valuationId: 'test-valuation-id' }));
-    const mockFiles = [createMockFile()];
-    
-    act(() => {
-      result.current.handleFileSelect(mockFiles);
-    });
+    const { result, waitForNextUpdate } = renderHook(() => 
+      usePhotoScoring('test-valuation-id')
+    );
     
     // Start upload
-    let caughtError;
-    await act(async () => {
-      try {
-        const uploadPromise = result.current.handleUpload();
-        expect(result.current.isUploading).toBe(true);
-        await waitForNextUpdate();
-        await uploadPromise;
-      } catch (error) {
-        caughtError = error;
-      }
+    let uploadPromise: Promise<any>;
+    
+    act(() => {
+      uploadPromise = result.current.uploadPhoto(testFile);
     });
     
-    expect(caughtError).toBeDefined();
+    // Wait for state to update
+    await waitForNextUpdate();
+    
+    // Upload should be in progress
+    expect(result.current.isUploading).toBe(true);
+    
+    // Wait for upload to complete
+    try {
+      await uploadPromise;
+    } catch {}
+    await waitForNextUpdate();
+    
+    // Verify final state
     expect(result.current.isUploading).toBe(false);
-    expect(result.current.error).toContain('Analysis failed');
+    expect(result.current.photoScore).toBeNull();
+    expect(result.current.error).toBe('Failed to upload photo and get score.');
+  });
+
+  it('should reset state when valuationId changes', () => {
+    const { result, rerender } = renderHook(
+      (valuationId) => usePhotoScoring(valuationId),
+      {
+        initialProps: 'test-valuation-id-1',
+      }
+    );
+
+    // Initial state
+    expect(result.current.isUploading).toBe(false);
+    expect(result.current.photoScore).toBeNull();
+    expect(result.current.error).toBeNull();
+
+    // Simulate a score being set
+    act(() => {
+      result.current.setPhotoScore(75);
+    });
+    expect(result.current.photoScore).toBe(75);
+
+    // Rerender with a new valuationId
+    rerender('test-valuation-id-2');
+
+    // Verify that the state has been reset
+    expect(result.current.isUploading).toBe(false);
+    expect(result.current.photoScore).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 });
