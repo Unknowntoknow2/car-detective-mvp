@@ -8,10 +8,11 @@ import NotFoundPage from '@/pages/NotFoundPage';
 import PremiumPage from '@/pages/Premium';
 import PremiumSuccessPage from '@/pages/PremiumSuccessPage';
 import AppLayout from '@/components/layout/AppLayout';
+import { AppProviders } from '@/providers/AppProviders';
 
 function App() {
   return (
-    <>
+    <AppProviders>
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
@@ -24,8 +25,8 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
-    </>
+    </AppProviders>
   );
-};
+}
 
 export default App;

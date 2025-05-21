@@ -11,18 +11,6 @@ interface AppProvidersProps {
 }
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
-  // Provide default values for the ValuationProvider
-  const valuationProviderDefaultValues = {
-    vehicle: null,
-    valuationId: null,
-    isLoading: false,
-    setVehicle: () => {},
-    setValuationId: () => {},
-    setIsLoading: () => {},
-    clearValuation: () => {},
-    saveValuationToHistory: () => {},
-  };
-
   return (
     <ThemeProvider>
       <AuthProvider>
