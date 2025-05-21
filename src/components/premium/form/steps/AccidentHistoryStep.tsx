@@ -47,7 +47,7 @@ export function AccidentHistoryStep({
   // Convert the hasAccident value to string for RadioGroup
   const hasAccidentStr = typeof formData.hasAccident === 'boolean'
     ? formData.hasAccident ? 'yes' : 'no'
-    : formData.hasAccident || '';
+    : formData.hasAccident || 'no';
 
   return (
     <div className="space-y-6">

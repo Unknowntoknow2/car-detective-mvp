@@ -12,6 +12,8 @@ export interface ValuationInput {
   bodyType?: string;
   fuelType?: string;
   features?: string[];
+  hasAccident?: boolean | string;
+  accidentDescription?: string;
 }
 
 export interface ValuationResult {
@@ -22,27 +24,41 @@ export interface ValuationResult {
   mileage: number;
   condition: string;
   zipCode?: string;
+  zip_code?: string; // For backward compatibility
   estimatedValue: number;
+  estimated_value?: number; // For backward compatibility
   confidenceScore: number;
+  confidence_score?: number; // For backward compatibility
   basePrice?: number;
+  base_price?: number; // For backward compatibility
   adjustments?: Array<{
     factor: string;
     impact: number;
     description: string;
   }>;
   priceRange?: [number, number];
+  price_range?: [number, number]; // For backward compatibility
   features?: string[];
   fuelType?: string;
+  fuel_type?: string; // For backward compatibility
   transmission?: string;
   bodyType?: string;
+  body_type?: string; // For backward compatibility
   bodyStyle?: string;
+  body_style?: string; // For backward compatibility
   createdAt?: string;
+  created_at?: string; // For backward compatibility
+  pdfUrl?: string; // Added for PDF downloads
+  gptExplanation?: string; // Added for AI explanations
+  explanation?: string; // Alternative field for explanations
   aiCondition?: {
     condition: string;
     confidenceScore: number;
     issuesDetected: string[];
     summary: string;
   };
+  isPremium?: boolean; // Added for premium status
+  premium_unlocked?: boolean; // For backward compatibility
 }
 
 export interface RulesEngineInput {
