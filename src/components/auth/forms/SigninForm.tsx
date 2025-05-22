@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { UserRole } from '@/types/auth';
 
 export interface SigninFormProps {
   isLoading: boolean;
@@ -14,6 +15,7 @@ export interface SigninFormProps {
   redirectPath?: string;
   alternateLoginPath?: string;
   alternateLoginText?: string;
+  userRole?: UserRole;
 }
 
 export const SigninForm = ({ 
@@ -21,7 +23,8 @@ export const SigninForm = ({
   setIsLoading, 
   redirectPath = '/dashboard',
   alternateLoginPath,
-  alternateLoginText
+  alternateLoginText,
+  userRole = 'user'
 }: SigninFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -78,7 +81,10 @@ export const SigninForm = ({
     try {
       await signIn(email, password);
       toast.success('Successfully signed in!');
-      navigate(redirectPath);
+      
+      // Redirect to appropriate dashboard based on user role
+      const redirectTo = userRole === 'dealer' ? '/dealer/dashboard' : redirectPath;
+      navigate(redirectTo);
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'An unexpected error occurred');
@@ -164,6 +170,14 @@ export const SigninForm = ({
           'Sign In'
         )}
       </Button>
+      
+      {alternateLoginPath && (
+        <div className="text-center mt-4">
+          <Link to={alternateLoginPath} className="text-sm text-primary hover:underline">
+            {alternateLoginText || "Try another login method"}
+          </Link>
+        </div>
+      )}
     </form>
   );
 };
