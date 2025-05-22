@@ -4,16 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { UserProfile } from '@/types/auth';
+import { UserProfile, UserRole } from '@/types/auth';
 import { errorToString } from '@/utils/errorHandling';
-
-type UserRole = 'admin' | 'dealer' | 'user';
 
 export type AuthContextType = {
   session: Session | null;
   user: User | null;
   userRole: UserRole | null;
-  userDetails: UserProfile | null; // Add userDetails property
+  userDetails: UserProfile | null;
   signIn: (email: string, password: string) => Promise<{
     error: any | null;
     data: any | null;
@@ -73,22 +71,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchUserRole = async (userId: string) => {
     try {
+      // First check metadata for role
+      const { data: userData } = await supabase.auth.getUser();
+      const roleFromMetadata = userData?.user?.user_metadata?.role;
+      
+      if (roleFromMetadata) {
+        setUserRole(roleFromMetadata as UserRole);
+        return;
+      }
+      
+      // Fallback to profiles table if not in metadata
       const { data, error } = await supabase
-        .from('user_roles')
+        .from('profiles')
         .select('role')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error) {
         console.error('Error fetching user role:', error);
-        setUserRole('user'); // Default role
+        setUserRole('individual'); // Default role
         return;
       }
 
       setUserRole(data.role as UserRole);
     } catch (err) {
       console.error('Error in fetchUserRole:', err);
-      setUserRole('user'); // Default role
+      setUserRole('individual'); // Default role
     }
   };
 
@@ -133,6 +141,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error, data: null };
       }
       
+      // Fetch user role and profile to properly redirect
+      if (data.user) {
+        await fetchUserRole(data.user.id);
+        await fetchUserProfile(data.user.id);
+        
+        // Role-based redirect handled by the component calling this function
+        toast.success('Successfully signed in');
+      }
+      
       return { error: null, data };
     } catch (err: any) {
       setError(err.message || 'Signin failed');
@@ -146,11 +163,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     setError(null);
     try {
+      // Ensure role is set to a default if not provided
+      const role = userData?.role || 'individual';
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData
+          data: {
+            ...userData,
+            role
+          }
         }
       });
       
@@ -159,6 +182,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error, data: null };
       }
       
+      toast.success('Signup successful! Please check your email for confirmation.');
       return { error: null, data };
     } catch (err: any) {
       setError(err.message || 'Signup failed');
@@ -177,6 +201,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUserDetails(null);
       setUserRole(null);
       toast.success('Successfully signed out');
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Signout failed');
       toast.error(err.message || 'Failed to sign out');

@@ -1,55 +1,39 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = React.useState(true);
+  const { user, userRole, userDetails, isLoading } = useAuth();
+  const [isPageLoading, setIsPageLoading] = React.useState(true);
 
   useEffect(() => {
-    async function checkUserRole() {
+    if (!isLoading) {
       if (!user) {
-        navigate('/login');
+        navigate('/auth');
         return;
       }
 
-      setIsLoading(true);
+      // Determine the role from various sources, prioritizing userRole and userDetails
+      const detectedRole = userRole || userDetails?.role || user.user_metadata?.role || 'individual';
       
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('user_role, dealership_name')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching user profile:', error);
-          toast.error('Could not load user profile');
-          setIsLoading(false);
-          return;
-        }
-        
-        // Redirect based on user role
-        if (data?.user_role === 'dealer') {
-          navigate('/dealer-dashboard');
-        } else {
-          navigate('/user-dashboard');
-        }
-      } catch (err) {
-        console.error('Error checking user role:', err);
-        setIsLoading(false);
+      console.log('Detected role:', detectedRole);
+      
+      // Redirect based on role
+      if (detectedRole === 'dealer') {
+        navigate('/dealer-dashboard');
+      } else if (detectedRole === 'individual') {
+        navigate('/user-dashboard');
+      } else {
+        // Default fallback - stay on this page and render content
+        setIsPageLoading(false);
       }
     }
-    
-    checkUserRole();
-  }, [user, navigate]);
+  }, [user, userRole, userDetails, isLoading, navigate]);
   
-  if (isLoading) {
+  if (isLoading || isPageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -63,7 +47,8 @@ const DashboardPage = () => {
 
   return (
     <div className="container mx-auto py-12">
-      <h1 className="text-3xl font-bold mb-6">Redirecting to dashboard...</h1>
+      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+      <p>Welcome to your dashboard. Your content will appear here.</p>
     </div>
   );
 };
