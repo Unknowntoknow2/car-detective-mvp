@@ -1,8 +1,9 @@
 
 // Export fixStatusCheck
 export { fixStatusCheck } from './DealerInventoryList';
-export * from './DealerInventoryList';
 
-// Create a default export for DealerInventoryList
-import { DealerInventoryList } from './DealerInventoryList';
-export default DealerInventoryList;
+// Export DealerInventoryList component
+export { DealerInventoryList } from './DealerInventoryList';
+
+// Export default
+export { default } from './DealerInventoryList';
