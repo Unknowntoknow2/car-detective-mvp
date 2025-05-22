@@ -5,7 +5,7 @@ import UpgradePage from './pages/UpgradePage';
 import PremiumPage from './pages/PremiumPage';
 import PremiumSuccessPage from './pages/PremiumSuccessPage';
 import UserDashboardPage from './pages/UserDashboardPage';
-import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
+import ValuationFollowUpPage from './pages/ValuationFollowUpPage'; // Ensuring consistent casing
 import ValuationResultPage from './pages/ValuationResultPage';
 import { Toaster } from 'sonner';
 
