@@ -5,27 +5,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Mail, KeyRound, Eye, EyeOff, User } from 'lucide-react';
+import { Loader2, Mail, KeyRound, Eye, EyeOff, User, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { UserRole } from '@/types/auth';
 
 export interface SignupFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   redirectPath?: string;
   redirectToLogin?: boolean;
+  userRole?: UserRole;
 }
 
 export const SignupForm = ({ 
   isLoading, 
   setIsLoading,
   redirectPath = '/dashboard',
-  redirectToLogin = false
+  redirectToLogin = false,
+  userRole = 'user'
 }: SignupFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [dealershipName, setDealershipName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +38,8 @@ export const SignupForm = ({
   const navigate = useNavigate();
   const { signUp } = useAuth();
 
+  const isDealer = userRole === 'dealer';
+
   // Form validation
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -41,6 +47,11 @@ export const SignupForm = ({
 
     if (!fullName.trim()) {
       errors.fullName = 'Full name is required';
+      isValid = false;
+    }
+
+    if (isDealer && !dealershipName.trim()) {
+      errors.dealershipName = 'Dealership name is required';
       isValid = false;
     }
 
@@ -93,17 +104,27 @@ export const SignupForm = ({
     setIsLoading(true);
     
     try {
-      // Update to pass the correct number of arguments
-      await signUp(email, password, {
-        full_name: fullName
-      });
+      // Create additional metadata based on user role
+      const metadata: Record<string, any> = {
+        full_name: fullName,
+        role: userRole
+      };
+
+      // Add dealership name for dealer accounts
+      if (isDealer && dealershipName) {
+        metadata.dealership_name = dealershipName;
+      }
+
+      // Sign up with email, password and metadata
+      await signUp(email, password, metadata);
       
       toast.success('Account created successfully! Please check your email for confirmation.');
       
       if (redirectToLogin) {
         navigate('/auth/signin');
       } else {
-        navigate(redirectPath);
+        const redirectTo = userRole === 'dealer' ? '/dealer/dashboard' : redirectPath;
+        navigate(redirectTo);
       }
     } catch (err: any) {
       console.error('Sign up error:', err);
@@ -141,6 +162,28 @@ export const SignupForm = ({
           <p className="text-sm text-red-500 mt-1">{formErrors.fullName}</p>
         )}
       </div>
+      
+      {isDealer && (
+        <div className="space-y-2">
+          <Label htmlFor="dealershipName">Dealership Name</Label>
+          <div className="relative">
+            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="dealershipName"
+              name="dealershipName"
+              type="text"
+              placeholder="ABC Motors"
+              className="pl-10"
+              value={dealershipName}
+              onChange={(e) => setDealershipName(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+          {formErrors.dealershipName && (
+            <p className="text-sm text-red-500 mt-1">{formErrors.dealershipName}</p>
+          )}
+        </div>
+      )}
       
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
