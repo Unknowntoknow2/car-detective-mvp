@@ -1,47 +1,40 @@
 
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { MainLayout } from '@/components/layout';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { ConditionValues } from '@/components/valuation/condition/types';
+import { Card } from '@/components/ui/card';
 
-// Update the condition values to include all required properties with correct types
-const conditionValues: ConditionValues = {
-  exteriorBody: "4",
-  exteriorPaint: "4",
-  interiorSeats: "4",
-  interiorDashboard: "4",
-  mechanicalEngine: "4",
-  mechanicalTransmission: "4",
-  tiresCondition: "4",
-  accidents: 0,
-  mileage: 0,
-  year: 0,
-  titleStatus: 'Clean',
-  odometer: 0,
-  zipCode: '90210' // Add zipCode
-};
+const ResultPage = () => {
+  const { id } = useParams<{ id: string }>();
 
-export default function ResultPage() {
-  const [searchParams] = useSearchParams();
-  const id = searchParams.get('id');
-  
-  // Mock data for example
-  const mockData = {
+  // In a real app, you would fetch the valuation data based on the ID
+  // For now, we'll just mock some data
+  const valuationData = {
     make: 'Toyota',
     model: 'Camry',
     year: 2020,
     mileage: 35000,
     accidents: 0,
     condition: 'Good',
-    estimatedValue: 18500
+    estimatedValue: 22500,
+    confidenceScore: 85 // Add the required property
   };
-  
+
   return (
-    <div className="container mx-auto py-8">
-      <ValuationResult 
-        valuationId={id || undefined} 
-        data={mockData}
-      />
-    </div>
+    <MainLayout>
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">Your Valuation Result</h1>
+        <Card className="p-6">
+          <ValuationResult 
+            valuationId={id} 
+            data={valuationData}
+            isPremium={false}
+          />
+        </Card>
+      </div>
+    </MainLayout>
   );
-}
+};
+
+export default ResultPage;

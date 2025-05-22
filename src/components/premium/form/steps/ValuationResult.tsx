@@ -51,10 +51,10 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
   };
 
   // Ensure priceRange is a tuple with exactly two elements
-  const priceRange: [number, number] = data?.priceRange ? 
-    (Array.isArray(data.priceRange) ? 
-      [data.priceRange[0], data.priceRange[1]] : 
-      [data.priceRange.min, data.priceRange.max]) : 
+  const priceRange: [number, number] = data?.price_range ? 
+    (Array.isArray(data.price_range) ? 
+      [data.price_range[0], data.price_range[1]] : 
+      [data.price_range.low, data.price_range.high]) : 
     [0, 0];
 
   return (
@@ -67,7 +67,7 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
         estimatedValue={data?.estimatedValue || 0}
         confidenceScore={data?.confidenceScore || 85}
         priceRange={priceRange}
-        adjustments={data?.adjustments}
+        adjustments={data?.adjustments || []}
       />
     </div>
   );

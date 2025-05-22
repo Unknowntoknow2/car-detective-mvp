@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
-import { DealerInventoryList } from '@/components/dealer/inventory/DealerInventoryList';
+import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -35,7 +35,6 @@ export default function DealerInventoryListPage() {
             make: 'Toyota',
             model: 'Camry',
             year: 2019,
-            price: 23500,
             listingPrice: 23500,
             condition: 'Excellent',
             mileage: 32000,
@@ -46,7 +45,6 @@ export default function DealerInventoryListPage() {
             make: 'Honda',
             model: 'Accord',
             year: 2020,
-            price: 25900,
             listingPrice: 25900,
             condition: 'Good',
             mileage: 28000,
@@ -57,7 +55,6 @@ export default function DealerInventoryListPage() {
             make: 'Ford',
             model: 'F-150',
             year: 2018,
-            price: 29800,
             listingPrice: 29800,
             condition: 'Good',
             mileage: 45000,
@@ -68,7 +65,6 @@ export default function DealerInventoryListPage() {
             make: 'Chevrolet',
             model: 'Equinox',
             year: 2021,
-            price: 27500,
             listingPrice: 27500,
             condition: 'Excellent',
             mileage: 18000,
@@ -105,8 +101,8 @@ export default function DealerInventoryListPage() {
         <DealerInventoryList 
           inventory={inventory}
           isLoading={isLoading}
-          onEdit={(id) => navigate(`/dealer/vehicles/edit/${id}`)}
-          onDelete={(id) => console.log('Delete vehicle:', id)}
+          onEdit={(id: string) => navigate(`/dealer/vehicles/edit/${id}`)}
+          onDelete={(id: string) => console.log('Delete vehicle:', id)}
         />
       </div>
     </MainLayout>

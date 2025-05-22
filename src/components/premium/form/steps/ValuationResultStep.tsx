@@ -91,11 +91,11 @@ export function ValuationResultStep({
   // Ensure priceRange is a tuple with exactly two elements
   let priceRange: [number, number];
   
-  if (result.priceRange) {
-    if (Array.isArray(result.priceRange)) {
-      priceRange = [result.priceRange[0], result.priceRange[1]];
-    } else if ('min' in result.priceRange && 'max' in result.priceRange) {
-      priceRange = [result.priceRange.min, result.priceRange.max];
+  if (result.price_range) {
+    if (Array.isArray(result.price_range)) {
+      priceRange = [result.price_range[0], result.price_range[1]];
+    } else if ('min' in result.price_range && 'max' in result.price_range) {
+      priceRange = [result.price_range.min, result.price_range.max];
     } else {
       priceRange = [
         Math.round(result.estimatedValue * 0.95),
@@ -124,7 +124,7 @@ export function ValuationResultStep({
         estimatedValue={result.estimatedValue}
         confidenceScore={result.confidenceScore}
         priceRange={priceRange}
-        adjustments={result.adjustments}
+        adjustments={result.adjustments || []}
         vehicleInfo={{
           year: result.year,
           make: result.make,

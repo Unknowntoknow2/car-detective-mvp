@@ -124,7 +124,7 @@ export default function ValuationResultPage() {
           <MarketAnalysisTab 
             valuationId={valuationId || ''}
             isPremium={hasPremiumAccess}
-            zipCode={data.zipCode}
+            zipCode={data.zipCode || ''}
             make={data.make}
             model={data.model}
             year={data.year}

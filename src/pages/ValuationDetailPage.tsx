@@ -1,46 +1,40 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { MainLayout } from '@/components/layout';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { ConditionValues } from '@/components/valuation/condition/types';
+import { Card } from '@/components/ui/card';
 
-// Update the condition values to include all required properties with correct types
-const conditionValues: ConditionValues = {
-  exteriorBody: "4",
-  exteriorPaint: "4",
-  interiorSeats: "4",
-  interiorDashboard: "4",
-  mechanicalEngine: "4",
-  mechanicalTransmission: "4",
-  tiresCondition: "4",
-  accidents: 0,
-  mileage: 0,
-  year: 0,
-  titleStatus: 'Clean',
-  odometer: 0,
-  zipCode: '90210' // Add zipCode
+const ValuationDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+
+  // In a real app, you would fetch the valuation data based on the ID
+  // For now, we'll just mock some data
+  const valuationData = {
+    make: 'Toyota',
+    model: 'Camry',
+    year: 2020,
+    mileage: 35000,
+    accidents: 0,
+    condition: 'Good',
+    estimatedValue: 22500,
+    confidenceScore: 85 // Add the required property
+  };
+
+  return (
+    <MainLayout>
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">Valuation Details</h1>
+        <Card className="p-6">
+          <ValuationResult 
+            valuationId={id} 
+            data={valuationData}
+            isPremium={false}
+          />
+        </Card>
+      </div>
+    </MainLayout>
+  );
 };
 
-export default function ValuationDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  
-  // Mock item for example
-  const mockItem = {
-    make: 'Honda',
-    model: 'Accord',
-    year: 2019,
-    mileage: 42000,
-    accidents: 0,
-    condition: 'Excellent',
-    estimatedValue: 19500
-  };
-  
-  return (
-    <div className="container mx-auto py-8">
-      <ValuationResult 
-        valuationId={id} 
-        data={mockItem}
-      />
-    </div>
-  );
-}
+export default ValuationDetailPage;

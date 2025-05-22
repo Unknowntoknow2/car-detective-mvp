@@ -20,7 +20,7 @@ export const fetchCarfaxReport = async (vin: string): Promise<CarfaxData | null>
     serviceRecords: Math.floor(Math.random() * 10) + 2,
     salvageTitle: Math.random() > 0.9,
     reportUrl: `https://example.com/carfax/${vin}`,
-    titleEvents: [], // Initialize with empty array
+    titleEvents: ["Clean Title Issued", "Registration Renewed"], // Add example title events
     damageSeverity: Math.random() > 0.7 ? 'Minor' : 'None' // Add damage severity
   };
 };

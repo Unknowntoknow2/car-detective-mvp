@@ -124,15 +124,27 @@ export function LookupTabs({
           </TabsList>
           
           <TabsContent value="vin" className="space-y-4 mt-4">
-            <VinLookup onSubmit={handleVinSubmit} isLoading={isLoading && activeTab === 'vin'} />
+            <VinLookup 
+              onSubmit={handleVinSubmit} 
+              isLoading={isLoading && activeTab === 'vin'}
+              onResultsReady={onResultsReady}
+            />
           </TabsContent>
           
           <TabsContent value="plate" className="space-y-4 mt-4">
-            <PlateLookup onSubmit={handlePlateSubmit} isLoading={isLoading && activeTab === 'plate'} />
+            <PlateLookup 
+              onSubmit={handlePlateSubmit} 
+              isLoading={isLoading && activeTab === 'plate'}
+              onResultsReady={onResultsReady}
+            />
           </TabsContent>
           
           <TabsContent value="manual" className="space-y-4 mt-4">
-            <ManualLookup onSubmit={handleManualSubmit} isLoading={isLoading && activeTab === 'manual'} />
+            <ManualLookup 
+              onSubmit={handleManualSubmit} 
+              isLoading={isLoading && activeTab === 'manual'}
+              onResultsReady={onResultsReady}
+            />
           </TabsContent>
         </Tabs>
       ) : (
