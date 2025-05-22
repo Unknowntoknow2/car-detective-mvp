@@ -71,8 +71,11 @@ export function useMarketInsights(vin: string, make: string, model: string, year
             fetchCopartAuctionHistory(vin)
           ]);
           
-          // Format results
-          const formattedManheim = formatManheimResults(manheimResults);
+          // Format results - ensure price is always a string
+          const formattedManheim = formatManheimResults(manheimResults).map(item => ({
+            ...item,
+            price: String(item.price)
+          }));
           const formattedIAAI = formatIAAIResults(iaaiResults);
           const formattedCopart = formatCopartResults(copartResults);
           
@@ -97,13 +100,13 @@ export function useMarketInsights(vin: string, make: string, model: string, year
         });
         
         // 4. Calculate average prices and ranges
-        const retailPrices = marketListings?.filter(l => 
+        const retailPrices = marketListings?.filter((l: any) => 
           l.source === 'cargurus' || l.source === 'autotrader' || l.source === 'cars.com'
-        ).map(l => l.price) || [];
+        ).map((l: any) => l.price) || [];
         
-        const privatePrices = marketListings?.filter(l => 
+        const privatePrices = marketListings?.filter((l: any) => 
           l.source === 'craigslist' || l.source === 'facebook'
-        ).map(l => l.price) || [];
+        ).map((l: any) => l.price) || [];
         
         const auctionPrices = auctionResults.map(a => parseFloat(a.price)).filter(p => !isNaN(p));
         
