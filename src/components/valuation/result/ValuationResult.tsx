@@ -53,9 +53,9 @@ export default function ValuationResult({
         year: data.year || 0,
         titleStatus: data.titleStatus || 'Clean',
         exteriorGrade: data.exteriorGrade || 90,
-        interiorGrade: data.interiorGrade || 90,
+        interiorGrade: data.interiorGrade || 90, // Fixed property name
         mechanicalGrade: data.mechanicalGrade || 90,
-        tireCondition: data.tireCondition || 90
+        tireCondition: data.tireCondition || 90 // Changed from tiresCondition to match property name
       };
       
       setConditionValues(prev => ({

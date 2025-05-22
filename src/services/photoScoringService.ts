@@ -1,3 +1,4 @@
+
 import { AICondition, Photo, PhotoAnalysisResult, PhotoScore, PhotoScoringResult } from '@/types/photo';
 
 // Mock photo scoring service implementation
@@ -36,7 +37,7 @@ export const scorePhotos = async (
     condition: 'Good',
     aiCondition,
     individualScores: scores,
-    photoUrls // Add photoUrls for compatibility
+    photoUrls // Using photoUrls in the correct property
   };
 };
 
