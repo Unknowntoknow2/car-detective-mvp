@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ValuationHistory } from '@/components/dashboard/ValuationHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
-import { openValuationPdf, downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { Container } from '@/components/ui/container';
 
 export default function UserDashboard() {
@@ -11,7 +11,9 @@ export default function UserDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userId = supabase.auth.session()?.user?.id;
+  const userId = supabase.auth.getUser ? 
+    (supabase.auth.getUser() as any)?.data?.user?.id : 
+    null;
 
   useEffect(() => {
     if (userId) {
@@ -67,12 +69,12 @@ export default function UserDashboard() {
 
   const handleDownloadPdf = async (valuation: ValuationResult) => {
     try {
-      // Prepare report data
+      // Prepare report data with non-null values for required fields
       const reportData = {
-        make: valuation.make,
-        model: valuation.model,
-        year: valuation.year,
-        mileage: valuation.mileage,
+        make: valuation.make || 'Unknown',
+        model: valuation.model || 'Unknown',
+        year: valuation.year || new Date().getFullYear(),
+        mileage: valuation.mileage || 0,
         estimatedValue: valuation.estimatedValue,
         confidenceScore: valuation.confidenceScore || 75,
         zipCode: valuation.zipCode || '00000',

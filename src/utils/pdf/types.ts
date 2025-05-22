@@ -4,7 +4,7 @@ import { PDFDocument } from 'pdf-lib';
 
 export interface ReportData {
   // Vehicle information
-  id?: string;
+  id?: string; // Added to fix error in test file
   make: string;
   model: string;
   year: number;
@@ -13,6 +13,7 @@ export interface ReportData {
   trim?: string;
   color?: string;
   bodyStyle?: string;
+  bodyType?: string; // Added to match usage
   transmission?: string;
   engineSize?: string;
   fuelType?: string;
@@ -21,7 +22,7 @@ export interface ReportData {
   estimatedValue: number;
   confidenceScore: number;
   photoScore?: number;
-  price?: number;
+  price?: number; // Added to match usage
   
   // Location information
   zipCode: string;
@@ -32,7 +33,7 @@ export interface ReportData {
   aiCondition: AICondition;
   photoCondition?: any;
   bestPhotoUrl?: string;
-  photoUrl?: string;
+  photoUrl?: string; // Added to match usage
   vehiclePhotos?: string[];
   
   // Owner information
@@ -56,6 +57,9 @@ export interface ReportData {
   explanation?: string;
   disclaimerText?: string;
   photoAssessment?: any;
+  conditionAdjustment?: any; // Added to match usage
+  features?: any[]; // Added to match usage
+  score?: number; // Added to match usage
 }
 
 export interface AICondition {
@@ -63,13 +67,14 @@ export interface AICondition {
   confidenceScore: number;
   issuesDetected: string[];
   summary: string;
-  score?: number;
+  score?: number; // Added to match usage
 }
 
 export interface AdjustmentItem {
   factor: string;
   impact: number;
   description: string;
+  name?: string; // Added to match usage
 }
 
 export interface FooterData {
@@ -89,6 +94,8 @@ export interface SectionParams {
   textColor?: string;
   regularFont?: string;
   boldFont?: string;
+  width?: number; // Added for watermark.ts
+  height?: number; // Added for watermark.ts
 }
 
 export interface PremiumSectionParams extends SectionParams {

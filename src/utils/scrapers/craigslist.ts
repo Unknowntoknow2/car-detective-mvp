@@ -1,62 +1,62 @@
 
-import { CraigslistListing, NormalizedListing } from '@/types/listings';
+import axios from 'axios';
 import cheerio from 'cheerio';
 
-/**
- * Scrape Craigslist for car listings
- */
-export async function scrapeCraigslist(zipCode: string, searchTerm: string): Promise<CraigslistListing[]> {
-  console.log(`Scraping Craigslist for ${searchTerm} near ${zipCode}`);
-  
-  // This is a mock implementation
-  // In a real implementation, we would use puppeteer or a similar tool
-  // to fetch the page HTML and parse it
-  
-  // Mock data - would normally be scraped from actual Craigslist
-  const mockListings: CraigslistListing[] = [
-    {
-      title: '2019 Toyota Camry LE - Low Miles!',
-      price: 18500,
-      mileage: 35000,
-      year: 2019,
-      make: 'Toyota',
-      model: 'Camry',
-      url: 'https://craigslist.org/listing/1',
-      imageUrl: 'https://example.com/car1.jpg',
-      location: 'Los Angeles',
-      source: 'craigslist',
-      listingDate: new Date().toISOString(),
-      description: 'Great condition, one owner, all maintenance records available.'
-    },
-    {
-      title: '2018 Honda Accord Sport - Well maintained',
-      price: 17900,
-      mileage: 42000,
-      year: 2018,
-      make: 'Honda',
-      model: 'Accord',
-      url: 'https://craigslist.org/listing/2',
-      imageUrl: 'https://example.com/car2.jpg',
-      location: 'Pasadena',
-      source: 'craigslist',
-      listingDate: new Date().toISOString(),
-      description: 'Sport model with sunroof and leather seats. Clean title.'
-    }
-  ];
-  
-  return mockListings;
+export interface CraigslistListing {
+  id: string;
+  title: string;
+  price: number;
+  mileage: number;
+  year: number;
+  make: string;
+  model: string;
+  url: string;
+  imageUrl: string;
+  location: string;
+  source: string;
+  listingDate: string;
+  description: string;
 }
 
-/**
- * For compatibility with scripts that expect this function name
- */
-export const fetchCraigslistListings = scrapeCraigslist;
+export async function fetchCraigslistListings(zipCode: string, maxResults: string): Promise<CraigslistListing[]> {
+  try {
+    // This is a mock implementation since we can't actually scrape in this environment
+    const mockListings: CraigslistListing[] = [
+      {
+        id: '1', // Added required id property
+        title: '2018 Toyota Camry - Excellent Condition',
+        price: 18500,
+        mileage: 45000,
+        year: 2018,
+        make: 'Toyota',
+        model: 'Camry',
+        url: 'https://example.com/listing/1',
+        imageUrl: 'https://example.com/images/camry.jpg',
+        location: zipCode,
+        source: 'craigslist',
+        listingDate: new Date().toISOString(),
+        description: 'Well maintained Toyota Camry with all service records.'
+      },
+      {
+        id: '2', // Added required id property
+        title: '2019 Honda Accord - Low Miles',
+        price: 21000,
+        mileage: 32000,
+        year: 2019,
+        make: 'Honda',
+        model: 'Accord',
+        url: 'https://example.com/listing/2',
+        imageUrl: 'https://example.com/images/accord.jpg',
+        location: zipCode,
+        source: 'craigslist',
+        listingDate: new Date().toISOString(),
+        description: 'Like new Honda Accord with factory warranty remaining.'
+      }
+    ];
 
-/**
- * Normalize Craigslist listings to a common format
- */
-export function normalizeCraigslistListings(listings: CraigslistListing[]): NormalizedListing[] {
-  return listings.map(listing => ({
-    ...listing
-  }));
+    return mockListings.slice(0, parseInt(maxResults));
+  } catch (error) {
+    console.error('Error fetching Craigslist listings:', error);
+    return [];
+  }
 }

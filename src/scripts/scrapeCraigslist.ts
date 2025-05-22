@@ -5,7 +5,7 @@ import { fetchCraigslistListings } from '@/utils/scrapers/craigslist';
 const runScraper = async () => {
   try {
     const zipCode = '90210';
-    const maxResults = 20;
+    const maxResults = '20'; // Changed to string to match function parameter
     
     console.log(`Fetching Craigslist listings for ZIP: ${zipCode}...`);
     
