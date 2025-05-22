@@ -41,6 +41,14 @@ export const validateVIN = (vin: string): { isValid: boolean; error?: string } =
     };
   }
   
+  // Validate check digit
+  if (!validateVinCheckDigit(cleanVin)) {
+    return {
+      isValid: false,
+      error: 'VIN check digit (9th character) is invalid'
+    };
+  }
+  
   return { isValid: true };
 };
 

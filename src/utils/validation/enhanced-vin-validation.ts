@@ -1,5 +1,5 @@
 
-import { validateVIN as baseValidateVin } from './vin-validation';
+import { validateVIN } from './vin-validation';
 
 /**
  * Enhanced VIN validation with detailed error checking and explanations
@@ -8,7 +8,7 @@ import { validateVIN as baseValidateVin } from './vin-validation';
  * @returns 
  */
 export function validateVinEnhanced(vin: string): { isValid: boolean; error: string | null } {
-  const result = baseValidateVin(vin);
+  const result = validateVIN(vin);
   return { 
     isValid: result.isValid, 
     error: result.isValid ? null : result.error || null 

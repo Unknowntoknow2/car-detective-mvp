@@ -1,45 +1,21 @@
 
 import React from 'react';
-import { CDFooter } from '@/components/ui-kit/CDFooter';
 import { Link } from 'react-router-dom';
 
-export const Footer = () => {
-  const sections = [
-    {
-      title: "Quick Links",
-      links: [
-        { label: "Home", href: "/" },
-        { label: "Free Valuation", href: "/free-valuation" },
-        { label: "Premium Reports", href: "/premium" },
-        { label: "My Valuations", href: "/my-valuations" },
-      ]
-    },
-    {
-      title: "Resources",
-      links: [
-        { label: "VIN Lookup", href: "/vin-lookup" },
-        { label: "Contact Us", href: "/contact" },
-        { label: "About", href: "/about" },
-      ]
-    },
-    {
-      title: "Legal",
-      links: [
-        { label: "Terms of Service", href: "/terms" },
-        { label: "Privacy Policy", href: "/privacy" },
-      ]
-    }
-  ];
-
+export function Footer() {
   return (
-    <CDFooter
-      sections={sections}
-      copyright={<>&copy; {new Date().getFullYear()} Car Detective. All rights reserved.</>}
-      logo={
-        <div className="font-semibold text-lg mb-4">Car Detective</div>
-      }
-    />
+    <footer className="border-t py-6 md:py-0">
+      <div className="container flex flex-col items-center justify-between gap-4 md:h-14 md:flex-row">
+        <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+          © 2025 Car Valuation. All rights reserved.
+        </p>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <Link to="/about" className="hover:underline">About</Link>
+          <Link to="/privacy" className="hover:underline">Privacy</Link>
+          <Link to="/terms" className="hover:underline">Terms</Link>
+          <Link to="/contact" className="hover:underline">Contact</Link>
+        </div>
+      </div>
+    </footer>
   );
-};
-
-export default Footer;
+}
