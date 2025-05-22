@@ -1,10 +1,18 @@
 
+
 export enum ConditionLevel {
   Poor = "Poor",
   Fair = "Fair",
   Good = "Good",
   VeryGood = "Very Good",
   Excellent = "Excellent"
+}
+
+export interface AccidentDetails {
+  hasAccident: boolean;
+  description?: string;
+  severity?: 'minor' | 'moderate' | 'severe';
+  repaired?: boolean;
 }
 
 export interface ManualEntryFormData {
@@ -23,6 +31,7 @@ export interface ManualEntryFormData {
   fileType?: string;
   fileName?: string;
   vin?: string;
+  accidents?: AccidentDetails;
   // Any additional properties
   [key: string]: any;
 }

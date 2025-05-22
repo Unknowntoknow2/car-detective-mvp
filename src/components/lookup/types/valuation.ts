@@ -1,24 +1,22 @@
 
-export interface ValuationFormProps {
-  onSubmit?: (data: ManualValuationData) => Promise<void>;
-  isLoading?: boolean;
-  submitButtonText?: string;
-  isPremium?: boolean;
-}
-
-export interface ManualValuationData {
+export interface ValuationResponse {
   make: string;
   model: string;
   year: number;
-  mileage: number;
-  fuelType: string;
+  mileage?: number;
   condition: string;
+  estimatedValue: number;
+  confidenceScore?: number;
+  valuationId: string;
+  // Additional fields
   zipCode?: string;
-  accident?: string;
-  accidentDetails?: {
-    count: string;
-    severity: string;
-    area: string;
-  };
-  selectedFeatures?: string[];
+  fuelType?: string;
+  transmission?: string;
+  bodyStyle?: string;
+  color?: string;
+  accidents?: number;
+  trim?: string;
+  vin?: string;
+  // Any additional properties
+  [key: string]: any;
 }
