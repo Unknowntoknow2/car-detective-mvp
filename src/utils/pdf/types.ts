@@ -7,12 +7,12 @@ export interface ReportData {
   model: string;
   year: number;
   trim?: string;
-  mileage: number;
+  mileage?: number; // Changed from required to optional
   vin?: string;
   
   // Valuation Information
   estimatedValue: number;
-  price?: number; // Added to fix errors
+  price?: number;
   priceRange?: [number, number];
   conditionAdjustment?: number;
   mileageAdjustment?: number;
@@ -20,7 +20,7 @@ export interface ReportData {
   marketAdjustment?: number;
   
   // Condition Information
-  aiCondition?: string | { // Changed from string to union type
+  aiCondition?: string | { 
     summary?: string;
     score?: number;
     confidenceScore?: number;
@@ -39,6 +39,7 @@ export interface ReportData {
     exterior?: string[];
     interior?: string[];
     mechanical?: string[];
+    [key: string]: string[] | undefined; // Add index signature for photoAssessment
   };
   photoUrl?: string;
   bestPhotoUrl?: string;
@@ -46,7 +47,7 @@ export interface ReportData {
   photoExplanation?: string;
   
   // Document Information
-  id?: string; // Added for tests
+  id?: string;
   reportTitle?: string;
   reportDate?: Date;
   disclaimerText?: string;
@@ -55,7 +56,7 @@ export interface ReportData {
   
   // Additional Information
   generatedDate?: Date;
-  generatedAt?: string; // Added for compatibility
+  generatedAt?: string;
   explanation?: string;
   features?: string[];
   premium?: boolean;
@@ -87,9 +88,9 @@ export interface SectionParams {
   boldFont?: PDFFont;
   textColor?: RGB;
   primaryColor?: RGB;
-  doc?: any; // Added for sections
-  pageWidth?: number; // Added for sections
-  pageHeight?: number; // Added for sections
+  doc?: any;
+  pageWidth?: number;
+  pageHeight?: number;
 }
 
 export interface ReportOptions {
@@ -99,7 +100,7 @@ export interface ReportOptions {
   watermark: boolean;
   fontSize: number;
   pdfQuality: 'draft' | 'standard' | 'high';
-  pageSize?: string; // Added for defaultReportOptions
+  pageSize?: string;
 }
 
 export interface ReportGeneratorParams {

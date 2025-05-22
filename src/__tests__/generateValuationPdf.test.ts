@@ -68,8 +68,7 @@ describe('generateValuationPdf', () => {
       make: 'Honda',
       model: 'Civic',
       year: 2019,
-      zipCode: '10001',
-      price: 18000,
+      mileage: 0, // Add mileage with default value
       estimatedValue: 18000,
     };
 

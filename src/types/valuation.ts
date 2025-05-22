@@ -46,6 +46,10 @@ export interface ValuationResult {
   zip?: string; // For backward compatibility
   aiCondition?: any;
   photoUrls?: string[];
-  trim?: string; // Added missing trim property
-  created_at?: string; // Added for compatibility with some components
+  trim?: string;
+  created_at?: string;
+  // Added missing properties
+  conditionScore?: number;
+  regionName?: string;
+  conditionNotes?: string[];
 }

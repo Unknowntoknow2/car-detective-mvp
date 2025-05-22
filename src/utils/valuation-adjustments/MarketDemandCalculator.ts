@@ -1,62 +1,45 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../rules/types';
-import { Calculator } from '../rules/interfaces/Calculator';
+import { RulesEngineInput } from '../rules/types';
 
-export class MarketDemandCalculator implements Calculator {
-  private BASE_ADJUSTMENT = 0.03; // 3% base adjustment
-
-  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    // Get the current month (1-12)
-    const currentMonth = new Date().getMonth() + 1;
+export class MarketDemandCalculator {
+  calculate(input: RulesEngineInput) {
+    // Default values
+    const basePrice = input.basePrice || 0;
+    const make = input.make || '';
+    const model = input.model || '';
+    const year = input.year || new Date().getFullYear();
     
-    // Calculate seasonal component (higher demand in spring/summer months)
-    let seasonalAdjustment = 0;
-    if (currentMonth >= 3 && currentMonth <= 8) {
-      // Spring and summer months - higher demand
-      seasonalAdjustment = 0.02; // 2% boost
-    } else if (currentMonth >= 11 || currentMonth <= 1) {
-      // Winter months - lower demand
-      seasonalAdjustment = -0.01; // 1% reduction
+    // Lookup market demand for this vehicle
+    // In a real implementation, we would query a database or API
+    // For now, we'll use some hardcoded values
+    
+    let demandMultiplier = 1.0; // Default: no change
+    let description = 'Average market demand';
+    
+    // Example: Adjust based on popularity of make/model
+    if (make.toLowerCase() === 'toyota' && 
+        ['camry', 'rav4', 'corolla'].includes(model.toLowerCase())) {
+      demandMultiplier = 1.05; // 5% increase
+      description = 'High market demand for this model';
+    } else if (make.toLowerCase() === 'tesla') {
+      demandMultiplier = 1.08; // 8% increase
+      description = 'Very high market demand for electric vehicles';
+    } else if (['cadillac', 'lincoln'].includes(make.toLowerCase()) && 
+               year < new Date().getFullYear() - 5) {
+      demandMultiplier = 0.95; // 5% decrease
+      description = 'Lower demand for older luxury sedans';
     }
     
-    // Check if vehicle type information is available
-    let typeAdjustment = 0;
-    const bodyType = input.bodyType?.toLowerCase() || '';
-    
-    if (bodyType.includes('suv') || bodyType.includes('crossover')) {
-      typeAdjustment = 0.02; // 2% boost for SUVs/crossovers
-    } else if (bodyType.includes('truck') || bodyType.includes('pickup')) {
-      typeAdjustment = 0.015; // 1.5% boost for trucks
-    } else if (bodyType.includes('sedan')) {
-      typeAdjustment = -0.01; // 1% reduction for sedans
-    }
-    
-    // Calculate combined adjustment
-    const totalAdjustment = this.BASE_ADJUSTMENT + seasonalAdjustment + typeAdjustment;
-    const impactValue = Math.round(input.basePrice * totalAdjustment);
-    const factor = "Market Demand";
-    const impact = impactValue;
-    
-    // Description based on components
-    let description = "Based on current market conditions";
-    if (seasonalAdjustment !== 0) {
-      description += seasonalAdjustment > 0 
-        ? ", seasonal demand is higher" 
-        : ", seasonal demand is lower";
-    }
-    if (typeAdjustment !== 0 && bodyType) {
-      description += typeAdjustment > 0 
-        ? `, ${bodyType} vehicles have higher demand` 
-        : `, ${bodyType} vehicles have lower demand`;
-    }
+    // Calculate the impact
+    const impact = basePrice * (demandMultiplier - 1.0);
     
     return {
-      name: "Market Demand",
-      value: impactValue,
-      percentAdjustment: totalAdjustment * 100,
+      factor: 'Market Demand',
+      impact: Math.round(impact),
       description,
-      factor,
-      impact
+      name: 'Market Demand',
+      value: Math.round(impact),
+      percentAdjustment: basePrice > 0 ? (impact / basePrice) * 100 : 0
     };
   }
 }

@@ -1,5 +1,5 @@
-
 import { calculateFinalValuation } from './calculateFinalValuation';
+import { AICondition } from '@/types/photo';
 
 describe('calculateFinalValuation', () => {
   const basePrice = 25000;
@@ -58,7 +58,8 @@ describe('calculateFinalValuation', () => {
       aiConditionOverride: {
         condition: 'Good',
         confidenceScore: 85,
-        issuesDetected: []
+        issuesDetected: [],
+        summary: 'Vehicle appears to be in good condition with no major issues detected.'
       }
     }, basePrice);
 
@@ -77,7 +78,8 @@ describe('calculateFinalValuation', () => {
       aiConditionOverride: {
         condition: 'Excellent',
         confidenceScore: 95,
-        issuesDetected: []
+        issuesDetected: [],
+        summary: 'Vehicle appears to be in excellent condition with no major issues detected.'
       }
     }, basePrice);
 
@@ -116,7 +118,8 @@ describe('calculateFinalValuation', () => {
       aiConditionOverride: {
         condition: 'Good',
         confidenceScore: 80,
-        issuesDetected: []
+        issuesDetected: [],
+        summary: 'Vehicle appears to be in good condition with no major issues detected.'
       }
     }, basePrice);
 

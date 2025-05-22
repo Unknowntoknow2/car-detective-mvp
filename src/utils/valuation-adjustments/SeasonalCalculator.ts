@@ -1,113 +1,128 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../rules/types';
-import { Calculator } from '../rules/interfaces/Calculator';
+import { RulesEngineInput } from '../rules/types';
 
-interface SeasonalPattern {
-  [month: number]: {
-    label: string;
-    adjustment: number;
-    vehicleTypes: {
-      [type: string]: number;
-    };
-  };
-}
-
-export class SeasonalCalculator implements Calculator {
-  private seasonalPatterns: SeasonalPattern = {
-    // January
-    1: {
-      label: 'Winter',
-      adjustment: -0.02,
-      vehicleTypes: {
-        'suv': 0.01,
-        'truck': 0.01,
-        'convertible': -0.03,
-        'sports': -0.02
-      }
-    },
-    // February
-    2: {
-      label: 'Late Winter',
-      adjustment: -0.01,
-      vehicleTypes: {
-        'suv': 0.005,
-        'truck': 0.005,
-        'convertible': -0.02,
-        'sports': -0.01
-      }
-    },
-    // March
-    3: {
-      label: 'Early Spring',
-      adjustment: 0.01,
-      vehicleTypes: {
-        'convertible': 0.02,
-        'sports': 0.01,
-        'motorcycle': 0.03
-      }
-    },
-    // April - December similar pattern...
-    // This is a simplified version, you'd fill in all months
-    6: {
-      label: 'Summer',
-      adjustment: 0.03,
-      vehicleTypes: {
-        'convertible': 0.04,
-        'sports': 0.02,
-        'suv': -0.01
-      }
-    },
-    12: {
-      label: 'Holiday Season',
-      adjustment: 0.02,
-      vehicleTypes: {
-        'luxury': 0.03
-      }
-    }
-  };
-
-  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    // Get current month
-    const currentMonth = new Date().getMonth() + 1; // 1-12
+export class SeasonalCalculator {
+  calculate(input: RulesEngineInput) {
+    // Default values
+    const basePrice = input.basePrice || 0;
+    const vehicleType = input.bodyType || input.bodyStyle || '';
+    const month = new Date().getMonth(); // 0-11 (Jan-Dec)
     
-    // Get seasonal pattern for current month (use default if not defined)
-    const seasonalPattern = this.seasonalPatterns[currentMonth] || {
-      label: 'Mid-Season',
-      adjustment: 0,
-      vehicleTypes: {}
-    };
+    // Initialize values
+    let seasonalFactor = 0;
+    let description = '';
     
-    // Calculate base seasonal adjustment
-    let totalAdjustment = seasonalPattern.adjustment;
+    // Get the current season
+    const season = this.getCurrentSeason(month);
     
-    // Add vehicle type specific adjustment if applicable
-    const bodyType = input.bodyType?.toLowerCase() || '';
-    
-    // Check each vehicle type for match
-    for (const [type, adjustment] of Object.entries(seasonalPattern.vehicleTypes)) {
-      if (bodyType.includes(type)) {
-        totalAdjustment += adjustment;
-        break; // Only apply the first matching type
-      }
+    // Apply seasonal adjustments based on vehicle type and season
+    switch (vehicleType.toLowerCase()) {
+      case 'convertible':
+        seasonalFactor = this.getConvertibleFactor(season);
+        description = this.getSeasonalDescription('convertible', season);
+        break;
+      
+      case 'suv':
+      case 'crossover':
+      case 'truck':
+        seasonalFactor = this.getSuvTruckFactor(season);
+        description = this.getSeasonalDescription('SUV/truck', season);
+        break;
+      
+      case 'sports':
+      case 'coupe':
+        seasonalFactor = this.getSportsFactor(season);
+        description = this.getSeasonalDescription('sports car', season);
+        break;
+      
+      default:
+        // Sedans and other vehicles have less seasonal variation
+        seasonalFactor = this.getSedanFactor(season);
+        description = this.getSeasonalDescription('sedan', season);
+        break;
     }
     
-    // Skip if no significant adjustment
-    if (Math.abs(totalAdjustment) < 0.005) {
-      return null;
-    }
-    
-    // Calculate monetary value
-    const adjustmentValue = input.basePrice * totalAdjustment;
-    const factor = 'Seasonal Adjustment';
-    const impact = Math.round(adjustmentValue);
+    // Calculate the impact
+    const impact = basePrice * seasonalFactor;
     
     return {
+      factor: 'Seasonal Adjustment',
+      impact: Math.round(impact),
+      description,
       name: 'Seasonal Adjustment',
-      value: Math.round(adjustmentValue),
-      description: `${seasonalPattern.label} seasonal impact on vehicle value`,
-      percentAdjustment: totalAdjustment * 100,
-      factor,
-      impact
+      value: Math.round(impact),
+      percentAdjustment: seasonalFactor * 100
     };
+  }
+  
+  private getCurrentSeason(month: number): 'winter' | 'spring' | 'summer' | 'fall' {
+    if (month >= 0 && month <= 1) return 'winter'; // Jan-Feb
+    if (month >= 2 && month <= 4) return 'spring'; // Mar-May
+    if (month >= 5 && month <= 7) return 'summer'; // Jun-Aug
+    if (month >= 8 && month <= 10) return 'fall';  // Sep-Nov
+    return 'winter'; // Dec
+  }
+  
+  private getConvertibleFactor(season: string): number {
+    switch (season) {
+      case 'spring': return 0.05;  // 5% increase
+      case 'summer': return 0.08;  // 8% increase
+      case 'fall': return -0.02;   // 2% decrease
+      case 'winter': return -0.05; // 5% decrease
+      default: return 0;
+    }
+  }
+  
+  private getSuvTruckFactor(season: string): number {
+    switch (season) {
+      case 'spring': return 0.01;  // 1% increase
+      case 'summer': return 0.00;  // No change
+      case 'fall': return 0.02;    // 2% increase
+      case 'winter': return 0.04;  // 4% increase
+      default: return 0;
+    }
+  }
+  
+  private getSportsFactor(season: string): number {
+    switch (season) {
+      case 'spring': return 0.04;  // 4% increase
+      case 'summer': return 0.06;  // 6% increase
+      case 'fall': return -0.01;   // 1% decrease
+      case 'winter': return -0.03; // 3% decrease
+      default: return 0;
+    }
+  }
+  
+  private getSedanFactor(season: string): number {
+    // Sedans have minimal seasonal variation
+    switch (season) {
+      case 'spring': return 0.01;  // 1% increase
+      case 'summer': return 0.01;  // 1% increase
+      case 'fall': return 0.00;    // No change
+      case 'winter': return 0.00;  // No change
+      default: return 0;
+    }
+  }
+  
+  private getSeasonalDescription(vehicleType: string, season: string): string {
+    switch (vehicleType) {
+      case 'convertible':
+        return season === 'summer' || season === 'spring'
+          ? `Higher demand for convertibles in ${season}`
+          : `Lower demand for convertibles in ${season}`;
+      
+      case 'SUV/truck':
+        return season === 'winter' || season === 'fall'
+          ? `Higher demand for ${vehicleType}s in ${season}`
+          : `Typical demand for ${vehicleType}s in ${season}`;
+      
+      case 'sports car':
+        return season === 'summer' || season === 'spring'
+          ? `Higher demand for sports cars in ${season}`
+          : `Lower demand for sports cars in ${season}`;
+      
+      default:
+        return `Minimal seasonal impact on ${vehicleType} values`;
+    }
   }
 }
