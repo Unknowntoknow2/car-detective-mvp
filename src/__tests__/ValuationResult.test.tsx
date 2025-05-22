@@ -36,7 +36,8 @@ describe('ValuationResult component', () => {
       condition: 'Good',
       zipCode: '90210',
       estimatedValue: 15000,
-      confidenceScore: 85
+      confidenceScore: 85,
+      valuationId: 'test-valuation-id' // Add missing valuationId property
     },
     valuationId: 'test-valuation-id',
     isPremium: false
