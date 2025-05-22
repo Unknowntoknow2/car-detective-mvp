@@ -6,14 +6,13 @@ import VinLookupPage from './pages/VinLookupPage';
 import LookupPage from './pages/LookupPage';
 import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
 import ValuationResultPage from './pages/ValuationResultPage';
-
-// Import other pages as needed
+import { EnhancedHomePage } from './components/home/EnhancedHomePage';
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<MainLayout><Outlet /></MainLayout>}>
-        <Route index element={<LookupPage />} />
+        <Route index element={<EnhancedHomePage />} />
         <Route path="/lookup" element={<LookupPage />} />
         <Route path="/vin-lookup" element={<VinLookupPage />} />
         <Route path="/valuation-followup" element={<ValuationFollowUpPage />} />

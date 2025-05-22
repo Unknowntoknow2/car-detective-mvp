@@ -34,17 +34,6 @@ interface Listing {
   source: string;
 }
 
-interface AuctionData {
-  id: string;
-  title: string;
-  price: number;
-  mileage: number;
-  condition: string;
-  location: string;
-  daysListed: number;
-  source: string;
-}
-
 export function MarketInsightsTab({
   valuationId = '',
   isPremium = false,
@@ -114,7 +103,7 @@ export function MarketInsightsTab({
   }
   
   // Extract data from the query result
-  const comparableListings: Listing[] = data.comparableVehicles || [];
+  const comparableVehicles = data.comparableVehicles || [];
   
   return (
     <Card>
@@ -161,8 +150,8 @@ export function MarketInsightsTab({
           </TabsContent>
           
           <TabsContent value="listings" className="pt-4">
-            {comparableListings.length > 0 ? (
-              <ComparableListingsTable listings={comparableListings.map((listing: Listing, index: number) => ({
+            {comparableVehicles.length > 0 ? (
+              <ComparableListingsTable listings={comparableVehicles.map((listing: Listing, index: number) => ({
                 id: listing.id || `listing-${index}`,
                 title: listing.title,
                 price: listing.price,
