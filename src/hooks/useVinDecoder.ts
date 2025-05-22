@@ -2,16 +2,19 @@
 import { useState } from 'react';
 import { validateVIN } from '@/utils/validation/vin-validation';
 import { decodeVin } from '@/services/vinService';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export function useVinDecoder() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any | null>(null);
+  const [valuationId, setValuationId] = useState<string | null>(null);
 
   const lookupVin = async (vin: string) => {
     // Reset state
     setError(null);
     setIsLoading(true);
+    setResult(null);
 
     try {
       // Validate VIN format first
@@ -25,6 +28,10 @@ export function useVinDecoder() {
       
       if (!response.success) {
         throw new Error(response.error || 'Failed to decode VIN');
+      }
+
+      if (response.data && response.data.valuationId) {
+        setValuationId(response.data.valuationId);
       }
 
       setResult(response.data);
@@ -41,6 +48,7 @@ export function useVinDecoder() {
   const reset = () => {
     setResult(null);
     setError(null);
+    setValuationId(null);
   };
 
   return {
@@ -48,6 +56,7 @@ export function useVinDecoder() {
     error,
     result,
     lookupVin,
-    reset
+    reset,
+    valuationId
   };
 }

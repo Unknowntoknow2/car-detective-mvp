@@ -11,10 +11,11 @@ export interface DecodedVehicleInfo {
   bodyType?: string;
   fuelType?: string;
   color?: string;
-  exteriorColor?: string; // Add missing property
+  exteriorColor?: string; 
   interiorColor?: string;
   features?: string[];
-  mileage?: number; // Add missing property
+  mileage?: number;
+  valuationId?: string;
 }
 
 export interface VinDecoderResponse {
@@ -47,7 +48,12 @@ export interface ValuationResponse {
   bodyType?: string;
   trim?: string;
   color?: string;
-  price_range?: any; // Add missing property
+  price_range?: any;
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
 }
 
 export interface VehicleIdentifier {
@@ -56,7 +62,6 @@ export interface VehicleIdentifier {
   state?: string;
 }
 
-// Add DealerInventoryItem for missing type import
 export interface DealerInventoryItem {
   id: string;
   dealerId: string;
@@ -66,6 +71,7 @@ export interface DealerInventoryItem {
   year: number;
   trim?: string;
   price: number;
+  listingPrice?: number;
   mileage: number;
   condition: string;
   exteriorColor?: string;
@@ -79,5 +85,5 @@ export interface DealerInventoryItem {
   updated_at?: string;
   description?: string;
   listingUrl?: string;
-  status?: 'active' | 'sold' | 'pending' | 'draft';
+  status?: 'active' | 'sold' | 'pending' | 'draft' | 'available';
 }
