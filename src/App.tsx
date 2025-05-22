@@ -5,7 +5,7 @@ import UpgradePage from './pages/UpgradePage';
 import PremiumPage from './pages/PremiumPage';
 import PremiumSuccessPage from './pages/PremiumSuccessPage';
 import UserDashboardPage from './pages/UserDashboardPage';
-import ValuationFollowupPage from './pages/ValuationFollowupPage'; // Changed to match actual filename case
+import ValuationFollowupPage from './pages/ValuationFollowupPage'; // Using consistent lowercase 'up'
 import ValuationResultPage from './pages/ValuationResultPage';
 import { Toaster } from 'sonner';
 
