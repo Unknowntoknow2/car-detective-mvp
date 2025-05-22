@@ -1,7 +1,7 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@11.18.0?target=deno";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 // Set up CORS headers
 const corsHeaders = {
@@ -17,131 +17,134 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { bundle = 1, valuationId, successUrl, cancelUrl } = await req.json();
+    const { product, valuationId, successUrl, cancelUrl } = await req.json();
     
-    // Initialize Stripe with the secret key from environment variables
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
+    if (!product || !product.name || !product.price) {
+      return new Response(
+        JSON.stringify({ error: "Product details are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
-    // Get the authenticated user
+    // Get auth token from request header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authorization header missing" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create a Supabase client with the auth token
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+        auth: { persistSession: false }
+      }
     );
     
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    // Get the current user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
-    if (!user) {
+    if (userError || !user) {
       return new Response(
-        JSON.stringify({ error: "Authentication required" }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Check if the user has the 'individual' role
-    const { data: profileData, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    // Initialize Stripe with the secret key
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2022-11-15",
+    });
     
-    if (profileError) {
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch user profile" }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    // Check if customer already exists
+    const { data: customers } = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+    
+    let customerId;
+    if (customers && customers.data.length > 0) {
+      customerId = customers.data[0].id;
+    } else {
+      // Create a new customer
+      const newCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          user_id: user.id
         }
-      );
+      });
+      customerId = newCustomer.id;
     }
     
-    if (profileData.role !== 'individual' && profileData.role !== 'user') {
-      return new Response(
-        JSON.stringify({ error: "This premium upgrade is only for individual users" }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
-    }
-    
-    // Set product name and price based on bundle
-    let productName = 'Premium Valuation';
-    let unitAmount = 1999; // $19.99
-    
-    if (bundle === 3) {
-      productName = '3-Pack Premium Valuations';
-      unitAmount = 4999; // $49.99
-    } else if (bundle === 5) {
-      productName = '5-Pack Premium Valuations';
-      unitAmount = 7999; // $79.99
-    }
-    
-    // Create a Stripe checkout session
+    // Create checkout session
     const session = await stripe.checkout.sessions.create({
+      customer: customerId,
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: productName,
-              description: `${bundle} premium valuation credit${bundle !== 1 ? 's' : ''}`
+              name: product.name,
             },
-            unit_amount: unitAmount,
+            unit_amount: product.price, // Price in cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: successUrl || `${req.headers.get('origin')}/premium?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${req.headers.get('origin')}/premium`,
+      success_url: successUrl || `${req.headers.get("origin")}/dashboard?checkout_success=true`,
+      cancel_url: cancelUrl || `${req.headers.get("origin")}/pricing?checkout_canceled=true`,
       metadata: {
         user_id: user.id,
-        bundle: bundle.toString(),
         valuation_id: valuationId || '',
-        type: 'individual'
-      },
-      customer_email: user.email,
+        credits: product.credits?.toString() || '1'
+      }
     });
     
-    // Create a service role client to write to the orders table
+    // Use a service role client to create a pending order record
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
     
-    // Create an order record
-    await serviceClient.from('orders').insert({
-      user_id: user.id,
-      valuation_id: valuationId || null,
-      stripe_session_id: session.id,
-      amount: unitAmount,
-      status: 'pending'
-    });
+    // Create a pending order
+    const { error: orderError } = await serviceClient
+      .from('orders')
+      .insert({
+        user_id: user.id,
+        stripe_session_id: session.id,
+        valuation_id: valuationId || null,
+        status: 'pending',
+        amount: product.price, // Amount in cents
+        currency: 'usd'
+      });
+      
+    if (orderError) {
+      console.error("Error creating order record:", orderError);
+      // Continue even if order creation fails, as the webhook will still process the payment
+    }
     
     return new Response(
-      JSON.stringify({ url: session.url }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      JSON.stringify({ 
+        url: session.url,
+        sessionId: session.id
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error("Error creating checkout session:", error);
     
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

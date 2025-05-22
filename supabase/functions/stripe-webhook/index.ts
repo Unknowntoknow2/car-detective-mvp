@@ -46,27 +46,55 @@ serve(async (req) => {
     // Handle the event type
     let userId = null;
     let expiresAt = null;
+    let customerId = null;
+    let creditsToAdd = 0;
+    let valuationId = null;
+    let metadata = null;
+    let sessionId = null;
+    let productName = '';
+    let amount = 0;
     
     // For subscriptions and invoices, we need to lookup by customer id
-    let customerId = null;
     
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+        sessionId = session.id;
         
         // Get the user ID from the session metadata
         userId = session.metadata?.user_id;
         customerId = session.customer;
+        metadata = session.metadata || {};
+        valuationId = metadata.valuation_id;
         
         console.log(`Checkout completed for user: ${userId}, customer: ${customerId}`);
+        
+        // Extract product details from line items
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+        if (lineItems.data.length > 0) {
+          const item = lineItems.data[0];
+          productName = item.description || 'Premium Report';
+          amount = item.amount_total || 0;
+          
+          // Determine credits to add based on product name or metadata
+          if (metadata.credits) {
+            creditsToAdd = parseInt(metadata.credits, 10) || 1;
+          } else if (productName.includes('Bundle of 5')) {
+            creditsToAdd = 5;
+          } else if (productName.includes('Bundle of 3')) {
+            creditsToAdd = 3;
+          } else {
+            creditsToAdd = 1; // Default to 1 credit for single reports
+          }
+        }
         
         // If we have a subscription, let's get the current period end
         if (session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(session.subscription);
           expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
         } else {
-          // Default to 30 days if no subscription (for one-time purchases)
-          expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          // Default to 12 months if no subscription (for credits)
+          expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
         }
         
         break;
@@ -157,6 +185,70 @@ serve(async (req) => {
       }
       
       console.log(`Successfully updated premium status for user: ${userId}, expires: ${expiresAt}`);
+      
+      // Handle premium credits if applicable
+      if (creditsToAdd > 0) {
+        // Check if user already has premium credits
+        const { data: existingCredits, error: creditsError } = await req.supabaseClient
+          .from('premium_credits')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (creditsError && creditsError.code !== 'PGRST116') { // Not just "no rows" error
+          console.error("Error checking premium credits:", creditsError);
+        } else {
+          const currentCredits = existingCredits?.remaining_credits || 0;
+          const newCredits = currentCredits + creditsToAdd;
+          
+          // Upsert premium credits
+          const { error: upsertError } = await req.supabaseClient
+            .from('premium_credits')
+            .upsert({
+              user_id: userId,
+              remaining_credits: newCredits,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+            
+          if (upsertError) {
+            console.error("Error updating premium credits:", upsertError);
+          } else {
+            console.log(`Successfully added ${creditsToAdd} credits for user: ${userId}, new total: ${newCredits}`);
+          }
+          
+          // If there's a specific valuation, mark it as premium unlocked
+          if (valuationId && valuationId !== '') {
+            // Insert into premium_valuations to track the specific access
+            await req.supabaseClient.from('premium_valuations').upsert({
+              user_id: userId,
+              valuation_id: valuationId,
+              created_at: new Date().toISOString()
+            });
+            
+            // Optionally update the valuation record itself
+            await req.supabaseClient.from('valuations').update({ 
+              premium_unlocked: true
+            }).eq('id', valuationId);
+          }
+          
+          // Record the transaction
+          const { error: transactionError } = await req.supabaseClient
+            .from('premium_transactions')
+            .insert({
+              user_id: userId,
+              valuation_id: valuationId || null,
+              type: 'bundle',
+              stripe_session_id: sessionId,
+              amount: amount / 100, // Convert cents to dollars
+              quantity: creditsToAdd,
+              product_name: productName
+            });
+            
+          if (transactionError) {
+            console.error("Error recording transaction:", transactionError);
+          }
+        }
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
