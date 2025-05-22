@@ -1,4 +1,3 @@
-
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { ReportData, ReportOptions, DocumentFonts } from '../types';
 import { defaultReportOptions } from '../defaultReportOptions';
@@ -212,8 +211,6 @@ export async function generateBasicReport(
     
     if (Array.isArray(data.priceRange)) {
       priceRangeValues = [data.priceRange[0], data.priceRange[1]];
-    } else if (typeof data.priceRange === 'object' && 'min' in data.priceRange && 'max' in data.priceRange) {
-      priceRangeValues = [data.priceRange.min, data.priceRange.max];
     } else {
       // Fallback - use estimated value with +/- 5%
       const value = data.estimatedValue;

@@ -464,6 +464,10 @@ function drawValuationSummarySection(params: SectionParams): number {
   
   // Draw price range if available
   if (data.priceRange) {
+    const priceRangeText = Array.isArray(data.priceRange)
+      ? `$${data.priceRange[0].toLocaleString()} - $${data.priceRange[1].toLocaleString()}`
+      : `$${Math.floor(data.estimatedValue * 0.95).toLocaleString()} - $${Math.ceil(data.estimatedValue * 1.05).toLocaleString()}`;
+    
     page.drawText('Price Range:', {
       x: margin,
       y,
@@ -472,20 +476,7 @@ function drawValuationSummarySection(params: SectionParams): number {
       color: textColor,
     });
     
-    let minPrice, maxPrice;
-    
-    // Handle both array and object formats for price range
-    if (Array.isArray(data.priceRange)) {
-      minPrice = data.priceRange[0];
-      maxPrice = data.priceRange[1];
-    } else {
-      minPrice = data.priceRange.min;
-      maxPrice = data.priceRange.max;
-    }
-    
-    const rangeText = `$${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}`;
-    
-    page.drawText(rangeText, {
+    page.drawText(priceRangeText, {
       x: margin + 120,
       y,
       size: 9,
