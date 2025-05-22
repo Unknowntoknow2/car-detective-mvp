@@ -5,6 +5,8 @@
  * @param currency The currency code (default: USD)
  * @param locale The locale code (default: en-US)
  * @returns Formatted currency string
+ * 
+ * @deprecated Import from @/utils/formatters instead
  */
 export function formatCurrency(
   value: number | null | undefined, 
