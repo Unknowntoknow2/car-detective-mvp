@@ -91,6 +91,12 @@ export function TabContent({
       
       <TabsContent value="market" className="mt-0">
         <MarketAnalysisTab 
+          valuationId={vehicle?.id || ''}
+          isPremium={true}
+          zipCode={vehicle?.zipCode}
+          make={vehicle?.make}
+          model={vehicle?.model}
+          year={vehicle?.year}
           vehicleData={vehicle ? {
             make: vehicle.make,
             model: vehicle.model,
