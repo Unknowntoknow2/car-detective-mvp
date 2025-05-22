@@ -15,17 +15,19 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
   let currentY = y;
   
   // Draw section title
-  page.drawText('Photo Assessment', {
-    x: margin,
-    y: currentY,
-    size: 16,
-    font: boldFont,
-    color: textColor
-  });
+  if (page) {
+    page.drawText('Photo Assessment', {
+      x: margin,
+      y: currentY,
+      size: 16,
+      font: boldFont,
+      color: textColor
+    });
+  }
   currentY -= 30;
   
   // Draw photo if available
-  if (photoUrl) {
+  if (photoUrl && page) {
     // Logic to embed an image would go here
     // For now, just add placeholder text
     page.drawText('Photo available: ' + photoUrl, {
@@ -39,7 +41,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
   }
   
   // Draw photo score if available
-  if (photoScore !== undefined) {
+  if (photoScore !== undefined && page) {
     page.drawText(`Photo Score: ${(photoScore * 100).toFixed(0)}%`, {
       x: margin,
       y: currentY,
@@ -62,7 +64,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
   }
   
   // Draw AI condition assessment if available
-  if (data.aiCondition) {
+  if (data.aiCondition && page) {
     const aiCondition = data.aiCondition;
     
     // Helper function to check if aiCondition is an object
