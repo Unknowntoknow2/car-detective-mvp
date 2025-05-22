@@ -55,7 +55,7 @@ describe('generateValuationPdf', () => {
         issuesDetected: [],
         summary: 'Vehicle is in good condition.'
       },
-      generatedAt: new Date().toISOString(), // Fixed from generatedDate to generatedAt
+      generatedAt: new Date().toISOString(),
     };
 
     // Generate the PDF
@@ -83,7 +83,7 @@ describe('generateValuationPdf', () => {
         issuesDetected: [],
         summary: 'Vehicle is in fair condition.'
       },
-      generatedAt: new Date().toISOString(), // Fixed from generatedDate to generatedAt
+      generatedAt: new Date().toISOString(),
     };
 
     // Generate the PDF with minimal data

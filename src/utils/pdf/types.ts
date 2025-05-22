@@ -66,7 +66,7 @@ export interface SectionParams {
   // Additional properties needed by sections
   y?: number;
   regularFont?: any;
-  height?: number; // Add height property
+  height?: number; // Height property for the page
 }
 
 export interface ReportGeneratorParams {
