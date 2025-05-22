@@ -22,7 +22,7 @@ export function usePremiumAccess(valuationId?: string) {
       
       try {
         // Check if the valuation has been specifically unlocked
-        if (valuationId) {
+        if (valuationId && user) {
           // First check if this specific valuation was unlocked via a direct purchase
           const { data: valuationData, error: valuationError } = await supabase
             .from('valuations')
@@ -53,22 +53,24 @@ export function usePremiumAccess(valuationId?: string) {
         }
         
         // Check for general premium access based on user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('premium_expires_at, is_premium_dealer')
-          .eq('id', user.id)
-          .single();
+        if (user) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('premium_expires_at, is_premium_dealer')
+            .eq('id', user.id)
+            .single();
+            
+          if (profileError) {
+            throw profileError;
+          }
           
-        if (profileError) {
-          throw profileError;
+          // Determine if user has premium access
+          const hasPremium = profileData?.is_premium_dealer && 
+            (profileData.premium_expires_at === null || 
+             new Date(profileData.premium_expires_at) > new Date());
+             
+          setHasPremiumAccess(hasPremium);
         }
-        
-        // Determine if user has premium access
-        const hasPremium = profileData?.is_premium_dealer && 
-          (profileData.premium_expires_at === null || 
-           new Date(profileData.premium_expires_at) > new Date());
-           
-        setHasPremiumAccess(hasPremium);
       } catch (err) {
         console.error('Error checking premium access:', err);
         setError(err instanceof Error ? err : new Error('Failed to check premium access'));
