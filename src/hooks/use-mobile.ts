@@ -23,3 +23,22 @@ export const useMobile = (breakpoint: number = 768) => {
 
 // Alias for backward compatibility
 export const useIsMobile = useMobile;
+
+// Media query hook
+export const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    setMatches(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [query]);
+
+  return matches;
+};
