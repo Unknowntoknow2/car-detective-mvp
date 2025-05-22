@@ -1,6 +1,7 @@
 
 // Environment & debug settings
 export const SHOW_ALL_COMPONENTS = true;
+export const DEBUG_MODE = false; // Added for guard components
 
 // Feature flag defaults
 export const DEFAULT_FEATURES = {
