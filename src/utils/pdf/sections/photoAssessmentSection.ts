@@ -1,174 +1,170 @@
 
 import { SectionParams } from '../types';
 
-export const drawPhotoAssessmentSection = (params: SectionParams): number => {
-  const { 
-    data, 
-    y, 
-    page, 
-    contentWidth = 500, 
-    regularFont, 
-    boldFont, 
-    textColor = { r: 0, g: 0, b: 0 },
-    doc
-  } = params;
+export function drawPhotoAssessmentSection(params: SectionParams): number {
+  const { data, page, y, width = 500, margin = 50, regularFont, boldFont, textColor, doc } = params;
   
-  // Get the photo URL
+  // Exit early if no photo data
   const photoUrl = data.photoUrl || data.bestPhotoUrl;
-  const photoScore = data.photoScore || 0;
+  const photoScore = data.photoScore;
+  if (!photoUrl && !photoScore && !data.aiCondition) {
+    return y;
+  }
   
-  let currentY = y - 30;
+  let currentY = y;
   
   // Draw section title
   page.drawText('Photo Assessment', {
-    x: 50,
+    x: margin,
     y: currentY,
     size: 16,
     font: boldFont,
-    color: textColor,
+    color: textColor
   });
-  
   currentY -= 30;
   
-  // If we have a photo, embed it
+  // Draw photo if available
   if (photoUrl) {
-    // In a real implementation, we would fetch and embed the image
-    // But for now, we'll just add a placeholder text
-    page.drawText('Vehicle Photo (URL: ' + photoUrl.substring(0, 30) + '...)', {
-      x: 50,
+    // Logic to embed an image would go here
+    // For now, just add placeholder text
+    page.drawText('Photo available: ' + photoUrl, {
+      x: margin,
       y: currentY,
       size: 10,
       font: regularFont,
-      color: textColor,
+      color: textColor
     });
-    
     currentY -= 20;
-    
-    // Draw a placeholder rectangle for the image
-    page.drawRectangle({
-      x: 50,
-      y: currentY - 150,
-      width: 200,
-      height: 150,
-      borderWidth: 1,
-      borderColor: textColor,
-    });
-    
-    currentY -= 170;
   }
   
-  // Draw the photo score if available
-  if (photoScore) {
-    page.drawText(`Photo Quality Score: ${photoScore}/10`, {
-      x: 50,
+  // Draw photo score if available
+  if (photoScore !== undefined) {
+    page.drawText(`Photo Score: ${(photoScore * 100).toFixed(0)}%`, {
+      x: margin,
       y: currentY,
       size: 12,
       font: boldFont,
-      color: textColor,
+      color: textColor
     });
-    
     currentY -= 20;
+    
+    // Add explanation of score
+    const scoreText = getScoreDescription(photoScore);
+    page.drawText(scoreText, {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: regularFont,
+      color: textColor
+    });
+    currentY -= 30;
   }
   
   // Draw AI condition assessment if available
   if (data.aiCondition) {
     const aiCondition = data.aiCondition;
     
+    // Helper function to check if aiCondition is an object
+    const isAiConditionObject = (obj: any): obj is { 
+      summary?: string; 
+      score?: number; 
+      confidenceScore?: number; 
+      issuesDetected?: string[];
+      condition?: string;
+    } => {
+      return typeof obj === 'object' && obj !== null;
+    };
+    
+    // Draw condition summary
     page.drawText('AI Condition Assessment:', {
-      x: 50,
+      x: margin,
       y: currentY,
       size: 12,
       font: boldFont,
-      color: textColor,
+      color: textColor
     });
-    
     currentY -= 20;
     
-    // Summary
-    if (typeof aiCondition === 'object' && aiCondition.summary) {
-      page.drawText('Summary:', {
-        x: 60,
-        y: currentY,
-        size: 10,
-        font: boldFont,
-        color: textColor,
-      });
-      
-      page.drawText(aiCondition.summary.substring(0, 80), {
-        x: 130,
+    // Draw summary if available
+    if (isAiConditionObject(aiCondition) && aiCondition.summary) {
+      page.drawText(aiCondition.summary, {
+        x: margin + 10,
         y: currentY,
         size: 10,
         font: regularFont,
-        color: textColor,
+        color: textColor
       });
-      
       currentY -= 20;
     } else if (typeof aiCondition === 'string') {
-      page.drawText('Summary:', {
-        x: 60,
-        y: currentY,
-        size: 10,
-        font: boldFont,
-        color: textColor,
-      });
-      
-      page.drawText(aiCondition.substring(0, 80), {
-        x: 130,
+      page.drawText(aiCondition, {
+        x: margin + 10,
         y: currentY,
         size: 10,
         font: regularFont,
-        color: textColor,
+        color: textColor
       });
-      
       currentY -= 20;
     }
     
-    // Confidence score
-    if (typeof aiCondition === 'object' && aiCondition.confidenceScore) {
-      page.drawText('Confidence:', {
-        x: 60,
+    // Draw confidence score if available
+    if (isAiConditionObject(aiCondition) && aiCondition.confidenceScore) {
+      page.drawText('Confidence Score:', {
+        x: margin,
         y: currentY,
-        size: 10,
+        size: 11,
         font: boldFont,
-        color: textColor,
+        color: textColor
       });
+      currentY -= 15;
       
-      page.drawText(`${aiCondition.confidenceScore}%`, {
-        x: 130,
+      page.drawText(`${aiCondition.confidenceScore.toFixed(0)}%`, {
+        x: margin + 10,
         y: currentY,
         size: 10,
         font: regularFont,
-        color: textColor,
+        color: textColor
       });
-      
       currentY -= 20;
     }
     
-    // Issues detected
-    if (typeof aiCondition === 'object' && aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0) {
+    // Draw issues detected if available
+    if (isAiConditionObject(aiCondition) && aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0) {
       page.drawText('Issues Detected:', {
-        x: 60,
+        x: margin,
         y: currentY,
-        size: 10,
+        size: 11,
         font: boldFont,
-        color: textColor,
+        color: textColor
       });
+      currentY -= 15;
       
-      currentY -= 20;
-      
-      for (let i = 0; i < Math.min(3, aiCondition.issuesDetected.length); i++) {
-        page.drawText(`• ${aiCondition.issuesDetected[i]}`, {
-          x: 70,
+      // List all issues
+      for (const issue of aiCondition.issuesDetected) {
+        page.drawText(`• ${issue}`, {
+          x: margin + 10,
           y: currentY,
           size: 10,
           font: regularFont,
-          color: textColor,
+          color: textColor
         });
-        
         currentY -= 15;
       }
     }
   }
   
   return currentY;
-};
+}
+
+function getScoreDescription(score: number): string {
+  if (score >= 0.9) {
+    return 'Excellent: Photos show a vehicle in exceptional condition.';
+  } else if (score >= 0.8) {
+    return 'Very Good: Photos show a well-maintained vehicle with minimal wear.';
+  } else if (score >= 0.7) {
+    return 'Good: Photos show a vehicle in good condition with normal wear.';
+  } else if (score >= 0.6) {
+    return 'Fair: Photos show a vehicle with noticeable wear and potential issues.';
+  } else {
+    return 'Poor: Photos show a vehicle with significant wear or potential problems.';
+  }
+}

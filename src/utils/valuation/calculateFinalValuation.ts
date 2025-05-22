@@ -1,7 +1,7 @@
 
 import { RulesEngineInput, AdjustmentBreakdown } from '../rules/types';
 import { AICondition } from '@/types/photo';
-import rulesEngine from '../rulesEngine';
+import * as rulesEngine from '../rulesEngine';
 import { getPhotoScoreAdjustmentDescription } from '../rules/descriptions';
 
 export interface ValuationInput {
@@ -106,7 +106,7 @@ export async function calculateFinalValuation(
     priceRange,
     confidenceScore,
     adjustments,
-    aiSummary: aiCondition?.aiSummary,
+    aiSummary: aiCondition?.summary, // Fix: use summary instead of aiSummary
     conditionSource: aiCondition ? 'AI' : 'User' 
   };
 }

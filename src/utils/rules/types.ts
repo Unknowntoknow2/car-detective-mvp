@@ -1,28 +1,23 @@
 
 export interface RulesEngineInput {
+  baseValue?: number;
+  basePrice?: number;
   make: string;
   model: string;
-  year?: number;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
   trim?: string;
-  mileage?: number;
-  condition?: string;
-  basePrice?: number;
-  baseValue?: number; // Added for compatibility
-  zipCode?: string;
-  
-  // Additional properties needed by calculators
+  fuelType?: string;
+  transmissionType?: string;
   accidentCount?: number;
-  carfaxData?: any;
   exteriorColor?: string;
-  colorMultiplier?: number;
-  hasOpenRecall?: boolean;
-  transmission?: string;
-  transmissionType?: string; // For backward compatibility
-  transmissionMultiplier?: number;
-  warrantyStatus?: string;
-  
-  // Any other properties that might be accessed
-  [key: string]: any;
+  features?: string[];
+  premiumFeatures?: boolean[] | string[];
+  aiConditionOverride?: any;
+  photoScore?: number;
+  carfaxData?: any;
 }
 
 export interface AdjustmentBreakdown {
@@ -35,9 +30,11 @@ export interface AdjustmentBreakdown {
 }
 
 export interface AdjustmentCalculator {
-  calculate: (input: RulesEngineInput) => AdjustmentBreakdown | Promise<AdjustmentBreakdown> | null | Promise<AdjustmentBreakdown | null>;
+  calculate(input: RulesEngineInput): AdjustmentBreakdown;
 }
 
-export interface EnhancedRulesEngineInput extends RulesEngineInput {
-  baseValue?: number;
+export interface Rule {
+  name: string;
+  description: string;
+  calculate: (input: RulesEngineInput) => AdjustmentBreakdown;
 }

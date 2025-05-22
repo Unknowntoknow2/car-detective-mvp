@@ -1,51 +1,70 @@
 
-import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
+import { downloadValuationPdf, openValuationPdf } from './generateValuationPdf';
 
-export async function downloadPdf(reportData: Partial<ReportData>): Promise<Blob> {
-  // Implement PDF generation and download
-  // This is a placeholder implementation
-  console.log('Generating PDF with data:', reportData);
-  
-  // Create a simple PDF (this would be replaced by actual PDF generation)
-  const pdfContent = `
-    Vehicle Valuation Report
-    ${reportData.year} ${reportData.make} ${reportData.model}
-    Estimated Value: $${reportData.estimatedValue}
-    Generated: ${reportData.generatedAt || new Date().toISOString()}
-  `;
-  
-  // Return a Blob with the PDF content
-  return new Blob([pdfContent], { type: 'application/pdf' });
+export interface ValuationReportInput {
+  mileage: number;
+  estimatedValue: number;
+  confidenceScore: number;
+  condition: string;
+  zipCode: string;
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  isPremium?: boolean;
 }
 
-export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, valuationData: any): Partial<ReportData> {
-  // Convert vehicle info and valuation data to report data format
-  return {
+export interface DecodedVehicleInfo {
+  make: string;
+  model: string;
+  year: number;
+  vin?: string;
+  transmission?: string;
+  state?: string;
+}
+
+/**
+ * Convert vehicle info to report data
+ */
+export function convertVehicleInfoToReportData(
+  vehicleInfo: DecodedVehicleInfo, 
+  valuationData: ValuationReportInput
+): ReportData {
+  const reportData: ReportData = {
+    // Vehicle information
     make: vehicleInfo.make,
     model: vehicleInfo.model,
     year: vehicleInfo.year,
-    mileage: valuationData.mileage || 0,
-    zipCode: vehicleInfo.zipCode || valuationData.zipCode || '10001',
-    // Required property for report data
-    price: valuationData.price || valuationData.estimatedValue || 0,
-    estimatedValue: valuationData.estimatedValue || 0,
-    priceRange: [
-      Math.floor((valuationData.estimatedValue || 0) * 0.95),
-      Math.ceil((valuationData.estimatedValue || 0) * 1.05)
-    ],
-    adjustments: valuationData.adjustments?.map((adj: any) => ({
-      factor: adj.factor || adj.name || '',
-      impact: adj.impact || 0,
-      description: adj.description || `Adjustment for ${adj.factor || adj.name || 'unknown'}`
-    })) || [],
-    generatedAt: new Date().toISOString(),
+    vin: vehicleInfo.vin,
+    mileage: valuationData.mileage,
+    
+    // Valuation information
+    estimatedValue: valuationData.estimatedValue,
     confidenceScore: valuationData.confidenceScore,
-    photoScore: valuationData.photoScore,
-    bestPhotoUrl: valuationData.bestPhotoUrl,
-    isPremium: valuationData.isPremium,
-    aiCondition: valuationData.aiCondition,
-    vin: vehicleInfo.vin || '',
-    explanation: valuationData.explanation || `Valuation for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`
+    
+    // Location information
+    zipCode: valuationData.zipCode,
+    
+    // Condition information
+    aiCondition: {
+      condition: valuationData.condition,
+      confidenceScore: valuationData.confidenceScore,
+      issuesDetected: [],
+      summary: `Vehicle is in ${valuationData.condition} condition.`
+    },
+    
+    // Additional information
+    adjustments: valuationData.adjustments,
+    transmission: vehicleInfo.transmission,
+    premium: valuationData.isPremium,
+    generatedDate: new Date()
   };
+  
+  return reportData;
 }
+
+// Export the PDF functions
+export const downloadPdf = downloadValuationPdf;
+export const openPdf = openValuationPdf;

@@ -1,59 +1,48 @@
-import axios from 'axios';
 
-export async function fetchCarMaxApiListings(
+import { CarMaxListing } from '@/types/listings';
+
+/**
+ * Fetch CarMax listings using their API
+ */
+export async function fetchCarMaxApi(
   make: string,
   model: string,
-  zipCode = '95814',
-  maxResults = 10
-) {
-  const url = `https://www.carmax.com/cars/api/search/run`;
-
-  const payload = {
-    search: {
-      facet: {
-        make: [make],
-        model: [model],
-      },
-      geo: {
-        userInput: zipCode,
-        radius: 250,
-      },
-      pagination: {
-        page: 1,
-        pageSize: maxResults,
-      },
-    },
-    size: maxResults,
-  };
-
-  try {
-    const response = await axios.post(url, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Origin: 'https://www.carmax.com',
-        Referer: 'https://www.carmax.com/',
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
-      },
-    });
-
-    const listings = response.data?.results || [];
-
-    return listings.map((car: any) => ({
-      title: car?.year + ' ' + car?.make + ' ' + car?.model,
-      price: car?.price,
-      mileage: car?.mileage,
-      year: car?.year,
-      vin: car?.vin,
-      image: car?.imageUrl,
-      url: `https://www.carmax.com/car/${car?.stockNumber}`,
-      location: car?.locationName || 'Online',
-      postedDate: new Date().toISOString(),
+  zipCode: string,
+  radius: number = 50
+): Promise<CarMaxListing[]> {
+  console.log(`API Call: CarMax for ${make} ${model} near ${zipCode}`);
+  
+  // Mock implementation - in a real app, this would call the CarMax API
+  const mockListings: CarMaxListing[] = [
+    {
+      id: 'carmax-api-1',
+      title: `${make} ${model} 2020`,
+      price: 25999,
+      mileage: 28500,
+      year: 2020,
+      make,
+      model,
+      url: `https://carmax.com/car/${make}-${model}-2020`,
+      imageUrl: 'https://example.com/carmax1.jpg',
+      location: 'Burbank',
       source: 'carmax',
-    }));
-  } catch (err: any) {
-    console.error('❌ CarMax API fetch failed:', err.message);
-    return [];
-  }
+      listingDate: new Date().toISOString()
+    },
+    {
+      id: 'carmax-api-2',
+      title: `${make} ${model} 2019`,
+      price: 22999,
+      mileage: 32000,
+      year: 2019,
+      make,
+      model,
+      url: `https://carmax.com/car/${make}-${model}-2019`,
+      imageUrl: 'https://example.com/carmax2.jpg',
+      location: 'Woodland Hills',
+      source: 'carmax',
+      listingDate: new Date().toISOString()
+    }
+  ];
+  
+  return mockListings;
 }
