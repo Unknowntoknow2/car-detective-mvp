@@ -22,6 +22,11 @@ interface LoginFormProps {
   setIsLoading: (loading: boolean) => void;
 }
 
+interface SignInResult {
+  success: boolean;
+  error?: string;
+}
+
 export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
   const { signIn, user } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
@@ -67,11 +72,11 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
     
     try {
       console.log("Attempting to sign in with:", values.email);
-      const result = await signIn(values.email, values.password);
+      const result = await signIn(values.email, values.password) as SignInResult;
       
-      if (result === false || (typeof result === 'object' && result?.error)) {
-        const errorMessage = typeof result === 'object' ? result.error : 'Invalid email or password';
-        setFormError(errorMessage || 'Invalid email or password');
+      if (result === false || (typeof result === 'object' && !result.success)) {
+        const errorMessage = typeof result === 'object' && result.error ? result.error : 'Invalid email or password';
+        setFormError(errorMessage);
         setIsLoading(false);
         return;
       }

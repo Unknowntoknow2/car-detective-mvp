@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +17,11 @@ const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
 });
+
+interface SignInResult {
+  success: boolean;
+  error?: string;
+}
 
 export default function DealerAuthPage() {
   const { signIn, user } = useAuth();
@@ -50,11 +56,11 @@ export default function DealerAuthPage() {
     
     try {
       console.log("Attempting to sign in with:", values.email);
-      const result = await signIn(values.email, values.password);
+      const result = await signIn(values.email, values.password) as SignInResult;
       
-      if (result === false || (typeof result === 'object' && result?.error)) {
-        const errorMessage = typeof result === 'object' ? result.error : 'Authentication failed';
-        setError(errorMessage || 'Invalid email or password');
+      if (result === false || (typeof result === 'object' && !result.success)) {
+        const errorMessage = typeof result === 'object' && result.error ? result.error : 'Authentication failed';
+        setError(errorMessage);
         setIsLoading(false);
         return;
       }

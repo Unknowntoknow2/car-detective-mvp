@@ -1,36 +1,32 @@
 
-export enum ConditionLevel {
-  Poor = "Poor",
-  Fair = "Fair",
-  Good = "Good",
-  VeryGood = "Very Good",
-  Excellent = "Excellent"
-}
-
-export interface AccidentDetails {
-  hasAccident: boolean;
-  description?: string;
-  severity?: 'minor' | 'moderate' | 'severe';
-  repaired?: boolean;
-}
-
 export interface ManualEntryFormData {
   make: string;
   model: string;
   year: number;
-  mileage?: number;
-  condition: ConditionLevel | string;
+  condition: string;
   zipCode: string;
-  fuelType?: string;
-  transmission?: string;
+  mileage?: number;
   trim?: string;
   bodyStyle?: string;
   color?: string;
-  // Optional properties to handle various use cases
+  fuelType?: string;
+  transmission?: string;
+  accidents?: {
+    hasAccident: boolean;
+    count?: number;
+    severity?: string;
+  };
   fileType?: string;
   fileName?: string;
-  vin?: string;
-  accidents?: AccidentDetails;
-  // Any additional properties
-  [key: string]: any;
+}
+
+export interface VinLookupFormData {
+  vin: string;
+  zipCode: string;
+}
+
+export interface PlateLookupFormData {
+  plate: string;
+  state: string;
+  zipCode: string;
 }

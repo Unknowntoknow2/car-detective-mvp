@@ -1,72 +1,19 @@
+
 export interface DecodedVehicleInfo {
-  vin: string;
   make: string;
   model: string;
   year: number;
+  vin: string;
   trim?: string;
   engine?: string;
   transmission?: string;
   drivetrain?: string;
   bodyType?: string;
+  exteriorColor?: string;
   fuelType?: string;
-  color?: string;
-  exteriorColor?: string; 
-  interiorColor?: string;
   features?: string[];
-  mileage?: number;
-  valuationId?: string;
-  status?: 'active' | 'sold' | 'pending' | 'draft' | 'available';
-  listingPrice?: number;
-  condition?: string; // Added property
-  zipCode?: string; // Added property
-}
-
-export interface VinDecoderResponse {
-  success: boolean;
-  data?: DecodedVehicleInfo;
-  error?: string;
-}
-
-export interface PlateLookupResponse {
-  success: boolean;
-  data?: DecodedVehicleInfo;
-  error?: string;
-}
-
-export interface ValuationResponse {
-  estimatedValue: number;
-  confidenceScore: number;
-  valuationId: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  vin?: string;
-  plate?: string;
-  state?: string;
-  zipCode?: string;
-  fuelType?: string;
-  transmission?: string;
-  bodyType?: string;
-  trim?: string;
-  color?: string;
-  price_range?: any;
-  priceRange?: any;
-  accidents?: number;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
-  // Add any other properties that might be needed
-  [key: string]: any;
-}
-
-export interface VehicleIdentifier {
-  type: 'vin' | 'plate' | 'manual' | 'photo';
-  value: string;
-  state?: string;
+  condition?: string; // Add this for the tests
+  zipCode?: string; // Add this for the tests
 }
 
 export interface DealerInventoryItem {
@@ -76,21 +23,19 @@ export interface DealerInventoryItem {
   make: string;
   model: string;
   year: number;
-  trim?: string;
+  listingPrice: number;
   price: number;
-  listingPrice?: number;
-  mileage: number;
   condition: string;
+  mileage: number;
+  status: 'available' | 'pending' | 'sold';
+  trim?: string;
   exteriorColor?: string;
   interiorColor?: string;
   transmission?: string;
+  drivetrain?: string;
   fuelType?: string;
   bodyType?: string;
   features?: string[];
-  photos?: string[];
-  created_at?: string;
-  updated_at?: string;
+  images?: string[];
   description?: string;
-  listingUrl?: string;
-  status?: 'active' | 'sold' | 'pending' | 'draft' | 'available';
 }

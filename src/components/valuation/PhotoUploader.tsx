@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DesignCard } from "@/components/ui/design-system";
@@ -236,10 +235,10 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {photos.map((photo, index) => (
-              <DesignCard
-                key={index}
-                variant="outline"
-                className="relative aspect-square group overflow-hidden"
+              <Card 
+                key={index} 
+                variant="outlined" 
+                className="relative aspect-square overflow-hidden"
               >
                 <img
                   src={photo.preview}
@@ -267,7 +266,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                     </div>
                   </div>
                 ) : null}
-              </DesignCard>
+              </Card>
             ))}
             {Array.from({ length: MAX_PHOTOS - photos.length }).map((_, index) => (
               <div 

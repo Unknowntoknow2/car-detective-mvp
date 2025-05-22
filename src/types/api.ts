@@ -38,3 +38,21 @@ export interface ValidationResponse {
   isValid: boolean;
   errors?: Record<string, string>;
 }
+
+export interface ValuationResponse {
+  valuationId: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  zipCode?: string;
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  color?: string;
+  trim?: string;
+  accidents?: number;
+}
