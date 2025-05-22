@@ -24,3 +24,6 @@ export function useMediaQuery(query: string): boolean {
 export function useIsMobile(): boolean {
   return useMediaQuery('(max-width: 768px)');
 }
+
+// Export an alias for backward compatibility
+export const useMobile = useIsMobile;

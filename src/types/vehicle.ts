@@ -1,4 +1,3 @@
-
 export interface DecodedVehicleInfo {
   vin: string;
   make: string;
@@ -18,6 +17,8 @@ export interface DecodedVehicleInfo {
   valuationId?: string;
   status?: 'active' | 'sold' | 'pending' | 'draft' | 'available';
   listingPrice?: number;
+  condition?: string; // Added property
+  zipCode?: string; // Added property
 }
 
 export interface VinDecoderResponse {
