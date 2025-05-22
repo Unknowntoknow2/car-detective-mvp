@@ -48,6 +48,7 @@ serve(async (req) => {
     const userId = session.metadata?.user_id;
     const bundle = parseInt(session.metadata?.bundle || '1', 10);
     const valuationId = session.metadata?.valuation_id;
+    const isSubscription = session.metadata?.is_subscription === 'true';
     
     if (!userId) {
       return new Response(
@@ -81,36 +82,47 @@ serve(async (req) => {
         }).eq('id', valuationId);
       }
       
-      // Set expiration date to 12 months from now
-      const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + 12);
-      
-      // Check if user already has premium access
-      const { data: existingAccess } = await serviceClient
-        .from('premium_credits')
-        .select('*')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false })
-        .limit(1);
-      
-      if (existingAccess && existingAccess.length > 0) {
-        // Add credits to existing access
-        const currentCredits = existingAccess[0].remaining_credits || 0;
-        const newCredits = currentCredits + bundle;
+      if (isSubscription) {
+        // Handle subscription purchase
+        // Set expiration date to 12 months from now
+        const expiresAt = new Date();
+        expiresAt.setMonth(expiresAt.getMonth() + 1); // Monthly subscription
         
-        // Update with new credits and potentially extend expiration
-        await serviceClient.from('premium_credits').update({
-          remaining_credits: newCredits,
+        // Update profile for dealer subscription
+        await serviceClient.from('profiles').update({
+          is_premium_dealer: true,
+          premium_expires_at: expiresAt.toISOString(),
           updated_at: new Date().toISOString()
-        }).eq('id', existingAccess[0].id);
+        }).eq('id', userId);
       } else {
-        // Create new premium access record
-        await serviceClient.from('premium_credits').insert({
-          user_id: userId,
-          remaining_credits: bundle,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        // Handle one-time purchase (credits)
+        // Check if user already has premium access
+        const { data: existingAccess } = await serviceClient
+          .from('premium_credits')
+          .select('*')
+          .eq('user_id', userId)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        
+        if (existingAccess && existingAccess.length > 0) {
+          // Add credits to existing access
+          const currentCredits = existingAccess[0].remaining_credits || 0;
+          const newCredits = currentCredits + bundle;
+          
+          // Update with new credits and potentially extend expiration
+          await serviceClient.from('premium_credits').update({
+            remaining_credits: newCredits,
+            updated_at: new Date().toISOString()
+          }).eq('id', existingAccess[0].id);
+        } else {
+          // Create new premium access record
+          await serviceClient.from('premium_credits').insert({
+            user_id: userId,
+            remaining_credits: bundle,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
       }
       
       return new Response(
@@ -118,6 +130,7 @@ serve(async (req) => {
           success: true, 
           paymentSucceeded: true,
           bundle,
+          isSubscription,
           valuationId: valuationId || null
         }),
         { 
