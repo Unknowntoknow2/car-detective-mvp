@@ -13,11 +13,11 @@ interface AccidentDetailsFormProps {
 
 export function AccidentDetailsForm({ value, onChange }: AccidentDetailsFormProps) {
   const handleToggle = (checked: boolean) => {
-    onChange({ ...value, hasAccident: checked });
+    onChange({ ...value, hasAccidents: checked, hasAccident: checked });
   };
 
   const handleSeverityChange = (severity: string) => {
-    onChange({ ...value, severity });
+    onChange({ ...value, severity, accidentSeverity: severity as any });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -33,18 +33,18 @@ export function AccidentDetailsForm({ value, onChange }: AccidentDetailsFormProp
       <div className="flex items-center space-x-2">
         <Switch
           id="accident-toggle"
-          checked={value.hasAccident || false}
+          checked={value.hasAccidents || value.hasAccident || false}
           onCheckedChange={handleToggle}
         />
         <Label htmlFor="accident-toggle">Vehicle has been in an accident</Label>
       </div>
 
-      {value.hasAccident && (
+      {(value.hasAccidents || value.hasAccident) && (
         <div className="pl-6 space-y-4 border-l-2 border-gray-200">
           <div className="space-y-2">
             <Label>Severity</Label>
             <RadioGroup 
-              value={value.severity || 'Minor'} 
+              value={value.severity || value.accidentSeverity || 'Minor'} 
               onValueChange={handleSeverityChange}
               className="flex flex-col space-y-1"
             >

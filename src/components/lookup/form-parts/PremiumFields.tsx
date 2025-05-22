@@ -55,6 +55,7 @@ export const PremiumFields: React.FC<PremiumFieldsProps> = ({
   const toggleAccidentHistory = (checked: boolean) => {
     setAccidentDetails({
       ...accidentDetails,
+      hasAccidents: checked,
       hasAccident: checked
     });
   };
@@ -102,7 +103,7 @@ export const PremiumFields: React.FC<PremiumFieldsProps> = ({
           </Label>
           <Switch
             id="accident-history"
-            checked={accidentDetails.hasAccident}
+            checked={accidentDetails.hasAccidents || accidentDetails.hasAccident || false}
             onCheckedChange={toggleAccidentHistory}
           />
         </div>
