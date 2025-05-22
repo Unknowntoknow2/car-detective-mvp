@@ -2,31 +2,43 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MarketTrendCard } from './MarketTrendCard';
-import { LocalMarketCard } from './LocalMarketCard';
-import { PriceComparisonChart } from './PriceComparisonChart';
-import { ComparableListingsTable } from './ComparableListingsTable';
+import { MarketTrendCard } from '@/components/premium/sections/valuation-tabs/market-analysis/MarketTrendCard';
+import { LocalMarketCard } from '@/components/premium/sections/valuation-tabs/market-analysis/LocalMarketCard';
+import { PriceComparisonChart } from '@/components/premium/sections/valuation-tabs/market-analysis/PriceComparisonChart';
+import { ComparableListingsTable } from '@/components/premium/sections/valuation-tabs/market-analysis/ComparableListingsTable';
 import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
 
 interface MarketAnalysisTabProps {
-  valuationId: string;
+  valuationId?: string;
   isPremium?: boolean;
   zipCode?: string;
   make?: string;
   model?: string;
   year?: number;
   onUpgrade?: () => void;
+  vehicleData?: {
+    make?: string;
+    model?: string;
+    year?: number;
+    trim?: string;
+  };
 }
 
 export function MarketAnalysisTab({
-  valuationId,
+  valuationId = '',
   isPremium = false,
   zipCode = '90210',
   make = 'Unknown',
   model = 'Vehicle',
   year = new Date().getFullYear(),
-  onUpgrade
+  onUpgrade,
+  vehicleData
 }: MarketAnalysisTabProps) {
+  // If vehicleData is provided, use its values instead
+  const vehicleMake = vehicleData?.make || make;
+  const vehicleModel = vehicleData?.model || model;
+  const vehicleYear = vehicleData?.year || year;
+  
   // If not premium, show the lock component
   if (!isPremium) {
     return (
@@ -50,7 +62,7 @@ export function MarketAnalysisTab({
     comparableListings: [
       {
         id: 'cl1',
-        title: `${year} ${make} ${model}`,
+        title: `${vehicleYear} ${vehicleMake} ${vehicleModel}`,
         price: 24500,
         mileage: 35000,
         condition: 'Good',
@@ -60,7 +72,7 @@ export function MarketAnalysisTab({
       },
       {
         id: 'cl2',
-        title: `${year} ${make} ${model}`,
+        title: `${vehicleYear} ${vehicleMake} ${vehicleModel}`,
         price: 25900,
         mileage: 28000,
         condition: 'Excellent',
@@ -70,7 +82,7 @@ export function MarketAnalysisTab({
       },
       {
         id: 'cl3',
-        title: `${year} ${make} ${model}`,
+        title: `${vehicleYear} ${vehicleMake} ${vehicleModel}`,
         price: 23200,
         mileage: 41000,
         condition: 'Good',
@@ -82,7 +94,7 @@ export function MarketAnalysisTab({
   };
   
   // For demo purposes, show a decreasing trend if the year is older
-  if (year < new Date().getFullYear() - 3) {
+  if (vehicleYear < new Date().getFullYear() - 3) {
     mockData.trend = 'decreasing';
     mockData.trendPercentage = -1.8;
   }
@@ -116,10 +128,10 @@ export function MarketAnalysisTab({
             
             <PriceComparisonChart
               vehicleData={{
-                make,
-                model,
-                year,
-                zipCode
+                make: vehicleMake,
+                model: vehicleModel,
+                year: vehicleYear,
+                zipCode: zipCode || '90210'
               }}
             />
           </TabsContent>
