@@ -9,6 +9,7 @@ export const ENABLE_AI_ASSISTANT = true;
 export const ENABLE_PLATE_LOOKUP = true;
 export const ENABLE_PHOTO_UPLOAD = true;
 export const ENABLE_MARKET_TRENDS = true;
+export const SHOW_ALL_COMPONENTS = false; // Added missing constant
 
 // Service URLs
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.cardetective.com';
