@@ -1,96 +1,57 @@
 
 import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
+import { MileageCalculator } from './rules/calculators/mileageCalculator';
+import { ConditionCalculator } from './rules/calculators/conditionCalculator';
+import { LocationCalculator } from './rules/calculators/locationCalculator';
+import { TrimCalculator } from './rules/calculators/trimCalculator';
+import { FuelTypeCalculator } from './rules/calculators/fuelTypeCalculator';
+import { PhotoScoreCalculator } from './rules/calculators/photoScoreCalculator';
 
-// Re-export types with 'export type' syntax for isolatedModules
-export type { RulesEngineInput, AdjustmentBreakdown };
+export async function calculateAdjustments(input: RulesEngineInput): Promise<{
+  adjustments: AdjustmentBreakdown[];
+  finalValue: number;
+  totalAdjustment: number;
+}> {
+  const calculators = [
+    new MileageCalculator(),
+    new ConditionCalculator(),
+    new LocationCalculator(),
+    new TrimCalculator(),
+    new FuelTypeCalculator(),
+    new PhotoScoreCalculator(),
+    // Add other calculators as needed
+  ];
 
-// Default export (placeholder for rulesEngine implementation)
-export default {
-  calculateAdjustments: async (input: RulesEngineInput): Promise<AdjustmentBreakdown[]> => {
-    // Mock implementation
-    return [
-      {
-        name: 'Mileage',
-        factor: 'Mileage',
-        value: calculateMileageAdjustment(input),
-        impact: calculateMileageAdjustment(input),
-        description: getMileageAdjustmentDescription(input),
-        percentAdjustment: calculateMileagePercentage(input)
-      },
-      {
-        name: 'Condition',
-        factor: 'Condition',
-        value: calculateConditionAdjustment(input),
-        impact: calculateConditionAdjustment(input),
-        description: `Based on ${input.condition} condition`,
-        percentAdjustment: calculateConditionPercentage(input)
-      },
-      {
-        name: 'Market Demand',
-        factor: 'Market Demand',
-        value: input.basePrice * 0.03,
-        impact: input.basePrice * 0.03,
-        description: 'Current market demand in your region',
-        percentAdjustment: 3
+  const adjustments: AdjustmentBreakdown[] = [];
+  let totalAdjustment = 0;
+
+  // Make sure basePrice has a default value
+  const basePrice = input.basePrice || input.baseValue || 0;
+  input.basePrice = basePrice;
+  input.baseValue = basePrice;
+
+  for (const calculator of calculators) {
+    try {
+      const adjustment = await calculator.calculate(input);
+      if (adjustment) {
+        adjustments.push(adjustment);
+        totalAdjustment += adjustment.impact || 0;
+        
+        // For calculators that use percentAdjustment
+        if (adjustment.percentAdjustment && adjustment.value !== undefined) {
+          totalAdjustment += adjustment.value;
+        }
       }
-    ];
-  },
-  calculateTotalAdjustment: (adjustments: AdjustmentBreakdown[]): number => {
-    return adjustments.reduce((sum, adjustment) => sum + adjustment.value, 0);
+    } catch (error) {
+      console.error(`Error in calculator ${calculator.constructor.name}:`, error);
+    }
   }
-};
 
-// Helper functions
-function calculateMileageAdjustment(input: RulesEngineInput): number {
-  const avgMileagePerYear = 12000;
-  const vehicleAge = new Date().getFullYear() - input.year;
-  const expectedMileage = vehicleAge * avgMileagePerYear;
-  const mileageDifference = input.mileage - expectedMileage;
-  
-  if (mileageDifference <= 0) {
-    return Math.min(input.basePrice * 0.05, 1500); // Bonus for low mileage
-  } else {
-    const excessMileagePenalty = mileageDifference * -0.05;
-    return Math.max(excessMileagePenalty, input.basePrice * -0.1); // Cap at 10% penalty
-  }
-}
+  const finalValue = Math.max(0, basePrice + totalAdjustment);
 
-function calculateMileagePercentage(input: RulesEngineInput): number {
-  const adjustment = calculateMileageAdjustment(input);
-  return (adjustment / input.basePrice) * 100;
-}
-
-function getMileageAdjustmentDescription(input: RulesEngineInput): string {
-  const avgMileagePerYear = 12000;
-  const vehicleAge = new Date().getFullYear() - input.year;
-  const expectedMileage = vehicleAge * avgMileagePerYear;
-  
-  if (input.mileage < expectedMileage) {
-    return `Lower than average mileage (${input.mileage.toLocaleString()} vs expected ${expectedMileage.toLocaleString()})`;
-  } else {
-    return `Higher than average mileage (${input.mileage.toLocaleString()} vs expected ${expectedMileage.toLocaleString()})`;
-  }
-}
-
-function calculateConditionAdjustment(input: RulesEngineInput): number {
-  // Override with AI condition if available
-  const condition = input.aiConditionOverride?.condition || input.condition;
-  
-  switch (condition.toLowerCase()) {
-    case 'excellent':
-      return input.basePrice * 0.08;
-    case 'good':
-      return input.basePrice * 0.02;
-    case 'fair':
-      return input.basePrice * -0.05;
-    case 'poor':
-      return input.basePrice * -0.15;
-    default:
-      return 0;
-  }
-}
-
-function calculateConditionPercentage(input: RulesEngineInput): number {
-  const adjustment = calculateConditionAdjustment(input);
-  return (adjustment / input.basePrice) * 100;
+  return {
+    adjustments,
+    finalValue,
+    totalAdjustment,
+  };
 }

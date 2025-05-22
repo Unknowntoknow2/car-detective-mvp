@@ -8,19 +8,15 @@ interface AuthRouteProps {
 }
 
 export default function AuthRoute({ children }: AuthRouteProps) {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading && user) {
-      // If user is already authenticated, redirect based on role
-      if (userRole === 'dealer') {
-        navigate('/dealer-dashboard', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
+      // If user is already authenticated, redirect to dashboard
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, userRole, isLoading, navigate]);
+  }, [user, isLoading, navigate]);
 
   // Show loading state while checking authentication
   if (isLoading) {
