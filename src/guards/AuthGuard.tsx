@@ -29,7 +29,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   // If user is not authenticated, redirect to login page
   if (!user) {
     // Save the attempted URL for redirection after login
-    return <Navigate to="/login-user" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // If user is authenticated, render the protected route
