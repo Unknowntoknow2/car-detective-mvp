@@ -6,6 +6,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import routes from './router';
 import { Toaster } from 'sonner';
+import { AnimatePresence } from 'framer-motion';
 
 function App() {
   // Use the routes configuration
@@ -23,7 +24,9 @@ function App() {
         <Toaster richColors position="top-center" />
         <Navbar />
         <main className="flex-1">
-          {appRoutes}
+          <AnimatePresence mode="wait">
+            {appRoutes}
+          </AnimatePresence>
         </main>
         <Footer />
       </div>
