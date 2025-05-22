@@ -11,6 +11,9 @@ function App() {
   // Use the routes configuration
   const appRoutes = useRoutes(routes);
 
+  // Add diagnostic logging to help with debugging
+  console.log('✅ App rendering with routes');
+
   return (
     <AuthProvider>
       <div className="flex flex-col min-h-screen">
