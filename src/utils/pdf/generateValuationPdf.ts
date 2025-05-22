@@ -1,5 +1,7 @@
 
 import { ReportData } from './types';
+import { generateBasicValuationReport } from './generators/basicReportGenerator';
+import { generatePremiumReport } from './generators/premiumReportGenerator';
 
 /**
  * Generate a PDF for the valuation report
@@ -7,12 +9,36 @@ import { ReportData } from './types';
  * @returns A buffer containing the PDF data
  */
 export const generateValuationPdf = async (data: ReportData): Promise<Buffer> => {
-  // This is a placeholder implementation
-  // The actual implementation would use PDF generation libraries
-  // like @react-pdf/renderer as mocked in the test
-  
-  // For now just return a mock buffer
-  return Buffer.from('Mock PDF content');
+  try {
+    // Determine which report generator to use based on isPremium flag
+    const doc = data.isPremium 
+      ? await generatePremiumReport(data)
+      : await generateBasicValuationReport(data);
+    
+    // Finalize the document and convert to buffer
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      
+      doc.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      
+      doc.on('end', () => {
+        const result = Buffer.concat(chunks);
+        resolve(result);
+      });
+      
+      doc.on('error', (err: Error) => {
+        reject(err);
+      });
+      
+      doc.end();
+    });
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    // Return a simple buffer for error cases
+    return Buffer.from('Error generating PDF');
+  }
 };
 
 /**
@@ -42,7 +68,7 @@ export const downloadValuationPdf = async (
     
     // Clean up
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    URL.revoObjectURL(url);
   } catch (error) {
     console.error('Error downloading valuation PDF:', error);
     throw error;

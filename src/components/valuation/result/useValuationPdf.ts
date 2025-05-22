@@ -33,12 +33,11 @@ export const useValuationPdf = ({
     
     try {
       // Format data for PDF generation - handling both naming conventions
-      const reportData: Partial<ReportData> = {
+      const reportData: ReportData = {
         make: valuationData.make || 'Unknown',
         model: valuationData.model || 'Unknown',
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
-        condition: valuationData.condition || 'Unknown',
         // Use estimated_value or estimatedValue as price
         price: valuationData.estimated_value || valuationData.estimatedValue || 0,
         estimatedValue: valuationData.estimated_value || valuationData.estimatedValue || 0,
@@ -50,10 +49,12 @@ export const useValuationPdf = ({
         bodyType: valuationData.bodyType || valuationData.bodyStyle || '', 
         confidenceScore: valuationData.confidence_score || valuationData.confidenceScore || 75,
         isPremium: isPremium,
-        priceRange: valuationData.priceRange || [
-          Math.floor((valuationData.estimated_value || valuationData.estimatedValue || 0) * 0.95),
-          Math.ceil((valuationData.estimated_value || valuationData.estimatedValue || 0) * 1.05)
-        ],
+        priceRange: valuationData.priceRange && Array.isArray(valuationData.priceRange) && valuationData.priceRange.length >= 2 
+          ? [valuationData.priceRange[0], valuationData.priceRange[1]] 
+          : [
+              Math.floor((valuationData.estimated_value || valuationData.estimatedValue || 0) * 0.95),
+              Math.ceil((valuationData.estimated_value || valuationData.estimatedValue || 0) * 1.05)
+            ],
         // Convert adjustments to match ReportData format
         adjustments: valuationData.adjustments?.map((adj: any) => ({
           factor: adj.factor || '',
@@ -70,12 +71,14 @@ export const useValuationPdf = ({
           summary: conditionData.summary || '',
           score: conditionData.confidenceScore || 0,
           issuesDetected: conditionData.issuesDetected,
+          condition: conditionData.condition
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = {
           summary: valuationData.aiCondition.summary || '',
           score: valuationData.aiCondition.confidenceScore || 0,
           issuesDetected: valuationData.aiCondition.issuesDetected,
+          condition: valuationData.aiCondition.condition
         };
       }
       

@@ -91,3 +91,33 @@ export const formatCurrency = (value: number | undefined, currency: string = 'US
 export const clamp = (value: number, min: number, max: number): number => {
   return Math.min(Math.max(value, min), max);
 };
+
+/**
+ * Handle margin values safely
+ * @param margin The margin value
+ * @returns A safe margin value
+ */
+export const safeMargin = (margin?: number): number => {
+  return margin ?? 40;
+};
+
+/**
+ * Get safe dimensions from a PDF document
+ * @param doc The PDF document
+ * @returns An object with width and height
+ */
+export const safeDimensions = (doc: any): { width: number, height: number } => {
+  const width = doc.page?.width || 595;
+  const height = doc.page?.height || 842;
+  return { width, height };
+};
+
+/**
+ * Calculate content width based on page width and margin
+ * @param width The page width
+ * @param margin The margin
+ * @returns The content width
+ */
+export const contentWidth = (width: number, margin: number): number => {
+  return width - (margin * 2);
+};
