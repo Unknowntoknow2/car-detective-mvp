@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -20,6 +21,7 @@ import Layout from './components/layout/Layout';
 import SignInPage from './pages/auth/SignInPage';
 import AuthPage from './pages/AuthPage';
 
+// Export routes configuration that can be used with useRoutes() hook
 const routes: RouteObject[] = [
   {
     path: '/',
