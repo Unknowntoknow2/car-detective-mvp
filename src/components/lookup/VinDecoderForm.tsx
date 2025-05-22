@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { isValidVIN } from "@/utils/validation/vin-validation";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
@@ -52,53 +52,19 @@ const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
         return;
       }
       
-      // Call the unified-decode edge function directly
-      const { data, error } = await supabase.functions.invoke('unified-decode', {
-        body: { vin }
-      });
+      // If no onSubmit handler, use the useValuation hook
+      const result = await decodeVin(vin);
       
-      if (error) {
-        throw new Error(error.message);
+      if (result.success) {
+        toast.success("Vehicle found successfully!");
+        // Navigation will be handled by the hook
+      } else {
+        throw new Error(result.error || "Failed to lookup VIN");
       }
-      
-      // Create a valuation with the decoded data
-      const vehicleData = {
-        vin,
-        make: data?.make || 'Unknown',
-        model: data?.model || 'Unknown',
-        year: data?.year || new Date().getFullYear(),
-        bodyType: data?.bodyType,
-        fuelType: data?.fuelType,
-        transmission: data?.transmission
-      };
-      
-      // Create valuation in database
-      const { data: valuationData, error: valuationError } = await supabase
-        .from('valuations')
-        .insert({
-          vin,
-          make: vehicleData.make,
-          model: vehicleData.model,
-          year: vehicleData.year,
-          fuel_type: vehicleData.fuelType,
-          transmission: vehicleData.transmission,
-          is_vin_lookup: true,
-          estimated_value: Math.floor(15000 + Math.random() * 10000), // Placeholder until real valuation
-          confidence_score: 85,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        })
-        .select()
-        .single();
-      
-      if (valuationError) {
-        throw new Error(valuationError.message);
-      }
-      
-      // Navigate to result page
-      navigate(`/valuation/${valuationData.id}`);
     } catch (err) {
       console.error("Error in VIN lookup:", err);
       toast.error(err instanceof Error ? err.message : "Failed to lookup VIN");
+      setValidationError(err instanceof Error ? err.message : "Failed to lookup VIN");
     } finally {
       setIsLoading(false);
     }
@@ -119,15 +85,18 @@ const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
               onChange={handleVinChange}
               placeholder="Enter 17-character VIN"
               className={validationError ? "border-red-500" : ""}
+              aria-invalid={!!validationError}
+              aria-describedby={validationError ? "vin-error" : undefined}
             />
             {validationError && (
-              <p className="text-sm text-red-500">{validationError}</p>
+              <p id="vin-error" className="text-sm text-red-500">{validationError}</p>
             )}
           </div>
           <Button 
             type="submit" 
             className="w-full" 
             disabled={isLoading}
+            data-testid="vin-lookup-button"
           >
             {isLoading ? (
               <>

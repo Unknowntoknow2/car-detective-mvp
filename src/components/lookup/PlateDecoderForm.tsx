@@ -10,7 +10,6 @@ import { states } from '@/data/states';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useValuation } from '@/hooks/useValuation';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PlateDecoderFormProps {
   onSubmit?: (plate: string, state: string) => void;
@@ -64,58 +63,21 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
         return;
       }
       
-      // Call the unified-decode edge function
-      const { data, error } = await supabase.functions.invoke('unified-decode', {
-        body: { plate, state }
-      });
+      // If no onSubmit handler, use the decodePlate hook
+      const result = await decodePlate(plate, state);
       
-      if (error) {
-        throw new Error(error.message);
+      if (result.success) {
+        toast.success('Vehicle found successfully!');
+        // Navigation will be handled by the hook
+      } else {
+        throw new Error(result.error || 'Failed to lookup license plate');
       }
-      
-      // Create a valuation with the decoded data
-      const vehicleData = {
-        plate,
-        state,
-        make: data?.make || 'Unknown',
-        model: data?.model || 'Unknown',
-        year: data?.year || new Date().getFullYear(),
-        color: data?.color,
-        bodyType: data?.bodyType,
-        fuelType: data?.fuelType,
-        transmission: data?.transmission
-      };
-      
-      // Create valuation in database
-      const { data: valuationData, error: valuationError } = await supabase
-        .from('valuations')
-        .insert({
-          plate,
-          state,
-          make: vehicleData.make,
-          model: vehicleData.model,
-          year: vehicleData.year,
-          color: vehicleData.color,
-          fuel_type: vehicleData.fuelType,
-          transmission: vehicleData.transmission,
-          is_vin_lookup: false,
-          estimated_value: Math.floor(12000 + Math.random() * 8000), // Placeholder until real valuation
-          confidence_score: 75,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          zip_code: zipCode
-        })
-        .select()
-        .single();
-      
-      if (valuationError) {
-        throw new Error(valuationError.message);
-      }
-      
-      // Navigate to result page
-      navigate(`/valuation/${valuationData.id}`);
     } catch (error) {
       console.error('Error during plate lookup:', error);
       toast.error('Failed to lookup license plate. Please try again or use manual entry.');
+      setValidationErrors({
+        general: error instanceof Error ? error.message : 'Failed to lookup license plate'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -137,9 +99,11 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
                 onChange={(e) => setPlate(e.target.value.toUpperCase())}
                 placeholder="Enter plate number"
                 className={validationErrors.plate ? 'border-red-500' : ''}
+                aria-invalid={!!validationErrors.plate}
+                aria-describedby={validationErrors.plate ? "plate-error" : undefined}
               />
               {validationErrors.plate && (
-                <p className="text-sm text-red-500">{validationErrors.plate}</p>
+                <p id="plate-error" className="text-sm text-red-500">{validationErrors.plate}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -148,6 +112,8 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
                 <SelectTrigger 
                   id="state"
                   className={validationErrors.state ? 'border-red-500' : ''}
+                  aria-invalid={!!validationErrors.state}
+                  aria-describedby={validationErrors.state ? "state-error" : undefined}
                 >
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
@@ -160,7 +126,7 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
                 </SelectContent>
               </Select>
               {validationErrors.state && (
-                <p className="text-sm text-red-500">{validationErrors.state}</p>
+                <p id="state-error" className="text-sm text-red-500">{validationErrors.state}</p>
               )}
             </div>
           </div>
@@ -173,16 +139,26 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
               onChange={(e) => setZipCode(e.target.value)}
               placeholder="Enter ZIP code"
               className={validationErrors.zipCode ? 'border-red-500' : ''}
+              aria-invalid={!!validationErrors.zipCode}
+              aria-describedby={validationErrors.zipCode ? "zip-error" : undefined}
             />
             {validationErrors.zipCode && (
-              <p className="text-sm text-red-500">{validationErrors.zipCode}</p>
+              <p id="zip-error" className="text-sm text-red-500">{validationErrors.zipCode}</p>
             )}
           </div>
+          
+          {validationErrors.general && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-700">{validationErrors.general}</p>
+            </div>
+          )}
           
           <Button
             type="submit"
             className="w-full"
             disabled={isLoading}
+            data-testid="plate-lookup-button"
           >
             {isLoading ? (
               <>

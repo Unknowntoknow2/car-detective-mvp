@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/utils/pdf';
-import { ReportData, ReportOptions } from '@/utils/pdf/types';
+import { ReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 
 interface UseValuationPdfProps {
@@ -34,10 +34,11 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         estimatedValue: valuationData.estimatedValue,
         confidenceScore: valuationData.confidenceScore || 0,
         vin: valuationData.vin,
-        zipCode: valuationData.zipCode,
+        zipCode: valuationData.zipCode || valuationData.zip_code,
         isPremium: isPremium,
         adjustments: valuationData.adjustments || [],
         generatedAt: new Date().toISOString(),
+        priceRange: [0, 0] // Will be replaced below
       };
       
       // Handle priceRange conversion - ensure it's always a tuple format
@@ -137,7 +138,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         confidenceScore: 92,
         vin: 'SAMPLE1234567890',
         zipCode: '90210',
-        isPremium: true,
+        isPremium: false, // Set to false for the sample
         adjustments: [
           {
             factor: 'Mileage',
@@ -153,20 +154,9 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
             factor: 'Market Demand',
             impact: 500,
             description: 'High demand in your area'
-          },
-          {
-            factor: 'Optional Features',
-            impact: 1500,
-            description: 'Premium package with navigation'
           }
         ],
         generatedAt: new Date().toISOString(),
-        aiCondition: {
-          condition: 'Excellent',
-          confidenceScore: 94,
-          issuesDetected: [],
-          summary: 'Vehicle is in excellent condition with no visible issues.'
-        },
         // Use tuple format directly
         priceRange: [25500, 28000],
       };

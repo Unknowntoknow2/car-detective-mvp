@@ -6,7 +6,7 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -49,6 +49,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   isPremium = false
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   
   const form = useForm<FormValues>({
@@ -93,6 +94,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     
     // Handle submission ourselves
     setIsSubmitting(true);
+    setError(null);
     
     try {
       // Calculate estimated value based on basic formula (real implementation would be more complex)
@@ -120,6 +122,13 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       }
       
       const estimatedValue = Math.floor(basePrice * yearFactor * mileageFactor * conditionFactor);
+      const confidenceScore = 80;
+      
+      // Calculate price range (±5% of estimated value)
+      const priceRange: [number, number] = [
+        Math.floor(estimatedValue * 0.95),
+        Math.ceil(estimatedValue * 1.05)
+      ];
       
       // Create valuation in database
       const { data: valuationData, error: valuationError } = await supabase
@@ -136,8 +145,8 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           color: formattedData.color,
           is_vin_lookup: false,
           estimated_value: estimatedValue,
-          confidence_score: 80,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          confidence_score: confidenceScore,
+          price_range: priceRange,
           zip_code: formattedData.zipCode
         })
         .select()
@@ -148,9 +157,11 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       }
       
       // Navigate to result page
+      toast.success('Valuation completed!');
       navigate(`/valuation/${valuationData.id}`);
-    } catch (error) {
-      console.error('Error creating valuation:', error);
+    } catch (err) {
+      console.error('Error creating valuation:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create valuation. Please try again.');
       toast.error('Failed to create valuation. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -182,7 +193,14 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         {/* VIN field with validation */}
         <VinInputField form={form} />
         
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+        
+        <Button type="submit" className="w-full" disabled={isLoading} data-testid="manual-entry-submit">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

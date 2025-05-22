@@ -1,9 +1,24 @@
 
 import type { DecodedVehicleInfo } from '@/types/vehicle';
-import { ReportData as ReportDataType, AdjustmentItem } from './pdf/types';
+import { AdjustmentItem } from './pdf/types';
 
-// Don't redefine ReportData - instead use a type alias to avoid conflicts
-export type ReportData = ReportDataType;
+// Define the ReportData type directly here
+export interface ReportData {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  zipCode: string;
+  adjustments: AdjustmentItem[];
+  vin?: string;
+  aiCondition?: any;
+  isPremium?: boolean;
+  generatedAt: string;
+  priceRange: [number, number]; // Always as tuple format
+}
 
 export function convertVehicleInfoToReportData(
   vehicleInfo: DecodedVehicleInfo, 
@@ -43,37 +58,8 @@ export async function downloadPdf(reportData: ReportData): Promise<void> {
   console.log('Generating PDF with data:', reportData);
   
   // Ensure priceRange is always in tuple format [min, max]
-  if (reportData.priceRange) {
-    if (Array.isArray(reportData.priceRange)) {
-      // Already a tuple, make sure it has two elements
-      if (reportData.priceRange.length < 2) {
-        reportData.priceRange = [
-          Math.floor(reportData.estimatedValue * 0.95),
-          Math.ceil(reportData.estimatedValue * 1.05)
-        ];
-      }
-    } else if (typeof reportData.priceRange === 'object') {
-      // Handle the object format with explicit type checking
-      const priceObj = reportData.priceRange as any;
-      
-      if ('min' in priceObj && 'max' in priceObj) {
-        reportData.priceRange = [Number(priceObj.min), Number(priceObj.max)];
-      } else {
-        // Fallback if the format is unexpected
-        reportData.priceRange = [
-          Math.floor(reportData.estimatedValue * 0.95),
-          Math.ceil(reportData.estimatedValue * 1.05)
-        ];
-      }
-    } else {
-      // If it's neither an array nor an object, set a default
-      reportData.priceRange = [
-        Math.floor(reportData.estimatedValue * 0.95),
-        Math.ceil(reportData.estimatedValue * 1.05)
-      ];
-    }
-  } else {
-    // If priceRange is undefined, calculate a default
+  if (!reportData.priceRange || !Array.isArray(reportData.priceRange) || reportData.priceRange.length !== 2) {
+    // Set a default price range based on the estimated value
     reportData.priceRange = [
       Math.floor(reportData.estimatedValue * 0.95),
       Math.ceil(reportData.estimatedValue * 1.05)
