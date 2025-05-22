@@ -52,11 +52,14 @@ export interface ValuationResponse {
   color?: string;
   price_range?: any;
   priceRange?: any;
+  accidents?: number;
   adjustments?: Array<{
     factor: string;
     impact: number;
     description: string;
   }>;
+  // Add any other properties that might be needed
+  [key: string]: any;
 }
 
 export interface VehicleIdentifier {
