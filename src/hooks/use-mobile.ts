@@ -26,3 +26,24 @@ export const useIsMobile = (): boolean => {
   
   return isMobile;
 };
+
+export const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia(query);
+      setMatches(mediaQuery.matches);
+
+      const handleChange = (event: MediaQueryListEvent) => {
+        setMatches(event.matches);
+      };
+
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+    return undefined;
+  }, [query]);
+
+  return matches;
+};
