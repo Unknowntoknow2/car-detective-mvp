@@ -5,13 +5,17 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
-interface ComparableListing {
+export interface ComparableListing {
   title: string;
   price: number;
   source: string;
   mileage?: number;
   url?: string;
   distance?: number;
+  id?: string;
+  condition?: string;
+  location?: string;
+  daysListed?: number;
 }
 
 interface ComparableListingsTableProps {
@@ -45,7 +49,7 @@ export function ComparableListingsTable({ listings }: ComparableListingsTablePro
           </TableHeader>
           <TableBody>
             {listings.map((listing, index) => (
-              <TableRow key={index}>
+              <TableRow key={listing.id || index}>
                 <TableCell className="font-medium">{listing.title}</TableCell>
                 <TableCell>{formatCurrency(listing.price)}</TableCell>
                 <TableCell>
