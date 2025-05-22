@@ -8,8 +8,8 @@ export interface AuthContextType {
   session: any;
   userDetails: any;
   userRole?: UserRole;
-  isLoading: boolean;
   error?: any;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
   signOut: () => Promise<void>;
