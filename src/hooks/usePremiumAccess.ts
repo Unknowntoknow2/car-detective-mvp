@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PremiumAccessState {
@@ -8,164 +7,89 @@ interface PremiumAccessState {
   creditsRemaining: number;
   isLoading: boolean;
   error: string | null;
-  expiresAt: string | null;
 }
 
-export function usePremiumAccess(valuationId?: string) {
-  const { user, userRole } = useAuth();
+export const usePremiumAccess = (valuationId?: string) => {
   const [state, setState] = useState<PremiumAccessState>({
     hasPremiumAccess: false,
     creditsRemaining: 0,
     isLoading: true,
-    error: null,
-    expiresAt: null
+    error: null
   });
 
   useEffect(() => {
-    async function checkPremiumAccess() {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
+    const checkPremiumAccess = async () => {
       try {
-        // If no user is logged in, they don't have premium access
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) throw userError;
+        
         if (!user) {
           setState({
             hasPremiumAccess: false,
             creditsRemaining: 0,
             isLoading: false,
-            error: null,
-            expiresAt: null
+            error: null
           });
           return;
         }
         
-        // Check if user has admin role (always has access)
-        const hasAdminRole = userRole === 'admin';
-        
-        // Check if user has premium dealer role
-        const hasPremiumRole = userRole === 'premium' || user?.role === 'premium' || userRole === 'admin';
-        
-        // For specific valuation access, check the premium_valuations table
-        let valuationPremiumUnlocked = false;
+        // If we have a valuation ID, check if it already has premium access
         if (valuationId) {
-          // First check if this specific valuation has been unlocked
-          const { data: premiumValuation, error: premiumValuationError } = await supabase
+          const { data: premiumValuation, error: pvError } = await supabase
             .from('premium_valuations')
             .select('*')
             .eq('user_id', user.id)
             .eq('valuation_id', valuationId)
             .maybeSingle();
             
-          if (!premiumValuationError && premiumValuation) {
-            valuationPremiumUnlocked = true;
-          }
-          
-          // Also check if the valuation itself is marked as premium_unlocked
-          const { data: valuation, error: valuationError } = await supabase
-            .from('valuations')
-            .select('premium_unlocked')
-            .eq('id', valuationId)
-            .maybeSingle();
-            
-          if (!valuationError && valuation?.premium_unlocked) {
-            valuationPremiumUnlocked = true;
+          if (premiumValuation) {
+            setState({
+              hasPremiumAccess: true,
+              creditsRemaining: 0, // We'll get this from the premium_access table below
+              isLoading: false,
+              error: null
+            });
+            return;
           }
         }
         
-        // Check for available premium credits
-        const { data: premiumAccess, error: premiumAccessError } = await supabase
+        // Check user's premium access
+        const { data: premiumAccess, error: accessError } = await supabase
           .from('premium_access')
           .select('*')
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false })
           .limit(1)
           .maybeSingle();
+          
+        if (accessError) throw accessError;
         
-        if (premiumAccessError) {
-          console.error("Error checking premium access:", premiumAccessError);
-        }
-        
-        const hasCredits = premiumAccess && 
-                         premiumAccess.credits_remaining > 0 && 
-                         (!premiumAccess.expires_at || new Date(premiumAccess.expires_at) > new Date());
-        
-        // User has premium access if they have admin/premium role, specific valuation access, or credits
-        const hasPremium = hasAdminRole || hasPremiumRole || valuationPremiumUnlocked || hasCredits;
+        // Determine if user has valid premium access
+        const hasAccess = !!premiumAccess && 
+                          premiumAccess.credits_remaining > 0 && 
+                          (!premiumAccess.expires_at || new Date(premiumAccess.expires_at) > new Date());
         
         setState({
-          hasPremiumAccess: hasPremium,
+          hasPremiumAccess: hasAccess,
           creditsRemaining: premiumAccess?.credits_remaining || 0,
           isLoading: false,
-          error: null,
-          expiresAt: premiumAccess?.expires_at || null
+          error: null
         });
-      } catch (error) {
-        console.error("Error checking premium access:", error);
+      } catch (err) {
+        console.error('Error checking premium access:', err);
         setState({
           hasPremiumAccess: false,
           creditsRemaining: 0,
           isLoading: false,
-          error: "Failed to check premium access",
-          expiresAt: null
+          error: err instanceof Error ? err.message : 'Failed to check premium access'
         });
       }
-    }
+    };
     
     checkPremiumAccess();
-  }, [user, userRole, valuationId]);
+  }, [valuationId]);
 
-  // Function to use a premium credit for a valuation
-  const usePremiumCredit = async (valueValuationId: string): Promise<boolean> => {
-    if (!user || !valueValuationId) return false;
-    
-    try {
-      // First check if this valuation is already unlocked
-      const { data: existingValuation } = await supabase
-        .from('premium_valuations')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('valuation_id', valueValuationId)
-        .maybeSingle();
-        
-      if (existingValuation) {
-        return true; // Already unlocked
-      }
-      
-      // Get current premium access
-      const { data: premiumAccess } = await supabase
-        .from('premium_access')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (!premiumAccess || premiumAccess.credits_remaining <= 0) {
-        return false; // No credits available
-      }
-      
-      // Start a transaction to update credits and mark valuation as premium
-      const { error: updateError } = await supabase.rpc('use_premium_credit', {
-        user_id_param: user.id,
-        valuation_id_param: valueValuationId
-      });
-      
-      if (updateError) {
-        console.error("Error using premium credit:", updateError);
-        return false;
-      }
-      
-      // Refresh the state
-      setState(prev => ({ ...prev, creditsRemaining: prev.creditsRemaining - 1 }));
-      
-      return true;
-    } catch (error) {
-      console.error("Error using premium credit:", error);
-      return false;
-    }
-  };
-
-  return {
-    ...state,
-    usePremiumCredit
-  };
-}
+  return state;
+};

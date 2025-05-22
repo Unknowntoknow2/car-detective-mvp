@@ -7,9 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { states } from '@/data/states';
 import { AlertTriangle, Loader2 } from 'lucide-react';
-import { useValuationFallback } from '@/hooks/useValuationFallback';
-import ManualEntryForm from './ManualEntryForm';
-import { plateSchema, validateForm } from '@/components/form/validation';
+import { useValuation } from '@/hooks/useValuation';
 import { toast } from 'sonner';
 
 interface PlateDecoderFormProps {
@@ -24,19 +22,30 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const { fallbackState, setFallbackForPlate, shouldShowManualEntry } = useValuationFallback();
+  
+  const { decodePlate, isLoading } = useValuation();
   
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form data
-    const validation = validateForm(plateSchema, { plate, state, zipCode });
+    const errors: Record<string, string> = {};
     
-    if (!validation.success) {
-      console.log('PLATE LOOKUP: Validation failed', validation.errors);
-      setValidationErrors(validation.errors || {});
+    if (!plate.trim()) {
+      errors.plate = 'License plate is required';
+    }
+    
+    if (!state) {
+      errors.state = 'State is required';
+    }
+    
+    if (!zipCode.trim() || !/^\d{5}$/.test(zipCode)) {
+      errors.zipCode = 'Valid 5-digit ZIP code is required';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
     
@@ -50,51 +59,13 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
     }
     
     try {
-      setIsLoading(true);
-      console.log('PLATE LOOKUP: Looking up plate', plate, 'in state', state);
-      
-      // Simulate API call with random success/failure
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const success = Math.random() > 0.5; // Simulate 50% failure rate for testing
-      
-      if (!success) {
-        console.error('PLATE LOOKUP: Lookup failed');
-        setFallbackForPlate();
-      } else {
-        console.log('PLATE LOOKUP: Lookup successful');
-        toast.success('Vehicle found!');
-        // In a real app, you'd store the result and update the UI
-      }
+      // Use our hook to decode the plate
+      await decodePlate(plate, state);
     } catch (error) {
-      console.error('PLATE LOOKUP: Error during lookup:', error);
-      setFallbackForPlate();
-    } finally {
-      setIsLoading(false);
+      console.error('Error during plate lookup:', error);
+      toast.error('Failed to lookup license plate. Please try again or use manual entry.');
     }
-  }, [plate, state, zipCode, onSubmit, setFallbackForPlate]);
-  
-  const handleManualSubmit = useCallback((data: any) => {
-    console.log('PLATE LOOKUP: Fallback to manual entry with data:', data);
-    toast.success('Vehicle information submitted manually');
-  }, []);
-  
-  // If lookup failed and in fallback mode, show manual entry
-  if (shouldShowManualEntry) {
-    return (
-      <div className="space-y-4">
-        <div className="p-4 border border-amber-200 bg-amber-50 rounded-md flex items-center gap-2 text-amber-700">
-          <AlertTriangle className="h-5 w-5" />
-          <div>
-            <p className="font-medium">Plate lookup failed</p>
-            <p className="text-sm">Please enter your vehicle details manually</p>
-          </div>
-        </div>
-        
-        <ManualEntryForm onSubmit={handleManualSubmit} />
-      </div>
-    );
-  }
+  }, [plate, state, zipCode, onSubmit, decodePlate]);
   
   return (
     <Card className="bg-white">
