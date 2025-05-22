@@ -3,20 +3,32 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Lock, FileText, ChevronRight, Eye } from 'lucide-react';
+import { Lock, FileText, ChevronRight, Eye, Loader2, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
 
 export function PdfPreview() {
   const [isHovering, setIsHovering] = useState(false);
+  
+  // Initialize the useValuationPdf hook with null values since we're only using the sample functionality
+  const { downloadSamplePdf, isGenerating } = useValuationPdf({
+    valuationData: null,
+    conditionData: null
+  });
 
-  const handlePreviewClick = () => {
-    toast('Demo Sample Report', {
-      description: 'In a real implementation, this would open a sample PDF report',
-      action: {
-        label: 'Close',
-        onClick: () => console.log('Closed'),
-      },
-    });
+  const handlePreviewClick = async () => {
+    try {
+      await downloadSamplePdf();
+    } catch (error) {
+      console.error('Error downloading sample PDF:', error);
+      toast('Sample Download Failed', {
+        description: 'There was an error generating the sample PDF report.',
+        action: {
+          label: 'Close',
+          onClick: () => console.log('Closed'),
+        },
+      });
+    }
   };
 
   return (
@@ -49,14 +61,24 @@ export function PdfPreview() {
             <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white group-hover:bg-black/30 transition-all">
               <Lock className="h-8 w-8 mb-2" />
               <p className="text-lg font-bold">Premium Report</p>
-              <p className="text-sm mb-3">Unlock with Premium Valuation</p>
+              <p className="text-sm mb-3">Sample Preview Available</p>
               <Button 
                 size="sm" 
                 className="flex items-center mt-2 gap-1 group-hover:bg-primary group-hover:text-white transition-all"
                 variant="outline"
+                disabled={isGenerating}
               >
-                <Eye className="h-4 w-4" />
-                <span>Preview Sample</span>
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    <span>Download Sample</span>
+                  </>
+                )}
               </Button>
             </div>
             
@@ -103,8 +125,19 @@ export function PdfPreview() {
           <Button
             className="w-full mt-2"
             onClick={handlePreviewClick}
+            disabled={isGenerating}
           >
-            View Sample Report
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating Sample...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Download Sample Report
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

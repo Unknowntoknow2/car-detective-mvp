@@ -5,13 +5,15 @@ import { Download, Loader2 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
 
 interface DownloadPDFButtonProps {
-  valuationId: string;
+  valuationId?: string;
   fileName?: string;
   children?: React.ReactNode;
   className?: string;
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
+  isSample?: boolean;
 }
 
 export function DownloadPDFButton({
@@ -19,11 +21,32 @@ export function DownloadPDFButton({
   fileName = 'valuation-report.pdf',
   children,
   className,
-  variant = 'default'
+  variant = 'default',
+  isSample = false
 }: DownloadPDFButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize the useValuationPdf hook with null values
+  const { downloadSamplePdf } = useValuationPdf({
+    valuationData: null,
+    conditionData: null
+  });
 
   const handleDownload = async () => {
+    // If it's a sample, use the sample download functionality
+    if (isSample) {
+      try {
+        await downloadSamplePdf();
+      } catch (error) {
+        console.error('Error downloading sample PDF:', error);
+        toast.error('Error downloading sample PDF', {
+          description: error instanceof Error ? error.message : 'An unexpected error occurred'
+        });
+      }
+      return;
+    }
+    
+    // Regular PDF download logic
     if (!valuationId) {
       toast.error('No valuation ID provided');
       return;
@@ -87,7 +110,7 @@ export function DownloadPDFButton({
       ) : (
         <Download className="mr-2 h-4 w-4" />
       )}
-      {children || 'Download PDF Report'}
+      {children || (isSample ? 'Download Sample Report' : 'Download PDF Report')}
     </Button>
   );
 }
