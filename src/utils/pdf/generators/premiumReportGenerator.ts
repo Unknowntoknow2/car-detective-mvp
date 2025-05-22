@@ -1,115 +1,65 @@
-
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import PDFKit from 'pdfkit';
 import { ReportData } from '../types';
+import { drawHeaderSection } from '../sections/headerSection';
+import { drawFooterSection } from '../sections/footerSection';
+import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
+import { drawValuationSummary } from '../sections/valuationSummary';
+import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
+import { drawMarketAnalysisSection } from '../sections/marketAnalysisSection';
+import { drawDealerOffersSection } from '../sections/dealerOffersSection';
+import { drawValuePredictionSection } from '../sections/valuePredictionSection';
+import { drawProfessionalOpinionSection } from '../sections/professionalOpinionSection';
+import { drawCarfaxReportSection } from '../sections/carfaxReportSection';
+import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
-interface BasicReportGeneratorProps {
-  pdfDoc: PDFDocument;
-  page: any;
-  width: number;
-  height: number;
-  margin: number;
-  regularFont: any;
-  boldFont: any;
-  reportData: ReportData;
-}
-
-/**
- * Generates a basic PDF report with key valuation details
- */
-export async function generateBasicReport(props: BasicReportGeneratorProps): Promise<void> {
-  const { pdfDoc, page, width, height, margin, regularFont, boldFont, reportData } = props;
-  let currentY = height - margin;
-
-  // Add header
-  page.drawText('Vehicle Valuation Report', {
-    x: margin,
-    y: currentY,
-    size: 18,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
+export const generatePremiumReport = async (data: ReportData): Promise<PDFKit.PDFDocument> => {
+  const doc = new PDFKit({
+    size: 'A4',
+    margins: {
+      top: 40,
+      bottom: 40,
+      left: 40,
+      right: 40,
+    },
   });
-  currentY -= 20;
 
-  // Add vehicle details
-  page.drawText(`Vehicle: ${reportData.year} ${reportData.make} ${reportData.model}`, {
-    x: margin,
-    y: currentY,
-    size: 12,
-    font: regularFont,
-    color: rgb(0.3, 0.3, 0.3)
+  // Header Section
+  drawHeaderSection(doc, {
+    title: 'Premium Valuation Report',
+    logo: 'path/to/your/logo.png',
   });
-  currentY -= 15;
 
-  page.drawText(`VIN: ${reportData.vin || 'Not provided'}`, {
-    x: margin,
-    y: currentY,
-    size: 10,
-    font: regularFont,
-    color: rgb(0.5, 0.5, 0.5)
+  let currentY = 120; // Starting Y position after the header
+
+  // Vehicle Information Section
+  currentY = drawVehicleInfoSection(doc, data, currentY);
+
+  // Valuation Summary Section
+  currentY = drawValuationSummary(doc, data, currentY);
+
+  // Photo Assessment Section
+  currentY = drawPhotoAssessmentSection(doc, data, currentY);
+
+  // Market Analysis Section
+  currentY = drawMarketAnalysisSection(doc, data, currentY);
+
+  // Dealer Offers Section
+  currentY = drawDealerOffersSection(doc, data, currentY);
+
+  // Value Prediction Section
+  currentY = drawValuePredictionSection(doc, data, currentY);
+
+  // Professional Opinion Section
+  currentY = drawProfessionalOpinionSection(doc, data, currentY);
+
+  // Carfax Report Section
+  currentY = drawCarfaxReportSection(doc, data, currentY);
+
+  // Footer Section
+  drawFooterSection(doc, {
+    reportDate: new Date(),
+    disclaimer: 'This valuation is an estimate and may vary.',
   });
-  currentY -= 15;
 
-  // Add valuation details
-  page.drawText(`Estimated Value: $${reportData.estimatedValue.toLocaleString()}`, {
-    x: margin,
-    y: currentY,
-    size: 14,
-    font: boldFont,
-    color: rgb(0.2, 0.7, 0.2)
-  });
-  currentY -= 20;
-
-  // Add explanation
-  const explanationLines = wrapText(reportData.explanation, regularFont, 10, width - margin * 2);
-  page.drawText('Explanation:', {
-    x: margin,
-    y: currentY,
-    size: 12,
-    font: boldFont,
-    color: rgb(0.3, 0.3, 0.3)
-  });
-  currentY -= 15;
-
-  for (const line of explanationLines) {
-    page.drawText(line, {
-      x: margin,
-      y: currentY,
-      size: 10,
-      font: regularFont,
-      color: rgb(0.3, 0.3, 0.3)
-    });
-    currentY -= 12;
-  }
-}
-
-/**
- * Wraps text to fit within a given width
- */
-function wrapText(
-  text: string,
-  font: any,
-  fontSize: number,
-  maxWidth: number
-): string[] {
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let currentLine = '';
-
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const width = font.widthOfTextAtSize(testLine, fontSize);
-
-    if (width <= maxWidth) {
-      currentLine = testLine;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
-    }
-  }
-
-  if (currentLine) {
-    lines.push(currentLine);
-  }
-
-  return lines;
-}
+  return doc;
+};

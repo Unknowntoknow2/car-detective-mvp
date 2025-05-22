@@ -1,5 +1,4 @@
-
-import { AICondition, PhotoAnalysisResult, PhotoScore, PhotoScoringResult } from '@/types/photo';
+import { AICondition, Photo, PhotoAnalysisResult, PhotoScore, PhotoScoringResult } from '@/types/photo';
 
 // Mock photo scoring service implementation
 export const scorePhotos = async (
@@ -32,13 +31,12 @@ export const scorePhotos = async (
   // Return scoring result
   return {
     photoUrl: scores.length > 0 ? scores[0].url : '',
-    photoUrls: photoUrls, // Added for compatibility
     score: 85,
     confidenceScore: 0.85,
     condition: 'Good',
-    photoScore: 85,
     aiCondition,
-    individualScores: scores
+    individualScores: scores,
+    photoUrls // Add photoUrls for compatibility
   };
 };
 
@@ -48,8 +46,8 @@ export const convertToPhotoAnalysisResult = (
 ): PhotoAnalysisResult => {
   return {
     photoUrls: result.photoUrls || [result.photoUrl],
-    overallScore: result.score,
-    score: result.score,
+    overallScore: result.score || 0, // Ensure overallScore is present
+    score: result.score || 0,
     aiCondition: result.aiCondition,
     individualScores: result.individualScores || []
   };

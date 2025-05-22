@@ -17,7 +17,8 @@ const conditionValues: ConditionValues = {
   mileage: 0,
   year: 0,
   titleStatus: 'Clean',
-  odometer: 0
+  odometer: 0,
+  zipCode: '90210' // Add zipCode
 };
 
 export default function ResultPage() {
