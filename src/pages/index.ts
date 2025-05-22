@@ -10,4 +10,3 @@ export { default as MyValuationsPage } from './MyValuationsPage';
 // Auth pages
 export { default as SignInPage } from './auth/SigninPage';
 export { default as SignUpPage } from './auth/SignupPage';
-

@@ -1,277 +1,106 @@
-
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { RouteObject } from 'react-router-dom';
-import AuthLayout from '@/layouts/AuthLayout';
-import DashboardLayout from '@/layouts/DashboardLayout';
-import DealerLayout from '@/layouts/DealerLayout';
-import AuthGuard from '@/guards/AuthGuard';
-import GuestGuard from '@/guards/GuestGuard';
-import RoleGuard from '@/guards/RoleGuard';
-import DealerGuard from '@/guards/DealerGuard';
-import VinLookupPage from '@/pages/VinLookupPage';
-import LookupPage from '@/pages/LookupPage';
-import { AdminAnalyticsDashboard } from '@/components/admin/dashboard/AdminAnalyticsDashboard';
-import SettingsPage from '@/pages/SettingsPage';
-import ViewOfferPage from '@/pages/view-offer/[token]';
-import SharedValuationPage from '@/pages/share/[token]';
-import DealerManagement from '@/pages/admin/DealerManagement';
-import DealerDashboard from '@/pages/DealerDashboard';
-import PremiumDealerManagementPage from '@/pages/admin/PremiumDealerManagement';
-import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
-import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
-import DealerInsightsPage from '@/pages/DealerInsightsPage';
-import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
-import PremiumPage from '@/pages/Premium';
-import AccessDeniedPage from '@/pages/AccessDeniedPage';
-import SignupPage from '@/pages/auth/SignupPage';
-import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
+import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+import VinLookupPage from './pages/VinLookupPage';
+import SigninPage from './pages/auth/SigninPage';
+import SignupPage from './pages/auth/SignupPage';
+import NotFound from './pages/NotFound';
+import ValuationPage from './pages/ValuationPage';
+import PremiumValuationPage from './pages/PremiumValuationPage';
+import ValuationResultPage from './pages/ValuationResultPage';
+import ResultPage from './pages/ResultPage';
+import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
+import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
+import DealerLayoutPage from './pages/dealer/DealerLayoutPage';
+import ProfilePage from './pages/ProfilePage';
+import AccountPage from './pages/AccountPage';
+import ServiceHistoryPage from './pages/ServiceHistoryPage';
+import Layout from './components/layout/Layout';
+import AuthPage from './pages/AuthPage';
 
-// Auth pages
-import LoginUserPage from '@/pages/auth/LoginUserPage';
-import LoginDealerPage from '@/pages/auth/LoginDealerPage';
-import RegisterPage from '@/pages/auth/RegisterPage';
-import DealerSignupPage from '@/pages/auth/DealerSignupPage';
-import AuthLandingPage from '@/pages/auth/AuthLandingPage';
-
-// Lazy-loaded components
-const LazyDealerInsightsPage = lazy(() => import('@/pages/DealerInsightsPage'));
-
-// Page loading fallback
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-      <p className="mt-4 text-muted-foreground">Loading page...</p>
-    </div>
-  </div>
-);
-
-// Export routes configuration that can be used with useRoutes() hook
+// Export routes configuration
 const routes: RouteObject[] = [
-  // Auth routes
   {
     path: '/',
-    element: <AuthLayout />,
+    element: <Layout />,
     children: [
       {
-        path: '',
-        element: <EnhancedHomePage />,
+        index: true,
+        element: <HomePage />
       },
       {
-        path: 'auth',
-        element: (
-          <GuestGuard>
-            <AuthLandingPage />
-          </GuestGuard>
-        ),
+        path: 'about',
+        element: <AboutPage />
       },
       {
-        path: 'login-user',
-        element: (
-          <GuestGuard>
-            <LoginUserPage />
-          </GuestGuard>
-        ),
+        path: 'vin-lookup',
+        element: <VinLookupPage />
       },
       {
-        path: 'login-dealer',
-        element: (
-          <GuestGuard>
-            <LoginDealerPage />
-          </GuestGuard>
-        ),
-      },
-      {
-        path: 'signin/individual',
-        element: (
-          <GuestGuard>
-            <LoginUserPage />
-          </GuestGuard>
-        ),
-      },
-      {
-        path: 'signin/dealer',
-        element: (
-          <GuestGuard>
-            <LoginDealerPage />
-          </GuestGuard>
-        ),
+        path: 'login',
+        element: <SigninPage />
       },
       {
         path: 'register',
-        element: (
-          <GuestGuard>
-            <RegisterPage />
-          </GuestGuard>
-        ),
+        element: <SignupPage />
       },
       {
-        path: 'sign-up',
-        element: (
-          <GuestGuard>
-            <SignupPage />
-          </GuestGuard>
-        ),
+        path: 'sign-in',
+        element: <SigninPage />
       },
       {
-        path: 'signup/individual',
-        element: (
-          <GuestGuard>
-            <RegisterPage />
-          </GuestGuard>
-        ),
-      },
-      {
-        path: 'signup/dealer',
-        element: (
-          <GuestGuard>
-            <DealerSignupPage />
-          </GuestGuard>
-        ),
-      },
-      {
-        path: 'dealer-signup',
-        element: (
-          <GuestGuard>
-            <DealerSignupPage />
-          </GuestGuard>
-        ),
-      },
-      {
-        path: 'lookup',
-        element: <LookupPage />,
-      },
-      {
-        path: 'lookup/:tab',
-        element: <LookupPage />,
-      },
-      {
-        path: 'premium',
-        element: (
-          <EnhancedErrorBoundary context="premium">
-            <PremiumPage />
-          </EnhancedErrorBoundary>
-        ),
+        path: 'auth',
+        element: <AuthPage />
       },
       {
         path: 'valuation',
-        element: <VinLookupPage />,
-      },
-    ],
-  },
-  // Dashboard routes
-  {
-    path: '/',
-    element: <DashboardLayout />,
-    children: [
-      {
-        path: 'dashboard',
-        element: (
-          <AuthGuard>
-            <AdminAnalyticsDashboard />
-          </AuthGuard>
-        ),
+        element: <ValuationPage />
       },
       {
-        path: 'settings',
-        element: (
-          <AuthGuard>
-            <SettingsPage />
-          </AuthGuard>
-        ),
-      },
-    ],
-  },
-  // Dealer routes
-  {
-    path: '/',
-    element: <DealerLayout />,
-    children: [
-      {
-        path: 'dealer-dashboard',
-        element: (
-          <DealerGuard>
-            <EnhancedErrorBoundary context="dealer-dashboard">
-              <DealerDashboard />
-            </EnhancedErrorBoundary>
-          </DealerGuard>
-        ),
+        path: 'premium-valuation',
+        element: <PremiumValuationPage />
       },
       {
-        path: 'dealer-insights',
-        element: (
-          <DealerGuard>
-            <EnhancedErrorBoundary context="dealer-insights">
-              <Suspense fallback={<PageLoader />}>
-                <LazyDealerInsightsPage />
-              </Suspense>
-            </EnhancedErrorBoundary>
-          </DealerGuard>
-        ),
-      },
-    ],
-  },
-  // Admin routes
-  {
-    path: '/',
-    element: <DashboardLayout />,
-    children: [
-      {
-        path: 'admin/dealers',
-        element: (
-          <RoleGuard allowedRoles={['admin']}>
-            <DealerManagement />
-          </RoleGuard>
-        ),
+        path: 'valuation/result/:id',
+        element: <ValuationResultPage />
       },
       {
-        path: 'admin/premium-dealers',
-        element: (
-          <RoleGuard allowedRoles={['admin']}>
-            <PremiumDealerManagementPage />
-          </RoleGuard>
-        ),
+        path: 'result',
+        element: <ResultPage />
       },
-    ],
-  },
-  // Public routes
-  {
-    path: '/view-offer/:token',
-    element: (
-      <EnhancedErrorBoundary context="view-offer">
-        <ViewOfferPage />
-      </EnhancedErrorBoundary>
-    ),
-  },
-  {
-    path: '/share/:token',
-    element: (
-      <EnhancedErrorBoundary context="shared-valuation">
-        <SharedValuationPage />
-      </EnhancedErrorBoundary>
-    ),
-  },
-  {
-    path: '/payment/success',
-    element: (
-      <EnhancedErrorBoundary context="payment-success">
-        <PaymentSuccessPage />
-      </EnhancedErrorBoundary>
-    ),
-  },
-  {
-    path: '/payment/cancelled',
-    element: (
-      <EnhancedErrorBoundary context="payment-cancelled">
-        <PaymentCancelledPage />
-      </EnhancedErrorBoundary>
-    ),
-  },
-  // Access Denied route
-  {
-    path: '/access-denied',
-    element: <AccessDeniedPage />,
-  },
+      {
+        path: 'profile',
+        element: <ProfilePage />
+      },
+      {
+        path: 'account',
+        element: <AccountPage />
+      },
+      {
+        path: 'service-history',
+        element: <ServiceHistoryPage />
+      },
+      {
+        path: 'dealer',
+        element: <DealerLayoutPage />,
+        children: [
+          {
+            index: true,
+            element: <DealerDashboardPage />
+          },
+          {
+            path: 'vehicle/:id',
+            element: <DealerVehicleDetailsPage />
+          }
+        ]
+      },
+      {
+        path: '*',
+        element: <NotFound />
+      }
+    ]
+  }
 ];
 
 export default routes;
