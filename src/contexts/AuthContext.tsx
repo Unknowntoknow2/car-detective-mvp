@@ -19,6 +19,8 @@ interface AuthContextType {
   session: Session | null;
   userDetails: UserDetails | null;
   isLoading: boolean;
+  error: any; // Add error property
+  userRole?: string; // Add userRole property
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
@@ -30,6 +32,8 @@ export const AuthContext = createContext<AuthContextType>({
   session: null,
   userDetails: null,
   isLoading: true,
+  error: null, // Initialize error property
+  userRole: undefined, // Initialize userRole property
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null, data: null }),
   signOut: async () => {},
@@ -45,6 +49,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null); // Add error state
+  const [userRole, setUserRole] = useState<string | undefined>(undefined); // Add userRole state
 
   // Fetch user profile data from profiles table
   const fetchUserProfile = async (userId: string) => {
@@ -58,6 +64,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         console.error('Error fetching user profile:', error);
         return null;
+      }
+      
+      // Set userRole based on profile data
+      if (data && data.role) {
+        setUserRole(data.role);
       }
       
       return data;
@@ -84,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }, 0);
         } else {
           setUserDetails(null);
+          setUserRole(undefined);
           setIsLoading(false);
         }
       }
@@ -97,6 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (session?.user) {
         const profileData = await fetchUserProfile(session.user.id);
         setUserDetails(profileData);
+        if (profileData?.role) {
+          setUserRole(profileData.role);
+        }
       }
       setIsLoading(false);
     });
@@ -108,14 +123,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    setError(null); // Clear any previous errors
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    if (error) {
+      setError(error); // Set error state if login fails
+    }
     return { error };
   };
 
   const signUp = async (email: string, password: string, metadata?: any) => {
+    setError(null); // Clear any previous errors
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -123,6 +143,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         data: metadata
       }
     });
+    if (error) {
+      setError(error); // Set error state if signup fails
+    }
     return { data, error };
   };
 
@@ -131,9 +154,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const resetPassword = async (email: string) => {
+    setError(null); // Clear any previous errors
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
+    if (error) {
+      setError(error); // Set error state if password reset fails
+    }
     return { error };
   };
 
@@ -144,6 +171,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         session,
         userDetails,
         isLoading,
+        error, // Include error in the context value
+        userRole, // Include userRole in the context value
         signIn,
         signUp,
         signOut,
