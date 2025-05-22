@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ValuationResponse } from '@/types/vehicle';
 
@@ -57,15 +58,22 @@ export const processValuationResponse = (data: ValuationResponse): ProcessedValu
   };
 };
 
-interface UseValuationResultProps {
+export interface UseValuationResultProps {
   valuationId?: string;
   valuationData?: ValuationResponse | null;
 }
 
-export const useValuationResult = ({ valuationId, valuationData }: UseValuationResultProps) => {
+export const useValuationResult = (props: UseValuationResultProps | string) => {
+  // Handle both string and object parameters
+  const valuationId = typeof props === 'string' ? props : props?.valuationId;
+  const valuationData = typeof props === 'string' ? null : props?.valuationData;
+  
   const [valuation, setValuation] = useState<ValuationResponse | null>(valuationData || null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const data = valuation;
+  const isError = !!error;
 
   useEffect(() => {
     const fetchValuation = async () => {
@@ -119,9 +127,16 @@ export const useValuationResult = ({ valuationId, valuationData }: UseValuationR
     }
   }, [valuationId, valuation]);
 
+  const refetch = async () => {
+    setValuation(null);
+  };
+
   return {
     valuation: valuation ? processValuationResponse(valuation) : null,
     isLoading,
     error,
+    isError,
+    refetch,
+    data
   };
 };

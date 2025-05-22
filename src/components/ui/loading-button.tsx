@@ -9,26 +9,24 @@ export interface LoadingButtonProps extends ButtonProps {
   loadingText?: string;
 }
 
-export const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
-  ({ children, isLoading, loadingText, className, disabled, ...props }, ref) => {
-    return (
-      <Button
-        className={cn(className)}
-        disabled={disabled || isLoading}
-        ref={ref}
-        {...props}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {loadingText || 'Loading...'}
-          </>
-        ) : (
-          children
-        )}
-      </Button>
-    );
-  }
-);
+export const LoadingButton: React.FC<LoadingButtonProps> = ({
+  isLoading = false,
+  loadingText,
+  children,
+  disabled,
+  className,
+  ...props
+}) => {
+  return (
+    <Button
+      className={cn('flex items-center gap-2', className)}
+      disabled={isLoading || disabled}
+      {...props}
+    >
+      {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {isLoading && loadingText ? loadingText : children}
+    </Button>
+  );
+};
 
-LoadingButton.displayName = 'LoadingButton';
+export default LoadingButton;
