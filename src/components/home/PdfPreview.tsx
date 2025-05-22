@@ -21,12 +21,8 @@ export function PdfPreview() {
       await downloadSamplePdf();
     } catch (error) {
       console.error('Error downloading sample PDF:', error);
-      toast('Sample Download Failed', {
+      toast.error('Sample Download Failed', {
         description: 'There was an error generating the sample PDF report.',
-        action: {
-          label: 'Close',
-          onClick: () => console.log('Closed'),
-        },
       });
     }
   };
