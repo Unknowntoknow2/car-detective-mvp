@@ -3,7 +3,10 @@
 // This file exists for backward compatibility with existing imports
 
 import { 
-  formatCurrency, 
+  formatCurrency
+} from './formatters/formatCurrency';
+
+import { 
   formatDate, 
   formatNumber, 
   formatRelativeTime,

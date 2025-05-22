@@ -3,12 +3,14 @@
  * Format a number as USD currency
  * @param value - The numeric value to format
  * @param locale - The locale to use for formatting (default: en-US)
+ * @param currencyCode - The currency code to use (default: USD)
  * @param options - Additional Intl.NumberFormat options
  * @returns Formatted currency string
  */
 export const formatCurrency = (
   value: number | null | undefined,
   locale: string = 'en-US',
+  currencyCode: string = 'USD',
   options: Intl.NumberFormatOptions = {}
 ): string => {
   // Handle invalid values
@@ -20,7 +22,7 @@ export const formatCurrency = (
     // Default currency options
     const defaultOptions: Intl.NumberFormatOptions = {
       style: 'currency',
-      currency: 'USD',
+      currency: currencyCode,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     };
