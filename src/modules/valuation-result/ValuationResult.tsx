@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from './sections/Header';
@@ -13,6 +12,7 @@ import { useValuationData } from './hooks/useValuationData';
 import { useValuationPdfHelper } from './hooks/useValuationPdfHelper';
 import { ValuationProvider } from './context/ValuationContext';
 import { AICondition } from '@/types/photo';
+import { MarketInsightsTab } from '@/components/premium/sections/valuation-tabs/market-analysis/MarketInsightsTab';
 
 interface ValuationResultProps {
   valuationId?: string;
@@ -146,6 +146,20 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
             estimatedValue={estimatedValue}
           />
         </div>
+        
+        {/* Market Analysis Tab */}
+        <MarketInsightsTab
+          valuationId={resultId || ''}
+          isPremium={isPremium}
+          zipCode={data.zipCode || data.zip_code || data.state}
+          make={data.make}
+          model={data.model}
+          year={data.year}
+          mileage={data.mileage}
+          condition={data.condition}
+          vin={data.vin}
+          onUpgrade={handleUpgrade}
+        />
         
         <Explanation
           explanation={data.explanation || data.gptExplanation || "No market analysis available for this vehicle."}
