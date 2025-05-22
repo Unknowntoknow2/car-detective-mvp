@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TabContent } from "./valuation-tabs/TabContent";
-import { ValuationServiceId, services } from "./valuation-tabs/services";
+import { ValuationServiceId, services } from "./valuation-tabs/services.tsx";
 import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { useToast } from '@/components/ui/use-toast';
 import { useFeatureCalculator } from '@/hooks/useFeatureCalculator';
