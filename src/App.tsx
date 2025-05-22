@@ -5,7 +5,7 @@ import UpgradePage from './pages/UpgradePage';
 import PremiumPage from './pages/PremiumPage';
 import PremiumSuccessPage from './pages/PremiumSuccessPage';
 import UserDashboardPage from './pages/UserDashboardPage';
-import ValuationFollowUpPage from './pages/ValuationFollowUpPage'; // Ensuring consistent casing
+import ValuationFollowupPage from './pages/ValuationFollowupPage'; // Changed to match actual filename case
 import ValuationResultPage from './pages/ValuationResultPage';
 import { Toaster } from 'sonner';
 
@@ -19,7 +19,7 @@ function App() {
         <Route path="/premium-success" element={<PremiumSuccessPage />} />
         <Route path="/upgrade" element={<UpgradePage />} />
         <Route path="/dashboard" element={<UserDashboardPage />} />
-        <Route path="/valuation-followup" element={<ValuationFollowUpPage />} />
+        <Route path="/valuation-followup" element={<ValuationFollowupPage />} />
         <Route path="/valuation-result" element={<ValuationResultPage />} />
       </Routes>
     </BrowserRouter>
