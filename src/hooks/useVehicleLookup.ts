@@ -51,10 +51,8 @@ export function useVehicleLookup(): VehicleLookupResult {
           trim: manualData.trim,
           fuelType: manualData.fuelType,
           transmission: manualData.transmission,
-          bodyType: manualData.bodyType,
-          color: manualData.color,
+          bodyType: manualData.bodyStyle,
           exteriorColor: manualData.color,
-          interiorColor: 'Unknown',
           valuationId: `manual-${Date.now()}`
         };
       } else if (type === 'vin') {
@@ -71,7 +69,6 @@ export function useVehicleLookup(): VehicleLookupResult {
           bodyType: 'Sedan',
           fuelType: 'Gasoline',
           exteriorColor: 'Silver',
-          interiorColor: 'Black',
           features: ['Bluetooth', 'Backup Camera', 'Alloy Wheels'],
           valuationId: `vin-${Date.now()}`
         };
@@ -87,7 +84,6 @@ export function useVehicleLookup(): VehicleLookupResult {
           bodyType: 'Sedan',
           fuelType: 'Gasoline',
           exteriorColor: 'Blue',
-          interiorColor: 'Gray',
           valuationId: `plate-${Date.now()}`
         };
       } else if (type === 'photo') {
@@ -102,7 +98,6 @@ export function useVehicleLookup(): VehicleLookupResult {
           bodyType: 'Coupe',
           fuelType: 'Gasoline',
           exteriorColor: 'Red',
-          interiorColor: 'Black',
           valuationId: `photo-${Date.now()}`
         };
       }
