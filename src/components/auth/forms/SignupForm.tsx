@@ -9,16 +9,18 @@ import { Loader2, Mail, KeyRound, Eye, EyeOff, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-interface SignupFormProps {
+export interface SignupFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   redirectPath?: string;
+  redirectToLogin?: boolean;
 }
 
 export const SignupForm = ({ 
   isLoading, 
   setIsLoading,
-  redirectPath = '/dashboard'
+  redirectPath = '/dashboard',
+  redirectToLogin = false
 }: SignupFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -91,12 +93,18 @@ export const SignupForm = ({
     setIsLoading(true);
     
     try {
+      // Update to pass the correct number of arguments
       await signUp(email, password, {
         full_name: fullName
       });
       
       toast.success('Account created successfully! Please check your email for confirmation.');
-      navigate(redirectPath);
+      
+      if (redirectToLogin) {
+        navigate('/auth/signin');
+      } else {
+        navigate(redirectPath);
+      }
     } catch (err: any) {
       console.error('Sign up error:', err);
       setError(err.message || 'An unexpected error occurred');

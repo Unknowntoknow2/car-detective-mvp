@@ -8,16 +8,20 @@ import { Loader2, Mail, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-interface SigninFormProps {
+export interface SigninFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   redirectPath?: string;
+  alternateLoginPath?: string;
+  alternateLoginText?: string;
 }
 
 export const SigninForm = ({ 
   isLoading, 
   setIsLoading, 
-  redirectPath = '/dashboard'
+  redirectPath = '/dashboard',
+  alternateLoginPath,
+  alternateLoginText
 }: SigninFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

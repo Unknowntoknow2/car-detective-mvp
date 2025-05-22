@@ -1,94 +1,115 @@
 
-import PDFDocument from 'pdfkit';
-import { ReportData } from '../types';
+import { RGB, rgb } from 'pdf-lib';
+import { ReportData, ReportOptions, ReportGeneratorParams } from '../types';
 import { drawHeaderSection } from '../sections/headerSection';
-import { drawFooterSection } from '../sections/footerSection';
 import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
-import { drawValuationSummary } from '../sections/valuationSummary';
-import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
-import { drawDisclaimerSection } from '../sections/disclaimerSection';
-import { safeString } from '@/utils/pdf/sections/sectionHelper';
+import { drawValuationSection } from '../sections/valuationSection';
+import { drawFooterSection } from '../sections/footerSection';
+import { drawWatermark } from '../sections/watermark';
 
-// Generate a basic valuation report
-export const generateBasicValuationReport = async (data: ReportData): Promise<PDFDocument> => {
-  const doc = new PDFDocument({
-    size: 'A4',
-    margins: {
-      top: 40,
-      bottom: 40,
-      left: 40,
-      right: 40,
-    },
-  });
-
-  const pageWidth = doc.page.width;
-  const pageHeight = doc.page.height;
-  const margin = 40;
-
-  // Header Section
-  drawHeaderSection({
-    doc,
-    data: { 
-      reportTitle: 'Vehicle Valuation Report',
-      logo: 'path/to/logo.png'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Vehicle Information Section
-  drawVehicleInfoSection({
-    doc,
+/**
+ * Generate a basic valuation report with standard sections
+ */
+export async function generateBasicReport({ data, options, document }: ReportGeneratorParams): Promise<Uint8Array> {
+  // Create a new PDF document
+  const pdfDoc = await document.create();
+  
+  // Add a page to the document
+  const page = pdfDoc.addPage();
+  
+  // Get page dimensions
+  const { width, height } = page.getSize();
+  const margin = 50;
+  const contentWidth = width - (margin * 2);
+  
+  // Load fonts
+  const helveticaFont = await pdfDoc.embedFont('Helvetica');
+  const helveticaBoldFont = await pdfDoc.embedFont('Helvetica-Bold');
+  
+  // Define colors
+  const textColor = rgb(0.1, 0.1, 0.1);
+  const primaryColor = rgb(0, 0.4, 0.8);
+  
+  // Initialize vertical position for content
+  let y = height - margin;
+  
+  // Draw header section
+  y = drawHeaderSection({
     data,
-    pageWidth,
-    pageHeight,
-    margin
+    page,
+    y,
+    width,
+    margin,
+    contentWidth,
+    regularFont: helveticaFont,
+    boldFont: helveticaBoldFont,
+    textColor,
+    primaryColor,
+    height
   });
-
-  // Valuation Summary Section
-  drawValuationSummary({
-    doc,
+  
+  // Draw vehicle info section
+  y = drawVehicleInfoSection({
     data,
-    pageWidth,
-    pageHeight,
-    margin
+    page,
+    y,
+    width,
+    margin,
+    contentWidth,
+    regularFont: helveticaFont,
+    boldFont: helveticaBoldFont,
+    textColor,
+    primaryColor,
+    height
   });
-
-  // Photo Assessment Section if photo URL exists
-  if (data.photoUrl || data.bestPhotoUrl) {
-    drawPhotoAssessmentSection({
-      doc,
+  
+  // Draw valuation section
+  y = drawValuationSection({
+    data,
+    page,
+    y,
+    width,
+    margin,
+    contentWidth,
+    regularFont: helveticaFont,
+    boldFont: helveticaBoldFont,
+    textColor,
+    primaryColor,
+    height
+  });
+  
+  // Draw footer section
+  drawFooterSection({
+    data,
+    page,
+    y,
+    width,
+    margin,
+    contentWidth,
+    regularFont: helveticaFont,
+    boldFont: helveticaBoldFont,
+    textColor,
+    primaryColor,
+    height
+  });
+  
+  // Add watermark if specified in options
+  if (options.watermark) {
+    drawWatermark({
       data,
-      pageWidth,
-      pageHeight,
-      margin
+      page,
+      y: height / 2,
+      width,
+      margin,
+      contentWidth,
+      regularFont: helveticaFont,
+      boldFont: helveticaBoldFont,
+      textColor,
+      primaryColor,
+      height
     });
   }
-
-  // Disclaimer Section
-  drawDisclaimerSection({
-    doc,
-    data: {
-      disclaimerText: 'This valuation is an estimate and may not reflect actual market conditions.'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Footer Section
-  drawFooterSection({
-    doc,
-    data: {
-      reportDate: new Date(),
-      companyName: 'CarDetective',
-      website: 'www.cardetective.com'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  return doc;
-};
+  
+  // Return the PDF as a byte array
+  return pdfDoc.save();
+}

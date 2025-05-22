@@ -19,6 +19,19 @@ const RouteValidationSystem = {
   validateIntegrity: (route: string): boolean => {
     // Simple check to ensure route starts with a slash and contains no suspicious patterns
     return route.startsWith('/') && !route.includes('..') && !route.includes('//', 1);
+  },
+
+  /**
+   * Placeholder for enforceRouteIntegrity to fix import error
+   */
+  enforceRouteIntegrity: (route: string): string => {
+    // Normalize and sanitize route
+    if (!route.startsWith('/')) {
+      route = '/' + route;
+    }
+    // Remove any duplicate slashes
+    route = route.replace(/\/+/g, '/');
+    return route;
   }
 };
 

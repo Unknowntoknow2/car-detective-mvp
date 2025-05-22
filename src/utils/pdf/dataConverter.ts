@@ -1,113 +1,94 @@
 
-import { DecodedVehicleInfo } from '@/types/vehicle';
+import { ValuationResult } from '@/types/valuation';
 import { ReportData } from './types';
 
-interface AdjustmentBreakdown {
-  factor: string;
-  impact: number;
-  description?: string;
-}
-
 /**
- * Convert vehicle information to report data format
- * @param vehicleInfo Basic vehicle information
- * @param additionalData Additional data needed for the report
- * @returns Report data object
+ * Convert a basic valuation result to the PDF report data format
  */
-export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additionalData: {
-  mileage: number;
-  estimatedValue: number;
-  confidenceScore?: number;
-  condition: string;
-  zipCode: string;
-  adjustments: AdjustmentBreakdown[];
-  isPremium?: boolean;
-}): Partial<ReportData> {
-  // Process adjustments to ensure all have descriptions
-  const processedAdjustments = additionalData.adjustments.map(adj => ({
-    factor: adj.factor,
-    impact: adj.impact,
-    description: adj.description || `Adjustment for ${adj.factor}`
-  }));
-
+export function convertBasicValuationToPdfData(
+  valuationResult: ValuationResult,
+  explanation?: string
+): Partial<ReportData> {
   return {
-    make: vehicleInfo.make,
-    model: vehicleInfo.model,
-    year: vehicleInfo.year,
-    mileage: additionalData.mileage,
-    aiCondition: {
-      summary: additionalData.condition,
-      score: additionalData.confidenceScore || 75,
-    },
-    // Use estimated value as price when generating report
-    price: additionalData.estimatedValue,
-    estimatedValue: additionalData.estimatedValue,
-    confidenceScore: additionalData.confidenceScore || 75,
-    vin: vehicleInfo.vin,
-    zipCode: additionalData.zipCode,
-    trim: vehicleInfo.trim,
-    fuelType: vehicleInfo.fuelType,
-    transmission: vehicleInfo.transmission,
-    color: vehicleInfo.color,
-    bodyType: vehicleInfo.bodyType,
-    isPremium: additionalData.isPremium || false,
-    priceRange: [
-      Math.round(additionalData.estimatedValue * 0.90), 
-      Math.round(additionalData.estimatedValue * 1.10)
-    ],
-    adjustments: processedAdjustments,
-    generatedAt: new Date().toISOString()
+    // Vehicle Information
+    make: valuationResult.vehicle.make,
+    model: valuationResult.vehicle.model,
+    year: valuationResult.vehicle.year,
+    trim: valuationResult.vehicle.trim,
+    mileage: valuationResult.vehicle.mileage,
+    vin: valuationResult.vehicle.vin,
+    
+    // Valuation Information
+    estimatedValue: valuationResult.valuation.estimatedValue,
+    priceRange: valuationResult.valuation.priceRange as [number, number],
+    conditionAdjustment: valuationResult.valuation.adjustments?.find(a => a.factor === 'condition')?.impact,
+    mileageAdjustment: valuationResult.valuation.adjustments?.find(a => a.factor === 'mileage')?.impact,
+    locationAdjustment: valuationResult.valuation.adjustments?.find(a => a.factor === 'location')?.impact,
+    marketAdjustment: valuationResult.valuation.adjustments?.find(a => a.factor === 'market')?.impact,
+    
+    // Condition Information
+    aiCondition: valuationResult.vehicle.condition, // Updated from condition to aiCondition
+    conditionScore: valuationResult.vehicle.conditionScore,
+    
+    // Location Information
+    zipCode: valuationResult.vehicle.zipCode,
+    regionName: valuationResult.location?.name,
+    
+    // Additional Information
+    generatedDate: new Date(),
+    explanation: explanation || generateDefaultExplanation(valuationResult),
+    premium: false,
   };
 }
 
 /**
- * Convert a valuation result to report data format
- * @param valuation Valuation result object
- * @returns Report data object
+ * Convert a premium valuation result to the PDF report data format with additional details
  */
-export function convertValuationToReportData(valuation: any): Partial<ReportData> {
-  // Extract adjustments or create empty array
-  const adjustments = valuation.adjustments?.map((adj: any) => ({
-    factor: adj.factor || adj.name || '',
-    impact: adj.impact || adj.value || 0,
-    description: adj.description || `Adjustment for ${adj.factor || adj.name || 'unknown factor'}`
-  })) || [];
-
-  // Calculate price range if not provided
-  const priceRange = valuation.priceRange || [
-    Math.round((valuation.estimatedValue || valuation.valuation || 0) * 0.9),
-    Math.round((valuation.estimatedValue || valuation.valuation || 0) * 1.1)
-  ];
-
-  // Use estimated value as price when price is not provided
-  const price = valuation.price || valuation.estimatedValue || valuation.valuation || 0;
-
+export function convertPremiumValuationToPdfData(
+  valuationResult: ValuationResult,
+  photoAssessment?: {
+    exterior?: string[];
+    interior?: string[];
+    mechanical?: string[];
+  },
+  explanation?: string
+): Partial<ReportData> {
+  // Start with basic data
+  const basicData = convertBasicValuationToPdfData(valuationResult, explanation);
+  
+  // Add premium-specific data
   return {
-    make: valuation.make || '',
-    model: valuation.model || '',
-    year: valuation.year || 0,
-    mileage: valuation.mileage || 0,
-    aiCondition: {
-      summary: valuation.condition || 'Good',
-      score: valuation.photoScore || 0,
-      condition: valuation.condition || 'Good',
-    },
-    price: price,
-    estimatedValue: valuation.estimatedValue || valuation.valuation || 0,
-    priceRange: priceRange,
-    adjustments: adjustments,
-    bestPhotoUrl: valuation.bestPhotoUrl || valuation.photoUrl || '',
-    explanation: valuation.explanation || valuation.gptExplanation || '',
-    generatedAt: valuation.created_at || new Date().toISOString(),
-    confidenceScore: valuation.confidenceScore || 75,
-    photoScore: valuation.photoScore || 0,
-    isPremium: valuation.isPremium || false,
-    vin: valuation.vin || '',
-    zipCode: valuation.zipCode || valuation.zip || '',
-    trim: valuation.trim || '',
-    color: valuation.color || '',
-    bodyType: valuation.bodyType || valuation.bodyStyle || '',
-    fuelType: valuation.fuelType || valuation.fuel_type || '',
-    transmission: valuation.transmission || ''
+    ...basicData,
+    
+    // Photo Assessment
+    photoAssessment,
+    
+    // Features
+    features: valuationResult.vehicle.features,
+    
+    // Premium flag
+    premium: true,
+    
+    // Override condition with more detailed data if available
+    aiCondition: valuationResult.vehicle.condition, // Updated from condition to aiCondition
+    conditionNotes: valuationResult.vehicle.conditionNotes,
   };
+}
+
+/**
+ * Generate a default explanation if none is provided
+ */
+function generateDefaultExplanation(valuationResult: ValuationResult): string {
+  const { vehicle, valuation } = valuationResult;
+  
+  return `
+This valuation for the ${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim || ''} 
+is based on current market conditions and the vehicle's specific details.
+
+The vehicle's condition (${vehicle.condition || 'Average'}) and mileage (${vehicle.mileage.toLocaleString()} miles) 
+have been factored into this valuation, along with regional market trends for ${valuationResult.location?.name || 'your area'}.
+
+The estimated value represents the private party sale value. Dealership trade-in values 
+may be approximately 10-15% lower than this estimate.
+`.trim();
 }

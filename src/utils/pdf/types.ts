@@ -1,93 +1,71 @@
 
-import PDFDocument from 'pdfkit';
+import { PDFFont, RGB } from 'pdf-lib';
 
 export interface ReportData {
-  id?: string;
-  year: number;
+  // Vehicle Information
   make: string;
   model: string;
+  year: number;
   trim?: string;
+  mileage: number;
   vin?: string;
-  color?: string;
-  bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  mileage?: number;
+  
+  // Valuation Information
   estimatedValue: number;
-  photoScore?: number;
-  bestPhotoUrl?: string;
-  photoUrl?: string;
-  licensePlate?: string;
-  engine?: string;
-  doors?: number;
-  aiCondition?: {
-    summary: string;
-    score: number;
-    condition?: string;
-    issuesDetected?: string[];
-    confidenceScore?: number;
-  };
-  price?: number;
-  zipCode?: string;
-  confidenceScore?: number;
   priceRange?: [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  isPremium?: boolean;
+  conditionAdjustment?: number;
+  mileageAdjustment?: number;
+  locationAdjustment?: number;
+  marketAdjustment?: number;
+  
+  // Condition Information
+  aiCondition?: string; // Changed from condition to aiCondition
+  conditionScore?: number;
+  conditionNotes?: string[];
+  
+  // Location Information
+  zipCode?: string;
+  regionName?: string;
+  
+  // Photo Assessment
+  photoAssessment?: {
+    exterior?: string[];
+    interior?: string[];
+    mechanical?: string[];
+  };
+  
+  // Additional Information
+  generatedDate?: Date;
   explanation?: string;
-  generatedAt?: string;
-  companyName?: string;
-  website?: string;
-  reportDate?: Date;
-  disclaimerText?: string;
+  features?: string[];
+  premium?: boolean;
 }
 
 export interface SectionParams {
-  doc: PDFDocument;
-  data: any;
-  pageWidth: number;
-  pageHeight: number;
-  margin?: number;
-  // Extended properties for PDF sections
-  page?: any;
-  y?: number;
+  data: ReportData;
+  page: any;
+  y: number;
   width?: number;
-  regularFont?: any;
-  boldFont?: any;
+  height?: number;
+  margin?: number;
   contentWidth?: number;
-  textColor?: any;
-  primaryColor?: any;
-  height?: number; // Added missing height property
+  regularFont?: PDFFont;
+  boldFont?: PDFFont;
+  textColor?: RGB;
+  primaryColor?: RGB;
 }
 
 export interface ReportOptions {
-  pageSize: string;
-  margins: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-  includePageNumbers: boolean;
-  includePhotos: boolean;
-  includeSimilarVehicles: boolean;
-  companyInfo: {
-    name: string;
-    logo: string | null;
-    website: string;
-    phone: string;
-  };
+  includeBranding: boolean;
+  includeExplanation: boolean;
+  includePhotoAssessment: boolean;
+  watermark: boolean;
+  fontSize: number;
+  pdfQuality: 'draft' | 'standard' | 'high';
 }
 
-// Add the AdjustmentBreakdown interface for the adjustmentTable.ts file
-export interface AdjustmentBreakdown {
-  factor: string;
-  impact: number;
-  description: string;
-  name?: string;
-  value?: number;
-  percentAdjustment?: number;
+export interface ReportGeneratorParams {
+  data: ReportData;
+  options: ReportOptions;
+  document: typeof PDFDocument; // Fixed to use typeof PDFDocument
 }

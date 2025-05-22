@@ -1,76 +1,92 @@
 
-import { ReportData } from './types';
-import { generateBasicValuationReport } from './generators/basicReportGenerator';
+import { saveAs } from 'file-saver';
+import { PDFDocument } from 'pdf-lib';
+import { ReportData, ReportOptions } from './types';
+import { generateBasicReport } from './generators/basicReportGenerator';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
 
 /**
- * Generate a PDF for the valuation report
- * @param data The report data to include in the PDF
- * @returns A buffer containing the PDF data
+ * Default options for PDF generation
  */
-export const generateValuationPdf = async (data: ReportData): Promise<Buffer> => {
-  try {
-    // Determine which report generator to use based on isPremium flag
-    const doc = data.isPremium 
-      ? await generatePremiumReport(data)
-      : await generateBasicValuationReport(data);
-    
-    // Finalize the document and convert to buffer
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      
-      doc.on('data', (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
-      
-      doc.on('end', () => {
-        const result = Buffer.concat(chunks);
-        resolve(result);
-      });
-      
-      doc.on('error', (err: Error) => {
-        reject(err);
-      });
-      
-      doc.end();
-    });
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    // Return a simple buffer for error cases
-    return Buffer.from('Error generating PDF');
-  }
+export const defaultReportOptions: ReportOptions = {
+  includeBranding: true,
+  includeExplanation: true,
+  includePhotoAssessment: true,
+  watermark: false,
+  fontSize: 12,
+  pdfQuality: 'standard',
 };
 
 /**
- * Download a PDF for the valuation report
- * @param data The report data to include in the PDF
- * @param fileName Optional custom filename
+ * Generate a valuation PDF with the given data and options
  */
-export const downloadValuationPdf = async (
+export async function generateValuationPdf(
   data: ReportData,
-  fileName?: string
-): Promise<void> => {
+  options: Partial<ReportOptions> = {}
+): Promise<Uint8Array> {
+  // Merge provided options with defaults
+  const mergedOptions: ReportOptions = {
+    ...defaultReportOptions,
+    ...options,
+  };
+  
+  // Choose the appropriate generator based on premium flag
+  const pdfBytes = data.premium
+    ? await generatePremiumReport({ data, options: mergedOptions, document: PDFDocument })
+    : await generateBasicReport({ data, options: mergedOptions, document: PDFDocument });
+  
+  return pdfBytes;
+}
+
+/**
+ * Generate and download a valuation PDF
+ */
+export async function downloadValuationPdf(
+  data: ReportData,
+  options: Partial<ReportOptions> = {}
+): Promise<void> {
   try {
-    const pdfBuffer = await generateValuationPdf(data);
+    const pdfBytes = await generateValuationPdf(data, options);
     
-    // Create a blob from the PDF data
-    const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+    // Create a Blob from the PDF bytes
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     
-    // Create a URL for the blob
-    const url = URL.createObjectURL(blob);
+    // Generate a filename based on the vehicle info
+    const filename = `${data.year}_${data.make}_${data.model}_Valuation.pdf`;
     
-    // Create a link element and trigger the download
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName || `CarDetective_Valuation_${data.make}_${data.model}_${Date.now()}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    
-    // Clean up
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url); // Fixed from revoObjectURL to revokeObjectURL
+    // Download the PDF
+    saveAs(blob, filename);
   } catch (error) {
-    console.error('Error downloading valuation PDF:', error);
+    console.error('Error generating PDF:', error);
     throw error;
   }
-};
+}
+
+/**
+ * Generate and open a valuation PDF in a new tab
+ */
+export async function openValuationPdf(
+  data: ReportData,
+  options: Partial<ReportOptions> = {}
+): Promise<void> {
+  try {
+    const pdfBytes = await generateValuationPdf(data, options);
+    
+    // Create a Blob from the PDF bytes
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    
+    // Create a URL for the Blob
+    const url = URL.createObjectURL(blob);
+    
+    // Open the URL in a new tab
+    window.open(url, '_blank');
+    
+    // Clean up the URL after a delay to ensure it's loaded
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 30000);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
+  }
+}

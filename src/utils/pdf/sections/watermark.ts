@@ -1,81 +1,71 @@
-
+import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
-import { safeString } from './sectionHelper';
 
 /**
- * Draw a watermark on the PDF
+ * Draw a diagonal watermark across the page
  */
-export const drawWatermark = (params: SectionParams): number => {
-  const { doc, data, margin = 40 } = params;
-  const pageWidth = params.pageWidth || doc.page.width;
-  const pageHeight = params.pageHeight || doc.page.height;
-  
-  // Only draw watermark for non-premium reports
-  if (data.isPremium) {
-    return doc.y;
+export function drawWatermark(params: SectionParams): number {
+  const {
+    page,
+    width = 0,
+    height = 0,
+    boldFont
+  } = params;
+
+  if (!boldFont) {
+    console.warn("Bold font not provided for watermark");
+    return params.y;
   }
+
+  // Determine watermark text based on whether it's a premium report
+  const watermarkText = params.data.premium ? 'PREMIUM REPORT' : 'CAR DETECTIVE';
   
-  // Set up watermark text
-  const watermarkText = 'DRAFT VALUATION';
+  // Set watermark properties
+  const watermarkColor = rgb(0.8, 0.8, 0.8);
+  const watermarkSize = width * 0.08; // Scale based on page width
+  const watermarkRotation = Math.PI / 4; // 45 degrees in radians
   
-  // Save the current graphics state
-  doc.save();
+  // Calculate position for centered watermark
+  const centerX = width / 2;
+  const centerY = height / 2;
   
-  // Set up transparency and rotation for watermark
-  doc.opacity(0.2);
-  doc.rotate(45, {
-    origin: [pageWidth / 2, pageHeight / 2]
+  // Measure text dimensions for centering
+  const textWidth = boldFont.widthOfTextAtSize(watermarkText, watermarkSize);
+  const textHeight = watermarkSize;
+  
+  // Draw rotated watermark
+  page.drawText(watermarkText, {
+    x: centerX - (textWidth / 2),
+    y: centerY - (textHeight / 2),
+    size: watermarkSize,
+    font: boldFont,
+    color: watermarkColor,
+    opacity: 0.2,
+    rotate: {
+      type: 'degrees',
+      angle: 45,
+      xSkew: 0,
+      ySkew: 0,
+    },
   });
   
-  // Draw the watermark text
-  doc.fontSize(60)
-     .fillColor('#999999')
-     .text(watermarkText, 
-           0, 
-           pageHeight / 2 - 30, 
-           {
-             align: 'center',
-             width: pageWidth
-           });
-  
-  // Restore the graphics state
-  doc.restore();
-  
-  return doc.y;
-};
-
-/**
- * Draw a premium watermark on the PDF
- */
-export const drawPremiumWatermark = (params: SectionParams): number => {
-  const { doc, data, margin = 40 } = params;
-  const pageWidth = params.pageWidth || doc.page.width;
-  const pageHeight = params.pageHeight || doc.page.height;
-  
-  // Only draw premium watermark for premium reports
-  if (!data.isPremium) {
-    return doc.y;
+  // For non-premium reports, add additional note
+  if (!params.data.premium) {
+    // Draw a smaller note at the bottom
+    const noteText = 'Upgrade to Premium for Enhanced Report';
+    const noteSize = 12;
+    const noteWidth = boldFont.widthOfTextAtSize(noteText, noteSize);
+    
+    page.drawText(noteText, {
+      x: width / 2 - noteWidth / 2,
+      y: 20,
+      size: noteSize,
+      font: boldFont,
+      color: rgb(0.4, 0.4, 0.4),
+      opacity: 0.7,
+    });
   }
   
-  // Set up watermark text
-  const watermarkText = 'PREMIUM REPORT';
-  
-  // Save the current graphics state
-  doc.save();
-  
-  // Draw small premium indicator in the top-right corner
-  doc.opacity(0.7);
-  doc.fontSize(10)
-     .fillColor('#007bff')
-     .text('PREMIUM', 
-           pageWidth - 80, 
-           20, 
-           {
-             align: 'right'
-           });
-  
-  // Restore the graphics state
-  doc.restore();
-  
-  return doc.y;
-};
+  // Return unchanged y position since watermark doesn't affect content flow
+  return params.y;
+}
