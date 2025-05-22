@@ -1,7 +1,8 @@
 
 import { getMarketMultiplier } from './marketData';
-import { calculateFinalValuation, ValuationInput } from './calculateFinalValuation';
+import { calculateFinalValuation } from './calculateFinalValuation';
 import { supabase } from '@/integrations/supabase/client';
+import { RulesEngineInput } from './rules/types';
 
 // Mock the Supabase client
 jest.mock('@/integrations/supabase/client', () => ({
@@ -96,7 +97,7 @@ describe('calculateFinalValuation with market adjustments', () => {
       })
     });
 
-    const input: ValuationInput = {
+    const input: RulesEngineInput = {
       make: 'Toyota',
       model: 'RAV4',
       year: 2020,
@@ -105,8 +106,7 @@ describe('calculateFinalValuation with market adjustments', () => {
       zipCode: '90210' // Beverly Hills ZIP code (high demand)
     };
 
-    const basePrice = 25000;
-    const result = await calculateFinalValuation(input, basePrice);
+    const result = await calculateFinalValuation(input);
 
     // Expect an adjustment for the high-demand area
     expect(result.adjustments.find(adj => adj.factor === 'Location Impact')).toBeTruthy();
@@ -125,7 +125,7 @@ describe('calculateFinalValuation with market adjustments', () => {
       })
     });
 
-    const input: ValuationInput = {
+    const input: RulesEngineInput = {
       make: 'Toyota',
       model: 'RAV4',
       year: 2020,
@@ -134,8 +134,7 @@ describe('calculateFinalValuation with market adjustments', () => {
       zipCode: '12345' // Fictional low-demand ZIP code
     };
 
-    const basePrice = 25000;
-    const result = await calculateFinalValuation(input, basePrice);
+    const result = await calculateFinalValuation(input);
 
     // Expect an adjustment for the low-demand area
     expect(result.adjustments.find(adj => adj.factor === 'Location Impact')).toBeTruthy();
@@ -154,7 +153,7 @@ describe('calculateFinalValuation with market adjustments', () => {
       })
     });
 
-    const input: ValuationInput = {
+    const input: RulesEngineInput = {
       make: 'Toyota',
       model: 'RAV4',
       year: 2020,
@@ -163,8 +162,7 @@ describe('calculateFinalValuation with market adjustments', () => {
       zipCode: '99999' // Unknown ZIP code
     };
 
-    const basePrice = 25000;
-    const result = await calculateFinalValuation(input, basePrice);
+    const result = await calculateFinalValuation(input);
 
     // Since we're using mock implementations, this test might not accurately
     // reflect the absence of a location impact adjustment
