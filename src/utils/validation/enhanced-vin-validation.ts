@@ -1,5 +1,5 @@
 
-import { validateVin as baseValidateVin } from './vin-validation';
+import { validateVIN as baseValidateVin } from './vin-validation';
 
 /**
  * Enhanced VIN validation with detailed error checking and explanations
@@ -15,4 +15,4 @@ export function validateVinEnhanced(vin: string): { isValid: boolean; error: str
   };
 }
 
-export { validateVin } from './vin-validation';
+export { validateVIN, validateVin } from './vin-validation';

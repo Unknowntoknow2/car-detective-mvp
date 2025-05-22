@@ -30,7 +30,7 @@ describe('VIN Validation', () => {
   test('validateVIN fails short VIN', () => {
     const result = validateVIN('1HGCM8263');
     expect(result.isValid).toBe(false);
-    expect(result.error).toBe('VIN must be exactly 17 characters');
+    expect(result.error).toBe('VIN must be exactly 17 characters (currently 9)');
   });
 
   test('validateVIN fails if VIN contains I, O, or Q', () => {
