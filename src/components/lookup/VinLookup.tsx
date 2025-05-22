@@ -1,97 +1,101 @@
-
 import React, { useState } from 'react';
-import { VINLookupForm } from './vin/VINLookupForm';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
-import ValuationEmptyState from '@/components/valuation/ValuationEmptyState';
-import { useValuationFlow } from '@/hooks/useValuationFlow';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { validateVin } from '@/utils/validation/vin-validation';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useValuation } from '@/hooks/useValuation';
+import { toast } from 'sonner';
 
 interface VinLookupProps {
   onSubmit?: (vin: string) => void;
-  onResultsReady?: (data: any) => void;
+  onResultsReady?: (result: any) => void;
 }
 
-const VinLookup: React.FC<VinLookupProps> = ({ 
-  onSubmit,
-  onResultsReady
-}) => {
+const VinLookup: React.FC<VinLookupProps> = ({ onSubmit, onResultsReady }) => {
   const [vin, setVin] = useState('');
-  const { 
-    isLoading, 
-    error, 
-    valuationData, 
-    decodedVehicle,
-    lookupByVin,
-    resetState
-  } = useValuationFlow();
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const { isLoading, decodeVin, valuationData } = useValuation();
 
-  const handleSubmit = async (vinNumber: string) => {
-    setVin(vinNumber);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setVin(value);
     
-    if (onSubmit) {
-      onSubmit(vinNumber);
+    // Clear validation error when input changes
+    if (validationError) {
+      setValidationError(null);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // Validate VIN
+    const validation = validateVin(vin);
+    if (!validation.isValid) {
+      setValidationError(validation.message || 'Invalid VIN');
       return;
     }
     
-    const result = await lookupByVin(vinNumber);
+    // If external onSubmit handler is provided, use it
+    if (onSubmit) {
+      onSubmit(vin);
+      return;
+    }
     
-    if (result && onResultsReady) {
-      onResultsReady(result);
+    // Otherwise, use our hook to decode the VIN
+    const result = await decodeVin(vin);
+    
+    if (result.success && valuationData) {
+      if (onResultsReady) {
+        onResultsReady(valuationData);
+      }
     }
   };
 
-  const handleReset = () => {
-    setVin('');
-    resetState();
-  };
-
   return (
-    <div className="space-y-6">
-      {!valuationData ? (
-        <Card>
-          <CardContent className="pt-6">
-            <VINLookupForm 
-              onSubmit={handleSubmit} 
-              isLoading={isLoading} 
-              value={vin}
-              onChange={setVin}
-              error={error}
-              existingVehicle={decodedVehicle ? {
-                make: decodedVehicle.make,
-                model: decodedVehicle.model,
-                year: decodedVehicle.year
-              } : undefined}
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          <ValuationResult 
-            data={valuationData} 
-            isPremium={false}
-            isLoading={isLoading}
-            error={error || undefined}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
+        <div className="relative">
+          <Input
+            id="vin"
+            placeholder="Enter 17-character VIN"
+            value={vin}
+            onChange={handleChange}
+            className={validationError ? 'border-red-300 pr-10' : ''}
           />
-          
-          <div className="flex justify-center">
-            <button 
-              onClick={handleReset}
-              className="text-sm text-primary hover:underline"
-            >
-              Look up another vehicle
-            </button>
-          </div>
+          {validationError && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+          )}
         </div>
-      )}
+        {validationError && (
+          <p className="text-sm text-red-500">{validationError}</p>
+        )}
+      </div>
       
-      {error && !isLoading && !valuationData && (
-        <ValuationEmptyState 
-          message={`We couldn't find information for this VIN. ${error}`}
-          actionLabel="Try a different VIN"
-          onAction={handleReset}
-        />
-      )}
-    </div>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLoading || !vin.trim()}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Looking up VIN...
+          </>
+        ) : (
+          'Lookup VIN'
+        )}
+      </Button>
+      
+      <p className="text-xs text-muted-foreground">
+        VIN lookup provides the most accurate valuation based on your specific vehicle.
+      </p>
+    </form>
   );
 };
 

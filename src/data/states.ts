@@ -8,6 +8,7 @@ export const states = [
   { value: "CO", label: "Colorado" },
   { value: "CT", label: "Connecticut" },
   { value: "DE", label: "Delaware" },
+  { value: "DC", label: "District Of Columbia" },
   { value: "FL", label: "Florida" },
   { value: "GA", label: "Georgia" },
   { value: "HI", label: "Hawaii" },
@@ -49,6 +50,5 @@ export const states = [
   { value: "WA", label: "Washington" },
   { value: "WV", label: "West Virginia" },
   { value: "WI", label: "Wisconsin" },
-  { value: "WY", label: "Wyoming" },
-  { value: "DC", label: "District of Columbia" }
+  { value: "WY", label: "Wyoming" }
 ];
