@@ -6,7 +6,6 @@ import { Link, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { User, Building } from "lucide-react";
 import { SignupForm } from '@/components/auth/forms/SignupForm';
-import { DealerSignupForm } from '@/components/dealer/DealerSignupForm';
 import { useAuth } from '@/hooks/useAuth';
 import { DEBUG_MODE } from '@/lib/constants';
 
@@ -52,14 +51,22 @@ export default function SignupPage() {
               <CardDescription className="mb-4">
                 Sign up as an individual to value your vehicle
               </CardDescription>
-              <SignupForm role="individual" redirectPath="/dashboard" />
+              <SignupForm 
+                role="individual" 
+                redirectPath="/dashboard" 
+                showDealershipField={false}
+              />
             </TabsContent>
             
             <TabsContent value="dealer" className="mt-0">
               <CardDescription className="mb-4">
                 Register your dealership for enhanced features
               </CardDescription>
-              <DealerSignupForm />
+              <SignupForm 
+                role="dealer" 
+                redirectPath="/dealer/dashboard" 
+                showDealershipField={true}
+              />
             </TabsContent>
           </CardContent>
           

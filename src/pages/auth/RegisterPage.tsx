@@ -47,12 +47,13 @@ export default function RegisterPage() {
                 setIsLoading={setIsLoading}
                 redirectPath="/dashboard"
                 redirectToLogin={true}
+                userRole="individual"
               />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
               <div className="text-center text-sm text-muted-foreground">
                 <div>Already have an account?{' '}
-                  <Link to="/login-user" className="text-primary hover:underline">
+                  <Link to="/login" className="text-primary hover:underline">
                     Sign In
                   </Link>
                 </div>
