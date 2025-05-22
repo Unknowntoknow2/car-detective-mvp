@@ -31,12 +31,13 @@ const signupSchema = z.object({
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
-interface SignupFormProps {
+export interface SignupFormProps {
   role?: 'individual' | 'dealer';
   redirectPath?: string;
   isLoading?: boolean;
   setIsLoading?: (value: boolean) => void;
   redirectToLogin?: boolean;
+  userRole?: string; // Add the userRole prop to the interface
 }
 
 export function SignupForm({
@@ -45,6 +46,7 @@ export function SignupForm({
   isLoading: externalLoading,
   setIsLoading: setExternalLoading,
   redirectToLogin = false,
+  userRole, // Add the prop to the function parameters
 }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
