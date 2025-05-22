@@ -5,7 +5,7 @@ import DealerLayout from '@/layouts/DealerLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
-import { DealerInventoryItem } from '@/types/vehicle';
+import { DealerInventoryItem } from '@/types/vehicle.d';
 import { toast } from 'sonner';
 
 const DealerInventoryListPage: React.FC = () => {
