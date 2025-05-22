@@ -1,280 +1,305 @@
+
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { CheckIcon, Loader2 } from 'lucide-react';
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { STRIPE_PRODUCTS, checkoutSingleReport, checkoutBundle3Reports, checkoutBundle5Reports, CheckoutResponse } from "@/utils/stripeService";
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/ui/container';
+import { Shield, CreditCard, Package, Users, Zap, CheckCircle, PackageCheck, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { checkoutSingleReport, checkoutBundle3Reports, checkoutBundle5Reports } from '@/utils/stripeService';
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
-  
-  // Get valuation ID from URL params if available
-  const searchParams = new URLSearchParams(location.search);
+  const [searchParams] = useSearchParams();
   const valuationId = searchParams.get('valuation');
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const { user, userDetails } = useAuth();
+  const isDealership = userDetails?.role === 'dealer';
   
-  const handleCheckout = async (bundle: 1 | 3 | 5) => {
+  const handleCheckout = async (bundleType: 'single' | 'bundle3' | 'bundle5') => {
     if (!user) {
-      navigate('/auth?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+      // Redirect to auth if user is not logged in
+      navigate(`/auth?redirect=${encodeURIComponent(`/pricing?valuation=${valuationId || ''}`)}`);
       return;
     }
     
-    setIsLoading(`bundle-${bundle}`);
+    setIsProcessing(bundleType);
     
     try {
-      let response: CheckoutResponse;
-      const options = valuationId ? { valuationId } : {};
+      let checkoutResponse;
       
-      if (bundle === 1) {
-        response = await checkoutSingleReport(options);
-      } else if (bundle === 3) {
-        response = await checkoutBundle3Reports(options);
+      if (bundleType === 'bundle3') {
+        checkoutResponse = await checkoutBundle3Reports({ valuationId });
+      } else if (bundleType === 'bundle5') {
+        checkoutResponse = await checkoutBundle5Reports({ valuationId });
       } else {
-        response = await checkoutBundle5Reports(options);
+        checkoutResponse = await checkoutSingleReport({ valuationId });
       }
       
-      if (response.success && response.url) {
-        window.location.href = response.url;
+      if (checkoutResponse.success && checkoutResponse.url) {
+        window.location.href = checkoutResponse.url;
       } else {
-        toast.error("Checkout failed", { description: response.error || "Could not create checkout session" });
+        toast.error(checkoutResponse.error || 'Failed to create checkout session');
+        setIsProcessing(null);
       }
     } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error("Checkout failed", { description: "An unexpected error occurred" });
-    } finally {
-      setIsLoading(null);
+      console.error('Checkout error:', error);
+      toast.error('Error starting checkout process');
+      setIsProcessing(null);
     }
   };
   
-  const formatPrice = (cents: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0
-    }).format(cents / 100);
-  };
-
+  // If the user is a dealership, redirect them to the dealer pricing page
+  if (isDealership) {
+    navigate('/dealer/subscription');
+    return null;
+  }
+  
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1 container py-12">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Premium Report Pricing</h1>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Get in-depth vehicle analysis, market comparisons, and more with our premium reports
+    <Container>
+      <div className="py-12 space-y-8">
+        <div className="text-center max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold mb-4">Choose Your Premium Plan</h1>
+          <p className="text-muted-foreground">
+            Unlock detailed valuation reports, market analysis, and more with our premium reports
+          </p>
+        </div>
+        
+        {/* Check if checkout was canceled */}
+        {searchParams.get('checkout_canceled') === 'true' && (
+          <Card className="bg-yellow-50 border-yellow-200 max-w-3xl mx-auto">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <Shield className="h-5 w-5 text-yellow-500 mt-0.5" />
+                <div>
+                  <h3 className="font-medium mb-1">Payment Canceled</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Your payment process was canceled. You can try again or contact support if you need assistance.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Single Report */}
+          <Card className="relative overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <CreditCard className="h-5 w-5 mr-2 text-primary" />
+                Single Report
+              </CardTitle>
+              <CardDescription>One-time purchase</CardDescription>
+              <div className="mt-2">
+                <span className="text-3xl font-bold">$19.99</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Full detailed valuation report</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Market comparison data</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Premium PDF export</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Vehicle history integration</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                className="w-full" 
+                onClick={() => handleCheckout('single')}
+                disabled={!!isProcessing}
+              >
+                {isProcessing === 'single' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Buy Now'
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {/* 3-Pack Bundle */}
+          <Card className="relative overflow-hidden border-primary">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-medium px-3 py-1">
+              Popular
+            </div>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Package className="h-5 w-5 mr-2 text-primary" />
+                3-Pack Bundle
+              </CardTitle>
+              <CardDescription>Save 17% on reports</CardDescription>
+              <div className="mt-2">
+                <span className="text-3xl font-bold">$49.99</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  $16.66 per report
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>3 premium valuation credits</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Compare multiple vehicles</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>All premium features included</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Credits valid for 12 months</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                className="w-full" 
+                onClick={() => handleCheckout('bundle3')}
+                disabled={!!isProcessing}
+              >
+                {isProcessing === 'bundle3' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Buy 3-Pack'
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {/* 5-Pack Bundle */}
+          <Card className="relative overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <PackageCheck className="h-5 w-5 mr-2 text-primary" />
+                5-Pack Bundle
+              </CardTitle>
+              <CardDescription>Best value for multiple vehicles</CardDescription>
+              <div className="mt-2">
+                <span className="text-3xl font-bold">$79.99</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  $16.00 per report
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>5 premium valuation credits</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Best bulk discount (20% off)</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>All premium features included</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>Credits valid for 12 months</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                className="w-full" 
+                onClick={() => handleCheckout('bundle5')}
+                disabled={!!isProcessing}
+              >
+                {isProcessing === 'bundle5' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Buy 5-Pack'
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+        
+        {/* Dealership section */}
+        <div className="mt-16 pt-8 border-t">
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <h2 className="text-2xl font-bold">Are you a dealership?</h2>
+            <p className="text-muted-foreground mt-2">
+              Get access to our dealer-specific tools, bulk valuations, and CRM features
             </p>
           </div>
           
-          <Tabs defaultValue="oneTime" className="space-y-8">
-            <div className="flex justify-center">
-              <TabsList>
-                <TabsTrigger value="oneTime">One-Time Purchase</TabsTrigger>
-                <TabsTrigger value="bundles">Credit Bundles</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <TabsContent value="oneTime">
-              <Card className="border-primary/20 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Single Premium Report</CardTitle>
-                  <CardDescription>Unlock premium features for one vehicle valuation</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex justify-center">
-                    <span className="text-4xl font-bold">{formatPrice(STRIPE_PRODUCTS.SINGLE_REPORT.price)}</span>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <ul className="space-y-3">
+          <Card className="max-w-3xl mx-auto">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-6 items-center">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-primary" />
+                    Dealership Subscription Plans
+                  </h3>
+                  <p className="text-muted-foreground mt-2">
+                    Our dealer plans include unlimited team members, inventory management, 
+                    lead generation tools, and bulk valuation features.
+                  </p>
+                  <ul className="mt-4 space-y-2">
                     <li className="flex items-center">
-                      <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                      <span>Detailed Market Analysis</span>
+                      <Zap className="h-4 w-4 text-primary mr-2" />
+                      <span>Starting at $99/month</span>
                     </li>
                     <li className="flex items-center">
-                      <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                      <span>Price Range Comparison</span>
+                      <Zap className="h-4 w-4 text-primary mr-2" />
+                      <span>No long-term contracts</span>
                     </li>
                     <li className="flex items-center">
-                      <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                      <span>Downloadable PDF Report</span>
+                      <Zap className="h-4 w-4 text-primary mr-2" />
+                      <span>Dedicated support</span>
                     </li>
                   </ul>
-                </CardContent>
-                <CardFooter>
+                </div>
+                <div className="flex-shrink-0">
                   <Button 
-                    className="w-full"
-                    onClick={() => handleCheckout(1)}
-                    disabled={isLoading === 'bundle-1'}
+                    size="lg" 
+                    onClick={() => navigate('/dealer/subscription')}
                   >
-                    {isLoading === 'bundle-1' ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      'Get Single Report'
-                    )}
+                    View Dealer Plans
                   </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="bundles">
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card className="border-primary/20 shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Bundle of 3 Reports</CardTitle>
-                    <CardDescription>Save up to 17% compared to single reports</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex justify-center">
-                      <span className="text-4xl font-bold">{formatPrice(STRIPE_PRODUCTS.BUNDLE_3.price)}</span>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <ul className="space-y-3">
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>3 Premium Reports</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>Use Anytime Within 12 Months</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>All Premium Features Included</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      className="w-full"
-                      onClick={() => handleCheckout(3)}
-                      disabled={isLoading === 'bundle-3'}
-                    >
-                      {isLoading === 'bundle-3' ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        'Get 3 Reports Bundle'
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
-                
-                <Card className="border-primary/20 shadow-sm bg-primary-50 dark:bg-primary-950/20">
-                  <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4">
-                    <div className="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-full">
-                      Most Popular
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <CardTitle>Bundle of 5 Reports</CardTitle>
-                    <CardDescription>Save up to 20% compared to single reports</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex justify-center">
-                      <span className="text-4xl font-bold">{formatPrice(STRIPE_PRODUCTS.BUNDLE_5.price)}</span>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <ul className="space-y-3">
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>5 Premium Reports</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>Use Anytime Within 12 Months</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>All Premium Features Included</span>
-                      </li>
-                      <li className="flex items-center">
-                        <CheckIcon className="h-5 w-5 text-primary mr-2" />
-                        <span>Priority Support</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      className="w-full"
-                      onClick={() => handleCheckout(5)}
-                      disabled={isLoading === 'bundle-5'}
-                    >
-                      {isLoading === 'bundle-5' ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        'Get 5 Reports Bundle'
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="mt-16 text-center">
-            <h2 className="text-2xl font-bold mb-4">Why Choose Premium Reports?</h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Our premium reports provide in-depth market analysis and comprehensive 
-              valuation information to help you make the best decisions for your vehicle.
-            </p>
-            
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Market Analysis</CardTitle>
-                  <CardDescription>Understand the current market trends</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  Get insights into how similar vehicles are being priced in your area.
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Condition Assessment</CardTitle>
-                  <CardDescription>Evaluate your vehicle's condition</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  Assess the condition of your vehicle to refine your valuation.
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>CARFAX History</CardTitle>
-                  <CardDescription>Access vehicle history reports</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  Get a detailed history report to uncover any hidden issues.
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </Container>
   );
 }

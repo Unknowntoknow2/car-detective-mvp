@@ -1,20 +1,60 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Crown, Loader2 } from 'lucide-react';
+import { downloadPdf } from '@/utils/pdf';
+import { toast } from 'sonner';
+import type { DecodedVehicleInfo } from '@/types/vehicle';
+import { convertVehicleInfoToReportData } from '@/utils/pdf';
 
 interface PDFPreviewProps {
   onViewSample: () => Promise<boolean>;
   onUpgradeToPremium: () => void;
   isLoading?: boolean;
+  vehicleInfo?: DecodedVehicleInfo;
+  valuationData?: {
+    mileage: number;
+    estimatedValue: number;
+    condition: string;
+    zipCode: string;
+    confidenceScore?: number;
+  };
 }
 
 export const PDFPreview: React.FC<PDFPreviewProps> = ({
   onViewSample,
   onUpgradeToPremium,
-  isLoading = false
+  isLoading = false,
+  vehicleInfo,
+  valuationData
 }) => {
+  const [isSampleGenerating, setIsSampleGenerating] = useState(false);
+  
+  const handleDownloadSample = async () => {
+    if (!vehicleInfo || !valuationData) {
+      await onViewSample();
+      return;
+    }
+    
+    setIsSampleGenerating(true);
+    try {
+      // Convert vehicle info to report data format
+      const reportData = convertVehicleInfoToReportData(vehicleInfo, {
+        ...valuationData,
+        isPremium: false
+      });
+      
+      await downloadPdf(reportData);
+      toast.success("Sample PDF downloaded successfully");
+    } catch (error) {
+      console.error("Error generating sample PDF:", error);
+      toast.error("Failed to generate sample PDF");
+    } finally {
+      setIsSampleGenerating(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -33,11 +73,11 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
             <Button 
               variant="outline" 
               className="w-full sm:w-auto" 
-              onClick={onViewSample}
-              disabled={isLoading}
+              onClick={handleDownloadSample}
+              disabled={isSampleGenerating || isLoading}
               data-testid="download-sample-pdf"
             >
-              {isLoading ? (
+              {isSampleGenerating || isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Generating...

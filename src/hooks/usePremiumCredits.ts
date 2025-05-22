@@ -1,7 +1,7 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 export interface UsePremiumCreditsResult {
@@ -18,7 +18,7 @@ export function usePremiumCredits(): UsePremiumCreditsResult {
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
 
-  const fetchCredits = async () => {
+  const fetchCredits = useCallback(async () => {
     if (!user) {
       setIsLoading(false);
       return;
@@ -47,7 +47,7 @@ export function usePremiumCredits(): UsePremiumCreditsResult {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   const useCredit = async (valuationId: string): Promise<boolean> => {
     if (!user) {
@@ -61,20 +61,21 @@ export function usePremiumCredits(): UsePremiumCreditsResult {
     }
     
     try {
-      // Call the use-premium-credit edge function to use a credit
-      const { data, error } = await supabase.functions.invoke('use-premium-credit', {
-        body: { valuationId }
+      // Call the use-premium-credit function or RPC to use a credit
+      const { data, error } = await supabase.rpc('use_premium_credit', {
+        p_user_id: user.id,
+        p_valuation_id: valuationId
       });
       
       if (error) throw error;
       
-      if (data?.success) {
+      if (data) {
         // Update local state
         setCredits(prevCredits => Math.max(0, prevCredits - 1));
         toast.success('Premium credit used successfully');
         return true;
       } else {
-        toast.error(data?.message || 'Failed to use premium credit');
+        toast.error('Failed to use premium credit');
         return false;
       }
     } catch (err) {
@@ -86,7 +87,7 @@ export function usePremiumCredits(): UsePremiumCreditsResult {
 
   useEffect(() => {
     fetchCredits();
-  }, [user]);
+  }, [fetchCredits]);
 
   return {
     credits,
