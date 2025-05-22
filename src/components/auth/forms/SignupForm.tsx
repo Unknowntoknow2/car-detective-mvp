@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { UserRole } from '@/types/auth';
+import { Badge } from '@/components/ui/badge';
 
 // Define the form schema with validation
 const signupSchema = z.object({
@@ -84,7 +85,11 @@ export function SignupForm({
         Object.assign(userData, { dealership_name: data.dealershipName });
       }
       
-      await signUp(data.email, data.password, userData);
+      const result = await signUp(data.email, data.password, userData);
+      
+      if (result?.error) {
+        throw new Error(result.error);
+      }
       
       toast.success('Account created successfully!', {
         description: 'Please check your email to verify your account.'
@@ -116,6 +121,12 @@ export function SignupForm({
 
   return (
     <Form {...form}>
+      <div className="mb-4">
+        <Badge className={`${role === 'dealer' ? 'bg-blue-600' : 'bg-primary'} text-white px-3 py-1 text-sm`}>
+          {role === 'dealer' ? 'Dealer Registration' : 'Individual Registration'}
+        </Badge>
+      </div>
+      
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}

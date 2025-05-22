@@ -33,20 +33,20 @@ export const SigninForm = ({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const navigate = useNavigate();
-  const { signIn, userDetails } = useAuth();
+  const { signIn, user, userRole, userDetails } = useAuth();
 
   // Check if we already have user details with a role
   useEffect(() => {
-    if (userDetails) {
-      const userRole = userDetails.role || 'individual';
+    if (user) {
+      const detectedRole = userRole || userDetails?.role || 'individual';
       // Redirect to appropriate dashboard based on role
-      if (userRole === 'dealer') {
+      if (detectedRole === 'dealer') {
         navigate('/dealer-dashboard');
       } else {
         navigate('/dashboard');
       }
     }
-  }, [userDetails, navigate]);
+  }, [user, userRole, userDetails, navigate]);
 
   // Form validation
   const validateForm = () => {
@@ -92,11 +92,21 @@ export const SigninForm = ({
     setIsLoading(true);
     
     try {
-      await signIn(email, password);
+      const result = await signIn(email, password);
+      
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      
       toast.success('Successfully signed in!');
       
-      // If role is dealer, we'll redirect to dealer dashboard, otherwise to user dashboard
-      // The actual redirect will happen in the useEffect when userDetails is populated
+      // Determine redirect path based on role
+      // The redirect will happen in the useEffect when userRole is populated
+      if (role === 'dealer') {
+        // We'll redirect to dealer dashboard in the useEffect
+      } else {
+        // We'll redirect to user dashboard in the useEffect
+      }
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'An unexpected error occurred');
