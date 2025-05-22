@@ -19,8 +19,22 @@ interface AuctionResult {
   photo_urls?: string[];
 }
 
+interface MarketListing {
+  id: string;
+  title: string;
+  price: number;
+  url: string;
+  source: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  image?: string;
+  location?: string;
+}
+
 interface MarketInsight {
-  listings: any[];
+  listings: MarketListing[];
   auctions: AuctionResult[];
   averagePrices: {
     retail: number;
@@ -100,18 +114,18 @@ export function useMarketInsights(vin: string, make: string, model: string, year
         });
         
         // 4. Calculate average prices and ranges
-        const retailPrices = marketListings?.filter((l: any) => 
+        const retailPrices = marketListings?.filter((l: MarketListing) => 
           l.source === 'cargurus' || l.source === 'autotrader' || l.source === 'cars.com'
-        ).map((l: any) => l.price) || [];
+        ).map((l: MarketListing) => l.price) || [];
         
-        const privatePrices = marketListings?.filter((l: any) => 
+        const privatePrices = marketListings?.filter((l: MarketListing) => 
           l.source === 'craigslist' || l.source === 'facebook'
-        ).map((l: any) => l.price) || [];
+        ).map((l: MarketListing) => l.price) || [];
         
         const auctionPrices = auctionResults.map(a => parseFloat(a.price)).filter(p => !isNaN(p));
         
         // Calculate averages
-        const getAverage = (arr: number[]) => 
+        const getAverage = (arr: number[]): number => 
           arr.length ? arr.reduce((sum, val) => sum + val, 0) / arr.length : 0;
         
         const averagePrices = {

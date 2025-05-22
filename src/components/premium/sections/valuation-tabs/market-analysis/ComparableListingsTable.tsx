@@ -1,52 +1,77 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
-interface Listing {
-  id: string;
+interface ComparableListing {
   title: string;
   price: number;
-  mileage: number;
-  condition: string;
-  location: string;
-  daysListed: number;
   source: string;
+  mileage?: number;
+  url?: string;
+  distance?: number;
 }
 
 interface ComparableListingsTableProps {
-  listings: Listing[];
+  listings: ComparableListing[];
 }
 
 export function ComparableListingsTable({ listings }: ComparableListingsTableProps) {
+  if (!listings || listings.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">
+          No comparable listings found for this vehicle.
+        </p>
+      </div>
+    );
+  }
+  
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Vehicle</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Mileage</TableHead>
-            <TableHead className="hidden md:table-cell">Condition</TableHead>
-            <TableHead className="hidden md:table-cell">Location</TableHead>
-            <TableHead className="hidden md:table-cell">Listed</TableHead>
-            <TableHead className="hidden md:table-cell">Source</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {listings.map((listing) => (
-            <TableRow key={listing.id}>
-              <TableCell>{listing.title}</TableCell>
-              <TableCell>{formatCurrency(listing.price)}</TableCell>
-              <TableCell>{listing.mileage.toLocaleString()}</TableCell>
-              <TableCell className="hidden md:table-cell">{listing.condition}</TableCell>
-              <TableCell className="hidden md:table-cell">{listing.location}</TableCell>
-              <TableCell className="hidden md:table-cell">{listing.daysListed} days</TableCell>
-              <TableCell className="hidden md:table-cell">{listing.source}</TableCell>
+    <div>
+      <h3 className="font-medium mb-4">Most Similar Vehicles</h3>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vehicle</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Source</TableHead>
+              <TableHead>Mileage</TableHead>
+              <TableHead className="text-right">View</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {listings.map((listing, index) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">{listing.title}</TableCell>
+                <TableCell>{formatCurrency(listing.price)}</TableCell>
+                <TableCell>
+                  <span className="capitalize">{listing.source}</span>
+                </TableCell>
+                <TableCell>
+                  {listing.mileage ? `${listing.mileage.toLocaleString()} mi` : 'Unknown'}
+                </TableCell>
+                <TableCell className="text-right">
+                  {listing.url ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(listing.url, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">N/A</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
