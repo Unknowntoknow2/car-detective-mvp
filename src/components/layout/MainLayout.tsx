@@ -18,3 +18,6 @@ export function MainLayout({ children }: MainLayoutProps) {
     </div>
   );
 }
+
+// Add default export for compatibility
+export default MainLayout;

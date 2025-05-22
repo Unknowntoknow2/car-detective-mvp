@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ManualEntryForm } from './ManualEntryForm';
+import ManualEntryForm from './ManualEntryForm';
 import { ManualEntryFormData } from './types/manualEntry';
 
 export interface ManualLookupProps {

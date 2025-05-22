@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import FollowUpForm from '@/components/followup/FollowUpForm';
 import { useVinDecoder } from '@/hooks/useVinDecoder';
 import { toast } from 'sonner';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 const ValuationFollowUpPage = () => {
   const [searchParams] = useSearchParams();
@@ -65,60 +66,53 @@ const ValuationFollowUpPage = () => {
     }, 1500);
   };
 
-  if (decoderLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-3 text-lg">Retrieving vehicle information...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-destructive">Error Retrieving Vehicle Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>{error}</p>
-          <Button 
-            onClick={() => navigate('/lookup')} 
-            className="mt-4"
-          >
-            Try Another VIN
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="container max-w-3xl py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Additional Vehicle Details</CardTitle>
-          {vehicleInfo && (
-            <p className="text-muted-foreground">
-              {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-            </p>
-          )}
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Processing your valuation...</p>
-            </div>
-          ) : (
-            <FollowUpForm 
-              onSubmit={handleSubmit} 
-              initialData={vehicleInfo || {}}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <MainLayout>
+      <div className="container max-w-3xl py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Vehicle Details</CardTitle>
+            {vehicleInfo && (
+              <p className="text-muted-foreground">
+                {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+              </p>
+            )}
+          </CardHeader>
+          <CardContent>
+            {decoderLoading && (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mr-3" />
+                <p className="text-lg">Retrieving vehicle information...</p>
+              </div>
+            )}
+            
+            {error && (
+              <div>
+                <p className="text-destructive">{error}</p>
+                <Button 
+                  onClick={() => navigate('/')} 
+                  className="mt-4"
+                >
+                  Try Another VIN
+                </Button>
+              </div>
+            )}
+            
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Processing your valuation...</p>
+              </div>
+            ) : !decoderLoading && !error && (
+              <FollowUpForm 
+                onSubmit={handleSubmit} 
+                initialData={vehicleInfo || {}}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </MainLayout>
   );
 };
 

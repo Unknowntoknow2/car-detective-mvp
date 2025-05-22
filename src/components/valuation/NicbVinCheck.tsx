@@ -99,3 +99,6 @@ const NicbVinCheck: React.FC<NicbVinCheckProps> = ({ onCheck }) => {
 };
 
 export default NicbVinCheck;
+
+// Also export as named export for flexibility
+export { NicbVinCheck };

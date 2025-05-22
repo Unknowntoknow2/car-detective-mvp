@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { NicbVinCheck } from '@/components/valuation/NicbVinCheck';
+import NicbVinCheck from '@/components/valuation/NicbVinCheck';
 
 const NicbVinCheckPage: React.FC = () => {
   return (
