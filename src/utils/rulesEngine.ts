@@ -54,3 +54,11 @@ export function addRule(rule: Rule): void {
 export function getRules(): Rule[] {
   return rules;
 }
+
+// Default export for backward compatibility
+export default {
+  calculateAdjustments,
+  calculateTotalAdjustment,
+  addRule,
+  getRules
+};

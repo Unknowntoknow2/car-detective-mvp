@@ -48,6 +48,11 @@ export async function scrapeCraigslist(zipCode: string, searchTerm: string): Pro
 }
 
 /**
+ * For compatibility with scripts that expect this function name
+ */
+export const fetchCraigslistListings = scrapeCraigslist;
+
+/**
  * Normalize Craigslist listings to a common format
  */
 export function normalizeCraigslistListings(listings: CraigslistListing[]): NormalizedListing[] {

@@ -5,8 +5,15 @@ import { toast } from "sonner";
 import type { Valuation } from "@/types/valuation-history";
 import { getUserValuations, getSavedValuations, getPremiumValuations } from "@/utils/valuationService";
 
+// Define a unified valuation type to handle different data sources
+type UnifiedValuation = Valuation & {
+  is_premium?: boolean;
+  premium_unlocked?: boolean;
+  createdAt?: string;
+}
+
 export function useValuationHistory() {
-  const [valuations, setValuations] = useState<Valuation[]>([]);
+  const [valuations, setValuations] = useState<UnifiedValuation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -47,20 +54,23 @@ export function useValuationHistory() {
         const formattedSavedValuations = savedValuations.map(val => ({
           ...val,
           is_premium: false,
-          premium_unlocked: false // Explicitly set for saved valuations
+          premium_unlocked: false, // Explicitly set for saved valuations
+          created_at: val.created_at || (val.createdAt ? new Date(val.createdAt).toISOString() : new Date().toISOString())
         }));
         
         // Format regular valuations to add the is_premium flag
         const formattedRegularValuations = regularValuations.map(val => ({
           ...val,
-          is_premium: !!val.premium_unlocked
+          is_premium: !!val.premium_unlocked,
+          created_at: val.created_at || (val.createdAt ? new Date(val.createdAt).toISOString() : new Date().toISOString())
         }));
         
         // Ensure premium valuations have consistent formatting
         const formattedPremiumValuations = premiumValuations.map(val => ({
           ...val,
           is_premium: true,
-          premium_unlocked: true // Premium valuations should always have premium_unlocked true
+          premium_unlocked: true, // Premium valuations should always have premium_unlocked true
+          created_at: val.created_at || (val.createdAt ? new Date(val.createdAt).toISOString() : new Date().toISOString())
         }));
         
         // Combine and sort by date (most recent first)
@@ -71,13 +81,15 @@ export function useValuationHistory() {
         ];
         
         // Sort by date
-        const sortedValuations = allValuations.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        const sortedValuations = allValuations.sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        });
         
         // Improved deduplication logic - use a Map to track IDs
         // If a valuation appears multiple times, prioritize the premium version
-        const valuationMap = new Map<string, Valuation>();
+        const valuationMap = new Map<string, UnifiedValuation>();
         
         sortedValuations.forEach(valuation => {
           if (!valuation.id) return; // Skip if no ID
@@ -126,15 +138,19 @@ export function useValuationHistory() {
 }
 
 // Add a test function that can be imported in tests
-export function testDeduplication(valuations: Valuation[] | null | undefined): Valuation[] {
+export function testDeduplication(valuations: UnifiedValuation[] | null | undefined): UnifiedValuation[] {
   // Fallback protection for null or undefined input
   if (!valuations) return [];
   
   // Implementation of the deduplication logic for testing
-  const valuationMap = new Map<string, Valuation>();
+  const valuationMap = new Map<string, UnifiedValuation>();
   
   [...valuations]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
+    })
     .forEach(valuation => {
       if (!valuation.id) return;
       

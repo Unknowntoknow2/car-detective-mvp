@@ -18,7 +18,17 @@ export interface RulesEngineInput {
   aiConditionOverride?: any;
   photoScore?: number;
   carfaxData?: any;
+  // Additional fields needed by calculators
+  colorMultiplier?: number;
+  hasOpenRecall?: boolean;
+  warrantyStatus?: string;
+  drivingScore?: number;
+  bodyType?: string;
+  bodyStyle?: string;
 }
+
+// Alias for backward compatibility
+export type EnhancedRulesEngineInput = RulesEngineInput;
 
 export interface AdjustmentBreakdown {
   factor: string;
@@ -30,11 +40,11 @@ export interface AdjustmentBreakdown {
 }
 
 export interface AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown;
+  calculate(input: RulesEngineInput): AdjustmentBreakdown | Promise<AdjustmentBreakdown>;
 }
 
 export interface Rule {
   name: string;
   description: string;
-  calculate: (input: RulesEngineInput) => AdjustmentBreakdown;
+  calculate: (input: RulesEngineInput) => AdjustmentBreakdown | Promise<AdjustmentBreakdown>;
 }
