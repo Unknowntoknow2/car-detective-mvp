@@ -27,6 +27,7 @@ const signupSchema = z.object({
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
+  dealershipName: z.string().optional(),
 });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
@@ -38,6 +39,7 @@ export interface SignupFormProps {
   setIsLoading?: (value: boolean) => void;
   redirectToLogin?: boolean;
   userRole?: string; // For role-based redirects and form handling
+  showDealershipField?: boolean;
 }
 
 export function SignupForm({
@@ -47,6 +49,7 @@ export function SignupForm({
   setIsLoading: setExternalLoading,
   redirectToLogin = false,
   userRole, // Include in function parameters
+  showDealershipField = false,
 }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -56,12 +59,17 @@ export function SignupForm({
   const loading = externalLoading !== undefined ? externalLoading : isLoading;
   const setLoading = setExternalLoading || setIsLoading;
 
+  // Determine effective role
+  const effectiveRole = userRole || role;
+  
+  // Create form with or without dealership field based on role
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       fullName: '',
       email: '',
       password: '',
+      dealershipName: '',
     },
   });
 
@@ -69,13 +77,18 @@ export function SignupForm({
     setLoading(true);
     
     try {
-      // Use the passed userRole if available, otherwise use the role prop
-      const effectiveRole = userRole || role;
-      
-      await signUp(data.email, data.password, {
+      // Prepare user metadata
+      const userData = {
         full_name: data.fullName,
         role: effectiveRole,
-      });
+      };
+      
+      // Add dealership name to metadata if provided
+      if (effectiveRole === 'dealer' && data.dealershipName) {
+        Object.assign(userData, { dealership_name: data.dealershipName });
+      }
+      
+      await signUp(data.email, data.password, userData);
       
       toast.success('Account created successfully!', {
         description: 'Please check your email to verify your account.'
@@ -101,6 +114,9 @@ export function SignupForm({
       setLoading(false);
     }
   }
+
+  // Determine if dealership field should be shown
+  const shouldShowDealershipField = showDealershipField || effectiveRole === 'dealer';
 
   return (
     <Form {...form}>
@@ -146,6 +162,22 @@ export function SignupForm({
             </FormItem>
           )}
         />
+        
+        {shouldShowDealershipField && (
+          <FormField
+            control={form.control}
+            name="dealershipName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dealership Name {effectiveRole === 'dealer' ? '' : '(Optional)'}</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your Dealership Name" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (

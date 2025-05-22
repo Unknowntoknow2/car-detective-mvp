@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DealerSignupForm } from '@/components/dealer/DealerSignupForm';
+import { SignupForm } from '@/components/auth/forms/SignupForm';
 import { Toaster } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
 export default function DealerSignupPage() {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -48,7 +49,13 @@ export default function DealerSignupPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DealerSignupForm />
+              <SignupForm 
+                isLoading={isLoading} 
+                setIsLoading={setIsLoading}
+                redirectPath="/dealer/dashboard"
+                userRole="dealer"
+                showDealershipField={true}
+              />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
               <div className="text-center text-xs text-muted-foreground">

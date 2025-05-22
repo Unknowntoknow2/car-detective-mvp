@@ -111,7 +111,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading} 
               redirectPath={from}
-              userRole="user"
+              userRole="individual"
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -130,7 +130,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading}
               redirectPath={from}
-              userRole="user"
+              userRole="individual"
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -169,6 +169,7 @@ const AuthForm = ({
               setIsLoading={setIsLoading}
               redirectPath="/dealer/dashboard"
               userRole="dealer"
+              showDealershipField={true}
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
