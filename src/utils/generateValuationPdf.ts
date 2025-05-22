@@ -1,5 +1,4 @@
 
-import { FormData } from '@/types/premium-valuation';
 import { ReportData } from './pdf/types';
 
 // Define the interface for the adjustment type
@@ -47,7 +46,7 @@ export async function generateValuationPdf(
   }
   
   // Handle adjustments safely with optional chaining
-  const adjustments: Adjustment[] = Array.isArray(data.adjustments) 
+  const adjustments: Adjustment[] = data.adjustments 
     ? data.adjustments.map((adj: Adjustment) => ({
         factor: adj.factor,
         impact: adj.impact,

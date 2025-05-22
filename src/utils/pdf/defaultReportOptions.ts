@@ -2,15 +2,11 @@
 import { ReportOptions } from './types';
 
 export const defaultReportOptions: ReportOptions = {
-  pageSize: 'letter',
-  margins: { top: 72, right: 72, bottom: 72, left: 72 },
-  includePageNumbers: true,
-  includePhotos: true,
-  includeSimilarVehicles: false,
-  companyInfo: {
-    name: 'Car Detective',
-    logo: null,
-    website: 'www.cardetective.com',
-    phone: '(800) 555-1234',
-  }
+  includeBranding: true,
+  includeExplanation: true,
+  includePhotoAssessment: true,
+  watermark: false,
+  fontSize: 10,
+  pdfQuality: 'standard',
+  // Remove pageSize or add it to ReportOptions interface
 };

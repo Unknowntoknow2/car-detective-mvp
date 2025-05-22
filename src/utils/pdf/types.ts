@@ -12,6 +12,7 @@ export interface ReportData {
   
   // Valuation Information
   estimatedValue: number;
+  price?: number; // Added to fix errors
   priceRange?: [number, number];
   conditionAdjustment?: number;
   mileageAdjustment?: number;
@@ -19,7 +20,13 @@ export interface ReportData {
   marketAdjustment?: number;
   
   // Condition Information
-  aiCondition?: string; // Changed from condition to aiCondition
+  aiCondition?: string | { // Changed from string to union type
+    summary?: string;
+    score?: number;
+    confidenceScore?: number;
+    issuesDetected?: string[];
+    condition?: string;
+  };
   conditionScore?: number;
   conditionNotes?: string[];
   
@@ -33,12 +40,39 @@ export interface ReportData {
     interior?: string[];
     mechanical?: string[];
   };
+  photoUrl?: string;
+  bestPhotoUrl?: string;
+  photoScore?: number;
+  photoExplanation?: string;
+  
+  // Document Information
+  id?: string; // Added for tests
+  reportTitle?: string;
+  reportDate?: Date;
+  disclaimerText?: string;
+  companyName?: string;
+  website?: string;
   
   // Additional Information
   generatedDate?: Date;
+  generatedAt?: string; // Added for compatibility
   explanation?: string;
   features?: string[];
   premium?: boolean;
+  
+  // PDF-specific properties
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  confidenceScore?: number;
+  bodyType?: string;
+  bodyStyle?: string;
+  color?: string;
+  fuelType?: string;
+  transmission?: string;
+  isPremium?: boolean;
 }
 
 export interface SectionParams {
@@ -53,6 +87,9 @@ export interface SectionParams {
   boldFont?: PDFFont;
   textColor?: RGB;
   primaryColor?: RGB;
+  doc?: any; // Added for sections
+  pageWidth?: number; // Added for sections
+  pageHeight?: number; // Added for sections
 }
 
 export interface ReportOptions {
@@ -62,10 +99,21 @@ export interface ReportOptions {
   watermark: boolean;
   fontSize: number;
   pdfQuality: 'draft' | 'standard' | 'high';
+  pageSize?: string; // Added for defaultReportOptions
 }
 
 export interface ReportGeneratorParams {
   data: ReportData;
   options: ReportOptions;
   document: typeof PDFDocument; // Fixed to use typeof PDFDocument
+}
+
+// Add AdjustmentBreakdown interface for PDF sections
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description: string;
+  name?: string;
+  value?: number;
+  percentAdjustment?: number;
 }
