@@ -16,6 +16,8 @@ export interface DecodedVehicleInfo {
   features?: string[];
   mileage?: number;
   valuationId?: string;
+  status?: 'active' | 'sold' | 'pending' | 'draft' | 'available';
+  listingPrice?: number;
 }
 
 export interface VinDecoderResponse {

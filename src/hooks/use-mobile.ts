@@ -1,26 +1,7 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
-    };
-  }, []);
-
-  return isMobile;
-}
-
-export function useMediaQuery(query: string) {
+export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
@@ -28,17 +9,24 @@ export function useMediaQuery(query: string) {
     if (media.matches !== matches) {
       setMatches(media.matches);
     }
-    
-    const listener = () => {
-      setMatches(media.matches);
-    };
-    
+
+    const listener = () => setMatches(media.matches);
     media.addEventListener('change', listener);
     
-    return () => {
-      media.removeEventListener('change', listener);
-    };
+    return () => media.removeEventListener('change', listener);
   }, [matches, query]);
 
   return matches;
+}
+
+export function useMobile(): boolean {
+  return useMediaQuery('(max-width: 768px)');
+}
+
+export function useTablet(): boolean {
+  return useMediaQuery('(min-width: 768px) and (max-width: 1024px)');
+}
+
+export function useDesktop(): boolean {
+  return useMediaQuery('(min-width: 1024px)');
 }

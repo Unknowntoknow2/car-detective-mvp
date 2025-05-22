@@ -10,23 +10,25 @@ export enum ConditionLevel {
 export interface AccidentDetails {
   hasAccident: boolean;
   severity?: 'minor' | 'moderate' | 'severe';
-  repaired?: boolean;
   description?: string;
+  repaired?: boolean;
+  year?: number;
 }
 
 export interface ManualEntryFormData {
   make: string;
   model: string;
   year: number;
-  mileage: number;
-  condition: ConditionLevel;
-  zipCode: string;
-  vin?: string;
-  trim?: string;
-  color?: string;
+  mileage?: number;
+  condition: ConditionLevel | string;
+  zipCode?: string;
   fuelType?: string;
   transmission?: string;
+  trim?: string;
+  color?: string;
   bodyType?: string;
+  vin?: string;
   selectedFeatures?: string[];
   accidentDetails?: AccidentDetails;
+  isPremium?: boolean;
 }

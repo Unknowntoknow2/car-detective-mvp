@@ -9,7 +9,10 @@ interface VehicleLookupResult {
   error: string | null;
   vehicle: DecodedVehicleInfo | null;
   vehicleData: DecodedVehicleInfo | null;
-  lookupVehicle: (type: 'vin' | 'plate' | 'manual', value: string, state?: string, manualData?: ManualEntryFormData) => Promise<DecodedVehicleInfo | null>;
+  lookupVehicle: (type: 'vin' | 'plate' | 'manual' | 'photo', value: string, state?: string, manualData?: ManualEntryFormData) => Promise<DecodedVehicleInfo | null>;
+  lookupByVin: (vin: string) => Promise<DecodedVehicleInfo | null>;
+  lookupByPlate: (plate: string, state: string) => Promise<DecodedVehicleInfo | null>;
+  reset: () => void;
 }
 
 export function useVehicleLookup(): VehicleLookupResult {
@@ -17,8 +20,13 @@ export function useVehicleLookup(): VehicleLookupResult {
   const [error, setError] = useState<string | null>(null);
   const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
 
+  const reset = () => {
+    setVehicle(null);
+    setError(null);
+  };
+
   const lookupVehicle = async (
-    type: 'vin' | 'plate' | 'manual', 
+    type: 'vin' | 'plate' | 'manual' | 'photo', 
     value: string, 
     state?: string,
     manualData?: ManualEntryFormData
@@ -45,6 +53,8 @@ export function useVehicleLookup(): VehicleLookupResult {
           transmission: manualData.transmission,
           bodyType: manualData.bodyType,
           color: manualData.color,
+          exteriorColor: manualData.color,
+          interiorColor: 'Unknown',
           valuationId: `manual-${Date.now()}`
         };
       } else if (type === 'vin') {
@@ -60,6 +70,8 @@ export function useVehicleLookup(): VehicleLookupResult {
           drivetrain: 'FWD',
           bodyType: 'Sedan',
           fuelType: 'Gasoline',
+          exteriorColor: 'Silver',
+          interiorColor: 'Black',
           features: ['Bluetooth', 'Backup Camera', 'Alloy Wheels'],
           valuationId: `vin-${Date.now()}`
         };
@@ -75,7 +87,23 @@ export function useVehicleLookup(): VehicleLookupResult {
           bodyType: 'Sedan',
           fuelType: 'Gasoline',
           exteriorColor: 'Blue',
+          interiorColor: 'Gray',
           valuationId: `plate-${Date.now()}`
+        };
+      } else if (type === 'photo') {
+        // Mock photo lookup
+        result = {
+          vin: 'PHOTO123456789ABCD',
+          make: 'Ford',
+          model: 'Mustang',
+          year: 2018,
+          trim: 'GT',
+          transmission: 'Manual',
+          bodyType: 'Coupe',
+          fuelType: 'Gasoline',
+          exteriorColor: 'Red',
+          interiorColor: 'Black',
+          valuationId: `photo-${Date.now()}`
         };
       }
       
@@ -95,12 +123,23 @@ export function useVehicleLookup(): VehicleLookupResult {
       setIsLoading(false);
     }
   };
+
+  const lookupByVin = async (vin: string): Promise<DecodedVehicleInfo | null> => {
+    return lookupVehicle('vin', vin);
+  };
+
+  const lookupByPlate = async (plate: string, state: string): Promise<DecodedVehicleInfo | null> => {
+    return lookupVehicle('plate', plate, state);
+  };
   
   return {
     isLoading,
     error,
     vehicle,
     vehicleData: vehicle,
-    lookupVehicle
+    lookupVehicle,
+    lookupByVin,
+    lookupByPlate,
+    reset
   };
 }
