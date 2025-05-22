@@ -72,10 +72,13 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
     
     try {
       console.log("Attempting to sign in with:", values.email);
-      const result = await signIn(values.email, values.password) as SignInResult;
+      const signInResponse = await signIn(values.email, values.password);
+      const result = typeof signInResponse === 'boolean' 
+        ? { success: signInResponse, error: signInResponse ? undefined : 'Authentication failed' }
+        : signInResponse as SignInResult;
       
-      if (result === false || (typeof result === 'object' && !result.success)) {
-        const errorMessage = typeof result === 'object' && result.error ? result.error : 'Invalid email or password';
+      if (!result.success) {
+        const errorMessage = result.error ? result.error : 'Invalid email or password';
         setFormError(errorMessage);
         setIsLoading(false);
         return;

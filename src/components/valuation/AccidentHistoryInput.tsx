@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,7 +52,7 @@ export const AccidentHistoryInput: React.FC<AccidentHistoryInputProps> = ({
 
   return (
     <>
-      <Card variant="outlined" className="p-4 space-y-3">
+      <Card className="p-4 space-y-3">
         <CardHeader>
           <CardTitle>Accident History</CardTitle>
         </CardHeader>
@@ -101,7 +102,7 @@ export const AccidentHistoryInput: React.FC<AccidentHistoryInputProps> = ({
         </CardContent>
       </Card>
 
-      <Card variant="outlined" className="p-4 space-y-3">
+      <Card className="p-4 space-y-3">
         <CardHeader>
           <CardTitle>Title Transfer</CardTitle>
         </CardHeader>

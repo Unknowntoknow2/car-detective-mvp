@@ -7,7 +7,7 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 export function useVinDecoder() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any | null>(null);
+  const [result, setResult] = useState<DecodedVehicleInfo | null>(null);
   const [valuationId, setValuationId] = useState<string | null>(null);
 
   const lookupVin = async (vin: string) => {
@@ -30,12 +30,22 @@ export function useVinDecoder() {
         throw new Error(response.error || 'Failed to decode VIN');
       }
 
-      if (response.data && response.data.valuationId) {
-        setValuationId(response.data.valuationId);
+      // Generate a temporary valuation ID if not provided by the API
+      const tempValuationId = `vin-lookup-${Date.now()}`;
+      
+      // Set the result and valuationId
+      if (response.data) {
+        const responseData = {
+          ...response.data,
+          valuationId: response.data.valuationId || tempValuationId
+        };
+        
+        setResult(responseData);
+        setValuationId(responseData.valuationId);
+        return responseData;
+      } else {
+        throw new Error('No data returned from VIN lookup');
       }
-
-      setResult(response.data);
-      return response.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);

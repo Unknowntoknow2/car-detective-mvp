@@ -52,10 +52,13 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
     
     try {
       // Sign in using the auth context
-      const result = await signIn(email, password) as SignInResult;
+      const signInResponse = await signIn(email, password);
+      const result = typeof signInResponse === 'boolean' 
+        ? { success: signInResponse, error: signInResponse ? undefined : 'Authentication failed' }
+        : signInResponse as SignInResult;
       
-      if (result === false || (typeof result === 'object' && !result.success)) {
-        const errorMessage = typeof result === 'object' && result.error ? errorToString(result.error) : 'Authentication failed';
+      if (!result.success) {
+        const errorMessage = result.error ? errorToString(result.error) : 'Authentication failed';
         throw new Error(errorMessage);
       }
       

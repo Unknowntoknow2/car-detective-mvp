@@ -1,9 +1,22 @@
 
+export enum ConditionLevel {
+  Poor = 'Poor',
+  Fair = 'Fair',
+  Good = 'Good',
+  Excellent = 'Excellent'
+}
+
+export interface AccidentDetails {
+  hasAccident: boolean;
+  count?: number;
+  severity?: string;
+}
+
 export interface ManualEntryFormData {
   make: string;
   model: string;
   year: number;
-  condition: string;
+  condition: ConditionLevel | string;
   zipCode: string;
   mileage?: number;
   trim?: string;
@@ -16,6 +29,9 @@ export interface ManualEntryFormData {
     count?: number;
     severity?: string;
   };
+  accidentDetails?: AccidentDetails;
+  vin?: string;
+  selectedFeatures?: string[];
   fileType?: string;
   fileName?: string;
 }

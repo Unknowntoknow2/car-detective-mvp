@@ -12,8 +12,11 @@ export interface DecodedVehicleInfo {
   exteriorColor?: string;
   fuelType?: string;
   features?: string[];
-  condition?: string; // Add this for the tests
-  zipCode?: string; // Add this for the tests
+  condition?: string; 
+  zipCode?: string; 
+  mileage?: number;
+  valuationId?: string;
+  interiorColor?: string;
 }
 
 export interface DealerInventoryItem {
