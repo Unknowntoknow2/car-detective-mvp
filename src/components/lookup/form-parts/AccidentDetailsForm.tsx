@@ -1,90 +1,89 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { AccidentDetails } from '@/components/lookup/types/manualEntry';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AccidentDetails } from '../types/manualEntry';
 
 interface AccidentDetailsFormProps {
   value: AccidentDetails;
   onChange: (details: AccidentDetails) => void;
 }
 
-export function AccidentDetailsForm({ value, onChange }: AccidentDetailsFormProps) {
-  const handleToggle = (checked: boolean) => {
-    onChange({ ...value, hasAccident: checked });
+export const AccidentDetailsForm: React.FC<AccidentDetailsFormProps> = ({ value, onChange }) => {
+  const handleHasAccidentChange = (hasAccident: boolean) => {
+    onChange({
+      ...value,
+      hasAccident
+    });
   };
 
-  const handleSeverityChange = (severity: string) => {
-    onChange({ ...value, severity: severity as 'minor' | 'moderate' | 'severe' });
+  const handleSeverityChange = (severity: 'minor' | 'moderate' | 'severe') => {
+    onChange({
+      ...value,
+      severity
+    });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange({ ...value, description: e.target.value });
-  };
-
-  const handleRepairedChange = (checked: boolean) => {
-    onChange({ ...value, repaired: checked });
+    onChange({
+      ...value,
+      description: e.target.value
+    });
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="accident-toggle"
-          checked={value.hasAccident || false}
-          onCheckedChange={handleToggle}
-        />
-        <Label htmlFor="accident-toggle">Vehicle has been in an accident</Label>
+      <div>
+        <Label>Has this vehicle been in an accident?</Label>
+        <RadioGroup 
+          value={value.hasAccident ? 'yes' : 'no'} 
+          onValueChange={(val) => handleHasAccidentChange(val === 'yes')}
+          className="flex space-x-4 mt-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="yes" id="accident-yes" />
+            <Label htmlFor="accident-yes" className="cursor-pointer">Yes</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="accident-no" />
+            <Label htmlFor="accident-no" className="cursor-pointer">No</Label>
+          </div>
+        </RadioGroup>
       </div>
 
       {value.hasAccident && (
-        <div className="pl-6 space-y-4 border-l-2 border-gray-200">
-          <div className="space-y-2">
-            <Label>Severity</Label>
-            <RadioGroup 
+        <>
+          <div>
+            <Label htmlFor="accident-severity">Severity</Label>
+            <Select 
               value={value.severity || 'minor'} 
-              onValueChange={handleSeverityChange}
-              className="flex flex-col space-y-1"
+              onValueChange={(val) => handleSeverityChange(val as 'minor' | 'moderate' | 'severe')}
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="minor" id="severity-minor" />
-                <Label htmlFor="severity-minor">Minor</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="moderate" id="severity-moderate" />
-                <Label htmlFor="severity-moderate">Moderate</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="severe" id="severity-severe" />
-                <Label htmlFor="severity-severe">Severe</Label>
-              </div>
-            </RadioGroup>
+              <SelectTrigger id="accident-severity" className="w-full mt-1">
+                <SelectValue placeholder="Select severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minor">Minor</SelectItem>
+                <SelectItem value="moderate">Moderate</SelectItem>
+                <SelectItem value="severe">Severe</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="accident-description">Description</Label>
+          <div>
+            <Label htmlFor="accident-description">Description (optional)</Label>
             <Textarea
               id="accident-description"
-              placeholder="Please describe the accident"
+              className="mt-1"
+              placeholder="Please briefly describe the accident..."
               value={value.description || ''}
               onChange={handleDescriptionChange}
             />
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="repaired-toggle"
-              checked={value.repaired || false}
-              onCheckedChange={handleRepairedChange}
-            />
-            <Label htmlFor="repaired-toggle">Damage has been fully repaired</Label>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
-}
-
-export default AccidentDetailsForm;
+};

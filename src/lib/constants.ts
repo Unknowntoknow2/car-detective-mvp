@@ -1,26 +1,31 @@
 
-// This flag enables debug/development components to be shown
-export const SHOW_ALL_COMPONENTS = process.env.NODE_ENV === 'development';
+// Debug mode flag for development environment
+export const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
-// API endpoints
-export const API_ENDPOINTS = {
-  VIN_DECODE: '/api/vin/decode',
-  PLATE_LOOKUP: '/api/plate/lookup',
-  VALUATION: '/api/valuation',
-  PREMIUM: '/api/premium'
+// Authentication-related constants
+export const AUTH_ROUTES = {
+  SIGNIN: '/signin',
+  SIGNUP: '/signup',
+  RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
 };
 
-// Feature flags
-export const FEATURES = {
-  PREMIUM_ENABLED: true,
-  VIN_VALIDATION_ENABLED: true,
-  CARFAX_INTEGRATION: false
+// Application routes
+export const APP_ROUTES = {
+  HOME: '/',
+  DASHBOARD: '/dashboard',
+  DEALER_DASHBOARD: '/dealer-dashboard',
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
+  HELP: '/help',
 };
 
-// Values for condition ratings
-export const CONDITION_RATINGS = {
-  EXCELLENT: { value: 'excellent', label: 'Excellent', multiplier: 1.1 },
-  GOOD: { value: 'good', label: 'Good', multiplier: 1.0 },
-  FAIR: { value: 'fair', label: 'Fair', multiplier: 0.9 },
-  POOR: { value: 'poor', label: 'Poor', multiplier: 0.8 }
+// Valuation-related constants
+export const VALUATION_TYPES = {
+  BASIC: 'basic',
+  PREMIUM: 'premium',
 };
+
+// Default values
+export const DEFAULT_VALUATION_CONFIDENCE = 85;
+export const DEFAULT_ZIP_CODE = '90210';

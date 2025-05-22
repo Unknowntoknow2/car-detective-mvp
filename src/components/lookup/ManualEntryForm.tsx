@@ -13,12 +13,14 @@ export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
+  isPremium?: boolean;
 }
 
 export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   onSubmit,
   isLoading = false,
-  submitButtonText = "Get Valuation"
+  submitButtonText = "Get Valuation",
+  isPremium = false
 }) => {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');

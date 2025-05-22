@@ -50,7 +50,7 @@ export interface DesignCardProps {
   footer?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
-  variant?: string;
+  variant?: 'default' | 'premium' | string;
 }
 
 export const DesignCard: React.FC<DesignCardProps> = ({
@@ -60,7 +60,7 @@ export const DesignCard: React.FC<DesignCardProps> = ({
   footer,
   className,
   children,
-  variant
+  variant = 'default'
 }) => {
   const variantClasses = variant === 'premium' 
     ? 'border-amber-200 bg-amber-50' 
@@ -84,5 +84,34 @@ export const DesignCard: React.FC<DesignCardProps> = ({
         </div>
       )}
     </div>
+  );
+};
+
+// Create a Button component that extends the UI button with isLoading support
+export interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  isLoading?: boolean;
+  loadingText?: string;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium';
+}
+
+export const LoadingButton: React.FC<LoadingButtonProps> = ({
+  children,
+  isLoading,
+  loadingText = 'Loading...',
+  variant = 'default',
+  ...props
+}) => {
+  // Map premium variant to default with custom styling
+  const buttonVariant = variant === 'premium' ? 'default' : variant;
+  const premiumClasses = variant === 'premium' ? 'bg-amber-500 hover:bg-amber-600 text-white' : '';
+  
+  return (
+    <button
+      {...props}
+      className={cn(props.className, premiumClasses)}
+      disabled={isLoading || props.disabled}
+    >
+      {isLoading ? loadingText : children}
+    </button>
   );
 };
