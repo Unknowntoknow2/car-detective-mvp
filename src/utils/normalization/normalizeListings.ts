@@ -29,6 +29,7 @@ export function normalizeListings(
     imageUrl: listing.image || '',
     location: listing.location || 'Unknown',
     listingDate: listing.postedDate || new Date().toISOString(),
+    description: listing.description || '',
   }));
 }
 

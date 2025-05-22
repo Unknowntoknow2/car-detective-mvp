@@ -45,7 +45,7 @@ export function formatManheimResults(results: ManheimAuctionResult[]) {
   return results.map(result => ({
     vin: result.vin,
     source: 'manheim',
-    price: result.salePrice,
+    price: result.salePrice.toString(), // Ensure price is a string
     sold_date: result.saleDate,
     odometer: result.odometer.toString(),
     condition_grade: result.conditionGrade || 'Unknown',
