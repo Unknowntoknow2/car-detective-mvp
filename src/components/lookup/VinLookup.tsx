@@ -26,9 +26,9 @@ const VinLookup: React.FC<VinLookupProps> = ({
   };
 
   const handleSubmit = (vinToSubmit: string) => {
-    const validationResult = isValidVIN(vinToSubmit);
-    if (!validationResult.isValid) {
-      setError(validationResult.message || 'Invalid VIN');
+    // isValidVIN returns a boolean, not an object with isValid and message
+    if (!isValidVIN(vinToSubmit)) {
+      setError('Invalid VIN format. Please check and try again.');
       return;
     }
     
