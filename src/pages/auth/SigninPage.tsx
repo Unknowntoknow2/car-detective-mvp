@@ -1,34 +1,41 @@
 
-import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import LoginUserPage from './LoginUserPage';
-import LoginDealerPage from './LoginDealerPage';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
+import { SigninForm } from '@/components/auth/forms/SigninForm';
 
-export default function SigninPage() {
-  const { role } = useParams<{ role?: string }>();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // If no role specified, redirect to auth page
-    if (!role) {
-      navigate('/auth');
-    }
-    // Validate role parameter
-    else if (role !== 'individual' && role !== 'dealer') {
-      navigate('/auth');
-    }
-  }, [role, navigate]);
+const SigninPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Show loading while checking role
-  if (!role) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  return (
+    <MainLayout>
+      <div className="container max-w-md mx-auto py-12">
+        <div className="space-y-6 bg-white p-8 rounded-lg shadow-md dark:bg-gray-800">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Sign In</h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Enter your credentials to access your account
+            </p>
+          </div>
+          
+          <SigninForm 
+            isLoading={isLoading} 
+            setIsLoading={setIsLoading} 
+            redirectPath="/dashboard" 
+          />
+          
+          <div className="text-center text-sm">
+            <p>
+              Don't have an account?{' '}
+              <Link to="/sign-up" className="text-primary hover:underline font-medium">
+                Sign up
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-    );
-  }
+    </MainLayout>
+  );
+};
 
-  // Return the appropriate login page based on role
-  return role === 'dealer' ? <LoginDealerPage /> : <LoginUserPage />;
-}
+export default SigninPage;

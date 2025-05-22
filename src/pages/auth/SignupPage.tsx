@@ -1,34 +1,37 @@
 
-import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import RegisterPage from './RegisterPage';
-import DealerSignupPage from './DealerSignupPage';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
+import { SignupForm } from '@/components/auth/forms/SignupForm';
 
-export default function SignupPage() {
-  const { role } = useParams<{ role?: string }>();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // If no role specified, redirect to auth page
-    if (!role) {
-      navigate('/auth');
-    }
-    // Validate role parameter
-    else if (role !== 'individual' && role !== 'dealer') {
-      navigate('/auth');
-    }
-  }, [role, navigate]);
+const SignupPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Show loading while checking role
-  if (!role) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  return (
+    <MainLayout>
+      <div className="container max-w-md mx-auto py-12">
+        <div className="space-y-6 bg-white p-8 rounded-lg shadow-md dark:bg-gray-800">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Create an Account</h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Enter your information to create an account
+            </p>
+          </div>
+          
+          <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
+          
+          <div className="text-center text-sm">
+            <p>
+              Already have an account?{' '}
+              <Link to="/sign-in" className="text-primary hover:underline font-medium">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-    );
-  }
+    </MainLayout>
+  );
+};
 
-  // Return the appropriate signup page based on role
-  return role === 'dealer' ? <DealerSignupPage /> : <RegisterPage />;
-}
+export default SignupPage;
