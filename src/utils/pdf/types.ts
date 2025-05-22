@@ -2,11 +2,12 @@
 import PDFDocument from 'pdfkit';
 
 export interface ReportData {
+  id?: string;
   year: number;
   make: string;
   model: string;
   trim?: string;
-  vin: string;
+  vin?: string;
   color?: string;
   bodyType?: string;
   fuelType?: string;
@@ -22,7 +23,22 @@ export interface ReportData {
   aiCondition?: {
     summary: string;
     score: number;
+    condition?: string;
+    issuesDetected?: string[];
+    confidenceScore?: number;
   };
+  price?: number;
+  zipCode?: string;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  isPremium?: boolean;
+  explanation?: string;
+  generatedAt?: string;
 }
 
 export interface SectionParams {
@@ -50,4 +66,11 @@ export interface ReportOptions {
     website: string;
     phone: string;
   };
+}
+
+// Add the AdjustmentBreakdown interface for the adjustmentTable.ts file
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  description?: string;
 }

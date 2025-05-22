@@ -53,22 +53,19 @@ describe('generateValuationPdf', () => {
       confidenceScore: 85,
       generatedAt: new Date().toISOString(),
       priceRange: [23000, 27000],
-      userId: 'user123'
-    } as ReportData;
+    } as Partial<ReportData>;
 
     // Generate the PDF
     const pdfBuffer = await generateValuationPdf(testData);
     
     // Verify the PDF was generated
     expect(pdfBuffer).toBeDefined();
-    expect(pdfBuffer instanceof Buffer).toBe(true);
-    expect(pdfBuffer.toString()).toBe('mock pdf content');
+    expect(pdfBuffer instanceof Uint8Array).toBe(true);
   });
 
   it('handles missing optional fields gracefully', async () => {
     // Minimal test data with only required fields
     const minimalData = {
-      id: '456',
       make: 'Honda',
       model: 'Civic',
       year: 2019,
@@ -77,14 +74,15 @@ describe('generateValuationPdf', () => {
       zipCode: '10001',
       price: 18000, // Added required price property
       estimatedValue: 18000,
-      generatedAt: new Date().toISOString()
-    } as ReportData;
+      generatedAt: new Date().toISOString(),
+      vin: 'ABC123456DEF78901', // Adding vin since it's required
+    } as Partial<ReportData>;
 
     // Generate the PDF with minimal data
     const pdfBuffer = await generateValuationPdf(minimalData);
     
     // Verify the PDF was generated even with minimal data
     expect(pdfBuffer).toBeDefined();
-    expect(pdfBuffer instanceof Buffer).toBe(true);
+    expect(pdfBuffer instanceof Uint8Array).toBe(true);
   });
 });

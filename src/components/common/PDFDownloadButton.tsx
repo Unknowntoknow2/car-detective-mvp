@@ -43,8 +43,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       setIsGenerating(true);
       
       // Format the data for the PDF generator
-      const formData: ReportData = {
-        id: valuationResult.id || crypto.randomUUID(),
+      const formData: Partial<ReportData> = {
         make: valuationResult.make,
         model: valuationResult.model,
         year: valuationResult.year,

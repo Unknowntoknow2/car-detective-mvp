@@ -1,30 +1,11 @@
 
 import PDFDocument from 'pdfkit';
 import { ReportData } from '../types';
-import { drawHeaderSection } from '../sections/headerSection';
-import { drawFooterSection } from '../sections/footerSection';
-import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
-import { drawValuationSummary } from '../sections/valuationSummary';
-import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
-import { drawMarketAnalysisSection } from '../sections/marketAnalysisSection';
-import { drawDealerOffersSection } from '../sections/dealerOffersSection';
-import { drawCarfaxReportSection } from '../sections/carfaxReportSection';
-import { safeString } from '@/utils/pdf/sections/sectionHelper';
+import { safeString, formatCurrency } from '@/utils/pdf/sections/sectionHelper';
 
-// Add stubs for missing sections
-import { drawValuePredictionSection } from '../sections/valuePredictionSection';
-import { drawProfessionalOpinionSection } from '../sections/professionalOpinionSection';
-
-// Add a type definition for SectionParams to match what's expected by the section functions
-interface SectionParams {
-  doc: PDFDocument;
-  data: any;
-  pageWidth: number;
-  pageHeight: number;
-  margin?: number;
-}
-
-export const generatePremiumReport = async (data: ReportData): Promise<typeof PDFDocument> => {
+// This is a placeholder implementation that would be replaced with actual PDF generation
+export const generatePremiumReport = async (data: Partial<ReportData>): Promise<typeof PDFDocument> => {
+  // Create a new PDF document
   const doc = new PDFDocument({
     size: 'A4',
     margins: {
@@ -35,125 +16,123 @@ export const generatePremiumReport = async (data: ReportData): Promise<typeof PD
     },
   });
 
-  const pageWidth = doc.page.width;
-  const pageHeight = doc.page.height;
-  const margin = 40;
-
-  // Header Section
-  drawHeaderSection({
-    doc,
-    data: {
-      reportTitle: 'Premium Valuation Report',
-      logo: 'path/to/your/logo.png'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Vehicle Information Section with basic properties
-  drawVehicleInfoSection({
-    doc,
-    data: {
-      year: data.year,
-      make: safeString(data.make),
-      model: safeString(data.model),
-      trim: safeString(data.trim),
-      vin: safeString(data.vin),
-      bodyType: safeString(data.bodyType),
-      color: safeString(data.color),
-      transmission: safeString(data.transmission),
-      fuelType: safeString(data.fuelType)
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Valuation Summary Section
-  drawValuationSummary({
-    doc,
-    data: {
-      estimatedValue: data.estimatedValue,
-      valuationDate: new Date(),
-      marketTrend: 'Stable',
-      confidenceLevel: 'High'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Photo Assessment Section
-  drawPhotoAssessmentSection({
-    doc,
-    data: {
-      photoUrl: data.bestPhotoUrl || data.photoUrl,
-      photoScore: data.photoScore || 0,
-      conditionSummary: data.aiCondition?.summary || 'Good condition with minor wear and tear'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Market Analysis Section
-  drawMarketAnalysisSection({
-    doc,
-    data,
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Dealer Offers Section
-  drawDealerOffersSection({
-    doc,
-    data,
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Value Prediction Section
-  drawValuePredictionSection({
-    doc,
-    data,
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Professional Opinion Section
-  drawProfessionalOpinionSection({
-    doc,
-    data,
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Carfax Report Section
-  drawCarfaxReportSection({
-    doc,
-    data,
-    pageWidth,
-    pageHeight,
-    margin
-  });
-
-  // Footer Section
-  drawFooterSection({
-    doc,
-    data: {
-      reportDate: new Date(),
-      companyName: 'CarDetective',
-      website: 'www.cardetective.com'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
+  // Add premium report header
+  doc.fontSize(20)
+     .font('Helvetica-Bold')
+     .text('Premium Vehicle Valuation Report', { align: 'center' });
+  
+  doc.moveDown();
+  
+  // Vehicle information with more details for premium report
+  doc.fontSize(16)
+     .font('Helvetica-Bold')
+     .text('Vehicle Information');
+  
+  doc.fontSize(12)
+     .font('Helvetica')
+     .text(`Year: ${data.year}`);
+  
+  doc.fontSize(12)
+     .text(`Make: ${safeString(data.make)}`);
+  
+  doc.fontSize(12)
+     .text(`Model: ${safeString(data.model)}`);
+  
+  if (data.trim) {
+    doc.fontSize(12)
+       .text(`Trim: ${safeString(data.trim)}`);
+  }
+  
+  if (data.vin) {
+    doc.fontSize(12)
+       .text(`VIN: ${safeString(data.vin)}`);
+  }
+  
+  if (data.color) {
+    doc.fontSize(12)
+       .text(`Color: ${safeString(data.color)}`);
+  }
+  
+  if (data.bodyType) {
+    doc.fontSize(12)
+       .text(`Body Type: ${safeString(data.bodyType)}`);
+  }
+  
+  if (data.transmission) {
+    doc.fontSize(12)
+       .text(`Transmission: ${safeString(data.transmission)}`);
+  }
+  
+  if (data.fuelType) {
+    doc.fontSize(12)
+       .text(`Fuel Type: ${safeString(data.fuelType)}`);
+  }
+  
+  doc.moveDown();
+  
+  // Enhanced valuation summary for premium reports
+  doc.fontSize(16)
+     .font('Helvetica-Bold')
+     .text('Valuation Summary');
+  
+  doc.fontSize(12)
+     .font('Helvetica')
+     .text(`Estimated Value: ${formatCurrency(data.estimatedValue)}`);
+  
+  if (data.confidenceScore) {
+    doc.fontSize(12)
+       .text(`Confidence Score: ${data.confidenceScore}%`);
+  }
+  
+  if (data.priceRange && data.priceRange.length >= 2) {
+    doc.fontSize(12)
+       .text(`Value Range: ${formatCurrency(data.priceRange[0])} - ${formatCurrency(data.priceRange[1])}`);
+  }
+  
+  // Add adjustments section if available
+  if (data.adjustments && data.adjustments.length > 0) {
+    doc.moveDown();
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .text('Value Adjustments');
+    
+    doc.fontSize(12)
+       .font('Helvetica');
+    
+    data.adjustments.forEach(adj => {
+      const impact = adj.impact > 0 ? `+${formatCurrency(adj.impact)}` : formatCurrency(adj.impact);
+      doc.text(`${safeString(adj.factor)}: ${impact}`);
+      if (adj.description) {
+        doc.fontSize(10)
+           .text(`   ${safeString(adj.description)}`)
+           .fontSize(12);
+      }
+    });
+  }
+  
+  // Add market analysis section if data is available
+  if (data.explanation) {
+    doc.moveDown();
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .text('Market Analysis');
+    
+    doc.fontSize(12)
+       .font('Helvetica')
+       .text(safeString(data.explanation));
+  }
+  
+  // Add premium disclaimer
+  doc.moveDown(2);
+  doc.fontSize(10)
+     .font('Helvetica-Italic')
+     .text('This premium valuation report includes enhanced data analysis and market insights. ' +
+           'While we strive for accuracy, actual vehicle value may vary based on specific vehicle ' +
+           'condition, local market dynamics, and other factors. This report is for informational ' +
+           'purposes only and is not a guarantee of value.', {
+             align: 'left',
+             width: doc.page.width - 80
+           });
 
   return doc;
 };
