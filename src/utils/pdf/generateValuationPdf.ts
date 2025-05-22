@@ -1,6 +1,6 @@
 
 import { ReportData, ReportOptions } from './types';
-import { generatePremiumPdf } from './generators/premiumReportGenerator';
+import { generatePremiumReport } from './generators/premiumReportGenerator';
 
 /**
  * Generate a PDF for the valuation report
@@ -13,7 +13,7 @@ export async function generateValuationPdf(
   options: Partial<ReportOptions> = {}
 ): Promise<Uint8Array> {
   // Always use the premium generator, but customize based on options
-  return await generatePremiumPdf(data, options);
+  return await generatePremiumReport(data, options);
 }
 
 /**
