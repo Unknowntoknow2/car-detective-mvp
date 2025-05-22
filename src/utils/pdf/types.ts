@@ -52,7 +52,7 @@ export interface ReportOptions {
   isPremium?: boolean;
 }
 
-// Enhanced SectionParams interface with all necessary types
+// Enhanced SectionParams interface with all necessary types and optional doc property
 export interface SectionParams {
   doc?: any;  // Make doc optional
   page?: any;
