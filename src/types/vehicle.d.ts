@@ -7,7 +7,7 @@ export interface DealerInventoryItem {
   price: number;
   mileage: number;
   status: string;
-  photos: string[]; // Added photos property
+  photos: string[]; 
   vin: string;
   description?: string;
   trim?: string;

@@ -1,6 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { useState } from 'react';
 import LandingPage from './pages/LandingPage';
 import HomePage from './pages/HomePage';
 import UpgradePage from './pages/UpgradePage';
@@ -29,9 +30,14 @@ import ValuationDetailPage from './pages/ValuationDetailPage';
 import { AIAssistantDrawer } from './components/chat/AIAssistantDrawer';
 
 function App() {
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+
   return (
     <AppProviders>
-      <AIAssistantDrawer />
+      <AIAssistantDrawer 
+        isOpen={isAIAssistantOpen} 
+        onClose={() => setIsAIAssistantOpen(false)} 
+      />
       <Toaster position="top-right" richColors />
       <Routes>
         {/* Landing and Home Pages */}
