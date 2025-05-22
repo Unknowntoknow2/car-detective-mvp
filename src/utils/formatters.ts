@@ -1,89 +1,45 @@
 
 /**
- * Format a number as currency in USD
+ * Format a number as currency
  */
-export const formatCurrency = (amount: number): string => {
+export const formatCurrency = (value: number | string | undefined, currency: string = 'USD'): string => {
+  if (value === undefined || value === null) return '$0';
+  
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: currency,
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+    maximumFractionDigits: 0
+  }).format(numValue);
 };
 
 /**
- * Format a date string to a human-readable format
+ * Format a number with commas
  */
-export const formatDate = (dateString: string): string => {
+export const formatNumber = (value: number | string | undefined): string => {
+  if (value === undefined || value === null) return '0';
+  
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
+  return new Intl.NumberFormat('en-US').format(numValue);
+};
+
+/**
+ * Format a date string
+ */
+export const formatDate = (dateString: string | undefined, format: 'short' | 'medium' | 'long' = 'medium'): string => {
+  if (!dateString) return '';
+  
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(date);
-};
-
-/**
- * Convert manual entry form data to JSON for API requests
- */
-export const manualEntryToJson = (formData: any): string => {
-  const cleanedData = {
-    ...formData,
-    year: Number(formData.year),
-    mileage: Number(formData.mileage),
-  };
   
-  return JSON.stringify(cleanedData);
-};
-
-/**
- * Format a number with thousands separators
- */
-export const formatNumber = (value: number, decimals: number = 0): string => {
-  if (value == null) return '0';
+  if (isNaN(date.getTime())) return '';
   
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value);
-};
-
-/**
- * Format a date relative to the current time (e.g., "2 hours ago")
- */
-export const formatRelativeTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  
-  // Convert to seconds
-  const diffSecs = Math.floor(diffMs / 1000);
-  
-  if (diffSecs < 60) {
-    return 'Just now';
-  }
-  
-  // Convert to minutes
-  const diffMins = Math.floor(diffSecs / 60);
-  
-  if (diffMins < 60) {
-    return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-  }
-  
-  // Convert to hours
-  const diffHours = Math.floor(diffMins / 60);
-  
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  }
-  
-  // Convert to days
-  const diffDays = Math.floor(diffHours / 24);
-  
-  if (diffDays < 30) {
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-  }
-  
-  // For older dates, use the formatDate function
-  return formatDate(dateString);
+  const options: Intl.DateTimeFormatOptions = 
+    format === 'short' ? { month: 'numeric', day: 'numeric', year: '2-digit' } :
+    format === 'long' ? { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' } :
+    { month: 'short', day: 'numeric', year: 'numeric' };
+    
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 };
