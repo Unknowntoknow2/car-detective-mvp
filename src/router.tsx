@@ -52,11 +52,11 @@ const routes: RouteObject[] = [
       },
       {
         path: 'sign-up',
-        element: <SignupPage />
+        element: <RegisterPage />
       },
       {
         path: 'signup',
-        element: <SignupPage />
+        element: <RegisterPage />
       },
       {
         path: 'signup/individual',

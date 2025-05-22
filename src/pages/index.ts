@@ -12,4 +12,3 @@ export { default as SignInPage } from './auth/SigninPage';
 export { default as SignUpPage } from './auth/SignupPage';
 export { default as RegisterPage } from './auth/RegisterPage';
 export { default as DealerSignupPage } from './auth/DealerSignupPage';
-
