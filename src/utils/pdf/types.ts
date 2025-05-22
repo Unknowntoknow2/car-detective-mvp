@@ -72,5 +72,4 @@ export interface SectionParams {
 export interface ReportGeneratorParams {
   data: ReportData;
   options: ReportOptions;
-  document?: any;
 }
