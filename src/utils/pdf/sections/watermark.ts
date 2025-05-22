@@ -5,10 +5,10 @@ import { SectionParams } from '../types';
 export function drawWatermark(params: SectionParams, text: string): void {
   const { page, data, options } = params;
   
-  if (!options.watermark) return;
+  if (!options.watermarkText && !options.showPremiumWatermark) return;
   
   const { width, height } = page.getSize();
-  const watermarkText = typeof options.watermark === 'string' ? options.watermark : text;
+  const watermarkText = options.watermarkText || text;
   
   // Draw diagonal watermark
   page.drawText(watermarkText, {
@@ -21,6 +21,6 @@ export function drawWatermark(params: SectionParams, text: string): void {
     rotate: {
       type: 'degrees',
       angle: -45
-    }, // -45 degrees
+    },
   });
 }

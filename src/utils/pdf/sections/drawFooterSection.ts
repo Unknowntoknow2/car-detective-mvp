@@ -1,42 +1,30 @@
 
+import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
-export function drawFooterSection(params: SectionParams): void {
-  const { page, margin, width, fonts, textColor } = params;
+export async function drawFooterSection(params: SectionParams): Promise<number> {
+  const { page, fonts, options, margin, pageWidth } = params;
+  const y = params.y ?? 30;
+  const textColor = params.textColor || rgb(0.1, 0.1, 0.1);
   
-  const { height } = page.getSize();
-  const footerY = 20; // 20 points from bottom
-  
-  // Draw a thin line above the footer
+  // Draw horizontal line
   page.drawLine({
-    start: { x: margin, y: footerY + 10 },
-    end: { x: width - margin, y: footerY + 10 },
+    start: { x: margin, y: y + 15 },
+    end: { x: pageWidth - margin, y: y + 15 },
     thickness: 0.5,
-    color: { r: 0.8, g: 0.8, b: 0.8 },
+    color: rgb(0.8, 0.8, 0.8),
   });
   
-  // Draw copyright text
-  const copyrightText = '© ' + new Date().getFullYear() + ' Car Detective - All Rights Reserved';
+  // Draw footer text
+  if (options.includeFooter && options.footerText) {
+    page.drawText(options.footerText, {
+      x: pageWidth / 2 - 100,
+      y: y - 5,
+      size: 8,
+      font: fonts.regular,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+  }
   
-  page.drawText(copyrightText, {
-    x: margin,
-    y: footerY,
-    size: 8,
-    font: fonts.regular,
-    color: textColor,
-    opacity: 0.7,
-  });
-  
-  // Draw page number on the right
-  const pageText = 'Page 1';
-  const pageTextWidth = fonts.regular.widthOfTextAtSize(pageText, 8);
-  
-  page.drawText(pageText, {
-    x: width - margin - pageTextWidth,
-    y: footerY,
-    size: 8,
-    font: fonts.regular,
-    color: textColor,
-    opacity: 0.7,
-  });
+  return y - 10;
 }

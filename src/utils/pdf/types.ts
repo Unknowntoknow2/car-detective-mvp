@@ -1,77 +1,37 @@
 
-// Import PDF library types
-import { PDFDocument, PDFPage, PDFFont, Color } from 'pdf-lib';
+import { PDFFont } from 'pdf-lib';
 
-/**
- * Report data model for PDF generation
- */
 export interface ReportData {
-  // Vehicle information
   make: string;
   model: string;
   year: number;
-  vin?: string;
   mileage: number;
   condition: string;
-  
-  // Valuation information
   estimatedValue: number;
   confidenceScore: number;
-  
-  // Location information
+  vin?: string;
   zipCode?: string;
-  
-  // Optional base values (if not provided, calculated from adjustments)
-  baseValue?: number;
-  
-  // Price range (optional)
-  priceRange?: [number, number] | { min: number; max: number; };
-  
-  // Price adjustments
-  adjustments: AdjustmentItem[];
-  
-  // Premium flag
-  premium?: boolean;
-  isPremium?: boolean;
-  
-  // Timestamps
   generatedAt: string;
-  
-  // Optional explanation
-  explanation?: string;
-  
-  // Optional vehicle details
-  transmission?: string;
-  trim?: string;
-  color?: string;
-  fuelType?: string;
-  bodyStyle?: string;
-  
-  // Optional photo URL
-  photoUrl?: string;
-  
-  // Optional AI condition assessment
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
   aiCondition?: {
     condition: string;
     confidenceScore: number;
     issuesDetected: string[];
     summary: string;
-    score?: number;
-  } | null;
+  };
+  fuelType?: string;
+  transmission?: string;
+  bodyStyle?: string;
+  color?: string;
+  trim?: string;
+  photoUrl?: string;
+  priceRange?: [number, number] | { min: number; max: number };
 }
 
-/**
- * Adjustment item for price breakdown
- */
-export interface AdjustmentItem {
-  factor: string;
-  impact: number;
-  description?: string;
-}
-
-/**
- * Report generation options
- */
 export interface ReportOptions {
   watermarkText: string;
   logoUrl: string;
@@ -86,57 +46,30 @@ export interface ReportOptions {
     titleFont: string;
     bodyFont: string;
   };
-  // Additional options
   isPremium?: boolean;
   includeBranding?: boolean;
   includePhotoAssessment?: boolean;
+  watermark?: string;
 }
 
-/**
- * Section parameters for PDF section generators
- */
+export interface DocumentFonts {
+  regular: PDFFont;
+  bold: PDFFont;
+  italic?: PDFFont;
+  light?: PDFFont;
+}
+
 export interface SectionParams {
-  // PDF document and page
-  pdfDoc: PDFDocument;
-  page: PDFPage;
-  
-  // Report data and options
+  page: any;
+  fonts: DocumentFonts;
   data: ReportData;
   options: Partial<ReportOptions>;
-  
-  // Fonts and styling
-  fonts: {
-    regular: PDFFont;
-    bold: PDFFont;
-  };
-  fontSize: number;
-  
-  // Positioning
-  startY: number;
-  y?: number;
   margin: number;
   width: number;
-  height?: number;
   pageWidth: number;
-  pageHeight?: number;
-  
-  // Colors
-  textColor?: Color;
-  primaryColor?: Color;
-}
-
-/**
- * PDF Rotation types enumeration
- */
-export enum RotationTypes {
-  Degrees = 'degrees',
-  Radians = 'radians'
-}
-
-/**
- * PDF Rotation definition
- */
-export interface Rotation {
-  type: RotationTypes;
-  angle: number;
+  startY: number;
+  y?: number;
+  textColor?: any;
+  primaryColor?: any;
+  height?: number;
 }
