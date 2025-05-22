@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -21,9 +20,10 @@ import PaymentSuccessPage from '@/pages/PaymentSuccessPage';
 import PaymentCancelledPage from '@/pages/PaymentCancelledPage';
 import DealerInsightsPage from '@/pages/DealerInsightsPage';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
-import PremiumPage from '@/pages/PremiumPage';
+import PremiumPage from '@/pages/Premium';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
 import SignupPage from '@/pages/SignupPage';
+import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
 
 // Auth pages
 import LoginUserPage from '@/pages/auth/LoginUserPage';
@@ -52,6 +52,10 @@ const routes: RouteObject[] = [
     path: '/',
     element: <AuthLayout />,
     children: [
+      {
+        path: '',
+        element: <EnhancedHomePage />,
+      },
       {
         path: 'auth',
         element: (
@@ -133,10 +137,6 @@ const routes: RouteObject[] = [
         ),
       },
       {
-        path: '',
-        element: <VinLookupPage />,
-      },
-      {
         path: 'lookup',
         element: <LookupPage />,
       },
@@ -151,6 +151,10 @@ const routes: RouteObject[] = [
             <PremiumPage />
           </EnhancedErrorBoundary>
         ),
+      },
+      {
+        path: 'valuation',
+        element: <VinLookupPage />,
       },
     ],
   },

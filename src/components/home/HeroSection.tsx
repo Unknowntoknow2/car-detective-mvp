@@ -22,6 +22,10 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
     navigate('/premium');
   };
   
+  const handleSignInClick = () => {
+    navigate('/auth');
+  };
+  
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-background">
       <div className="container mx-auto max-w-6xl">
@@ -53,6 +57,14 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
                 onClick={handlePremiumClick}
               >
                 Premium Valuation ($29.99)
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="lg"
+                className="text-primary hover:bg-primary-light/10"
+                onClick={handleSignInClick}
+              >
+                Sign In / Sign Up
               </Button>
             </div>
             

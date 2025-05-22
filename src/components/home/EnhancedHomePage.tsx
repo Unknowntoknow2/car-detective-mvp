@@ -31,6 +31,14 @@ export const EnhancedHomePage: React.FC = () => {
   const handleFreeValuationClick = () => {
     navigate('/valuation');
   };
+  
+  const handleSignInClick = () => {
+    navigate('/auth');
+  };
+  
+  const handlePremiumClick = () => {
+    navigate('/premium');
+  };
 
   return (
     <MainLayout>
@@ -68,7 +76,7 @@ export const EnhancedHomePage: React.FC = () => {
         <TestimonialsSection />
         <ComparisonTable />
         
-        {/* Always show onboarding tour in debug mode */}
+        {/* Always show onboarding tour */}
         <OnboardingTour />
       </div>
     </MainLayout>
