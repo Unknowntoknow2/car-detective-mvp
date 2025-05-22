@@ -1,22 +1,20 @@
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { formatCurrency } from '@/utils/formatters';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface VehicleData {
-  make: string;
-  model: string;
-  year: number;
-  zipCode: string;
-}
+import { formatCurrency } from '@/utils/formatters';
 
 interface PriceComparisonChartProps {
-  vehicleData: VehicleData;
+  vehicleData: {
+    make: string;
+    model: string;
+    year: number;
+    zipCode?: string;
+  };
   averagePrices: {
     retail: number;
-    auction: number;
     private: number;
+    auction: number;
     overall: number;
   };
   priceRange: {
@@ -27,120 +25,102 @@ interface PriceComparisonChartProps {
   normalizedValue: number;
 }
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: any[];
-  label?: string;
-}
-
-// Custom tooltip component for the chart
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    
-    return (
-      <div className="bg-white p-3 border rounded-md shadow-md">
-        <p className="font-medium">{label}</p>
-        <p className="text-sm">
-          Value: {formatCurrency(data.value)}
-        </p>
-        {data.description && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {data.description}
-          </p>
-        )}
-      </div>
-    );
-  }
-  
-  return null;
-};
-
-export function PriceComparisonChart({ 
-  vehicleData, 
-  averagePrices, 
-  priceRange, 
-  estimatedValue, 
-  normalizedValue 
+export function PriceComparisonChart({
+  vehicleData,
+  averagePrices,
+  priceRange,
+  estimatedValue,
+  normalizedValue
 }: PriceComparisonChartProps) {
-  const { make, model, year, zipCode } = vehicleData;
-  
-  // Prepare data for chart
-  const chartData = [
+  const data = [
     {
-      name: 'Retail',
-      value: averagePrices.retail,
-      fill: '#8884d8',
-      description: 'Average dealer retail price for similar vehicles'
+      name: 'Auction',
+      value: averagePrices.auction,
+      fill: '#94a3b8'
     },
     {
       name: 'Private',
       value: averagePrices.private,
-      fill: '#82ca9d',
-      description: 'Average private party sale price'
+      fill: '#64748b'
     },
     {
-      name: 'Auction',
-      value: averagePrices.auction,
-      fill: '#ffc658',
-      description: 'Average auction sale price (wholesale)'
+      name: 'Retail',
+      value: averagePrices.retail,
+      fill: '#475569'
     },
     {
-      name: 'Your Vehicle',
+      name: 'Your Value',
       value: normalizedValue,
-      fill: '#ff7300',
-      description: 'Your vehicle value adjusted for mileage and condition'
+      fill: '#0ea5e9'
     }
   ];
   
+  const min = Math.min(priceRange.min, ...data.map(item => item.value)) * 0.95;
+  const max = Math.max(priceRange.max, ...data.map(item => item.value)) * 1.05;
+  
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-2 border rounded shadow-sm">
+          <p className="text-sm font-medium">{payload[0].payload.name}</p>
+          <p className="text-sm text-primary">{formatCurrency(payload[0].value)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Price Comparison</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">
+          Price Comparison
+        </CardTitle>
         <p className="text-sm text-muted-foreground">
-          {year} {make} {model} in {zipCode}
+          {vehicleData.year} {vehicleData.make} {vehicleData.model} in {vehicleData.zipCode || 'your area'}
         </p>
       </CardHeader>
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={chartData}
+              data={data}
               margin={{
                 top: 20,
                 right: 30,
                 left: 20,
                 bottom: 5,
               }}
-              barSize={40}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis 
-                tickFormatter={(value) => formatCurrency(Number(value))} 
-                domain={[0, Math.max(priceRange.max * 1.1, normalizedValue * 1.1)]}
+                domain={[min, max]}
+                tickFormatter={(value) => formatCurrency(value)}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" />
-              <ReferenceLine
-                y={estimatedValue}
-                stroke="#ff0000"
+              <ReferenceLine 
+                y={estimatedValue} 
+                stroke="#0369a1" 
                 strokeDasharray="3 3"
-                label={{ value: 'Base Value', position: 'top' }}
+                label={{ 
+                  value: 'Est. Value', 
+                  fill: '#0369a1', 
+                  fontSize: 12,
+                  position: 'insideBottomRight'
+                }} 
               />
+              <Bar dataKey="value">
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-        
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="font-medium">Price Range</p>
-            <p>{formatCurrency(Number(priceRange.min))} - {formatCurrency(Number(priceRange.max))}</p>
-          </div>
-          <div>
-            <p className="font-medium">Market Average</p>
-            <p>{formatCurrency(Number(averagePrices.overall))}</p>
-          </div>
+        <div className="mt-4 text-sm text-muted-foreground">
+          <p>Base estimated value: {formatCurrency(estimatedValue)}</p>
+          <p>Your region adjusted value: {formatCurrency(normalizedValue)}</p>
         </div>
       </CardContent>
     </Card>

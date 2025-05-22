@@ -7,6 +7,8 @@ import { LocalMarketCard } from './LocalMarketCard';
 import { PriceComparisonChart } from './PriceComparisonChart';
 import { ComparableListingsTable } from './ComparableListingsTable';
 import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
+import { useMarketInsights } from '@/hooks/useMarketInsights';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface MarketInsightsTabProps {
   valuationId?: string;
@@ -19,6 +21,28 @@ interface MarketInsightsTabProps {
   condition?: string;
   vin?: string;
   onUpgrade?: () => void;
+}
+
+interface Listing {
+  id: string;
+  title: string;
+  price: number;
+  mileage: number;
+  condition: string;
+  location: string;
+  daysListed: number;
+  source: string;
+}
+
+interface AuctionData {
+  id: string;
+  title: string;
+  price: number;
+  mileage: number;
+  condition: string;
+  location: string;
+  daysListed: number;
+  source: string;
 }
 
 export function MarketInsightsTab({
@@ -45,66 +69,52 @@ export function MarketInsightsTab({
     );
   }
   
-  // Mock data for demo purposes
-  const mockData = {
-    trend: 'increasing' as 'increasing' | 'decreasing' | 'stable',
-    trendPercentage: 2.5,
-    listingCount: 27,
-    averageDaysOnMarket: 45,
-    similarVehiclesNearby: 18,
-    demandScore: 7,
-    comparableListings: [
-      {
-        id: 'cl1',
-        title: `${year} ${make} ${model}`,
-        price: 24500,
-        mileage: 35000,
-        condition: 'Good',
-        location: 'Beverly Hills, CA',
-        daysListed: 14,
-        source: 'Autotrader'
-      },
-      {
-        id: 'cl2',
-        title: `${year} ${make} ${model}`,
-        price: 25900,
-        mileage: 28000,
-        condition: 'Excellent',
-        location: 'Santa Monica, CA',
-        daysListed: 7,
-        source: 'Cars.com'
-      },
-      {
-        id: 'cl3',
-        title: `${year} ${make} ${model}`,
-        price: 23200,
-        mileage: 41000,
-        condition: 'Good',
-        location: 'Los Angeles, CA',
-        daysListed: 21,
-        source: 'Carvana'
-      }
-    ],
-    // Add mock data for PriceComparisonChart
-    averagePrices: {
-      retail: 25500,
-      auction: 21200,
-      private: 23800,
-      overall: 24000
-    },
-    priceRange: {
-      min: 21000,
-      max: 27000
-    },
-    estimatedValue: 24000,
-    normalizedValue: 24500
-  };
+  const { data, isLoading, error } = useMarketInsights({ 
+    make, 
+    model, 
+    year, 
+    zipCode 
+  });
   
-  // For demo purposes, show a decreasing trend if the year is older
-  if (year < new Date().getFullYear() - 3) {
-    mockData.trend = 'decreasing';
-    mockData.trendPercentage = -1.8;
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center p-6 min-h-[300px]">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p>Loading market data...</p>
+        </CardContent>
+      </Card>
+    );
   }
+  
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-start gap-3 text-destructive">
+            <AlertTriangle className="h-5 w-5 mt-0.5" />
+            <div>
+              <h3 className="font-medium">Error loading market data</h3>
+              <p className="text-sm text-muted-foreground">{error.message}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (!data) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground">No market data available for this vehicle.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Extract data from the query result
+  const comparableListings: Listing[] = data.comparableVehicles || [];
   
   return (
     <Card>
@@ -121,15 +131,15 @@ export function MarketInsightsTab({
           <TabsContent value="trends" className="space-y-6 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <MarketTrendCard 
-                trend={mockData.trend}
-                trendPercentage={mockData.trendPercentage}
-                listingCount={mockData.listingCount}
-                averageDaysOnMarket={mockData.averageDaysOnMarket}
+                trend={data.trendDirection}
+                trendPercentage={data.trendPercentage}
+                listingCount={data.similarListings}
+                averageDaysOnMarket={45} // Sample value
               />
               
               <LocalMarketCard
-                similarVehiclesNearby={mockData.similarVehiclesNearby}
-                demandScore={mockData.demandScore}
+                similarVehiclesNearby={data.similarListings}
+                demandScore={data.demandScore}
               />
             </div>
             
@@ -140,15 +150,31 @@ export function MarketInsightsTab({
                 year,
                 zipCode: zipCode || '90210'
               }}
-              averagePrices={mockData.averagePrices}
-              priceRange={mockData.priceRange}
-              estimatedValue={mockData.estimatedValue}
-              normalizedValue={mockData.normalizedValue}
+              averagePrices={data.averagePrices}
+              priceRange={{
+                min: data.averagePrices.auction,
+                max: data.averagePrices.retail
+              }}
+              estimatedValue={data.averagePrices.overall}
+              normalizedValue={data.averagePrices.overall * (data.regionMultiplier || 1)}
             />
           </TabsContent>
           
           <TabsContent value="listings" className="pt-4">
-            <ComparableListingsTable listings={mockData.comparableListings} />
+            {comparableListings.length > 0 ? (
+              <ComparableListingsTable listings={comparableListings.map((listing: Listing, index: number) => ({
+                id: listing.id || `listing-${index}`,
+                title: listing.title,
+                price: listing.price,
+                mileage: listing.mileage,
+                condition: listing.condition,
+                location: listing.location,
+                daysListed: listing.daysListed,
+                source: listing.source
+              }))} />
+            ) : (
+              <p className="text-muted-foreground text-center py-8">No comparable listings found.</p>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import VinLookupPage from './pages/VinLookupPage';
 import LookupPage from './pages/LookupPage';
@@ -12,7 +12,7 @@ import ValuationResultPage from './pages/ValuationResultPage';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
+      <Route path="/" element={<MainLayout><Outlet /></MainLayout>}>
         <Route index element={<LookupPage />} />
         <Route path="/lookup" element={<LookupPage />} />
         <Route path="/vin-lookup" element={<VinLookupPage />} />
