@@ -1,213 +1,249 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Loader2 } from 'lucide-react';
+
+// Define form validation schema
+const followUpSchema = z.object({
+  mileage: z.string()
+    .min(1, 'Mileage is required')
+    .refine(val => !isNaN(Number(val)), {
+      message: 'Mileage must be a number',
+    }),
+  zipCode: z.string()
+    .min(5, 'ZIP Code must be at least 5 characters')
+    .max(10, 'ZIP Code must be at most 10 characters'),
+  condition: z.enum(['excellent', 'good', 'fair', 'poor']),
+  hasAccidents: z.enum(['yes', 'no']),
+  ownerCount: z.string().optional(),
+});
+
+type FollowUpFormValues = z.infer<typeof followUpSchema>;
 
 interface FollowUpFormProps {
-  onSubmit?: (data: FollowUpFormData) => void;
-  initialData?: Partial<FollowUpFormData>;
+  onSubmit: (data: any) => void;
+  initialData?: any;
+  isLoading?: boolean;
 }
 
-export interface FollowUpFormData {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-  sellingReason: string;
-  timeline: string;
-  hasCarfax: boolean;
-  condition: string;
-  financing: string;
-  mileage: number;
-  zipCode: string;
-  features: string[];
-}
-
-const FollowUpForm: React.FC<FollowUpFormProps> = ({ onSubmit, initialData = {} }) => {
-  const [formData, setFormData] = useState<FollowUpFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    message: '',
-    sellingReason: '',
-    timeline: '',
-    hasCarfax: false,
-    condition: '',
-    financing: '',
-    mileage: 0,
-    zipCode: '',
-    features: [],
-    ...initialData
+const FollowUpForm: React.FC<FollowUpFormProps> = ({ 
+  onSubmit, 
+  initialData = {}, 
+  isLoading = false 
+}) => {
+  // Initialize form with react-hook-form
+  const form = useForm<FollowUpFormValues>({
+    resolver: zodResolver(followUpSchema),
+    defaultValues: {
+      mileage: initialData.mileage?.toString() || '',
+      zipCode: initialData.zipCode || '90210',
+      condition: initialData.condition || 'good',
+      hasAccidents: initialData.hasAccidents || 'no',
+      ownerCount: initialData.ownerCount?.toString() || '1',
+    },
   });
 
-  const [loading, setLoading] = useState(false);
-  const [count, setCount] = useState<number>(0);
-
-  useEffect(() => {
-    // Initialize form with initial data if provided
-    if (initialData && Object.keys(initialData).length > 0) {
-      setFormData(prev => ({ ...prev, ...initialData }));
-    }
-  }, [initialData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+  // Handle form submission
+  const handleSubmit = (values: FollowUpFormValues) => {
+    // Convert string values to appropriate types
+    const processedData = {
+      ...values,
+      mileage: parseInt(values.mileage, 10),
+      ownerCount: values.ownerCount ? parseInt(values.ownerCount, 10) : 1,
+      // Map condition to labels for display
+      conditionLabel: getConditionLabel(values.condition),
+    };
     
-    setFormData((prevData: FollowUpFormData) => ({ 
-      ...prevData, 
-      [name]: type === 'checkbox' ? checked : value 
-    }));
+    onSubmit(processedData);
   };
 
-  const handleRadioChange = (name: string, value: string) => {
-    setFormData((prevData: FollowUpFormData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleFeatureToggle = (feature: string, checked: boolean) => {
-    setFormData((prevData: FollowUpFormData) => {
-      const features = [...prevData.features];
-      if (checked) {
-        features.push(feature);
-      } else {
-        const index = features.indexOf(feature);
-        if (index !== -1) {
-          features.splice(index, 1);
-        }
-      }
-      return { ...prevData, features };
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { name, email, phone, message } = formData;
-
-    if (!name || !email || !phone || !message) {
-      toast("Please fill out all required fields.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await new Promise((res) => setTimeout(res, 1000));
-      toast("✅ Message Sent! We will get back to you soon.");
-
-      onSubmit?.(formData);
-      
-      // Reset form (optional - might not want to reset if navigating away)
-      // setFormData({
-      //   name: '',
-      //   email: '',
-      //   phone: '',
-      //   message: '',
-      //   sellingReason: '',
-      //   timeline: '',
-      //   hasCarfax: false,
-      //   condition: '',
-      //   financing: '',
-      //   mileage: 0,
-      //   zipCode: '',
-      //   features: []
-      // });
-    } catch (err) {
-      toast("❌ Failed to send message. Try again later.");
-    } finally {
-      setLoading(false);
+  // Helper function to get readable condition labels
+  const getConditionLabel = (condition: string): string => {
+    switch (condition) {
+      case 'excellent': return 'Excellent';
+      case 'good': return 'Good';
+      case 'fair': return 'Fair';
+      case 'poor': return 'Poor';
+      default: return 'Unknown';
     }
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto shadow-md">
-      <CardHeader>
-        <CardTitle>Tell Us More About Your Vehicle Needs</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div>
-            <Label htmlFor="name">Full Name</Label>
-            <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="email">Email Address</Label>
-            <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} required />
-          </div>
-          <div>
-            <Label htmlFor="message">Brief Message or Questions</Label>
-            <Textarea id="message" name="message" rows={4} value={formData.message} onChange={handleChange} required />
-          </div>
-
-          <div>
-            <Label>Reason for Selling</Label>
-            <Input name="sellingReason" value={formData.sellingReason} onChange={handleChange} placeholder="e.g. Upgrade, Emergency, Extra Vehicle" />
-          </div>
-
-          <div>
-            <Label>Preferred Timeline</Label>
-            <RadioGroup value={formData.timeline} onValueChange={(val) => handleRadioChange('timeline', val)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="ASAP" id="asap" />
-                <Label htmlFor="asap">ASAP</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="1-2 Weeks" id="2weeks" />
-                <Label htmlFor="2weeks">1–2 Weeks</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="1 Month+" id="1month" />
-                <Label htmlFor="1month">More than a month</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox id="carfax" name="hasCarfax" checked={formData.hasCarfax} onCheckedChange={(val) => handleRadioChange('hasCarfax', val ? 'true' : 'false')} />
-            <Label htmlFor="carfax">I have a CARFAX or service history</Label>
-          </div>
-
-          <div>
-            <Label>Vehicle Condition</Label>
-            <RadioGroup value={formData.condition} onValueChange={(val) => handleRadioChange('condition', val)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Excellent" id="excellent" />
-                <Label htmlFor="excellent">Excellent</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Good" id="good" />
-                <Label htmlFor="good">Good</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Fair" id="fair" />
-                <Label htmlFor="fair">Fair</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Needs Work" id="work" />
-                <Label htmlFor="work">Needs Work</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div>
-            <Label>Financing or Loan Status</Label>
-            <Input name="financing" value={formData.financing} onChange={handleChange} placeholder="e.g. Paid off, Loan with XYZ bank" />
-          </div>
-
-          <Button type="submit" disabled={loading} className="mt-4">
-            {loading ? 'Submitting...' : 'Submit Details'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="mileage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Current Mileage</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  placeholder="e.g., 35000" 
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="zipCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ZIP Code</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  placeholder="e.g., 90210" 
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="condition"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Overall Condition</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                  disabled={isLoading}
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="excellent" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Excellent - Like new condition</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="good" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Good - Minor wear and tear</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="fair" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Fair - Noticeable wear, may need repairs</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="poor" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Poor - Significant damage or issues</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="hasAccidents"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Accident History</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex space-x-4"
+                  disabled={isLoading}
+                >
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="no" />
+                    </FormControl>
+                    <FormLabel className="font-normal">No Accidents</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="yes" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Has Accidents</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="ownerCount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Number of Previous Owners</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select number of owners" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">1 Owner</SelectItem>
+                  <SelectItem value="2">2 Owners</SelectItem>
+                  <SelectItem value="3">3 Owners</SelectItem>
+                  <SelectItem value="4">4+ Owners</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Submit'
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 };
 

@@ -41,10 +41,9 @@ describe('formatCurrency', () => {
   });
 
   it('handles undefined or null values', () => {
-    // These should not happen in TypeScript, but testing for robustness
-    // @ts-ignore
-    expect(formatCurrency(undefined)).toBe('$0');
-    // @ts-ignore
-    expect(formatCurrency(null)).toBe('$0');
+    // @ts-ignore - Testing runtime behavior with invalid types
+    expect(formatCurrency(undefined)).toBe('$0.00');
+    // @ts-ignore - Testing runtime behavior with invalid types
+    expect(formatCurrency(null)).toBe('$0.00');
   });
 });
