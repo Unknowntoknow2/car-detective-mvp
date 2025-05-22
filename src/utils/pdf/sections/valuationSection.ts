@@ -43,14 +43,8 @@ export async function addValuationSection(params: SectionParams): Promise<number
   currentY -= 30;
   
   // Draw price range if available
-  if (data.priceRange) {
-    // Ensure priceRange is always treated as a tuple [min, max]
-    const priceRangeValues: [number, number] = Array.isArray(data.priceRange) 
-      ? data.priceRange 
-      : [
-          Math.floor(data.estimatedValue * 0.95),
-          Math.ceil(data.estimatedValue * 1.05)
-        ];
+  if (data.priceRange && Array.isArray(data.priceRange) && data.priceRange.length === 2) {
+    const priceRangeValues = data.priceRange as [number, number];
     
     page.drawText('Price Range:', {
       x: margin,

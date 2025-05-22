@@ -1,14 +1,16 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { ValuationResult } from '@/components/valuation/result';
 import { Card } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PremiumUpgradeCTA } from '@/components/premium/PremiumUpgradeCTA';
 import { toast } from 'sonner';
 import { usePremiumCredits } from '@/hooks/usePremiumCredits';
 import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
+import { PDFPreview } from '@/components/pdf/PDFPreview';
 
 const ValuationResultPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +26,7 @@ const ValuationResultPage = () => {
   const [conditionData, setConditionData] = useState<any>(null);
   
   // Initialize the PDF functionality
-  const { generatePdf, emailPdf, isGenerating, isEmailSending } = useValuationPdf({
+  const { generatePdf, emailPdf, downloadSamplePdf, isGenerating, isEmailSending } = useValuationPdf({
     valuationId: id,
     valuationData,
     conditionData
@@ -93,8 +95,8 @@ const ValuationResultPage = () => {
           ...valuation,
           estimatedValue: valuation.estimated_value,
           confidenceScore: valuation.confidence_score,
-          priceRange: calculatePriceRange(valuation.estimated_value, valuation.confidence_score),
-          adjustments: generateAdjustments(valuation),
+          priceRange: valuation.price_range || calculatePriceRange(valuation.estimated_value, valuation.confidence_score),
+          adjustments: valuation.adjustments || generateAdjustments(valuation),
           isPremium: hasPremiumAccess
         };
         
@@ -111,7 +113,7 @@ const ValuationResultPage = () => {
   }, [id, premiumParam, useCredit]);
 
   // Helper function to calculate price range
-  const calculatePriceRange = (estimatedValue: number, confidenceScore: number) => {
+  const calculatePriceRange = (estimatedValue: number, confidenceScore: number): [number, number] => {
     const variancePercentage = Math.max(5, 20 - (confidenceScore / 10)); // Higher confidence = smaller range
     const variance = estimatedValue * (variancePercentage / 100);
     return [Math.floor(estimatedValue - variance), Math.ceil(estimatedValue + variance)];
@@ -141,11 +143,6 @@ const ValuationResultPage = () => {
     ];
     
     return adjustments;
-  };
-  
-  // Helper function to determine if premium
-  const hasPremium = (isPremiumUnlocked: boolean, isUsingCredit: boolean) => {
-    return isPremiumUnlocked || isUsingCredit;
   };
   
   // Handle PDF download
@@ -184,8 +181,13 @@ const ValuationResultPage = () => {
           </div>
         ) : error ? (
           <Card className="p-6 bg-red-50 text-red-700">
-            <p className="font-semibold">Error loading valuation</p>
-            <p className="text-sm">{error}</p>
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+              <div>
+                <p className="font-semibold">Error loading valuation</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
           </Card>
         ) : (
           <>
@@ -205,6 +207,15 @@ const ValuationResultPage = () => {
                 isEmailingSending={isEmailSending}
               />
             </Card>
+            
+            {/* Free Sample PDF Preview */}
+            <div className="mt-8">
+              <PDFPreview 
+                onViewSample={downloadSamplePdf}
+                onUpgradeToPremium={handleUpgrade}
+                isLoading={isGenerating}
+              />
+            </div>
           </>
         )}
       </div>
