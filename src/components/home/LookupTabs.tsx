@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import VinDecoderForm from "@/components/lookup/VinDecoderForm"; // Fixed import
 import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
-import { manualEntryToJson } from "@/utils/formatters";
+import { manualEntryToJson } from "@/utils/formatters/manualEntryToJson";
 import ManualEntryForm from "@/components/lookup/ManualEntryForm";
 import { useNavigate } from "react-router-dom";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
