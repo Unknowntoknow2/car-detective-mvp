@@ -92,10 +92,78 @@ export const useValuationPdf = ({
       setIsGenerating(false);
     }
   };
+
+  // New method to download a sample PDF report
+  const downloadSamplePdf = async () => {
+    setIsGenerating(true);
+    
+    try {
+      // Create sample report data
+      const sampleReportData: ReportData = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 35000,
+        estimatedValue: 22500,
+        zipCode: '90210',
+        vin: 'SAMPLE4T1BF1FK7CU123456',
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
+        color: 'Silver',
+        bodyStyle: 'Sedan',
+        confidenceScore: 92,
+        adjustments: [
+          { factor: 'Mileage', impact: -500, description: 'Lower than average mileage for this model year' },
+          { factor: 'Condition', impact: 1200, description: 'Excellent overall condition' },
+          { factor: 'Market Demand', impact: 800, description: 'High demand in your region' },
+          { factor: 'Service History', impact: 300, description: 'Complete service records' }
+        ],
+        generatedDate: new Date(),
+        aiCondition: {
+          condition: 'Excellent',
+          confidenceScore: 95,
+          issuesDetected: [],
+          summary: 'Vehicle appears to be in excellent condition with no visible damage.'
+        },
+        bestPhotoUrl: 'https://img.freepik.com/free-photo/white-premium-business-sedan-car-driving-bridge-road_53876-126228.jpg',
+        // Add sample flag to indicate this is a sample report
+        isSample: true,
+        premium: true
+      };
+      
+      // Generate the PDF with sample data
+      const pdfBytes = await generateValuationPdf(sampleReportData, {
+        watermark: 'SAMPLE REPORT',
+        isPremium: true
+      });
+      
+      // Create file name for sample
+      const fileName = `Sample_Valuation_Report_${Date.now()}.pdf`;
+      
+      // Create a blob and save/download the file
+      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      saveAs(pdfBlob, fileName);
+      
+      toast({
+        description: "Sample PDF report downloaded successfully."
+      });
+      return true;
+    } catch (error) {
+      console.error('Error generating sample PDF:', error);
+      toast({
+        description: "Failed to generate the sample PDF. Please try again.",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   
   return {
     isGenerating,
-    handleDownloadPdf
+    handleDownloadPdf,
+    downloadSamplePdf
   };
 };
 

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PdfPreview } from '@/components/home/PdfPreview';
 
 export default function PremiumValuationPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
@@ -168,6 +169,35 @@ export default function PremiumValuationPage() {
       </div>
       
       <PremiumUpgradeCTA valuationId={valuationId} />
+      
+      {/* Sample Report Preview Section */}
+      <div className="mt-12 mb-8">
+        <h2 className="text-xl font-semibold mb-6">Sample Premium Report</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="md:col-span-1">
+            <PdfPreview />
+          </div>
+          <div className="md:col-span-1 flex flex-col justify-center">
+            <h3 className="text-lg font-medium mb-4">See What You Get With Premium</h3>
+            <p className="text-muted-foreground mb-6">
+              Our premium valuation reports provide comprehensive details about your vehicle's value, 
+              condition assessment, and market position. Download a sample report to see the full benefits.
+            </p>
+            <Card className="bg-muted/40">
+              <CardContent className="pt-6">
+                <p className="font-medium">Sample reports include:</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Detailed value breakdown</li>
+                  <li>Complete condition assessment</li>
+                  <li>Market comparison data</li>
+                  <li>Feature impact analysis</li>
+                  <li>CARFAX® history highlights</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
       
       <div className="mt-12">
         <h2 className="text-xl font-semibold mb-4">What's included with Premium</h2>

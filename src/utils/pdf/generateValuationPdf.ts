@@ -30,8 +30,13 @@ export async function generateValuationPdf(
     ...options,
   };
   
+  // Set watermark if this is a sample report
+  if (data.isSample) {
+    mergedOptions.watermark = mergedOptions.watermark || 'SAMPLE REPORT';
+  }
+  
   // Choose the appropriate generator based on premium flag
-  const pdfBytes = data.premium
+  const pdfBytes = data.premium || options.isPremium
     ? await generatePremiumReport({ data, options: mergedOptions, document: PDFDocument })
     : await generateBasicReport(data, mergedOptions);
   
