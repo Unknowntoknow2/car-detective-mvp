@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { VINLookupForm } from './vin/VINLookupForm';
-import { isValidVIN } from '@/utils/validation/vin-validation';
+import { validateVIN } from '@/utils/validation/vin-validation';
 
 interface VinLookupProps {
   onSubmit: (vin: string) => void;
@@ -26,9 +26,10 @@ const VinLookup: React.FC<VinLookupProps> = ({
   };
 
   const handleSubmit = (vinToSubmit: string) => {
-    // isValidVIN returns a boolean, not an object with isValid and message
-    if (!isValidVIN(vinToSubmit)) {
-      setError('Invalid VIN format. Please check and try again.');
+    // Using validateVIN which returns {isValid, error}
+    const validation = validateVIN(vinToSubmit);
+    if (!validation.isValid) {
+      setError(validation.error || 'Invalid VIN format. Please check and try again.');
       return;
     }
     
