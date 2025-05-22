@@ -5,8 +5,8 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { validateVin } from '@/utils/validation/vin-validation';
-import { AlertCircle } from 'lucide-react';
+import { useValuation } from '@/hooks/useValuation';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 
 // Import our component parts
@@ -34,7 +34,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export interface ManualEntryFormProps {
-  onSubmit: (data: ManualEntryFormData) => void;
+  onSubmit?: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
   isPremium?: boolean;
@@ -42,10 +42,13 @@ export interface ManualEntryFormProps {
 
 const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
   onSubmit, 
-  isLoading = false,
+  isLoading: propIsLoading = false,
   submitButtonText = "Get Valuation",
   isPremium = false
 }) => {
+  const { manualValuation, isLoading: hookIsLoading } = useValuation();
+  const isLoading = propIsLoading || hookIsLoading;
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,15 +68,6 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   });
   
   const handleSubmit = (values: FormValues) => {
-    // Only check VIN validation if a value is provided
-    if (values.vin && values.vin.trim() !== '') {
-      const validation = validateVin(values.vin);
-      if (!validation.isValid) {
-        // We don't need to set error state here as it's handled in the VinInputField component
-        return;
-      }
-    }
-    
     // Convert string values to appropriate types for ManualEntryFormData
     const formattedData: ManualEntryFormData = {
       make: values.make,
@@ -86,13 +80,20 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       transmission: values.transmission,
       trim: values.trim,
       color: values.color,
-      bodyType: values.bodyType
+      bodyType: values.bodyType,
+      vin: values.vin
     };
     
-    onSubmit(formattedData);
+    if (onSubmit) {
+      onSubmit(formattedData);
+      return;
+    }
+    
+    // Use our hook
+    manualValuation(formattedData);
   };
 
-    const conditionOptions = [
+  const conditionOptions = [
     { value: ConditionLevel.Excellent, label: 'Excellent' },
     { value: ConditionLevel.VeryGood, label: 'Very Good' },
     { value: ConditionLevel.Good, label: 'Good' },
@@ -116,7 +117,14 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         <VinInputField form={form} />
         
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Processing..." : submitButtonText}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            submitButtonText
+          )}
         </Button>
       </form>
     </Form>

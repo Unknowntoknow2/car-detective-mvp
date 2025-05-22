@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.verify-payment]
 verify_jwt = true
+
+[functions.use-premium-credit]
+verify_jwt = true
