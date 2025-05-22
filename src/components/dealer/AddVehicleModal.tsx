@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import AddEditVehicleForm from './AddEditVehicleForm';
+import { AddEditVehicleForm } from './AddEditVehicleForm';
 import { VehicleFormData } from './schemas/vehicleSchema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

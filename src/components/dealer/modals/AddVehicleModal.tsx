@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import AddEditVehicleForm from '../AddEditVehicleForm';
+import { AddEditVehicleForm } from '../AddEditVehicleForm';
 
 interface AddVehicleModalProps {
   open: boolean;

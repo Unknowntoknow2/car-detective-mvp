@@ -1,6 +1,4 @@
 
-// src/components/lookup/VinDecoderForm.tsx
-
 import React from "react";
 import VinLookup from "./VinLookup";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
