@@ -52,15 +52,16 @@ export default function LoginDealerPage() {
               <SigninForm 
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
+                role="dealer"
                 redirectPath="/dealer-dashboard"
-                alternateLoginPath="/login-user"
+                alternateLoginPath="/signin/individual"
                 alternateLoginText="Individual user? Click here to login"
               />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
               <div className="text-center text-sm text-muted-foreground">
                 <div>Need a dealer account?{' '}
-                  <Link to="/dealer-signup" className="text-primary hover:underline">
+                  <Link to="/signup/dealer" className="text-primary hover:underline">
                     Register your dealership
                   </Link>
                 </div>

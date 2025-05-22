@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -76,6 +77,22 @@ const routes: RouteObject[] = [
         ),
       },
       {
+        path: 'signin/individual',
+        element: (
+          <GuestGuard>
+            <LoginUserPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'signin/dealer',
+        element: (
+          <GuestGuard>
+            <LoginDealerPage />
+          </GuestGuard>
+        ),
+      },
+      {
         path: 'register',
         element: (
           <GuestGuard>
@@ -88,6 +105,22 @@ const routes: RouteObject[] = [
         element: (
           <GuestGuard>
             <SignupPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'signup/individual',
+        element: (
+          <GuestGuard>
+            <RegisterPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'signup/dealer',
+        element: (
+          <GuestGuard>
+            <DealerSignupPage />
           </GuestGuard>
         ),
       },

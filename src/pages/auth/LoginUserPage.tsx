@@ -39,7 +39,7 @@ export default function LoginUserPage() {
           <Card className="w-full shadow-sm border-2">
             <CardHeader className="space-y-1">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">User Login</CardTitle>
+                <CardTitle className="text-2xl">Individual Login</CardTitle>
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="h-5 w-5 text-primary" />
                 </div>
@@ -52,20 +52,13 @@ export default function LoginUserPage() {
               <SigninForm 
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
+                role="individual"
                 redirectPath="/dashboard"
-                alternateLoginPath="/login-dealer"
+                alternateLoginPath="/signin/dealer"
                 alternateLoginText="Are you a dealer? Click here to login"
               />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-              <div className="text-center text-sm text-muted-foreground">
-                <div>Don't have an account?{' '}
-                  <Link to="/register" className="text-primary hover:underline">
-                    Sign up
-                  </Link>
-                </div>
-              </div>
-              
               <div className="text-center text-xs text-muted-foreground">
                 <p>By signing in, you agree to our{' '}
                   <Link to="/terms" className="text-primary hover:underline">Terms</Link> and{' '}
