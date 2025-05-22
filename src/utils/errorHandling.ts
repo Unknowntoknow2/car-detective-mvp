@@ -1,10 +1,12 @@
 
 /**
- * Convert any error type to a string message
- * @param error The error to convert
- * @returns A string representation of the error
+ * Converts any error object to a string message
  */
-export const errorToString = (error: any): string => {
+export function errorToString(error: unknown): string {
+  if (error === null || error === undefined) {
+    return 'Unknown error occurred';
+  }
+  
   if (typeof error === 'string') {
     return error;
   }
@@ -13,43 +15,26 @@ export const errorToString = (error: any): string => {
     return error.message;
   }
   
-  if (error && typeof error === 'object') {
-    if (error.message) {
-      return error.message;
-    }
-    
-    if (error.error) {
-      return typeof error.error === 'string' 
-        ? error.error 
-        : errorToString(error.error);
-    }
-    
-    // For Supabase errors
-    if (error.error_description) {
-      return error.error_description;
-    }
-    
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return 'An unexpected error occurred';
-    }
+  if (typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
   }
   
-  return 'An unexpected error occurred';
-};
+  return JSON.stringify(error);
+}
 
 /**
- * Log an error to the console with additional context
- * @param error The error to log
- * @param context Additional context information
+ * Extracts an error message from a Supabase error response
  */
-export const logError = (error: any, context: string = ''): void => {
-  const errorMessage = errorToString(error);
-  if (context) {
-    console.error(`Error in ${context}:`, error);
-  } else {
-    console.error('Error:', error);
-  }
-  return;
-};
+export function extractSupabaseErrorMessage(error: any): string {
+  if (!error) return 'An unexpected error occurred';
+  
+  // Handle standard error objects
+  if (typeof error === 'string') return error;
+  
+  // Handle Supabase error format
+  if (error.message) return error.message;
+  if (error.error_description) return error.error_description;
+  
+  // Fallback
+  return 'An unexpected error occurred';
+}

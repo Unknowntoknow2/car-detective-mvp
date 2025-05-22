@@ -16,22 +16,31 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { dealerFormSchema } from './schemas/dealerSignupSchema';
-import { supabase } from '@/integrations/supabase/client';
+import * as z from 'zod';
+import { useAuth } from '@/hooks/useAuth';
 
-type FormData = {
-  fullName: string;
-  email: string;
-  password: string;
-  dealershipName: string;
-  phone?: string;
-  termsAccepted: boolean;
-};
+// Define the form schema with validation
+const dealerFormSchema = z.object({
+  dealershipName: z.string().min(2, "Dealership name must be at least 2 characters"),
+  fullName: z.string().min(2, "Contact name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  phone: z.string().optional(),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "You must accept the terms and conditions",
+  }),
+});
+
+type FormData = z.infer<typeof dealerFormSchema>;
 
 export function DealerSignupForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [dealershipError, setDealershipError] = useState('');
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   
   const form = useForm<FormData>({
     resolver: zodResolver(dealerFormSchema),
@@ -45,59 +54,23 @@ export function DealerSignupForm() {
     },
   });
   
-  const checkDealershipName = async (name: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('dealership_name', name)
-        .limit(1);
-      
-      if (error) throw error;
-      
-      return data && data.length > 0;
-    } catch (err) {
-      console.error('Error checking dealership name:', err);
-      return false;
-    }
-  };
-
   const onSubmit = async (data: FormData) => {
-    if (!data.termsAccepted) {
-      toast.error('You must accept the terms and conditions');
-      return;
-    }
+    setIsLoading(true);
     
     try {
-      setIsLoading(true);
-      setDealershipError('');
-      
-      // Check if dealership name already exists
-      const dealershipExists = await checkDealershipName(data.dealershipName);
-      if (dealershipExists) {
-        setDealershipError('This dealership name is already registered');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Sign up the user
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.fullName,
-            role: 'dealer',
-            dealership_name: data.dealershipName,
-            phone: data.phone || null,
-          },
-        },
+      // Sign up the user with dealer role and metadata
+      await signUp(data.email, data.password, {
+        full_name: data.fullName,
+        role: 'dealer',
+        dealership_name: data.dealershipName,
+        phone: data.phone || null,
       });
-
-      if (signUpError) throw signUpError;
       
-      toast.success('Registration successful! Please check your email to verify your account.');
-      navigate('/login-dealer');
+      toast.success('Dealership registration successful!', {
+        description: 'Please check your email to verify your account.'
+      });
+      
+      navigate('/dealer/dashboard');
     } catch (error: any) {
       console.error('Registration error:', error);
       
@@ -120,10 +93,24 @@ export function DealerSignupForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
+          name="dealershipName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dealership Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Your Dealership LLC" {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Contact Name</FormLabel>
               <FormControl>
                 <Input placeholder="John Doe" {...field} disabled={isLoading} />
               </FormControl>
@@ -155,21 +142,6 @@ export function DealerSignupForm() {
               <FormControl>
                 <Input type="password" placeholder="Create a secure password" {...field} disabled={isLoading} />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="dealershipName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dealership Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your Dealership LLC" {...field} disabled={isLoading} />
-              </FormControl>
-              {dealershipError && <p className="text-sm text-red-500 mt-1">{dealershipError}</p>}
               <FormMessage />
             </FormItem>
           )}

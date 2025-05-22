@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { DEBUG_MODE } from '@/lib/constants';
 
 interface DealerGuardProps {
   children: React.ReactNode;
@@ -11,47 +10,32 @@ interface DealerGuardProps {
 
 const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
   const { user, userRole, isLoading } = useAuth();
-  const [isCheckingRole, setIsCheckingRole] = useState(true);
-  const location = useLocation();
-  
-  useEffect(() => {
-    const checkDealerRole = async () => {
-      if (!user) {
-        setIsCheckingRole(false);
-        return;
-      }
-      
-      // Use the userRole directly from context
-      setIsCheckingRole(false);
-    };
-    
-    if (!isLoading) {
-      checkDealerRole();
-    }
-  }, [user, userRole, isLoading]);
-  
-  if (isLoading || isCheckingRole) {
+
+  // In debug mode, bypass dealer check
+  if (DEBUG_MODE) {
+    return <>{children}</>;
+  }
+
+  // Show loading state while checking authentication
+  if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg text-muted-foreground">Verifying dealer access...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
-  
+
+  // If user is not authenticated, redirect to dealer login
   if (!user) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login-dealer" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/login-dealer" replace />;
   }
-  
+
+  // If user is not a dealer, redirect to access denied
   if (userRole !== 'dealer') {
-    // Redirect to access denied page with explanatory message
-    toast.error('You need dealer access for this page');
-    return <Navigate to="/access-denied" state={{ message: "You need dealer access for this page" }} replace />;
+    return <Navigate to="/access-denied" replace />;
   }
-  
+
+  // If user is a dealer, render the protected route
   return <>{children}</>;
 };
 
