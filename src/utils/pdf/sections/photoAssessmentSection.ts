@@ -3,7 +3,7 @@ import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
 export function drawPhotoAssessmentSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor, options } = params;
+  const { page, startY, margin, width, data, fonts, textColor, primaryColor, options } = params;
   let y = startY;
   
   if (!options.includePhotoAssessment || !data.aiCondition) {
@@ -15,7 +15,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
     x: margin,
     y,
     size: 14,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -27,7 +27,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
       x: margin,
       y,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -35,7 +35,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
       x: margin + 150,
       y,
       size: 10,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     
@@ -48,7 +48,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
       x: margin,
       y,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -56,7 +56,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
       x: margin + 150,
       y,
       size: 10,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     
@@ -69,7 +69,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
       x: margin,
       y,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -81,7 +81,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
         x: margin + 10,
         y,
         size: 9,
-        font: font,
+        font: fonts.regular,
         color: textColor,
       });
       
@@ -97,7 +97,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
       x: margin,
       y,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -110,14 +110,14 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
     
     for (const word of words) {
       const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const textWidth = font.widthOfTextAtSize(testLine, 9);
+      const textWidth = fonts.regular.widthOfTextAtSize(testLine, 9);
       
       if (textWidth > maxWidth) {
         page.drawText(currentLine, {
           x: margin + 10,
           y,
           size: 9,
-          font: font,
+          font: fonts.regular,
           color: textColor,
         });
         
@@ -134,7 +134,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
         x: margin + 10,
         y,
         size: 9,
-        font: font,
+        font: fonts.regular,
         color: textColor,
       });
       

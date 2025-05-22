@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawDisclaimerSection(params: SectionParams): number {
-  const { page, startY, margin, width, font, textColor } = params;
+  const { page, startY, margin, width, fonts, textColor } = params;
   let y = startY;
   
   const disclaimer = 'DISCLAIMER: This valuation is an estimate based on market data and the vehicle information provided. Actual sale prices may vary based on factors not considered in this report including but not limited to local market conditions, vehicle history, and specific vehicle features. This report is not a guarantee of any specific sale price.';
@@ -14,7 +14,7 @@ export function drawDisclaimerSection(params: SectionParams): number {
   
   for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const textWidth = font.widthOfTextAtSize(testLine, 7);
+    const textWidth = fonts.regular.widthOfTextAtSize(testLine, 7);
     
     if (textWidth > maxWidth) {
       // Draw the current line and move to next line
@@ -22,7 +22,7 @@ export function drawDisclaimerSection(params: SectionParams): number {
         x: margin,
         y,
         size: 7,
-        font: font,
+        font: fonts.regular,
         color: textColor,
         opacity: 0.7,
       });
@@ -40,7 +40,7 @@ export function drawDisclaimerSection(params: SectionParams): number {
       x: margin,
       y,
       size: 7,
-      font: font,
+      font: fonts.regular,
       color: textColor,
       opacity: 0.7,
     });

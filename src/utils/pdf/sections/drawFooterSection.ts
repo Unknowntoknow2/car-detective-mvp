@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawFooterSection(params: SectionParams): void {
-  const { page, margin, width, font, textColor } = params;
+  const { page, margin, width, fonts, textColor } = params;
   
   const { height } = page.getSize();
   const footerY = 20; // 20 points from bottom
@@ -22,20 +22,20 @@ export function drawFooterSection(params: SectionParams): void {
     x: margin,
     y: footerY,
     size: 8,
-    font: font,
+    font: fonts.regular,
     color: textColor,
     opacity: 0.7,
   });
   
   // Draw page number on the right
   const pageText = 'Page 1';
-  const pageTextWidth = font.widthOfTextAtSize(pageText, 8);
+  const pageTextWidth = fonts.regular.widthOfTextAtSize(pageText, 8);
   
   page.drawText(pageText, {
     x: width - margin - pageTextWidth,
     y: footerY,
     size: 8,
-    font: font,
+    font: fonts.regular,
     color: textColor,
     opacity: 0.7,
   });

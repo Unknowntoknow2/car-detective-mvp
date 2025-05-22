@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawValuePredictionSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor } = params;
+  const { page, startY, margin, width, data, fonts, textColor, primaryColor } = params;
   let y = startY;
   
   // This section is only included in premium reports
@@ -15,7 +15,7 @@ export function drawValuePredictionSection(params: SectionParams): number {
     x: margin,
     y,
     size: 14,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -31,14 +31,14 @@ export function drawValuePredictionSection(params: SectionParams): number {
   
   for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const textWidth = font.widthOfTextAtSize(testLine, 9);
+    const textWidth = fonts.regular.widthOfTextAtSize(testLine, 9);
     
     if (textWidth > maxWidth) {
       page.drawText(currentLine, {
         x: margin,
         y,
         size: 9,
-        font: font,
+        font: fonts.regular,
         color: textColor,
       });
       
@@ -55,7 +55,7 @@ export function drawValuePredictionSection(params: SectionParams): number {
       x: margin,
       y,
       size: 9,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     

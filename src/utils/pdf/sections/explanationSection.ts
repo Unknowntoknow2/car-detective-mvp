@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawExplanationSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor, options } = params;
+  const { page, startY, margin, width, data, fonts, textColor, primaryColor, options } = params;
   let y = startY;
   
   if (!options.includeExplanation || !data.explanation) {
@@ -14,7 +14,7 @@ export function drawExplanationSection(params: SectionParams): number {
     x: margin,
     y,
     size: 12,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -27,7 +27,7 @@ export function drawExplanationSection(params: SectionParams): number {
   
   for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const textWidth = font.widthOfTextAtSize(testLine, 9);
+    const textWidth = fonts.regular.widthOfTextAtSize(testLine, 9);
     
     if (textWidth > maxWidth) {
       // Draw the current line and move to next line
@@ -35,7 +35,7 @@ export function drawExplanationSection(params: SectionParams): number {
         x: margin,
         y,
         size: 9,
-        font: font,
+        font: fonts.regular,
         color: textColor,
       });
       
@@ -52,7 +52,7 @@ export function drawExplanationSection(params: SectionParams): number {
       x: margin,
       y,
       size: 9,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     

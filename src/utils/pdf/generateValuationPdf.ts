@@ -3,7 +3,7 @@ import { saveAs } from 'file-saver';
 import { PDFDocument } from 'pdf-lib';
 import { ReportData, ReportOptions } from './types';
 import { generateBasicReport } from './generators/basicReportGenerator';
-import { generatePremiumReport } from './generators/premiumReportGenerator';
+import { generatePremiumPdf } from './generators/premiumReportGenerator';
 
 /**
  * Default options for PDF generation
@@ -37,7 +37,7 @@ export async function generateValuationPdf(
   
   // Choose the appropriate generator based on premium flag
   const pdfBytes = data.premium || options.isPremium
-    ? await generatePremiumReport({ data, options: mergedOptions })
+    ? await generatePremiumPdf({ data, options: mergedOptions })
     : await generateBasicReport(data, mergedOptions);
   
   return pdfBytes;

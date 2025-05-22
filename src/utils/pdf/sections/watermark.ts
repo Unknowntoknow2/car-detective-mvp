@@ -15,7 +15,7 @@ export function drawWatermark(params: SectionParams, text: string): void {
     x: width / 2 - 150,
     y: height / 2,
     size: 60,
-    font: params.font,
+    font: params.fonts.regular,
     color: rgb(0.85, 0.85, 0.85), // Light gray
     opacity: 0.3,
     rotate: Math.PI / -4, // -45 degrees in radians

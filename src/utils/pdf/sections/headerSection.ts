@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawHeaderSection(params: SectionParams): number {
-  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  const { page, startY, margin, data, fonts, textColor, primaryColor } = params;
   let y = startY;
   
   // Draw title
@@ -10,7 +10,7 @@ export function drawHeaderSection(params: SectionParams): number {
     x: margin,
     y,
     size: 16,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -29,7 +29,7 @@ export function drawHeaderSection(params: SectionParams): number {
       x: margin,
       y,
       size: 8,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     

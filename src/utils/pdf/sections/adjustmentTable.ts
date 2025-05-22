@@ -2,7 +2,7 @@
 import { SectionParams, AdjustmentItem } from '../types';
 
 export function drawAdjustmentsTable(params: SectionParams): number {
-  const { page, startY, margin, data, font, boldFont, textColor } = params;
+  const { page, startY, margin, data, fonts, textColor } = params;
   let y = startY;
   
   if (!data.adjustments || data.adjustments.length === 0) {
@@ -14,7 +14,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
     x: margin,
     y,
     size: 12,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -25,7 +25,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
     x: margin,
     y,
     size: 10,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -33,7 +33,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
     x: margin + 180,
     y,
     size: 10,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -41,7 +41,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
     x: margin + 250,
     y,
     size: 10,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -54,7 +54,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
       x: margin,
       y,
       size: 9,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     
@@ -68,7 +68,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
       x: margin + 180,
       y,
       size: 9,
-      font: font,
+      font: fonts.regular,
       color: impactColor,
     });
     
@@ -78,7 +78,7 @@ export function drawAdjustmentsTable(params: SectionParams): number {
         x: margin + 250,
         y,
         size: 9,
-        font: font,
+        font: fonts.regular,
         color: textColor,
       });
     }
