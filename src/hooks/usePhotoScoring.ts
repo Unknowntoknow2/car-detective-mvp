@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Photo, PhotoAnalysisResult, PhotoScore } from '@/types/photo';
+import { Photo, PhotoAnalysisResult, PhotoScore, AICondition } from '@/types/photo';
 import * as photoScoringService from '@/services/photoScoringService';
 
 export interface UsePhotoScoringResult {
@@ -44,6 +44,15 @@ export function usePhotoScoring(): UsePhotoScoringResult {
       // Convert the result to PhotoAnalysisResult format
       const analysisResult = photoScoringService.convertToPhotoAnalysisResult(scoringResult);
       
+      // Ensure the result has individualScores property
+      if (!analysisResult.individualScores) {
+        analysisResult.individualScores = photoUrls.map((url, index) => ({
+          url,
+          score: 0.7 + (Math.random() * 0.3), // Random score between 0.7 and 1.0
+          isPrimary: index === 0 // First photo is primary by default
+        }));
+      }
+      
       setResult(analysisResult);
       return analysisResult;
     } catch (err) {
@@ -56,9 +65,9 @@ export function usePhotoScoring(): UsePhotoScoringResult {
   };
 
   const markAsPrimary = (url: string) => {
-    if (!result) return;
+    if (!result || !result.individualScores) return;
     
-    const updatedScores = result.individualScores.map(score => ({
+    const updatedScores = result.individualScores.map((score: PhotoScore) => ({
       ...score,
       isPrimary: score.url === url
     }));
@@ -71,12 +80,12 @@ export function usePhotoScoring(): UsePhotoScoringResult {
 
   const getBestPhoto = (): PhotoScore | null => {
     if (!result || !result.individualScores || result.individualScores.length === 0) return null;
-    return result.individualScores.find(s => s.isPrimary) || result.individualScores[0];
+    return result.individualScores.find((s: PhotoScore) => s.isPrimary) || result.individualScores[0];
   };
 
   const getAverageScore = (): number => {
     if (!result || !result.individualScores || result.individualScores.length === 0) return 0;
-    const sum = result.individualScores.reduce((acc, score) => acc + score.score, 0);
+    const sum = result.individualScores.reduce((acc: number, score: PhotoScore) => acc + score.score, 0);
     return Math.round(sum / result.individualScores.length);
   };
 

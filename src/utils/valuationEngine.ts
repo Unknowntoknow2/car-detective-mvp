@@ -1,65 +1,42 @@
-
+import { AdjustmentBreakdown } from './rules/types';
+import { ValuationParams, ValuationResult } from './valuationCalculator';
 import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
-import { RulesEngineInput } from './rules/types';
-import { AdjustmentBreakdown } from './types/photo';
 
-/**
- * Calculate a vehicle's value
- */
-export async function calculateVehicleValue(input: RulesEngineInput): Promise<{
-  estimatedValue: number;
-  adjustments: AdjustmentBreakdown[];
-  confidenceScore: number;
-}> {
-  try {
-    // Starting point - base value
-    const baseValue = input.baseValue || 20000; // Example default
-    
-    // Calculate adjustments
-    const adjustments = await calculateAdjustments(input);
-    
-    // Calculate total adjustment amount
-    const totalAdjustment = calculateTotalAdjustment(adjustments);
-    
-    // Final value
-    const estimatedValue = baseValue + totalAdjustment;
-    
-    // Simple confidence score (in real app, would be more sophisticated)
-    const confidenceScore = Math.min(95, 70 + adjustments.length * 5);
-    
-    return {
-      estimatedValue: Math.max(0, Math.round(estimatedValue)),
-      adjustments,
-      confidenceScore
-    };
-  } catch (error) {
-    console.error('Error calculating vehicle value:', error);
-    throw error;
+// Re-export the function from valuationCalculator to avoid duplication
+export { calculateFinalValuation, calculateEnhancedValuation } from './valuationCalculator';
+
+// Other utility functions for valuation engine
+export const calculateConfidenceScore = (
+  input: ValuationParams, 
+  adjustments: AdjustmentBreakdown[]
+): number => {
+  // Calculate a confidence score based on input data quality
+  let score = 85; // Base confidence score
+  
+  // Adjust confidence based on data completeness
+  if (input.make && input.model && input.year && input.mileage) {
+    score += 5; // Complete basic info
   }
-}
+  
+  if (input.condition) {
+    score += 3; // Condition provided
+  }
+  
+  if (input.photoScore && input.photoScore > 0.7) {
+    score += 5; // Good photo score
+  }
+  
+  if (input.features && input.features.length > 0) {
+    score += 2; // Features provided
+  }
+  
+  // Cap score at 100
+  return Math.min(score, 100);
+};
 
-/**
- * Advanced valuation calculator with confidence scoring
- */
-export async function calculateEnhancedValuation(input: RulesEngineInput): Promise<{
-  estimatedValue: number;
-  adjustments: AdjustmentBreakdown[];
-  confidenceScore: number;
-  priceRange: { min: number; max: number };
-}> {
-  const { estimatedValue, adjustments, confidenceScore } = await calculateVehicleValue(input);
-  
-  // Create price range (in real app, would be more sophisticated)
-  const variancePercentage = Math.max(5, 20 - (confidenceScore / 5));
-  const variance = estimatedValue * (variancePercentage / 100);
-  
-  return {
-    estimatedValue,
-    adjustments,
-    confidenceScore,
-    priceRange: {
-      min: Math.max(0, Math.round(estimatedValue - variance)),
-      max: Math.round(estimatedValue + variance)
-    }
-  };
-}
+// For backward compatibility with existing code
+export const calculateValuationEngine = async (input: ValuationParams): Promise<ValuationResult> => {
+  // This function is just an alias for calculateFinalValuation
+  const { calculateFinalValuation } = require('./valuationCalculator');
+  return calculateFinalValuation(input);
+};
