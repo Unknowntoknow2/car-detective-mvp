@@ -1,9 +1,9 @@
-
 import { PDFDocument, PDFFont, rgb, PDFPage } from 'pdf-lib';
 import { ReportData, ReportOptions, SectionParams, DocumentFonts } from '../types';
 import { drawExplanationSection } from '../sections/explanationSection';
 import { drawValuePredictionSection } from '../sections/valuePredictionSection';
 import { drawProfessionalOpinionSection } from '../sections/professionalOpinionSection';
+import { RotationTypes } from '../types';
 
 // Create function signatures to avoid name conflicts with imports
 function addHeaderSection(page: PDFPage, params: any): number { return 0; }
@@ -99,7 +99,7 @@ export async function generatePremiumReport(
       color: rgb(0.9, 0.9, 0.9), // Light gray
       opacity: 0.2,
       rotate: {
-        type: 'degrees',
+        type: RotationTypes.Degrees,
         angle: -30,
       },
     });

@@ -28,5 +28,6 @@ export const testReportData: ReportData = {
       impact: 200,
       description: 'Good overall condition'
     }
-  ]
+  ],
+  priceRange: [14000, 16000] // Added priceRange as a tuple
 };

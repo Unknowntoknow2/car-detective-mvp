@@ -33,13 +33,35 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         condition: valuationData.condition,
         estimatedValue: valuationData.estimatedValue,
         confidenceScore: valuationData.confidenceScore,
-        priceRange: valuationData.priceRange,
         vin: valuationData.vin,
         zipCode: valuationData.zipCode,
         isPremium: isPremium,
         adjustments: valuationData.adjustments || [],
         generatedAt: new Date().toISOString(),
       };
+      
+      // Handle priceRange conversion - ensure it's always a tuple format
+      if (valuationData.priceRange) {
+        if (Array.isArray(valuationData.priceRange)) {
+          reportData.priceRange = [
+            Number(valuationData.priceRange[0]), 
+            Number(valuationData.priceRange[1])
+          ];
+        } else if (typeof valuationData.priceRange === 'object') {
+          // Convert from object format to tuple format
+          if ('min' in valuationData.priceRange && 'max' in valuationData.priceRange) {
+            reportData.priceRange = [
+              Number(valuationData.priceRange.min),
+              Number(valuationData.priceRange.max)
+            ];
+          } else if ('low' in valuationData.priceRange && 'high' in valuationData.priceRange) {
+            reportData.priceRange = [
+              Number(valuationData.priceRange.low),
+              Number(valuationData.priceRange.high)
+            ];
+          }
+        }
+      }
       
       // Add condition data if available
       if (conditionData) {
@@ -58,7 +80,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         watermarkText: isPremium ? 'Premium Report' : 'Car Detective Report',
       };
       
-      // Generate PDF - Fix: pass only reportData as the first argument
+      // Generate PDF
       await downloadPdf(reportData);
       
       toast.success('Valuation report downloaded successfully');
@@ -133,11 +155,11 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
           issuesDetected: [],
           summary: 'Vehicle is in excellent condition with no visible issues.'
         },
+        // Convert to tuple format
         priceRange: [25500, 28000],
-        explanation: 'This is a sample valuation report showing the premium features available in Car Detective. The actual premium report includes detailed market analysis, comprehensive condition assessment, and personalized recommendations.',
       };
       
-      // Generate PDF - Fix: pass only sampleReportData as the first argument
+      // Generate PDF
       await downloadPdf(sampleReportData);
       
       toast.success('Sample report downloaded successfully');

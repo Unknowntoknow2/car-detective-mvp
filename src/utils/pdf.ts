@@ -1,5 +1,5 @@
-
 import type { DecodedVehicleInfo } from '@/types/vehicle';
+import { ReportData } from './pdf/types';
 
 export interface ReportData {
   make: string;
@@ -59,6 +59,14 @@ export function convertVehicleInfoToReportData(
 
 export async function downloadPdf(reportData: ReportData): Promise<void> {
   console.log('Generating PDF with data:', reportData);
+  
+  // Ensure priceRange is in tuple format
+  if (reportData.priceRange && !Array.isArray(reportData.priceRange)) {
+    // This should not happen with our new types, but just in case
+    const min = 'min' in reportData.priceRange ? reportData.priceRange.min : reportData.estimatedValue * 0.95;
+    const max = 'max' in reportData.priceRange ? reportData.priceRange.max : reportData.estimatedValue * 1.05;
+    reportData.priceRange = [Number(min), Number(max)];
+  }
   
   // Mock PDF generation for now (will be replaced with real PDF generation)
   await new Promise(resolve => setTimeout(resolve, 1000));
