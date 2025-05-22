@@ -58,14 +58,9 @@ export interface SectionParams {
   margin: number;
   data: ReportData;
   options: ReportOptions;
-  font: any;
-  boldFont: any;
-  italicFont?: any;
   textColor: any;
   primaryColor: any;
-  // Additional properties needed by sections
   y?: number;
-  regularFont?: any;
   height?: number; // Height property for the page
   fonts: {  // Make fonts required and ensure it has the necessary properties
     regular: any;
