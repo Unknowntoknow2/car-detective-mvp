@@ -22,6 +22,7 @@ import DealerInsightsPage from '@/pages/DealerInsightsPage';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
 import PremiumPage from '@/pages/PremiumPage';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
+import SignupPage from '@/pages/SignupPage';
 
 // Auth pages
 import LoginUserPage from '@/pages/auth/LoginUserPage';
@@ -80,6 +81,14 @@ const router = createBrowserRouter([
         element: (
           <GuestGuard>
             <RegisterPage />
+          </GuestGuard>
+        ),
+      },
+      {
+        path: 'sign-up',
+        element: (
+          <GuestGuard>
+            <SignupPage />
           </GuestGuard>
         ),
       },

@@ -1,288 +1,152 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Mail, KeyRound, Eye, EyeOff, User, Building } from 'lucide-react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { UserRole } from '@/types/auth';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
-export interface SignupFormProps {
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
+// Define the form schema with validation
+const signupSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+});
+
+type SignupFormValues = z.infer<typeof signupSchema>;
+
+interface SignupFormProps {
+  role?: 'individual' | 'dealer';
   redirectPath?: string;
+  isLoading?: boolean;
+  setIsLoading?: (value: boolean) => void;
   redirectToLogin?: boolean;
-  userRole?: UserRole;
 }
 
-export const SignupForm = ({ 
-  isLoading, 
-  setIsLoading,
+export function SignupForm({
+  role = 'individual',
   redirectPath = '/dashboard',
+  isLoading: externalLoading,
+  setIsLoading: setExternalLoading,
   redirectToLogin = false,
-  userRole = 'user'
-}: SignupFormProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [dealershipName, setDealershipName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  
+}: SignupFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { signUp } = useAuth();
 
-  const isDealer = userRole === 'dealer';
+  // Use local or external loading state based on props
+  const loading = externalLoading !== undefined ? externalLoading : isLoading;
+  const setLoading = setExternalLoading || setIsLoading;
 
-  // Form validation
-  const validateForm = () => {
-    const errors: Record<string, string> = {};
-    let isValid = true;
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+    },
+  });
 
-    if (!fullName.trim()) {
-      errors.fullName = 'Full name is required';
-      isValid = false;
-    }
-
-    if (isDealer && !dealershipName.trim()) {
-      errors.dealershipName = 'Dealership name is required';
-      isValid = false;
-    }
-
-    if (!email.trim()) {
-      errors.email = 'Email is required';
-      isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Please enter a valid email address';
-      isValid = false;
-    }
-
-    if (!password) {
-      errors.password = 'Password is required';
-      isValid = false;
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-      isValid = false;
-    }
-
-    if (password !== confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-      isValid = false;
-    }
-
-    if (!termsAccepted) {
-      errors.terms = 'You must accept the terms and conditions';
-      isValid = false;
-    }
-
-    setFormErrors(errors);
-    return isValid;
-  };
-
-  // Auto-focus first input on load
-  useEffect(() => {
-    const fullNameInput = document.getElementById('fullName');
-    if (fullNameInput) {
-      fullNameInput.focus();
-    }
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    setError(null);
-    setIsLoading(true);
+  async function onSubmit(data: SignupFormValues) {
+    setLoading(true);
     
     try {
-      // Create additional metadata based on user role
-      const metadata: Record<string, any> = {
-        full_name: fullName,
-        role: userRole
-      };
-
-      // Add dealership name for dealer accounts
-      if (isDealer && dealershipName) {
-        metadata.dealership_name = dealershipName;
-      }
-
-      // Sign up with email, password and metadata
-      await signUp(email, password, metadata);
+      await signUp(data.email, data.password, {
+        full_name: data.fullName,
+        role: role,
+      });
       
-      toast.success('Account created successfully! Please check your email for confirmation.');
+      toast.success('Account created successfully!', {
+        description: 'Please check your email to verify your account.'
+      });
       
       if (redirectToLogin) {
-        navigate('/auth/signin');
+        navigate('/login');
       } else {
-        const redirectTo = userRole === 'dealer' ? '/dealer/dashboard' : redirectPath;
-        navigate(redirectTo);
+        navigate(redirectPath);
       }
-    } catch (err: any) {
-      console.error('Sign up error:', err);
-      setError(err.message || 'An unexpected error occurred');
-      toast.error(err.message || 'Failed to create account');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast.error('Failed to create account', {
+        description: error.message || 'An unexpected error occurred',
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-          {error}
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="fullName">Full Name</Label>
-        <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="fullName"
-            name="fullName"
-            type="text"
-            placeholder="John Doe"
-            className="pl-10"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        {formErrors.fullName && (
-          <p className="text-sm text-red-500 mt-1">{formErrors.fullName}</p>
-        )}
-      </div>
-      
-      {isDealer && (
-        <div className="space-y-2">
-          <Label htmlFor="dealershipName">Dealership Name</Label>
-          <div className="relative">
-            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="dealershipName"
-              name="dealershipName"
-              type="text"
-              placeholder="ABC Motors"
-              className="pl-10"
-              value={dealershipName}
-              onChange={(e) => setDealershipName(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          {formErrors.dealershipName && (
-            <p className="text-sm text-red-500 mt-1">{formErrors.dealershipName}</p>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="fullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="John Doe" {...field} disabled={loading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="your@email.com"
-            className="pl-10"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        {formErrors.email && (
-          <p className="text-sm text-red-500 mt-1">{formErrors.email}</p>
-        )}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Create a password"
-            className="pl-10 pr-10"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-          />
-          <Button 
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
-        </div>
-        {formErrors.password && (
-          <p className="text-sm text-red-500 mt-1">{formErrors.password}</p>
-        )}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <div className="relative">
-          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type={showPassword ? "text" : "password"}
-            placeholder="Confirm your password"
-            className="pl-10 pr-10"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        {formErrors.confirmPassword && (
-          <p className="text-sm text-red-500 mt-1">{formErrors.confirmPassword}</p>
-        )}
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Checkbox 
-          id="terms" 
-          checked={termsAccepted}
-          onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-          disabled={isLoading}
         />
-        <Label htmlFor="terms" className="text-sm font-normal">
-          I accept the terms and conditions
-        </Label>
-      </div>
-      {formErrors.terms && (
-        <p className="text-sm text-red-500 -mt-2">{formErrors.terms}</p>
-      )}
-      
-      <Button 
-        type="submit" 
-        className="w-full"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creating Account...
-          </>
-        ) : (
-          'Create Account'
-        )}
-      </Button>
-    </form>
+        
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="you@example.com" {...field} disabled={loading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="********" {...field} disabled={loading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            'Create Account'
+          )}
+        </Button>
+      </form>
+    </Form>
   );
-};
+}
