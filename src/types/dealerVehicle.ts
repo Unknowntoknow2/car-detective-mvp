@@ -17,6 +17,7 @@ export interface DealerVehicle {
   created_at: string;
   updated_at: string;
   vin?: string;
+  color?: string;
 }
 
 export type DealerVehicleStatus = "available" | "pending" | "sold";
@@ -29,12 +30,13 @@ export interface DealerVehicleFormData {
   mileage?: number | null;
   condition: "Excellent" | "Good" | "Fair" | "Poor";
   status: "available" | "pending" | "sold";
-  photos?: string[];
+  photos: string[]; // Changed from string[] | File[] to just string[]
   transmission?: "Automatic" | "Manual" | "CVT";
   fuel_type?: "Gasoline" | "Diesel" | "Hybrid" | "Electric";
   zip_code?: string;
   description?: string;
   vin?: string;
+  color?: string; // Added this property
 }
 
 export interface DeleteVehicleResult {
