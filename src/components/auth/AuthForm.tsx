@@ -1,22 +1,21 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from '@/hooks/useAuth';
-import { AuthMode } from '@/types/auth';
+import { AuthMode, UserRole } from '@/types/auth';
 import { SignupForm } from './forms/SignupForm';
 import { SigninForm } from './forms/SigninForm';
 
 interface AuthFormProps {
   initialMode?: AuthMode;
-  initialRole?: 'individual' | 'dealer';
+  initialRole?: UserRole;
   redirectPath?: string;
 }
 
 const AuthForm = ({ 
   initialMode = AuthMode.SIGNIN,
-  initialRole = 'individual',
+  initialRole = 'individual' as UserRole,
   redirectPath = '/dashboard'
 }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -111,7 +110,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading} 
               redirectPath={from}
-              userRole="individual"
+              userRole="individual" as UserRole
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -130,7 +129,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading}
               redirectPath={from}
-              userRole="individual"
+              userRole="individual" as UserRole
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -149,7 +148,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading} 
               redirectPath="/dealer/dashboard"
-              userRole="dealer"
+              userRole="dealer" as UserRole
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -168,7 +167,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading}
               redirectPath="/dealer/dashboard"
-              userRole="dealer"
+              userRole="dealer" as UserRole
               showDealershipField={true}
             />
             <div className="text-center pt-4 border-t mt-4">

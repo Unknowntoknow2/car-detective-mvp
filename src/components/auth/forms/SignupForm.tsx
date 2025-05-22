@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -17,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { UserRole } from '@/types/auth';
 
 // Define the form schema with validation
 const signupSchema = z.object({
@@ -38,7 +38,7 @@ export interface SignupFormProps {
   isLoading?: boolean;
   setIsLoading?: (value: boolean) => void;
   redirectToLogin?: boolean;
-  userRole?: string; // For role-based redirects and form handling
+  userRole?: UserRole; // Update to use the imported UserRole type
   showDealershipField?: boolean;
 }
 
@@ -48,7 +48,7 @@ export function SignupForm({
   isLoading: externalLoading,
   setIsLoading: setExternalLoading,
   redirectToLogin = false,
-  userRole, // Include in function parameters
+  userRole, 
   showDealershipField = false,
 }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
