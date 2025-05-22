@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
+import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { toast } from 'sonner';
 
 export default function ValuationFollowupPage() {
