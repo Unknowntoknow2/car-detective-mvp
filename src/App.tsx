@@ -6,7 +6,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 
 // Auth pages
-import AuthPage from './pages/auth/AuthPage';
+import AuthPage from './pages/AuthPage';
 import SigninPage from './pages/auth/SigninPage';
 import SignupPage from './pages/auth/SignupPage';
 
