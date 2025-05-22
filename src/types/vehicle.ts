@@ -1,60 +1,19 @@
+
 export interface DecodedVehicleInfo {
+  vin: string;
   make: string;
   model: string;
   year: number;
   trim?: string;
-  bodyType?: string;
   engine?: string;
-  fuelType?: string;
   transmission?: string;
-  vin?: string;
+  drivetrain?: string;
+  bodyType?: string;
+  fuelType?: string;
+  color?: string;
   exteriorColor?: string;
   interiorColor?: string;
-  drivetrain?: string;
   features?: string[];
-  // Add required properties to resolve errors
-  mileage?: number;
-  condition?: string;
-  zipCode?: string;
-  color?: string;
-}
-
-export interface VehicleDetails extends DecodedVehicleInfo {
-  mileage?: number;
-  condition?: string;
-  price?: number;
-  zipCode?: string;
-  state?: string;
-}
-
-export interface ValuationResponse {
-  estimatedValue: number;
-  confidenceScore: number;
-  conditionScore?: number;
-  make: string;
-  model: string;
-  year: number;
-  vin?: string;
-  mileage?: number;
-  condition?: string;
-  fuelType?: string;
-  transmission?: string;
-  bodyType?: string;
-  color?: string;
-  // Add missing properties
-  price_range?: { low: number; high: number } | [number, number];
-  priceRange?: { low: number; high: number } | [number, number] | { min: number; max: number };
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  photoUrl?: string;
-  bestPhotoUrl?: string;
-  zipCode?: string;
-  // Add aliases for backward compatibility
-  estimated_value?: number;
-  confidence_score?: number;
 }
 
 export interface VinDecoderResponse {
@@ -65,51 +24,32 @@ export interface VinDecoderResponse {
 
 export interface PlateLookupResponse {
   success: boolean;
-  data?: {
-    make: string;
-    model: string;
-    year: number;
-    color?: string;
-    vin?: string;
-  };
+  data?: DecodedVehicleInfo;
   error?: string;
 }
 
-export interface ManualValuationResponse {
-  success: boolean;
-  data?: ValuationResponse;
-  error?: string;
-}
-
-// Update the DealerInventoryItem interface
-export interface DealerInventoryItem {
-  id: string;
+export interface ValuationResponse {
+  estimatedValue: number;
+  confidenceScore: number;
+  valuationId: string;
   make: string;
   model: string;
   year: number;
-  trim?: string;
-  condition: string;
-  listingPrice: number;
-  sellingPrice?: number;
-  status: string;
   mileage?: number;
-  price?: number; // For backward compatibility
-}
-
-// Update the DealerVehicleFormData interface
-export interface DealerVehicleFormData {
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  condition: string;
-  price: number;
-  mileage?: number;
+  condition?: string;
+  vin?: string;
+  plate?: string;
+  state?: string;
+  zipCode?: string;
   fuelType?: string;
   transmission?: string;
-  zipCode?: string;
-  photos?: string[] | File[];
-  status?: string;
+  bodyType?: string;
+  trim?: string;
   color?: string;
-  description?: string;
+}
+
+export interface VehicleIdentifier {
+  type: 'vin' | 'plate' | 'manual';
+  value: string;
+  state?: string;
 }

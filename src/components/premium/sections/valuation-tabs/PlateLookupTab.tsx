@@ -1,13 +1,21 @@
 
-import { TabContentWrapper } from "./TabContentWrapper";
-import { PlateLookup } from "../../lookup/PlateLookup";
+import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Loader2, Search } from 'lucide-react';
 
 interface PlateLookupTabProps {
   plateValue: string;
-  stateValue: string;
+  plateState: string;
   isLoading: boolean;
   vehicle: any;
   onPlateChange: (value: string) => void;
@@ -15,75 +23,92 @@ interface PlateLookupTabProps {
   onLookup: () => void;
 }
 
-export function PlateLookupTab({ 
-  plateValue, 
-  stateValue, 
-  isLoading, 
-  vehicle, 
-  onPlateChange, 
-  onStateChange, 
-  onLookup 
+export function PlateLookupTab({
+  plateValue,
+  plateState,
+  isLoading,
+  vehicle,
+  onPlateChange,
+  onStateChange,
+  onLookup
 }: PlateLookupTabProps) {
-  const navigate = useNavigate();
-
-  const handleContinueToValuation = () => {
-    if (!vehicle) return;
-    
-    // Save the vehicle details to local storage for the premium form
-    localStorage.setItem("premium_vehicle", JSON.stringify({
-      identifierType: 'plate',
-      identifier: plateValue,
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      state: stateValue,
-      exteriorColor: vehicle.exteriorColor || null
-    }));
-    
-    toast.success("Vehicle information saved. Continuing to premium valuation.");
-    navigate("/premium-valuation");
-  };
-
+  // US states for dropdown
+  const states = [
+    { value: 'AL', label: 'Alabama' },
+    { value: 'AK', label: 'Alaska' },
+    { value: 'AZ', label: 'Arizona' },
+    { value: 'AR', label: 'Arkansas' },
+    { value: 'CA', label: 'California' },
+    { value: 'CO', label: 'Colorado' },
+    { value: 'CT', label: 'Connecticut' },
+    { value: 'DE', label: 'Delaware' },
+    { value: 'FL', label: 'Florida' },
+    { value: 'GA', label: 'Georgia' },
+    // ...more states
+  ];
+  
   return (
-    <TabContentWrapper
-      title="Plate Lookup"
-      description="Enter your license plate and state for quick vehicle identification"
-    >
-      <PlateLookup
-        plateValue={plateValue}
-        stateValue={stateValue}
-        onPlateChange={onPlateChange}
-        onStateChange={onStateChange}
-        onLookup={onLookup}
-        isLoading={isLoading}
-      />
-      {vehicle && (
-        <div className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
-          <h4 className="font-semibold text-xl mb-4">Vehicle Found</h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-slate-500">Year, Make, Model</p>
-              <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Color</p>
-              <p className="font-medium">{vehicle.exteriorColor || "Not available"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">VIN</p>
-              <p className="font-medium">{vehicle.vin || "Not available"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Registered State</p>
-              <p className="font-medium">{stateValue}</p>
-            </div>
+    <Card>
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="license-plate">License Plate</Label>
+            <Input
+              id="license-plate"
+              value={plateValue}
+              onChange={(e) => onPlateChange(e.target.value.toUpperCase())}
+              placeholder="Enter license plate"
+              disabled={isLoading}
+              className="font-mono text-lg tracking-wider"
+            />
           </div>
           
-          <div className="mt-6 flex justify-end">
-            <Button className="bg-primary" onClick={handleContinueToValuation}>Continue to Valuation</Button>
+          <div className="space-y-2">
+            <Label htmlFor="state">State</Label>
+            <Select
+              value={plateState}
+              onValueChange={onStateChange}
+              disabled={isLoading}
+            >
+              <SelectTrigger id="state">
+                <SelectValue placeholder="Select state" />
+              </SelectTrigger>
+              <SelectContent>
+                {states.map((state) => (
+                  <SelectItem key={state.value} value={state.value}>
+                    {state.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          
+          <Button 
+            onClick={onLookup} 
+            disabled={!plateValue || !plateState || isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Looking up...
+              </>
+            ) : (
+              <>
+                <Search className="mr-2 h-4 w-4" />
+                Lookup License Plate
+              </>
+            )}
+          </Button>
+          
+          {vehicle && (
+            <div className="mt-4 p-4 bg-primary/5 rounded-md">
+              <p className="font-medium">Found: {vehicle.year} {vehicle.make} {vehicle.model}</p>
+              {vehicle.trim && <p className="text-sm text-muted-foreground">Trim: {vehicle.trim}</p>}
+            </div>
+          )}
         </div>
-      )}
-    </TabContentWrapper>
+      </CardContent>
+    </Card>
   );
 }

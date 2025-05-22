@@ -5,8 +5,9 @@ import UpgradePage from './pages/UpgradePage';
 import PremiumPage from './pages/PremiumPage';
 import PremiumSuccessPage from './pages/PremiumSuccessPage';
 import UserDashboardPage from './pages/UserDashboardPage';
-import ValuationFollowupPage from './pages/ValuationFollowupPage'; // Using consistent lowercase 'up'
+import ValuationFollowupPage from './pages/ValuationFollowupPage';
 import ValuationResultPage from './pages/ValuationResultPage';
+import VinLookupPage from './pages/VinLookupPage';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/dashboard" element={<UserDashboardPage />} />
         <Route path="/valuation-followup" element={<ValuationFollowupPage />} />
         <Route path="/valuation-result" element={<ValuationResultPage />} />
+        <Route path="/vin-lookup" element={<VinLookupPage />} />
       </Routes>
     </BrowserRouter>
   );
