@@ -9,5 +9,5 @@ import { SectionParams } from '../types';
 export async function addFooterSection(params: SectionParams): Promise<number> {
   // This is a placeholder implementation that's already fully implemented
   // in the premiumReportGenerator.ts file directly
-  return 0;
+  return params.y ?? params.startY;
 }
