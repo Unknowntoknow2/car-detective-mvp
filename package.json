@@ -51,6 +51,7 @@
     "@types/canvas-confetti": "^1.6.4",
     "@types/file-saver": "^2.0.5",
     "@types/jspdf": "^2.0.0",
+    "@types/qrcode": "^1.5.5",
     "@types/uuid": "^10.0.0",
     "axe-core": "^4.10.3",
     "axios": "^1.6.2",

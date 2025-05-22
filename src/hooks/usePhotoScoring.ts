@@ -111,9 +111,12 @@ export const usePhotoScoring = (options: UsePhotoScoringOptions = {}) => {
       }
 
       // Call the photo analysis service
-      const analysisResult = await scorePhotos(photos, valuationId || 'test-id');
-      setResult(analysisResult);
-      options.onSuccess?.(analysisResult);
+      const analysisResult = await scorePhotos(photoUrls, valuationId || 'test-id');
+      
+      if (analysisResult) {
+        setResult(analysisResult);
+        options.onSuccess?.(analysisResult);
+      }
       
       return analysisResult;
     } catch (err) {
@@ -126,7 +129,7 @@ export const usePhotoScoring = (options: UsePhotoScoringOptions = {}) => {
     }
   };
 
-  const scorePhotos = async (photosToScore: Photo[], valuationId: string): Promise<PhotoAnalysisResult | null> => {
+  const scorePhotos = async (photosToScore: Photo[] | string[], valuationId: string): Promise<PhotoAnalysisResult | null> => {
     if (!photosToScore.length) {
       const err = new Error('No photos provided');
       setError(err);
@@ -139,9 +142,15 @@ export const usePhotoScoring = (options: UsePhotoScoringOptions = {}) => {
       setError(null);
 
       // Get photo URLs from photos
-      const photoUrls = photosToScore
-        .filter(photo => photo.url) // Filter out photos without URLs
-        .map(photo => photo.url as string); // We've filtered out undefined values
+      let photoUrls: string[];
+      
+      if (typeof photosToScore[0] === 'string') {
+        photoUrls = photosToScore as string[];
+      } else {
+        photoUrls = (photosToScore as Photo[])
+          .filter(photo => photo.url) // Filter out photos without URLs
+          .map(photo => photo.url as string); // We've filtered out undefined values
+      }
 
       if (!photoUrls.length) {
         throw new Error('No valid photo URLs found');
@@ -149,8 +158,11 @@ export const usePhotoScoring = (options: UsePhotoScoringOptions = {}) => {
 
       // Call the photo analysis service
       const result = await analyzePhotos(photoUrls, valuationId);
-      setResult(result);
-      options.onSuccess?.(result);
+      
+      if (result) {
+        setResult(result);
+        options.onSuccess?.(result);
+      }
       
       return result;
     } catch (err) {

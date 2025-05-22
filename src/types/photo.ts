@@ -41,6 +41,9 @@ export interface PhotoScoringResult {
   confidenceScore?: number;
   condition?: string;
   issues?: string[];
+  photoScore?: number;
+  aiCondition?: AICondition;
+  individualScores?: PhotoScore[];
 }
 
 export interface PhotoAnalysisResult {
@@ -53,6 +56,7 @@ export interface PhotoAnalysisResult {
   isAnalyzing?: boolean; // Added for backward compatibility
   isUploading?: boolean; // Added for backward compatibility
   photoScores?: PhotoScore[]; // Added for backward compatibility
+  score?: number; // Added for compatibility with some services
 }
 
 export const MIN_FILES = 1;
