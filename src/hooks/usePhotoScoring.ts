@@ -156,15 +156,23 @@ export const usePhotoScoring = (options: UsePhotoScoringOptions = {}) => {
         throw new Error('No valid photo URLs found');
       }
 
-      // Call the photo analysis service
-      const result = await analyzePhotos(photoUrls, valuationId);
+      // Call the photo analysis service - fixed to use 1 argument for analyzePhotos
+      const result = await analyzePhotos(photoUrls);
       
       if (result) {
-        setResult(result);
-        options.onSuccess?.(result);
+        // Ensure result has all required properties for PhotoAnalysisResult
+        const completeResult: PhotoAnalysisResult = {
+          ...result,
+          overallScore: result.score || 0,
+          individualScores: result.individualScores || []
+        };
+        
+        setResult(completeResult);
+        options.onSuccess?.(completeResult);
+        return completeResult;
       }
       
-      return result;
+      return null;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to score photos');
       setError(error);

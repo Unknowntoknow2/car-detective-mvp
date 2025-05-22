@@ -1,5 +1,4 @@
 
-
 export interface AICondition {
   condition: string;
   confidenceScore: number;
@@ -44,6 +43,7 @@ export interface PhotoScoringResult {
   photoScore?: number;
   aiCondition?: AICondition;
   individualScores?: PhotoScore[];
+  photoUrls?: string[]; // Added for compatibility
 }
 
 export interface PhotoAnalysisResult {
@@ -61,4 +61,3 @@ export interface PhotoAnalysisResult {
 
 export const MIN_FILES = 1;
 export const MAX_FILES = 10;
-

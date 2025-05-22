@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -39,7 +40,15 @@ export default function SharedValuationPage() {
             estimatedValue: 19500,
             confidenceScore: 88,
             isPremium: true,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            priceRange: [18500, 20500],
+            adjustments: [
+              { 
+                factor: 'Mileage', 
+                impact: -2, 
+                description: 'Slightly higher than average mileage'
+              }
+            ]
           };
           
           setValuation(mockValuation);
@@ -92,15 +101,15 @@ export default function SharedValuationPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Estimated Value</p>
-              <p className="text-xl font-bold">${valuation.estimatedValue.toLocaleString()}</p>
+              <p className="text-xl font-bold">${valuation.estimatedValue?.toLocaleString() || 0}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Mileage</p>
-              <p>{valuation.mileage.toLocaleString()} miles</p>
+              <p>{valuation.mileage?.toLocaleString() || 0} miles</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Condition</p>
-              <p>{valuation.condition}</p>
+              <p>{valuation.condition || 'Unknown'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Confidence</p>

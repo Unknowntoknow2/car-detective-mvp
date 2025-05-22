@@ -16,7 +16,8 @@ const conditionValues: ConditionValues = {
   accidents: 0,
   mileage: 0,
   year: 0,
-  titleStatus: 'Clean'
+  titleStatus: 'Clean',
+  odometer: 0
 };
 
 export default function ValuationDetailPage() {

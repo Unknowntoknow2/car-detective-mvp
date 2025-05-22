@@ -1,68 +1,144 @@
 
-import { PhotoScore, PhotoScoringResult, AICondition, PhotoAnalysisResult } from '@/types/photo';
+import { AICondition, PhotoAnalysisResult, PhotoScore, PhotoScoringResult } from '@/types/photo';
 
-/**
- * Mock photo scoring service
- * In a real application, this would call an API to analyze and score photos
- */
-export async function scorePhotos(photoUrls: string[], valuationId: string): Promise<PhotoScoringResult> {
-  // Simulate API delay
+// Mock photo scoring service implementation
+export const scorePhotos = async (
+  photoUrls: string[],
+  valuationId: string
+): Promise<PhotoScoringResult> => {
+  // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Generate random scores for each photo
+  // Generate random scores for photos
+  const scores = photoUrls.map(url => ({
+    url,
+    score: Math.floor(Math.random() * 30) + 70, // Score between 70-100
+    isPrimary: false
+  }));
+  
+  // Mark the first photo as primary
+  if (scores.length > 0) {
+    scores[0].isPrimary = true;
+  }
+  
+  // Create mock condition assessment
+  const aiCondition: AICondition = {
+    condition: 'Good',
+    confidenceScore: 0.85,
+    issuesDetected: ['Minor scratches on rear bumper', 'Small dent on driver door'],
+    summary: 'Vehicle is in good condition with minor cosmetic issues'
+  };
+  
+  // Return scoring result
+  return {
+    photoUrl: scores.length > 0 ? scores[0].url : '',
+    photoUrls: photoUrls, // Added for compatibility
+    score: 85,
+    confidenceScore: 0.85,
+    condition: 'Good',
+    photoScore: 85,
+    aiCondition,
+    individualScores: scores
+  };
+};
+
+// Convert PhotoScoringResult to PhotoAnalysisResult format
+export const convertToPhotoAnalysisResult = (
+  result: PhotoScoringResult
+): PhotoAnalysisResult => {
+  return {
+    photoUrls: result.photoUrls || [result.photoUrl],
+    overallScore: result.score,
+    score: result.score,
+    aiCondition: result.aiCondition,
+    individualScores: result.individualScores || []
+  };
+};
+
+// Enhanced photo scoring with detailed analysis
+export const enhancedPhotoScoring = async (
+  photoUrls: string[],
+  valuationId: string
+): Promise<PhotoAnalysisResult> => {
+  // Simulate enhanced scoring
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Generate detailed scores with explanations
   const individualScores: PhotoScore[] = photoUrls.map((url, index) => {
-    // Create random score between 0.65 and 0.95
-    const score = Math.round((0.65 + Math.random() * 0.3) * 100) / 100;
+    const score = Math.floor(Math.random() * 30) + 70;
+    const isPrimary = index === 0;
     
     return {
       url,
       score,
-      isPrimary: index === 0 // Mark first photo as primary
+      isPrimary,
+      explanation: getScoreExplanation(score)
     };
   });
   
-  // Calculate overall photo score (average of individual scores)
-  const photoScore = individualScores.reduce((sum, item) => sum + item.score, 0) / 
-    Math.max(individualScores.length, 1);
-  
-  // Generate mock AI condition data
-  const conditions = ['Excellent', 'Good', 'Fair', 'Poor'];
-  const conditionIndex = Math.min(
-    Math.floor((1 - photoScore) * 4), 
-    conditions.length - 1
-  );
-  
+  // Create comprehensive condition assessment
   const aiCondition: AICondition = {
-    condition: conditions[conditionIndex],
-    confidenceScore: Math.round(photoScore * 100),
-    issuesDetected: [],
-    summary: `Vehicle appears to be in ${conditions[conditionIndex]} condition based on photos.`
+    condition: getConditionFromScore(individualScores),
+    confidenceScore: 0.9,
+    issuesDetected: generateRandomIssues(),
+    summary: 'Comprehensive analysis of multiple vehicle photos shows overall good condition with some normal wear and tear.'
   };
-  
-  // Find the best photo (highest score)
-  const bestPhoto = [...individualScores].sort((a, b) => b.score - a.score)[0];
   
   return {
-    photoScore,
-    score: photoScore,
-    individualScores,
     photoUrls,
-    bestPhotoUrl: bestPhoto?.url,
-    aiCondition
+    overallScore: calculateAverageScore(individualScores),
+    score: calculateAverageScore(individualScores),
+    aiCondition,
+    individualScores
   };
+};
+
+// Helper function to get explanation based on score
+function getScoreExplanation(score: number): string {
+  if (score >= 90) return 'Excellent photo showing vehicle in great condition';
+  if (score >= 80) return 'Good photo quality showing vehicle details clearly';
+  if (score >= 70) return 'Acceptable photo with adequate vehicle details';
+  return 'Photo quality could be improved for better assessment';
 }
 
-export async function analyzePhotos(
-  photoUrls: string[], 
-  valuationId: string
-): Promise<PhotoAnalysisResult> {
-  // Reuse the scoring logic
-  const scoringResult = await scorePhotos(photoUrls, valuationId);
+// Helper function to determine condition from scores
+function getConditionFromScore(scores: PhotoScore[]): string {
+  const avgScore = calculateAverageScore(scores);
   
-  return {
-    photoUrls,
-    score: scoringResult.photoScore,
-    aiCondition: scoringResult.aiCondition,
-    individualScores: scoringResult.individualScores
-  };
+  if (avgScore >= 90) return 'Excellent';
+  if (avgScore >= 80) return 'Good';
+  if (avgScore >= 70) return 'Fair';
+  return 'Poor';
+}
+
+// Helper function to calculate average score
+function calculateAverageScore(scores: PhotoScore[]): number {
+  if (scores.length === 0) return 0;
+  
+  const sum = scores.reduce((total, item) => total + item.score, 0);
+  return Math.round(sum / scores.length);
+}
+
+// Helper function to generate random issues
+function generateRandomIssues(): string[] {
+  const possibleIssues = [
+    'Minor scratches on exterior',
+    'Light wear on driver seat',
+    'Small dent on passenger door',
+    'Normal tire wear',
+    'Minor dashboard wear',
+    'Slight discoloration on paint',
+    'Small chips on front bumper'
+  ];
+  
+  const numIssues = Math.floor(Math.random() * 3) + 1; // 1-3 issues
+  const selectedIssues: string[] = [];
+  
+  for (let i = 0; i < numIssues; i++) {
+    const randomIndex = Math.floor(Math.random() * possibleIssues.length);
+    selectedIssues.push(possibleIssues[randomIndex]);
+    possibleIssues.splice(randomIndex, 1); // Remove to avoid duplicates
+  }
+  
+  return selectedIssues;
 }
