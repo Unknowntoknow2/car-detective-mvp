@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,7 +87,7 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
       
       setRedirectTimer(timer);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
       setFormError('An unexpected error occurred');
       toast.error('Login failed. Please try again.');

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -13,8 +14,14 @@ export type AuthContextType = {
   user: User | null;
   userRole: UserRole | null;
   userDetails: UserProfile | null; // Add userDetails property
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, phone?: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{
+    error: any | null;
+    data: any | null;
+  } | void>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{
+    error: any | null;
+    data: any | null;
+  } | void>;
   signOut: () => Promise<void>;
   sendMagicLink: (email: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -135,7 +142,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUp = async (email: string, password: string, phone?: string) => {
+  const signUp = async (email: string, password: string, userData?: any) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -143,7 +150,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email,
         password,
         options: {
-          data: { phone }
+          data: userData
         }
       });
       
@@ -185,8 +192,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          type: 'magiclink',
-          redirectTo: `${window.location.origin}/login`,
+          emailRedirectTo: `${window.location.origin}/login`,
         }
       });
       

@@ -1,4 +1,5 @@
 
+
 export interface ConditionValues {
   exteriorBody: string;
   exteriorPaint: string;
@@ -35,3 +36,4 @@ export type ConditionOption = {
   label: string;
   description: string;
 };
+

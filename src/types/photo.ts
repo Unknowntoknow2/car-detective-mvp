@@ -1,4 +1,5 @@
 
+
 export interface AICondition {
   condition: string;
   confidenceScore: number;
@@ -51,7 +52,9 @@ export interface PhotoAnalysisResult {
   analysisResult?: any; // Added for backward compatibility
   isAnalyzing?: boolean; // Added for backward compatibility
   isUploading?: boolean; // Added for backward compatibility
+  photoScores?: PhotoScore[]; // Added for backward compatibility
 }
 
 export const MIN_FILES = 1;
 export const MAX_FILES = 10;
+
