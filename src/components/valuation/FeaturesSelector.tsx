@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,8 +24,7 @@ export const FeaturesSelector: React.FC<FeaturesSelectorProps> = ({
     <div className="space-y-6">
       {Object.entries(featureCategories).map(([category, features]) => (
         <Card 
-          key={category} 
-          variant="outlined" 
+          key={category}
           className="p-4 space-y-4"
         >
           <CardHeader>

@@ -150,7 +150,7 @@ export function useValuationFlow() {
         zipCode: data.zipCode,
         fuelType: data.fuelType,
         transmission: data.transmission,
-        bodyType: data.bodyType,
+        bodyStyle: data.bodyStyle,
         vin: data.vin
       });
 

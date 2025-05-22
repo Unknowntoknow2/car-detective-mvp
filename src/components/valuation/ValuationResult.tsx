@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ValuationResponse } from '@/types/vehicle';
+import { ValuationResponse } from '@/components/lookup/types/valuation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Download, Mail } from 'lucide-react';
