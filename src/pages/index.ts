@@ -1,6 +1,5 @@
 
 // Export all page components
-export { default as HomePage } from './HomePage';
 export { default as NotFoundPage } from './NotFoundPage';
 export { default as PaymentSuccessPage } from './PaymentSuccessPage';
 export { default as PaymentCancelledPage } from './PaymentCancelledPage';
