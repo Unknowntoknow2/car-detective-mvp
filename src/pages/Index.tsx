@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { EnhancedHeroSection } from "@/components/home/EnhancedHeroSection";
 import { KeyFeatures } from "@/components/home/KeyFeatures";

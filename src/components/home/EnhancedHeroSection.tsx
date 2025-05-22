@@ -6,8 +6,18 @@ import { ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 
-export const EnhancedHeroSection = () => {
+interface EnhancedHeroSectionProps {
+  onFreeValuationClick?: () => void;
+}
+
+export const EnhancedHeroSection: React.FC<EnhancedHeroSectionProps> = ({ onFreeValuationClick }) => {
   const { user } = useAuth();
+
+  const handleValuationClick = () => {
+    if (onFreeValuationClick) {
+      onFreeValuationClick();
+    }
+  };
 
   return (
     <div className="relative overflow-hidden bg-white">
@@ -53,11 +63,20 @@ export const EnhancedHeroSection = () => {
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
                 <div className="rounded-md shadow">
-                  <Link to="/valuation">
-                    <Button className="w-full px-8 py-3 text-base font-medium md:py-4 md:px-10 md:text-lg">
+                  {onFreeValuationClick ? (
+                    <Button 
+                      className="w-full px-8 py-3 text-base font-medium md:py-4 md:px-10 md:text-lg"
+                      onClick={handleValuationClick}
+                    >
                       Get Your Valuation
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link to="/valuation">
+                      <Button className="w-full px-8 py-3 text-base font-medium md:py-4 md:px-10 md:text-lg">
+                        Get Your Valuation
+                      </Button>
+                    </Link>
+                  )}
                 </div>
                 <div className="mt-3 sm:ml-3 sm:mt-0">
                   {user ? (
