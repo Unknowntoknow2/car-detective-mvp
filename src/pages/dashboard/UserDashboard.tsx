@@ -85,7 +85,7 @@ export default function UserDashboard() {
         model: valuation.model || 'Unknown',
         year: valuation.year || new Date().getFullYear(),
         mileage: valuation.mileage || 0,
-        condition: valuation.condition || 'Good', // Add the required condition property
+        condition: valuation.condition || 'Good', // Make sure condition is included
         estimatedValue: valuation.estimatedValue,
         confidenceScore: valuation.confidenceScore || 75,
         zipCode: valuation.zipCode || '00000',
