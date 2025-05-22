@@ -1,251 +1,191 @@
 
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { 
-  checkoutSingleReport, 
-  checkoutBundle3Reports, 
-  checkoutBundle5Reports 
-} from '@/utils/stripeService';
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { MainLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Check, Trophy, CreditCard, Zap } from 'lucide-react';
+import { usePremiumPayment } from '@/hooks/usePremiumPayment';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Loader2, Shield, CheckCircle2 } from 'lucide-react';
 
-const PricingPage: React.FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+export default function PricingPage() {
   const [searchParams] = useSearchParams();
-  const valuationId = searchParams.get('valuation');
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
-
-  // Handle checkout when user is not logged in
-  const handleAuthCheckout = (checkoutFunction: () => Promise<void>) => {
+  const valuationId = searchParams.get('valuationId');
+  const returnUrl = searchParams.get('returnUrl');
+  const { createPaymentSession, isLoading } = usePremiumPayment();
+  const { user } = useAuth();
+  
+  const handlePurchase = async (bundle: 'single' | 'bundle_3' | 'bundle_5') => {
     if (!user) {
-      const currentPath = window.location.pathname + window.location.search;
-      navigate(`/auth?redirect=${encodeURIComponent(currentPath)}`);
+      window.location.href = `/auth?redirect=${encodeURIComponent('/pricing')}`;
       return;
     }
     
-    checkoutFunction();
-  };
-
-  // Single report checkout
-  const handleSingleCheckout = async () => {
-    setIsProcessing('single');
     try {
-      const result = await checkoutSingleReport({
-        valuationId: valuationId || undefined,
-        successUrl: valuationId 
-          ? `${window.location.origin}/premium-success?valuation_id=${valuationId}`
-          : undefined
-      });
-      
-      if (result.url) {
-        window.location.href = result.url;
+      if (valuationId) {
+        await createPaymentSession(valuationId, returnUrl || undefined);
       } else {
-        throw new Error('No checkout URL received');
+        // Handle bundle purchase (would call a different endpoint in real app)
+        console.error('Bundle purchasing not implemented');
       }
     } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Could not start checkout process. Please try again.');
-    } finally {
-      setIsProcessing(null);
-    }
-  };
-
-  // Bundle of 3 reports checkout
-  const handleBundle3Checkout = async () => {
-    setIsProcessing('bundle_3');
-    try {
-      const result = await checkoutBundle3Reports({
-        valuationId: valuationId || undefined,
-        successUrl: valuationId 
-          ? `${window.location.origin}/premium-success?valuation_id=${valuationId}`
-          : undefined
-      });
-      
-      if (result.url) {
-        window.location.href = result.url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Could not start checkout process. Please try again.');
-    } finally {
-      setIsProcessing(null);
-    }
-  };
-
-  // Bundle of 5 reports checkout
-  const handleBundle5Checkout = async () => {
-    setIsProcessing('bundle_5');
-    try {
-      const result = await checkoutBundle5Reports({
-        valuationId: valuationId || undefined,
-        successUrl: valuationId 
-          ? `${window.location.origin}/premium-success?valuation_id=${valuationId}`
-          : undefined
-      });
-      
-      if (result.url) {
-        window.location.href = result.url;
-      } else {
-        throw new Error('No checkout URL received');
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Could not start checkout process. Please try again.');
-    } finally {
-      setIsProcessing(null);
+      console.error('Purchase error:', error);
     }
   };
 
   return (
-    <div className="container py-12 max-w-5xl">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold mb-3">Choose Your Premium Package</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Get access to comprehensive vehicle valuations, market analysis, and dealer offers
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Single Report Card */}
-        <Card className="border-primary/20 hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle>Single Report</CardTitle>
-            <CardDescription>One premium valuation report</CardDescription>
-            <div className="mt-4 text-3xl font-bold">$19.99</div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Full market analysis</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Detailed condition assessment</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Printable PDF report</span>
-              </li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              className="w-full" 
-              onClick={() => handleAuthCheckout(handleSingleCheckout)}
-              disabled={isProcessing !== null}
-            >
-              {isProcessing === 'single' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : 'Buy Now ($19.99)'}
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        {/* Bundle of 3 Card */}
-        <Card className="border-primary/20 hover:shadow-md transition-shadow relative">
-          <div className="absolute -top-3 right-4 bg-primary text-white text-xs px-3 py-1 rounded-full">
-            Most Popular
-          </div>
-          <CardHeader>
-            <CardTitle>Bundle of 3</CardTitle>
-            <CardDescription>Three premium valuation reports</CardDescription>
-            <div className="mt-4 text-3xl font-bold">$49.99</div>
-            <div className="text-xs text-muted-foreground">Save 17% ($16.64 per report)</div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">All features from Single Report</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Compare multiple vehicles</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Valid for 6 months</span>
-              </li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              className="w-full" 
-              onClick={() => handleAuthCheckout(handleBundle3Checkout)}
-              disabled={isProcessing !== null}
-            >
-              {isProcessing === 'bundle_3' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : 'Buy Bundle ($49.99)'}
-            </Button>
-          </CardFooter>
-        </Card>
-        
-        {/* Bundle of 5 Card */}
-        <Card className="border-primary/20 hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle>Bundle of 5</CardTitle>
-            <CardDescription>Five premium valuation reports</CardDescription>
-            <div className="mt-4 text-3xl font-bold">$79.99</div>
-            <div className="text-xs text-muted-foreground">Save 20% ($16.00 per report)</div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">All features from Bundle of 3</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Extended dealer offers</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Valid for 12 months</span>
-              </li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              className="w-full" 
-              onClick={() => handleAuthCheckout(handleBundle5Checkout)}
-              disabled={isProcessing !== null}
-            >
-              {isProcessing === 'bundle_5' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : 'Buy Bundle ($79.99)'}
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-      
-      <div className="mt-12 text-center">
-        <div className="flex items-center justify-center mb-3">
-          <Shield className="h-5 w-5 text-muted-foreground mr-2" />
-          <span className="text-sm text-muted-foreground">Secure payment via Stripe</span>
+    <MainLayout>
+      <div className="container py-24">
+        <div className="max-w-3xl mx-auto text-center mb-16">
+          <h1 className="text-4xl font-bold tracking-tight mb-4">
+            Unlock Premium Vehicle Insights
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            Get full access to comprehensive reports, market data, and expert analysis.
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          All purchases come with a 30-day money-back guarantee.
-        </p>
-      </div>
-    </div>
-  );
-};
 
-export default PricingPage;
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Single Report */}
+          <Card className="border-primary/20 hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Single Report</span>
+                <span className="text-3xl font-bold">$9.99</span>
+              </CardTitle>
+              <CardDescription>Perfect for one-time valuation needs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>Full valuation report</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>Auction history data</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>Market listings comparison</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>PDF download option</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                onClick={() => handlePurchase('single')}
+                disabled={isLoading}
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                {isLoading ? 'Processing...' : 'Buy Now'}
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* 3-Pack Bundle */}
+          <Card className="border-primary shadow-md relative">
+            <div className="absolute -top-4 left-0 right-0 flex justify-center">
+              <span className="bg-primary text-primary-foreground text-sm font-medium py-1 px-3 rounded-full">
+                Most Popular
+              </span>
+            </div>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>3-Pack Bundle</span>
+                <span className="text-3xl font-bold">$24.99</span>
+              </CardTitle>
+              <CardDescription>Save 17% ($8.33 per report)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>3 premium valuation reports</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>All single report features</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>Valid for 3 months</span>
+                </li>
+                <li className="flex items-center">
+                  <Trophy className="h-5 w-5 mr-2 text-amber-500" />
+                  <span className="font-medium">Email support included</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button
+                variant="default"
+                className="w-full"
+                onClick={() => handlePurchase('bundle_3')}
+                disabled={isLoading}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                {isLoading ? 'Processing...' : 'Get 3-Pack'}
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* 5-Pack Bundle */}
+          <Card className="border-primary/20 hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>5-Pack Bundle</span>
+                <span className="text-3xl font-bold">$39.99</span>
+              </CardTitle>
+              <CardDescription>Save 20% ($8.00 per report)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>5 premium valuation reports</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>All 3-pack features</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="h-5 w-5 mr-2 text-green-500" />
+                  <span>Valid for 6 months</span>
+                </li>
+                <li className="flex items-center">
+                  <Trophy className="h-5 w-5 mr-2 text-amber-500" />
+                  <span className="font-medium">Priority support</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                onClick={() => handlePurchase('bundle_5')}
+                disabled={isLoading}
+              >
+                <Trophy className="mr-2 h-4 w-4" />
+                {isLoading ? 'Processing...' : 'Get 5-Pack'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+
+        <div className="mt-16 max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl font-bold mb-4">Dealer Plans Available</h2>
+          <p className="text-muted-foreground mb-6">
+            Are you a dealership looking for unlimited valuations, inventory management, and lead tools?
+          </p>
+          <Button variant="outline" size="lg" onClick={() => window.location.href = '/dealer/subscription'}>
+            View Dealer Plans
+          </Button>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}

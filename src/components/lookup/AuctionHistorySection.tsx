@@ -1,103 +1,76 @@
-
 import React, { useState, useEffect } from 'react';
-import { getAuctionResultsByVin, triggerAuctionDataFetch } from '@/utils/auctionFetcher';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, DollarSign, MapPin, Car } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, ShieldAlert, Gavel, DollarSign, Car } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
+import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 
 interface AuctionHistorySectionProps {
   vin: string;
 }
 
-const AuctionHistorySection: React.FC<AuctionHistorySectionProps> = ({ vin }) => {
-  const [auctionResults, setAuctionResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+const AuctionHistorySection = ({ vin }: AuctionHistorySectionProps) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [auctionData, setAuctionData] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchAuctionData = async () => {
+    const fetchAuctionHistory = async () => {
       if (!vin) return;
       
-      setLoading(true);
+      setIsLoading(true);
       setError(null);
       
       try {
-        // Trigger background fetch of auction data
-        await triggerAuctionDataFetch(vin);
+        // Check if we already have data in Supabase
+        const { data: existingData, error: fetchError } = await supabase
+          .from('auction_results_by_vin')
+          .select('*')
+          .eq('vin', vin)
+          .order('sold_date', { ascending: false });
+          
+        if (fetchError) throw fetchError;
         
-        // Fetch any existing auction data
-        const results = await getAuctionResultsByVin(vin);
-        setAuctionResults(results);
-      } catch (err) {
-        console.error('Error fetching auction data:', err);
-        setError('Failed to fetch auction history');
+        // If we have data, use it
+        if (existingData && existingData.length > 0) {
+          setAuctionData(existingData);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Otherwise, fetch from edge function
+        const { data, error } = await supabase.functions.invoke('fetch-auction-data', {
+          body: { vin }
+        });
+        
+        if (error) throw new Error(error.message);
+        
+        if (data && data.results) {
+          setAuctionData(data.results);
+        } else {
+          setAuctionData([]);
+        }
+      } catch (err: any) {
+        console.error('Error fetching auction history:', err);
+        setError(err.message || 'Failed to load auction history');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-
-    if (vin) {
-      fetchAuctionData();
-    }
+    
+    fetchAuctionHistory();
   }, [vin]);
 
-  // Function to format price
-  const formatPrice = (priceStr: string) => {
-    const price = parseFloat(priceStr.replace(/[^0-9.]/g, ''));
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
-  // Function to format date
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch (e) {
-      return dateStr;
-    }
-  };
-
-  // Function to format odometer reading
-  const formatOdometer = (odometerStr: string) => {
-    const miles = parseInt(odometerStr.replace(/[^0-9]/g, ''));
-    return new Intl.NumberFormat('en-US').format(miles) + ' mi';
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Auction History</CardTitle>
-          <CardDescription>Loading auction records for this vehicle...</CardDescription>
+          <CardTitle className="text-lg">Auction History</CardTitle>
+          <CardDescription>Loading previous auction sales for this VIN</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <div className="relative">
-                  <Skeleton className="h-40 w-full" />
-                </div>
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-6 w-36 mb-4" />
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <CardContent className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
@@ -105,109 +78,116 @@ const AuctionHistorySection: React.FC<AuctionHistorySectionProps> = ({ vin }) =>
 
   if (error) {
     return (
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Auction History</CardTitle>
-          <CardDescription>Error loading auction records</CardDescription>
+          <CardTitle className="text-lg flex items-center">
+            <ShieldAlert className="h-5 w-5 mr-2 text-destructive" />
+            Auction History Unavailable
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-500">{error}</p>
+          <p className="text-sm text-muted-foreground">
+            We couldn't retrieve auction history for this vehicle. Please try again later.
+          </p>
         </CardContent>
       </Card>
     );
   }
 
-  if (auctionResults.length === 0) {
+  if (auctionData.length === 0) {
     return (
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
-          <CardTitle>Auction History</CardTitle>
-          <CardDescription>No auction records found for this vehicle</CardDescription>
+          <CardTitle className="text-lg flex items-center">
+            <Gavel className="h-5 w-5 mr-2 text-primary" />
+            Auction History
+          </CardTitle>
+          <CardDescription>No auction records found</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Car className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Auction Records Found</h3>
-            <p className="text-muted-foreground">
-              We couldn't find any auction records for this VIN in our database.
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            We couldn't find any auction records for this VIN. This could mean the vehicle has never been sold at a major auction.
+          </p>
         </CardContent>
       </Card>
     );
   }
+
+  // Group by auction source
+  const groupedBySource: Record<string, any[]> = {};
+  auctionData.forEach(record => {
+    const source = record.auction_source || 'unknown';
+    if (!groupedBySource[source]) {
+      groupedBySource[source] = [];
+    }
+    groupedBySource[source].push(record);
+  });
 
   return (
-    <Card className="mt-6">
+    <Card>
       <CardHeader>
-        <CardTitle>Auction History</CardTitle>
+        <CardTitle className="text-lg flex items-center">
+          <Gavel className="h-5 w-5 mr-2 text-primary" />
+          Auction History
+        </CardTitle>
         <CardDescription>
-          {auctionResults.length} auction records found for this vehicle
+          {auctionData.length} record{auctionData.length !== 1 ? 's' : ''} found for this VIN
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {auctionResults.map((result) => (
-            <Card key={result.id} className="overflow-hidden">
-              <div className="relative">
-                {result.photo_urls && result.photo_urls.length > 0 ? (
-                  <AspectRatio ratio={16 / 9}>
-                    <img
-                      src={result.photo_urls[0]}
-                      alt="Vehicle at auction"
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/car-placeholder.png';
-                      }}
-                    />
-                  </AspectRatio>
-                ) : (
-                  <AspectRatio ratio={16 / 9}>
-                    <div className="flex items-center justify-center w-full h-full bg-gray-100">
-                      <Car className="h-12 w-12 text-gray-400" />
+        <Tabs defaultValue={Object.keys(groupedBySource)[0]} className="w-full">
+          <TabsList className="grid" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedBySource).length}, 1fr)` }}>
+            {Object.keys(groupedBySource).map(source => (
+              <TabsTrigger key={source} value={source} className="capitalize">
+                {source}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
+          {Object.entries(groupedBySource).map(([source, records]) => (
+            <TabsContent key={source} value={source} className="space-y-4 mt-4">
+              {records.map((record, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex flex-col md:flex-row justify-between">
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                      <span className="text-lg font-semibold">{formatCurrency(parseFloat(record.price))}</span>
+                      <Badge variant="outline" className="capitalize">
+                        {record.condition_grade || 'Unknown Condition'}
+                      </Badge>
                     </div>
-                  </AspectRatio>
-                )}
-                <Badge 
-                  className="absolute top-2 right-2 bg-primary"
-                  variant="secondary"
-                >
-                  {result.auction_source}
-                </Badge>
-              </div>
-              <CardContent className="p-4">
-                <div className="mb-2 flex justify-between items-center">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span>{formatDate(result.sold_date)}</span>
+                    <div className="text-sm text-muted-foreground">
+                      Sold on {new Date(record.sold_date).toLocaleDateString()}
+                    </div>
                   </div>
-                  {result.condition_grade && (
-                    <Badge variant="outline">
-                      Grade: {result.condition_grade}
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center mb-4">
-                  <DollarSign className="h-5 w-5 text-primary mr-1" />
-                  <span className="text-2xl font-bold">
-                    {formatPrice(result.price)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {formatOdometer(result.odometer)}
-                  </span>
-                  {result.location && (
-                    <div className="flex items-center text-muted-foreground">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      <span>{result.location}</span>
+                  
+                  <div className="mt-2 flex flex-col sm:flex-row sm:justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Car className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{record.odometer} miles</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {record.location || 'Location not specified'}
+                    </div>
+                  </div>
+                  
+                  {record.photo_urls && record.photo_urls.length > 0 && (
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      {record.photo_urls.slice(0, 3).map((photo: string, photoIndex: number) => (
+                        <img 
+                          key={photoIndex}
+                          src={photo}
+                          alt={`Auction photo ${photoIndex + 1}`}
+                          className="rounded-md w-full h-24 object-cover"
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </TabsContent>
           ))}
-        </div>
+        </Tabs>
       </CardContent>
     </Card>
   );
