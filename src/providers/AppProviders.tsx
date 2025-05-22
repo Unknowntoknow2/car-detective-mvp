@@ -26,3 +26,5 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     </ThemeProvider>
   );
 };
+
+export default AppProviders;

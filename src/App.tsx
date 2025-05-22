@@ -22,10 +22,11 @@ import { NotFoundPage } from './pages';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerInventoryListPage from './pages/dealer/DealerInventoryListPage';
 import ValuationHomepage from './modules/valuation-homepage/page';
+import { AppProviders } from './providers/AppProviders';
 
 function App() {
   return (
-    <>
+    <AppProviders>
       <Toaster position="top-right" richColors />
       <Routes>
         {/* Landing and Home Pages */}
@@ -65,7 +66,7 @@ function App() {
         {/* Not Found */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </>
+    </AppProviders>
   );
 }
 

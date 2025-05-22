@@ -3,50 +3,89 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export function Footer() {
-  const year = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="border-t py-8 bg-slate-50">
-      <div className="container">
+    <footer className="bg-white border-t py-8">
+      <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold mb-4">AutoValue</h3>
-            <p className="text-sm text-muted-foreground">
-              Your trusted source for accurate vehicle valuations and market insights.
+            <h3 className="font-semibold text-lg mb-4">Car Detective</h3>
+            <p className="text-muted-foreground text-sm">
+              Get accurate, data-driven valuations with advanced AI technology.
             </p>
           </div>
           
           <div>
-            <h4 className="font-medium mb-3">Services</h4>
+            <h3 className="font-semibold mb-4">Services</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/vin-lookup" className="hover:underline">VIN Lookup</Link></li>
-              <li><Link to="/premium" className="hover:underline">Premium Valuation</Link></li>
-              <li><Link to="/valuation-followup" className="hover:underline">Valuation Details</Link></li>
+              <li>
+                <Link to="/valuation" className="text-muted-foreground hover:text-primary">
+                  Car Valuation
+                </Link>
+              </li>
+              <li>
+                <Link to="/premium" className="text-muted-foreground hover:text-primary">
+                  Premium Reports
+                </Link>
+              </li>
+              <li>
+                <Link to="/dealer/dashboard" className="text-muted-foreground hover:text-primary">
+                  Dealer Services
+                </Link>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-medium mb-3">Company</h4>
+            <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="hover:underline">About Us</Link></li>
-              <li><Link to="/" className="hover:underline">Contact</Link></li>
-              <li><Link to="/" className="hover:underline">Careers</Link></li>
+              <li>
+                <Link to="/about" className="text-muted-foreground hover:text-primary">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-muted-foreground hover:text-primary">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-muted-foreground hover:text-primary">
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-medium mb-3">Legal</h4>
+            <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="hover:underline">Privacy Policy</Link></li>
-              <li><Link to="/" className="hover:underline">Terms of Service</Link></li>
+              <li>
+                <Link to="/terms" className="text-muted-foreground hover:text-primary">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="text-muted-foreground hover:text-primary">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/cookies" className="text-muted-foreground hover:text-primary">
+                  Cookie Policy
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
         
-        <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
-          <p>© {year} AutoValue. All rights reserved.</p>
+        <div className="border-t mt-8 pt-6 text-center text-sm text-muted-foreground">
+          <p>&copy; {currentYear} Car Detective. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
 }
+
+export default Footer;

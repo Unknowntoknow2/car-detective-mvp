@@ -1,124 +1,83 @@
 
-import React, { useState, useEffect } from 'react';
-import { MainLayout } from '@/components/layout';
-import { DealerInventoryItem } from '@/types/vehicle';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import DealerLayout from '@/layouts/DealerLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import DealerInventoryList from '@/components/dealer/inventory';
+import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
+import { DealerInventoryItem } from '@/types/vehicle';
+import { toast } from 'sonner';
 
-export default function DealerInventoryListPage() {
-  const { user } = useAuth();
+const DealerInventoryListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [inventory, setInventory] = useState<DealerInventoryItem[]>([]);
-
-  useEffect(() => {
-    async function fetchInventory() {
-      setIsLoading(true);
-      
-      try {
-        // In a real app, you would fetch from Supabase
-        // const { data, error } = await supabase
-        //   .from('dealer_vehicles')
-        //   .select('*')
-        //   .eq('dealer_id', user?.id);
-        
-        // For demo, we'll use mock data
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Mock inventory data
-        const mockInventory: DealerInventoryItem[] = [
-          {
-            id: "1",
-            dealerId: "dealer-123",
-            vin: "1HGCM82633A123456",
-            make: "Toyota",
-            model: "Camry",
-            year: 2020,
-            listingPrice: 25000,
-            price: 25000,
-            condition: "Excellent",
-            mileage: 15000,
-            status: "available"
-          },
-          {
-            id: "2",
-            dealerId: "dealer-456",
-            vin: "1HGCM82633A123457",
-            make: "Honda",
-            model: "Accord",
-            year: 2021,
-            listingPrice: 26000,
-            price: 26000,
-            condition: "Good",
-            mileage: 29000,
-            status: "available"
-          },
-          {
-            id: "3",
-            dealerId: "dealer-789",
-            vin: "1HGCM82633A123458",
-            make: "Ford",
-            model: "F-150",
-            year: 2019,
-            listingPrice: 28000,
-            price: 28000,
-            condition: "Good",
-            mileage: 46000,
-            status: "available"
-          },
-          {
-            id: "4",
-            dealerId: "dealer-012",
-            vin: "1HGCM82633A123459",
-            make: "Chevrolet",
-            model: "Equinox",
-            year: 2022,
-            listingPrice: 27500,
-            price: 27500,
-            condition: "Excellent",
-            mileage: 19000,
-            status: "pending"
-          }
-        ];
-        
-        setInventory(mockInventory);
-      } catch (error) {
-        console.error('Error fetching inventory:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    fetchInventory();
-  }, [user]);
-
-  const handleAddVehicle = () => {
-    navigate('/dealer/vehicles/add');
-  };
+  const [inventory, setInventory] = React.useState<DealerInventoryItem[]>([
+    {
+      id: '1',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2019,
+      price: 25000,
+      mileage: 35000,
+      status: 'available',
+      photos: [],
+      vin: 'ABC123',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      make: 'Honda',
+      model: 'Accord',
+      year: 2020,
+      price: 27500,
+      mileage: 28000,
+      status: 'pending',
+      photos: [],
+      vin: 'DEF456',
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      make: 'Ford',
+      model: 'Mustang',
+      year: 2018,
+      price: 32000,
+      mileage: 40000,
+      status: 'sold',
+      photos: [],
+      vin: 'GHI789',
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleEdit = (id: string) => {
-    navigate(`/dealer/vehicles/edit/${id}`);
+    navigate(`/dealer/inventory/edit/${id}`);
   };
 
   const handleDelete = (id: string) => {
-    console.log('Delete vehicle:', id);
-    // In a real app, you would call an API to delete the vehicle
+    // In a real app, this would make an API call
+    setInventory(prev => prev.filter(item => item.id !== id));
+    toast.success('Vehicle removed from inventory');
+  };
+
+  const handleAddVehicle = () => {
+    navigate('/dealer/inventory/add');
   };
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-8">
+    <DealerLayout>
+      <div className="container p-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Inventory Management</h1>
-          <Button onClick={handleAddVehicle}>
-            <Plus className="mr-2 h-4 w-4" />
+          <div>
+            <h1 className="text-2xl font-bold">Inventory Management</h1>
+            <p className="text-muted-foreground">Manage your vehicle inventory</p>
+          </div>
+          <Button onClick={handleAddVehicle} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
             Add Vehicle
           </Button>
         </div>
-        
+
         <DealerInventoryList 
           inventory={inventory}
           isLoading={isLoading}
@@ -126,6 +85,8 @@ export default function DealerInventoryListPage() {
           onDelete={handleDelete}
         />
       </div>
-    </MainLayout>
+    </DealerLayout>
   );
-}
+};
+
+export default DealerInventoryListPage;
