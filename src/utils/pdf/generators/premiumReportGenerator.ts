@@ -374,13 +374,13 @@ export async function generatePremiumPdf(
     // Create a new page for watermark (we'll delete it after drawing watermark)
     const tempPage = pdfDoc.addPage([width, height]);
     tempPage.drawText(watermarkText, {
-      x: width / 2 - 200, // Center horizontally
+      x: width / 2 - 150, // Center horizontally
       y: height / 2, // Center vertically
-      size: 80,
+      size: 60,
       font: boldFont,
       color: rgb(0.85, 0.85, 0.85), // Light gray
       opacity: 0.3,
-      rotate: { angle: Math.PI / -4 }, // Properly formatted rotation object
+      rotate: { type: 'radians', angle: Math.PI / -4 }, // Properly formatted rotation object
     });
     
     // Instead of rotating, we'll use a workaround - the watermark is drawn
@@ -388,9 +388,9 @@ export async function generatePremiumPdf(
     
     // Draw the watermark on the main page as well
     page.drawText(watermarkText, {
-      x: width / 2 - 200, // Center horizontally
+      x: width / 2 - 150, // Center horizontally
       y: height / 2, // Center vertically
-      size: 80,
+      size: 60,
       font: boldFont,
       color: rgb(0.85, 0.85, 0.85), // Light gray
       opacity: 0.3,
