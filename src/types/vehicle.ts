@@ -44,7 +44,8 @@ export interface ValuationResponse {
   [key: string]: any;
 }
 
-export interface DealerInventoryItem {
+// Renamed to avoid conflict with the interface in vehicle.d.ts
+export interface DealerVehicleItem {
   id: string;
   dealerId: string;
   vin: string;
