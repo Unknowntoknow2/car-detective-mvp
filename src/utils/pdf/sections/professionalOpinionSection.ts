@@ -1,4 +1,3 @@
-
 import { SectionParams } from '../types';
 
 /**

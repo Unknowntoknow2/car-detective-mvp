@@ -1,4 +1,3 @@
-
 import { SectionParams } from '../types';
 
 export const drawDisclaimerSection = (params: SectionParams): number => {

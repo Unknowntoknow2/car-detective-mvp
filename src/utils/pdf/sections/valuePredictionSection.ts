@@ -1,4 +1,3 @@
-
 import { SectionParams } from '../types';
 
 /**
@@ -20,5 +19,5 @@ export const drawValuePredictionSection = (params: SectionParams) => {
      .font('Helvetica')
      .text('Value prediction data will appear here.', margin, currentY + 25);
 
-  return doc.y + 20; // Return the new Y position
+  return 0; // Replace with actual implementation
 };

@@ -1,4 +1,3 @@
-
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
@@ -78,5 +77,5 @@ export function drawWatermark(params: SectionParams): number {
   }
   
   // Return unchanged y position since watermark doesn't affect content flow
-  return params.y;
+  return params.y || 0;
 }

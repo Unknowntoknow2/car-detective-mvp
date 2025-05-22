@@ -37,33 +37,18 @@ describe('PDF Generator', () => {
       color: 'Silver',
       bodyStyle: 'Sedan',
       transmission: 'Automatic',
-      engineSize: '2.5L',
       fuelType: 'Gasoline',
       confidenceScore: 85,
       photoScore: 92,
-      regionName: 'West Coast',
-      stateCode: 'CA',
-      photoCondition: {
-        score: 90,
-        issues: []
-      },
-      bestPhotoUrl: 'https://example.com/photo.jpg',
-      vehiclePhotos: [
-        'https://example.com/photo1.jpg',
-        'https://example.com/photo2.jpg'
-      ],
-      ownerCount: 1,
-      titleStatus: 'Clean',
-      accidentCount: 0,
+      priceRange: [21000, 23000],
       adjustments: [
-        {
-          factor: 'Low Mileage',
-          impact: 500,
-          description: 'Vehicle has lower than average mileage'
+        { 
+          factor: 'Low Mileage', 
+          impact: 500, 
+          description: 'Vehicle has lower than average mileage' 
         }
       ],
       premium: true,
-      reportDate: new Date(),
       generatedDate: new Date()
     };
     
