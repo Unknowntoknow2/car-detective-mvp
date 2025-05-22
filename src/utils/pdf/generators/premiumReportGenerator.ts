@@ -1,123 +1,160 @@
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ReportData, ReportOptions, SectionParams, ReportGeneratorParams } from '../types';
-import { drawWatermark } from '../sections/watermark';
+import { ReportData, ReportOptions, ReportGeneratorParams, SectionParams } from '../types';
 
 /**
- * Generates a premium report with all the features
+ * Generate a premium PDF report
  */
-export async function generatePremiumReport(
-  params: ReportGeneratorParams
-): Promise<Uint8Array> {
+export async function generatePremiumReport(params: ReportGeneratorParams): Promise<Uint8Array> {
   const { data, options } = params;
   
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
   
-  // Load the standard fonts
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+  // Add a blank page to the document
+  const page = pdfDoc.addPage();
   
-  // Add a new page
-  const page = pdfDoc.addPage([612, 792]); // Standard US Letter size
-  
-  // Define colors
-  const textColor = rgb(0.1, 0.1, 0.1);
-  const primaryColor = rgb(0.0, 0.3, 0.6);
-  
-  // Get page dimensions
+  // Set page dimensions
   const { width, height } = page.getSize();
   const margin = 50;
   
-  // Start position from the top of the page
-  let y = height - margin;
+  // Load fonts
+  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
   
-  // Common parameters for all sections
+  // Define colors
+  const textColor = rgb(0.1, 0.1, 0.1);
+  const primaryColor = rgb(0.05, 0.2, 0.6);
+  
+  // Create section parameters
   const sectionParams: SectionParams = {
     page,
-    startY: y,
+    startY: height - margin,
     width,
     margin,
     data,
     options,
-    font,
+    font: regularFont,
     boldFont,
     italicFont,
     textColor,
     primaryColor,
-    regularFont: font,
+    regularFont, // Add regularFont explicitly
+    y: height - margin // Add y property explicitly
   };
   
-  // Draw watermark if specified
+  // Draw watermark if needed
   if (options.watermark) {
-    drawWatermark(sectionParams, typeof options.watermark === 'string' ? options.watermark : 'SAMPLE REPORT');
+    drawWatermark(sectionParams, typeof options.watermark === 'string' ? options.watermark : 'SAMPLE');
   }
   
   // Draw header section
-  y = drawHeaderSection({...sectionParams, y});
+  let currentY = drawHeaderSection(sectionParams);
   
   // Draw vehicle info section
-  y = drawVehicleInfoSection({...sectionParams, y});
+  currentY = drawVehicleInfoSection({
+    ...sectionParams,
+    startY: currentY
+  });
   
   // Draw valuation section
-  y = drawValuationSection({...sectionParams, y});
+  currentY = drawValuationSection({
+    ...sectionParams,
+    startY: currentY
+  });
   
-  // Draw adjustment table if data has adjustments
+  // Draw adjustment section if we have adjustments
   if (data.adjustments && data.adjustments.length > 0) {
-    y = drawAdjustmentTable({...sectionParams, y});
+    currentY = drawAdjustmentSection({
+      ...sectionParams,
+      startY: currentY
+    });
   }
   
-  // Add a page break if we're running out of space for photo assessment
-  if (y < 300 && options.includePhotoAssessment && data.aiCondition) {
-    // Draw footer on current page
-    drawFooterSection(sectionParams);
-    
-    // Add a new page
-    const newPage = pdfDoc.addPage([612, 792]);
-    page = newPage;
-    y = height - margin;
-    
-    // Update section params with new page
-    sectionParams.page = page;
-    sectionParams.startY = y;
-    
-    // Draw watermark on new page if needed
-    if (options.watermark) {
-      drawWatermark({...sectionParams}, typeof options.watermark === 'string' ? options.watermark : 'SAMPLE REPORT');
-    }
-  }
-  
-  // Draw photo assessment section if applicable
+  // Draw photo assessment section if enabled
   if (options.includePhotoAssessment && data.aiCondition) {
-    y = drawPhotoAssessmentSection({...sectionParams, y});
+    currentY = drawPhotoAssessmentSection({
+      ...sectionParams,
+      startY: currentY
+    });
   }
   
-  // Draw explanation section if applicable
+  // For premium reports, add professional opinion
+  if (data.isPremium || options.isPremium) {
+    // Check if we need to add a new page
+    if (currentY < 200) {
+      // Add a new page
+      const newPage = pdfDoc.addPage();
+      
+      // Update page reference
+      sectionParams.page = newPage;
+      currentY = height - margin;
+    }
+    
+    currentY = drawProfessionalOpinionSection({
+      ...sectionParams,
+      startY: currentY
+    });
+  }
+  
+  // Draw explanation section if enabled
   if (options.includeExplanation && data.explanation) {
-    y = drawExplanationSection({...sectionParams, y});
+    currentY = drawExplanationSection({
+      ...sectionParams,
+      startY: currentY
+    });
   }
   
   // Draw disclaimer section
-  y = drawDisclaimerSection({...sectionParams, y});
+  currentY = drawDisclaimerSection({
+    ...sectionParams,
+    startY: currentY
+  });
   
-  // Draw footer section
-  drawFooterSection(sectionParams);
+  // Draw footer on all pages
+  for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+    const pageObj = pdfDoc.getPage(i);
+    drawFooterSection({
+      ...sectionParams,
+      page: pageObj
+    });
+  }
   
-  // Return the PDF as a byte array
+  // Serialize the PDF to bytes
   return await pdfDoc.save();
 }
 
-// Helper function to draw the header section
+/**
+ * Draw watermark on the page
+ */
+function drawWatermark(params: SectionParams, text: string): void {
+  const { page, width, height } = params;
+  
+  // Draw diagonal watermark
+  page.drawText(text, {
+    x: width / 2 - 150,
+    y: height / 2,
+    size: 60,
+    font: params.font,
+    color: rgb(0.85, 0.85, 0.85),
+    opacity: 0.3,
+    rotate: Math.PI / -4,
+  });
+}
+
+/**
+ * Draw header section
+ */
 function drawHeaderSection(params: SectionParams): number {
-  const { page, y, margin, data, font, boldFont, textColor, primaryColor } = params;
-  let currentY = y;
+  const { page, startY, margin, data, boldFont, primaryColor, font, textColor } = params;
+  let currentY = startY;
   
   // Draw title
-  page.drawText(data.reportTitle || 'Vehicle Valuation Report', {
+  page.drawText('Vehicle Valuation Report', {
     x: margin,
     y: currentY,
-    size: 20,
+    size: 16,
     font: boldFont,
     color: primaryColor,
   });
@@ -136,7 +173,7 @@ function drawHeaderSection(params: SectionParams): number {
     page.drawText(`Generated: ${formattedDate}`, {
       x: margin,
       y: currentY,
-      size: 10,
+      size: 8,
       font: font,
       color: textColor,
     });
@@ -144,13 +181,15 @@ function drawHeaderSection(params: SectionParams): number {
     currentY -= 20;
   }
   
-  return currentY; // Return the new Y position
+  return currentY;
 }
 
-// Helper function to draw the vehicle info section
+/**
+ * Draw vehicle info section
+ */
 function drawVehicleInfoSection(params: SectionParams): number {
-  const { page, y, margin, data, font, boldFont, textColor, primaryColor } = params;
-  let currentY = y;
+  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  let currentY = startY;
   
   // Draw section title
   page.drawText('Vehicle Information', {
@@ -164,8 +203,7 @@ function drawVehicleInfoSection(params: SectionParams): number {
   currentY -= 20;
   
   // Draw vehicle name
-  const vehicleName = `${data.year} ${data.make} ${data.model}${data.trim ? ' ' + data.trim : ''}`;
-  page.drawText(vehicleName, {
+  page.drawText(`${data.year} ${data.make} ${data.model}${data.trim ? ` ${data.trim}` : ''}`, {
     x: margin,
     y: currentY,
     size: 12,
@@ -196,14 +234,19 @@ function drawVehicleInfoSection(params: SectionParams): number {
     currentY -= 15;
   };
   
+  // Mileage
+  if (data.mileage) {
+    drawDetail('Mileage:', `${data.mileage.toLocaleString()} miles`);
+  }
+  
   // VIN
   if (data.vin) {
     drawDetail('VIN:', data.vin);
   }
   
-  // Mileage
-  if (data.mileage) {
-    drawDetail('Mileage:', `${data.mileage.toLocaleString()} miles`);
+  // Condition
+  if (data.condition) {
+    drawDetail('Condition:', data.condition);
   }
   
   // Transmission
@@ -216,25 +259,37 @@ function drawVehicleInfoSection(params: SectionParams): number {
     drawDetail('Body Style:', data.bodyStyle);
   }
   
-  // Condition
-  if (data.condition) {
-    drawDetail('Condition:', data.condition);
+  // Color
+  if (data.color) {
+    drawDetail('Color:', data.color);
+  }
+  
+  // Fuel Type
+  if (data.fuelType) {
+    drawDetail('Fuel Type:', data.fuelType);
   }
   
   // Location
   if (data.zipCode) {
-    drawDetail('Location:', `ZIP: ${data.zipCode}${data.regionName ? ' (' + data.regionName + ')' : ''}`);
+    drawDetail('Location:', `ZIP: ${data.zipCode}`);
+  }
+  
+  // Region
+  if (data.regionName) {
+    drawDetail('Region:', data.regionName);
   }
   
   currentY -= 10; // Add some space after the table
   
-  return currentY; // Return the new Y position
+  return currentY;
 }
 
-// Helper function to draw the valuation section
+/**
+ * Draw valuation section
+ */
 function drawValuationSection(params: SectionParams): number {
-  const { page, y, margin, data, font, boldFont, textColor, primaryColor } = params;
-  let currentY = y;
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor } = params;
+  let currentY = startY;
   
   // Draw section title
   page.drawText('Valuation Summary', {
@@ -247,64 +302,24 @@ function drawValuationSection(params: SectionParams): number {
   
   currentY -= 25;
   
-  // Draw the estimated value
-  const estimatedValue = data.price || data.estimatedValue;
-  const valueText = `$${estimatedValue.toLocaleString()}`;
-  const valueWidth = boldFont.widthOfTextAtSize(valueText, 24);
-  
+  // Draw estimated value
   page.drawText('Estimated Value:', {
     x: margin,
     y: currentY,
-    size: 12,
+    size: 10,
     font: boldFont,
     color: textColor,
   });
   
-  page.drawText(valueText, {
-    x: margin,
-    y: currentY - 25,
-    size: 24,
+  page.drawText(`$${data.estimatedValue.toLocaleString()}`, {
+    x: margin + 120,
+    y: currentY,
+    size: 16,
     font: boldFont,
     color: primaryColor,
   });
   
-  // Draw confidence indicator if available
-  if (data.confidenceScore) {
-    const confidenceWidth = 100;
-    const confidenceHeight = 10;
-    const confidenceX = margin + valueWidth + 20;
-    const confidenceY = currentY - 25;
-    
-    // Draw the confidence bar background
-    page.drawRectangle({
-      x: confidenceX,
-      y: confidenceY,
-      width: confidenceWidth,
-      height: confidenceHeight,
-      color: rgb(0.9, 0.9, 0.9),
-    });
-    
-    // Draw the confidence level
-    const confidenceLevel = Math.min(100, Math.max(0, data.confidenceScore));
-    page.drawRectangle({
-      x: confidenceX,
-      y: confidenceY,
-      width: (confidenceLevel / 100) * confidenceWidth,
-      height: confidenceHeight,
-      color: primaryColor,
-    });
-    
-    // Draw confidence label
-    page.drawText(`${confidenceLevel}% Confidence`, {
-      x: confidenceX,
-      y: confidenceY + 15,
-      size: 8,
-      font: font,
-      color: textColor,
-    });
-  }
-  
-  currentY -= 60;
+  currentY -= 25;
   
   // Draw price range if available
   if (data.priceRange && Array.isArray(data.priceRange) && data.priceRange.length === 2) {
@@ -317,7 +332,7 @@ function drawValuationSection(params: SectionParams): number {
     });
     
     page.drawText(`$${data.priceRange[0].toLocaleString()} - $${data.priceRange[1].toLocaleString()}`, {
-      x: margin + 100,
+      x: margin + 120,
       y: currentY,
       size: 10,
       font: font,
@@ -327,13 +342,68 @@ function drawValuationSection(params: SectionParams): number {
     currentY -= 20;
   }
   
-  return currentY; // Return the new Y position
+  // Draw confidence score if available
+  if (data.confidenceScore) {
+    page.drawText('Confidence Score:', {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
+    
+    // Draw the score text
+    page.drawText(`${data.confidenceScore}%`, {
+      x: margin + 120,
+      y: currentY,
+      size: 10,
+      font: font,
+      color: textColor,
+    });
+    
+    currentY -= 15;
+    
+    // Draw confidence score bar
+    const barWidth = 150;
+    const barHeight = 10;
+    const x = margin + 120;
+    
+    // Draw background bar
+    page.drawRectangle({
+      x,
+      y: currentY - barHeight,
+      width: barWidth,
+      height: barHeight,
+      color: rgb(0.9, 0.9, 0.9), // Light gray
+    });
+    
+    // Draw filled portion of bar
+    const fillWidth = barWidth * (data.confidenceScore / 100);
+    page.drawRectangle({
+      x,
+      y: currentY - barHeight,
+      width: fillWidth,
+      height: barHeight,
+      color: primaryColor,
+    });
+    
+    currentY -= 25;
+  }
+  
+  return currentY;
 }
 
-// Helper function to draw the adjustment table
-function drawAdjustmentTable(params: SectionParams): number {
-  const { page, y, margin, data, font, boldFont, textColor, primaryColor } = params;
-  let currentY = y;
+/**
+ * Draw adjustment section
+ */
+function drawAdjustmentSection(params: SectionParams): number {
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor } = params;
+  let currentY = startY;
+  
+  // Skip if no adjustments
+  if (!data.adjustments || data.adjustments.length === 0) {
+    return currentY;
+  }
   
   // Draw section title
   page.drawText('Value Adjustments', {
@@ -344,9 +414,16 @@ function drawAdjustmentTable(params: SectionParams): number {
     color: primaryColor,
   });
   
-  currentY -= 25;
+  currentY -= 20;
   
-  // Column headers
+  // Draw table header
+  const columnWidths = {
+    factor: 150,
+    impact: 100,
+    description: width - margin * 2 - 250,
+  };
+  
+  // Draw header row
   page.drawText('Factor', {
     x: margin,
     y: currentY,
@@ -356,7 +433,7 @@ function drawAdjustmentTable(params: SectionParams): number {
   });
   
   page.drawText('Impact', {
-    x: margin + 200,
+    x: margin + columnWidths.factor,
     y: currentY,
     size: 10,
     font: boldFont,
@@ -364,75 +441,85 @@ function drawAdjustmentTable(params: SectionParams): number {
   });
   
   page.drawText('Description', {
-    x: margin + 300,
+    x: margin + columnWidths.factor + columnWidths.impact,
     y: currentY,
     size: 10,
     font: boldFont,
     color: textColor,
   });
   
-  // Draw a horizontal line
+  currentY -= 15;
+  
+  // Draw table row divider
   page.drawLine({
-    start: { x: margin, y: currentY - 5 },
-    end: { x: page.getWidth() - margin, y: currentY - 5 },
+    start: { x: margin, y: currentY + 5 },
+    end: { x: width - margin, y: currentY + 5 },
     thickness: 1,
     color: rgb(0.8, 0.8, 0.8),
   });
   
-  currentY -= 20;
+  currentY -= 10;
   
-  // Draw each adjustment
-  if (data.adjustments && data.adjustments.length > 0) {
-    data.adjustments.forEach((adjustment) => {
-      const impactText = adjustment.impact > 0 
-        ? `+$${adjustment.impact.toLocaleString()}`
-        : `-$${Math.abs(adjustment.impact).toLocaleString()}`;
-      
-      page.drawText(adjustment.factor, {
-        x: margin,
+  // Draw adjustments
+  for (const adjustment of data.adjustments) {
+    const impact = adjustment.impact;
+    const isPositive = impact > 0;
+    
+    // Draw factor
+    page.drawText(adjustment.factor, {
+      x: margin,
+      y: currentY,
+      size: 9,
+      font: font,
+      color: textColor,
+    });
+    
+    // Draw impact
+    const impactText = `${isPositive ? '+' : ''}$${impact.toLocaleString()}`;
+    page.drawText(impactText, {
+      x: margin + columnWidths.factor,
+      y: currentY,
+      size: 9,
+      font: font,
+      color: isPositive ? rgb(0, 0.6, 0) : rgb(0.8, 0, 0),
+    });
+    
+    // Draw description if available
+    if (adjustment.description) {
+      page.drawText(adjustment.description, {
+        x: margin + columnWidths.factor + columnWidths.impact,
         y: currentY,
         size: 9,
         font: font,
         color: textColor,
       });
-      
-      page.drawText(impactText, {
-        x: margin + 200,
-        y: currentY,
-        size: 9,
-        font: font,
-        color: adjustment.impact > 0 ? rgb(0, 0.5, 0) : rgb(0.8, 0, 0),
-      });
-      
-      if (adjustment.description) {
-        page.drawText(adjustment.description, {
-          x: margin + 300,
-          y: currentY,
-          size: 9,
-          font: font,
-          color: textColor,
-        });
-      }
-      
-      currentY -= 15;
-    });
+    }
     
-    // Draw a horizontal line
+    currentY -= 15;
+    
+    // Add a new page if we're near the bottom
+    if (currentY < 100) {
+      const newPage = params.page.document.addPage();
+      params.page = newPage;
+      currentY = newPage.getSize().height - margin;
+    }
+  }
+  
+  // Calculate total adjustment
+  if (data.adjustments.length > 0) {
+    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+    
+    // Draw total line
     page.drawLine({
-      start: { x: margin, y: currentY - 5 },
-      end: { x: page.getWidth() - margin, y: currentY - 5 },
+      start: { x: margin, y: currentY + 5 },
+      end: { x: width - margin, y: currentY + 5 },
       thickness: 1,
       color: rgb(0.8, 0.8, 0.8),
     });
     
     currentY -= 10;
     
-    // Draw total
-    const totalAdjustment = data.adjustments.reduce((sum, adj) => sum + adj.impact, 0);
-    const totalText = totalAdjustment > 0 
-      ? `+$${totalAdjustment.toLocaleString()}`
-      : `-$${Math.abs(totalAdjustment).toLocaleString()}`;
-    
+    // Draw total row
     page.drawText('Total Adjustments:', {
       x: margin,
       y: currentY,
@@ -441,24 +528,31 @@ function drawAdjustmentTable(params: SectionParams): number {
       color: textColor,
     });
     
+    const totalText = `${totalAdjustment > 0 ? '+' : ''}$${totalAdjustment.toLocaleString()}`;
     page.drawText(totalText, {
-      x: margin + 200,
+      x: margin + columnWidths.factor,
       y: currentY,
       size: 10,
       font: boldFont,
-      color: totalAdjustment > 0 ? rgb(0, 0.5, 0) : rgb(0.8, 0, 0),
+      color: totalAdjustment > 0 ? rgb(0, 0.6, 0) : rgb(0.8, 0, 0),
     });
     
-    currentY -= 30;
+    currentY -= 20;
   }
   
-  return currentY; // Return the new Y position
+  return currentY;
 }
 
-// Helper function to draw the photo assessment section
+/**
+ * Draw photo assessment section
+ */
 function drawPhotoAssessmentSection(params: SectionParams): number {
-  const { page, y, margin, data, font, boldFont, textColor, primaryColor } = params;
-  let currentY = y;
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor, options } = params;
+  let currentY = startY;
+  
+  if (!options.includePhotoAssessment || !data.aiCondition) {
+    return currentY;
+  }
   
   // Draw section title
   page.drawText('Photo Assessment', {
@@ -469,187 +563,120 @@ function drawPhotoAssessmentSection(params: SectionParams): number {
     color: primaryColor,
   });
   
-  currentY -= 25;
+  currentY -= 20;
   
-  if (data.aiCondition) {
-    // Draw condition score
-    if (data.aiCondition.condition) {
-      page.drawText('Condition Assessment:', {
-        x: margin,
-        y: currentY,
-        size: 10,
-        font: boldFont,
-        color: textColor,
-      });
-      
-      page.drawText(data.aiCondition.condition, {
-        x: margin + 150,
-        y: currentY,
-        size: 10,
-        font: font,
-        color: textColor,
-      });
-      
-      currentY -= 20;
-    }
-    
-    // Draw confidence score
-    if (data.aiCondition.confidenceScore) {
-      page.drawText('Confidence:', {
-        x: margin,
-        y: currentY,
-        size: 10,
-        font: boldFont,
-        color: textColor,
-      });
-      
-      page.drawText(`${data.aiCondition.confidenceScore}%`, {
-        x: margin + 150,
-        y: currentY,
-        size: 10,
-        font: font,
-        color: textColor,
-      });
-      
-      currentY -= 20;
-    }
-    
-    // Draw issues detected
-    if (data.aiCondition.issuesDetected && data.aiCondition.issuesDetected.length > 0) {
-      page.drawText('Issues Detected:', {
-        x: margin,
-        y: currentY,
-        size: 10,
-        font: boldFont,
-        color: textColor,
-      });
-      
-      currentY -= 15;
-      
-      data.aiCondition.issuesDetected.forEach((issue: string) => {
-        page.drawText(`• ${issue}`, {
-          x: margin + 20,
-          y: currentY,
-          size: 9,
-          font: font,
-          color: textColor,
-        });
-        
-        currentY -= 15;
-      });
-      
-      currentY -= 5;
-    }
-    
-    // Draw summary
-    if (data.aiCondition.summary) {
-      page.drawText('Summary:', {
-        x: margin,
-        y: currentY,
-        size: 10,
-        font: boldFont,
-        color: textColor,
-      });
-      
-      currentY -= 15;
-      
-      // Simple word wrap for summary text
-      const maxWidth = page.getWidth() - (margin * 2);
-      const words = data.aiCondition.summary.split(' ');
-      let line = '';
-      
-      words.forEach((word) => {
-        const testLine = line ? `${line} ${word}` : word;
-        const lineWidth = font.widthOfTextAtSize(testLine, 9);
-        
-        if (lineWidth > maxWidth) {
-          page.drawText(line, {
-            x: margin,
-            y: currentY,
-            size: 9,
-            font: font,
-            color: textColor,
-          });
-          
-          currentY -= 15;
-          line = word;
-        } else {
-          line = testLine;
-        }
-      });
-      
-      if (line) {
-        page.drawText(line, {
-          x: margin,
-          y: currentY,
-          size: 9,
-          font: font,
-          color: textColor,
-        });
-        
-        currentY -= 20;
-      }
-    }
-  } else {
-    page.drawText('No photo assessment available.', {
+  // Draw condition assessment
+  if (data.aiCondition.condition) {
+    page.drawText('Condition Assessment:', {
       x: margin,
+      y: currentY,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
+    
+    page.drawText(data.aiCondition.condition, {
+      x: margin + 150,
       y: currentY,
       size: 10,
       font: font,
       color: textColor,
     });
     
-    currentY -= 20;
+    currentY -= 15;
   }
   
-  return currentY; // Return the new Y position
-}
-
-// Helper function to draw the explanation section
-function drawExplanationSection(params: SectionParams): number {
-  const { page, y, margin, data, font, boldFont, textColor, primaryColor } = params;
-  let currentY = y;
-  
-  // Draw section title
-  page.drawText('Valuation Explanation', {
-    x: margin,
-    y: currentY,
-    size: 14,
-    font: boldFont,
-    color: primaryColor,
-  });
-  
-  currentY -= 25;
-  
-  if (data.explanation) {
-    // Simple word wrap for explanation text
-    const maxWidth = page.getWidth() - (margin * 2);
-    const words = data.explanation.split(' ');
-    let line = '';
+  // Draw photo score if available
+  if (data.photoScore) {
+    page.drawText('Photo Score:', {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
     
-    words.forEach((word) => {
-      const testLine = line ? `${line} ${word}` : word;
-      const lineWidth = font.widthOfTextAtSize(testLine, 9);
+    const scoreText = `${data.photoScore.toFixed(1)}/10`;
+    page.drawText(scoreText, {
+      x: margin + 150,
+      y: currentY,
+      size: 10,
+      font: font,
+      color: textColor,
+    });
+    
+    currentY -= 15;
+  }
+  
+  // Draw issues detected if available
+  if (data.aiCondition.issuesDetected && data.aiCondition.issuesDetected.length > 0) {
+    page.drawText('Issues Detected:', {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
+    
+    currentY -= 15;
+    
+    // List all issues
+    for (const issue of data.aiCondition.issuesDetected) {
+      page.drawText(`• ${issue}`, {
+        x: margin + 10,
+        y: currentY,
+        size: 9,
+        font: font,
+        color: textColor,
+      });
       
-      if (lineWidth > maxWidth) {
-        page.drawText(line, {
-          x: margin,
+      currentY -= 12;
+    }
+    
+    currentY -= 5;
+  }
+  
+  // Draw summary if available
+  if (data.aiCondition.summary) {
+    page.drawText('Summary:', {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
+    
+    currentY -= 15;
+    
+    // Split summary into multiple lines
+    const maxWidth = width - (margin * 2) - 10; // Slight indent
+    const words = data.aiCondition.summary.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const textWidth = font.widthOfTextAtSize(testLine, 9);
+      
+      if (textWidth > maxWidth) {
+        page.drawText(currentLine, {
+          x: margin + 10,
           y: currentY,
           size: 9,
           font: font,
           color: textColor,
         });
         
-        currentY -= 15;
-        line = word;
+        currentY -= 12;
+        currentLine = word;
       } else {
-        line = testLine;
+        currentLine = testLine;
       }
-    });
+    }
     
-    if (line) {
-      page.drawText(line, {
-        x: margin,
+    // Draw the last line if there's anything left
+    if (currentLine) {
+      page.drawText(currentLine, {
+        x: margin + 10,
         y: currentY,
         size: 9,
         font: font,
@@ -658,11 +685,65 @@ function drawExplanationSection(params: SectionParams): number {
       
       currentY -= 20;
     }
-  } else {
-    page.drawText('No explanation available.', {
+  }
+  
+  return currentY;
+}
+
+/**
+ * Draw professional opinion section
+ */
+function drawProfessionalOpinionSection(params: SectionParams): number {
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor } = params;
+  let currentY = startY;
+  
+  // Draw section title
+  page.drawText('Professional Opinion', {
+    x: margin,
+    y: currentY,
+    size: 14,
+    font: boldFont,
+    color: primaryColor,
+  });
+  
+  currentY -= 20;
+  
+  // Sample professional opinion text
+  const opinion = "Based on our analysis, this vehicle represents a fair value in the current market. " +
+    "The condition is consistent with vehicles of similar age and mileage, and the price reflects current market trends. " +
+    "We recommend a professional inspection before purchase as standard practice.";
+  
+  // Split the opinion into multiple lines
+  const maxWidth = width - (margin * 2);
+  const words = opinion.split(' ');
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const textWidth = font.widthOfTextAtSize(testLine, 9);
+    
+    if (textWidth > maxWidth) {
+      page.drawText(currentLine, {
+        x: margin,
+        y: currentY,
+        size: 9,
+        font: font,
+        color: textColor,
+      });
+      
+      currentY -= 12;
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  // Draw the last line if there's anything left
+  if (currentLine) {
+    page.drawText(currentLine, {
       x: margin,
       y: currentY,
-      size: 10,
+      size: 9,
       font: font,
       color: textColor,
     });
@@ -670,76 +751,134 @@ function drawExplanationSection(params: SectionParams): number {
     currentY -= 20;
   }
   
-  return currentY; // Return the new Y position
+  return currentY;
 }
 
-// Helper function to draw the disclaimer section
-function drawDisclaimerSection(params: SectionParams): number {
-  const { page, y, margin, data, font, textColor } = params;
-  let currentY = y;
+/**
+ * Draw explanation section
+ */
+function drawExplanationSection(params: SectionParams): number {
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor, options } = params;
+  let currentY = startY;
   
-  // Draw a horizontal line
-  page.drawLine({
-    start: { x: margin, y: currentY },
-    end: { x: page.getWidth() - margin, y: currentY },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8),
+  if (!options.includeExplanation || !data.explanation) {
+    return currentY;
+  }
+  
+  // Draw section title
+  page.drawText('Valuation Explanation', {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: boldFont,
+    color: primaryColor,
   });
   
-  currentY -= 20;
+  currentY -= 15;
   
-  // Get disclaimer text or use default
-  const disclaimerText = data.disclaimerText || 
-    'This valuation is an estimate based on available data and market conditions at the time of generation. ' +
-    'Actual sale prices may vary. Not a substitute for professional appraisal.';
+  // Split explanation into multiple lines for better readability
+  const maxWidth = width - (margin * 2);
+  const words = data.explanation.split(' ');
+  let currentLine = '';
   
-  // Simple word wrap for disclaimer text
-  const maxWidth = page.getWidth() - (margin * 2);
-  const words = disclaimerText.split(' ');
-  let line = '';
-  
-  words.forEach((word) => {
-    const testLine = line ? `${line} ${word}` : word;
-    const lineWidth = font.widthOfTextAtSize(testLine, 8);
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const textWidth = font.widthOfTextAtSize(testLine, 9);
     
-    if (lineWidth > maxWidth) {
-      page.drawText(line, {
+    if (textWidth > maxWidth) {
+      // Draw the current line and move to next line
+      page.drawText(currentLine, {
         x: margin,
         y: currentY,
-        size: 8,
+        size: 9,
+        font: font,
+        color: textColor,
+      });
+      
+      currentY -= 12;
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  // Draw the last line if there's anything left
+  if (currentLine) {
+    page.drawText(currentLine, {
+      x: margin,
+      y: currentY,
+      size: 9,
+      font: font,
+      color: textColor,
+    });
+    
+    currentY -= 20;
+  }
+  
+  return currentY;
+}
+
+/**
+ * Draw disclaimer section
+ */
+function drawDisclaimerSection(params: SectionParams): number {
+  const { page, startY, margin, width, font, textColor, data } = params;
+  let currentY = startY;
+  
+  const disclaimer = data.disclaimerText || 
+    'DISCLAIMER: This valuation is an estimate based on market data and the vehicle information provided. Actual sale prices may vary based on factors not considered in this report including but not limited to local market conditions, vehicle history, and specific vehicle features. This report is not a guarantee of any specific sale price.';
+  
+  // Split disclaimer into multiple lines for better readability
+  const maxWidth = width - (margin * 2);
+  const words = disclaimer.split(' ');
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const textWidth = font.widthOfTextAtSize(testLine, 7);
+    
+    if (textWidth > maxWidth) {
+      // Draw the current line and move to next line
+      page.drawText(currentLine, {
+        x: margin,
+        y: currentY,
+        size: 7,
         font: font,
         color: textColor,
         opacity: 0.7,
       });
       
-      currentY -= 12;
-      line = word;
+      currentY -= 10;
+      currentLine = word;
     } else {
-      line = testLine;
+      currentLine = testLine;
     }
-  });
+  }
   
-  if (line) {
-    page.drawText(line, {
+  // Draw the last line if there's anything left
+  if (currentLine) {
+    page.drawText(currentLine, {
       x: margin,
       y: currentY,
-      size: 8,
+      size: 7,
       font: font,
       color: textColor,
       opacity: 0.7,
     });
     
-    currentY -= 15;
+    currentY -= 10;
   }
   
-  return currentY; // Return the new Y position
+  return currentY;
 }
 
-// Helper function to draw the footer section
+/**
+ * Draw footer section
+ */
 function drawFooterSection(params: SectionParams): void {
-  const { page, margin, font, textColor } = params;
+  const { page, margin, width, font, textColor, data } = params;
   
-  const { width, height } = page.getSize();
+  const { height } = page.getSize();
   const footerY = 20; // 20 points from bottom
   
   // Draw a thin line above the footer
@@ -750,11 +889,11 @@ function drawFooterSection(params: SectionParams): void {
     color: rgb(0.8, 0.8, 0.8),
   });
   
-  // Company info
-  const companyName = params.data.companyName || 'Car Detective';
-  const copyright = `© ${new Date().getFullYear()} ${companyName}`;
+  // Draw copyright text
+  const companyName = data.companyName || 'Car Detective';
+  const copyrightText = '© ' + new Date().getFullYear() + ' ' + companyName + ' - All Rights Reserved';
   
-  page.drawText(copyright, {
+  page.drawText(copyrightText, {
     x: margin,
     y: footerY,
     size: 8,
@@ -763,13 +902,13 @@ function drawFooterSection(params: SectionParams): void {
     opacity: 0.7,
   });
   
-  // Website if available
-  if (params.data.website) {
-    const websiteText = params.data.website;
-    const websiteWidth = font.widthOfTextAtSize(websiteText, 8);
+  // Draw website if available
+  if (data.website) {
+    const websiteText = data.website;
+    const websiteTextWidth = font.widthOfTextAtSize(websiteText, 8);
     
     page.drawText(websiteText, {
-      x: width - margin - websiteWidth,
+      x: width - margin - websiteTextWidth,
       y: footerY,
       size: 8,
       font: font,
