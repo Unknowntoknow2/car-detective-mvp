@@ -1,6 +1,6 @@
 
 import { ReportData, AdjustmentItem } from './types';
-import { downloadValuationPdf, openValuationPdf } from './generateValuationPdf';
+import { downloadValuationPdf } from './generateValuationPdf';
 
 export interface ValuationReportInput {
   mileage: number;
@@ -74,4 +74,3 @@ export function convertVehicleInfoToReportData(
 
 // Export the PDF functions
 export const downloadPdf = downloadValuationPdf;
-export const openPdf = openValuationPdf;
