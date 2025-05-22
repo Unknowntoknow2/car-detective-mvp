@@ -2,16 +2,21 @@
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UseFormReturn } from 'react-hook-form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface VehicleBasicInfoFieldsProps {
-  form: UseFormReturn<any>;
+  form: any;
 }
 
 export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = ({ form }) => {
+  // Generate year options from 1980 to current year
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
+  
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <h3 className="text-lg font-medium mb-4">Vehicle Information</h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           control={form.control}
           name="make"
@@ -25,6 +30,7 @@ export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = ({ 
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="model"
@@ -38,21 +44,35 @@ export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = ({ 
             </FormItem>
           )}
         />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
         <FormField
           control={form.control}
           name="year"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Year</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. 2020" {...field} />
-              </FormControl>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {yearOptions.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="mileage"
@@ -60,13 +80,21 @@ export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = ({ 
             <FormItem>
               <FormLabel>Mileage</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. 45000" {...field} />
+                <Input 
+                  type="number" 
+                  placeholder="e.g. 45000" 
+                  {...field} 
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    field.onChange(value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
-    </>
+    </div>
   );
 };
