@@ -1,14 +1,8 @@
 
 import React, { useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { HeroSection } from '@/components/home/HeroSection';
-import { ValuePropositionSection } from '@/components/home/ValuePropositionSection';
-import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
-import { KeyFeatures } from '@/components/home/KeyFeatures';
-import { TestimonialsSection } from '@/components/home/TestimonialsSection';
-import { ComparisonTable } from '@/components/home/ComparisonTable';
-import { FeaturesOverview } from '@/components/home/FeaturesOverview';
-import { MarketingBanner } from '@/components/marketing/MarketingBanner';
+import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
+import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 const HomePage: React.FC = () => {
   // Add diagnostic logging to confirm component is being rendered
@@ -21,32 +15,16 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <MainLayout>
-      {/* Fallback div to ensure something is visible even if components fail */}
-      <div id="homepage-fallback" className="p-4 bg-yellow-100 text-black">
-        It works! HomePage is rendering. If you see this message, the core routing is working.
-      </div>
+    <>
+      <EnhancedHomePage />
       
-      <div className="min-h-screen">
-        <HeroSection />
-        <KeyFeatures />
-        <ValuePropositionSection />
-        
-        <div className="container mx-auto px-4 py-8 sm:py-12">
-          <MarketingBanner 
-            headline="Experience Premium Valuation with CARFAX® Reports"
-            subtext="Get dealer-competitive offers, full vehicle history, and pricing forecasts not available in the free version."
-            ctaText="Try Premium for $29.99"
-            ctaHref="/premium"
-          />
+      {/* Debug info only visible in development mode */}
+      {SHOW_ALL_COMPONENTS && (
+        <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
+          Debug Mode: ON
         </div>
-        
-        <PremiumServicesGrid />
-        <FeaturesOverview />
-        <TestimonialsSection />
-        <ComparisonTable />
-      </div>
-    </MainLayout>
+      )}
+    </>
   );
 };
 

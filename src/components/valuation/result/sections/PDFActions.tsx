@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Mail, Lock, Loader2 } from 'lucide-react';
+import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 interface PDFActionsProps {
   isPremium: boolean;
@@ -21,13 +22,21 @@ export const PDFActions: React.FC<PDFActionsProps> = ({
   isDownloading,
   isEmailSending
 }) => {
+  // In debug mode, always show the premium content
+  const showPremiumContent = SHOW_ALL_COMPONENTS || isPremium;
+  
   return (
     <Card>
+      {SHOW_ALL_COMPONENTS && (
+        <div className="bg-green-100 text-green-800 text-xs p-1 rounded-t-sm">
+          PDF Actions Component (Premium: {isPremium ? 'Yes' : 'No'})
+        </div>
+      )}
       <CardHeader className="bg-muted/20">
         <CardTitle className="text-lg">Valuation Report</CardTitle>
       </CardHeader>
       <CardContent className="py-4">
-        {isPremium ? (
+        {showPremiumContent ? (
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               variant="default"
