@@ -1,51 +1,62 @@
 
-import { formatDate } from './formatDate';
-
 /**
- * Format a date relative to the current time (e.g., "2 hours ago")
- * @param dateString - ISO date string or Date object
+ * Formats a date as relative time (e.g., "3 days ago", "just now")
+ * @param date - The date to format, either as Date object or ISO string
  * @returns Formatted relative time string
  */
-export function formatRelativeTime(dateString: string | Date): string {
-  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+export const formatRelativeTime = (date: Date | string | null | undefined): string => {
+  if (!date) return '';
   
-  // Convert to seconds
-  const diffSecs = Math.floor(diffMs / 1000);
-  
-  if (diffSecs < 60) {
-    return 'Just now';
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    // Check if date is valid
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return '';
+    }
+    
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
+    
+    // Less than a minute
+    if (diffInSeconds < 60) {
+      return 'just now';
+    }
+    
+    // Less than an hour
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    }
+    
+    // Less than a day
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    }
+    
+    // Less than a week
+    if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+    
+    // Less than a month (30 days)
+    if (diffInSeconds < 2592000) {
+      const weeks = Math.floor(diffInSeconds / 604800);
+      return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+    }
+    
+    // Less than a year
+    if (diffInSeconds < 31536000) {
+      const months = Math.floor(diffInSeconds / 2592000);
+      return `${months} month${months > 1 ? 's' : ''} ago`;
+    }
+    
+    // More than a year
+    const years = Math.floor(diffInSeconds / 31536000);
+    return `${years} year${years > 1 ? 's' : ''} ago`;
+  } catch (error) {
+    return '';
   }
-  
-  // Convert to minutes
-  const diffMins = Math.floor(diffSecs / 60);
-  
-  if (diffMins < 60) {
-    return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-  }
-  
-  // Convert to hours
-  const diffHours = Math.floor(diffMins / 60);
-  
-  if (diffHours < 24) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  // Convert to days
-  const diffDays = Math.floor(diffHours / 24);
-  
-  if (diffDays < 30) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  // Convert to months
-  const diffMonths = Math.floor(diffDays / 30);
-  
-  if (diffMonths < 12) {
-    return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
-  }
-  
-  // For older dates, use the formatDate function
-  return formatDate(typeof dateString === 'string' ? dateString : dateString.toISOString());
-}
+};

@@ -1,11 +1,13 @@
 
-import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
-
 /**
- * Converts a manual entry form data object to a JSON string
- * @param data Manual entry form data
- * @returns JSON string representation of the data
+ * Converts manual entry form data to JSON format
+ * @param formData - The form data to convert
+ * @returns JSON formatted data
  */
-export function manualEntryToJson(data: ManualEntryFormData): string {
-  return JSON.stringify(data);
-}
+export const manualEntryToJson = (formData: Record<string, any>): string => {
+  try {
+    return JSON.stringify(formData, null, 2);
+  } catch (error) {
+    return '{}';
+  }
+};
