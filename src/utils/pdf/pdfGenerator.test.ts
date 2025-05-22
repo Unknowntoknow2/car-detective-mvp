@@ -1,60 +1,96 @@
 
-// Mock test file for PDF generator
+import { describe, it, expect, vi } from 'vitest';
+import { generateValuationPdf } from './generateValuationPdf';
 import { ReportData } from './types';
 
-describe('PDF Generator', () => {
-  test('should create report data correctly', () => {
-    // Example minimum required data
-    const minimalData = {
+// Mock the PDF generation dependencies
+vi.mock('@react-pdf/renderer', () => ({
+  pdf: {
+    create: vi.fn().mockReturnValue({
+      toBlob: vi.fn().mockResolvedValue(new Blob(['mock pdf content'], { type: 'application/pdf' })),
+      toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock pdf content')),
+    }),
+  },
+  Document: vi.fn(({ children }) => children),
+  Page: vi.fn(({ children }) => children),
+  Text: vi.fn(({ children }) => children),
+  View: vi.fn(({ children }) => children),
+  StyleSheet: {
+    create: vi.fn().mockReturnValue({}),
+  },
+  Font: {
+    register: vi.fn(),
+  },
+  Image: vi.fn(() => 'Image'),
+}));
+
+describe('generateValuationPdf', () => {
+  it('generates a PDF with the correct data', async () => {
+    // Sample test data
+    const testData: ReportData = {
       make: 'Toyota',
       model: 'Camry',
       year: 2020,
-      mileage: 35000, // Added mileage field
+      vin: 'ABC123456DEF78901',
+      mileage: 15000,
       zipCode: '90210',
-      price: 22000,
-      estimatedValue: 21500,
-      // Add required fields
+      estimatedValue: 25000,
+      condition: 'Good',
+      adjustments: [
+        {
+          factor: 'Mileage',
+          impact: -500,
+          description: 'Lower than average mileage'
+        },
+        {
+          factor: 'Condition',
+          impact: 1000,
+          description: 'Excellent condition'
+        }
+      ],
+      confidenceScore: 85,
       aiCondition: {
         condition: 'Good',
         confidenceScore: 85,
         issuesDetected: [],
-        summary: 'Vehicle is in good condition overall.'
+        summary: 'Vehicle is in good condition.'
       },
-      generatedDate: new Date()
+      generatedAt: new Date().toISOString(), // Fixed from generatedDate to generatedAt
     };
+
+    // Generate the PDF
+    const pdfBuffer = await generateValuationPdf(testData);
     
-    // Verify data has required fields
-    expect(minimalData.make).toBeDefined();
-    expect(minimalData.mileage).toBeDefined();
-    expect(minimalData.zipCode).toBeDefined();
-    expect(minimalData.aiCondition).toBeDefined();
-    
-    // Create a full report data
-    const fullData: ReportData = {
-      ...minimalData,
-      vin: '1HGCM82633A123456',
-      trim: 'XLE',
-      color: 'Silver',
-      bodyStyle: 'Sedan',
-      transmission: 'Automatic',
-      fuelType: 'Gasoline',
-      confidenceScore: 85,
-      photoScore: 92,
-      priceRange: [21000, 23000],
-      adjustments: [
-        { 
-          factor: 'Low Mileage', 
-          impact: 500, 
-          description: 'Vehicle has lower than average mileage' 
-        }
-      ],
-      premium: true,
-      generatedDate: new Date()
+    // Verify the PDF was generated
+    expect(pdfBuffer).toBeDefined();
+    expect(pdfBuffer instanceof Uint8Array).toBe(true);
+  });
+
+  it('handles missing optional fields gracefully', async () => {
+    // Minimal test data with only required fields
+    const minimalData: ReportData = {
+      make: 'Honda',
+      model: 'Civic',
+      year: 2019,
+      mileage: 20000,
+      estimatedValue: 18000,
+      condition: 'Fair',
+      confidenceScore: 80,
+      zipCode: '10001',
+      aiCondition: {
+        condition: 'Fair',
+        confidenceScore: 75,
+        issuesDetected: [],
+        summary: 'Vehicle is in fair condition.'
+      },
+      generatedAt: new Date().toISOString(), // Fixed from generatedDate to generatedAt
     };
+
+    // Generate the PDF with minimal data
+    const pdfBuffer = await generateValuationPdf(minimalData);
     
-    // Verify full data has all expected fields
-    expect(fullData.vin).toBeDefined();
-    expect(fullData.adjustments).toBeDefined();
-    expect(fullData.premium).toBeDefined();
+    // Verify the PDF was generated even with minimal data
+    expect(pdfBuffer).toBeDefined();
+    expect(pdfBuffer instanceof Uint8Array).toBe(true);
   });
 });

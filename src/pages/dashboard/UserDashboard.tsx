@@ -85,6 +85,7 @@ export default function UserDashboard() {
         model: valuation.model || 'Unknown',
         year: valuation.year || new Date().getFullYear(),
         mileage: valuation.mileage || 0,
+        condition: valuation.condition || 'Good', // Add the required condition property
         estimatedValue: valuation.estimatedValue,
         confidenceScore: valuation.confidenceScore || 75,
         zipCode: valuation.zipCode || '00000',
@@ -95,7 +96,7 @@ export default function UserDashboard() {
           summary: `Vehicle is in ${valuation.condition || 'Good'} condition.`
         },
         adjustments: formattedAdjustments,
-        generatedDate: new Date()
+        generatedAt: new Date().toISOString() // Use generatedAt instead of generatedDate
       };
 
       await downloadValuationPdf(reportData);
