@@ -1,21 +1,28 @@
 
 /**
- * Formats a number with commas as thousands separators
- * @param value - The number to format
- * @param decimals - Number of decimal places (default: 0)
+ * Format a number with commas and optional decimal places
+ * @param value - The numeric value to format
+ * @param locale - The locale to use for formatting (default: en-US)
+ * @param decimalPlaces - Number of decimal places to show (default: 0)
  * @returns Formatted number string
  */
-export function formatNumber(value: number | null | undefined, decimals: number = 0): string {
+export const formatNumber = (
+  value: number | null | undefined,
+  locale: string = 'en-US',
+  decimalPlaces: number = 0
+): string => {
+  // Handle invalid values
   if (value === null || value === undefined || isNaN(Number(value))) {
     return '0';
   }
   
   try {
-    return Number(value).toLocaleString('en-US', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
+    return Number(value).toLocaleString(locale, {
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces
     });
   } catch (error) {
-    return '0';
+    // Fallback if toLocaleString fails
+    return Number(value).toFixed(decimalPlaces).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
-}
+};
