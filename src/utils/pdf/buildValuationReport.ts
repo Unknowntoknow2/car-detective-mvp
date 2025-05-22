@@ -1,4 +1,5 @@
 
+
 import { ValuationResult } from '@/types/valuation';
 
 export const buildValuationReport = (result: ValuationResult | null, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
@@ -35,22 +36,25 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     mileage: result.mileage || 0,
     condition: result.condition || 'N/A',
     price: result.estimatedValue || result.estimated_value || 0,
-    zipCode: result.zipCode || 'N/A',
+    zipCode: result.zipCode || result.zip_code || result.zip || 'N/A',
     vin: result.vin || 'N/A',
     fuelType: result.fuelType || result.fuel_type || 'N/A',
     transmission: result.transmission || 'N/A',
     color: result.color || 'N/A',
     bodyType: result.bodyType || result.bodyStyle || 'N/A',
     confidenceScore: result.confidenceScore || result.confidence_score || 0,
-    isPremium: result.isPremium || false,
+    isPremium: result.isPremium || result.is_premium || false,
     priceRange: Array.isArray(result.priceRange) && result.priceRange.length >= 2 
       ? [result.priceRange[0], result.priceRange[1]] as [number, number] 
-      : [0, 0] as [number, number],
+      : 'min' in result.priceRange && 'max' in result.priceRange 
+        ? [result.priceRange.min, result.priceRange.max] as [number, number]
+        : [0, 0] as [number, number],
     adjustments: result.adjustments || [],
     generatedAt: new Date().toISOString(),
-    explanation: result.explanation || 'N/A',
+    explanation: result.explanation || result.gptExplanation || 'N/A',
     userId: result.userId || 'N/A',
   };
 };
 
 export default buildValuationReport;
+

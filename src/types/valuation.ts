@@ -1,3 +1,4 @@
+
 // Define the base ValuationAdjustment interface
 export interface ValuationAdjustment {
   factor: string;
@@ -42,7 +43,7 @@ export interface ValuationResult {
   estimated_value?: number; // For backwards compatibility
   confidenceScore: number;
   confidence_score?: number; // For backwards compatibility
-  priceRange: [number, number] | { min: number; max: number };
+  priceRange: [number, number] | { min: number; max: number; };
   basePrice?: number;
   baseValue?: number;
   finalValue?: number;
@@ -62,14 +63,21 @@ export interface ValuationResult {
   fuelType?: string;
   fuel_type?: string; // For backwards compatibility
   explanation?: string;
+  gptExplanation?: string; // Added for backward compatibility
   transmission?: string;
   bestPhotoUrl?: string;
   photoScore?: number;
   photoExplanation?: string;
   zipCode?: string;
+  zip_code?: string; // For backwards compatibility
+  zip?: string; // For additional backwards compatibility
   userId?: string;
   trim?: string;
   photoUrls?: string[];
+  photo_url?: string; // For backwards compatibility
+  aiCondition?: any; // Add aiCondition property
+  premium_unlocked?: boolean; // Add premium_unlocked property
+  pdfUrl?: string; // Add pdfUrl property
 }
 
 // Define EnhancedValuationParams interface

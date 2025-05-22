@@ -1,153 +1,136 @@
+
+// Add a simple implementation or mock for this component
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { toast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-const profileFormSchema = z.object({
-  username: z.string()
-    .min(2, {
-      message: "Username must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Username must not be longer than 30 characters.",
-    }),
-  fullName: z.string()
-    .min(2, {
-      message: "Full name must be at least 2 characters.",
-    })
-    .max(50, {
-      message: "Full name must not be longer than 50 characters.",
-    }),
-  website: z.string().url().optional(),
-  bio: z.string().max(160).optional(),
-})
+interface ProfileFormProps {
+  className?: string;
+}
 
-export function ProfileForm() {
-  const { user, profile, updateProfile, loading } = useAuth();
-  const [isMounted, setIsMounted] = useState(false);
+const ProfileForm: React.FC<ProfileFormProps> = ({ className }) => {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const form = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      username: profile?.username || "",
-      fullName: profile?.full_name || "",
-      website: profile?.website || "",
-      bio: profile?.bio || "",
-    },
-    mode: "onChange",
-  })
-
-  async function onSubmit(values: z.infer<typeof profileFormSchema>) {
-    try {
-      await updateProfile({
-        username: values.username,
-        full_name: values.fullName,
-        website: values.website,
-        bio: values.bio,
-        id: user?.id || '',
-        avatar_url: profile?.avatar_url || '',
-        created_at: profile?.created_at || '',
-        updated_at: profile?.updated_at || '',
-      });
-
-      toast({
-        description: "Your profile has been updated successfully."
-      });
-    } catch (error) {
-      toast({
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive"
-      });
+    if (user) {
+      // Set email from auth user
+      setEmail(user.email || '');
+      
+      // Fetch user profile to get full name
+      const fetchProfile = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching profile:', error);
+            return;
+          }
+          
+          if (data) {
+            setFullName(data.full_name || '');
+          }
+        } catch (err) {
+          console.error('Error in fetchProfile:', err);
+        }
+      };
+      
+      fetchProfile();
     }
-  }
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) return;
+    
+    setIsUpdating(true);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: fullName,
+        })
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      toast.success('Profile updated successfully');
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      toast.error('Failed to update profile');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="shadcn" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your full name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com" {...field} />
-              </FormControl>
-              <FormDescription>
-                Enter your personal website.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Input placeholder="Tell us a little bit about yourself." {...field} />
-              </FormControl>
-              <FormDescription>
-                Write a short bio about yourself.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Update profile</Button>
-      </form>
-    </Form>
-  )
-}
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>Profile Information</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email"
+                value={email}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your email cannot be changed
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input 
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={isUpdating}
+              />
+            </div>
+            
+            <Button 
+              type="submit"
+              disabled={isUpdating}
+              className="mt-4"
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProfileForm;
