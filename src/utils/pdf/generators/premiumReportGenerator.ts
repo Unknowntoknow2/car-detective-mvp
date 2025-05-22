@@ -380,11 +380,11 @@ export async function generatePremiumPdf(
       font: boldFont,
       color: rgb(0.85, 0.85, 0.85), // Light gray
       opacity: 0.3,
-      rotate: { type: 'radians', angle: Math.PI / -4 }, // Properly formatted rotation object
+      rotate: Math.PI / -4, // -45 degrees in radians
     });
     
     // Instead of rotating, we'll use a workaround - the watermark is drawn
-    // at an angle on the page without using rotate/translate methods
+    // on the temporary page with rotation already applied
     
     // Draw the watermark on the main page as well
     page.drawText(watermarkText, {
@@ -394,6 +394,7 @@ export async function generatePremiumPdf(
       font: boldFont,
       color: rgb(0.85, 0.85, 0.85), // Light gray
       opacity: 0.3,
+      rotate: Math.PI / -4, // -45 degrees in radians
     });
     
     // Remove the temporary page
