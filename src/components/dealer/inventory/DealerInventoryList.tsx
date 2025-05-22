@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DealerInventoryItem } from '@/types/vehicle';
+import { DealerInventoryItem } from '@/types/vehicle.d';
 
 // Function to fix status check display
 export const fixStatusCheck = (status?: string) => {
