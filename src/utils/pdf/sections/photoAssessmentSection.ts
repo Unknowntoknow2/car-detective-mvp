@@ -1,4 +1,3 @@
-
 import { SectionParams } from '../types';
 
 export function drawPhotoAssessmentSection(params: SectionParams): number {

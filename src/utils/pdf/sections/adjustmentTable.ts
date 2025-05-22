@@ -1,5 +1,4 @@
-
-import { SectionParams, AdjustmentBreakdown } from '../types';
+import { SectionParams, AdjustmentItem } from '../types';
 import { safeString, formatCurrency } from './sectionHelper';
 
 export const drawAdjustmentTable = (params: SectionParams): number => {
