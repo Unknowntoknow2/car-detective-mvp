@@ -22,7 +22,7 @@ export interface UserProfile {
   updated_at: string;
 }
 
-export type UserRole = 'user' | 'admin' | 'dealer';
+export type UserRole = 'user' | 'admin' | 'dealer' | 'individual';
 
 export interface AuthFormProps {
   mode?: AuthMode;
