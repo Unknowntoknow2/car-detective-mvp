@@ -55,6 +55,7 @@ export interface ReportOptions {
   includePhotoAssessment?: boolean;
   watermark?: string;
   pdfDoc?: any;
+  fontSize?: number;
 }
 
 export interface DocumentFonts {
@@ -78,6 +79,7 @@ export interface SectionParams {
   primaryColor?: any;
   height?: number;
   pdfDoc?: any;
+  fontSize?: number;
 }
 
 export type AdjustmentItem = {
@@ -86,9 +88,9 @@ export type AdjustmentItem = {
   description?: string;
 };
 
+export type RotationTypes = 'radians' | 'degrees';
+
 export type Rotation = {
   type: RotationTypes;
   angle: number;
 };
-
-export type RotationTypes = 'radians' | 'degrees';

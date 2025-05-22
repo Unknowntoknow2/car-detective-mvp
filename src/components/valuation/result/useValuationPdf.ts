@@ -45,7 +45,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       if (conditionData) {
         reportData.aiCondition = {
           condition: conditionData.condition || reportData.condition,
-          confidenceScore: conditionData.score || reportData.confidenceScore,
+          confidenceScore: conditionData.confidenceScore || reportData.confidenceScore,
           issuesDetected: conditionData.issuesDetected || [],
           summary: conditionData.summary || `Vehicle is in ${reportData.condition} condition.`
         };
@@ -58,8 +58,8 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         watermarkText: isPremium ? 'Premium Report' : 'Car Detective Report',
       };
       
-      // Generate PDF
-      await downloadPdf(reportData, options);
+      // Generate PDF - Fix: pass only reportData as the first argument
+      await downloadPdf(reportData);
       
       toast.success('Valuation report downloaded successfully');
       return 'success';
@@ -137,16 +137,8 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         explanation: 'This is a sample valuation report showing the premium features available in Car Detective. The actual premium report includes detailed market analysis, comprehensive condition assessment, and personalized recommendations.',
       };
       
-      // Generate PDF options
-      const options: Partial<ReportOptions> = {
-        includeExplanation: true,
-        isPremium: true,
-        watermarkText: 'SAMPLE REPORT',
-        showPremiumWatermark: true,
-      };
-      
-      // Generate PDF
-      await downloadPdf(sampleReportData, options);
+      // Generate PDF - Fix: pass only sampleReportData as the first argument
+      await downloadPdf(sampleReportData);
       
       toast.success('Sample report downloaded successfully');
       return true;
