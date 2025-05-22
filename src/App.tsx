@@ -4,11 +4,13 @@ import HomePage from '@/pages/HomePage';
 import ValuationPage from '@/pages/ValuationPage';
 import ValuationResultPage from '@/pages/ValuationResultPage';
 import ValuationDetailPage from '@/pages/ValuationDetailPage';
-import NotFoundPage from '@/pages/NotFoundPage';
+import NotFound from '@/pages/NotFound';
 import PremiumPage from '@/pages/Premium';
 import PremiumSuccessPage from '@/pages/PremiumSuccessPage';
 import AppLayout from '@/components/layout/AppLayout';
 import { AppProviders } from '@/providers/AppProviders';
+import SignInPage from '@/pages/auth/SignInPage';
+import AuthPage from '@/pages/AuthPage';
 
 function App() {
   return (
@@ -22,7 +24,9 @@ function App() {
           <Route path="/result" element={<ValuationResultPage />} />
           <Route path="/premium" element={<PremiumPage />} />
           <Route path="/premium-success" element={<PremiumSuccessPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </AppProviders>
