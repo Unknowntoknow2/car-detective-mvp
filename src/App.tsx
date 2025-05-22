@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useRoutes } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useRoutes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -10,9 +10,12 @@ import { Toaster } from 'sonner';
 function App() {
   // Use the routes configuration
   const appRoutes = useRoutes(routes);
+  const location = useLocation();
 
   // Add diagnostic logging to help with debugging
-  console.log('✅ App rendering with routes');
+  useEffect(() => {
+    console.log('✅ App rendering with current route:', location.pathname);
+  }, [location]);
 
   return (
     <AuthProvider>
