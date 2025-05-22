@@ -9,17 +9,18 @@ export function drawWatermark(params: SectionParams): number {
     page,
     width = 600, // Default width
     height = 800, // Default height
-    boldFont
+    boldFont,
+    y = 0
   } = params;
 
   if (!page) {
     console.warn("Page object is missing in watermark");
-    return params.y;
+    return y;
   }
 
   if (!boldFont) {
     console.warn("Bold font not provided for watermark");
-    return params.y;
+    return y;
   }
 
   // Determine watermark text based on whether it's a premium report
@@ -28,7 +29,6 @@ export function drawWatermark(params: SectionParams): number {
   // Set watermark properties
   const watermarkColor = rgb(0.8, 0.8, 0.8);
   const watermarkSize = width * 0.08; // Scale based on page width
-  const watermarkRotation = Math.PI / 4; // 45 degrees in radians
   
   // Calculate position for centered watermark
   const centerX = width / 2;
@@ -50,10 +50,7 @@ export function drawWatermark(params: SectionParams): number {
     color: watermarkColor,
     opacity: 0.2,
     rotate: {
-      type: 'degrees',
-      angle: 45,
-      xSkew: 0,
-      ySkew: 0,
+      angle: 45, // Use angle instead of type/degrees
     },
   });
   
@@ -77,5 +74,5 @@ export function drawWatermark(params: SectionParams): number {
   }
   
   // Return unchanged y position since watermark doesn't affect content flow
-  return params.y || 0;
+  return y;
 }

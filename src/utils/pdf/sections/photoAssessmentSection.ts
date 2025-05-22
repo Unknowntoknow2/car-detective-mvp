@@ -1,7 +1,8 @@
+
 import { SectionParams } from '../types';
 
 export function drawPhotoAssessmentSection(params: SectionParams): number {
-  const { data, page, y, width = 500, margin = 50, regularFont, boldFont, textColor, doc } = params;
+  const { data, page, y = 0, width = 500, margin = 50, regularFont, boldFont, textColor, doc } = params;
   
   // Exit early if no photo data
   const photoUrl = data.photoUrl || data.bestPhotoUrl;
@@ -10,6 +11,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
     return y;
   }
   
+  // Ensure currentY is defined with a default value
   let currentY = y;
   
   // Draw section title
@@ -151,6 +153,7 @@ export function drawPhotoAssessmentSection(params: SectionParams): number {
     }
   }
   
+  // Return the updated Y position
   return currentY;
 }
 

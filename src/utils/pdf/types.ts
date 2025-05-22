@@ -12,6 +12,7 @@ export interface ReportData {
   transmission?: string;
   color?: string;
   bodyStyle?: string;
+  bodyType?: string;
   priceRange?: [number, number];
   baseValue?: number;
   adjustments?: Array<AdjustmentItem>;
@@ -19,21 +20,19 @@ export interface ReportData {
   explanation?: string;
   generatedDate: Date;
   bestPhotoUrl?: string;
+  photoUrl?: string;
+  price?: number;
+  trim?: string;
   aiCondition?: any;
   premium?: boolean;
   isSample?: boolean;
-  
-  // Add missing properties from errors
-  trim?: string;
-  photoUrl?: string;
-  price?: number;
-  bodyType?: string;
   reportTitle?: string;
   reportDate?: Date;
   companyName?: string;
   website?: string;
   disclaimerText?: string;
   photoScore?: number;
+  regionName?: string;
 }
 
 // Add AdjustmentItem interface that was missing
@@ -55,7 +54,7 @@ export interface ReportOptions {
 
 // Add SectionParams interface
 export interface SectionParams {
-  doc?: any;
+  doc: any;
   page?: any;
   data: ReportData;
   y?: number;
@@ -82,4 +81,3 @@ export interface AdjustmentBreakdown {
   adjustments: AdjustmentItem[];
   totalValue: number;
 }
-

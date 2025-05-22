@@ -1,3 +1,4 @@
+
 import { ValuationResult } from '@/types/valuation';
 import { ReportData } from './types';
 
