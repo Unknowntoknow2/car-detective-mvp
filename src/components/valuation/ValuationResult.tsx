@@ -16,6 +16,7 @@ interface ValuationResultProps {
   isPremium?: boolean;
   isLoading?: boolean;
   error?: string;
+  onUpgrade?: () => void;
 }
 
 export default function ValuationResult({
@@ -23,7 +24,8 @@ export default function ValuationResult({
   data,
   isPremium = false,
   isLoading = false,
-  error
+  error,
+  onUpgrade
 }: ValuationResultProps) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();

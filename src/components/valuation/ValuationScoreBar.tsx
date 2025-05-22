@@ -38,6 +38,7 @@ export function ValuationScoreBar({
   };
   
   const heightClass = size === 'sm' ? 'h-1.5' : size === 'lg' ? 'h-3' : 'h-2';
+  const progressColor = getProgressColor(score);
   
   return (
     <div className={cn("space-y-1", className)}>
@@ -51,8 +52,7 @@ export function ValuationScoreBar({
       )}
       <Progress 
         value={score} 
-        className={cn(heightClass, "bg-gray-200")}
-        indicatorClassName={getProgressColor(score)}
+        className={cn(heightClass, "bg-gray-200", progressColor)}
       />
     </div>
   );

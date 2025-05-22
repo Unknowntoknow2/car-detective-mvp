@@ -89,12 +89,25 @@ export function ValuationResultStep({
   }
 
   // Ensure priceRange is a tuple with exactly two elements
-  const priceRange: [number, number] = result.priceRange && result.priceRange.length >= 2 
-    ? [result.priceRange[0], result.priceRange[1]] 
-    : [
+  let priceRange: [number, number];
+  
+  if (result.priceRange) {
+    if (Array.isArray(result.priceRange)) {
+      priceRange = [result.priceRange[0], result.priceRange[1]];
+    } else if ('min' in result.priceRange && 'max' in result.priceRange) {
+      priceRange = [result.priceRange.min, result.priceRange.max];
+    } else {
+      priceRange = [
         Math.round(result.estimatedValue * 0.95),
         Math.ceil(result.estimatedValue * 1.05)
       ];
+    }
+  } else {
+    priceRange = [
+      Math.round(result.estimatedValue * 0.95),
+      Math.ceil(result.estimatedValue * 1.05)
+    ];
+  }
 
   return (
     <div className="space-y-6">

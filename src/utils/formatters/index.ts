@@ -1,5 +1,9 @@
 
 export { formatNumber } from './formatNumber';
+export { formatCurrency } from './formatCurrency';
+export { formatDate } from './formatDate';
+export { formatRelativeTime } from './formatRelativeTime';
+export { manualEntryToJson } from './manualEntryToJson';
 
 /**
  * Formats a date/time value relative to the current time (e.g., "2 hours ago")

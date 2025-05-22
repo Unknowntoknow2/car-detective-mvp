@@ -50,6 +50,13 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
     condition: 'Good'
   };
 
+  // Ensure priceRange is a tuple with exactly two elements
+  const priceRange: [number, number] = data?.priceRange ? 
+    (Array.isArray(data.priceRange) ? 
+      [data.priceRange[0], data.priceRange[1]] : 
+      [data.priceRange.min, data.priceRange.max]) : 
+    [0, 0];
+
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
@@ -59,7 +66,7 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
         vehicleInfo={vehicleInfo}
         estimatedValue={data?.estimatedValue || 0}
         confidenceScore={data?.confidenceScore || 85}
-        priceRange={data?.priceRange}
+        priceRange={priceRange}
         adjustments={data?.adjustments}
       />
     </div>
