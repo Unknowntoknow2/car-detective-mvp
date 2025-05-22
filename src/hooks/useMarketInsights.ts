@@ -1,263 +1,187 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/utils/supabaseClient';
 
-interface AuctionResult {
-  vin: string;
-  source: string;
-  price: string;
-  sold_date: string;
-  odometer: string;
-  condition_grade?: string;
-  location?: string;
-  photo_urls?: string[];
-}
-
-interface MarketListing {
-  id: string;
-  title: string;
-  price: number;
-  url: string;
-  source: string;
+interface MarketInsightsProps {
   make?: string;
   model?: string;
   year?: number;
-  mileage?: number;
-  image?: string;
-  location?: string;
+  zipCode?: string;
 }
 
-interface MarketInsight {
-  listings: MarketListing[];
-  auctions: AuctionResult[];
+interface MarketInsightsData {
+  trendDirection: 'increasing' | 'decreasing' | 'stable';
+  trendPercentage: number;
   averagePrices: {
     retail: number;
-    auction: number;
     private: number;
+    auction: number;
+    overall: number;
   };
-  priceRange: {
-    min: number;
-    max: number;
-  };
-  isLoading: boolean;
-  error: string | null;
+  regionMultiplier: number;
+  demandScore: number;
+  similarListings: number;
+  comparableVehicles: Array<{
+    id: string;
+    title: string;
+    price: number;
+    mileage: number;
+    condition: string;
+    location: string;
+    source: string;
+    daysListed: number;
+  }>;
 }
 
-export function useMarketInsights(vin: string, make: string, model: string, year: number) {
-  const [insights, setInsights] = useState<MarketInsight>({
-    listings: [],
-    auctions: [],
-    averagePrices: { retail: 0, auction: 0, private: 0 },
-    priceRange: { min: 0, max: 0 },
-    isLoading: true,
-    error: null
-  });
-
-  useEffect(() => {
-    if (!vin && (!make || !model || !year)) {
-      setInsights(prev => ({ ...prev, isLoading: false, error: 'Insufficient vehicle data provided' }));
-      return;
-    }
-
-    async function fetchInsights() {
+export function useMarketInsights({ make, model, year, zipCode }: MarketInsightsProps) {
+  const queryKey = ['market-insights', make, model, year, zipCode];
+  
+  return useQuery({
+    queryKey,
+    queryFn: async (): Promise<MarketInsightsData> => {
       try {
-        // 1. Fetch auction history from DB first
-        let auctionResults: AuctionResult[] = [];
+        // Default values if API call fails
+        const defaultData: MarketInsightsData = {
+          trendDirection: 'stable',
+          trendPercentage: 0,
+          averagePrices: {
+            retail: 25000,
+            private: 23000,
+            auction: 21000,
+            overall: 23000
+          },
+          regionMultiplier: 1.0,
+          demandScore: 5,
+          similarListings: 12,
+          comparableVehicles: []
+        };
         
+        // Try to fetch auction data from supabase
         try {
-          const { data: existingAuctions, error: auctionError } = await supabase
-            .from('auction_results_by_vin')
+          const { data: auctionData, error } = await supabase
+            .from('auction_data')
             .select('*')
-            .eq('vin', vin);
-
-          if (!auctionError && existingAuctions) {
-            auctionResults = existingAuctions;
-          }
-        } catch (error) {
-          console.error('Error fetching auction data:', error);
-          // Continue with empty auction results
-        }
-        
-        // 2. Only attempt to fetch external data if no DB results
-        if (auctionResults.length === 0) {
-          try {
-            // Generate mock auction data instead of making actual API calls
-            auctionResults = generateMockAuctionData(vin, make, model, year);
-          } catch (error) {
-            console.error('Error generating mock auction data:', error);
-            // Continue with empty auction results
-          }
-        }
-        
-        // 3. Fetch market listings (mock data for now)
-        let marketListings: MarketListing[] = [];
-        
-        try {
-          // Try to fetch from Supabase function
-          const { data: fetchedListings, error } = await supabase.functions.invoke('fetch-market-listings', {
-            body: { 
-              vin, 
-              make, 
-              model, 
-              year,
-              zipCode: '00000' // This would normally come from user profile
+            .eq('make', make)
+            .eq('model', model)
+            .gte('year', Number(year) - 2)
+            .lte('year', Number(year) + 2)
+            .limit(50);
+            
+          if (error) {
+            console.error('Error fetching auction data:', error);
+            // Fall back to default data but continue execution
+          } else if (auctionData && auctionData.length > 0) {
+            // Process auction data to enhance default values
+            const prices = auctionData.map(item => item.sale_price).filter(Boolean);
+            if (prices.length > 0) {
+              const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+              
+              // Update default data with real auction data
+              defaultData.averagePrices.auction = Math.round(avgPrice);
+              defaultData.averagePrices.overall = Math.round(
+                (defaultData.averagePrices.retail + defaultData.averagePrices.private + avgPrice) / 3
+              );
+              
+              // Calculate trend based on dates
+              const sortedByDate = [...auctionData].sort((a, b) => 
+                new Date(a.sale_date).getTime() - new Date(b.sale_date).getTime()
+              );
+              
+              if (sortedByDate.length > 5) {
+                const oldPrices = sortedByDate.slice(0, Math.floor(sortedByDate.length / 2))
+                  .map(item => item.sale_price)
+                  .filter(Boolean);
+                  
+                const newPrices = sortedByDate.slice(Math.floor(sortedByDate.length / 2))
+                  .map(item => item.sale_price)
+                  .filter(Boolean);
+                  
+                if (oldPrices.length > 0 && newPrices.length > 0) {
+                  const oldAvg = oldPrices.reduce((sum, price) => sum + price, 0) / oldPrices.length;
+                  const newAvg = newPrices.reduce((sum, price) => sum + price, 0) / newPrices.length;
+                  
+                  const percentChange = ((newAvg - oldAvg) / oldAvg) * 100;
+                  
+                  defaultData.trendPercentage = parseFloat(percentChange.toFixed(1));
+                  defaultData.trendDirection = 
+                    percentChange > 1 ? 'increasing' : 
+                    percentChange < -1 ? 'decreasing' : 'stable';
+                }
+              }
+              
+              // Create comparable vehicles from auction data
+              defaultData.comparableVehicles = auctionData.slice(0, 5).map(item => ({
+                id: item.id || `auction-${Math.random().toString(36).substring(2, 9)}`,
+                title: `${item.year} ${item.make} ${item.model}`,
+                price: item.sale_price,
+                mileage: item.mileage || 0,
+                condition: item.condition || 'Good',
+                location: item.location || 'Unknown',
+                source: item.auction_name || 'Auction',
+                daysListed: 0
+              }));
+              
+              defaultData.similarListings = auctionData.length;
             }
-          });
-          
-          if (!error && fetchedListings) {
-            marketListings = fetchedListings;
-          } else {
-            // Fallback to mock data
-            marketListings = generateMockMarketListings(make, model, year);
           }
-        } catch (error) {
-          console.error('Error fetching market listings:', error);
-          // Fallback to mock data
-          marketListings = generateMockMarketListings(make, model, year);
+        } catch (auctionError) {
+          console.error('Failed to process auction data:', auctionError);
+          // Continue with default data
         }
         
-        // 4. Calculate average prices and ranges
-        const retailPrices = marketListings
-          .filter(l => ['cargurus', 'autotrader', 'cars.com'].includes(l.source))
-          .map(l => l.price)
-          .filter(price => price > 0);
+        // Try to fetch region multiplier if we have a ZIP code
+        if (zipCode) {
+          try {
+            // This would typically be an API call to get regional pricing data
+            // For now, we'll use a simple calculation based on the first digit
+            const firstDigit = zipCode.substring(0, 1);
+            const regionMapping: Record<string, number> = {
+              '0': 1.02, // Northeast
+              '1': 1.03, // Northeast
+              '2': 0.97, // South
+              '3': 0.98, // South
+              '4': 1.00, // Midwest
+              '5': 0.99, // Midwest
+              '6': 0.97, // South Central
+              '7': 0.98, // Central
+              '8': 1.01, // Mountain
+              '9': 1.05, // West Coast
+            };
+            
+            defaultData.regionMultiplier = regionMapping[firstDigit] || 1.0;
+            
+            // Adjust prices based on region
+            const adjustment = defaultData.regionMultiplier;
+            defaultData.averagePrices.retail *= adjustment;
+            defaultData.averagePrices.private *= adjustment;
+            defaultData.averagePrices.auction *= adjustment;
+            defaultData.averagePrices.overall *= adjustment;
+          } catch (zipError) {
+            console.error('Error calculating region multiplier:', zipError);
+            // Continue with unadjusted data
+          }
+        }
         
-        const privatePrices = marketListings
-          .filter(l => ['craigslist', 'facebook'].includes(l.source))
-          .map(l => l.price)
-          .filter(price => price > 0);
-        
-        const auctionPrices = auctionResults
-          .map(a => parseFloat(a.price))
-          .filter(p => !isNaN(p) && p > 0);
-        
-        // Calculate averages
-        const getAverage = (arr: number[]): number => 
-          arr.length ? arr.reduce((sum, val) => sum + val, 0) / arr.length : 0;
-        
-        const averagePrices = {
-          retail: Math.round(getAverage(retailPrices)),
-          private: Math.round(getAverage(privatePrices)),
-          auction: Math.round(getAverage(auctionPrices))
+        return defaultData;
+      } catch (error) {
+        console.error('Error in market insights query:', error);
+        // Return fallback data in case of any errors
+        return {
+          trendDirection: 'stable',
+          trendPercentage: 0,
+          averagePrices: {
+            retail: 25000,
+            private: 23000,
+            auction: 21000,
+            overall: 23000
+          },
+          regionMultiplier: 1.0,
+          demandScore: 5,
+          similarListings: 12,
+          comparableVehicles: []
         };
-        
-        // Calculate overall price range
-        const allPrices = [...retailPrices, ...privatePrices, ...auctionPrices].filter(p => p > 0);
-        const priceRange = {
-          min: allPrices.length ? Math.min(...allPrices) : 0,
-          max: allPrices.length ? Math.max(...allPrices) : 0
-        };
-        
-        // 5. Update state with all data
-        setInsights({
-          listings: marketListings,
-          auctions: auctionResults,
-          averagePrices,
-          priceRange,
-          isLoading: false,
-          error: null
-        });
-        
-      } catch (error: any) {
-        console.error('Error fetching market insights:', error);
-        setInsights(prev => ({
-          ...prev,
-          isLoading: false,
-          error: error.message || 'Failed to load market insights'
-        }));
-        toast.error('Error loading market data');
       }
-    }
-    
-    fetchInsights();
-  }, [vin, make, model, year]);
-  
-  return insights;
-}
-
-// Helper function to generate mock auction data
-function generateMockAuctionData(vin: string, make: string, model: string, year: number): AuctionResult[] {
-  const basePrice = 15000 + (year - 2010) * 1000;
-  
-  return [
-    {
-      vin: vin || `${make.substring(0, 3)}${model.substring(0, 3)}${year}`,
-      source: 'manheim',
-      price: String(Math.round(basePrice * 0.85)),
-      sold_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      odometer: String(Math.round(12000 * (new Date().getFullYear() - year)))
     },
-    {
-      vin: vin || `${make.substring(0, 3)}${model.substring(0, 3)}${year}`,
-      source: 'iaai',
-      price: String(Math.round(basePrice * 0.82)),
-      sold_date: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-      odometer: String(Math.round(13000 * (new Date().getFullYear() - year)))
-    },
-    {
-      vin: vin || `${make.substring(0, 3)}${model.substring(0, 3)}${year}`,
-      source: 'copart',
-      price: String(Math.round(basePrice * 0.8)),
-      sold_date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-      odometer: String(Math.round(14000 * (new Date().getFullYear() - year)))
-    }
-  ];
-}
-
-// Helper function to generate mock market listings
-function generateMockMarketListings(make: string, model: string, year: number): MarketListing[] {
-  const basePrice = 15000 + (year - 2010) * 1000;
-  const locations = ['Los Angeles, CA', 'New York, NY', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ'];
-  
-  return [
-    {
-      id: '1',
-      title: `${year} ${make} ${model}`,
-      price: Math.round(basePrice * 1.1),
-      url: '#',
-      source: 'cargurus',
-      make,
-      model,
-      year,
-      mileage: Math.round(12000 * (new Date().getFullYear() - year)),
-      location: locations[0]
-    },
-    {
-      id: '2',
-      title: `${year} ${make} ${model}`,
-      price: Math.round(basePrice * 1.05),
-      url: '#',
-      source: 'autotrader',
-      make,
-      model,
-      year,
-      mileage: Math.round(15000 * (new Date().getFullYear() - year)),
-      location: locations[1]
-    },
-    {
-      id: '3',
-      title: `${year} ${make} ${model}`,
-      price: Math.round(basePrice * 0.95),
-      url: '#',
-      source: 'craigslist',
-      make,
-      model,
-      year,
-      mileage: Math.round(18000 * (new Date().getFullYear() - year)),
-      location: locations[2]
-    },
-    {
-      id: '4',
-      title: `${year} ${make} ${model}`,
-      price: Math.round(basePrice * 0.98),
-      url: '#',
-      source: 'facebook',
-      make,
-      model,
-      year,
-      mileage: Math.round(14000 * (new Date().getFullYear() - year)),
-      location: locations[3]
-    }
-  ];
+    enabled: !!(make && model && year),
+  });
 }

@@ -16,11 +16,11 @@ export const formatCurrency = (
     return '$0';
   }
   
-  // Create number formatter with the specified locale and currency
+  // Create number formatter with USD and en-US locale
   try {
-    const formatter = new Intl.NumberFormat(locale, {
+    const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
