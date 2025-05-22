@@ -1,9 +1,8 @@
-
 import React, { createContext, useEffect, useState, ReactNode, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-// Add userDetails to the AuthContextType
+// Update UserDetails to include dealership_name
 interface UserDetails {
   id: string;
   full_name?: string;
@@ -12,6 +11,7 @@ interface UserDetails {
   avatar_url?: string;
   is_premium?: boolean;
   premium_expires_at?: string;
+  dealership_name?: string; // Add dealership_name property
 }
 
 interface AuthContextType {
