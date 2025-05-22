@@ -1,80 +1,52 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { toast } from "sonner";
+import React, { createContext, useContext, useState } from 'react';
 
-interface Vehicle {
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  vin?: string;
-  exteriorColor?: string;
-  mileage?: number;
-  fuelType?: string;
-  bodyType?: string;
-  transmissionType?: string;
-  drivetrainType?: string;
-  engine?: string;
-}
+type ValuationContextType = {
+  vinValue: string;
+  setVinValue: (value: string) => void;
+  plateValue: string;
+  setPlateValue: (value: string) => void;
+  stateValue: string;
+  setStateValue: (value: string) => void;
+  lookupMethod: 'vin' | 'plate' | 'manual';
+  setLookupMethod: (method: 'vin' | 'plate' | 'manual') => void;
+};
 
-interface ValuationContextType {
-  vehicle: Vehicle | null;
-  valuationId: string | null;
-  isLoading: boolean;
-  setVehicle: (vehicle: Vehicle | null) => void;
-  setValuationId: (id: string | null) => void;
-  setIsLoading: (loading: boolean) => void;
-  clearValuation: () => void;
-  saveValuationToHistory: () => void;
-}
+const defaultContext: ValuationContextType = {
+  vinValue: '',
+  setVinValue: () => {},
+  plateValue: '',
+  setPlateValue: () => {},
+  stateValue: '',
+  setStateValue: () => {},
+  lookupMethod: 'vin',
+  setLookupMethod: () => {},
+};
 
-const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
+const ValuationContext = createContext<ValuationContextType>(defaultContext);
 
-export function ValuationProvider({ children }: { children: ReactNode }) {
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [valuationId, setValuationId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const clearValuation = () => {
-    setVehicle(null);
-    setValuationId(null);
-    localStorage.removeItem("premium_vehicle");
-    toast.info("Valuation data cleared");
-  };
-
-  const saveValuationToHistory = () => {
-    if (!vehicle || !valuationId) {
-      toast.error("No valuation data to save");
-      return;
-    }
-
-    // In a real implementation, this would save to a database
-    // For now, we'll just show a toast
-    toast.success("Valuation saved to history");
-  };
+export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [vinValue, setVinValue] = useState('');
+  const [plateValue, setPlateValue] = useState('');
+  const [stateValue, setStateValue] = useState('');
+  const [lookupMethod, setLookupMethod] = useState<'vin' | 'plate' | 'manual'>('vin');
 
   return (
     <ValuationContext.Provider
       value={{
-        vehicle,
-        valuationId,
-        isLoading,
-        setVehicle,
-        setValuationId,
-        setIsLoading,
-        clearValuation,
-        saveValuationToHistory,
+        vinValue,
+        setVinValue,
+        plateValue,
+        setPlateValue,
+        stateValue,
+        setStateValue,
+        lookupMethod,
+        setLookupMethod,
       }}
     >
       {children}
     </ValuationContext.Provider>
   );
-}
+};
 
-export function useValuationContext() {
-  const context = useContext(ValuationContext);
-  if (context === undefined) {
-    throw new Error("useValuationContext must be used within a ValuationProvider");
-  }
-  return context;
-}
+export const useValuationContext = () => useContext(ValuationContext);
