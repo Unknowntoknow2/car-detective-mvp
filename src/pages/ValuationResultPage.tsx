@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
@@ -9,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PremiumUpgradeCTA } from '@/components/premium/PremiumUpgradeCTA';
 import { toast } from 'sonner';
 import { usePremiumCredits } from '@/hooks/usePremiumCredits';
+import { useValuationPdf } from '@/components/valuation/result/useValuationPdf';
 
 const ValuationResultPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +19,16 @@ const ValuationResultPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const { useCredit } = usePremiumCredits();
+  
+  // Get photo condition data if available
+  const [conditionData, setConditionData] = useState<any>(null);
+  
+  // Initialize the PDF functionality
+  const { generatePdf, emailPdf, isGenerating, isEmailSending } = useValuationPdf({
+    valuationId: id,
+    valuationData,
+    conditionData
+  });
   
   // Check if coming from premium purchase
   const searchParams = new URLSearchParams(location.search);
@@ -67,6 +77,17 @@ const ValuationResultPage = () => {
           }
         }
         
+        // Get photo condition data if available
+        const { data: photoConditionData } = await supabase
+          .from('photo_condition_scores')
+          .select('*')
+          .eq('valuation_id', id)
+          .maybeSingle();
+        
+        if (photoConditionData) {
+          setConditionData(photoConditionData);
+        }
+        
         // Format the data
         const formattedValuation = {
           ...valuation,
@@ -74,7 +95,7 @@ const ValuationResultPage = () => {
           confidenceScore: valuation.confidence_score,
           priceRange: calculatePriceRange(valuation.estimated_value, valuation.confidence_score),
           adjustments: generateAdjustments(valuation),
-          isPremium: hasPremium(hasPremiumAccess, premiumParam === '1')
+          isPremium: hasPremiumAccess
         };
         
         setValuationData(formattedValuation);
@@ -127,6 +148,26 @@ const ValuationResultPage = () => {
     return isPremiumUnlocked || isUsingCredit;
   };
   
+  // Handle PDF download
+  const handleDownloadPdf = async () => {
+    if (!isPremium) {
+      handleUpgrade();
+      return;
+    }
+    
+    await generatePdf({ isPremium: true });
+  };
+  
+  // Handle email PDF
+  const handleEmailPdf = async () => {
+    if (!isPremium) {
+      handleUpgrade();
+      return;
+    }
+    
+    await emailPdf();
+  };
+  
   const handleUpgrade = () => {
     // Show the premium upgrade CTA or redirect to premium page
     navigate(`/premium?valuation=${id}`);
@@ -158,6 +199,10 @@ const ValuationResultPage = () => {
                 data={valuationData}
                 isPremium={isPremium}
                 onUpgrade={handleUpgrade}
+                onDownloadPdf={handleDownloadPdf}
+                onEmailPdf={handleEmailPdf}
+                isGeneratingPdf={isGenerating}
+                isEmailingSending={isEmailSending}
               />
             </Card>
           </>

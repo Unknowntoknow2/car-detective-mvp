@@ -1,91 +1,62 @@
 
 import { useState } from 'react';
-import { ValuationResult } from '@/types/valuation';
-import { AICondition } from '@/types/photo';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { ReportData } from '@/utils/pdf/types';
-import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
-import { saveAs } from 'file-saver';
-import { toast } from '@/components/ui/use-toast';
+import buildValuationReport from '@/utils/pdf/buildValuationReport';
 
-interface UseValuationPdfProps {
-  valuationData: ValuationResult | null;
-  conditionData: AICondition | null;
-  isPremium?: boolean;
+interface UseValuationPdfOptions {
+  valuationId?: string;
+  valuationData: any;
+  conditionData: any;
 }
 
-export const useValuationPdf = ({
-  valuationData,
-  conditionData,
-  isPremium = false
-}: UseValuationPdfProps) => {
+export function useValuationPdf({ valuationId, valuationData, conditionData }: UseValuationPdfOptions) {
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const handleDownloadPdf = async () => {
-    if (!valuationData) {
-      toast({
-        description: "No valuation data available.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsGenerating(true);
-    
+  const [isEmailSending, setIsEmailSending] = useState(false);
+
+  const generatePdf = async (options: { isPremium: boolean } = { isPremium: false }) => {
     try {
-      // Format data for PDF generation - handling both naming conventions
-      const reportData: ReportData = {
-        make: valuationData.make || 'Unknown',
-        model: valuationData.model || 'Unknown',
-        year: valuationData.year || new Date().getFullYear(),
-        mileage: valuationData.mileage || 0,
-        estimatedValue: valuationData.estimated_value || valuationData.estimatedValue || 0,
-        zipCode: valuationData.zipCode || valuationData.zip_code || valuationData.zip || '',
-        vin: valuationData.vin || '',
-        fuelType: valuationData.fuelType || valuationData.fuel_type || '',
-        transmission: valuationData.transmission || '',
-        color: valuationData.color || '',
-        bodyStyle: valuationData.bodyType || valuationData.bodyStyle || '', 
-        confidenceScore: valuationData.confidence_score || valuationData.confidenceScore || 75,
-        // Convert adjustments to match ReportData format
-        adjustments: valuationData.adjustments?.map((adj: any) => ({
-          factor: adj.factor || '',
-          impact: adj.impact || 0,
-          description: adj.description || ''
-        })) || [],
-        generatedDate: new Date(),
-        // Add AI condition data
-        aiCondition: conditionData || {
-          condition: 'Unknown',
-          confidenceScore: 0,
-          issuesDetected: [],
-          summary: 'No condition data available'
-        }
-      };
+      setIsGenerating(true);
       
-      // Add best photo URL if available
-      if (valuationData.bestPhotoUrl || valuationData.photo_url) {
-        reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
+      // Build the report data
+      const reportData = valuationData ? buildValuationReport(valuationData, options.isPremium) : null;
+      
+      if (!reportData) {
+        throw new Error('Valuation data is required to generate PDF');
       }
       
-      // Generate the PDF
-      const pdfBytes = await generateValuationPdf(reportData);
+      // If we have condition data, add it to the report
+      if (conditionData) {
+        reportData.aiCondition = conditionData;
+      }
       
-      // Create file name
-      const fileName = `${reportData.make}_${reportData.model}_Valuation_${Date.now()}.pdf`;
-      
-      // Create a blob and save/download the file
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-      saveAs(pdfBlob, fileName);
-      
-      toast({
-        description: "Valuation PDF downloaded successfully."
+      // Call the PDF generation util
+      await downloadValuationPdf(reportData, {
+        isPremium: options.isPremium,
+        includePhotoAssessment: !!conditionData,
       });
+      
+      // Record this download in analytics or logs if needed
+      if (valuationId) {
+        try {
+          await supabase.from('pdf_downloads').insert({
+            valuation_id: valuationId,
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            is_premium: options.isPremium
+          });
+        } catch (logError) {
+          console.error('Failed to log PDF download:', logError);
+          // Non-critical error, don't throw
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast({
-        description: "Failed to generate the PDF. Please try again.",
-        variant: "destructive"
+      toast.error('Failed to generate PDF', {
+        description: error instanceof Error ? error.message : 'Please try again later',
       });
       return false;
     } finally {
@@ -93,78 +64,120 @@ export const useValuationPdf = ({
     }
   };
 
-  // New method to download a sample PDF report
-  const downloadSamplePdf = async () => {
-    setIsGenerating(true);
+  const emailPdf = async (email?: string) => {
+    if (!valuationId) {
+      toast.error('Valuation ID is required to email PDF');
+      return false;
+    }
     
     try {
-      // Create sample report data
-      const sampleReportData: ReportData = {
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        mileage: 35000,
-        estimatedValue: 22500,
-        zipCode: '90210',
-        vin: 'SAMPLE4T1BF1FK7CU123456',
-        fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        color: 'Silver',
-        bodyStyle: 'Sedan',
-        confidenceScore: 92,
-        adjustments: [
-          { factor: 'Mileage', impact: -500, description: 'Lower than average mileage for this model year' },
-          { factor: 'Condition', impact: 1200, description: 'Excellent overall condition' },
-          { factor: 'Market Demand', impact: 800, description: 'High demand in your region' },
-          { factor: 'Service History', impact: 300, description: 'Complete service records' }
-        ],
-        generatedDate: new Date(),
-        aiCondition: {
-          condition: 'Excellent',
-          confidenceScore: 95,
-          issuesDetected: [],
-          summary: 'Vehicle appears to be in excellent condition with no visible damage.'
-        },
-        bestPhotoUrl: 'https://img.freepik.com/free-photo/white-premium-business-sedan-car-driving-bridge-road_53876-126228.jpg',
-        // Add sample flag to indicate this is a sample report
-        isSample: true,
-        premium: true
-      };
+      setIsEmailSending(true);
       
-      // Generate the PDF with sample data
-      const pdfBytes = await generateValuationPdf(sampleReportData, {
-        watermark: 'SAMPLE REPORT',
-        isPremium: true
+      // Get user's email if not provided
+      let recipient = email;
+      if (!recipient) {
+        const { data } = await supabase.auth.getUser();
+        recipient = data.user?.email;
+        
+        if (!recipient) {
+          throw new Error('Email address is required');
+        }
+      }
+      
+      // Call the edge function to email the PDF
+      const { error } = await supabase.functions.invoke('email-valuation-pdf', {
+        body: { 
+          valuationId,
+          email: recipient
+        }
       });
       
-      // Create file name for sample
-      const fileName = `Sample_Valuation_Report_${Date.now()}.pdf`;
+      if (error) throw error;
       
-      // Create a blob and save/download the file
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-      saveAs(pdfBlob, fileName);
-      
-      toast({
-        description: "Sample PDF report downloaded successfully."
+      toast.success('PDF report sent!', {
+        description: `Check your inbox at ${recipient}`,
       });
+      
       return true;
     } catch (error) {
-      console.error('Error generating sample PDF:', error);
-      toast({
-        description: "Failed to generate the sample PDF. Please try again.",
-        variant: "destructive"
+      console.error('Error emailing PDF:', error);
+      toast.error('Failed to email PDF', {
+        description: error instanceof Error ? error.message : 'Please try again later',
       });
       return false;
     } finally {
-      setIsGenerating(false);
+      setIsEmailSending(false);
     }
   };
   
-  return {
-    isGenerating,
-    handleDownloadPdf,
-    downloadSamplePdf
+  // For generating sample PDFs (used in premium page)
+  const downloadSamplePdf = async () => {
+    try {
+      setIsGenerating(true);
+      
+      // Create sample report data
+      const sampleData: ReportData = {
+        make: 'Tesla',
+        model: 'Model 3',
+        year: 2023,
+        mileage: 12500,
+        condition: 'Excellent',
+        estimatedValue: 42500,
+        confidenceScore: 95,
+        priceRange: [40375, 44625],
+        vin: 'SAMPLE1VIN000001',
+        zipCode: '90210',
+        generatedAt: new Date().toISOString(),
+        isSample: true,
+        adjustments: [
+          {
+            factor: 'Mileage',
+            impact: 1200,
+            description: '12,500 miles (below average)'
+          },
+          {
+            factor: 'Condition',
+            impact: 1500,
+            description: 'Excellent condition'
+          },
+          {
+            factor: 'Market Demand',
+            impact: 800,
+            description: 'High demand in your area'
+          }
+        ],
+        aiCondition: {
+          condition: 'Excellent',
+          score: 92,
+          issues: ['Minor scuff on rear bumper'],
+          confidence: 'High'
+        }
+      };
+      
+      // Call the PDF generation util
+      await downloadValuationPdf(sampleData, {
+        isPremium: true,
+        includePhotoAssessment: true,
+        watermark: 'SAMPLE REPORT'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error generating sample PDF:', error);
+      toast.error('Failed to generate sample PDF', {
+        description: error instanceof Error ? error.message : 'Please try again later'
+      });
+      return false;
+    } finally {
+      setIsGenerating(false);
+    }
   };
-};
 
-export default useValuationPdf;
+  return {
+    generatePdf,
+    emailPdf,
+    downloadSamplePdf,
+    isGenerating,
+    isEmailSending
+  };
+}
