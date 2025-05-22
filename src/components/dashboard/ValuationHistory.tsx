@@ -72,7 +72,7 @@ export const ValuationHistory: React.FC<ValuationHistoryProps> = ({
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Mileage</p>
-                  <p>{valuation.mileage.toLocaleString()} mi</p>
+                  <p>{(valuation.mileage || 0).toLocaleString()} mi</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Condition</p>

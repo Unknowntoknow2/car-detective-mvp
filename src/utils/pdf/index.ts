@@ -1,5 +1,5 @@
 
-import { ReportData } from './types';
+import { ReportData, AdjustmentItem } from './types';
 import { downloadValuationPdf, openValuationPdf } from './generateValuationPdf';
 
 export interface ValuationReportInput {
@@ -32,6 +32,13 @@ export function convertVehicleInfoToReportData(
   vehicleInfo: DecodedVehicleInfo, 
   valuationData: ValuationReportInput
 ): ReportData {
+  // Make sure adjustments have a description
+  const formattedAdjustments: AdjustmentItem[] = valuationData.adjustments.map(adj => ({
+    factor: adj.factor,
+    impact: adj.impact,
+    description: adj.description || `Adjustment for ${adj.factor}`
+  }));
+  
   const reportData: ReportData = {
     // Vehicle information
     make: vehicleInfo.make,
@@ -56,7 +63,7 @@ export function convertVehicleInfoToReportData(
     },
     
     // Additional information
-    adjustments: valuationData.adjustments,
+    adjustments: formattedAdjustments,
     transmission: vehicleInfo.transmission,
     premium: valuationData.isPremium,
     generatedDate: new Date()

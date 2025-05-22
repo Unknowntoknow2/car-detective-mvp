@@ -1,3 +1,4 @@
+
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
@@ -7,10 +8,15 @@ import { SectionParams } from '../types';
 export function drawWatermark(params: SectionParams): number {
   const {
     page,
-    width = 0,
-    height = 0,
+    width = 600, // Default width
+    height = 800, // Default height
     boldFont
   } = params;
+
+  if (!page) {
+    console.warn("Page object is missing in watermark");
+    return params.y;
+  }
 
   if (!boldFont) {
     console.warn("Bold font not provided for watermark");
@@ -30,7 +36,10 @@ export function drawWatermark(params: SectionParams): number {
   const centerY = height / 2;
   
   // Measure text dimensions for centering
-  const textWidth = boldFont.widthOfTextAtSize(watermarkText, watermarkSize);
+  const textWidth = boldFont && typeof boldFont.widthOfTextAtSize === 'function'
+    ? boldFont.widthOfTextAtSize(watermarkText, watermarkSize)
+    : watermarkSize * watermarkText.length * 0.5; // Fallback calculation
+  
   const textHeight = watermarkSize;
   
   // Draw rotated watermark
@@ -54,7 +63,9 @@ export function drawWatermark(params: SectionParams): number {
     // Draw a smaller note at the bottom
     const noteText = 'Upgrade to Premium for Enhanced Report';
     const noteSize = 12;
-    const noteWidth = boldFont.widthOfTextAtSize(noteText, noteSize);
+    const noteWidth = boldFont && typeof boldFont.widthOfTextAtSize === 'function'
+      ? boldFont.widthOfTextAtSize(noteText, noteSize)
+      : noteSize * noteText.length * 0.5; // Fallback calculation
     
     page.drawText(noteText, {
       x: width / 2 - noteWidth / 2,

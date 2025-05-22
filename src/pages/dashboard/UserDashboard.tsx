@@ -5,15 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { Container } from '@/components/ui/container';
+import { AdjustmentItem } from '@/utils/pdf/types';
 
 export default function UserDashboard() {
   const [userValuations, setUserValuations] = useState<ValuationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userId = supabase.auth.getUser ? 
-    (supabase.auth.getUser() as any)?.data?.user?.id : 
+  // Get the user session safely
+  const session = supabase.auth.getSession ? 
+    (supabase.auth.getSession() as any)?.data?.session : 
     null;
+  const userId = session?.user?.id;
 
   useEffect(() => {
     if (userId) {
@@ -70,6 +73,13 @@ export default function UserDashboard() {
   const handleDownloadPdf = async (valuation: ValuationResult) => {
     try {
       // Prepare report data with non-null values for required fields
+      // Transform adjustments to ensure description is always defined
+      const formattedAdjustments: AdjustmentItem[] = (valuation.adjustments || []).map(adj => ({
+        factor: adj.factor,
+        impact: adj.impact,
+        description: adj.description || `Adjustment for ${adj.factor}`
+      }));
+
       const reportData = {
         make: valuation.make || 'Unknown',
         model: valuation.model || 'Unknown',
@@ -84,7 +94,7 @@ export default function UserDashboard() {
           issuesDetected: [],
           summary: `Vehicle is in ${valuation.condition || 'Good'} condition.`
         },
-        adjustments: valuation.adjustments || [],
+        adjustments: formattedAdjustments,
         generatedDate: new Date()
       };
 

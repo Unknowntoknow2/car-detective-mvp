@@ -11,6 +11,11 @@ export function drawFooterSection(params: SectionParams): void {
     regularFont 
   } = params;
   
+  if (!page) {
+    console.warn("Page object is missing in drawFooterSection");
+    return;
+  }
+  
   // Draw footer line
   page.drawLine({
     start: { x: 50, y: 50 },
@@ -30,7 +35,9 @@ export function drawFooterSection(params: SectionParams): void {
   
   // Draw date
   const dateText = `Report Date: ${new Date().toLocaleDateString()}`;
-  const dateTextWidth = regularFont ? regularFont.widthOfTextAtSize(dateText, 9) : 100;
+  const dateTextWidth = regularFont && typeof regularFont.widthOfTextAtSize === 'function' 
+    ? regularFont.widthOfTextAtSize(dateText, 9) 
+    : 100; // Fallback width
   
   page.drawText(dateText, {
     x: pageWidth - 50 - dateTextWidth,

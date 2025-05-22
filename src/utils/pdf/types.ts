@@ -57,9 +57,13 @@ export interface ReportData {
   explanation?: string;
   disclaimerText?: string;
   photoAssessment?: any;
-  conditionAdjustment?: any; // Added to match usage
+  conditionAdjustment?: any; // Added to match usage in dataConverter.ts
+  mileageAdjustment?: any; // Added to match usage in dataConverter.ts
+  locationAdjustment?: any; // Added to match usage in dataConverter.ts
+  marketAdjustment?: any; // Added to match usage in dataConverter.ts
   features?: any[]; // Added to match usage
   score?: number; // Added to match usage
+  isPremium?: boolean; // Added to match usage
 }
 
 export interface AICondition {
@@ -74,7 +78,9 @@ export interface AdjustmentItem {
   factor: string;
   impact: number;
   description: string;
-  name?: string; // Added to match usage
+  name?: string; // Added to match usage in valuationEngine.ts
+  value?: number; // Added to match usage in valuationEngine.ts
+  percentAdjustment?: number;
 }
 
 export interface FooterData {
@@ -92,8 +98,8 @@ export interface SectionParams {
   y: number;
   page?: any;
   textColor?: string;
-  regularFont?: string;
-  boldFont?: string;
+  regularFont?: any; // Changed from string to any to allow widthOfTextAtSize
+  boldFont?: any; // Changed from string to any to allow widthOfTextAtSize
   width?: number; // Added for watermark.ts
   height?: number; // Added for watermark.ts
 }

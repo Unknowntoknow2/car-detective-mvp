@@ -28,7 +28,12 @@ export function convertBasicValuationToPdfData(
     marketAdjustment: getAdjustmentImpact(valuationResult, 'market'),
     
     // Condition Information
-    aiCondition: valuationResult.condition || valuationResult.aiCondition || '',
+    aiCondition: typeof valuationResult.aiCondition === 'object' ? valuationResult.aiCondition : {
+      condition: valuationResult.condition || 'Unknown',
+      confidenceScore: valuationResult.confidenceScore || 75,
+      issuesDetected: [],
+      summary: `Vehicle is in ${valuationResult.condition || 'average'} condition.`
+    },
     conditionScore: valuationResult.conditionScore || 0,
     
     // Location Information
@@ -41,12 +46,12 @@ export function convertBasicValuationToPdfData(
     explanation: explanation || generateDefaultExplanation(valuationResult),
     premium: false,
     
-    // Add adjustments array for compatibility
+    // Add adjustments array for compatibility, ensuring description is always provided
     adjustments: Array.isArray(valuationResult.adjustments) 
       ? valuationResult.adjustments.map(a => ({
           factor: a.factor || '',
           impact: a.impact || 0,
-          description: a.description || ''
+          description: a.description || `Adjustment for ${a.factor}`
         }))
       : []
   };
@@ -94,7 +99,6 @@ export function convertPremiumValuationToPdfData(
     
     // Premium flag
     premium: true,
-    isPremium: true,
     
     // Additional details
     fuelType: valuationResult.fuelType || valuationResult.fuel_type || '',
@@ -105,7 +109,9 @@ export function convertPremiumValuationToPdfData(
     // Override condition with more detailed data if available
     aiCondition: valuationResult.aiCondition || { 
       summary: typeof valuationResult.condition === 'string' ? valuationResult.condition : '',
-      condition: typeof valuationResult.condition === 'string' ? valuationResult.condition : ''
+      condition: typeof valuationResult.condition === 'string' ? valuationResult.condition : '',
+      confidenceScore: valuationResult.confidenceScore || 0,
+      issuesDetected: []
     },
     conditionNotes: valuationResult.conditionNotes || []
   };

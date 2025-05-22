@@ -17,6 +17,11 @@ export function drawFooterSection(params: SectionParams): void {
     boldFont
   } = params;
   
+  if (!page) {
+    console.warn("Page object is missing in footerSection");
+    return;
+  }
+  
   const footerY = 30;
   
   // Draw a line above the footer
@@ -40,7 +45,9 @@ export function drawFooterSection(params: SectionParams): void {
   
   // Draw page number if multiple pages
   const pageNumber = `Page 1`;
-  const pageNumberWidth = regularFont ? regularFont.widthOfTextAtSize(pageNumber, 8) : 30;
+  const pageNumberWidth = regularFont && typeof regularFont.widthOfTextAtSize === 'function'
+    ? regularFont.widthOfTextAtSize(pageNumber, 8)
+    : 30; // Fallback width
   
   page.drawText(pageNumber, {
     x: pageWidth - 50 - pageNumberWidth,
