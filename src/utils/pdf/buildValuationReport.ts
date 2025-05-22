@@ -1,5 +1,4 @@
 
-
 import { ValuationResult } from '@/types/valuation';
 
 export const buildValuationReport = (result: ValuationResult | null, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
@@ -28,6 +27,18 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     };
   }
 
+  // Handle different price range formats
+  let formattedPriceRange: [number, number] = [0, 0];
+  if (Array.isArray(result.priceRange)) {
+    if (result.priceRange.length >= 2) {
+      formattedPriceRange = [result.priceRange[0], result.priceRange[1]];
+    } else if (result.priceRange.length === 1) {
+      formattedPriceRange = [result.priceRange[0], result.priceRange[0]];
+    }
+  } else if (result.priceRange && typeof result.priceRange === 'object' && 'min' in result.priceRange && 'max' in result.priceRange) {
+    formattedPriceRange = [result.priceRange.min, result.priceRange.max];
+  }
+
   return {
     id: result.id || 'N/A',
     make: result.make || 'N/A',
@@ -43,12 +54,8 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     color: result.color || 'N/A',
     bodyType: result.bodyType || result.bodyStyle || 'N/A',
     confidenceScore: result.confidenceScore || result.confidence_score || 0,
-    isPremium: result.isPremium || result.is_premium || false,
-    priceRange: Array.isArray(result.priceRange) && result.priceRange.length >= 2 
-      ? [result.priceRange[0], result.priceRange[1]] as [number, number] 
-      : 'min' in result.priceRange && 'max' in result.priceRange 
-        ? [result.priceRange.min, result.priceRange.max] as [number, number]
-        : [0, 0] as [number, number],
+    isPremium: result.isPremium || result.is_premium || result.premium_unlocked || false,
+    priceRange: formattedPriceRange,
     adjustments: result.adjustments || [],
     generatedAt: new Date().toISOString(),
     explanation: result.explanation || result.gptExplanation || 'N/A',
@@ -57,4 +64,3 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
 };
 
 export default buildValuationReport;
-

@@ -1,53 +1,21 @@
 
-// Define the base ValuationAdjustment interface
-export interface ValuationAdjustment {
-  factor: string;
-  impact: number;
-  description: string; // Making description required
-  name?: string;
-  value?: number;
-  percentAdjustment?: number;
-  adjustment?: number; // Add this property
-  impactPercentage?: number;
-}
-
-// Define ValuationParams interface
-export interface ValuationParams {
-  baseMarketValue?: number;
-  mileage?: number;
-  condition?: string;
-  zipCode: string;
-  features?: string[];
-  make?: string;
-  model?: string;
-  year?: number;
-  vehicleYear?: number; // Added vehicleYear property for compatibility
-  accidentCount?: number;
-  trim?: string;
-  bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  titleStatus?: string;
-  exteriorColor?: string;
-  colorMultiplier?: number;
-  saleDate?: string;
-  mpg?: number;
-  aiConditionOverride?: any; // Added aiConditionOverride property
-  photoScore?: number; // Added photoScore property to fix the error
-}
-
-// Define ValuationResult interface
+// Define the ValuationResult interface
 export interface ValuationResult {
   id?: string;
   estimatedValue: number;
-  estimated_value?: number; // For backwards compatibility
-  confidenceScore: number;
-  confidence_score?: number; // For backwards compatibility
-  priceRange: [number, number] | { min: number; max: number; };
+  estimated_value?: number; // For backward compatibility
+  confidenceScore?: number;
+  confidence_score?: number; // For backward compatibility
+  priceRange: [number, number] | { min: number; max: number; } | number[];
   basePrice?: number;
+  base_price?: number; // For backward compatibility
   baseValue?: number;
   finalValue?: number;
-  adjustments: ValuationAdjustment[];
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
   make?: string;
   model?: string;
   year?: number;
@@ -55,95 +23,27 @@ export interface ValuationResult {
   condition?: string;
   vin?: string;
   isPremium?: boolean;
-  is_premium?: boolean; // For backwards compatibility
+  is_premium?: boolean; // For backward compatibility
+  premium_unlocked?: boolean; // For backward compatibility
   features?: string[];
   color?: string;
   bodyStyle?: string;
   bodyType?: string;
   fuelType?: string;
-  fuel_type?: string; // For backwards compatibility
+  fuel_type?: string; // For backward compatibility
   explanation?: string;
-  gptExplanation?: string; // Added for backward compatibility
+  gptExplanation?: string; // For backward compatibility
   transmission?: string;
   bestPhotoUrl?: string;
+  photoUrl?: string;
+  photo_url?: string; // For backward compatibility
   photoScore?: number;
   photoExplanation?: string;
+  pdfUrl?: string;
+  userId?: string;
   zipCode?: string;
-  zip_code?: string; // For backwards compatibility
-  zip?: string; // For additional backwards compatibility
-  userId?: string;
-  trim?: string;
+  zip_code?: string; // For backward compatibility
+  zip?: string; // For backward compatibility
+  aiCondition?: any;
   photoUrls?: string[];
-  photo_url?: string; // For backwards compatibility
-  aiCondition?: any; // Add aiCondition property
-  premium_unlocked?: boolean; // Add premium_unlocked property
-  pdfUrl?: string; // Add pdfUrl property
-}
-
-// Define EnhancedValuationParams interface
-export interface EnhancedValuationParams extends ValuationParams {
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
-  vin?: string;
-  plate?: string;
-  state?: string;
-  photos?: File[];
-  userId?: string;
-  valuationId?: string;
-  isPremium?: boolean;
-  isTestMode?: boolean;
-  notifyDealers?: boolean;
-  aiConditionData?: any;
-  aiConditionOverride?: any;
-  photoScore?: number;
-  premiumFeatures?: string[];
-  zip?: string;
-  carfaxData?: any;
-  accidentDescription?: string;
-}
-
-// Define FinalValuationResult interface
-export interface FinalValuationResult extends ValuationResult {
-  baseValue: number;
-  finalValue: number;
-  confidenceScore: number;
-  priceRange: [number, number];
-  estimatedValue: number;
-  explanation?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
-  features?: string[];
-  pdfUrl?: string; // Add pdfUrl property for test files
-  aiCondition?: any; // Add aiCondition property for test files
-}
-
-// Define ValuationInput interface for compatibility
-export interface ValuationInput {
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
-  vin?: string;
-  plate?: string;
-  state?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
-  zipCode: string;
-  bodyType?: string;
-  trim?: string;
-  transmission?: string;
-  fuelType?: string;
-  accidentCount?: number;
-  photos?: File[];
-  features?: string[];
-  mpg?: number | null;
-  userId?: string;
-  valuationId?: string;
-  isPremium?: boolean;
-  isTestMode?: boolean;
-  notifyDealers?: boolean;
-  baseMarketValue?: number;
-  aiConditionOverride?: any;
 }
