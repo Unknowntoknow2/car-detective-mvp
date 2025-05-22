@@ -9,72 +9,80 @@ export function usePremiumPayment() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  /**
+   * Creates a Stripe checkout session for premium access
+   * @param valuationId The valuation ID to associate with the premium purchase
+   * @param returnUrl Optional custom return URL after successful payment
+   */
   const createPaymentSession = async (valuationId: string, returnUrl?: string) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // For now, simulate a successful payment creation
-      // In a real implementation, this would call a Supabase function to create a Stripe checkout
-      console.log(`Creating payment session for valuation: ${valuationId}`);
+      // Call the Supabase Edge Function to create a Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          valuationId,
+          returnUrl: returnUrl || `/premium-success?valuation_id=${valuationId}`
+        }
+      });
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) throw error;
       
-      // Simulate a successful response
-      const mockUrl = `/premium-success?session_id=mock_session_123&valuation_id=${valuationId}`;
+      if (!data?.url) {
+        throw new Error('No checkout URL returned from server');
+      }
       
-      // In production, this would open Stripe checkout
-      return { success: true, url: mockUrl };
+      // Redirect to the Stripe checkout page
+      window.location.href = data.url;
+      
+      return { success: true };
     } catch (err: any) {
       console.error('Error creating payment session:', err);
       setError(err.message || 'Failed to initiate payment');
-      toast.error(err.message || 'Failed to initiate payment');
+      toast.error('Failed to initiate payment', {
+        description: err.message || 'An unexpected error occurred'
+      });
       return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
   
+  /**
+   * Verifies a payment session after returning from Stripe
+   * @param sessionId The Stripe session ID
+   */
   const verifyPaymentSession = async (sessionId: string) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // For now, simulate a successful payment verification
-      // In a real implementation, this would call a Supabase function to verify the Stripe session
-      console.log(`Verifying payment session: ${sessionId}`);
+      // Call the Supabase Edge Function to verify the payment
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { sessionId }
+      });
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) throw error;
       
-      // Get valuation ID from URL if available
-      const urlParams = new URLSearchParams(window.location.search);
-      const valuationId = urlParams.get('valuation_id');
-      
-      // Simulate a successful response
-      const mockResponse = { 
-        success: true, 
-        status: 'paid',
-        valuationId: valuationId
-      };
-      
-      if (mockResponse.success) {
+      if (data?.success) {
         toast.success('Payment successful! Premium features unlocked.');
         
-        // Navigate to the valuation page if there's a valuationId
-        if (mockResponse.valuationId) {
-          navigate(`/valuation/${mockResponse.valuationId}`);
+        // If there's a valuation ID, redirect to the valuation page
+        if (data.valuationId) {
+          navigate(`/valuation/${data.valuationId}`);
         }
       } else {
         toast.error('Payment verification failed.');
       }
       
-      return mockResponse;
+      return data;
     } catch (err: any) {
       console.error('Error verifying payment:', err);
       setError(err.message || 'Failed to verify payment');
-      toast.error(err.message || 'Failed to verify payment');
+      toast.error('Failed to verify payment', {
+        description: err.message || 'An unexpected error occurred'
+      });
       return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
