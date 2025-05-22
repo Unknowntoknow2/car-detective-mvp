@@ -1,20 +1,25 @@
-// ✅ File: src/scripts/scrapeCraigslist.ts
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { fetchCraigslistListings } from '../utils/scrapers/craigslist';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { fetchCraigslistListings } from '@/utils/scrapers/craigslist';
 
-(async () => {
-  const listings = await fetchCraigslistListings('Toyota', 'Camry', '95814', 5);
+// Main script to fetch listings
+const runScraper = async () => {
+  try {
+    const zipCode = '90210';
+    const maxResults = 20;
+    
+    console.log(`Fetching Craigslist listings for ZIP: ${zipCode}...`);
+    
+    // Fix function call to use correct number of arguments
+    const listings = await fetchCraigslistListings(zipCode, maxResults);
+    
+    console.log(`Found ${listings.length} listings`);
+    console.log(listings);
+    
+    // Save listings to database or file here
+  } catch (error) {
+    console.error('Error running Craigslist scraper:', error);
+  }
+};
 
-  const htmlPath = path.resolve(__dirname, '../../debug/craigslist.html');
-  fs.mkdirSync(path.dirname(htmlPath), { recursive: true });
-  fs.writeFileSync(htmlPath, (globalThis as any).__DEBUG_HTML__ || '');
-
-  console.log(`📄 Debug HTML saved to: ${htmlPath}`);
-  console.log('✅ Craigslist Listings:', listings);
-})();
+// Run the scraper
+runScraper();

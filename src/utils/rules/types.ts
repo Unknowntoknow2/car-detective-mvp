@@ -11,6 +11,7 @@ export interface RulesEngineInput {
   trim?: string;
   fuelType?: string;
   transmissionType?: string;
+  transmission?: string;
   accidentCount?: number;
   exteriorColor?: string;
   features?: string[];
@@ -25,8 +26,6 @@ export interface RulesEngineInput {
   drivingScore?: number;
   bodyType?: string;
   bodyStyle?: string;
-  // Add the following to fix calculator errors
-  transmission?: string;
   transmissionMultiplier?: number;
 }
 

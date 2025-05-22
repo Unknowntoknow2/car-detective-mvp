@@ -28,14 +28,12 @@ describe('generateValuationPdf', () => {
   it('generates a PDF with the correct data', async () => {
     // Sample test data
     const testData: ReportData = {
-      id: '123',
       make: 'Toyota',
       model: 'Camry',
       year: 2020,
       vin: 'ABC123456DEF78901',
       mileage: 15000,
       zipCode: '90210',
-      price: 25000,
       estimatedValue: 25000,
       adjustments: [
         {
@@ -50,8 +48,13 @@ describe('generateValuationPdf', () => {
         }
       ],
       confidenceScore: 85,
-      generatedAt: new Date().toISOString(),
-      priceRange: [23000, 27000],
+      aiCondition: {
+        condition: 'Good',
+        confidenceScore: 85,
+        issuesDetected: [],
+        summary: 'Vehicle is in good condition.'
+      },
+      generatedDate: new Date(),
     };
 
     // Generate the PDF
@@ -68,8 +71,17 @@ describe('generateValuationPdf', () => {
       make: 'Honda',
       model: 'Civic',
       year: 2019,
-      mileage: 0, // Add mileage with default value
+      mileage: 20000,
       estimatedValue: 18000,
+      confidenceScore: 80,
+      zipCode: '10001',
+      aiCondition: {
+        condition: 'Fair',
+        confidenceScore: 75,
+        issuesDetected: [],
+        summary: 'Vehicle is in fair condition.'
+      },
+      generatedDate: new Date(),
     };
 
     // Generate the PDF with minimal data

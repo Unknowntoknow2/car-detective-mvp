@@ -1,167 +1,109 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { ValuationHistory } from '@/components/dashboard/ValuationHistory';
+import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
-import { getUserValuations } from '@/utils/valuationService';
-import { formatCurrency } from '@/utils/formatters';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { openValuationPdf, downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { Container } from '@/components/ui/container';
 
-interface VehicleCardProps {
-  vehicle: ValuationResult;
-}
-
-// Only modify the part that has the error
-function VehicleCard({ vehicle }: VehicleCardProps) {
-  const handleDownloadPdf = () => {
-    if (!vehicle) return;
-    
-    // Create report data with necessary fields, ensuring required fields are not undefined
-    const reportData = {
-      year: vehicle.year || 0,
-      make: vehicle.make || '',
-      model: vehicle.model || '',
-      trim: vehicle.trim || '',
-      vin: vehicle.vin || '',
-      mileage: vehicle.mileage || 0,
-      estimatedValue: vehicle.estimatedValue || 0,
-      photoScore: vehicle.photoScore || 0,
-      bestPhotoUrl: vehicle.photoUrl || '',
-      zipCode: vehicle.zipCode || '00000', // Ensure zipCode is always provided
-      confidenceScore: vehicle.confidenceScore || 0,
-      aiCondition: {
-        condition: vehicle.condition || 'Unknown',
-        confidenceScore: vehicle.confidenceScore || 0,
-        issuesDetected: [],
-        summary: `Vehicle is in ${vehicle.condition || 'unknown'} condition.`
-      },
-      generatedDate: new Date()
-    };
-    
-    // Call PDF generation function
-    openValuationPdf(reportData);
-  };
-
-  return (
-    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-      <CardHeader>
-        <CardTitle>{vehicle.year} {vehicle.make} {vehicle.model}</CardTitle>
-        <CardDescription>
-          Estimated Value: {formatCurrency(vehicle.estimatedValue)}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p>VIN: {vehicle.vin || 'N/A'}</p>
-        <p>Mileage: {vehicle.mileage ? vehicle.mileage.toLocaleString() : 'N/A'}</p>
-        <Button variant="outline" onClick={handleDownloadPdf}>
-          Download PDF
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-const UserDashboard = () => {
-  const { user } = useAuth();
-  const [valuations, setValuations] = useState<ValuationResult[]>([]);
+export default function UserDashboard() {
+  const [userValuations, setUserValuations] = useState<ValuationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchValuationHistory = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        if (user) {
-          const history = await getUserValuations(user.id);
-          // Make sure the data conforms to ValuationResult type
-          const formattedHistory = history.map(item => ({
-            ...item,
-            // Add required properties for ValuationResult
-            priceRange: item.priceRange || { min: 0, max: 0 },
-            adjustments: item.adjustments || [],
-            // Ensure other required fields have default values
-            estimatedValue: item.estimatedValue || 0,
-            condition: item.condition || 'Unknown',
-            confidenceScore: item.confidenceScore || 0,
-            zipCode: item.zipCode || ''
-          })) as ValuationResult[];
-          
-          setValuations(formattedHistory);
-        } else {
-          setError('User not authenticated.');
-        }
-      } catch (err) {
-        setError('Failed to load valuation history.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const userId = supabase.auth.session()?.user?.id;
 
-    fetchValuationHistory();
-  }, [user]);
+  useEffect(() => {
+    if (userId) {
+      fetchUserValuations();
+    } else {
+      setIsLoading(false);
+      setError('User not authenticated');
+    }
+  }, [userId]);
+
+  const fetchUserValuations = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to meet ValuationResult interface requirements
+      const transformedData = data.map(item => ({
+        id: item.id,
+        make: item.make || '',
+        model: item.model || '',
+        year: item.year || 0,
+        mileage: item.mileage || 0,
+        vin: item.vin || '',
+        estimatedValue: item.estimated_value || 0,
+        photoUrl: item.photo_url || '',
+        photoScore: item.photo_score || 0,
+        createdAt: item.created_at || '',
+        // Add missing required properties
+        priceRange: [
+          Math.round((item.estimated_value || 0) * 0.95), 
+          Math.round((item.estimated_value || 0) * 1.05)
+        ],
+        adjustments: [],
+        condition: item.condition || 'Unknown',
+        confidenceScore: item.confidence_score || 0,
+        zipCode: item.zip_code || ''
+      }));
+
+      setUserValuations(transformedData);
+    } catch (err: any) {
+      console.error('Error fetching valuations:', err);
+      setError(err.message || 'Failed to fetch valuations');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = async (valuation: ValuationResult) => {
+    try {
+      // Prepare report data
+      const reportData = {
+        make: valuation.make,
+        model: valuation.model,
+        year: valuation.year,
+        mileage: valuation.mileage,
+        estimatedValue: valuation.estimatedValue,
+        confidenceScore: valuation.confidenceScore || 75,
+        zipCode: valuation.zipCode || '00000',
+        aiCondition: {
+          condition: valuation.condition || 'Good',
+          confidenceScore: valuation.confidenceScore || 75,
+          issuesDetected: [],
+          summary: `Vehicle is in ${valuation.condition || 'Good'} condition.`
+        },
+        adjustments: valuation.adjustments || [],
+        generatedDate: new Date()
+      };
+
+      await downloadValuationPdf(reportData);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+    }
+  };
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">
-        Welcome to your Dashboard!
-      </h1>
-
-      {user ? (
-        <div className="flex items-center space-x-4 mb-8">
-          <Avatar>
-            <AvatarImage src={user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.email}`} />
-            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="text-xl font-semibold">
-              {user.user_metadata?.full_name || user.email}
-            </h2>
-            <p className="text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <p className="text-red-500">Not logged in.</p>
-      )}
-
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">
-          Your Recent Valuations
-        </h2>
-        {isLoading && <p>Loading valuation history...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {valuations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {valuations.map((vehicle) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} />
-            ))}
-          </div>
-        ) : (
-          <p>No recent valuations found.</p>
-        )}
-      </section>
-
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">
-          Get Started
-        </h2>
-        <p className="mb-4">
-          Ready to find out the value of your vehicle?
-        </p>
-        <Link to="/valuation" className="inline-block">
-          <Button>
-            New Valuation
-          </Button>
-        </Link>
-      </section>
-    </div>
+    <Container>
+      <div className="py-8">
+        <h1 className="text-3xl font-bold mb-6">Your Dashboard</h1>
+        
+        <ValuationHistory 
+          valuations={userValuations} 
+          isLoading={isLoading} 
+          error={error} 
+          onDownloadPdf={handleDownloadPdf}
+        />
+      </div>
+    </Container>
   );
-};
-
-// Export the component
-export default UserDashboard;
+}

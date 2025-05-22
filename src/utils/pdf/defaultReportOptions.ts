@@ -8,5 +8,4 @@ export const defaultReportOptions: ReportOptions = {
   watermark: false,
   fontSize: 10,
   pdfQuality: 'standard',
-  // Remove pageSize or add it to ReportOptions interface
 };
