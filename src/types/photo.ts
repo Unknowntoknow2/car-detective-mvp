@@ -4,12 +4,14 @@ export interface AICondition {
   confidenceScore: number;
   issuesDetected: string[];
   summary: string;
+  score?: number; // Added to match usage in code
 }
 
 export interface AdjustmentBreakdown {
   factor: string;
   impact: number;
   description: string;
+  name?: string; // Added to match usage in valuationEngine.ts
 }
 
 export interface PhotoAnalysisResult {
@@ -56,6 +58,7 @@ export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
+  explanation?: string;
 }
 
 // Add PhotoScoringResult for photoScoringService
@@ -65,6 +68,11 @@ export interface PhotoScoringResult {
   condition: string;
   issues: string[];
   summary: string;
+  photoUrl?: string; // Added to match usage
+  score?: number; // Added to match usage
+  confidence?: number; // Added to match usage
+  photoUrls?: string[]; // Added to match usage
+  aiCondition?: AICondition; // Added to match usage
 }
 
 // Constants for photo upload limits

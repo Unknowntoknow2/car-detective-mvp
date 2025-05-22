@@ -75,7 +75,7 @@ const MyValuationsContent = () => {
           </Button>
         </div>
 
-        {isEmpty ? (
+        {isEmpty() ? (
           <Card className="text-center p-8">
             <CardContent className="pt-6">
               <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">

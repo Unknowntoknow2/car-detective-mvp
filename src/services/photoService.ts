@@ -10,6 +10,10 @@ export const analyzePhotos = async (
   
   // Return mock response
   return {
+    photoId: "mock-photo-id", // Added required field
+    confidence: 0.85, // Added required field
+    issues: ['Minor scratches on rear bumper', 'Small dent on driver door'], // Added required field
+    url: photoUrls[0], // Added required field
     photoUrls,
     overallScore: 85, // Add required overallScore field
     score: 85,
@@ -37,6 +41,15 @@ export const uploadPhotos = async (files: File[]): Promise<string[]> => {
   return urls;
 };
 
+// Add missing deletePhoto function
+export const deletePhoto = async (url: string): Promise<boolean> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  // Simulate success
+  return true;
+};
+
 // Function to analyze a single photo for its condition
 export const analyzePhotoCondition = async (photoUrl: string): Promise<AICondition> => {
   // Simulate API call
@@ -60,6 +73,10 @@ export const analyzeBatchPhotos = async (
   
   // Return mock enhanced analysis
   return {
+    photoId: "mock-batch-photo-id", // Added required field
+    confidence: 0.88, // Added required field
+    issues: ['Minor wear on interior', 'Light scratches on exterior'], // Added required field
+    url: photoUrls[0], // Added required field
     photoUrls,
     overallScore: 88, // Add required overallScore field
     score: 88,

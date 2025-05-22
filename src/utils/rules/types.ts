@@ -36,7 +36,7 @@ export interface AdjustmentBreakdown {
   factor: string;
   impact: number;
   description: string;
-  name?: string;
+  name?: string; // Added to match usage in valuationEngine.ts
   value?: number;
   percentAdjustment?: number;
 }

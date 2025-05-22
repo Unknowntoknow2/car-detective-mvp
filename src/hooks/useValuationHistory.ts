@@ -36,7 +36,9 @@ export function useValuationHistory() {
   const [valuations, setValuations] = useState<Valuation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const userId = supabase.auth.session()?.user?.id;
+  const userId = supabase.auth.getSession ? 
+    (supabase.auth.getSession() as any)?.data?.session?.user?.id : 
+    null;
 
   useEffect(() => {
     if (userId) {

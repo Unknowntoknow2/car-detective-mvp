@@ -33,11 +33,14 @@ export const scorePhotos = async (
   return {
     photoUrl: scores.length > 0 ? scores[0].url : '',
     score: 85,
-    confidenceScore: 0.85,
+    confidence: 0.85,
     condition: 'Good',
     aiCondition,
     individualScores: scores,
-    photoUrls // Using photoUrls in the correct property
+    photoUrls, // Using photoUrls in the correct property
+    issues: aiCondition.issuesDetected,
+    summary: aiCondition.summary,
+    overallScore: 85
   };
 };
 
@@ -46,8 +49,12 @@ export const convertToPhotoAnalysisResult = (
   result: PhotoScoringResult
 ): PhotoAnalysisResult => {
   return {
-    photoUrls: result.photoUrls || [result.photoUrl],
-    overallScore: result.score || 0, // Ensure overallScore is present
+    photoId: Math.random().toString(36).substring(2, 15), // Generate a random ID
+    confidence: result.confidence || 0.85,
+    issues: result.issues || [],
+    url: result.photoUrl || (result.photoUrls && result.photoUrls.length > 0 ? result.photoUrls[0] : ''),
+    photoUrls: result.photoUrls,
+    overallScore: result.overallScore || 0,
     score: result.score || 0,
     aiCondition: result.aiCondition,
     individualScores: result.individualScores || []
@@ -83,10 +90,16 @@ export const enhancedPhotoScoring = async (
     summary: 'Comprehensive analysis of multiple vehicle photos shows overall good condition with some normal wear and tear.'
   };
   
+  const avgScore = calculateAverageScore(individualScores);
+  
   return {
+    photoId: Math.random().toString(36).substring(2, 15), // Generate a random ID
+    confidence: 0.9,
+    issues: aiCondition.issuesDetected,
+    url: photoUrls[0],
     photoUrls,
-    overallScore: calculateAverageScore(individualScores),
-    score: calculateAverageScore(individualScores),
+    overallScore: avgScore,
+    score: avgScore,
     aiCondition,
     individualScores
   };
