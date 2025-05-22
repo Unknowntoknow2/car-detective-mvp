@@ -1,35 +1,25 @@
 
 import { useState, useEffect } from 'react';
 
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+// Custom hook to check if the screen is mobile-sized
+export const useMobile = (breakpoint: number = 768) => {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
 
   useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < breakpoint);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
     }
+  }, [breakpoint]);
 
-    const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
-    
-    return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
+  return isMobile;
+};
 
-  return matches;
-}
-
-export function useMobile(): boolean {
-  return useMediaQuery('(max-width: 768px)');
-}
-
-export function useTablet(): boolean {
-  return useMediaQuery('(min-width: 768px) and (max-width: 1024px)');
-}
-
-export function useDesktop(): boolean {
-  return useMediaQuery('(min-width: 1024px)');
-}
-
-// Alias for useMobile for components that import useIsMobile
+// Alias for backward compatibility
 export const useIsMobile = useMobile;

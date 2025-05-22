@@ -1,3 +1,4 @@
 
-export { DesignCard } from './DesignCard';
-export type { DesignCardProps } from './DesignCard';
+export { default as DesignCard } from './DesignCard';
+export * from './DesignCard';
+export * from './SectionHeader';
