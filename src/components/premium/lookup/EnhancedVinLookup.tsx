@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, CheckCircle2, AlertCircle, Car } from 'lucide-react';
-import { validateVin } from '@/utils/validation/vin-validation';
+import { validateVIN } from '@/utils/validation/vin-validation';
 import { toast } from 'sonner';
 
 interface EnhancedVinLookupProps {
@@ -32,10 +32,10 @@ export function EnhancedVinLookup({
 
   useEffect(() => {
     if (value) {
-      const result = validateVin(value);
+      const result = validateVIN(value);
       setValidationResult({
         isValid: result.isValid,
-        error: result.message || result.error || null
+        error: result.error || null
       });
     } else {
       setValidationResult({ isValid: false, error: null });

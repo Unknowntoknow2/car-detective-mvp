@@ -1,137 +1,146 @@
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { useDealerVehicles } from '@/hooks/useDealerVehicles';
 import { Loader2 } from 'lucide-react';
+import { useVehicleLookup } from '@/hooks/useVehicleLookup';
+import VinLookup from '@/components/lookup/VinLookup';
 
-// Create the form schema
+// Define the Zod schema for the form
 const vehicleFormSchema = z.object({
-  make: z.string().min(1, { message: 'Make is required' }),
-  model: z.string().min(1, { message: 'Model is required' }),
-  year: z.coerce.number().min(1900).max(new Date().getFullYear() + 1),
-  price: z.coerce.number().min(0),
-  mileage: z.coerce.number().min(0).optional().nullable(),
+  make: z.string().min(1, 'Make is required'),
+  model: z.string().min(1, 'Model is required'),
+  year: z.number().min(1900, 'Year must be at least 1900').max(new Date().getFullYear() + 1),
+  price: z.number().min(0, 'Price must be a positive number'),
+  mileage: z.number().min(0, 'Mileage must be a positive number').optional().default(0),
   condition: z.enum(['Excellent', 'Good', 'Fair', 'Poor']),
   status: z.enum(['available', 'pending', 'sold']),
+  photos: z.array(z.string()),
   transmission: z.enum(['Automatic', 'Manual', 'CVT']).optional(),
   fuel_type: z.enum(['Gasoline', 'Diesel', 'Hybrid', 'Electric']).optional(),
-  zip_code: z.string().optional(),
+  zip_code: z.string().min(1, 'Zip code is required'),
   description: z.string().optional(),
   vin: z.string().optional(),
   color: z.string().optional(),
-  photos: z.array(z.string())
 });
+
+type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
 
 interface AddEditVehicleFormProps {
   vehicleId?: string;
-  initialData?: Partial<DealerVehicleFormData>;
   onSuccess?: () => void;
 }
 
-const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
-  vehicleId,
-  initialData,
-  onSuccess
-}) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [photoUrls, setPhotoUrls] = useState<string[]>(initialData?.photos || []);
-  
-  const form = useForm<z.infer<typeof vehicleFormSchema>>({
+const AddEditVehicleForm = ({ vehicleId, onSuccess }: AddEditVehicleFormProps) => {
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const { addVehicle, isLoading } = useDealerVehicles();
+  const { lookupByVin, isLoading: isVinLoading, error: vinError } = useVehicleLookup();
+
+  // Initialize the form with default values
+  const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleFormSchema),
     defaultValues: {
-      make: initialData?.make || '',
-      model: initialData?.model || '',
-      year: initialData?.year || new Date().getFullYear(),
-      price: initialData?.price || 0,
-      mileage: initialData?.mileage || 0,
-      condition: initialData?.condition || 'Good',
-      status: initialData?.status || 'available',
-      transmission: initialData?.transmission || undefined,
-      fuel_type: initialData?.fuel_type || undefined,
-      zip_code: initialData?.zip_code || '',
-      description: initialData?.description || '',
-      vin: initialData?.vin || '',
-      color: initialData?.color || '',
-      photos: initialData?.photos || []
-    }
+      make: '',
+      model: '',
+      year: new Date().getFullYear(),
+      price: 0,
+      mileage: 0,
+      condition: 'Good',
+      status: 'available',
+      photos: [],
+      zip_code: '',
+      description: '',
+    },
   });
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const files = Array.from(e.target.files);
-    
-    // In a real app, you would upload these files to a storage service
-    // For now, we'll create fake URLs
-    const newUrls = files.map((file) => URL.createObjectURL(file));
-    
-    setPhotoUrls((prev) => [...prev, ...newUrls]);
-    form.setValue('photos', [...photoUrls, ...newUrls]);
-    
-    toast({
-      description: `${files.length} photos added successfully`,
-      variant: "success",
-    });
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setPhotoUrls((prev) => prev.filter((_, i) => i !== index));
-    form.setValue('photos', photoUrls.filter((_, i) => i !== index));
-  };
-
-  const onSubmit = async (data: z.infer<typeof vehicleFormSchema>) => {
-    setIsSubmitting(true);
-    
+  // Handle form submission
+  const onSubmit = async (data: VehicleFormValues) => {
     try {
-      // Ensure mileage is not null
-      const formattedData = {
-        ...data,
-        mileage: data.mileage || 0,
-        photos: photoUrls
-      };
-      
-      console.log('Submitting vehicle data:', formattedData);
-      
-      // In a real app, you would send this data to your API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        description: vehicleId 
-          ? 'Vehicle updated successfully' 
-          : 'Vehicle added successfully',
-        variant: "success",
-      });
-      
-      if (onSuccess) {
-        onSuccess();
+      const success = await addVehicle(data);
+      if (success) {
+        toast.success('Vehicle added successfully');
+        form.reset();
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast.error('Failed to add vehicle');
       }
     } catch (error) {
-      console.error('Error submitting vehicle data:', error);
-      toast({
-        description: 'Failed to save vehicle data. Please try again.',
-        variant: "destructive",
-      });
+      console.error("Error submitting form:", error);
+      toast.error('An error occurred while adding the vehicle');
+    }
+  };
+
+  // Handle VIN lookup
+  const handleVinLookup = async (vin: string) => {
+    setIsLookingUp(true);
+    try {
+      const vehicleData = await lookupByVin(vin);
+      
+      if (vehicleData) {
+        form.setValue('make', vehicleData.make);
+        form.setValue('model', vehicleData.model);
+        form.setValue('year', vehicleData.year);
+        form.setValue('vin', vin);
+        
+        if (vehicleData.transmission) {
+          form.setValue('transmission', vehicleData.transmission as any);
+        }
+        
+        if (vehicleData.fuelType) {
+          form.setValue('fuel_type', vehicleData.fuelType as any);
+        }
+        
+        if (vehicleData.exteriorColor) {
+          form.setValue('color', vehicleData.exteriorColor);
+        }
+        
+        toast.success('Vehicle information loaded');
+      } else {
+        toast.error('No vehicle information found for this VIN');
+      }
+    } catch (error) {
+      console.error("VIN lookup error:", error);
+      toast.error('Error looking up VIN');
     } finally {
-      setIsSubmitting(false);
+      setIsLookingUp(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Basic Information</h3>
-            
+    <div className="space-y-6">
+      <div className="p-4 border rounded-md bg-muted/50">
+        <h3 className="text-lg font-medium mb-2">VIN Lookup</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Quickly populate vehicle details by entering a VIN
+        </p>
+        <VinLookup 
+          onSubmit={handleVinLookup} 
+          isLoading={isVinLoading || isLookingUp} 
+        />
+        {vinError && (
+          <p className="text-sm text-red-500 mt-2">{vinError}</p>
+        )}
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="make"
@@ -139,13 +148,13 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
                 <FormItem>
                   <FormLabel>Make</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Toyota" {...field} />
+                    <Input placeholder="e.g. Toyota" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="model"
@@ -153,57 +162,55 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
                 <FormItem>
                   <FormLabel>Model</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Camry" {...field} />
+                    <Input placeholder="e.g. Camry" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 2022" 
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber || 0);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 25000" 
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber || 0);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="e.g. 2023" 
+                      {...field}
+                      onChange={e => field.onChange(Number(e.target.value))}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price ($)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="e.g. 25000" 
+                      {...field}
+                      onChange={e => field.onChange(Number(e.target.value))}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="mileage"
@@ -213,13 +220,35 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
                   <FormControl>
                     <Input 
                       type="number" 
-                      placeholder="e.g., 30000" 
+                      placeholder="e.g. 15000" 
                       {...field}
+                      onChange={e => field.onChange(Number(e.target.value))}
                       value={field.value || ''}
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber || 0);
-                      }}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="condition"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Condition</FormLabel>
+                  <FormControl>
+                    <select
+                      className="w-full p-2 border rounded-md"
+                      {...field}
+                    >
+                      <option value="Excellent">Excellent</option>
+                      <option value="Good">Good</option>
+                      <option value="Fair">Fair</option>
+                      <option value="Poor">Poor</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -228,16 +257,19 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
 
             <FormField
               control={form.control}
-              name="vin"
+              name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>VIN (Optional)</FormLabel>
+                  <FormLabel>Status</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Vehicle Identification Number" 
-                      {...field} 
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                    />
+                    <select
+                      className="w-full p-2 border rounded-md"
+                      {...field}
+                    >
+                      <option value="available">Available</option>
+                      <option value="pending">Pending</option>
+                      <option value="sold">Sold</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -249,228 +281,111 @@ const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Color (Optional)</FormLabel>
+                  <FormLabel>Color</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Silver" {...field} />
+                    <Input placeholder="e.g. Silver" {...field} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          
-          {/* Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Vehicle Details</h3>
-            
-            <FormField
-              control={form.control}
-              name="condition"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Condition</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select condition" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Excellent">Excellent</SelectItem>
-                      <SelectItem value="Good">Good</SelectItem>
-                      <SelectItem value="Fair">Fair</SelectItem>
-                      <SelectItem value="Poor">Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="transmission"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Transmission (Optional)</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select transmission" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Automatic">Automatic</SelectItem>
-                      <SelectItem value="Manual">Manual</SelectItem>
-                      <SelectItem value="CVT">CVT</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Transmission</FormLabel>
+                  <FormControl>
+                    <select
+                      className="w-full p-2 border rounded-md"
+                      {...field}
+                      value={field.value || ''}
+                    >
+                      <option value="">Select Transmission</option>
+                      <option value="Automatic">Automatic</option>
+                      <option value="Manual">Manual</option>
+                      <option value="CVT">CVT</option>
+                    </select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="fuel_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fuel Type (Optional)</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select fuel type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Gasoline">Gasoline</SelectItem>
-                      <SelectItem value="Diesel">Diesel</SelectItem>
-                      <SelectItem value="Hybrid">Hybrid</SelectItem>
-                      <SelectItem value="Electric">Electric</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="zip_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Zip Code (Optional)</FormLabel>
+                  <FormLabel>Fuel Type</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 90210" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Add details about the vehicle" 
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        
-        {/* Photos Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Vehicle Photos</h3>
-          
-          <div className="flex flex-col gap-4">
-            {photoUrls.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {photoUrls.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <div className="aspect-video bg-gray-100 rounded-md overflow-hidden">
-                      <img 
-                        src={url} 
-                        alt={`Vehicle preview ${index + 1}`}
-                        className="object-cover w-full h-full" 
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePhoto(index)}
-                      className="absolute top-1 right-1 bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    <select
+                      className="w-full p-2 border rounded-md"
+                      {...field}
+                      value={field.value || ''}
                     >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <p className="mb-1 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> or drag and drop
-                </p>
-                <p className="text-xs text-gray-500">
-                  JPEG, PNG or WebP (max 10MB)
-                </p>
-              </div>
-              <input 
-                type="file" 
-                className="hidden" 
-                accept="image/*" 
-                multiple 
-                onChange={handlePhotoUpload}
-              />
-            </label>
+                      <option value="">Select Fuel Type</option>
+                      <option value="Gasoline">Gasoline</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Electric">Electric</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-        </div>
-        
-        <div className="flex justify-end gap-2">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
+
+          <FormField
+            control={form.control}
+            name="zip_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Zip Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 90210" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter vehicle description" 
+                    className="min-h-[120px]" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {vehicleId ? 'Updating...' : 'Adding...'}
+                Saving...
               </>
             ) : (
-              vehicleId ? 'Update Vehicle' : 'Add Vehicle'
+              'Add Vehicle'
             )}
           </Button>
-        </div>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </div>
   );
 };
 
-// Both default and named exports for compatibility
 export default AddEditVehicleForm;
-export { AddEditVehicleForm };
