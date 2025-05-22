@@ -38,9 +38,9 @@ export const useValuationPdf = ({
         model: valuationData.model || 'Unknown',
         year: valuationData.year || new Date().getFullYear(),
         mileage: valuationData.mileage || 0,
-        // Use estimated_value or estimatedValue as price
-        price: valuationData.estimated_value || valuationData.estimatedValue || 0,
+        // Use estimated_value or estimatedValue as price & estimatedValue
         estimatedValue: valuationData.estimated_value || valuationData.estimatedValue || 0,
+        price: valuationData.estimated_value || valuationData.estimatedValue || 0,
         zipCode: valuationData.zipCode || valuationData.zip_code || valuationData.zip || '',
         vin: valuationData.vin || '',
         fuelType: valuationData.fuelType || valuationData.fuel_type || '',
@@ -61,6 +61,7 @@ export const useValuationPdf = ({
           impact: adj.impact || 0,
           description: adj.description || ''
         })) || [],
+        generatedDate: new Date(),
         generatedAt: new Date().toISOString(),
         explanation: valuationData.explanation || valuationData.gptExplanation || '',
       };
@@ -70,21 +71,22 @@ export const useValuationPdf = ({
         reportData.aiCondition = {
           summary: conditionData.summary || '',
           score: conditionData.confidenceScore || 0,
-          issuesDetected: conditionData.issuesDetected,
-          condition: conditionData.condition
+          issuesDetected: conditionData.issuesDetected || [],
+          condition: conditionData.condition || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = {
           summary: valuationData.aiCondition.summary || '',
           score: valuationData.aiCondition.confidenceScore || 0,
-          issuesDetected: valuationData.aiCondition.issuesDetected,
-          condition: valuationData.aiCondition.condition
+          issuesDetected: valuationData.aiCondition.issuesDetected || [],
+          condition: valuationData.aiCondition.condition || ''
         };
       }
       
       // Add photo data if available
       if (valuationData.bestPhotoUrl || valuationData.photo_url) {
         reportData.bestPhotoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
+        reportData.photoUrl = valuationData.bestPhotoUrl || valuationData.photo_url;
       }
       
       // Generate the PDF
