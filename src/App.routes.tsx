@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RouteObject } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -6,7 +5,7 @@ import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import NotFoundPage from './pages/NotFoundPage';
+import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import ValuationResultPage from './pages/ValuationResultPage';
@@ -18,6 +17,8 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
+import SignInPage from './pages/auth/SignInPage';
+import AuthPage from './pages/AuthPage';
 
 const routes: RouteObject[] = [
   {
@@ -43,6 +44,14 @@ const routes: RouteObject[] = [
       {
         path: 'register',
         element: <RegisterPage />
+      },
+      {
+        path: 'sign-in',
+        element: <SignInPage />
+      },
+      {
+        path: 'auth',
+        element: <AuthPage />
       },
       {
         path: 'valuation',
@@ -88,7 +97,7 @@ const routes: RouteObject[] = [
       },
       {
         path: '*',
-        element: <NotFoundPage />
+        element: <NotFound />
       }
     ]
   }

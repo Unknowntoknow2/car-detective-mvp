@@ -36,7 +36,7 @@ export function Navbar() {
           <ThemeToggle />
           <div className="hidden md:flex items-center gap-3">
             <Button asChild variant="ghost">
-              <Link to="/auth">Sign In</Link>
+              <Link to="/sign-in">Sign In</Link>
             </Button>
             <Button asChild>
               <Link to="/register">Sign Up</Link>
