@@ -117,7 +117,7 @@ export function PriceComparisonChart({
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" />
               <YAxis 
-                tickFormatter={(value) => formatCurrency(value)} 
+                tickFormatter={(value) => formatCurrency(Number(value))} 
                 domain={[0, Math.max(priceRange.max * 1.1, normalizedValue * 1.1)]}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -135,11 +135,11 @@ export function PriceComparisonChart({
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="font-medium">Price Range</p>
-            <p>{formatCurrency(priceRange.min)} - {formatCurrency(priceRange.max)}</p>
+            <p>{formatCurrency(Number(priceRange.min))} - {formatCurrency(Number(priceRange.max))}</p>
           </div>
           <div>
             <p className="font-medium">Market Average</p>
-            <p>{formatCurrency(averagePrices.overall)}</p>
+            <p>{formatCurrency(Number(averagePrices.overall))}</p>
           </div>
         </div>
       </CardContent>
