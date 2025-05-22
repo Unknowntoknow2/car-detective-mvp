@@ -1,50 +1,64 @@
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { Account } from '@/components/account';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+
+interface UserProfile {
+  id: string;
+  full_name?: string;
+  username?: string;
+  avatar_url?: string;
+}
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const router = useRouter();
-  const supabase = useSupabaseClient();
-  const user = useUser();
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchUserData = async () => {
       setIsLoading(true);
       try {
-        if (user) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+        // Check if the user is authenticated
+        const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
 
-          if (error) {
-            console.error('Error fetching profile:', error);
-          } else {
-            setProfile(data);
-          }
+        if (authError || !currentUser) {
+          console.error('Authentication error:', authError);
+          navigate('/auth');
+          return;
+        }
+
+        setUser(currentUser);
+
+        // Fetch the user's profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else {
+          setProfile(profileData);
         }
       } catch (error) {
-        console.error('Unexpected error fetching profile:', error);
+        console.error('Unexpected error:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [user, supabase]);
+    fetchUserData();
+  }, [navigate]);
 
   useEffect(() => {
     if (!user && !isLoading) {
-      router.push('/auth');
+      navigate('/auth');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -62,13 +76,12 @@ const Dashboard = () => {
     <div className="container mx-auto p-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-semibold mb-4">User Profile</h2>
             {profile ? (
               <>
                 <h3 className="text-xl font-semibold">{profile?.full_name || profile?.username || 'User'}</h3>
-                <p className="text-gray-600">{user.email}</p>
-                <p className="text-sm font-medium">{profile?.full_name || profile?.username || 'User'}</p>
+                <p className="text-gray-600 dark:text-gray-300">{user.email}</p>
               </>
             ) : (
               <p>Loading profile...</p>
@@ -77,22 +90,26 @@ const Dashboard = () => {
         </div>
 
         <div className="md:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-semibold mb-4">Authentication</h2>
-            <Auth
-              supabaseClient={supabase}
-              appearance={{ theme: ThemeSupa }}
-              session={null}
-              providers={['github', 'google']}
-              redirectTo={`${window.location.origin}/dashboard`}
-            />
+            <div className="space-y-4">
+              <p>You are currently logged in as:</p>
+              <p className="font-medium">{user.email}</p>
+              <button 
+                onClick={() => supabase.auth.signOut().then(() => navigate('/auth'))}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="md:col-span-2">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-semibold mb-4">Account Management</h2>
-            <Account session={null} />
+            {/* Profile management would go here */}
+            <p>Profile management features will be added soon.</p>
           </div>
         </div>
       </div>

@@ -1,51 +1,40 @@
+
+import PDFDocument from 'pdfkit';
+
 export interface ReportData {
-  id: string;
+  year: number;
   make: string;
   model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  price: number;
-  estimatedValue: number;
-  zipCode?: string;
-  vin?: string;
+  trim?: string;
+  vin: string;
+  color?: string;
   bodyType?: string;
   fuelType?: string;
   transmission?: string;
-  color?: string;
-  confidenceScore?: number;
-  isPremium?: boolean;
-  priceRange?: number[] | { min: number; max: number };
-  adjustments?: {
-    factor: string;
-    impact: number;
-    description?: string;
-  }[];
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    summary?: string;
-  };
-  generatedAt: string;
-  userId?: string;
-  explanation?: string;
-  bestPhotoUrl?: string;
-  // Additional fields needed by various components
-  trim?: string;
+  mileage?: number;
+  estimatedValue: number;
   photoScore?: number;
-  photoExplanation?: string;
-  narrative?: string;
-  features?: string[];
-  // Add missing properties needed by basicReportGenerator
+  bestPhotoUrl?: string;
   photoUrl?: string;
   licensePlate?: string;
   engine?: string;
   doors?: number;
+  aiCondition?: {
+    summary: string;
+    score: number;
+  };
+}
+
+export interface SectionParams {
+  doc: PDFDocument;
+  data: any;
+  pageWidth: number;
+  pageHeight: number;
+  margin?: number;
 }
 
 export interface ReportOptions {
-  pageSize: 'letter' | 'a4' | 'legal';
+  pageSize: string;
   margins: {
     top: number;
     right: number;
@@ -61,42 +50,4 @@ export interface ReportOptions {
     website: string;
     phone: string;
   };
-}
-
-export interface SectionParams {
-  doc: any;
-  y: number;
-  data: ReportData;
-  options: ReportOptions;
-  pageWidth: number;
-  pageHeight: number;
-  // Additional properties needed by various components
-  page?: any;
-  margin?: number;
-  margins?: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-  width?: number;
-  height?: number;
-  contentWidth?: number;
-  boldFont?: any;
-  regularFont?: any;
-  primaryColor?: any;
-  secondaryColor?: any;
-  textColor?: any;
-}
-
-// Add the AdjustmentBreakdown type that is used in adjustmentTable.ts
-export interface AdjustmentBreakdown {
-  factor: string;
-  impact: number;
-  description?: string;
-  name?: string;
-  value?: number;
-  percentAdjustment?: number;
-  adjustment?: number;
-  impactPercentage?: number;
 }

@@ -8,12 +8,23 @@ import { drawValuationSummary } from '../sections/valuationSummary';
 import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
 import { drawMarketAnalysisSection } from '../sections/marketAnalysisSection';
 import { drawDealerOffersSection } from '../sections/dealerOffersSection';
-import { drawValuePredictionSection } from '../sections/valuePredictionSection';
-import { drawProfessionalOpinionSection } from '../sections/professionalOpinionSection';
 import { drawCarfaxReportSection } from '../sections/carfaxReportSection';
 import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
-export const generatePremiumReport = async (data: ReportData): Promise<PDFDocument> => {
+// Add stubs for missing sections
+import { drawValuePredictionSection } from '../sections/valuePredictionSection';
+import { drawProfessionalOpinionSection } from '../sections/professionalOpinionSection';
+
+// Add a type definition for SectionParams to match what's expected by the section functions
+interface SectionParams {
+  doc: PDFDocument;
+  data: any;
+  pageWidth: number;
+  pageHeight: number;
+  margin?: number;
+}
+
+export const generatePremiumReport = async (data: ReportData): Promise<typeof PDFDocument> => {
   const doc = new PDFDocument({
     size: 'A4',
     margins: {
@@ -24,68 +35,124 @@ export const generatePremiumReport = async (data: ReportData): Promise<PDFDocume
     },
   });
 
+  const pageWidth = doc.page.width;
+  const pageHeight = doc.page.height;
+  const margin = 40;
+
   // Header Section
-  drawHeaderSection(doc, {
-    reportTitle: 'Premium Valuation Report',
-    logo: 'path/to/your/logo.png'
+  drawHeaderSection({
+    doc,
+    data: {
+      reportTitle: 'Premium Valuation Report',
+      logo: 'path/to/your/logo.png'
+    },
+    pageWidth,
+    pageHeight,
+    margin
   });
 
-  let currentY = 120; // Starting Y position after the header
-
   // Vehicle Information Section with basic properties
-  const vehicleInfoData = {
-    year: data.year,
-    make: safeString(data.make),
-    model: safeString(data.model),
-    trim: safeString(data.trim),
-    vin: safeString(data.vin),
-    bodyType: safeString(data.bodyType),
-    color: safeString(data.color),
-    transmission: safeString(data.transmission),
-    fuelType: safeString(data.fuelType),
-  };
-  
-  currentY = drawVehicleInfoSection(doc, vehicleInfoData);
+  drawVehicleInfoSection({
+    doc,
+    data: {
+      year: data.year,
+      make: safeString(data.make),
+      model: safeString(data.model),
+      trim: safeString(data.trim),
+      vin: safeString(data.vin),
+      bodyType: safeString(data.bodyType),
+      color: safeString(data.color),
+      transmission: safeString(data.transmission),
+      fuelType: safeString(data.fuelType)
+    },
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Valuation Summary Section
-  const valuationData = {
-    estimatedValue: data.estimatedValue,
-    valuationDate: new Date(),
-    marketTrend: 'Stable',
-    confidenceLevel: 'High'
-  };
-  
-  currentY = drawValuationSummary(doc, valuationData);
+  drawValuationSummary({
+    doc,
+    data: {
+      estimatedValue: data.estimatedValue,
+      valuationDate: new Date(),
+      marketTrend: 'Stable',
+      confidenceLevel: 'High'
+    },
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Photo Assessment Section
-  const photoData = {
-    photoUrl: data.bestPhotoUrl || data.photoUrl,
-    photoScore: data.photoScore || 0,
-    conditionSummary: data.aiCondition?.summary || 'Good condition with minor wear and tear'
-  };
-  
-  currentY = drawPhotoAssessmentSection(doc, photoData);
+  drawPhotoAssessmentSection({
+    doc,
+    data: {
+      photoUrl: data.bestPhotoUrl || data.photoUrl,
+      photoScore: data.photoScore || 0,
+      conditionSummary: data.aiCondition?.summary || 'Good condition with minor wear and tear'
+    },
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Market Analysis Section
-  currentY = drawMarketAnalysisSection(doc, data, currentY);
+  drawMarketAnalysisSection({
+    doc,
+    data,
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Dealer Offers Section
-  currentY = drawDealerOffersSection(doc, data, currentY);
+  drawDealerOffersSection({
+    doc,
+    data,
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Value Prediction Section
-  currentY = drawValuePredictionSection(doc, data, currentY);
+  drawValuePredictionSection({
+    doc,
+    data,
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Professional Opinion Section
-  currentY = drawProfessionalOpinionSection(doc, data, currentY);
+  drawProfessionalOpinionSection({
+    doc,
+    data,
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Carfax Report Section
-  currentY = drawCarfaxReportSection(doc, data, currentY);
+  drawCarfaxReportSection({
+    doc,
+    data,
+    pageWidth,
+    pageHeight,
+    margin
+  });
 
   // Footer Section
-  drawFooterSection(doc, {
-    reportDate: new Date(),
-    companyName: 'CarDetective',
-    website: 'www.cardetective.com'
+  drawFooterSection({
+    doc,
+    data: {
+      reportDate: new Date(),
+      companyName: 'CarDetective',
+      website: 'www.cardetective.com'
+    },
+    pageWidth,
+    pageHeight,
+    margin
   });
 
   return doc;

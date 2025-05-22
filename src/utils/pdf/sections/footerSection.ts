@@ -1,139 +1,41 @@
 
-// ✅ TS check passed
-import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
-import { RotationTypes } from 'pdf-lib';
+import { safeMargin, safeDimensions, contentWidth } from './sectionHelper';
 
 /**
- * Helper function to create a proper rotation object
- * @param angle The angle in degrees
- * @returns A properly formatted rotation object
+ * Draw footer section on the PDF
  */
-function degrees(angle: number) {
-  return { 
-    type: RotationTypes.Degrees, 
-    angle 
-  };
-}
-
-/**
- * Draws the footer section of the PDF
- * @param params Section parameters including page and fonts
- * @param includeTimestamp Whether to include timestamp in footer
- * @param currentPage Current page number
- * @param totalPages Total number of pages
- * @param includeWatermark Whether to include watermark in footer
- */
-export function drawFooterSection(
-  params: SectionParams,
-  includeTimestamp: boolean = true,
-  currentPage: number = 1,
-  totalPages: number = 1,
-  includeWatermark: boolean = true
-): void {
-  const { page, width, height, margin, regularFont, contentWidth } = params;
+export const drawFooterSection = (params: SectionParams) => {
+  const { doc, data, pageWidth, pageHeight, margin } = params;
   
-  // Draw separator line
-  page.drawLine({
-    start: { x: margin, y: margin + 40 },
-    end: { x: width - margin, y: margin + 40 },
-    thickness: 1,
-    color: rgb(0.85, 0.85, 0.85),
-  });
+  // Use the safe helper functions
+  const safeMarginValue = safeMargin(margin);
+  const { width, height } = safeDimensions(doc);
+  const safeContentWidth = contentWidth(width, safeMarginValue);
   
-  // Draw Car Detective logo/text
-  page.drawText("Car Detective™", {
-    x: margin,
-    y: margin + 20,
-    size: 10,
-    font: regularFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // Calculate the Y position for the footer (near bottom of page)
+  const footerY = height - safeMarginValue - 30;
   
-  // Draw confidentiality notice
-  if (includeWatermark) {
-    page.drawText("Confidential - For authorized use only", {
-      x: margin + 150,
-      y: margin + 20,
-      size: 8,
-      font: regularFont,
-      color: rgb(0.5, 0.5, 0.5),
-    });
-  }
+  // Draw a separator line
+  doc.strokeColor('#cccccc')
+     .lineWidth(1)
+     .moveTo(safeMarginValue, footerY)
+     .lineTo(width - safeMarginValue, footerY)
+     .stroke();
   
-  // Draw date and time if requested
-  if (includeTimestamp) {
-    const now = new Date();
-    const dateString = now.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    
-    page.drawText(`Generated: ${dateString}`, {
-      x: margin,
-      y: margin + 8,
-      size: 8,
-      font: regularFont,
-      color: rgb(0.5, 0.5, 0.5),
-    });
-  }
+  // Draw footer text
+  doc.fontSize(8)
+     .font('Helvetica')
+     .fillColor('#666666')
+     .text(
+       `Report generated on ${data.reportDate.toLocaleDateString()} by ${data.companyName} | ${data.website}`,
+       safeMarginValue,
+       footerY + 10,
+       {
+         width: safeContentWidth,
+         align: 'center'
+       }
+     );
   
-  // Draw page numbers
-  const pageText = `Page ${currentPage} of ${totalPages}`;
-  const pageTextWidth = regularFont.widthOfTextAtSize(pageText, 8);
-  
-  page.drawText(pageText, {
-    x: width - margin - pageTextWidth,
-    y: margin + 8,
-    size: 8,
-    font: regularFont,
-    color: rgb(0.5, 0.5, 0.5),
-  });
-}
-
-/**
- * Draws a watermarked footer with branded disclaimer
- * @param params Section parameters including page and fonts
- * @param companyName Company name to include in disclaimer
- * @param color Color for the footer text
- * @param currentPage Current page number (default: 1)
- * @param totalPages Total number of pages (default: 1)
- */
-export function drawWatermarkedFooter(
-  params: SectionParams,
-  companyName: string,
-  color: { r: number; g: number; b: number },
-  currentPage: number = 1,
-  totalPages: number = 1
-): void {
-  const { page, width, height, margin, regularFont } = params;
-  
-  // Create disclaimer text
-  const disclaimer = `© ${new Date().getFullYear()} ${companyName}. All rights reserved.`;
-  
-  // Draw disclaimer at an angle
-  page.drawText(disclaimer, {
-    x: width / 2 - 100,
-    y: 20,
-    size: 8,
-    font: regularFont,
-    color: rgb(color.r, color.g, color.b),
-    opacity: 0.6,
-    rotate: {
-      type: RotationTypes.Degrees,
-      angle: 10
-    }
-  });
-  
-  // Add page numbers
-  const pageText = `Page ${currentPage} of ${totalPages}`;
-  page.drawText(pageText, {
-    x: width - margin - 100,
-    y: margin,
-    size: 8,
-    font: regularFont,
-    color: rgb(color.r, color.g, color.b),
-    opacity: 0.8
-  });
-}
+  return doc.y;
+};

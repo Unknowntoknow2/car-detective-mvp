@@ -1,6 +1,13 @@
 
 import { FormData } from '@/types/premium-valuation';
 
+// Define the interface for the adjustment type
+interface Adjustment {
+  factor: string;
+  impact: number;
+  description?: string;
+}
+
 /**
  * Generates a PDF for the valuation report
  * @param data The report data
@@ -44,13 +51,13 @@ export async function generateValuationPdf(
     console.log('Generating basic PDF for:', data);
   }
   
-  // Add adjustments with default empty description if needed
-  const adjustments = data.adjustments && Array.isArray(data.adjustments) 
-    ? data.adjustments.map((adj: { factor: string; impact: number; description?: string }) => ({
+  // Handle adjustments safely with optional chaining and type checking
+  const adjustments: Adjustment[] = Array.isArray(data.adjustments) 
+    ? data.adjustments.map(adj => ({
         factor: adj.factor,
         impact: adj.impact,
         description: adj.description || ""
-      })) 
+      }))
     : [];
   
   // Return dummy data for now
