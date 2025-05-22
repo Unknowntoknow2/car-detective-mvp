@@ -1,102 +1,174 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Car, Home, User, DollarSign, Building, Search, Menu, X } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
+import { 
+  Car, 
+  ChevronDown, 
+  FileText, 
+  Home, 
+  LogIn, 
+  Menu, 
+  Store, 
+  User,
+  X 
+} from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
+const navLinks = [
+  { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
+  { path: '/valuation', label: 'Get Valuation', icon: <Car className="h-4 w-4" /> },
+  { path: '/premium', label: 'Premium', icon: <FileText className="h-4 w-4" /> },
+  { path: '/dealer', label: 'For Dealers', icon: <Store className="h-4 w-4" /> },
+];
 
 export function Navbar() {
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { user } = useAuth();
-  
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
   const isActive = (path: string) => {
-    return location.pathname === path;
+    if (path === '/' && location.pathname !== '/') {
+      return false;
+    }
+    return location.pathname.startsWith(path);
   };
-  
-  const navItems = [
-    { path: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
-    { path: '/valuation', label: 'Valuation', icon: <Car className="h-4 w-4" /> },
-    { path: '/premium', label: 'Premium', icon: <DollarSign className="h-4 w-4" /> },
-    { path: '/dealer/dashboard', label: 'Dealer', icon: <Building className="h-4 w-4" /> },
-  ];
+
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    closeMenu();
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    const parts = name.split(' ');
+    if (parts.length > 1) {
+      return `${parts[0][0]}${parts[1][0]}`;
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const renderNavLinks = () => {
+    return navLinks.map((link) => (
+      <Link
+        key={link.path}
+        to={link.path}
+        className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+          isActive(link.path)
+            ? 'bg-primary text-primary-foreground'
+            : 'hover:bg-accent hover:text-accent-foreground'
+        }`}
+        onClick={closeMenu}
+      >
+        {link.icon}
+        {link.label}
+      </Link>
+    ));
+  };
 
   return (
-    <div className="container mx-auto px-4 py-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Link to="/" className="font-bold text-xl mr-8">Car Detective</Link>
-          
-          <nav className="hidden md:flex space-x-6">
-            {navItems.map((item) => (
-              <Link 
-                key={item.path}
-                to={item.path} 
-                className={`flex items-center gap-1.5 text-sm ${isActive(item.path) ? 'text-primary font-medium' : 'text-gray-600 hover:text-gray-900'}`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          {/* Mobile menu trigger */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <div className="flex flex-col gap-6 pt-6">
-                {navItems.map((item) => (
-                  <Link 
-                    key={item.path}
-                    to={item.path} 
-                    className={`flex items-center gap-2 text-base ${isActive(item.path) ? 'text-primary font-medium' : 'text-gray-600 hover:text-gray-900'}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-                <Link 
-                  to="/auth" 
-                  className="flex items-center gap-2 mt-4 text-base"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>{user ? 'Dashboard' : 'Sign In'}</span>
-                </Link>
-              </div>
-            </SheetContent>
-          </Sheet>
+    <nav className="container flex h-16 items-center justify-between">
+      <div className="flex items-center gap-6">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-white font-bold">
+            CD
+          </div>
+          <span className="text-xl font-bold tracking-tight hidden sm:inline-block">
+            CarDetective
+          </span>
+        </Link>
 
-          {/* Search button */}
-          <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-1.5">
-            <Search className="h-4 w-4" />
-            <span>Search</span>
-          </Button>
-
-          {/* Authentication button */}
-          <Link to={user ? "/dashboard" : "/auth"}>
-            <Button variant="outline" size="sm" className="flex items-center gap-1.5">
-              <User className="h-4 w-4" />
-              <span>{user ? 'Dashboard' : 'Sign In'}</span>
-            </Button>
-          </Link>
-
-          {/* Valuation button */}
-          <Link to="/valuation">
-            <Button size="sm">Get Valuation</Button>
-          </Link>
+        <div className="hidden md:flex items-center gap-1">
+          {renderNavLinks()}
         </div>
       </div>
-    </div>
+
+      <div className="flex items-center gap-2">
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="rounded-full" size="icon">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getInitials(user.email)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard" className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/account" className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  My Account
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button asChild size="sm" variant="default">
+            <Link to="/auth">Sign In</Link>
+          </Button>
+        )}
+
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+            <div className="flex flex-col gap-6 h-full">
+              <div className="flex justify-between items-center">
+                <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
+                  <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-white font-bold">
+                    CD
+                  </div>
+                  <span className="text-xl font-bold tracking-tight">CarDetective</span>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={closeMenu}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="flex flex-col gap-1">
+                {renderNavLinks()}
+              </div>
+              
+              <div className="mt-auto">
+                {!user && (
+                  <Button asChild className="w-full" onClick={closeMenu}>
+                    <Link to="/auth">Sign In</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </nav>
   );
 }
 
