@@ -1,5 +1,5 @@
 
-import { Route, Routes, BrowserRouter } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import UpgradePage from './pages/UpgradePage';
 import PremiumPage from './pages/PremiumPage';
@@ -12,7 +12,7 @@ import { Toaster } from 'sonner';
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Toaster position="top-right" richColors />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -24,7 +24,7 @@ function App() {
         <Route path="/valuation-result" element={<ValuationResultPage />} />
         <Route path="/vin-lookup" element={<VinLookupPage />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
 
