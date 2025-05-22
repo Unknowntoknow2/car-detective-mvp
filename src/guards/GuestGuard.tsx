@@ -9,7 +9,7 @@ interface GuestGuardProps {
 }
 
 const GuestGuard: React.FC<GuestGuardProps> = ({ children }) => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userDetails, isLoading } = useAuth();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -29,7 +29,7 @@ const GuestGuard: React.FC<GuestGuardProps> = ({ children }) => {
 
   // If user is authenticated, redirect to appropriate dashboard
   if (user) {
-    if (userRole === 'dealer') {
+    if (userDetails?.role === 'dealer') {
       return <Navigate to="/dealer/dashboard" replace />;
     }
     return <Navigate to={from} replace />;

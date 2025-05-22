@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
@@ -22,7 +23,7 @@ import DealerInsightsPage from '@/pages/DealerInsightsPage';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
 import PremiumPage from '@/pages/Premium';
 import AccessDeniedPage from '@/pages/AccessDeniedPage';
-import SignupPage from '@/pages/SignupPage';
+import SignupPage from '@/pages/auth/SignupPage';
 import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
 
 // Auth pages

@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import DealerLayout from '@/layouts/DealerLayout';
 
 const DealerDashboardRoutes = () => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userDetails, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -21,7 +21,7 @@ const DealerDashboardRoutes = () => {
   }
 
   // If not logged in or not a dealer, redirect to login
-  if (!user || userRole !== 'dealer') {
+  if (!user || userDetails?.role !== 'dealer') {
     return <Navigate to="/sign-in" replace />;
   }
 

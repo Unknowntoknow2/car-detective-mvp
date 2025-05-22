@@ -9,7 +9,7 @@ interface DealerGuardProps {
 }
 
 const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userDetails, isLoading } = useAuth();
 
   // In debug mode, bypass dealer check
   if (DEBUG_MODE) {
@@ -31,7 +31,7 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
   }
 
   // If user is not a dealer, redirect to access denied
-  if (userRole !== 'dealer') {
+  if (userDetails?.role !== 'dealer') {
     return <Navigate to="/access-denied" replace />;
   }
 

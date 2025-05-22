@@ -11,7 +11,7 @@ interface RoleGuardProps {
 }
 
 const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userDetails, isLoading } = useAuth();
 
   // In debug mode, bypass role check
   if (DEBUG_MODE) {
@@ -33,7 +33,7 @@ const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) => {
   }
 
   // If user doesn't have the required role, redirect to access denied
-  if (!userRole || !allowedRoles.includes(userRole as UserRole)) {
+  if (!userDetails?.role || !allowedRoles.includes(userDetails.role as UserRole)) {
     return <Navigate to="/access-denied" replace />;
   }
 

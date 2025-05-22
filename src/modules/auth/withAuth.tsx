@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export type RoleType = 'admin' | 'dealer' | 'user' | undefined;
 
@@ -10,8 +10,9 @@ export const withAuth = (
   allowedRoles?: RoleType[]
 ) => {
   return function ProtectedRoute(props: any) {
-    const { user, userRole, isLoading } = useAuth();
+    const { user, userDetails, isLoading } = useAuth();
     const navigate = useNavigate();
+    const userRole = userDetails?.role;
 
     useEffect(() => {
       if (!isLoading && !user) {
@@ -22,7 +23,7 @@ export const withAuth = (
         user && 
         allowedRoles && 
         userRole && 
-        !allowedRoles.includes(userRole)
+        !allowedRoles.includes(userRole as RoleType)
       ) {
         // User doesn't have required role, redirect based on their role
         if (userRole === 'admin') {
@@ -47,7 +48,7 @@ export const withAuth = (
       return null; // Will be redirected by the effect
     }
 
-    if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+    if (allowedRoles && userRole && !allowedRoles.includes(userRole as RoleType)) {
       return null; // Will be redirected by the effect
     }
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Home, Car, Search, User, Sparkles, Building, Settings, LogOut } from 'lucide-react';
 
 interface MobileMenuProps {
@@ -12,7 +12,7 @@ interface MobileMenuProps {
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, setIsOpen }) => {
-  const { user, userRole, signOut } = useAuth();
+  const { user, userDetails, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -57,7 +57,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, setIsOpen }) => {
                 Dashboard
               </Link>
               
-              {userRole === 'dealer' && (
+              {userDetails?.role === 'dealer' && (
                 <Link to="/dealer-dashboard" className="flex items-center gap-2 text-base" onClick={() => setIsOpen(false)}>
                   <Building className="h-5 w-5" />
                   Dealer Dashboard

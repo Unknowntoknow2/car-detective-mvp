@@ -4,8 +4,8 @@ import { RouteObject } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import SigninPage from './pages/auth/SigninPage';
+import RegisterPage from './pages/auth/RegisterPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
@@ -18,7 +18,6 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
-import SignInPage from './pages/auth/SignInPage';
 import AuthPage from './pages/AuthPage';
 
 // Export routes configuration that can be used with useRoutes() hook
@@ -41,7 +40,7 @@ const routes: RouteObject[] = [
       },
       {
         path: 'login',
-        element: <LoginPage />
+        element: <SigninPage />
       },
       {
         path: 'register',
@@ -49,7 +48,7 @@ const routes: RouteObject[] = [
       },
       {
         path: 'sign-in',
-        element: <SignInPage />
+        element: <SigninPage />
       },
       {
         path: 'auth',
