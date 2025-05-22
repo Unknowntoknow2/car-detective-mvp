@@ -4,10 +4,6 @@ import { RouteObject } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
 import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
-import SigninPage from './pages/auth/SigninPage';
-import SignupPage from './pages/auth/SignupPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import DealerSignupPage from './pages/auth/DealerSignupPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
@@ -23,6 +19,9 @@ import Layout from './components/layout/Layout';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import DealerSignup from './pages/DealerSignup';
+import ChooseRolePage from './pages/auth/ChooseRolePage';
+import IndividualAuthPage from './pages/auth/IndividualAuthPage';
+import DealerAuthPage from './pages/auth/DealerAuthPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -42,49 +41,63 @@ const routes: RouteObject[] = [
         path: 'vin-lookup',
         element: <VinLookupPage />
       },
-      {
-        path: 'login',
-        element: <SigninPage />
-      },
-      {
-        path: 'register',
-        element: <RegisterPage />
-      },
-      {
-        path: 'sign-up',
-        element: <RegisterPage />
-      },
-      {
-        path: 'signup',
-        element: <RegisterPage />
-      },
-      {
-        path: 'signup/individual',
-        element: <RegisterPage />
-      },
-      {
-        path: 'signup/dealer',
-        element: <DealerSignupPage />
-      },
-      {
-        path: 'sign-in',
-        element: <SigninPage />
-      },
-      {
-        path: 'signin/individual',
-        element: <SigninPage />
-      },
-      {
-        path: 'signin/dealer',
-        element: <SigninPage />
-      },
-      {
-        path: 'dealer-signup',
-        element: <DealerSignup />
-      },
+      // Auth related routes
       {
         path: 'auth',
         element: <AuthPage />
+      },
+      {
+        path: 'auth/choose',
+        element: <ChooseRolePage />
+      },
+      {
+        path: 'auth/individual',
+        element: <IndividualAuthPage />
+      },
+      {
+        path: 'auth/dealer',
+        element: <DealerAuthPage />
+      },
+      // Redirect legacy auth routes
+      {
+        path: 'login',
+        element: <ChooseRolePage />
+      },
+      {
+        path: 'register',
+        element: <ChooseRolePage />
+      },
+      {
+        path: 'sign-up',
+        element: <ChooseRolePage />
+      },
+      {
+        path: 'signup',
+        element: <ChooseRolePage />
+      },
+      {
+        path: 'signup/individual',
+        element: <IndividualAuthPage />
+      },
+      {
+        path: 'signup/dealer',
+        element: <DealerAuthPage />
+      },
+      {
+        path: 'sign-in',
+        element: <ChooseRolePage />
+      },
+      {
+        path: 'signin/individual',
+        element: <IndividualAuthPage />
+      },
+      {
+        path: 'signin/dealer',
+        element: <DealerAuthPage />
+      },
+      {
+        path: 'dealer-signup',
+        element: <DealerAuthPage />
       },
       {
         path: 'dashboard',
