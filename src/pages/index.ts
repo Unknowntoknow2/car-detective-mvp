@@ -5,6 +5,7 @@ export { default as PaymentSuccessPage } from './PaymentSuccessPage';
 export { default as PaymentCancelledPage } from './PaymentCancelledPage';
 export { default as ManualLookupPage } from './ManualLookupPage';
 export { default as MyValuationsPage } from './MyValuationsPage';
+export { default as DashboardPage } from './DashboardPage';
 
 // Auth pages
 export { default as SignInPage } from './auth/SigninPage';
