@@ -12,7 +12,7 @@ import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
 import { drawDisclaimerSection } from '../sections/disclaimerSection';
 
 // Generate a premium valuation report with enhanced features
-export const generatePremiumReport = async (data: ReportData): Promise<typeof PDFDocument> => {
+export const generatePremiumReport = async (data: ReportData): Promise<PDFDocument> => {
   // Create a new PDF document
   const doc = new PDFDocument({
     size: 'A4',

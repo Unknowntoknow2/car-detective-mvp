@@ -10,7 +10,7 @@ import { drawDisclaimerSection } from '../sections/disclaimerSection';
 import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
 // Generate a basic valuation report
-export const generateBasicValuationReport = async (data: ReportData): Promise<typeof PDFDocument> => {
+export const generateBasicValuationReport = async (data: ReportData): Promise<PDFDocument> => {
   const doc = new PDFDocument({
     size: 'A4',
     margins: {

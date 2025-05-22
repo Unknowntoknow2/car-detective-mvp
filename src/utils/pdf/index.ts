@@ -2,7 +2,7 @@
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
 
-export async function downloadPdf(reportData: ReportData): Promise<Blob> {
+export async function downloadPdf(reportData: Partial<ReportData>): Promise<Blob> {
   // Implement PDF generation and download
   // This is a placeholder implementation
   console.log('Generating PDF with data:', reportData);
@@ -19,7 +19,7 @@ export async function downloadPdf(reportData: ReportData): Promise<Blob> {
   return new Blob([pdfContent], { type: 'application/pdf' });
 }
 
-export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, valuationData: any): ReportData {
+export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, valuationData: any): Partial<ReportData> {
   // Convert vehicle info and valuation data to report data format
   return {
     make: vehicleInfo.make,

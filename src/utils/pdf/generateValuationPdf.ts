@@ -68,7 +68,7 @@ export const downloadValuationPdf = async (
     
     // Clean up
     document.body.removeChild(link);
-    URL.revoObjectURL(url);
+    URL.revokeObjectURL(url); // Fixed from revoObjectURL to revokeObjectURL
   } catch (error) {
     console.error('Error downloading valuation PDF:', error);
     throw error;

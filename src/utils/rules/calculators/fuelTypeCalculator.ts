@@ -2,9 +2,16 @@
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 
 export class FuelTypeCalculator implements AdjustmentCalculator {
-  public calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+  public calculate(input: RulesEngineInput): AdjustmentBreakdown {
     if (!input.fuelType) {
-      return null;
+      return {
+        factor: 'Fuel Type',
+        impact: 0,
+        description: 'No fuel type specified',
+        name: 'Fuel Type',
+        value: 0,
+        percentAdjustment: 0
+      };
     }
 
     const fuelType = input.fuelType.toLowerCase();
@@ -26,10 +33,11 @@ export class FuelTypeCalculator implements AdjustmentCalculator {
         percentAdjustment = 0; // No adjustment (baseline)
         break;
       default:
-        return null; // Unknown fuel type
+        percentAdjustment = 0;
     }
 
-    const value = input.basePrice * percentAdjustment;
+    const basePrice = input.basePrice || 0;
+    const value = basePrice * percentAdjustment;
     const name = 'Fuel Type';
     const factor = name;
     const impact = Math.round(value);

@@ -1,11 +1,18 @@
 
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-import { getPhotoScoreAdjustmentDescription } from '../descriptions';
+import { getPhotoScoreAdjustmentDescription } from '../../pdf/sections/sectionHelper';
 
 export class PhotoScoreCalculator implements AdjustmentCalculator {
-  public calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+  public calculate(input: RulesEngineInput): AdjustmentBreakdown {
     if (!input.photoScore) {
-      return null;
+      return {
+        factor: 'Photo Score',
+        impact: 0,
+        description: 'No photo score available',
+        name: 'Photo Score',
+        value: 0,
+        percentAdjustment: 0
+      };
     }
 
     // Convert the 0-1 photo score to an adjustment factor
@@ -26,7 +33,8 @@ export class PhotoScoreCalculator implements AdjustmentCalculator {
     }
 
     // Apply adjustment to base price
-    const adjustment = input.basePrice * percentAdjustment;
+    const basePrice = input.basePrice || 0;
+    const adjustment = basePrice * percentAdjustment;
     const name = 'Photo Score';
     const factor = name;
     const impact = Math.round(adjustment);

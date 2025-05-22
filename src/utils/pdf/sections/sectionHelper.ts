@@ -1,123 +1,72 @@
 
 /**
- * Safely convert any value to a string
- * @param value The value to convert
- * @returns A string representation of the value
+ * Safe string helper to prevent null/undefined values
  */
 export const safeString = (value: any): string => {
-  if (value === null || value === undefined) {
-    return '';
-  }
+  if (value === null || value === undefined) return '';
   return String(value);
 };
 
 /**
- * Safely get a number from a value or return a default
- * @param value The value to convert
- * @param defaultValue The default value to return if conversion fails
- * @returns A number
+ * Format currency value
  */
-export const safeNumber = (value: any, defaultValue: number = 0): number => {
-  if (value === null || value === undefined) {
-    return defaultValue;
-  }
-  const num = Number(value);
-  return isNaN(num) ? defaultValue : num;
-};
-
-/**
- * Safely get a property from an object with a default value
- * @param obj The object to get the property from
- * @param key The property key
- * @param defaultValue The default value to return if the property doesn't exist
- * @returns The property value or default value
- */
-export const safeGet = <T>(obj: any, key: string, defaultValue: T): T => {
-  if (!obj || (typeof obj !== 'object')) {
-    return defaultValue;
-  }
-  return (obj[key] !== undefined && obj[key] !== null) ? obj[key] : defaultValue;
-};
-
-/**
- * Safely format a date to a string
- * @param date The date to format
- * @param options The date format options
- * @returns A formatted date string
- */
-export const formatDate = (date: Date | string | undefined, options: Intl.DateTimeFormatOptions = { 
-  year: 'numeric', 
-  month: 'long', 
-  day: 'numeric' 
-}): string => {
-  if (!date) {
-    return '';
-  }
-  
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return new Intl.DateTimeFormat('en-US', options).format(dateObj);
-  } catch (e) {
-    return '';
-  }
-};
-
-/**
- * Format a currency value
- * @param value The value to format
- * @param currency The currency code
- * @returns A formatted currency string
- */
-export const formatCurrency = (value: number | undefined, currency: string = 'USD'): string => {
-  if (value === undefined || value === null) {
-    return '';
-  }
-  
+export const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(amount);
 };
 
 /**
- * Ensure a value is within a range
- * @param value The value to check
- * @param min The minimum allowed value
- * @param max The maximum allowed value
- * @returns The value clamped to the range
- */
-export const clamp = (value: number, min: number, max: number): number => {
-  return Math.min(Math.max(value, min), max);
-};
-
-/**
- * Handle margin values safely
- * @param margin The margin value
- * @returns A safe margin value
+ * Get safe margin value with fallback
  */
 export const safeMargin = (margin?: number): number => {
-  return margin ?? 40;
+  return margin || 40;
 };
 
 /**
- * Get safe dimensions from a PDF document
- * @param doc The PDF document
- * @returns An object with width and height
+ * Calculate content width based on page width and margins
  */
-export const safeDimensions = (doc: any): { width: number, height: number } => {
-  const width = doc.page?.width || 595;
-  const height = doc.page?.height || 842;
-  return { width, height };
+export const contentWidth = (pageWidth: number, margin: number): number => {
+  return pageWidth - (margin * 2);
 };
 
 /**
- * Calculate content width based on page width and margin
- * @param width The page width
- * @param margin The margin
- * @returns The content width
+ * Get safe dimensions with fallbacks
  */
-export const contentWidth = (width: number, margin: number): number => {
-  return width - (margin * 2);
+export const safeDimensions = (params: {
+  width?: number;
+  height?: number;
+  doc: any;
+}): { width: number; height: number } => {
+  return {
+    width: params.width || params.doc.page.width,
+    height: params.height || params.doc.page.height
+  };
+};
+
+/**
+ * Get photo score adjustment description
+ */
+export const getPhotoScoreAdjustmentDescription = (
+  photoScore: number,
+  percentAdjustment: number,
+  adjustment: number
+): string => {
+  if (percentAdjustment > 0) {
+    return `Vehicle appears to be in excellent condition based on photos (score: ${photoScore.toFixed(2)})`;
+  } else if (percentAdjustment < 0) {
+    return `Vehicle appears to be in below average condition based on photos (score: ${photoScore.toFixed(2)})`;
+  } else {
+    return `Vehicle appears to be in good condition based on photos (score: ${photoScore.toFixed(2)})`;
+  }
+};
+
+/**
+ * Safely check if a property exists and has a value
+ */
+export const hasValue = (obj: any, property: string): boolean => {
+  return obj && property in obj && obj[property] !== null && obj[property] !== undefined;
 };
