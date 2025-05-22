@@ -7,6 +7,13 @@ export enum ConditionLevel {
   Poor = "poor"
 }
 
+export interface AccidentDetails {
+  hasAccident?: boolean;
+  severity?: string;
+  description?: string;
+  repaired?: boolean;
+}
+
 export interface ManualEntryFormData {
   make: string;
   model: string;
@@ -20,4 +27,7 @@ export interface ManualEntryFormData {
   trim?: string;
   color?: string;
   bodyType?: string;
+  // Add the missing properties
+  selectedFeatures?: string[];
+  accidentDetails?: AccidentDetails;
 }

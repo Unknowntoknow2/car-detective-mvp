@@ -13,6 +13,11 @@ export interface DecodedVehicleInfo {
   interiorColor?: string;
   drivetrain?: string;
   features?: string[];
+  // Add missing properties to resolve errors
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+  color?: string;
 }
 
 export interface VehicleDetails extends DecodedVehicleInfo {
@@ -61,4 +66,34 @@ export interface ManualValuationResponse {
   success: boolean;
   data?: ValuationResponse;
   error?: string;
+}
+
+// Add the missing DealerInventoryItem interface
+export interface DealerInventoryItem {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  condition: string;
+  listingPrice: number;
+  sellingPrice?: number;
+  status: string;
+  mileage?: number;
+}
+
+// Add the missing DealerVehicleFormData interface
+export interface DealerVehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  condition: string;
+  price: number;
+  mileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  zipCode?: string;
+  photos?: string[];
+  status?: string;
 }

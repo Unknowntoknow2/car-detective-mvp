@@ -28,10 +28,10 @@ export function usePremiumAccess(valuationId?: string) {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Check if the user has the 'dealer' role (dealers get premium by default)
-        const isPremiumUser = user.user_metadata?.role === 'dealer';
+        const isPremiumUser = user?.user_metadata?.role === 'dealer';
         
         // Check if the user has purchased premium (would be in a profiles table)
-        const isPremiumSubscriber = localStorage.getItem('premium_user') === user.id;
+        const isPremiumSubscriber = localStorage.getItem('premium_user') === user?.id;
         
         // Check if this specific valuation has premium unlocked
         const premiumIds = JSON.parse(localStorage.getItem('premium_valuations') || '[]');

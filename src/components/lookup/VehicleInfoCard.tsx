@@ -38,7 +38,7 @@ export const VehicleInfoCard = ({
 
   const handleSaveValuation = () => {
     saveValuation({
-      vin: vehicleInfo.vin,
+      vin: vehicleInfo.vin || '',
       make: vehicleInfo.make,
       model: vehicleInfo.model,
       year: vehicleInfo.year,
@@ -55,7 +55,7 @@ export const VehicleInfoCard = ({
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-2xl">Vehicle Information</CardTitle>
-            <CardDescription>Details found for VIN: {vehicleInfo.vin}</CardDescription>
+            <CardDescription>Details found for VIN: {vehicleInfo.vin || 'Unknown'}</CardDescription>
           </div>
           
           {carfaxData && (
@@ -92,8 +92,8 @@ export const VehicleInfoCard = ({
         {carfaxData && <CarfaxSummary carfaxData={carfaxData} />}
         
         <VehicleHistory 
-          vin={vehicleInfo.vin} 
-          valuationId={vehicleInfo.vin}
+          vin={vehicleInfo.vin || ''} 
+          valuationId={vehicleInfo.vin || ''}
         />
         
         <div className="mt-8 pt-6 border-t border-border/60">
@@ -130,7 +130,7 @@ export const VehicleInfoCard = ({
         
         <div className="mt-8">
           <ForecastChart 
-            valuationId={vehicleInfo.vin}
+            valuationId={vehicleInfo.vin || ''}
             basePrice={basePrice}
           />
         </div>
