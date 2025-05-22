@@ -1,34 +1,35 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../types';
-import { Calculator } from '../interfaces/Calculator';
+import { RulesEngineInput, AdjustmentCalculator } from '../types';
 
-export class RecallCalculator implements Calculator {
-  private RECALL_ADJUSTMENT_PERCENTAGE = -0.02; // -2% per open recall
-
-  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    if (input.hasOpenRecall === undefined) {
-      return null;
+export class RecallCalculator implements AdjustmentCalculator {
+  calculate(input: RulesEngineInput) {
+    let impact = 0;
+    let description = "";
+    
+    // Check if there are open recalls
+    if (input.hasOpenRecall === true) {
+      impact = -500; // Negative impact for open recalls
+      description = "Vehicle has open recalls";
+    } else if (input.hasOpenRecall === false) {
+      impact = 0; // No impact for no open recalls
+      description = "No open recalls";
+    } else {
+      // If recall information is not available
+      impact = 0;
+      description = "Recall information not available";
     }
-
-    // No adjustment if there are no open recalls
-    if (input.hasOpenRecall === false) {
-      return null;
-    }
-
-    // Calculate value reduction (default to 1 recall if no specific count provided)
-    const recallCount = input.hasOpenRecall ? (input.recallCount ?? 1) : 0;
-    const percentAdjustment = this.RECALL_ADJUSTMENT_PERCENTAGE * recallCount;
-    const valueAdjustment = input.basePrice * percentAdjustment;
-    const factor = 'Open Recalls';
-    const impact = valueAdjustment;
-
+    
+    // Calculate percentage impact relative to base price
+    const basePrice = input.basePrice || 0;
+    const percentAdjustment = basePrice > 0 ? (impact / basePrice) * 100 : 0;
+    
     return {
-      name: 'Open Recalls',
-      value: valueAdjustment,
-      percentAdjustment: percentAdjustment * 100, // Convert to percentage for display
-      description: `Vehicle has ${recallCount} open recall(s), which affects value by ${(percentAdjustment * 100).toFixed(1)}%`,
-      factor,
-      impact
+      factor: "Recall Status",
+      impact,
+      description,
+      name: "Recall Status",
+      value: impact,
+      percentAdjustment
     };
   }
 }

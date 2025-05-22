@@ -33,7 +33,7 @@ export async function generateValuationPdf(
   // Choose the appropriate generator based on premium flag
   const pdfBytes = data.premium
     ? await generatePremiumReport({ data, options: mergedOptions, document: PDFDocument })
-    : await generateBasicReport({ data, options: mergedOptions, document: PDFDocument });
+    : await generateBasicReport(data, mergedOptions);
   
   return pdfBytes;
 }

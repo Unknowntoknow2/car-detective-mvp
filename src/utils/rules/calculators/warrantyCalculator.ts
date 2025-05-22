@@ -1,43 +1,45 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../types';
-import { AdjustmentCalculator } from './adjustmentCalculator';
-import { supabase } from '@/integrations/supabase/client';
+import { RulesEngineInput, AdjustmentCalculator } from '../types';
 
 export class WarrantyCalculator implements AdjustmentCalculator {
-  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    if (input.warrantyStatus && input.warrantyStatus !== 'None') {
-      try {
-        // Fetch warranty factor from the database
-        const { data: warrantyData } = await supabase
-          .from('warranty_options')
-          .select('multiplier, description')
-          .eq('status', input.warrantyStatus)
-          .single();
-        
-        if (!warrantyData) {
-          return null;
-        }
-        
-        const multiplier = warrantyData.multiplier;
-        const percentAdjustment = (multiplier - 1) * 100;
-        const value = Math.round(input.basePrice * (multiplier - 1));
-        const factor = 'Warranty Status';
-        const impact = value;
-        
-        return {
-          name: 'Warranty Status',
-          value: value,
-          percentAdjustment: percentAdjustment,
-          description: warrantyData.description || `Vehicle has ${input.warrantyStatus} warranty that affects value`,
-          factor,
-          impact
-        };
-      } catch (error) {
-        console.error('Error fetching warranty factor:', error);
-        return null;
-      }
+  calculate(input: RulesEngineInput) {
+    // Default values
+    let impact = 0;
+    let description = '';
+    
+    // Check warranty status
+    const warrantyStatus = input.warrantyStatus || 'unknown';
+    
+    if (warrantyStatus === 'active') {
+      // Active warranty adds value
+      impact = 1000;
+      description = 'Vehicle has active manufacturer warranty';
+    } else if (warrantyStatus === 'expired') {
+      // Expired warranty has no impact
+      impact = 0;
+      description = 'Manufacturer warranty has expired';
+    } else if (warrantyStatus === 'extended') {
+      // Extended warranty adds some value
+      impact = 800;
+      description = 'Vehicle has extended warranty';
+    } else {
+      // Unknown warranty status
+      impact = 0;
+      description = 'Warranty status unknown';
     }
     
-    return null;
+    // Calculate percentage impact
+    const basePrice = input.basePrice || 0;
+    const percentAdjustment = basePrice > 0 ? (impact / basePrice) * 100 : 0;
+    
+    return {
+      factor: "Warranty Status",
+      impact,
+      description,
+      name: "Warranty",
+      value: impact,
+      percentAdjustment,
+      warrantyType: warrantyStatus === 'extended' ? 'Extended' : 'Manufacturer'
+    };
   }
 }
