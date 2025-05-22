@@ -1,224 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ConditionLevel } from '@/components/lookup/types/manualEntry';
-import { cn } from '@/lib/utils';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { toast } from 'sonner';
-import { useValuation } from '@/hooks/useValuation';
-import { useToast } from '@/components/ui/use-toast';
-import { useMobile } from '@/hooks/use-mobile';
-import { useSearchParams } from 'react-router-dom';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { VehicleDetailsInputs } from '../form-parts/VehicleDetailsInputs';
+import { ConditionAndFuelInputs } from '../form-parts/ConditionAndFuelInputs';
+import { ZipCodeInput } from '../form-parts/ZipCodeInput';
+import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
 
-const formSchema = z.object({
-  make: z.string().min(2, { message: "Make must be at least 2 characters." }),
-  model: z.string().min(2, { message: "Model must be at least 2 characters." }),
-  year: z.number().min(1900, { message: "Invalid year" }).max(new Date().getFullYear(), { message: "Invalid year" }),
-  mileage: z.number().optional(),
-  condition: z.nativeEnum(ConditionLevel, {
-    invalid_type_error: "Please select a valid condition.",
-  }),
-  zipCode: z.string().optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional(),
-  trim: z.string().optional(),
-  color: z.string().optional(),
-  bodyType: z.string().optional(),
-  vin: z.string().optional(),
-});
+export interface ManualEntryFormProps {
+  onSubmit: (data: ManualEntryFormData) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
+}
 
-export function ManualEntryForm() {
-  const [searchParams] = useSearchParams();
-  const isPremiumFlow = searchParams.get('flow') === 'premium';
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const isMobile = useMobile();
-  const {
-    isLoading,
-    valuation,
-    error,
-    submitManualEntryForm,
-    resetValuation,
-  } = useValuation();
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      make: "",
-      model: "",
-      year: new Date().getFullYear(),
-      condition: ConditionLevel.Good,
-    },
-    mode: "onChange"
-  });
-
-  useEffect(() => {
-    resetValuation();
-  }, [resetValuation]);
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const formattedData: ManualEntryFormData = {
-        ...values,
-        mileage: values.mileage || undefined,
-        zipCode: values.zipCode || undefined,
-        fuelType: values.fuelType || undefined,
-        transmission: values.transmission || undefined,
-        trim: values.trim || undefined,
-        color: values.color || undefined,
-        bodyType: values.bodyType || undefined,
-        vin: values.vin || undefined,
-        condition: values.condition || ConditionLevel.Good,
-        isPremium: isPremiumFlow,
-      };
-
-      // In the part where formattedData.mileage is being accessed, add a null check:
-      const mileageFormatted = formattedData.mileage ? formattedData.mileage.toLocaleString() : 'N/A';
-
-      await submitManualEntryForm(formattedData);
-
-      if (valuation) {
-        toast({
-          title: "Valuation Generated",
-          description: "Successfully generated valuation.",
-        });
-
-        navigate(`/result?valuationId=${valuation.valuationId}&isPremium=${isPremiumFlow}`);
-      }
-    } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate valuation.",
-      });
-      console.error(err);
+export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
+  onSubmit,
+  isLoading = false,
+  submitButtonText = "Get Valuation",
+  isPremium = false
+}) => {
+  const [make, setMake] = useState('');
+  const [model, setModel] = useState('');
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [mileage, setMileage] = useState<number>(0);
+  const [condition, setCondition] = useState<ConditionLevel>(ConditionLevel.Good);
+  const [zipCode, setZipCode] = useState('');
+  const [fuelType, setFuelType] = useState('Gasoline');
+  const [transmission, setTransmission] = useState('Automatic');
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!make.trim()) {
+      toast.error('Please enter the vehicle make');
+      return;
     }
+    
+    if (!model.trim()) {
+      toast.error('Please enter the vehicle model');
+      return;
+    }
+    
+    if (!zipCode || zipCode.length !== 5) {
+      toast.error('Please enter a valid ZIP code');
+      return;
+    }
+    
+    const formattedData: ManualEntryFormData = {
+      make,
+      model,
+      year,
+      mileage: mileage || 0,
+      condition,
+      zipCode,
+      fuelType,
+      transmission
+    };
+    
+    onSubmit(formattedData);
   };
-
+  
   return (
-    <Card className={cn("w-full", isMobile ? "border-0 shadow-none" : "")}>
-      <CardHeader>
-        <CardTitle>Manual Entry</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="make"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Make</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Toyota" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    What is the make of your vehicle?
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <Card>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4 pt-6">
+          <div className="space-y-4">
+            <VehicleDetailsInputs 
+              make={make}
+              setMake={setMake}
+              model={model}
+              setModel={setModel}
+              year={year}
+              setYear={setYear}
+              mileage={mileage}
+              setMileage={setMileage}
             />
-            <FormField
-              control={form.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Model</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Camry" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    What is the model of your vehicle?
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+          </div>
+          
+          <div className="space-y-4">
+            <ConditionAndFuelInputs 
+              condition={condition}
+              setCondition={setCondition}
+              fuelType={fuelType}
+              setFuelType={setFuelType}
+              transmission={transmission}
+              setTransmission={setTransmission}
             />
-            <FormField
-              control={form.control}
-              name="year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Year</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g., 2015"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    What year was your vehicle manufactured?
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+          </div>
+          
+          <div className="space-y-4">
+            <ZipCodeInput 
+              zipCode={zipCode}
+              setZipCode={setZipCode}
             />
-            <FormField
-              control={form.control}
-              name="mileage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mileage</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g., 60000"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    What is the mileage of your vehicle?
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="condition"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Condition</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a condition" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
-                      <SelectItem value={ConditionLevel.VeryGood}>Very Good</SelectItem>
-                      <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
-                      <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
-                      <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    What is the condition of your vehicle?
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={isLoading} className="w-full">
-              Submit
-            </Button>
-            {error && (
-              <div className="text-red-500">{error}</div>
+          </div>
+        </CardContent>
+        
+        <CardFooter className="border-t p-6 bg-gray-50">
+          <Button 
+            type="submit"
+            className="w-full" 
+            disabled={isLoading || !make || !model || !zipCode}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                {submitButtonText} <ArrowRight className="ml-2 h-4 w-4" />
+              </>
             )}
-          </form>
-        </Form>
-      </CardContent>
+          </Button>
+        </CardFooter>
+      </form>
     </Card>
   );
-}
+};
+
+// Add default export to fix the import issue
+export default ManualEntryForm;
