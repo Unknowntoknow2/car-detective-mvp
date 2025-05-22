@@ -1,32 +1,38 @@
 
-import { PDFPage, PDFFont, Color, rgb } from 'pdf-lib';
 import { ReportData, SectionParams } from '../types';
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency } from './sectionHelper';
 
 export const drawValuationSection = (params: SectionParams, reportData: ReportData): number => {
-  // This is just a stub implementation to fix the error
-  // The actual implementation would be more complex
-  const { page, y, width, margin, boldFont, regularFont } = params;
-
+  const { doc, margin = 40 } = params;
+  
+  // Current Y position
+  const currentY = doc.y + 20;
+  
   // Draw title
-  page.drawText('Valuation', {
-    x: margin,
-    y: y - 20,
-    size: 16,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
-  });
-
+  doc.fontSize(16)
+     .font('Helvetica-Bold')
+     .fillColor('#333333')
+     .text('Valuation', margin, currentY);
+  
   // Draw estimated value
-  const estimatedValue = reportData.estimatedValue || reportData.price;
-  page.drawText(formatCurrency(estimatedValue), {
-    x: margin,
-    y: y - 50,
-    size: 24,
-    font: boldFont,
-    color: rgb(0.2, 0.5, 0.8)
-  });
-
+  const estimatedValue = reportData.estimatedValue || reportData.price || 0;
+  doc.fontSize(24)
+     .font('Helvetica-Bold')
+     .fillColor('#0077CC')
+     .text(formatCurrency(estimatedValue), margin, currentY + 30);
+  
+  // Draw price range if available
+  if (reportData.priceRange && reportData.priceRange.length >= 2) {
+    doc.fontSize(12)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text(
+         `Price Range: ${formatCurrency(reportData.priceRange[0])} - ${formatCurrency(reportData.priceRange[1])}`,
+         margin,
+         currentY + 70
+       );
+  }
+  
   // Return new Y position
-  return y - 80;
+  return currentY + 100;
 };

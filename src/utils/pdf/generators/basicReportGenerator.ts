@@ -1,3 +1,4 @@
+
 import PDFDocument from 'pdfkit';
 import { ReportData } from '../types';
 import { drawHeaderSection } from '../sections/headerSection';
@@ -8,15 +9,7 @@ import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
 import { drawDisclaimerSection } from '../sections/disclaimerSection';
 import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
-// Add a type definition for SectionParams to match what's expected by the section functions
-interface SectionParams {
-  doc: PDFDocument;
-  data: any;
-  pageWidth: number;
-  pageHeight: number;
-  margin?: number;
-}
-
+// Generate a basic valuation report
 export const generateBasicValuationReport = async (data: ReportData): Promise<typeof PDFDocument> => {
   const doc = new PDFDocument({
     size: 'A4',
@@ -47,21 +40,7 @@ export const generateBasicValuationReport = async (data: ReportData): Promise<ty
   // Vehicle Information Section
   drawVehicleInfoSection({
     doc,
-    data: {
-      year: data.year,
-      make: safeString(data.make),
-      model: safeString(data.model),
-      trim: safeString(data.trim),
-      vin: safeString(data.vin),
-      bodyType: safeString(data.bodyType),
-      color: safeString(data.color),
-      transmission: safeString(data.transmission),
-      fuelType: safeString(data.fuelType),
-      // Optional properties with safe access
-      licensePlate: data.licensePlate ? safeString(data.licensePlate) : undefined,
-      engine: data.engine ? safeString(data.engine) : undefined,
-      doors: data.doors
-    },
+    data,
     pageWidth,
     pageHeight,
     margin
@@ -70,29 +49,22 @@ export const generateBasicValuationReport = async (data: ReportData): Promise<ty
   // Valuation Summary Section
   drawValuationSummary({
     doc,
-    data: {
-      estimatedValue: data.estimatedValue,
-      valuationDate: new Date(),
-      marketTrend: 'Stable',
-      confidenceLevel: 'High'
-    },
+    data,
     pageWidth,
     pageHeight,
     margin
   });
 
-  // Photo Assessment Section
-  drawPhotoAssessmentSection({
-    doc,
-    data: {
-      photoUrl: data.photoUrl || data.bestPhotoUrl,
-      photoScore: data.photoScore,
-      conditionSummary: 'Good condition with minor wear and tear'
-    },
-    pageWidth,
-    pageHeight,
-    margin
-  });
+  // Photo Assessment Section if photo URL exists
+  if (data.photoUrl || data.bestPhotoUrl) {
+    drawPhotoAssessmentSection({
+      doc,
+      data,
+      pageWidth,
+      pageHeight,
+      margin
+    });
+  }
 
   // Disclaimer Section
   drawDisclaimerSection({

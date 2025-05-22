@@ -37,7 +37,7 @@ export const drawAdjustmentTable = (params: SectionParams): number => {
   
   // Draw rows
   let currentY = tableTop + 30;
-  adjustments.forEach((adjustment: AdjustmentBreakdown) => {
+  adjustments.forEach((adjustment: any) => {
     const factor = safeString(adjustment.factor);
     const impact = formatCurrency(adjustment.impact);
     const description = safeString(adjustment.description || '');
@@ -57,7 +57,7 @@ export const drawAdjustmentTable = (params: SectionParams): number => {
      .stroke();
   
   // Calculate total adjustments
-  const total = adjustments.reduce((sum: number, adj: AdjustmentBreakdown) => sum + adj.impact, 0);
+  const total = adjustments.reduce((sum: number, adj: any) => sum + adj.impact, 0);
   
   // Draw total
   doc.fontSize(12)

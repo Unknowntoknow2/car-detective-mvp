@@ -1,37 +1,21 @@
 
-import { PDFDocument, PDFPage, PDFFont, rgb } from 'pdf-lib';
-
-interface HeaderSectionProps {
-  yPosition: number;
-  width: number;
-  margin: number;
-  regularFont: PDFFont;
-  boldFont: PDFFont;
-  includeBranding?: boolean;
-}
+import { SectionParams } from '../types';
 
 /**
  * Draws the header section of the valuation report
  * @returns The new vertical position after drawing the header
  */
-export async function drawHeaderSection(
-  pdfDoc: PDFDocument,
-  page: PDFPage,
-  props: HeaderSectionProps
-): Promise<number> {
-  const { yPosition, width, margin, regularFont, boldFont, includeBranding = true } = props;
-  let currentY = yPosition;
+export function drawHeaderSection(params: SectionParams): number {
+  const { doc, data, margin = 40 } = params;
+  
+  // Current Y position
+  const currentY = doc.y || 40;
   
   // Add title
-  page.drawText('VEHICLE VALUATION REPORT', {
-    x: margin,
-    y: currentY,
-    size: 18,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1)
-  });
-  
-  currentY -= 20;
+  doc.fontSize(18)
+     .font('Helvetica-Bold')
+     .fillColor('#333333')
+     .text(data.reportTitle || 'VEHICLE VALUATION REPORT', margin, currentY);
   
   // Add subtitle with date
   const today = new Date();
@@ -41,25 +25,18 @@ export async function drawHeaderSection(
     day: 'numeric'
   });
   
-  page.drawText(`Generated on ${dateStr}`, {
-    x: margin,
-    y: currentY,
-    size: 10,
-    font: regularFont,
-    color: rgb(0.5, 0.5, 0.5)
-  });
-  
-  currentY -= 30;
+  doc.fontSize(10)
+     .font('Helvetica')
+     .fillColor('#666666')
+     .text(`Generated on ${dateStr}`, margin, currentY + 25);
   
   // Draw a line to separate the header from the content
-  page.drawLine({
-    start: { x: margin, y: currentY },
-    end: { x: width - margin, y: currentY },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8)
-  });
+  doc.strokeColor('#cccccc')
+     .lineWidth(1)
+     .moveTo(margin, currentY + 45)
+     .lineTo(doc.page.width - margin, currentY + 45)
+     .stroke();
   
-  currentY -= 20;
-  
-  return currentY;
+  // Return the new vertical position
+  return currentY + 60;
 }

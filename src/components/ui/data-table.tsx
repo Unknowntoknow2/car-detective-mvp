@@ -34,11 +34,16 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
                     ? column.cell({ 
                         row: { 
                           original: row, 
-                          getValue: (key: string) => column.accessorKey ? row[column.accessorKey as keyof TData] : undefined 
+                          getValue: (key: string) => {
+                            if (column.accessorKey) {
+                              return row[column.accessorKey as keyof TData];
+                            }
+                            return null;
+                          }
                         } 
                       })
                     : column.accessorKey
-                    ? row[column.accessorKey as keyof TData]
+                    ? (row[column.accessorKey as keyof TData] as React.ReactNode)
                     : null}
                 </TableCell>
               ))}

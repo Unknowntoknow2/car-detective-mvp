@@ -1,26 +1,20 @@
 
 import { SectionParams } from '../types';
-import { safeMargin, safeDimensions, contentWidth } from './sectionHelper';
 
 /**
  * Draw footer section on the PDF
  */
 export const drawFooterSection = (params: SectionParams) => {
-  const { doc, data, pageWidth, pageHeight, margin } = params;
-  
-  // Use the safe helper functions
-  const safeMarginValue = safeMargin(margin);
-  const { width, height } = safeDimensions(doc);
-  const safeContentWidth = contentWidth(width, safeMarginValue);
+  const { doc, data, pageWidth, pageHeight, margin = 40 } = params;
   
   // Calculate the Y position for the footer (near bottom of page)
-  const footerY = height - safeMarginValue - 30;
+  const footerY = pageHeight - margin - 30;
   
   // Draw a separator line
   doc.strokeColor('#cccccc')
      .lineWidth(1)
-     .moveTo(safeMarginValue, footerY)
-     .lineTo(width - safeMarginValue, footerY)
+     .moveTo(margin, footerY)
+     .lineTo(pageWidth - margin, footerY)
      .stroke();
   
   // Draw footer text
@@ -29,10 +23,10 @@ export const drawFooterSection = (params: SectionParams) => {
      .fillColor('#666666')
      .text(
        `Report generated on ${data.reportDate.toLocaleDateString()} by ${data.companyName} | ${data.website}`,
-       safeMarginValue,
+       margin,
        footerY + 10,
        {
-         width: safeContentWidth,
+         width: pageWidth - (margin * 2),
          align: 'center'
        }
      );

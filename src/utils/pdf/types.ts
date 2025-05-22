@@ -47,6 +47,15 @@ export interface SectionParams {
   pageWidth: number;
   pageHeight: number;
   margin?: number;
+  // Extended properties for PDF sections
+  page?: any;
+  y?: number;
+  width?: number;
+  regularFont?: any;
+  boldFont?: any;
+  contentWidth?: number;
+  textColor?: any;
+  primaryColor?: any;
 }
 
 export interface ReportOptions {

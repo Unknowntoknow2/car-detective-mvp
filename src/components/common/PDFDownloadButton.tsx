@@ -43,13 +43,12 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       setIsGenerating(true);
       
       // Format the data for the PDF generator
-      const formData: Partial<ReportData> = {
-        make: valuationResult.make,
-        model: valuationResult.model,
-        year: valuationResult.year,
+      const formData: ReportData = {
+        make: valuationResult.make || '',
+        model: valuationResult.model || '',
+        year: valuationResult.year || new Date().getFullYear(),
         mileage: valuationResult.mileage,
-        condition: valuationResult.condition,
-        zipCode: valuationResult.zip || valuationResult.zipCode,
+        zipCode: valuationResult.zip || valuationResult.zipCode || '',
         // Use estimated value as price
         price: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
         estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
@@ -60,7 +59,11 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         })),
         generatedAt: new Date().toISOString(),
         confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore,
-        priceRange: valuationResult.price_range || valuationResult.priceRange
+        priceRange: valuationResult.price_range || valuationResult.priceRange || [0, 0],
+        aiCondition: valuationResult.aiCondition || {
+          summary: '',
+          score: 0
+        }
       };
       
       // Generate the PDF
