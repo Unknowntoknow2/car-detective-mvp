@@ -48,6 +48,34 @@ const zipRegions: {[key: string]: string} = {
 };
 
 /**
+ * Get the regional market multiplier based on ZIP code
+ * @param zipCode ZIP code to check
+ * @returns Market multiplier for the region (percentage as decimal)
+ */
+export function getRegionalMarketMultiplier(zipCode: string): number {
+  if (!zipCode || zipCode.length < 1) return 0;
+  
+  // Get the first digit for regional assessment
+  const regionDigit = zipCode.substring(0, 1);
+  
+  // Default regional multipliers (very simplified)
+  const regionalDefaults: {[key: string]: number} = {
+    '9': 0.05,  // West Coast premium
+    '8': 0.02,  // Mountain West
+    '7': 0.01,  // Central Plains
+    '6': 0,     // South Central
+    '5': 0,     // Midwest
+    '4': 0.03,  // Northeast
+    '3': 0.02,  // Mid-Atlantic
+    '2': -0.01, // Southeast
+    '1': 0.04,  // New England
+    '0': 0.03,  // Northeast
+  };
+  
+  return regionalDefaults[regionDigit] || 0;
+}
+
+/**
  * Get the adjustment multiplier for a specific ZIP code
  * @param zipCode ZIP code
  * @returns Adjustment multiplier (percentage as decimal)

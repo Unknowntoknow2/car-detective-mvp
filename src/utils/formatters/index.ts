@@ -5,5 +5,5 @@ export { formatDate } from './formatDate';
 export { formatRelativeTime } from './formatRelativeTime';
 export { manualEntryToJson } from './manualEntryToJson';
 
-// Note: formatRelativeTime is now exported from its own file, 
-// so we're removing the duplicate implementation here
+// Note: Ensure we're only exporting functions that actually exist in the codebase
+// We've simplified the exports to the essential functions needed for the current issues
