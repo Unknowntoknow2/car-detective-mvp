@@ -22,6 +22,7 @@ import DealerSignup from './pages/DealerSignup';
 import ChooseRolePage from './pages/auth/ChooseRolePage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
+import DashboardRouter from './components/dashboard/DashboardRouter';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -101,6 +102,10 @@ const routes: RouteObject[] = [
       },
       {
         path: 'dashboard',
+        element: <DashboardRouter />
+      },
+      {
+        path: 'dashboard/individual',
         element: <DashboardPage />
       },
       {
@@ -137,6 +142,10 @@ const routes: RouteObject[] = [
         children: [
           {
             index: true,
+            element: <DealerDashboardPage />
+          },
+          {
+            path: 'dashboard',
             element: <DealerDashboardPage />
           },
           {

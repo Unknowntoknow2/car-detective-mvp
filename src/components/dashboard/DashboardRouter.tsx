@@ -25,11 +25,13 @@ const DashboardRouter: React.FC = () => {
 
         // Get the user's role from context or metadata
         const role = userDetails?.role || user.user_metadata?.role;
+        
+        console.log('User role detected:', role);
 
         // Route based on role
         switch (role) {
           case 'dealer':
-            navigate('/dealer/dashboard');
+            navigate('/dealer');
             break;
           case 'admin':
             navigate('/admin/dashboard');
