@@ -60,6 +60,7 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     generatedAt: new Date().toISOString(),
     explanation: result.explanation || result.gptExplanation || 'N/A',
     userId: result.userId || 'N/A',
+    trim: result.trim || 'N/A',
   };
 };
 

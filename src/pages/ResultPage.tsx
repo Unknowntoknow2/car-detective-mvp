@@ -4,15 +4,15 @@ import { useSearchParams } from 'react-router-dom';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
 import { ConditionValues } from '@/components/valuation/condition/types';
 
-// Update the condition values to include all required properties
+// Update the condition values to include all required properties with correct types
 const conditionValues: ConditionValues = {
-  exteriorBody: 4,
-  exteriorPaint: 4,
-  interiorSeats: 4,
-  interiorDashboard: 4,
-  mechanicalEngine: 4,
-  mechanicalTransmission: 4,
-  tiresCondition: 4,
+  exteriorBody: "4",
+  exteriorPaint: "4",
+  interiorSeats: "4",
+  interiorDashboard: "4",
+  mechanicalEngine: "4",
+  mechanicalTransmission: "4",
+  tiresCondition: "4",
   accidents: 0,
   mileage: 0,
   year: 0,
