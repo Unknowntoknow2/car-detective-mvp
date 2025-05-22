@@ -1081,6 +1081,65 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_access: {
+        Row: {
+          created_at: string
+          credits_remaining: number
+          expires_at: string | null
+          id: string
+          purchase_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_remaining?: number
+          expires_at?: string | null
+          id?: string
+          purchase_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_remaining?: number
+          expires_at?: string | null
+          id?: string
+          purchase_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      premium_valuations: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          valuation_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          valuation_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_valuations_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_curves: {
         Row: {
           condition: string

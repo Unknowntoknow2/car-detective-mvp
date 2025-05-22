@@ -1,7 +1,7 @@
 
-import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 
 // Set up CORS headers
 const corsHeaders = {
@@ -46,11 +46,12 @@ serve(async (req) => {
     
     // Get user ID and valuation ID from the session metadata
     const userId = session.metadata?.user_id;
+    const bundle = parseInt(session.metadata?.bundle || '1', 10);
     const valuationId = session.metadata?.valuation_id;
     
-    if (!userId || !valuationId) {
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: "Invalid session: missing user or valuation ID" }),
+        JSON.stringify({ error: "Invalid session: missing user ID" }),
         { 
           status: 400, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -65,25 +66,59 @@ serve(async (req) => {
         status: 'paid'
       }).eq('stripe_session_id', sessionId);
       
-      // Update the valuation record to mark premium as unlocked
-      await serviceClient.from('valuations').update({ 
-        premium_unlocked: true
-      }).eq('id', valuationId);
+      // If there's a specific valuation, mark it as premium unlocked
+      if (valuationId && valuationId !== '') {
+        // Insert into premium_valuations to track the specific access
+        await serviceClient.from('premium_valuations').upsert({
+          user_id: userId,
+          valuation_id: valuationId,
+          created_at: new Date().toISOString()
+        });
+        
+        // Optionally update the valuation record itself
+        await serviceClient.from('valuations').update({ 
+          premium_unlocked: true
+        }).eq('id', valuationId);
+      }
       
-      // Update the user's profile to extend premium access
-      // Set premium expiration to 30 days from now for this one-time purchase
-      const premiumExpiresAt = new Date();
-      premiumExpiresAt.setDate(premiumExpiresAt.getDate() + 30);
+      // Set expiration date to 12 months from now
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 12);
       
-      await serviceClient.from('profiles').update({
-        premium_expires_at: premiumExpiresAt.toISOString()
-      }).eq('id', userId);
+      // Check if user already has premium access
+      const { data: existingAccess } = await serviceClient
+        .from('premium_access')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      
+      if (existingAccess && existingAccess.length > 0) {
+        // Add credits to existing access
+        const currentCredits = existingAccess[0].credits_remaining || 0;
+        const newCredits = currentCredits + bundle;
+        
+        // Update with new credits and potentially extend expiration
+        await serviceClient.from('premium_access').update({
+          credits_remaining: newCredits,
+          expires_at: expiresAt.toISOString()
+        }).eq('id', existingAccess[0].id);
+      } else {
+        // Create new premium access record
+        await serviceClient.from('premium_access').insert({
+          user_id: userId,
+          credits_remaining: bundle,
+          expires_at: expiresAt.toISOString(),
+          purchase_date: new Date().toISOString()
+        });
+      }
       
       return new Response(
         JSON.stringify({ 
           success: true, 
           paymentSucceeded: true,
-          valuationId
+          bundle,
+          valuationId: valuationId || null
         }),
         { 
           status: 200, 
@@ -101,7 +136,7 @@ serve(async (req) => {
           success: false, 
           paymentSucceeded: false,
           status: session.payment_status,
-          valuationId
+          valuationId: valuationId || null
         }),
         { 
           status: 200, 

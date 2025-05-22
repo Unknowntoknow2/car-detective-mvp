@@ -1,248 +1,203 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Check, AlertCircle, ArrowRight, Upload, FileText, Building, BarChart4 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect, useState } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { PremiumUpgradeCTA } from '@/components/premium/PremiumUpgradeCTA';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { useAuth } from '@/hooks/useAuth';
+import { verifyPaymentSession } from '@/utils/stripeClient';
 import { toast } from 'sonner';
-import { PremiumValuationForm } from '@/components/premium/form/PremiumValuationForm';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
-const PremiumValuationPage: React.FC = () => {
+export default function PremiumValuationPage() {
+  const { valuationId } = useParams<{ valuationId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const [step, setStep] = useState(1);
+  const { isLoading: authLoading, user } = useAuth();
+  const { hasPremiumAccess, isLoading: accessLoading, usePremiumCredit } = usePremiumAccess(valuationId);
   
-  const totalSteps = 5;
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'success' | 'error' | 'none'>('none');
+  const [statusMessage, setStatusMessage] = useState('');
   
-  const handleNext = () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
+  const isLoading = authLoading || accessLoading;
+  
+  // Check if returning from Stripe checkout
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    const premiumParam = searchParams.get('premium');
+    
+    if (sessionId) {
+      setIsVerifying(true);
+      
+      verifyPaymentSession(sessionId)
+        .then(data => {
+          if (data.success) {
+            setPaymentStatus('success');
+            setStatusMessage('Payment successful! Premium features are now unlocked.');
+            
+            // If we have a valuation ID, use a credit to unlock it
+            if (valuationId && data.bundle > 0) {
+              return usePremiumCredit(valuationId);
+            }
+          } else {
+            setPaymentStatus('error');
+            setStatusMessage('Payment verification failed. Please try again or contact support.');
+          }
+        })
+        .catch(error => {
+          console.error('Error verifying payment:', error);
+          setPaymentStatus('error');
+          setStatusMessage('Failed to verify payment. Please try again or contact support.');
+        })
+        .finally(() => {
+          setIsVerifying(false);
+        });
+    } else if (premiumParam === '1') {
+      setPaymentStatus('success');
+      setStatusMessage('Premium features are now available!');
+    }
+  }, [searchParams, valuationId, usePremiumCredit]);
+  
+  const handleViewValuation = () => {
+    if (valuationId) {
+      navigate(`/valuation/${valuationId}`);
+    } else {
+      navigate('/account');
     }
   };
   
-  const handlePrevious = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
-  
-  if (!user) {
+  if (isLoading || isVerifying) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="mx-auto h-12 w-12 text-amber-500 mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Authentication Required</h2>
-              <p className="mb-6">Please sign in to access premium valuation features.</p>
-              <Button onClick={() => navigate('/auth')}>
-                Sign In / Register
+      <div className="container max-w-4xl py-8">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-lg font-medium">
+              {isVerifying ? 'Verifying payment...' : 'Loading...'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (paymentStatus === 'success') {
+    return (
+      <div className="container max-w-4xl py-8">
+        <Card className="border-green-200 bg-green-50 dark:bg-green-900/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              Payment Successful
+            </CardTitle>
+            <CardDescription className="text-lg">
+              {statusMessage}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center mt-4">
+              <Button onClick={handleViewValuation}>
+                {valuationId ? 'View Valuation' : 'Go to Account'}
               </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (paymentStatus === 'error') {
+    return (
+      <div className="container max-w-4xl py-8">
+        <Card className="border-red-200 bg-red-50 dark:bg-red-900/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+              Payment Error
+            </CardTitle>
+            <CardDescription className="text-lg">
+              {statusMessage}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center mt-4">
+              <Button onClick={() => setPaymentStatus('none')}>
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (hasPremiumAccess && valuationId) {
+    return (
+      <div className="container max-w-4xl py-8">
+        <Card className="border-green-200 bg-green-50 dark:bg-green-900/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-700">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              Premium Already Unlocked
+            </CardTitle>
+            <CardDescription className="text-lg">
+              You already have premium access to this valuation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center mt-4">
+              <Button onClick={handleViewValuation}>
+                View Valuation
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
   
   return (
-    <div className="container mx-auto py-8">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Premium Valuation</h1>
-        
-        <div className="mb-8">
-          <div className="flex items-center">
-            {Array.from({ length: totalSteps }).map((_, index) => (
-              <React.Fragment key={index}>
-                <div 
-                  className={`rounded-full h-10 w-10 flex items-center justify-center border-2 
-                    ${step > index ? 'bg-primary text-white border-primary' : 
-                      step === index + 1 ? 'border-primary text-primary' : 'border-gray-300 text-gray-400'}`}
-                >
-                  {index + 1}
-                </div>
-                {index < totalSteps - 1 && (
-                  <div 
-                    className={`h-1 flex-1 mx-2 ${step > index + 1 ? 'bg-primary' : 'bg-gray-300'}`}
-                  ></div>
-                )}
-              </React.Fragment>
-            ))}
+    <div className="container max-w-4xl py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Upgrade to Premium</h1>
+        <p className="text-muted-foreground">
+          Get comprehensive valuation insights with premium features
+        </p>
+      </div>
+      
+      <PremiumUpgradeCTA valuationId={valuationId} />
+      
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold mb-4">What's included with Premium</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-2">Comprehensive Vehicle Analysis</h3>
+            <p className="text-muted-foreground">
+              Get detailed insights into your vehicle's condition, market position, and pricing factors.
+            </p>
           </div>
-          <div className="flex justify-between mt-2 px-2 text-sm text-gray-600">
-            <div>Vehicle Info</div>
-            <div>Condition</div>
-            <div>Features</div>
-            <div>Photos</div>
-            <div>Review</div>
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-2">CARFAX Integration</h3>
+            <p className="text-muted-foreground">
+              Access vehicle history data including accidents, service records, and title information.
+            </p>
+          </div>
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-2">Detailed PDF Reports</h3>
+            <p className="text-muted-foreground">
+              Download professional-quality reports for your records or to share with potential buyers.
+            </p>
+          </div>
+          <div className="border rounded-lg p-4">
+            <h3 className="font-medium mb-2">Market Comparison</h3>
+            <p className="text-muted-foreground">
+              See how your vehicle stacks up against similar models in your local market.
+            </p>
           </div>
         </div>
-        
-        {step === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Information</CardTitle>
-              <CardDescription>Enter your vehicle's basic details</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center p-12 border border-dashed border-gray-300 rounded-md bg-gray-50">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Premium Valuation Form</h3>
-                  <p className="text-gray-500 mb-4">This is where the vehicle information form will be implemented.</p>
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button onClick={handleNext}>
-                    Continue <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Condition</CardTitle>
-              <CardDescription>Assess your vehicle's condition accurately</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center p-12 border border-dashed border-gray-300 rounded-md bg-gray-50">
-                  <BarChart4 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Condition Assessment</h3>
-                  <p className="text-gray-500 mb-4">This is where the condition assessment form will be implemented.</p>
-                </div>
-                
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handlePrevious}>
-                    Back
-                  </Button>
-                  <Button onClick={handleNext}>
-                    Continue <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {step === 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Features</CardTitle>
-              <CardDescription>Select all features included in your vehicle</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center p-12 border border-dashed border-gray-300 rounded-md bg-gray-50">
-                  <Check className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Feature Selection</h3>
-                  <p className="text-gray-500 mb-4">This is where the feature selection form will be implemented.</p>
-                </div>
-                
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handlePrevious}>
-                    Back
-                  </Button>
-                  <Button onClick={handleNext}>
-                    Continue <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {step === 4 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Photos</CardTitle>
-              <CardDescription>Upload photos to get a more accurate valuation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center p-12 border border-dashed border-gray-300 rounded-md bg-gray-50">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Photo Upload</h3>
-                  <p className="text-gray-500 mb-4">This is where the photo upload form will be implemented.</p>
-                </div>
-                
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handlePrevious}>
-                    Back
-                  </Button>
-                  <Button onClick={handleNext}>
-                    Continue <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {step === 5 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Review & Submit</CardTitle>
-              <CardDescription>Review your information and submit for valuation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center p-12 border border-dashed border-gray-300 rounded-md bg-gray-50">
-                  <Building className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Review Summary</h3>
-                  <p className="text-gray-500 mb-4">This is where the review summary will be displayed.</p>
-                </div>
-                
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handlePrevious}>
-                    Back
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      toast.success("Premium valuation submitted successfully!");
-                      navigate("/my-valuations");
-                    }}
-                  >
-                    Submit Valuation
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        <Card className="mt-8 bg-primary/5 border border-primary/20">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-2">Premium Benefits</h3>
-            <ul className="space-y-2">
-              <li className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                <span>Comprehensive valuation with detailed market analysis</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                <span>CARFAX® Vehicle History Report included</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                <span>Connect with local dealers for competitive offers</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                <span>Professional PDF report to share with buyers or insurance</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
-};
-
-export default PremiumValuationPage;
+}

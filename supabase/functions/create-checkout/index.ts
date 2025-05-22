@@ -1,7 +1,7 @@
 
-import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 
 // Set up CORS headers
 const corsHeaders = {
@@ -17,17 +17,7 @@ serve(async (req) => {
 
   try {
     // Get request body
-    const { valuationId, returnUrl } = await req.json();
-    
-    if (!valuationId) {
-      return new Response(
-        JSON.stringify({ error: "Valuation ID is required" }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
-    }
+    const { bundle = 1, valuationId, successUrl, cancelUrl } = await req.json();
     
     // Initialize Stripe with the secret key from environment variables
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -53,6 +43,45 @@ serve(async (req) => {
       );
     }
     
+    // Check if the user has the 'individual' role
+    const { data: profileData, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    
+    if (profileError) {
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch user profile" }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+    
+    if (profileData.role !== 'individual' && profileData.role !== 'user') {
+      return new Response(
+        JSON.stringify({ error: "This premium upgrade is only for individual users" }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+    
+    // Set product name and price based on bundle
+    let productName = 'Premium Valuation';
+    let unitAmount = 1999; // $19.99
+    
+    if (bundle === 3) {
+      productName = '3-Pack Premium Valuations';
+      unitAmount = 4999; // $49.99
+    } else if (bundle === 5) {
+      productName = '5-Pack Premium Valuations';
+      unitAmount = 7999; // $79.99
+    }
+    
     // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -61,21 +90,22 @@ serve(async (req) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Premium Valuation Report',
-              description: 'Full access to premium valuation features'
+              name: productName,
+              description: `${bundle} premium valuation credit${bundle !== 1 ? 's' : ''}`
             },
-            unit_amount: 4999, // $49.99
+            unit_amount: unitAmount,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}${returnUrl || `/premium-success?valuation_id=${valuationId}`}`,
-      cancel_url: `${req.headers.get('origin')}/valuation/${valuationId}?payment_canceled=true`,
-      client_reference_id: user.id,
+      success_url: successUrl || `${req.headers.get('origin')}/premium?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${req.headers.get('origin')}/premium`,
       metadata: {
-        valuation_id: valuationId,
-        user_id: user.id
+        user_id: user.id,
+        bundle: bundle.toString(),
+        valuation_id: valuationId || '',
+        type: 'individual'
       },
       customer_email: user.email,
     });
@@ -90,9 +120,9 @@ serve(async (req) => {
     // Create an order record
     await serviceClient.from('orders').insert({
       user_id: user.id,
-      valuation_id: valuationId,
+      valuation_id: valuationId || null,
       stripe_session_id: session.id,
-      amount: 4999,
+      amount: unitAmount,
       status: 'pending'
     });
     
