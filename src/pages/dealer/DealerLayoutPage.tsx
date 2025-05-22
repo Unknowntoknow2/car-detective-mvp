@@ -1,21 +1,31 @@
 
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Outlet, Navigate } from 'react-router-dom';
+import DealerLayout from '@/layouts/DealerLayout';
+import { useAuth } from '@/hooks/useAuth';
 
-export default function DealerLayoutPage() {
+const DealerLayoutPage = () => {
+  const { user, userDetails, isLoading } = useAuth();
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // If not logged in or not a dealer, redirect to login
+  if (!user || (userDetails && userDetails.role !== 'dealer')) {
+    return <Navigate to="/auth/dealer" replace />;
+  }
+
   return (
-    <div className="container mx-auto py-8">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Dealer Dashboard</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Manage your vehicle inventory</p>
-        </CardContent>
-      </Card>
-      
+    <DealerLayout>
       <Outlet />
-    </div>
+    </DealerLayout>
   );
-}
+};
+
+export default DealerLayoutPage;
