@@ -28,6 +28,11 @@ export interface ReportData {
   features?: string[];
   regionName?: string;
   price?: number;
+  // Additional properties needed by sections
+  reportTitle?: string;
+  disclaimerText?: string;
+  companyName?: string;
+  website?: string;
 }
 
 export interface AdjustmentItem {
@@ -58,9 +63,13 @@ export interface SectionParams {
   italicFont?: any;
   textColor: any;
   primaryColor: any;
+  // Additional properties needed by sections
+  y?: number;
+  regularFont?: any;
 }
 
 export interface ReportGeneratorParams {
   data: ReportData;
   options: ReportOptions;
+  document?: any;
 }
