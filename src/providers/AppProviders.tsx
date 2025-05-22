@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from 'sonner';
 import { ValuationProvider } from '@/hooks/useValuationContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -15,9 +16,11 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     <ThemeProvider>
       <AuthProvider>
         <ValuationProvider>
-          {children}
-          <Toaster />
-          <SonnerToaster position="top-right" />
+          <TooltipProvider>
+            {children}
+            <Toaster />
+            <SonnerToaster position="top-right" />
+          </TooltipProvider>
         </ValuationProvider>
       </AuthProvider>
     </ThemeProvider>
