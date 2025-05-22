@@ -10,8 +10,8 @@ import { toast } from 'sonner';
 import { UserRole } from '@/types/auth';
 
 export interface SigninFormProps {
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
+  isLoading?: boolean;
+  setIsLoading?: (loading: boolean) => void;
   redirectPath?: string;
   alternateLoginPath?: string;
   alternateLoginText?: string;
@@ -19,8 +19,8 @@ export interface SigninFormProps {
 }
 
 export const SigninForm = ({ 
-  isLoading, 
-  setIsLoading, 
+  isLoading: externalLoading, 
+  setIsLoading: setExternalLoading, 
   redirectPath = '/dashboard',
   alternateLoginPath,
   alternateLoginText,
@@ -31,22 +31,28 @@ export const SigninForm = ({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [localLoading, setLocalLoading] = useState(false);
   
   const navigate = useNavigate();
-  const { signIn, user, userRole, userDetails } = useAuth();
+  const { signIn, user, userDetails, isLoading: authLoading } = useAuth();
 
-  // Check if we already have user details with a role
+  // Use either provided loading state or local
+  const loading = externalLoading !== undefined ? externalLoading : localLoading;
+  const setLoading = setExternalLoading || setLocalLoading;
+
+  // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      const detectedRole = userRole || userDetails?.role || 'individual';
-      // Redirect to appropriate dashboard based on role
-      if (detectedRole === 'dealer') {
-        navigate('/dealer-dashboard');
+    if (user && userDetails) {
+      console.log("User authenticated:", user.id, "Role:", userDetails.role);
+      
+      // Determine redirect path based on role
+      if (userDetails.role === 'dealer') {
+        navigate('/dealer/dashboard');
       } else {
         navigate('/dashboard');
       }
     }
-  }, [user, userRole, userDetails, navigate]);
+  }, [user, userDetails, navigate]);
 
   // Form validation
   const validateForm = () => {
@@ -64,22 +70,11 @@ export const SigninForm = ({
     if (!password) {
       errors.password = 'Password is required';
       isValid = false;
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-      isValid = false;
     }
 
     setFormErrors(errors);
     return isValid;
   };
-
-  // Auto-focus first input on load
-  useEffect(() => {
-    const emailInput = document.getElementById('email');
-    if (emailInput) {
-      emailInput.focus();
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,30 +84,21 @@ export const SigninForm = ({
     }
     
     setError(null);
-    setIsLoading(true);
+    setLoading(true);
     
     try {
       const result = await signIn(email, password);
       
       if (result?.error) {
-        throw new Error(result.error);
-      }
-      
-      toast.success('Successfully signed in!');
-      
-      // Determine redirect path based on role
-      // The redirect will happen in the useEffect when userRole is populated
-      if (role === 'dealer') {
-        // We'll redirect to dealer dashboard in the useEffect
-      } else {
-        // We'll redirect to user dashboard in the useEffect
+        setError(result.error);
+        toast.error(result.error);
       }
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'An unexpected error occurred');
       toast.error(err.message || 'Failed to sign in');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -136,7 +122,7 @@ export const SigninForm = ({
             className="pl-10"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
+            disabled={loading || authLoading}
           />
         </div>
         {formErrors.email && (
@@ -161,7 +147,7 @@ export const SigninForm = ({
             className="pl-10 pr-10"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
+            disabled={loading || authLoading}
           />
           <Button 
             type="button"
@@ -181,9 +167,9 @@ export const SigninForm = ({
       <Button 
         type="submit" 
         className="w-full"
-        disabled={isLoading}
+        disabled={loading || authLoading}
       >
-        {isLoading ? (
+        {loading || authLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Signing in...

@@ -53,7 +53,7 @@ export default function DealerSignupPage() {
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
                 role="dealer"
-                redirectPath="/dealer-dashboard"
+                redirectPath="/dealer/dashboard"
                 showDealershipField={true}
               />
             </CardContent>

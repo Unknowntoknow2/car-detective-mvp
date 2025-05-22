@@ -53,7 +53,7 @@ export default function LoginDealerPage() {
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
                 role="dealer"
-                redirectPath="/dealer-dashboard"
+                redirectPath="/dealer/dashboard"
                 alternateLoginPath="/signin/individual"
                 alternateLoginText="Individual user? Click here to login"
               />

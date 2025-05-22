@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, userRole, userDetails, isLoading } = useAuth();
+  const { user, userDetails, isLoading } = useAuth();
   const [isPageLoading, setIsPageLoading] = React.useState(true);
 
   useEffect(() => {
@@ -16,22 +16,18 @@ const DashboardPage = () => {
         return;
       }
 
-      // Determine the role from various sources, prioritizing userRole and userDetails
-      const detectedRole = userRole || userDetails?.role || user.user_metadata?.role || 'individual';
+      // Determine the role and redirect accordingly
+      const role = userDetails?.role || 'individual';
+      console.log('User role in dashboard:', role);
       
-      console.log('Detected role:', detectedRole);
-      
-      // Redirect based on role
-      if (detectedRole === 'dealer') {
-        navigate('/dealer-dashboard');
-      } else if (detectedRole === 'individual') {
-        navigate('/user-dashboard');
+      if (role === 'dealer') {
+        navigate('/dealer/dashboard');
       } else {
-        // Default fallback - stay on this page and render content
+        // For individual users, stay on this page and load content
         setIsPageLoading(false);
       }
     }
-  }, [user, userRole, userDetails, isLoading, navigate]);
+  }, [user, userDetails, isLoading, navigate]);
   
   if (isLoading || isPageLoading) {
     return (
@@ -47,8 +43,8 @@ const DashboardPage = () => {
 
   return (
     <div className="container mx-auto py-12">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <p>Welcome to your dashboard. Your content will appear here.</p>
+      <h1 className="text-3xl font-bold mb-6">Individual Dashboard</h1>
+      <p>Welcome to your personal dashboard. Your vehicles and valuations will appear here.</p>
     </div>
   );
 };

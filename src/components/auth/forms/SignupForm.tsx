@@ -98,7 +98,7 @@ export function SignupForm({
       // Determine redirect path based on role
       let targetPath = redirectPath;
       if (role === 'dealer') {
-        targetPath = '/dealer-dashboard';
+        targetPath = '/dealer/dashboard';
       }
       
       if (redirectToLogin) {
