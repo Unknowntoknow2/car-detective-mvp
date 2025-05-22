@@ -60,3 +60,5 @@ export const NextStepsCard: React.FC<NextStepsCardProps> = ({
     </Card>
   );
 };
+
+export default NextStepsCard;
