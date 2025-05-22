@@ -3,13 +3,14 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import QADashboardPage from '../page';
 
-// Mock async component
+// Mock the async component by wrapping it in a component that renders its result
 jest.mock('../page', () => {
   const MockComponent = () => (
     <div data-testid="qa-dashboard">
       <h1>QA Dashboard</h1>
     </div>
   );
+  // Return a regular component, not an async one
   return MockComponent;
 });
 

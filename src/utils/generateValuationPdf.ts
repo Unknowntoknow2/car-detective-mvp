@@ -45,11 +45,13 @@ export async function generateValuationPdf(
   }
   
   // Add adjustments with default empty description if needed
-  const adjustments = data.adjustments?.map(adj => ({
-    factor: adj.factor,
-    impact: adj.impact,
-    description: adj.description || ""
-  })) || [];
+  const adjustments = data.adjustments && Array.isArray(data.adjustments) 
+    ? data.adjustments.map((adj: { factor: string; impact: number; description?: string }) => ({
+        factor: adj.factor,
+        impact: adj.impact,
+        description: adj.description || ""
+      })) 
+    : [];
   
   // Return dummy data for now
   return new Uint8Array([0]); // Placeholder

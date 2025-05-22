@@ -1,4 +1,5 @@
-import PDFKit from 'pdfkit';
+
+import PDFDocument from 'pdfkit';
 import { ReportData } from '../types';
 import { drawHeaderSection } from '../sections/headerSection';
 import { drawFooterSection } from '../sections/footerSection';
@@ -8,8 +9,8 @@ import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
 import { drawDisclaimerSection } from '../sections/disclaimerSection';
 import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
-export const generateBasicValuationReport = async (data: ReportData): Promise<PDFKit.PDFDocument> => {
-  const doc = new PDFKit({
+export const generateBasicValuationReport = async (data: ReportData): Promise<PDFDocument> => {
+  const doc = new PDFDocument({
     size: 'A4',
     margins: {
       top: 40,
@@ -20,7 +21,10 @@ export const generateBasicValuationReport = async (data: ReportData): Promise<PD
   });
 
   // Header Section
-  drawHeaderSection(doc, { logo: 'path/to/logo.png', reportTitle: 'Vehicle Valuation Report' });
+  drawHeaderSection(doc, { 
+    reportTitle: 'Vehicle Valuation Report',
+    logo: 'path/to/logo.png' 
+  });
 
   // Vehicle Information Section
   drawVehicleInfoSection(doc, {
@@ -29,13 +33,13 @@ export const generateBasicValuationReport = async (data: ReportData): Promise<PD
     model: safeString(data.model),
     trim: safeString(data.trim),
     vin: safeString(data.vin),
-    licensePlate: safeString(data.licensePlate),
+    licensePlate: data.licensePlate ? safeString(data.licensePlate) : undefined,
     bodyType: safeString(data.bodyType),
     color: safeString(data.color),
-    engine: safeString(data.engine),
+    engine: data.engine ? safeString(data.engine) : undefined,
     transmission: safeString(data.transmission),
     fuelType: safeString(data.fuelType),
-    doors: data.doors,
+    doors: data.doors
   });
 
   // Valuation Summary Section
@@ -43,26 +47,26 @@ export const generateBasicValuationReport = async (data: ReportData): Promise<PD
     estimatedValue: data.estimatedValue,
     valuationDate: new Date(),
     marketTrend: 'Stable',
-    confidenceLevel: 'High',
+    confidenceLevel: 'High'
   });
 
   // Photo Assessment Section
   drawPhotoAssessmentSection(doc, {
-    photoUrl: data.photoUrl,
+    photoUrl: data.photoUrl || data.bestPhotoUrl,
     photoScore: data.photoScore,
-    conditionSummary: 'Good condition with minor wear and tear',
+    conditionSummary: 'Good condition with minor wear and tear'
   });
 
   // Disclaimer Section
   drawDisclaimerSection(doc, {
-    disclaimerText: 'This valuation is an estimate and may not reflect actual market conditions.',
+    disclaimerText: 'This valuation is an estimate and may not reflect actual market conditions.'
   });
 
   // Footer Section
   drawFooterSection(doc, {
     reportDate: new Date(),
     companyName: 'CarDetective',
-    website: 'www.cardetective.com',
+    website: 'www.cardetective.com'
   });
 
   return doc;

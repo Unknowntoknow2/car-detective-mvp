@@ -1,4 +1,5 @@
-import PDFKit from 'pdfkit';
+
+import PDFDocument from 'pdfkit';
 import { ReportData } from '../types';
 import { drawHeaderSection } from '../sections/headerSection';
 import { drawFooterSection } from '../sections/footerSection';
@@ -12,8 +13,8 @@ import { drawProfessionalOpinionSection } from '../sections/professionalOpinionS
 import { drawCarfaxReportSection } from '../sections/carfaxReportSection';
 import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
-export const generatePremiumReport = async (data: ReportData): Promise<PDFKit.PDFDocument> => {
-  const doc = new PDFKit({
+export const generatePremiumReport = async (data: ReportData): Promise<PDFDocument> => {
+  const doc = new PDFDocument({
     size: 'A4',
     margins: {
       top: 40,
@@ -25,20 +26,45 @@ export const generatePremiumReport = async (data: ReportData): Promise<PDFKit.PD
 
   // Header Section
   drawHeaderSection(doc, {
-    title: 'Premium Valuation Report',
-    logo: 'path/to/your/logo.png',
+    reportTitle: 'Premium Valuation Report',
+    logo: 'path/to/your/logo.png'
   });
 
   let currentY = 120; // Starting Y position after the header
 
-  // Vehicle Information Section
-  currentY = drawVehicleInfoSection(doc, data, currentY);
+  // Vehicle Information Section with basic properties
+  const vehicleInfoData = {
+    year: data.year,
+    make: safeString(data.make),
+    model: safeString(data.model),
+    trim: safeString(data.trim),
+    vin: safeString(data.vin),
+    bodyType: safeString(data.bodyType),
+    color: safeString(data.color),
+    transmission: safeString(data.transmission),
+    fuelType: safeString(data.fuelType),
+  };
+  
+  currentY = drawVehicleInfoSection(doc, vehicleInfoData);
 
   // Valuation Summary Section
-  currentY = drawValuationSummary(doc, data, currentY);
+  const valuationData = {
+    estimatedValue: data.estimatedValue,
+    valuationDate: new Date(),
+    marketTrend: 'Stable',
+    confidenceLevel: 'High'
+  };
+  
+  currentY = drawValuationSummary(doc, valuationData);
 
   // Photo Assessment Section
-  currentY = drawPhotoAssessmentSection(doc, data, currentY);
+  const photoData = {
+    photoUrl: data.bestPhotoUrl || data.photoUrl,
+    photoScore: data.photoScore || 0,
+    conditionSummary: data.aiCondition?.summary || 'Good condition with minor wear and tear'
+  };
+  
+  currentY = drawPhotoAssessmentSection(doc, photoData);
 
   // Market Analysis Section
   currentY = drawMarketAnalysisSection(doc, data, currentY);
@@ -58,7 +84,8 @@ export const generatePremiumReport = async (data: ReportData): Promise<PDFKit.PD
   // Footer Section
   drawFooterSection(doc, {
     reportDate: new Date(),
-    disclaimer: 'This valuation is an estimate and may vary.',
+    companyName: 'CarDetective',
+    website: 'www.cardetective.com'
   });
 
   return doc;
