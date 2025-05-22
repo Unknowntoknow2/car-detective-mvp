@@ -87,6 +87,15 @@ export default function DealerInventoryListPage() {
     navigate('/dealer/vehicles/add');
   };
 
+  const handleEdit = (id: string) => {
+    navigate(`/dealer/vehicles/edit/${id}`);
+  };
+
+  const handleDelete = (id: string) => {
+    console.log('Delete vehicle:', id);
+    // In a real app, you would call an API to delete the vehicle
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
@@ -101,8 +110,8 @@ export default function DealerInventoryListPage() {
         <DealerInventoryList 
           inventory={inventory}
           isLoading={isLoading}
-          onEdit={(id: string) => navigate(`/dealer/vehicles/edit/${id}`)}
-          onDelete={(id: string) => console.log('Delete vehicle:', id)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </div>
     </MainLayout>

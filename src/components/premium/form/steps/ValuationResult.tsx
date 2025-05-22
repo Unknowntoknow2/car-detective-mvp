@@ -53,8 +53,10 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
   // Ensure priceRange is a tuple with exactly two elements
   const priceRange: [number, number] = data?.price_range ? 
     (Array.isArray(data.price_range) ? 
-      [data.price_range[0], data.price_range[1]] : 
-      [data.price_range.low, data.price_range.high]) : 
+      [Number(data.price_range[0]), Number(data.price_range[1])] : 
+      'low' in data.price_range && 'high' in data.price_range ?
+      [Number(data.price_range.low), Number(data.price_range.high)] :
+      [0, 0]) : 
     [0, 0];
 
   return (

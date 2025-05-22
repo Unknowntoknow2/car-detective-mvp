@@ -5,8 +5,8 @@ export interface CarfaxData {
   serviceRecords: number;
   salvageTitle: boolean;
   reportUrl: string;
-  titleEvents: string[]; // Add the missing property
-  damageSeverity?: string; // Add this property for VehicleInfoCard.tsx
+  titleEvents: string[]; // Required property
+  damageSeverity?: string; // Optional property for VehicleInfoCard.tsx
 }
 
 export const fetchCarfaxReport = async (vin: string): Promise<CarfaxData | null> => {
