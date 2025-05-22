@@ -29,7 +29,7 @@ export interface ReportData {
   color?: string;
   trim?: string;
   photoUrl?: string;
-  priceRange?: [number, number] | { min: number; max: number };
+  priceRange?: [number, number]; // Standardized to always be a tuple
   explanation?: string;
   isPremium?: boolean;
   premium?: boolean;
@@ -88,7 +88,11 @@ export type AdjustmentItem = {
   description?: string;
 };
 
-export type RotationTypes = 'radians' | 'degrees';
+// Define rotation types as an enum for better type safety
+export enum RotationTypes {
+  Radians = "radians",
+  Degrees = "degrees"
+}
 
 export type Rotation = {
   type: RotationTypes;
