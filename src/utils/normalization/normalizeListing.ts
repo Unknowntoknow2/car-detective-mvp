@@ -4,7 +4,7 @@
 export interface RawListing {
   source: string;
   title: string;
-  price: number;
+  price: number | string;
   url: string;
   image?: string;
   location?: string;

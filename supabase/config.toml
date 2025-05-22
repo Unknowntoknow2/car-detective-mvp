@@ -74,3 +74,7 @@ verify_jwt = false
 
 [functions.fetch-market-listings]
 verify_jwt = false
+
+[functions.fetch-market-intelligence]
+verify_jwt = false
+
