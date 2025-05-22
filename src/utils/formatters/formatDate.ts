@@ -1,26 +1,31 @@
 
 /**
- * Format a date to "MMM DD, YYYY" in U.S. format
- * @param date - The date to format, either as a Date object or ISO string
+ * Format a date string or Date object to "MMM DD, YYYY" format
+ * @param date - The date to format (string or Date object)
+ * @param locale - The locale to use for formatting (default: en-US)
  * @returns Formatted date string
  */
-export const formatDate = (date: Date | string | null | undefined): string => {
-  if (!date) return '';
+export const formatDate = (
+  date: Date | string | null | undefined,
+  locale: string = 'en-US'
+): string => {
+  if (!date) return 'N/A';
   
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObject = typeof date === 'string' ? new Date(date) : date;
     
     // Check if date is valid
-    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-      return '';
+    if (isNaN(dateObject.getTime())) {
+      return 'Invalid Date';
     }
     
-    return dateObj.toLocaleDateString('en-US', {
+    return dateObject.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   } catch (error) {
-    return '';
+    console.error('Error formatting date:', error);
+    return typeof date === 'string' ? date : 'Invalid Date';
   }
 };

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { VINLookupForm } from './vin/VINLookupForm';
 import { validateVIN } from '@/utils/validation/vin-validation';
+import { useNavigate } from 'react-router-dom';
 
 interface VinLookupProps {
   onSubmit: (vin: string) => void;
@@ -16,6 +17,7 @@ const VinLookup: React.FC<VinLookupProps> = ({
 }) => {
   const [vin, setVin] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleVinChange = (newVin: string) => {
     setVin(newVin);
@@ -33,7 +35,14 @@ const VinLookup: React.FC<VinLookupProps> = ({
       return;
     }
     
+    // Store VIN in localStorage for follow-up steps
+    localStorage.setItem('current_vin', vinToSubmit);
+    
+    // Call the submit handler first
     onSubmit(vinToSubmit);
+    
+    // Then navigate to the follow-up questions page
+    navigate(`/valuation-followup?vin=${vinToSubmit}`);
   };
 
   return (

@@ -1,62 +1,34 @@
 
 /**
- * Formats a date as relative time (e.g., "3 days ago", "just now")
- * @param date - The date to format, either as Date object or ISO string
+ * Format a date as relative time (e.g., "2 hours ago")
+ * @param dateString - Date string or timestamp
  * @returns Formatted relative time string
  */
-export const formatRelativeTime = (date: Date | string | null | undefined): string => {
-  if (!date) return '';
+export const formatRelativeTime = (dateString: string | number | Date): string => {
+  if (!dateString) return 'Unknown';
   
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
-    // Check if date is valid
-    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-      return '';
-    }
-    
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
-    
-    // Less than a minute
-    if (diffInSeconds < 60) {
-      return 'just now';
-    }
-    
-    // Less than an hour
-    if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    }
-    
-    // Less than a day
-    if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    }
-    
-    // Less than a week
-    if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
-    }
-    
-    // Less than a month (30 days)
-    if (diffInSeconds < 2592000) {
-      const weeks = Math.floor(diffInSeconds / 604800);
-      return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-    }
-    
-    // Less than a year
-    if (diffInSeconds < 31536000) {
-      const months = Math.floor(diffInSeconds / 2592000);
-      return `${months} month${months > 1 ? 's' : ''} ago`;
-    }
-    
-    // More than a year
-    const years = Math.floor(diffInSeconds / 31536000);
-    return `${years} year${years > 1 ? 's' : ''} ago`;
-  } catch (error) {
-    return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+  const diffHour = Math.round(diffMin / 60);
+  const diffDay = Math.round(diffHour / 24);
+  
+  if (diffSec < 60) {
+    return 'Just now';
+  } else if (diffMin < 60) {
+    return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+  } else if (diffHour < 24) {
+    return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+  } else if (diffDay < 30) {
+    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  } else {
+    // Format as regular date for older dates
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   }
 };
