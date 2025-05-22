@@ -1,84 +1,228 @@
 
+import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
-export function drawValuationSummary(params: SectionParams): number {
-  const { page, startY, margin, data, fonts, textColor, primaryColor } = params;
-  let y = startY;
+export async function addValuationSummary(params: SectionParams): Promise<number> {
+  const { page, fonts, data, margin, width, pageWidth } = params;
+  const y = params.y ?? params.startY - 150;
+  const textColor = params.textColor || rgb(0.1, 0.1, 0.1);
+  const primaryColor = params.primaryColor || rgb(0.2, 0.4, 0.8);
   
   // Draw section title
   page.drawText('Valuation Summary', {
     x: margin,
     y,
-    size: 14,
+    size: 18,
     font: fonts.bold,
-    color: primaryColor,
+    color: textColor,
   });
   
-  y -= 25;
+  let currentY = y - 40;
   
-  // Create a formatted valuation summary box
-  const boxWidth = 300;
-  const boxHeight = 100;
-  const boxX = margin;
-  const boxY = y - boxHeight;
-  
-  // Draw box outline
-  page.drawRectangle({
-    x: boxX,
-    y: boxY,
-    width: boxWidth,
-    height: boxHeight,
-    borderColor: primaryColor,
-    borderWidth: 1,
-    color: { r: 0.97, g: 0.97, b: 1.0 }, // Very light blue background
+  // Draw estimated value in large font
+  page.drawText('Estimated Value:', {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: fonts.regular,
+    color: textColor,
   });
   
-  // Draw the vehicle name
-  page.drawText(`${data.year} ${data.make} ${data.model}`, {
-    x: boxX + 15,
-    y: boxY + boxHeight - 25,
+  const estimatedValueText = `$${data.estimatedValue.toLocaleString()}`;
+  
+  page.drawText(estimatedValueText, {
+    x: margin + 120,
+    y: currentY,
+    size: 16,
+    font: fonts.bold,
+    color: rgb(0.2, 0.6, 0.3),
+  });
+  
+  currentY -= 30;
+  
+  // Draw confidence score
+  page.drawText('Confidence Score:', {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: fonts.regular,
+    color: textColor,
+  });
+  
+  page.drawText(`${data.confidenceScore}%`, {
+    x: margin + 120,
+    y: currentY,
     size: 12,
     font: fonts.bold,
     color: textColor,
   });
   
-  // Draw estimated value
-  page.drawText('Estimated Value:', {
-    x: boxX + 15,
-    y: boxY + boxHeight - 50,
+  currentY -= 30;
+  
+  // Draw price range if available
+  if (data.priceRange) {
+    const priceRange = Array.isArray(data.priceRange) 
+      ? data.priceRange 
+      : [data.priceRange.min, data.priceRange.max];
+    
+    page.drawText('Value Range:', {
+      x: margin,
+      y: currentY,
+      size: 12,
+      font: fonts.regular,
+      color: textColor,
+    });
+    
+    const rangeText = `$${priceRange[0].toLocaleString()} - $${priceRange[1].toLocaleString()}`;
+    
+    page.drawText(rangeText, {
+      x: margin + 120,
+      y: currentY,
+      size: 12,
+      font: fonts.bold,
+      color: textColor,
+    });
+    
+    currentY -= 30;
+  }
+  
+  // Draw vehicle details
+  page.drawText('Vehicle Details', {
+    x: margin,
+    y: currentY,
+    size: 14,
+    font: fonts.bold,
+    color: textColor,
+  });
+  
+  currentY -= 25;
+  
+  // Draw make/model/year
+  page.drawText(`${data.year} ${data.make} ${data.model}`, {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: fonts.bold,
+    color: textColor,
+  });
+  
+  currentY -= 20;
+  
+  // Draw additional details in two columns
+  const col1X = margin;
+  const col2X = margin + 200;
+  
+  // Column 1
+  page.drawText('Mileage:', {
+    x: col1X,
+    y: currentY,
+    size: 10,
+    font: fonts.regular,
+    color: textColor,
+  });
+  
+  page.drawText(`${data.mileage.toLocaleString()} miles`, {
+    x: col1X + 80,
+    y: currentY,
     size: 10,
     font: fonts.bold,
     color: textColor,
   });
   
-  page.drawText(`$${data.estimatedValue.toLocaleString()}`, {
-    x: boxX + 120,
-    y: boxY + boxHeight - 50,
-    size: 14,
-    font: fonts.bold,
-    color: primaryColor,
+  // Column 2
+  page.drawText('Condition:', {
+    x: col2X,
+    y: currentY,
+    size: 10,
+    font: fonts.regular,
+    color: textColor,
   });
   
-  // Draw price range
-  if (data.priceRange && data.priceRange.length === 2) {
-    page.drawText('Price Range:', {
-      x: boxX + 15,
-      y: boxY + boxHeight - 75,
-      size: 10,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    page.drawText(`$${data.priceRange[0].toLocaleString()} - $${data.priceRange[1].toLocaleString()}`, {
-      x: boxX + 120,
-      y: boxY + boxHeight - 75,
+  page.drawText(data.condition, {
+    x: col2X + 80,
+    y: currentY,
+    size: 10,
+    font: fonts.bold,
+    color: textColor,
+  });
+  
+  currentY -= 20;
+  
+  // Row 2
+  if (data.vin) {
+    page.drawText('VIN:', {
+      x: col1X,
+      y: currentY,
       size: 10,
       font: fonts.regular,
       color: textColor,
     });
+    
+    page.drawText(data.vin, {
+      x: col1X + 80,
+      y: currentY,
+      size: 10,
+      font: fonts.bold,
+      color: textColor,
+    });
   }
   
-  y = boxY - 10; // Update Y position to below the box
+  if (data.zipCode) {
+    page.drawText('Location:', {
+      x: col2X,
+      y: currentY,
+      size: 10,
+      font: fonts.regular,
+      color: textColor,
+    });
+    
+    page.drawText(data.zipCode, {
+      x: col2X + 80,
+      y: currentY,
+      size: 10,
+      font: fonts.bold,
+      color: textColor,
+    });
+  }
   
-  return y; // Return the new Y position
+  currentY -= 20;
+  
+  // Row 3 - additional data if available
+  if (data.transmission) {
+    page.drawText('Transmission:', {
+      x: col1X,
+      y: currentY,
+      size: 10,
+      font: fonts.regular,
+      color: textColor,
+    });
+    
+    page.drawText(data.transmission, {
+      x: col1X + 80,
+      y: currentY,
+      size: 10,
+      font: fonts.bold,
+      color: textColor,
+    });
+  }
+  
+  if (data.fuelType) {
+    page.drawText('Fuel Type:', {
+      x: col2X,
+      y: currentY,
+      size: 10,
+      font: fonts.regular,
+      color: textColor,
+    });
+    
+    page.drawText(data.fuelType, {
+      x: col2X + 80,
+      y: currentY,
+      size: 10,
+      font: fonts.bold,
+      color: textColor,
+    });
+  }
+  
+  return currentY - 30;
 }

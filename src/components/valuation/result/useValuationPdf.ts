@@ -33,18 +33,11 @@ export function useValuationPdf({
         confidenceScore: valuationData.confidenceScore || valuationData.confidence_score,
         vin: valuationData.vin,
         zipCode: valuationData.zipCode || valuationData.zip_code,
-        isPremium: isPremium,
         adjustments: valuationData.adjustments || [],
         generatedAt: valuationData.created_at || new Date().toISOString(),
         fuelType: valuationData.fuelType || valuationData.fuel_type,
         transmission: valuationData.transmission,
         photoUrl: valuationData.photoUrl || valuationData.photo_url,
-        // Convert price range to expected format if available
-        ...(valuationData.priceRange && { 
-          priceRange: Array.isArray(valuationData.priceRange) 
-            ? valuationData.priceRange 
-            : [valuationData.priceRange.min, valuationData.priceRange.max] 
-        })
       };
     }
     
@@ -84,7 +77,6 @@ export function useValuationPdf({
         showPremiumWatermark: isPremium,
         includeExplanation: isPremium,
         includeComparables: isPremium,
-        isPremium,
         includeBranding: true,
         includePhotoAssessment: true
       };
@@ -122,6 +114,70 @@ export function useValuationPdf({
     }
   };
   
+  const downloadSamplePdf = async () => {
+    setIsGenerating(true);
+    
+    try {
+      // Create sample data for demo purposes
+      const sampleData: ReportData = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 45000,
+        condition: 'Good',
+        estimatedValue: 18500,
+        confidenceScore: 85,
+        zipCode: '90210',
+        adjustments: [
+          { factor: 'Mileage', impact: -500, description: 'Lower than average mileage' },
+          { factor: 'Condition', impact: 1200, description: 'Vehicle in good condition' },
+          { factor: 'Market Demand', impact: 300, description: 'High demand in local market' }
+        ],
+        generatedAt: new Date().toISOString(),
+        aiCondition: {
+          condition: 'Good',
+          confidenceScore: 85,
+          issuesDetected: [],
+          summary: 'The vehicle appears to be in good condition with normal wear for its age.'
+        }
+      };
+      
+      // Set sample options
+      const options: Partial<ReportOptions> = {
+        watermarkText: 'SAMPLE REPORT',
+        showPremiumWatermark: true,
+        includeExplanation: true,
+        includeComparables: true,
+        includeBranding: true,
+        includePhotoAssessment: false
+      };
+      
+      // Generate the sample PDF
+      const pdfBytes = await generateValuationPdf(sampleData, options);
+      
+      // Create a blob and trigger download
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      
+      const fileName = `Car_Detective_Sample_Report.pdf`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Sample PDF downloaded');
+      return url;
+    } catch (error) {
+      console.error('Error generating sample PDF:', error);
+      toast.error('Failed to generate sample PDF');
+      throw error;
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
   const emailPdf = async () => {
     if (!valuationId) {
       toast.error('Valuation ID is required');
@@ -151,7 +207,6 @@ export function useValuationPdf({
         conditionInfo = {
           condition: conditionData.condition,
           confidenceScore: conditionData.confidence_score,
-          score: conditionData.score,
           summary: conditionData.summary
         };
       }
@@ -179,6 +234,7 @@ export function useValuationPdf({
   
   return {
     generatePdf,
+    downloadSamplePdf,
     emailPdf,
     isGenerating,
     isEmailSending,

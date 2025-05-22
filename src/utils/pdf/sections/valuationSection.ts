@@ -2,108 +2,122 @@
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
-export function drawValuationSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, fonts, textColor, primaryColor } = params;
-  let y = startY;
+export async function addValuationSection(params: SectionParams): Promise<number> {
+  const { page, fonts, data, margin, width, pageWidth } = params;
+  const y = params.y ?? params.startY - 150;
+  const textColor = params.textColor || rgb(0.1, 0.1, 0.1);
+  const primaryColor = params.primaryColor || rgb(0.2, 0.4, 0.8);
   
   // Draw section title
-  page.drawText('Valuation Summary', {
+  page.drawText('Vehicle Valuation', {
     x: margin,
     y,
+    size: 18,
+    font: fonts.bold,
+    color: textColor,
+  });
+  
+  let currentY = y - 40;
+  
+  // Draw estimated value in large font
+  const estimatedValueText = `$${data.estimatedValue.toLocaleString()}`;
+  
+  page.drawText('Estimated Value:', {
+    x: margin,
+    y: currentY,
     size: 14,
+    font: fonts.regular,
+    color: textColor,
+  });
+  
+  const valueTextWidth = 180;
+  
+  page.drawText(estimatedValueText, {
+    x: pageWidth - margin - valueTextWidth,
+    y: currentY,
+    size: 18,
     font: fonts.bold,
     color: primaryColor,
   });
   
-  y -= 25;
+  currentY -= 30;
   
-  // Draw estimated value
-  page.drawText('Estimated Value:', {
+  // Draw price range if available
+  if (data.priceRange) {
+    let priceRangeValues: [number, number];
+    
+    if (Array.isArray(data.priceRange)) {
+      priceRangeValues = [data.priceRange[0], data.priceRange[1]];
+    } else if (typeof data.priceRange === 'object' && 'min' in data.priceRange && 'max' in data.priceRange) {
+      priceRangeValues = [data.priceRange.min, data.priceRange.max];
+    } else {
+      // Fallback - use estimated value with +/- 5%
+      const value = data.estimatedValue;
+      priceRangeValues = [Math.floor(value * 0.95), Math.ceil(value * 1.05)];
+    }
+    
+    page.drawText('Price Range:', {
+      x: margin,
+      y: currentY,
+      size: 14,
+      font: fonts.regular,
+      color: textColor,
+    });
+    
+    const rangeText = `$${priceRangeValues[0].toLocaleString()} - $${priceRangeValues[1].toLocaleString()}`;
+    
+    page.drawText(rangeText, {
+      x: pageWidth - margin - valueTextWidth,
+      y: currentY,
+      size: 14,
+      font: fonts.bold,
+      color: textColor,
+    });
+    
+    currentY -= 30;
+  }
+  
+  // Draw confidence score
+  page.drawText('Confidence Score:', {
     x: margin,
-    y,
+    y: currentY,
+    size: 14,
+    font: fonts.regular,
+    color: textColor,
+  });
+  
+  page.drawText(`${data.confidenceScore}%`, {
+    x: pageWidth - margin - valueTextWidth,
+    y: currentY,
+    size: 14,
+    font: fonts.bold,
+    color: textColor,
+  });
+  
+  currentY -= 40;
+  
+  // Draw note about the valuation
+  page.drawText('Note:', {
+    x: margin,
+    y: currentY,
     size: 10,
     font: fonts.bold,
     color: textColor,
   });
   
-  page.drawText(`$${data.estimatedValue.toLocaleString()}`, {
-    x: margin + 120,
-    y,
-    size: 16,
-    font: fonts.bold,
-    color: primaryColor,
+  currentY -= 15;
+  
+  const noteText = 'This valuation is based on the vehicle details provided, current market conditions, and similar vehicles in your area. Actual sale prices may vary.';
+  
+  page.drawText(noteText, {
+    x: margin,
+    y: currentY,
+    size: 10,
+    font: fonts.regular,
+    color: textColor,
+    maxWidth: pageWidth - (margin * 2),
+    lineHeight: 12,
   });
   
-  y -= 25;
-  
-  // Draw price range if available
-  if (data.priceRange && data.priceRange.length === 2) {
-    page.drawText('Price Range:', {
-      x: margin,
-      y,
-      size: 10,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    page.drawText(`$${data.priceRange[0].toLocaleString()} - $${data.priceRange[1].toLocaleString()}`, {
-      x: margin + 120,
-      y,
-      size: 10,
-      font: fonts.regular,
-      color: textColor,
-    });
-    
-    y -= 20;
-  }
-  
-  // Draw confidence score if available
-  if (data.confidenceScore) {
-    page.drawText('Confidence Score:', {
-      x: margin,
-      y,
-      size: 10,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    // Draw the score text
-    page.drawText(`${data.confidenceScore}%`, {
-      x: margin + 120,
-      y,
-      size: 10,
-      font: fonts.regular,
-      color: textColor,
-    });
-    
-    y -= 15;
-    
-    // Draw confidence score bar
-    const barWidth = 150;
-    const barHeight = 10;
-    const x = margin + 120;
-    
-    // Draw background bar
-    page.drawRectangle({
-      x,
-      y: y - barHeight,
-      width: barWidth,
-      height: barHeight,
-      color: rgb(0.9, 0.9, 0.9), // Light gray
-    });
-    
-    // Draw filled portion of bar
-    const fillWidth = barWidth * (data.confidenceScore / 100);
-    page.drawRectangle({
-      x,
-      y: y - barHeight,
-      width: fillWidth,
-      height: barHeight,
-      color: primaryColor,
-    });
-    
-    y -= 25;
-  }
-  
-  return y; // Return the new Y position
+  return currentY - 30;
 }

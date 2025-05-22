@@ -1,6 +1,5 @@
 
 import { ReportOptions } from './types';
-import { StandardFonts } from '@pdf-lib/standard-fonts';
 
 export const defaultReportOptions: ReportOptions = {
   watermarkText: 'Car Detective Report',
@@ -18,5 +17,6 @@ export const defaultReportOptions: ReportOptions = {
   },
   isPremium: false,
   includeBranding: true,
-  includePhotoAssessment: false
+  includePhotoAssessment: false,
+  watermark: 'Car Detective Report'
 };
