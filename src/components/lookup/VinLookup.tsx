@@ -1,87 +1,96 @@
 
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
-import { useVinDecoder } from '@/hooks/useVinDecoder';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-
-// Import the components directly
+import React, { useState } from 'react';
 import { VINLookupForm } from './vin/VINLookupForm';
-import VinDecoderResults from './vin/VinDecoderResults'; 
-import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
+import ValuationEmptyState from '@/components/valuation/ValuationEmptyState';
+import { useValuationFlow } from '@/hooks/useValuationFlow';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface VinLookupProps {
   onSubmit?: (vin: string) => void;
+  onResultsReady?: (data: any) => void;
 }
 
-export const VinLookup: React.FC<VinLookupProps> = ({ onSubmit }) => {
-  const [vinNumber, setVinNumber] = useState('');
-  const { isLoading, error, result, lookupVin } = useVinDecoder();
+const VinLookup: React.FC<VinLookupProps> = ({ 
+  onSubmit,
+  onResultsReady
+}) => {
+  const [vin, setVin] = useState('');
+  const { 
+    isLoading, 
+    error, 
+    valuationData, 
+    decodedVehicle,
+    lookupByVin,
+    resetState
+  } = useValuationFlow();
 
-  const handleVinChange = useCallback((vin: string) => {
-    setVinNumber(vin);
-  }, []);
-
-  const handleLookup = useCallback(() => {
-    if (vinNumber) {
-      lookupVin(vinNumber);
-      if (onSubmit) {
-        onSubmit(vinNumber);
-      }
+  const handleSubmit = async (vinNumber: string) => {
+    setVin(vinNumber);
+    
+    if (onSubmit) {
+      onSubmit(vinNumber);
+      return;
     }
-  }, [vinNumber, lookupVin, onSubmit]);
+    
+    const result = await lookupByVin(vinNumber);
+    
+    if (result && onResultsReady) {
+      onResultsReady(result);
+    }
+  };
 
-  const onReset = useCallback(() => {
-    setVinNumber('');
-  }, []);
+  const handleReset = () => {
+    setVin('');
+    resetState();
+  };
 
   return (
-    <div className="w-full">
-      {!result ? (
-        <VINLookupForm 
-          value={vinNumber}
-          onChange={handleVinChange}
-          onSubmit={handleLookup}
-          isLoading={isLoading}
-          error={error}
-        />
-      ) : (
-        <>
-          {/* We'll wrap this in a guard to only show when we have data */}
-          {result && (
-            <VinDecoderResults 
-              result={result}
-              vin={vinNumber}
-              carfaxData={null}
-              onDownloadPdf={() => {}}
-              // These props are expected by the component
-              stage="initial"
-              pipelineVehicle={null}
-              requiredInputs={null}
-              valuationResult={null}
-              valuationError={null}
-              pipelineLoading={false}
-              submitValuation={async () => {}}
+    <div className="space-y-6">
+      {!valuationData ? (
+        <Card>
+          <CardContent className="pt-6">
+            <VINLookupForm 
+              onSubmit={handleSubmit} 
+              isLoading={isLoading} 
+              value={vin}
+              onChange={setVin}
+              error={error}
+              existingVehicle={decodedVehicle ? {
+                make: decodedVehicle.make,
+                model: decodedVehicle.model,
+                year: decodedVehicle.year
+              } : undefined}
             />
-          )}
-          <Button 
-            variant="outline"
-            className="mt-4"
-            onClick={onReset}
-          >
-            Lookup Another VIN
-          </Button>
-        </>
-      )}
-
-      {error && error.includes('Carfax') ? (
-        <CarfaxErrorAlert error="Unable to retrieve Carfax vehicle history report." />
-      ) : error ? (
-        <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-md flex items-center gap-2 text-red-700">
-          <AlertTriangle className="h-5 w-5" />
-          <p className="text-sm">{error}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          <ValuationResult 
+            data={valuationData} 
+            isPremium={false}
+            isLoading={isLoading}
+            error={error || undefined}
+          />
+          
+          <div className="flex justify-center">
+            <button 
+              onClick={handleReset}
+              className="text-sm text-primary hover:underline"
+            >
+              Look up another vehicle
+            </button>
+          </div>
         </div>
-      ) : null}
+      )}
+      
+      {error && !isLoading && !valuationData && (
+        <ValuationEmptyState 
+          message={`We couldn't find information for this VIN. ${error}`}
+          actionLabel="Try a different VIN"
+          onAction={handleReset}
+        />
+      )}
     </div>
   );
 };
