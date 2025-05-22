@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 import { validateStatePlate } from "./plate-validation-helpers";
 
@@ -112,7 +113,10 @@ export class CarDetectiveValidator {
    */
   public static validateField(field: keyof VehicleFormData, value: any): string | null {
     // Create a schema just for this field
-    const fieldSchema = z.object({ [field]: this.vehicleSchema.shape[field] }).partial();
+    // Fix for TS7053 error: use type assertion for shape indexing
+    const fieldSchema = z.object({ 
+      [field]: (this.vehicleSchema.shape as any)[field] || z.any() 
+    }).partial();
     
     const result = fieldSchema.safeParse({ [field]: value });
     

@@ -20,12 +20,17 @@ export function convertBasicValuationToPdfData(
     
     // Valuation Information
     estimatedValue: valuationResult.estimatedValue || valuationResult.estimated_value || 0,
-    price: valuationResult.estimatedValue || valuationResult.estimated_value || 0, // Add price for backward compatibility
+    confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore || 75,
     priceRange: Array.isArray(valuationResult.priceRange) ? valuationResult.priceRange as [number, number] : [0, 0],
-    conditionAdjustment: getAdjustmentImpact(valuationResult, 'condition'),
-    mileageAdjustment: getAdjustmentImpact(valuationResult, 'mileage'),
-    locationAdjustment: getAdjustmentImpact(valuationResult, 'location'),
-    marketAdjustment: getAdjustmentImpact(valuationResult, 'market'),
+    
+    // Additional adjustment data
+    adjustments: Array.isArray(valuationResult.adjustments) 
+      ? valuationResult.adjustments.map(a => ({
+          factor: a.factor || '',
+          impact: a.impact || 0,
+          description: a.description || `Adjustment for ${a.factor}`
+        }))
+      : [],
     
     // Condition Information
     aiCondition: typeof valuationResult.aiCondition === 'object' ? valuationResult.aiCondition : {
@@ -34,7 +39,6 @@ export function convertBasicValuationToPdfData(
       issuesDetected: [],
       summary: `Vehicle is in ${valuationResult.condition || 'average'} condition.`
     },
-    conditionScore: valuationResult.conditionScore || 0,
     
     // Location Information
     zipCode: valuationResult.zipCode || valuationResult.zip_code || valuationResult.zip || '',
@@ -42,18 +46,7 @@ export function convertBasicValuationToPdfData(
     
     // Additional Information
     generatedDate: new Date(),
-    generatedAt: new Date().toISOString(),
-    explanation: explanation || generateDefaultExplanation(valuationResult),
-    premium: false,
-    
-    // Add adjustments array for compatibility, ensuring description is always provided
-    adjustments: Array.isArray(valuationResult.adjustments) 
-      ? valuationResult.adjustments.map(a => ({
-          factor: a.factor || '',
-          impact: a.impact || 0,
-          description: a.description || `Adjustment for ${a.factor}`
-        }))
-      : []
+    explanation: explanation || generateDefaultExplanation(valuationResult)
   };
 }
 
@@ -88,8 +81,7 @@ export function convertPremiumValuationToPdfData(
   return {
     ...basicData,
     
-    // Photo Assessment
-    photoAssessment,
+    // Photo information
     photoUrl: valuationResult.photoUrl || valuationResult.photo_url || '',
     bestPhotoUrl: valuationResult.bestPhotoUrl || valuationResult.photo_url || '',
     photoScore: valuationResult.photoScore || 0,
@@ -103,7 +95,7 @@ export function convertPremiumValuationToPdfData(
     // Additional details
     fuelType: valuationResult.fuelType || valuationResult.fuel_type || '',
     transmission: valuationResult.transmission || '',
-    bodyType: valuationResult.bodyType || valuationResult.bodyStyle || '',
+    bodyStyle: valuationResult.bodyType || valuationResult.bodyStyle || '',
     color: valuationResult.color || '',
     
     // Override condition with more detailed data if available
@@ -112,8 +104,7 @@ export function convertPremiumValuationToPdfData(
       condition: typeof valuationResult.condition === 'string' ? valuationResult.condition : '',
       confidenceScore: valuationResult.confidenceScore || 0,
       issuesDetected: []
-    },
-    conditionNotes: valuationResult.conditionNotes || []
+    }
   };
 }
 

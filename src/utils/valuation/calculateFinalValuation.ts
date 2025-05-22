@@ -1,65 +1,36 @@
 
-import { AICondition, AdjustmentBreakdown } from '@/types/photo';
-import rulesEngine from '../rulesEngine';
-import { RulesEngineInput } from '../rules/types';
+import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
+import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
 
 /**
  * Calculate the final valuation based on inputs
  */
 export async function calculateFinalValuation(
-  input: {
-    make: string;
-    model: string;
-    year: number;
-    mileage: number;
-    zipCode: string;
-    condition: string;
-    trim?: string;
-    baseValue?: number;
-    aiCondition?: AICondition;
-    photoScore?: number;
-    accidentCount?: number;
-    marketData?: any;
-  }
+  input: RulesEngineInput
 ): Promise<{
   estimatedValue: number;
   confidenceScore: number;
   adjustments: AdjustmentBreakdown[];
   basePrice: number;
 }> {
-  // Transform input to RulesEngineInput
-  const engineInput: RulesEngineInput = {
-    make: input.make,
-    model: input.model,
-    year: input.year,
-    mileage: input.mileage,
-    condition: input.condition,
-    zipCode: input.zipCode,
-    trim: input.trim,
-    baseValue: input.baseValue || getBaseValueEstimate(input),
-    aiConditionOverride: input.aiCondition,
-    photoScore: input.photoScore,
-    accidentCount: input.accidentCount || 0
-  };
-
   // Get adjustments from the rules engine
-  const adjustments = await rulesEngine.calculateAdjustments(engineInput);
+  const adjustments = await calculateAdjustments(input);
   
   // Calculate total adjustment
-  const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
+  const totalAdjustment = calculateTotalAdjustment(adjustments);
   
   // Calculate base price and final value
-  const basePrice = engineInput.baseValue || 20000; // Fallback
+  const basePrice = input.basePrice || getBaseValueEstimate(input);
   const estimatedValue = basePrice + totalAdjustment;
   
   // Calculate confidence score
   let confidenceScore = 80; // Default
   
-  // Adjust confidence based on photo assessment
-  if (input.aiCondition) {
+  // Adjust confidence based on available data
+  if (input.photoScore) {
     confidenceScore = Math.min(
       95,
-      confidenceScore + input.aiCondition.confidenceScore / 10
+      confidenceScore + (input.photoScore * 10)
     );
   }
   
@@ -68,7 +39,7 @@ export async function calculateFinalValuation(
     confidenceScore += 3; // More data = more confidence
   }
   
-  if (input.aiCondition && input.aiCondition.summary) {
+  if (input.aiConditionOverride) {
     confidenceScore += 2; // AI assessment improves confidence
   }
   
@@ -83,7 +54,7 @@ export async function calculateFinalValuation(
 /**
  * Estimate base value based on year, make, model
  */
-function getBaseValueEstimate(input: { 
+export function getBaseValueEstimate(input: { 
   make: string;
   model: string; 
   year: number;

@@ -23,6 +23,7 @@ export interface ReportData {
   confidenceScore: number;
   photoScore?: number;
   price?: number; // Added to match usage
+  conditionScore?: number; // Added to fix error
   
   // Location information
   zipCode: string;
@@ -58,12 +59,13 @@ export interface ReportData {
   disclaimerText?: string;
   photoAssessment?: any;
   conditionAdjustment?: any; // Added to match usage in dataConverter.ts
-  mileageAdjustment?: any; // Added to match usage in dataConverter.ts
-  locationAdjustment?: any; // Added to match usage in dataConverter.ts
-  marketAdjustment?: any; // Added to match usage in dataConverter.ts
+  mileageAdjustment?: any; // Added to match usage
+  locationAdjustment?: any; // Added to match usage
+  marketAdjustment?: any; // Added to match usage
   features?: any[]; // Added to match usage
   score?: number; // Added to match usage
   isPremium?: boolean; // Added to match usage
+  conditionNotes?: any[]; // Added to fix error
 }
 
 export interface AICondition {
