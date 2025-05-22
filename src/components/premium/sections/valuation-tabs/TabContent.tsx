@@ -1,17 +1,13 @@
 
+import React from 'react';
 import { TabsContent } from "@/components/ui/tabs";
 import { VinLookupTab } from "./VinLookupTab";
 import { PlateLookupTab } from "./PlateLookupTab";
 import { ManualEntryTab } from "./ManualEntryTab";
-import { PhotoUploadTab } from "./PhotoUploadTab";
-import { UnauthorizedRedirectTab } from "./UnauthorizedRedirectTab";
-import { DealerOffersTab } from "./DealerOffersTab";
-import { MarketAnalysisTab } from "./MarketAnalysisTab";
-import { TwelveMonthForecastTab } from "./TwelveMonthForecastTab";
-import { CarfaxReportTab } from "./CarfaxReportTab";
+import { PhotoLookupTab } from "./PhotoLookupTab";
 import { ValuationServiceId } from "./services";
 
-interface TabContentProps {
+export interface TabContentProps {
   activeTab: ValuationServiceId;
   setActiveTab: (tab: ValuationServiceId) => void;
   vinValue: string;
@@ -40,12 +36,12 @@ export function TabContent({
   onStateChange,
   onVinLookup,
   onPlateLookup,
-  onManualSubmit,
+  onManualSubmit
 }: TabContentProps) {
   return (
-    <div className="space-y-6">
-      <TabsContent value="vin" className="mt-0">
-        <VinLookupTab 
+    <>
+      <TabsContent value="vin">
+        <VinLookupTab
           vinValue={vinValue}
           isLoading={isLoading}
           vehicle={vehicle}
@@ -53,11 +49,11 @@ export function TabContent({
           onLookup={onVinLookup}
         />
       </TabsContent>
-
-      <TabsContent value="plate" className="mt-0">
+      
+      <TabsContent value="plate">
         <PlateLookupTab
           plateValue={plateValue}
-          stateValue={plateState}
+          plateState={plateState}
           isLoading={isLoading}
           vehicle={vehicle}
           onPlateChange={onPlateChange}
@@ -65,64 +61,21 @@ export function TabContent({
           onLookup={onPlateLookup}
         />
       </TabsContent>
-
-      <TabsContent value="manual" className="mt-0">
-        <ManualEntryTab 
+      
+      <TabsContent value="manual">
+        <ManualEntryTab
           onSubmit={onManualSubmit}
           isLoading={isLoading}
         />
       </TabsContent>
       
-      <TabsContent value="photo" className="mt-0">
-        <PhotoUploadTab />
-      </TabsContent>
-      
-      <TabsContent value="dealers" className="mt-0">
-        <DealerOffersTab 
-          vehicleData={vehicle ? {
-            make: vehicle.make,
-            model: vehicle.model,
-            year: vehicle.year,
-            trim: vehicle.trim,
-            vin: vinValue.length === 17 ? vinValue : undefined
-          } : undefined}
+      <TabsContent value="photo">
+        <PhotoLookupTab
+          isLoading={isLoading}
+          vehicle={vehicle}
+          onPhotoUpload={() => {}}
         />
       </TabsContent>
-      
-      <TabsContent value="market" className="mt-0">
-        <MarketAnalysisTab 
-          valuationId={vehicle?.id || ''}
-          isPremium={true}
-          zipCode={vehicle?.zipCode}
-          make={vehicle?.make}
-          model={vehicle?.model}
-          year={vehicle?.year}
-          vehicleData={vehicle ? {
-            make: vehicle.make,
-            model: vehicle.model,
-            year: vehicle.year,
-            trim: vehicle.trim
-          } : undefined}
-        />
-      </TabsContent>
-      
-      <TabsContent value="forecast" className="mt-0">
-        <TwelveMonthForecastTab 
-          vehicleData={vehicle ? {
-            make: vehicle.make,
-            model: vehicle.model,
-            year: vehicle.year,
-            trim: vehicle.trim,
-            vin: vinValue.length === 17 ? vinValue : undefined
-          } : undefined}
-        />
-      </TabsContent>
-      
-      <TabsContent value="carfax" className="mt-0">
-        <CarfaxReportTab 
-          vin={vinValue.length === 17 ? vinValue : undefined}
-        />
-      </TabsContent>
-    </div>
+    </>
   );
 }

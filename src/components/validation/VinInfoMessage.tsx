@@ -2,14 +2,13 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 
-export const VinInfoMessage: React.FC = () => {
+export function VinInfoMessage() {
   return (
-    <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
-      <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+    <div className="flex items-start gap-2 text-xs text-slate-500">
+      <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
       <p>
-        The VIN (Vehicle Identification Number) is a 17-character code that can be found on your vehicle's
-        registration, insurance card, or on the driver's side dashboard.
+        Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.
       </p>
     </div>
   );
-};
+}

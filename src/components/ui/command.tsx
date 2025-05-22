@@ -1,8 +1,6 @@
 
-"use client"
-
 import * as React from "react"
-import { type DialogProps } from "@radix-ui/react-dialog"
+import { DialogProps } from "@radix-ui/react-dialog"
 import { Command as CommandPrimitive } from "cmdk"
 import { Search } from "lucide-react"
 
@@ -86,32 +84,16 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, children, ...props }, ref) => {
-  // Enhanced safety check for children
-  // 1. Check if children is null/undefined
-  // 2. If it's an array, check if it's empty
-  // 3. If React.Children.count returns 0, it means no children
-  const hasChildren = children != null && 
-    (Array.isArray(children) ? children.length > 0 : React.Children.count(children) > 0);
-  
-  // Return null early if no valid children to prevent issues with Array.from
-  if (!hasChildren) {
-    return null;
-  }
-  
-  return (
-    <CommandPrimitive.Group
-      ref={ref}
-      className={cn(
-        "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </CommandPrimitive.Group>
-  )
-})
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Group
+    ref={ref}
+    className={cn(
+      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      className
+    )}
+    {...props}
+  />
+))
 
 CommandGroup.displayName = CommandPrimitive.Group.displayName
 

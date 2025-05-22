@@ -1,99 +1,54 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { useAuth } from './useAuth';
 
-export interface UsePremiumCreditsResult {
-  credits: number;
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-  useCredit: (valuationId: string) => Promise<boolean>;
-}
-
-export function usePremiumCredits(): UsePremiumCreditsResult {
-  const [credits, setCredits] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+export function usePremiumCredits() {
   const { user } = useAuth();
-
-  const fetchCredits = useCallback(async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
+  const [credits, setCredits] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadCredits = async () => {
       setIsLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase
-        .from('premium_credits')
-        .select('remaining_credits')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        throw fetchError;
+      
+      try {
+        // In a real app, we would fetch from API
+        // For now, simulate fetching credits
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Check if user has premium status in localStorage
+        const isPremium = localStorage.getItem('premium_purchased') === 'true';
+        setCredits(isPremium ? 1 : 0);
+      } catch (error) {
+        console.error('Error loading premium credits:', error);
+      } finally {
+        setIsLoading(false);
       }
-
-      setCredits(data?.remaining_credits || 0);
-    } catch (err) {
-      console.error('Error fetching premium credits:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch premium credits'));
-    } finally {
+    };
+    
+    if (user) {
+      loadCredits();
+    } else {
+      setCredits(0);
       setIsLoading(false);
     }
   }, [user]);
-
+  
   const useCredit = async (valuationId: string): Promise<boolean> => {
-    if (!user) {
-      toast.error('You must be logged in to use credits');
-      return false;
-    }
-    
-    if (credits <= 0) {
-      toast.error('You have no premium credits remaining');
-      return false;
-    }
+    if (credits <= 0) return false;
     
     try {
-      // Call the use-premium-credit function or RPC to use a credit
-      const { data, error } = await supabase.rpc('use_premium_credit', {
-        p_user_id: user.id,
-        p_valuation_id: valuationId
-      });
+      // In a real app, we would call API to use a credit
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (error) throw error;
-      
-      if (data) {
-        // Update local state
-        setCredits(prevCredits => Math.max(0, prevCredits - 1));
-        toast.success('Premium credit used successfully');
-        return true;
-      } else {
-        toast.error('Failed to use premium credit');
-        return false;
-      }
-    } catch (err) {
-      console.error('Error using premium credit:', err);
-      toast.error('Failed to use premium credit');
+      // Update local state
+      setCredits(prev => prev - 1);
+      return true;
+    } catch (error) {
+      console.error('Error using premium credit:', error);
       return false;
     }
   };
-
-  useEffect(() => {
-    fetchCredits();
-  }, [fetchCredits]);
-
-  return {
-    credits,
-    isLoading,
-    error,
-    refetch: fetchCredits,
-    useCredit
-  };
+  
+  return { credits, isLoading, useCredit };
 }

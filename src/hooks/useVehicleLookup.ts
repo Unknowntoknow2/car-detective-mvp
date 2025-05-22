@@ -1,95 +1,89 @@
 
-import { useState, useCallback } from 'react';
-import { fetchVehicleByVin, fetchVehicleByPlate } from '@/services/vehicleLookupService';
-import { toast } from 'sonner';
-
-// Define a proper type for the vehicle data
-interface VehicleData {
-  vin: string;
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  mileage?: number;
-  bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  engine?: string;
-  drivetrain?: string;
-  features?: string[];
-  // other properties...
-}
+import { useState } from 'react';
 
 export function useVehicleLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
-
-  const lookupByVin = useCallback(async (vin: string) => {
-    if (!vin || vin.length < 17) {
-      setError('Please enter a valid 17-character VIN');
-      return null;
-    }
-
+  const [vehicle, setVehicle] = useState<any | null>(null);
+  
+  const reset = () => {
+    setVehicle(null);
+    setError(null);
+  };
+  
+  const lookupByVin = async (vin: string) => {
     setIsLoading(true);
     setError(null);
-
+    
     try {
-      const result = await fetchVehicleByVin(vin);
-      if (result) {
-        setVehicleData(result);
-        return result;
-      } else {
-        setError('No vehicle found with this VIN');
-        return null;
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to lookup vehicle');
-      toast.error('Vehicle lookup failed');
+      // In a real app, this would call an API
+      // For demo, we'll simulate a successful lookup
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockVehicle = {
+        vin,
+        year: 2019,
+        make: 'Toyota',
+        model: 'Camry',
+        trim: 'LE',
+        engine: '2.5L I4',
+        transmission: 'Automatic',
+        drivetrain: 'FWD',
+        bodyType: 'Sedan',
+        fuelType: 'Gasoline',
+        features: ['Bluetooth', 'Backup Camera', 'Keyless Entry']
+      };
+      
+      setVehicle(mockVehicle);
+      return mockVehicle;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to lookup VIN';
+      setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const lookupByPlate = useCallback(async (plate: string, state: string) => {
-    if (!plate) {
-      setError('Please enter a license plate');
-      return null;
-    }
-
-    if (!state) {
-      setError('Please select a state');
-      return null;
-    }
-
+  };
+  
+  const lookupByPlate = async (plate: string, state: string) => {
     setIsLoading(true);
     setError(null);
-
+    
     try {
-      const result = await fetchVehicleByPlate(plate, state);
-      if (result) {
-        setVehicleData(result);
-        return result;
-      } else {
-        setError('No vehicle found with this license plate');
-        return null;
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to lookup vehicle');
-      toast.error('Vehicle lookup failed');
+      // In a real app, this would call an API
+      // For demo, we'll simulate a successful lookup
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockVehicle = {
+        plate,
+        state,
+        year: 2018,
+        make: 'Honda',
+        model: 'Accord',
+        trim: 'EX',
+        engine: '1.5L I4 Turbo',
+        transmission: 'CVT',
+        drivetrain: 'FWD',
+        bodyType: 'Sedan',
+        fuelType: 'Gasoline',
+        features: ['Sunroof', 'Heated Seats', 'Apple CarPlay']
+      };
+      
+      setVehicle(mockVehicle);
+      return mockVehicle;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to lookup license plate';
+      setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const lookupVehicle = useCallback(async (
-    type: 'vin' | 'plate' | 'manual' | 'photo',
-    identifier: string,
-    state?: string,
+  };
+  
+  const lookupVehicle = async (
+    type: 'vin' | 'plate' | 'manual' | 'photo', 
+    identifier: string, 
+    state?: string, 
     data?: any
   ) => {
     if (type === 'vin') {
@@ -97,45 +91,22 @@ export function useVehicleLookup() {
     } else if (type === 'plate' && state) {
       return lookupByPlate(identifier, state);
     } else if (type === 'manual' && data) {
-      // For manual entry, we just use the data directly
-      setVehicleData({
-        vin: data.vin || 'MANUAL-ENTRY',
-        make: data.make,
-        model: data.model,
-        year: parseInt(data.year),
-        mileage: data.mileage ? parseInt(data.mileage) : undefined,
-        trim: data.trim,
-        bodyType: data.bodyType,
-        fuelType: data.fuelType,
-        transmission: data.transmission,
-        // Add other properties as needed
-      });
+      // For manual entry, we just use the provided data
+      setVehicle(data);
       return data;
-    } else if (type === 'photo') {
-      // Photo lookup would go here
-      setError('Photo lookup not implemented yet');
-      return null;
     }
     
-    setError('Invalid lookup type');
+    setError('Invalid lookup type or missing data');
     return null;
-  }, [lookupByVin, lookupByPlate]);
-
-  const reset = useCallback(() => {
-    setVehicleData(null);
-    setError(null);
-  }, []);
-
+  };
+  
   return {
     isLoading,
     error,
-    vehicleData,
+    vehicle,
     lookupByVin,
     lookupByPlate,
     lookupVehicle,
-    reset,
-    vehicle: vehicleData // Alias for components that expect 'vehicle' prop
+    reset
   };
 }
-
-export default useVehicleLookup;

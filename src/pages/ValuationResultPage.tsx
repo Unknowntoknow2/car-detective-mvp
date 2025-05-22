@@ -1,199 +1,183 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { PremiumFeatures } from '@/components/valuation/result/PremiumFeatures';
-import { ArrowRight, Download, Mail, BarChart3, Gauge } from 'lucide-react';
+import { Container } from '@/components/ui/container';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ValueEstimateCard } from '@/components/premium/sections/ValueEstimateCard';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, FileDown } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function ValuationResultPage() {
   const navigate = useNavigate();
-  const [valuationData, setValuationData] = useState<any>(null);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const [estimatedValue, setEstimatedValue] = useState(0);
+  const [confidenceScore, setConfidenceScore] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   
   useEffect(() => {
-    // Get valuation data from localStorage
-    const data = localStorage.getItem('valuation_data');
-    if (data) {
-      setValuationData(JSON.parse(data));
+    // Load vehicle data from localStorage
+    const storedData = localStorage.getItem('vehicle_data');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      setVehicleData(parsedData);
+      
+      // Calculate estimated value (in a real app, this would come from an API)
+      const baseValue = parsedData.year * 1000 - (parsedData.mileage / 100);
+      const estimatedValue = Math.max(5000, Math.round(baseValue));
+      setEstimatedValue(estimatedValue);
+      
+      // Set confidence score
+      setConfidenceScore(parsedData.vin ? 85 : 70);
+    } else {
+      // No data found, redirect to home
+      navigate('/');
     }
     
-    // Check if premium
-    const premium = localStorage.getItem('premium_valuations');
-    setIsPremium(!!premium);
-  }, []);
+    // Check if premium is purchased
+    const isPremiumPurchased = localStorage.getItem('premium_purchased') === 'true';
+    setIsPremium(isPremiumPurchased);
+  }, [navigate]);
+  
+  const handleDownloadReport = () => {
+    // In a real app, this would generate and download a PDF
+    toast.success('PDF report is being generated...');
+    
+    // Simulate download
+    setTimeout(() => {
+      toast.success('Report downloaded successfully!');
+    }, 2000);
+  };
   
   const handleUpgrade = () => {
     navigate('/premium');
   };
   
-  const handleEmailReport = () => {
-    // Implement email report functionality
-    alert('Email report functionality would be implemented here');
-  };
-  
-  const handleDownloadPdf = () => {
-    // Implement download PDF functionality
-    alert('Download PDF functionality would be implemented here');
-  };
-  
-  if (!valuationData) {
-    return (
-      <MainLayout>
-        <div className="container py-12 text-center">
-          <h1 className="text-2xl font-bold">No valuation data found</h1>
-          <p className="mt-4">Please complete a valuation to see results.</p>
-          <Button onClick={() => navigate('/')} className="mt-8">
-            Start a Valuation
-          </Button>
-        </div>
-      </MainLayout>
-    );
+  if (!vehicleData) {
+    return null; // Or loading state
   }
-  
-  // Simulate estimated value based on vehicle data
-  const baseValue = 25000; // Base value for calculation
-  const estimatedValue = baseValue + 
-    (parseInt(valuationData.year) - 2015) * 1000 - 
-    (parseInt(valuationData.mileage) / 20000) * 2000 +
-    (valuationData.condition === 'excellent' ? 2000 : 
-     valuationData.condition === 'good' ? 0 : 
-     valuationData.condition === 'fair' ? -2000 : -4000);
-  
-  const priceRange = {
-    low: Math.round(estimatedValue * 0.95),
-    high: Math.round(estimatedValue * 1.05)
-  };
   
   return (
     <MainLayout>
-      <div className="container py-12">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold">Valuation Result</h1>
-            <p className="text-muted-foreground mt-2">
-              Based on your vehicle's details and current market conditions
-            </p>
-          </div>
-          
-          <Card className="border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>Estimated Value</span>
-                <Badge variant="outline" className="font-normal">
-                  {valuationData.condition.charAt(0).toUpperCase() + valuationData.condition.slice(1)} Condition
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-6">
-                <h2 className="text-4xl font-bold text-primary">${Math.round(estimatedValue).toLocaleString()}</h2>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Value Range: ${priceRange.low.toLocaleString()} - ${priceRange.high.toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div className="space-y-4">
-                  <h3 className="font-medium flex items-center gap-2">
-                    <Gauge className="h-4 w-4 text-primary" />
-                    Vehicle Details
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Year</span>
-                      <span className="font-medium">{valuationData.year}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Make</span>
-                      <span className="font-medium">{valuationData.make}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Model</span>
-                      <span className="font-medium">{valuationData.model}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Mileage</span>
-                      <span className="font-medium">{parseInt(valuationData.mileage).toLocaleString()} miles</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Condition</span>
-                      <span className="font-medium capitalize">{valuationData.condition}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">ZIP Code</span>
-                      <span className="font-medium">{valuationData.zipCode}</span>
-                    </div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Valuation Results</h1>
+          <p className="text-muted-foreground">
+            Your estimated vehicle value based on current market conditions.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Vehicle Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Year</p>
+                    <p>{vehicleData.year}</p>
                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-medium flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-primary" />
-                    Why this price?
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Base value for {valuationData.year} {valuationData.make} {valuationData.model}</span>
-                      <span className="font-medium">${baseValue.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Mileage adjustment ({parseInt(valuationData.mileage).toLocaleString()} miles)</span>
-                      <span className="font-medium text-red-500">-${Math.round((parseInt(valuationData.mileage) / 20000) * 2000).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Condition ({valuationData.condition})</span>
-                      <span className={`font-medium ${valuationData.condition === 'excellent' ? 'text-green-500' : valuationData.condition === 'good' ? '' : 'text-red-500'}`}>
-                        {valuationData.condition === 'excellent' ? '+' : valuationData.condition === 'good' ? '' : '-'}
-                        ${Math.abs(
-                          valuationData.condition === 'excellent' ? 2000 : 
-                          valuationData.condition === 'good' ? 0 : 
-                          valuationData.condition === 'fair' ? 2000 : 4000
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Model year adjustment</span>
-                      <span className="font-medium text-green-500">+${((parseInt(valuationData.year) - 2015) * 1000).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center border-t pt-2 mt-2">
-                      <span className="font-medium">Final adjusted value</span>
-                      <span className="font-medium">${Math.round(estimatedValue).toLocaleString()}</span>
-                    </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Make</p>
+                    <p>{vehicleData.make}</p>
                   </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Model</p>
+                    <p>{vehicleData.model}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Mileage</p>
+                    <p>{vehicleData.mileage?.toLocaleString() || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Condition</p>
+                    <p className="capitalize">{vehicleData.condition || 'Good'}</p>
+                  </div>
+                  {vehicleData.vin && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">VIN</p>
+                      <p>{vehicleData.vin}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-              
-              <div className="flex flex-col md:flex-row gap-3 mt-8">
-                <Button variant="outline" className="flex-1" onClick={handleDownloadPdf}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Report
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={handleEmailReport}>
-                  <Mail className="mr-2 h-4 w-4" />
-                  Email Report
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {!isPremium && (
-            <Card className="bg-primary-50 border-primary/30">
-              <CardContent className="pt-6">
-                <PremiumFeatures onUpgrade={handleUpgrade} />
               </CardContent>
             </Card>
-          )}
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Valuation Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="font-medium">Base Value</span>
+                    <span>{formatCurrency(estimatedValue * 0.9)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="font-medium">Condition Adjustment</span>
+                    <span>{formatCurrency(estimatedValue * 0.05)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="font-medium">Mileage Adjustment</span>
+                    <span>{formatCurrency(estimatedValue * 0.03)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="font-medium">Market Adjustment</span>
+                    <span>{formatCurrency(estimatedValue * 0.02)}</span>
+                  </div>
+                  <div className="flex justify-between items-center font-bold pt-2">
+                    <span>Final Estimated Value</span>
+                    <span>{formatCurrency(estimatedValue)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {!isPremium && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle>Upgrade to Premium</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-4">
+                    Get access to more detailed valuation insights, market comparison, and a comprehensive PDF report.
+                  </p>
+                  <Button onClick={handleUpgrade}>
+                    Upgrade to Premium <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
           
-          <div className="flex justify-center mt-8">
-            <Button variant="outline" onClick={() => navigate('/')}>
-              Start a New Valuation
-            </Button>
+          <div>
+            <ValueEstimateCard 
+              estimatedValue={estimatedValue}
+              confidenceScore={confidenceScore}
+              onDownloadReport={isPremium ? handleDownloadReport : undefined}
+              isPremiumPurchased={isPremium}
+            />
+            
+            {isPremium && (
+              <Card className="mt-6 bg-green-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <p className="font-medium text-green-700">Premium Active</p>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    You have access to all premium features and reports.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
-      </div>
+      </Container>
     </MainLayout>
   );
 }

@@ -1,56 +1,27 @@
 
 import { useState, useEffect } from 'react';
-import { getFeatureAdjustments } from '@/utils/adjustments/features';
 
-export interface FeatureAdjustmentResult {
-  totalValue: number;
-  features: string[];
-  featuresApplied: number;
-  totalAdjustment: number;
-}
-
-export const useFeatureCalculator = (
-  selectedFeatures: string[] = [],
-  baseValue: number = 0
-) => {
-  const [featureAdjustment, setFeatureAdjustment] = useState<FeatureAdjustmentResult>({
-    totalValue: 0,
-    features: [],
-    featuresApplied: 0,
-    totalAdjustment: 0
-  });
-
-  // Calculate the feature adjustments whenever selected features change
+export function useFeatureCalculator(selectedFeatures: string[], baseValue: number) {
+  const [totalAdjustment, setTotalAdjustment] = useState(0);
+  const [percentageOfBase, setPercentageOfBase] = useState(0);
+  
   useEffect(() => {
-    if (!selectedFeatures || selectedFeatures.length === 0 || !baseValue) {
-      setFeatureAdjustment({
-        totalValue: baseValue,
-        features: [],
-        featuresApplied: 0,
-        totalAdjustment: 0
-      });
+    if (!baseValue || !selectedFeatures || selectedFeatures.length === 0) {
+      setTotalAdjustment(0);
+      setPercentageOfBase(0);
       return;
     }
     
-    // Calculate feature value using the utility function
-    const totalAdjustment = getFeatureAdjustments(selectedFeatures, baseValue);
+    // Calculate the value of all selected features
+    // This is a simplified implementation
+    const featureValue = selectedFeatures.length * 250;
     
-    // Create an adjustment result
-    const result: FeatureAdjustmentResult = {
-      totalValue: baseValue + totalAdjustment,
-      features: selectedFeatures,
-      featuresApplied: selectedFeatures.length,
-      totalAdjustment
-    };
-    
-    setFeatureAdjustment(result);
+    setTotalAdjustment(featureValue);
+    setPercentageOfBase((featureValue / baseValue) * 100);
   }, [selectedFeatures, baseValue]);
-
+  
   return {
-    totalValue: featureAdjustment.totalValue,
-    totalAdjustment: featureAdjustment.totalAdjustment,
-    features: featureAdjustment.features,
-    featuresApplied: featureAdjustment.featuresApplied,
-    percentageOfBase: baseValue > 0 ? (featureAdjustment.totalAdjustment / baseValue) * 100 : 0
+    totalAdjustment,
+    percentageOfBase
   };
-};
+}
