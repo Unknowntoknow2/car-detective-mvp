@@ -1,57 +1,82 @@
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 
-interface SectionHeaderProps {
+export interface SectionHeaderProps {
   title: string;
   description?: string;
-  action?: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg';
+  align?: 'left' | 'center' | 'right';
+  className?: string;
 }
 
-export function SectionHeader({ title, description, action }: SectionHeaderProps) {
-  return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
-        {description && (
-          <p className="text-muted-foreground mt-2 max-w-3xl">{description}</p>
-        )}
-      </div>
-      {action && <div>{action}</div>}
-    </div>
-  );
-}
+export const SectionHeader: React.FC<SectionHeaderProps> = ({
+  title,
+  description,
+  size = 'md',
+  align = 'left',
+  className,
+}) => {
+  const alignClass = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right',
+  }[align];
 
-export function ValueDisplay({ 
-  label, 
-  value, 
-  size = 'medium' 
-}: { 
-  label: string; 
-  value: string | number; 
-  size?: 'small' | 'medium' | 'large' 
-}) {
   const sizeClasses = {
-    small: {
-      container: 'space-y-0.5',
-      label: 'text-xs',
-      value: 'text-base font-medium'
-    },
-    medium: {
-      container: 'space-y-1',
-      label: 'text-sm',
-      value: 'text-lg font-medium'
-    },
-    large: {
-      container: 'space-y-1',
-      label: 'text-sm',
-      value: 'text-2xl font-bold'
-    }
-  };
-  
+    sm: 'text-xl md:text-2xl',
+    md: 'text-2xl md:text-3xl',
+    lg: 'text-3xl md:text-4xl',
+  }[size];
+
   return (
-    <div className={sizeClasses[size].container}>
-      <p className={`${sizeClasses[size].label} text-muted-foreground`}>{label}</p>
-      <p className={sizeClasses[size].value}>{value}</p>
+    <div className={cn("mb-8", alignClass, className)}>
+      <h2 className={cn("font-bold tracking-tight", sizeClasses)}>
+        {title}
+      </h2>
+      {description && (
+        <p className="mt-2 text-muted-foreground max-w-3xl">
+          {description}
+        </p>
+      )}
     </div>
   );
+};
+
+export interface DesignCardProps {
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+  footer?: React.ReactNode;
+  className?: string;
+  children?: React.ReactNode;
 }
+
+export const DesignCard: React.FC<DesignCardProps> = ({
+  title,
+  description,
+  icon,
+  footer,
+  className,
+  children
+}) => {
+  return (
+    <div className={cn("rounded-lg border bg-card text-card-foreground shadow", className)}>
+      <div className="p-6">
+        <div className="flex items-center gap-4 mb-4">
+          {icon && <div className="text-primary">{icon}</div>}
+          <h3 className="text-lg font-semibold">{title}</h3>
+        </div>
+        {description && (
+          <p className="text-sm text-muted-foreground mb-4">{description}</p>
+        )}
+        {children && <div className="mt-4">{children}</div>}
+      </div>
+      {footer && (
+        <div className="p-6 pt-0 border-t mt-4">
+          {footer}
+        </div>
+      )}
+    </div>
+  );
+};

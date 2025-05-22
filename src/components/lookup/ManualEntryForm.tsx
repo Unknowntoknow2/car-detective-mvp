@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ManualEntryFormData } from './types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
 
 // Create schema for form validation
 const manualEntrySchema = z.object({
@@ -26,18 +26,20 @@ const manualEntrySchema = z.object({
   bodyType: z.string().optional()
 });
 
-interface ManualEntryFormProps {
+export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
   initialData?: Partial<ManualEntryFormData>;
+  isPremium?: boolean;
 }
 
 const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   onSubmit,
   isLoading = false,
   submitButtonText = "Submit",
-  initialData = {}
+  initialData = {},
+  isPremium = false
 }) => {
   const { register, handleSubmit, formState: { errors } } = useForm<ManualEntryFormData>({
     resolver: zodResolver(manualEntrySchema),
@@ -46,7 +48,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       model: initialData.model || '',
       year: initialData.year || new Date().getFullYear(),
       mileage: initialData.mileage || 0,
-      condition: initialData.condition || 'good',
+      condition: initialData.condition || ConditionLevel.Good,
       zipCode: initialData.zipCode || '',
       vin: initialData.vin || '',
       ...initialData
@@ -54,16 +56,21 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   });
   
   const conditions = [
-    { value: "excellent", label: "Excellent" },
-    { value: "good", label: "Good" },
-    { value: "fair", label: "Fair" },
-    { value: "poor", label: "Poor" }
+    { value: ConditionLevel.Excellent, label: "Excellent" },
+    { value: ConditionLevel.VeryGood, label: "Very Good" },
+    { value: ConditionLevel.Good, label: "Good" },
+    { value: ConditionLevel.Fair, label: "Fair" },
+    { value: ConditionLevel.Poor, label: "Poor" }
   ];
   
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
   
   const onFormSubmit = (data: ManualEntryFormData) => {
+    // Ensure mileage is a number
+    if (data.mileage !== undefined) {
+      data.mileage = Number(data.mileage);
+    }
     onSubmit(data);
   };
   
@@ -136,7 +143,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
         {/* Condition input */}
         <div className="space-y-2">
           <Label htmlFor="condition">Condition</Label>
-          <Select defaultValue="good" {...register("condition")}>
+          <Select defaultValue={ConditionLevel.Good} {...register("condition")}>
             <SelectTrigger className={errors.condition ? "border-red-500" : ""}>
               <SelectValue placeholder="Select condition" />
             </SelectTrigger>
