@@ -12,8 +12,12 @@ export interface ConditionValues {
   year: number;
   titleStatus: string;
   odometer: number;
-  zipCode?: string; // Add zipCode as optional
-  exteriorGrade?: number; // Add exteriorGrade as optional for ValuationResult.tsx
+  zipCode?: string;
+  exteriorGrade?: number;
+  interiorGrade?: number;
+  mechanicalGrade?: number;
+  tireCondition?: number;
+  [key: string]: string | number | undefined;  // Add index signature to allow string indexing
 }
 
 export interface ConditionRatingOption {

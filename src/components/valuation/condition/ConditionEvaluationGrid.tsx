@@ -104,7 +104,7 @@ export function ConditionEvaluationGrid({ values, onChange }: ConditionEvaluatio
           <CardContent>
             <div className="space-y-8">
               {Object.entries(category.factors).map(([factorName, options]) => {
-                const id = `${category.key}_${factorName}`;
+                const id = `${category.key}${factorName.charAt(0).toUpperCase() + factorName.slice(1)}`;
                 
                 // Format the factor name for display (capitalize, add spaces)
                 const displayName = factorName
@@ -112,7 +112,7 @@ export function ConditionEvaluationGrid({ values, onChange }: ConditionEvaluatio
                   .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
                   
                 // For numeric sliders only - ensure the value is a number with default fallback
-                const currentValue = values[id];
+                const currentValue = values[id as keyof ConditionValues];
                 const numericValue = typeof currentValue === 'number' ? currentValue : 50; // Default to 50 (Good) if not set or not a number
                 
                 return (

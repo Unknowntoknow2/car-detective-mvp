@@ -1,8 +1,20 @@
+
 import { useState } from 'react';
-import { Photo, PhotoAnalysisResult } from '@/types/photo';
+import { Photo, PhotoAnalysisResult, PhotoScore } from '@/types/photo';
 import * as photoScoringService from '@/services/photoScoringService';
 
-export function usePhotoScoring() {
+export interface UsePhotoScoringResult {
+  result: PhotoAnalysisResult | null;
+  isLoading: boolean;
+  error: Error | null;
+  scorePhotos: (photos: Photo[], valuationId: string) => Promise<PhotoAnalysisResult | null>;
+  getBestPhoto: () => PhotoScore | null;
+  getAverageScore: () => number;
+  markAsPrimary: (url: string) => void;
+  preparePhotosForScoring: (photos: Photo[]) => Photo[];
+}
+
+export function usePhotoScoring(): UsePhotoScoringResult {
   const [result, setResult] = useState<PhotoAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -57,18 +69,18 @@ export function usePhotoScoring() {
     });
   };
 
-  const getBestPhoto = () => {
+  const getBestPhoto = (): PhotoScore | null => {
     if (!result || !result.individualScores || result.individualScores.length === 0) return null;
     return result.individualScores.find(s => s.isPrimary) || result.individualScores[0];
   };
 
-  const getAverageScore = () => {
+  const getAverageScore = (): number => {
     if (!result || !result.individualScores || result.individualScores.length === 0) return 0;
     const sum = result.individualScores.reduce((acc, score) => acc + score.score, 0);
     return Math.round(sum / result.individualScores.length);
   };
 
-  const preparePhotosForScoring = (photos: Photo[]) => {
+  const preparePhotosForScoring = (photos: Photo[]): Photo[] => {
     return photos.filter(p => p.preview || p.url);
   };
 
@@ -77,18 +89,9 @@ export function usePhotoScoring() {
     isLoading,
     error,
     scorePhotos,
-    getBestPhoto: () => {
-      if (!result || !result.individualScores || result.individualScores.length === 0) return null;
-      return result.individualScores.find(s => s.isPrimary) || result.individualScores[0];
-    },
-    getAverageScore: () => {
-      if (!result || !result.individualScores || result.individualScores.length === 0) return 0;
-      const sum = result.individualScores.reduce((acc, score) => acc + score.score, 0);
-      return Math.round(sum / result.individualScores.length);
-    },
+    getBestPhoto,
+    getAverageScore,
     markAsPrimary,
-    preparePhotosForScoring: (photos: Photo[]) => {
-      return photos.filter(p => p.preview || p.url);
-    }
+    preparePhotosForScoring
   };
 }

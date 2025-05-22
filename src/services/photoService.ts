@@ -11,7 +11,7 @@ export const analyzePhotos = async (
   // Return mock response
   return {
     photoUrls,
-    overallScore: 85, // Added required field
+    overallScore: 85, // Add required overallScore field
     score: 85,
     aiCondition: {
       condition: 'Good',
@@ -61,7 +61,7 @@ export const analyzeBatchPhotos = async (
   // Return mock enhanced analysis
   return {
     photoUrls,
-    overallScore: 88, // Added required field
+    overallScore: 88, // Add required overallScore field
     score: 88,
     aiCondition: {
       condition: 'Good',
