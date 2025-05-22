@@ -1,695 +1,560 @@
+// Import PDF generation and utility libraries
 import { PDFDocument, rgb, StandardFonts, PageSizes, degrees } from 'pdf-lib';
+import { Font } from '@pdf-lib/standard-fonts';
 import { ReportData, ReportOptions, SectionParams } from '../types';
 
-// Import section components
-import { addHeaderSection } from '../sections/header';
-import { addSummarySection } from '../sections/summary';
-import { addBreakdownSection } from '../sections/breakdown';
-import { addFooterSection } from '../sections/footer';
-import { addExplanationSection } from '../sections/explanation';
-import { addComparablesSection } from '../sections/comparables';
+// Import individual section generators with renamed imports to avoid conflicts
+import { addHeaderSection as importedHeaderSection } from '../sections/header';
+import { addSummarySection as importedSummarySection } from '../sections/summary';
+import { addBreakdownSection as importedBreakdownSection } from '../sections/breakdown';
+import { addFooterSection as importedFooterSection } from '../sections/footer';
+import { addExplanationSection as importedExplanationSection } from '../sections/explanation';
+import { addConditionAssessmentSection as importedConditionAssessmentSection } from '../sections/conditionAssessment';
+import { addComparablesSection as importedComparablesSection } from '../sections/comparables';
 
-// Create a placeholder for conditionAssessment that was missing
+// Local implementation of section functions to keep backward compatibility
+async function addHeaderSection(params: SectionParams): Promise<number> {
+  return await importedHeaderSection(params);
+}
+
+async function addSummarySection(params: SectionParams): Promise<number> {
+  return await importedSummarySection(params);
+}
+
+async function addBreakdownSection(params: SectionParams): Promise<number> {
+  return await importedBreakdownSection(params);
+}
+
+async function addFooterSection(params: SectionParams): Promise<number> {
+  return await importedFooterSection(params);
+}
+
+async function addExplanationSection(params: SectionParams): Promise<number> {
+  return await importedExplanationSection(params);
+}
+
 async function addConditionAssessmentSection(params: SectionParams): Promise<number> {
-  const { page, startY, width, margin, data, options, textColor, primaryColor, fonts } = params;
-  const y = params.y ?? startY;
-  
-  // Only include condition assessment for premium reports with photo assessment
-  if (!options.isPremium || !options.includePhotoAssessment || !data.aiCondition) {
-    return y; // Skip this section
-  }
-  
-  // This would be where we'd add the condition assessment to the PDF
-  // Implement real functionality when needed
-  
-  return y - 100; // Return a new Y position after adding content
+  return await importedConditionAssessmentSection(params);
+}
+
+async function addComparablesSection(params: SectionParams): Promise<number> {
+  return await importedComparablesSection(params);
 }
 
 /**
- * Generate a premium PDF report
- * @param data Report data
- * @param options Report options
+ * Generate a premium PDF report with all sections
+ * @param data Report data for the valuation
+ * @param options Additional PDF generation options
  * @returns Promise resolving to PDF document as Uint8Array
  */
 export async function generatePremiumReport(
   data: ReportData,
   options: Partial<ReportOptions> = {}
 ): Promise<Uint8Array> {
-  // Default options
-  const defaultOptions: ReportOptions = {
-    includeBranding: true,
-    includeExplanation: true,
-    includePhotoAssessment: true,
-    watermark: false,
-    fontSize: 10,
-    pdfQuality: 'standard',
-    isPremium: !!data.isPremium || !!data.premium
-  };
-  
-  // Merge options
-  const mergedOptions: ReportOptions = { ...defaultOptions, ...options };
-  
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
   
-  // Add a page
-  const page = pdfDoc.addPage(PageSizes.LETTER);
+  // Set the page size to letter
+  const pageSize = PageSizes.Letter;
+  
+  // Add the main page
+  const page = pdfDoc.addPage(pageSize);
+  
+  // Get the standard fonts
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  // Set the font size
+  const fontSize = 12;
+  
+  // Get the page dimensions
   const { width, height } = page.getSize();
+  
+  // Set the margins
   const margin = 50;
   
-  // Font setup
-  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  // Calculate the content area
+  const contentWidth = width - (margin * 2);
+  const contentHeight = height - (margin * 2);
   
-  // Colors
-  const textColor = rgb(0.1, 0.1, 0.1);
-  const primaryColor = rgb(0.0, 0.3, 0.7);
+  // Base Y position (starting from top of page)
+  let y = height - margin;
   
-  // Set up common parameters for all sections
-  const sectionParams: SectionParams = {
+  // Basic section params that will be passed to each section function
+  const params: SectionParams = {
     page,
-    startY: height - margin,
-    width,
-    margin,
+    pdfDoc,
     data,
-    options: mergedOptions,
-    textColor,
-    primaryColor,
-    height,
+    options,
     fonts: {
       regular: helveticaFont,
-      bold: helveticaBold
-    }
+      bold: helveticaBoldFont
+    },
+    fontSize,
+    startY: y,
+    y,
+    margin,
+    width: contentWidth,
+    height: contentHeight,
+    pageWidth: width,
+    pageHeight: height
   };
   
-  // Add watermark if requested
-  if (mergedOptions.watermark) {
-    const watermarkText = typeof mergedOptions.watermark === 'string' 
-      ? mergedOptions.watermark 
-      : 'SAMPLE REPORT';
-    
-    page.drawText(watermarkText, {
-      x: width / 2 - 150,
-      y: height / 2,
-      size: 60,
-      font: helveticaFont,
-      color: rgb(0.8, 0.8, 0.8),
-      opacity: 0.3,
-      rotate: {
-        type: 'degrees',
-        angle: -45
-      }
-    });
-  }
-  
-  // Add header
-  let currentY = await addHeaderSection(sectionParams);
-  
-  // Update the Y position for the next section
-  sectionParams.y = currentY;
-  
-  // Add summary section
-  currentY = await addSummarySection(sectionParams);
-  sectionParams.y = currentY;
-  
-  // Add breakdown section
-  currentY = await addBreakdownSection(sectionParams);
-  sectionParams.y = currentY;
-  
-  // Add comparables section (premium only)
-  if (mergedOptions.isPremium) {
-    currentY = await addComparablesSection(sectionParams);
-    sectionParams.y = currentY;
-  }
-  
-  // Add explanation section
-  if (mergedOptions.includeExplanation) {
-    currentY = await addExplanationSection(sectionParams);
-    sectionParams.y = currentY;
-  }
-  
-  // Add condition assessment section (premium only with photo assessment)
-  if (mergedOptions.isPremium && mergedOptions.includePhotoAssessment && data.aiCondition) {
-    currentY = await addConditionAssessmentSection(sectionParams);
-    sectionParams.y = currentY;
-  }
-  
-  // Add footer to all pages
-  currentY = await addFooterSection(sectionParams);
-  
-  // Serialize the PDFDocument to bytes
-  return await pdfDoc.save();
-}
-
-/**
- * Helper function to add a title to a section
- */
-function addSectionTitle(
-  page: any,
-  title: string,
-  x: number,
-  y: number,
-  font: any,
-  color: any,
-  size: number = 14
-) {
-  page.drawText(title, {
-    x,
-    y,
-    size,
-    font,
-    color
+  // Draw a colored header bar
+  page.drawRectangle({
+    x: 0,
+    y: height - 100,
+    width,
+    height: 100,
+    color: rgb(0.1, 0.1, 0.6)
   });
   
-  // Draw a line under the title
-  page.drawLine({
-    start: { x, y: y - 10 },
-    end: { x: x + 250, y: y - 10 },
-    thickness: 1,
-    color
+  // Add the logo (if available)
+  if (options.logoUrl) {
+    try {
+      const logoImage = await fetch(options.logoUrl).then(res => res.arrayBuffer());
+      const logoImageEmbed = await pdfDoc.embedPng(logoImage);
+      const logoDims = logoImageEmbed.scale(0.5);
+      
+      page.drawImage(logoImageEmbed, {
+        x: margin,
+        y: height - margin - 40,
+        width: logoDims.width,
+        height: logoDims.height,
+        rotate: { type: 'degrees', angle: 0 }
+      });
+    } catch (error) {
+      console.error('Error adding logo to PDF:', error);
+    }
+  }
+  
+  // Add the title
+  page.drawText('Vehicle Valuation Report', {
+    x: margin + 100,
+    y: height - margin - 30,
+    size: 24,
+    font: helveticaBoldFont,
+    color: rgb(1, 1, 1)
   });
   
-  return y - 30; // Return the new Y position after the title
-}
-
-/**
- * Helper function to add a field with label and value
- */
-function addField(
-  page: any,
-  label: string,
-  value: string,
-  x: number,
-  y: number,
-  fonts: { regular: any, bold: any },
-  textColor: any
-) {
-  // Draw the label
-  page.drawText(`${label}:`, {
-    x,
-    y,
-    size: 10,
-    font: fonts.bold,
-    color: textColor
+  // Add the date
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
   
-  // Draw the value
-  page.drawText(value, {
-    x: x + 100,
-    y,
-    size: 10,
-    font: fonts.regular,
-    color: textColor
-  });
-  
-  return y - 20; // Return the new Y position
-}
-
-/**
- * Helper function to format currency
- */
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-}
-
-/**
- * Helper function to add the vehicle information section
- */
-function addVehicleInfoSection(
-  page: any,
-  data: ReportData,
-  x: number,
-  y: number,
-  fonts: { regular: any, bold: any },
-  textColor: any
-): number {
-  // Add section title
-  let currentY = addSectionTitle(page, 'Vehicle Information', x, y, fonts.bold, textColor);
-  
-  // Add vehicle info fields
-  currentY = addField(page, 'Make', data.make || 'N/A', x, currentY, fonts, textColor);
-  currentY = addField(page, 'Model', data.model || 'N/A', x, currentY, fonts, textColor);
-  currentY = addField(page, 'Year', data.year?.toString() || 'N/A', x, currentY, fonts, textColor);
-  currentY = addField(page, 'Mileage', (data.mileage?.toLocaleString() || 'N/A') + ' miles', x, currentY, fonts, textColor);
-  currentY = addField(page, 'Condition', data.condition || 'N/A', x, currentY, fonts, textColor);
-  
-  if (data.vin) {
-    currentY = addField(page, 'VIN', data.vin, x, currentY, fonts, textColor);
-  }
-  
-  if (data.trim) {
-    currentY = addField(page, 'Trim', data.trim, x, currentY, fonts, textColor);
-  }
-  
-  if (data.transmission) {
-    currentY = addField(page, 'Transmission', data.transmission, x, currentY, fonts, textColor);
-  }
-  
-  if (data.bodyStyle) {
-    currentY = addField(page, 'Body Style', data.bodyStyle, x, currentY, fonts, textColor);
-  }
-  
-  return currentY - 10; // Return the new Y position with some extra padding
-}
-
-/**
- * Helper function to add the valuation section
- */
-function addValuationSection(
-  page: any,
-  data: ReportData,
-  x: number,
-  y: number,
-  fonts: { regular: any, bold: any },
-  textColor: any,
-  primaryColor: any
-): number {
-  // Add section title
-  let currentY = addSectionTitle(page, 'Valuation Summary', x, y, fonts.bold, textColor);
-  
-  // Add estimated value with emphasis
-  page.drawText('Estimated Value:', {
-    x,
-    y: currentY,
+  page.drawText(`Generated on ${dateStr}`, {
+    x: margin + 100,
+    y: height - margin - 50,
     size: 12,
-    font: fonts.bold,
-    color: primaryColor
+    font: helveticaFont,
+    color: rgb(0.3, 0.3, 0.3)
   });
   
-  const valueText = formatCurrency(data.estimatedValue || 0);
+  // Add vehicle information header
+  y = height - margin - 120;
+  params.y = y;
   
-  page.drawText(valueText, {
-    x: x + 120,
+  // Add the header section (vehicle info)
+  y = await addHeaderSection(params);
+  params.y = y;
+  
+  // Add some space
+  y -= 20;
+  params.y = y;
+  
+  // Add the summary section (price, confidence, etc)
+  y = await addSummarySection(params);
+  params.y = y;
+  
+  // Add some space
+  y -= 20;
+  params.y = y;
+  
+  // Add the breakdown section (price adjustments)
+  y = await addBreakdownSection(params);
+  params.y = y;
+  
+  // Add some space
+  y -= 20;
+  params.y = y;
+  
+  // If there's aiCondition data, add a condition assessment section
+  if (data.aiCondition) {
+    // Add the condition assessment section
+    y = await addConditionAssessmentSection(params);
+    params.y = y;
+    
+    // Add some space
+    y -= 20;
+    params.y = y;
+  }
+  
+  // If premium, add the explanation section
+  if (data.premium) {
+    // Add the explanation section
+    y = await addExplanationSection(params);
+    params.y = y;
+    
+    // Add some space
+    y -= 20;
+    params.y = y;
+    
+    // Add the comparables section
+    y = await addComparablesSection(params);
+    params.y = y;
+    
+    // Add some space
+    y -= 20;
+    params.y = y;
+  }
+  
+  // Add the footer
+  y = await addFooterSection(params);
+  
+  // Serialize the PDF to bytes
+  const pdfBytes = await pdfDoc.save();
+  return pdfBytes;
+}
+
+// Local implementations of the section functions
+// These will be used if the imported functions fail
+
+/**
+ * Draw condition assessment section
+ */
+async function drawConditionAssessment(params: SectionParams): Promise<number> {
+  const { page, data, fonts, margin, y, width } = params;
+  const contentWidth = width - (margin * 2);
+  let currentY = y;
+  
+  // Draw section title
+  page.drawText('Condition Assessment', {
+    x: margin,
+    y: currentY,
+    size: 18,
+    font: fonts.bold,
+    color: rgb(0.1, 0.1, 0.6)
+  });
+  
+  currentY -= 30;
+  
+  // Draw the condition score
+  if (data.aiCondition) {
+    // Draw condition text
+    page.drawText(`Overall Condition: ${data.aiCondition.condition}`, {
+      x: margin,
+      y: currentY,
+      size: 14,
+      font: fonts.bold,
+      color: rgb(0, 0, 0)
+    });
+    
+    currentY -= 20;
+    
+    // Draw confidence score
+    page.drawText(`Confidence: ${data.aiCondition.confidenceScore}%`, {
+      x: margin,
+      y: currentY,
+      size: 12,
+      font: fonts.regular,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    currentY -= 30;
+    
+    // Draw issues detected
+    if (data.aiCondition.issuesDetected && data.aiCondition.issuesDetected.length > 0) {
+      page.drawText('Issues Detected:', {
+        x: margin,
+        y: currentY,
+        size: 14,
+        font: fonts.bold,
+        color: rgb(0, 0, 0)
+      });
+      
+      currentY -= 20;
+      
+      // List all detected issues
+      data.aiCondition.issuesDetected.forEach((issue: string) => {
+        page.drawText(`• ${issue}`, {
+          x: margin + 20,
+          y: currentY,
+          size: 12,
+          font: fonts.regular,
+          color: rgb(0, 0, 0)
+        });
+        
+        currentY -= 18;
+      });
+    }
+    
+    currentY -= 10;
+    
+    // Draw condition summary
+    if (data.aiCondition.summary) {
+      // Break the summary text into lines
+      const summaryLines = breakTextIntoLines(
+        data.aiCondition.summary,
+        fonts.regular,
+        12,
+        contentWidth - 40
+      );
+      
+      page.drawText('Summary:', {
+        x: margin,
+        y: currentY,
+        size: 14,
+        font: fonts.bold,
+        color: rgb(0, 0, 0)
+      });
+      
+      currentY -= 20;
+      
+      // Draw each line of the summary
+      summaryLines.forEach((line) => {
+        page.drawText(line, {
+          x: margin + 20,
+          y: currentY,
+          size: 12,
+          font: fonts.regular,
+          color: rgb(0, 0, 0)
+        });
+        
+        currentY -= 18;
+      });
+    }
+  } else {
+    // No condition data available
+    page.drawText('No condition assessment data available.', {
+      x: margin,
+      y: currentY,
+      size: 12,
+      font: fonts.regular,
+      color: rgb(0.5, 0.5, 0.5)
+    });
+    
+    currentY -= 20;
+  }
+  
+  return currentY;
+}
+
+/**
+ * Draw breakdown section with price adjustments
+ */
+async function drawBreakdown(params: SectionParams): Promise<number> {
+  const { page, data, fonts, margin, y, width } = params;
+  let currentY = y;
+  
+  // Draw section title
+  page.drawText('Price Breakdown', {
+    x: margin,
+    y: currentY,
+    size: 18,
+    font: fonts.bold,
+    color: rgb(0.1, 0.1, 0.6)
+  });
+  
+  currentY -= 30;
+  
+  // Calculate the base price (either from data or from adjustments)
+  const basePrice = data.baseValue || (data.estimatedValue - data.adjustments.reduce((total: number, adj: { impact: number }) => total + adj.impact, 0));
+  
+  // Draw the base price
+  page.drawText(`Base Value: $${formatNumber(basePrice)}`, {
+    x: margin,
     y: currentY,
     size: 14,
     font: fonts.bold,
-    color: primaryColor
+    color: rgb(0, 0, 0)
   });
   
-  currentY -= 25;
+  currentY -= 30;
   
-  // Add confidence score if available
-  if (data.confidenceScore !== undefined) {
-    currentY = addField(
-      page,
-      'Confidence Score',
-      `${data.confidenceScore}%`,
-      x,
-      currentY,
-      fonts,
-      textColor
-    );
-  }
-  
-  // Add price range if available
-  if (data.priceRange && Array.isArray(data.priceRange) && data.priceRange.length === 2) {
-    currentY = addField(
-      page,
-      'Value Range',
-      `${formatCurrency(data.priceRange[0])} - ${formatCurrency(data.priceRange[1])}`,
-      x,
-      currentY,
-      fonts,
-      textColor
-    );
-  }
-  
-  // Add the valuation date
-  const generatedDate = data.generatedAt 
-    ? new Date(data.generatedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    : new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-  
-  currentY = addField(page, 'Valuation Date', generatedDate, x, currentY, fonts, textColor);
-  
-  return currentY - 10; // Return the new Y position with some extra padding
-}
-
-/**
- * Helper function to add the adjustments section
- */
-function addAdjustmentsSection(
-  page: any,
-  data: ReportData,
-  x: number,
-  y: number,
-  fonts: { regular: any, bold: any },
-  textColor: any
-): number {
-  // Only add this section if there are adjustments
-  if (!data.adjustments || data.adjustments.length === 0) {
-    return y; // No adjustments, return the same Y position
-  }
-  
-  // Add section title
-  let currentY = addSectionTitle(page, 'Value Adjustments', x, y, fonts.bold, textColor);
-  
-  // Add a header row
-  page.drawText('Factor', {
-    x,
-    y: currentY,
-    size: 10,
-    font: fonts.bold,
-    color: textColor
-  });
-  
-  page.drawText('Impact', {
-    x: x + 150,
-    y: currentY,
-    size: 10,
-    font: fonts.bold,
-    color: textColor
-  });
-  
-  page.drawText('Description', {
-    x: x + 250,
-    y: currentY,
-    size: 10,
-    font: fonts.bold,
-    color: textColor
-  });
-  
-  currentY -= 20;
-  
-  // Calculate the total adjustment
-  const totalAdjustment = data.adjustments.reduce((total: number, adj: any) => total + (adj.impact || 0), 0);
-  
-  // Add each adjustment
-  data.adjustments.forEach((adjustment: any) => {
-    // Draw the factor
-    page.drawText(adjustment.factor || '', {
-      x,
+  // Draw adjustments header
+  if (data.adjustments && data.adjustments.length > 0) {
+    page.drawText('Adjustments:', {
+      x: margin,
       y: currentY,
-      size: 10,
-      font: fonts.regular,
-      color: textColor
-    });
-    
-    // Draw the impact
-    const impactText = adjustment.impact > 0 
-      ? `+${formatCurrency(adjustment.impact)}` 
-      : formatCurrency(adjustment.impact);
-    
-    const impactColor = adjustment.impact > 0 
-      ? rgb(0, 0.5, 0) // Green for positive
-      : adjustment.impact < 0 
-        ? rgb(0.8, 0, 0) // Red for negative
-        : textColor; // Default for zero
-    
-    page.drawText(impactText, {
-      x: x + 150,
-      y: currentY,
-      size: 10,
-      font: fonts.regular,
-      color: impactColor
-    });
-    
-    // Draw the description (with word wrapping if needed)
-    const description = adjustment.description || '';
-    const words = description.split(' ');
-    let line = '';
-    let descY = currentY;
-    
-    words.forEach((word: string) => {
-      const testLine = line + word + ' ';
-      if (testLine.length * 5 > 200) { // Rough estimate of line width
-        page.drawText(line, {
-          x: x + 250,
-          y: descY,
-          size: 10,
-          font: fonts.regular,
-          color: textColor
-        });
-        line = word + ' ';
-        descY -= 15;
-      } else {
-        line = testLine;
-      }
-    });
-    
-    if (line) {
-      page.drawText(line, {
-        x: x + 250,
-        y: descY,
-        size: 10,
-        font: fonts.regular,
-        color: textColor
-      });
-    }
-    
-    // Update the current Y position, taking into account possible word wrapping
-    currentY = Math.min(currentY - 20, descY - 20);
-  });
-  
-  // Add a total row
-  page.drawLine({
-    start: { x: x + 150, y: currentY + 10 },
-    end: { x: x + 220, y: currentY + 10 },
-    thickness: 1,
-    color: textColor
-  });
-  
-  currentY -= 5;
-  
-  page.drawText('Total Adjustments:', {
-    x,
-    y: currentY,
-    size: 10,
-    font: fonts.bold,
-    color: textColor
-  });
-  
-  const totalText = totalAdjustment > 0 
-    ? `+${formatCurrency(totalAdjustment)}` 
-    : formatCurrency(totalAdjustment);
-  
-  const totalColor = totalAdjustment > 0 
-    ? rgb(0, 0.5, 0) // Green for positive
-    : totalAdjustment < 0 
-      ? rgb(0.8, 0, 0) // Red for negative
-      : textColor; // Default for zero
-  
-  page.drawText(totalText, {
-    x: x + 150,
-    y: currentY,
-    size: 10,
-    font: fonts.bold,
-    color: totalColor
-  });
-  
-  return currentY - 20; // Return the new Y position
-}
-
-/**
- * Helper function to add the condition assessment section
- */
-function addConditionSection(
-  page: any,
-  data: ReportData,
-  x: number,
-  y: number,
-  fonts: { regular: any, bold: any },
-  textColor: any,
-  width: number,
-  height: number | undefined
-): number {
-  // Only add this section if there is condition data
-  if (!data.aiCondition) {
-    return y; // No condition data, return the same Y position
-  }
-  
-  // Check if we need to add a new page
-  if (y < 200 && height !== undefined) {
-    // Add a new page
-    page = page.document.addPage(PageSizes.LETTER);
-    y = height - 50; // Reset Y position for the new page
-  }
-  
-  // Add section title
-  let currentY = addSectionTitle(page, 'Condition Assessment', x, y, fonts.bold, textColor);
-  
-  // Add the condition score
-  page.drawText('Overall Condition:', {
-    x,
-    y: currentY,
-    size: 12,
-    font: fonts.bold,
-    color: textColor
-  });
-  
-  page.drawText(data.aiCondition.condition || 'Unknown', {
-    x: x + 130,
-    y: currentY,
-    size: 12,
-    font: fonts.regular,
-    color: textColor
-  });
-  
-  currentY -= 25;
-  
-  // Add confidence score if available
-  if (data.aiCondition.confidenceScore !== undefined) {
-    currentY = addField(
-      page,
-      'AI Confidence',
-      `${data.aiCondition.confidenceScore}%`,
-      x,
-      currentY,
-      fonts,
-      textColor
-    );
-  }
-  
-  // Add condition summary if available
-  if (data.aiCondition.summary) {
-    page.drawText('Condition Summary:', {
-      x,
-      y: currentY,
-      size: 10,
+      size: 14,
       font: fonts.bold,
-      color: textColor
+      color: rgb(0, 0, 0)
     });
     
     currentY -= 20;
     
-    // Add the summary text with word wrapping
-    const maxWidth = width - (2 * x);
-    const words = data.aiCondition.summary.split(' ');
-    let line = '';
-    
-    words.forEach(word => {
-      const testLine = line + word + ' ';
-      if (testLine.length * 5 > maxWidth) { // Rough estimate of line width
-        page.drawText(line, {
-          x,
+    // Draw each adjustment
+    data.adjustments.forEach((adjustment: { factor: string; impact: number; description?: string }) => {
+      const impactText = formatAdjustment(adjustment.impact);
+      const factorText = `${adjustment.factor}:`;
+      
+      // Draw the factor name
+      page.drawText(factorText, {
+        x: margin + 20,
+        y: currentY,
+        size: 12,
+        font: fonts.regular,
+        color: rgb(0, 0, 0)
+      });
+      
+      // Draw the impact amount
+      page.drawText(impactText, {
+        x: margin + 200,
+        y: currentY,
+        size: 12,
+        font: fonts.bold,
+        color: adjustment.impact >= 0 ? rgb(0, 0.5, 0) : rgb(0.8, 0, 0)
+      });
+      
+      // Draw the description if available
+      if (adjustment.description) {
+        currentY -= 16;
+        page.drawText(`(${adjustment.description})`, {
+          x: margin + 40,
           y: currentY,
           size: 10,
           font: fonts.regular,
-          color: textColor
+          color: rgb(0.5, 0.5, 0.5)
         });
-        line = word + ' ';
-        currentY -= 15;
-      } else {
-        line = testLine;
       }
+      
+      currentY -= 24;
     });
-    
-    if (line) {
-      page.drawText(line, {
-        x,
-        y: currentY,
-        size: 10,
-        font: fonts.regular,
-        color: textColor
-      });
-      currentY -= 20;
-    }
   }
   
-  // Add issues detected if available
-  if (data.aiCondition.issuesDetected && data.aiCondition.issuesDetected.length > 0) {
-    page.drawText('Issues Detected:', {
-      x,
-      y: currentY,
-      size: 10,
-      font: fonts.bold,
-      color: textColor
-    });
-    
-    currentY -= 20;
-    
-    // Add each issue as a bullet point
-    data.aiCondition.issuesDetected.forEach((issue: string) => {
-      page.drawText('•', {
-        x,
-        y: currentY,
-        size: 10,
-        font: fonts.bold,
-        color: textColor
-      });
-      
-      page.drawText(issue, {
-        x: x + 15,
-        y: currentY,
-        size: 10,
-        font: fonts.regular,
-        color: textColor
-      });
-      
-      currentY -= 15;
-    });
-    
-    currentY -= 10; // Add some extra padding
-  }
+  // Draw the final value
+  page.drawText(`Final Value: $${formatNumber(data.estimatedValue)}`, {
+    x: margin,
+    y: currentY,
+    size: 16,
+    font: fonts.bold,
+    color: rgb(0, 0, 0)
+  });
   
-  return currentY; // Return the new Y position
+  return currentY - 20;
 }
 
 /**
- * Helper function to add a legal disclaimer
+ * Break text into lines that fit within a specific width
  */
-function addDisclaimerSection(
-  page: any,
-  x: number,
-  y: number,
-  font: any,
-  textColor: any,
-  width: number,
-  height: number | undefined
-): number {
-  // Check if we need to add a new page
-  if (y < 150 && height !== undefined) {
-    // Add a new page
-    page = page.document.addPage(PageSizes.LETTER);
-    y = height - 50; // Reset Y position for the new page
-  }
+function breakTextIntoLines(text: string, font: Font, fontSize: number, maxWidth: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
   
-  // Add section title
-  let currentY = addSectionTitle(page, 'Disclaimer', x, y, font, textColor);
-  
-  const disclaimer = 'This valuation report is an estimate based on available data and market conditions at the time of generation. ' +
-    'Actual selling or purchase prices may vary. This report is not an offer to purchase or sell any vehicle. ' +
-    'CarDetective does not guarantee the accuracy of this valuation and is not responsible for any decisions made based on this information.';
-  
-  // Add the disclaimer text with word wrapping
-  const maxWidth = width - (2 * x);
-  const words = disclaimer.split(' ');
-  let line = '';
-  
-  words.forEach(word => {
-    const testLine = line + word + ' ';
-    if (testLine.length * 5 > maxWidth) { // Rough estimate of line width
-      page.drawText(line, {
-        x,
-        y: currentY,
-        size: 8,
-        font,
-        color: rgb(0.4, 0.4, 0.4)
-      });
-      line = word + ' ';
-      currentY -= 12;
+  words.forEach((word: string) => {
+    const lineWidth = font.widthOfTextAtSize(currentLine + ' ' + word, fontSize);
+    
+    if (lineWidth < maxWidth) {
+      currentLine += (currentLine ? ' ' : '') + word;
     } else {
-      line = testLine;
+      lines.push(currentLine);
+      currentLine = word;
     }
   });
   
-  if (line) {
-    page.drawText(line, {
-      x,
-      y: currentY,
-      size: 8,
-      font,
-      color: rgb(0.4, 0.4, 0.4)
-    });
-    currentY -= 12;
+  if (currentLine) {
+    lines.push(currentLine);
   }
   
-  return currentY; // Return the new Y position
+  return lines;
+}
+
+/**
+ * Format a number with commas
+ */
+function formatNumber(num: number): string {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Format an adjustment value as a string
+ */
+function formatAdjustment(value: number): string {
+  if (value >= 0) {
+    return `+$${formatNumber(value)}`;
+  } else {
+    return `-$${formatNumber(Math.abs(value))}`;
+  }
+}
+
+/**
+ * Add a watermark to the page
+ */
+async function addWatermark(params: SectionParams, text: string): Promise<void> {
+  const { page, pdfDoc, fonts, pageWidth, pageHeight } = params;
+  const font = fonts.bold;
+  
+  // Create a separate page for the watermark
+  const watermarkPage = pdfDoc.addPage([pageWidth, pageHeight ?? 1000]);
+  
+  // Draw the watermark text
+  watermarkPage.drawText(text, {
+    x: pageWidth / 2 - 150,
+    y: (pageHeight ?? 1000) / 2,
+    size: 60,
+    font,
+    color: rgb(0.8, 0.8, 0.8),
+    opacity: 0.3,
+    rotate: { type: 'degrees', angle: 45 }
+  });
+  
+  // Extract the watermark to a form XObject
+  const [watermarkForm] = await pdfDoc.copyPages(pdfDoc, [pdfDoc.getPageCount() - 1]);
+  
+  // Remove the watermark page
+  pdfDoc.removePage(pdfDoc.getPageCount() - 1);
+  
+  // Add the watermark as a form XObject to the original page
+  page.drawPage(watermarkForm, {
+    x: 0,
+    y: 0,
+    width: pageWidth,
+    height: pageHeight ?? 1000,
+    rotate: { type: 'degrees', angle: 0 }
+  });
+}
+
+/**
+ * Add a watermark to the document
+ */
+async function addDocumentWatermark(params: SectionParams, text: string): Promise<void> {
+  const { pdfDoc, pageWidth, pageHeight } = params;
+  
+  // Add watermark to each page
+  for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+    const page = pdfDoc.getPage(i);
+    
+    // Create a separate page for the watermark
+    const watermarkPage = pdfDoc.addPage([pageWidth, pageHeight ?? 1000]);
+    
+    // Draw the watermark text
+    watermarkPage.drawText(text, {
+      x: pageWidth / 2 - 150,
+      y: (pageHeight ?? 1000) / 2,
+      size: 60,
+      font: params.fonts.bold,
+      color: rgb(0.8, 0.8, 0.8),
+      opacity: 0.3,
+      rotate: { type: 'degrees', angle: 45 }
+    });
+    
+    // Extract the watermark to a form XObject
+    const [watermarkForm] = await pdfDoc.copyPages(pdfDoc, [pdfDoc.getPageCount() - 1]);
+    
+    // Remove the watermark page
+    pdfDoc.removePage(pdfDoc.getPageCount() - 1);
+    
+    // Add the watermark as a form XObject to the original page
+    page.drawPage(watermarkForm, {
+      x: 0,
+      y: 0,
+      width: pageWidth,
+      height: pageHeight ?? 1000,
+      rotate: { type: 'degrees', angle: 0 }
+    });
+  }
 }

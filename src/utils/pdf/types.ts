@@ -1,75 +1,114 @@
 
+// Import PDF library types
+import { PDFDocument, PDFPage, PDFFont } from 'pdf-lib';
+
+/**
+ * Report data model for PDF generation
+ */
 export interface ReportData {
+  // Vehicle information
   make: string;
   model: string;
   year: number;
+  vin?: string;
   mileage: number;
   condition: string;
+  
+  // Valuation information
   estimatedValue: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
-  adjustments?: Array<AdjustmentItem>;
-  explanation?: string;
-  generatedAt?: string;
-  vin?: string;
+  confidenceScore: number;
+  
+  // Location information
   zipCode?: string;
-  aiCondition?: any;
+  
+  // Optional base values (if not provided, calculated from adjustments)
+  baseValue?: number;
+  
+  // Price adjustments
+  adjustments: AdjustmentItem[];
+  
+  // Premium flag
   premium?: boolean;
   isPremium?: boolean;
-  isSample?: boolean;
-  trim?: string;
+  
+  // Timestamps
+  generatedAt: string;
+  
+  // Optional explanation
+  explanation?: string;
+  
+  // Optional vehicle details
   transmission?: string;
-  bodyStyle?: string;
+  trim?: string;
   color?: string;
   fuelType?: string;
+  bodyStyle?: string;
+  
+  // Optional photo URL
   photoUrl?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  features?: string[];
-  regionName?: string;
-  price?: number;
-  // Additional properties needed by sections
-  reportTitle?: string;
-  disclaimerText?: string;
-  companyName?: string;
-  website?: string;
+  
+  // Optional AI condition assessment
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary: string;
+  } | null;
 }
 
+/**
+ * Adjustment item for price breakdown
+ */
 export interface AdjustmentItem {
   factor: string;
   impact: number;
   description?: string;
 }
 
+/**
+ * Report generation options
+ */
 export interface ReportOptions {
-  includeBranding: boolean;
+  watermarkText: string;
+  logoUrl: string;
+  showPremiumWatermark: boolean;
   includeExplanation: boolean;
-  includePhotoAssessment: boolean;
-  watermark: boolean | string;
-  fontSize: number;
-  pdfQuality: 'standard' | 'high';
-  isPremium?: boolean;
-}
-
-export interface SectionParams {
-  page: any;
-  startY: number;
-  width: number;
-  margin: number;
-  data: ReportData;
-  options: ReportOptions;
-  textColor: any;
-  primaryColor: any;
-  y?: number;
-  height?: number; // Height property for the page
-  fonts: {  // Make fonts required and ensure it has the necessary properties
-    regular: any;
-    bold: any;
-    italic?: any;
+  includeComparables: boolean;
+  includeFooter: boolean;
+  footerText: string;
+  primaryColor: string;
+  secondaryColor: string;
+  fonts: {
+    titleFont: string;
+    bodyFont: string;
   };
 }
 
-export interface ReportGeneratorParams {
+/**
+ * Section parameters for PDF section generators
+ */
+export interface SectionParams {
+  // PDF document and page
+  pdfDoc: PDFDocument;
+  page: PDFPage;
+  
+  // Report data and options
   data: ReportData;
-  options: ReportOptions;
+  options: Partial<ReportOptions>;
+  
+  // Fonts and styling
+  fonts: {
+    regular: PDFFont;
+    bold: PDFFont;
+  };
+  fontSize: number;
+  
+  // Positioning
+  startY: number;
+  y?: number;
+  margin: number;
+  width: number;
+  height?: number;
+  pageWidth: number;
+  pageHeight?: number;
 }
