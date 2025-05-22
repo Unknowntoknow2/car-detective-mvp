@@ -1,17 +1,9 @@
 
 export enum ConditionLevel {
   Excellent = "excellent",
-  VeryGood = "very_good",
   Good = "good",
   Fair = "fair",
   Poor = "poor"
-}
-
-export interface AccidentDetails {
-  hasAccident?: boolean;
-  severity?: string;
-  description?: string;
-  repaired?: boolean;
 }
 
 export interface ManualEntryFormData {
@@ -19,7 +11,7 @@ export interface ManualEntryFormData {
   model: string;
   year: number;
   mileage: number;
-  condition: ConditionLevel;
+  condition: ConditionLevel | string;
   zipCode: string;
   vin?: string;
   fuelType?: string;
@@ -27,7 +19,4 @@ export interface ManualEntryFormData {
   trim?: string;
   color?: string;
   bodyType?: string;
-  // Add the missing properties
-  selectedFeatures?: string[];
-  accidentDetails?: AccidentDetails;
 }

@@ -1,200 +1,100 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useEffect, useState, ReactNode } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { UserRole } from '@/types/auth';
 
-export interface AuthContextType {
-  session: Session | null;
+interface AuthContextType {
   user: User | null;
-  userDetails: {
-    role?: UserRole;
-    full_name?: string;
-    dealership_name?: string;
-    id?: string;
-  } | null;
-  userRole?: UserRole; // Added for backward compatibility
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, userData?: Record<string, any>) => Promise<{ error?: string }>;
-  signOut: () => Promise<void>;
+  session: Session | null;
   isLoading: boolean;
-  error: string | null;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any; data: any }>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  isLoading: true,
+  signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null, data: null }),
+  signOut: async () => {},
+  resetPassword: async () => ({ error: null }),
+});
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [session, setSession] = useState<Session | null>(null);
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userDetails, setUserDetails] = useState<AuthContextType['userDetails']>(null);
-  const [userRole, setUserRole] = useState<UserRole | undefined>(undefined);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const fetchUserDetails = async (userId: string) => {
-    try {
-      // First try to get from profiles table
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return null;
-      }
-      
-      return data;
-    } catch (err) {
-      console.error('Error in fetchUserDetails:', err);
-      return null;
-    }
-  };
 
   useEffect(() => {
-    // First set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const userData = await fetchUserDetails(session.user.id);
-        const role = userData?.role || session.user.user_metadata?.role as UserRole;
-        
-        setUserDetails({
-          id: session.user.id,
-          // Get role from profiles table or from user metadata
-          role: role,
-          full_name: userData?.full_name || session.user.user_metadata?.full_name,
-          dealership_name: userData?.dealership_name || session.user.user_metadata?.dealership_name
-        });
-        
-        // Set userRole for backward compatibility
-        setUserRole(role);
-      } else {
-        setUserDetails(null);
-        setUserRole(undefined);
+    // First set up the auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-    });
+    );
 
     // Then check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const userData = await fetchUserDetails(session.user.id);
-        const role = userData?.role || session.user.user_metadata?.role as UserRole;
-        
-        setUserDetails({
-          id: session.user.id,
-          // Get role from profiles table or from user metadata
-          role: role,
-          full_name: userData?.full_name || session.user.user_metadata?.full_name,
-          dealership_name: userData?.dealership_name || session.user.user_metadata?.dealership_name
-        });
-        
-        // Set userRole for backward compatibility
-        setUserRole(role);
-      }
-      
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        return { error: error.message };
-      }
-      
-      // User successfully signed in
-      toast.success('Successfully signed in!');
-      return {};
-    } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message || 'An error occurred during sign in');
-      return { error: err.message || 'An error occurred during sign in' };
-    } finally {
-      setIsLoading(false);
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
   };
 
-  const signUp = async (email: string, password: string, userData?: Record<string, any>) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData || {},
-        },
-      });
-
-      if (error) {
-        setError(error.message);
-        return { error: error.message };
+  const signUp = async (email: string, password: string, metadata?: any) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata
       }
-      
-      toast.success('Sign up successful! Please check your email for confirmation.');
-      return {};
-    } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message || 'An error occurred during sign up');
-      return { error: err.message || 'An error occurred during sign up' };
-    } finally {
-      setIsLoading(false);
-    }
+    });
+    return { data, error };
   };
 
   const signOut = async () => {
-    try {
-      setIsLoading(true);
-      await supabase.auth.signOut();
-      navigate('/');
-      toast.success('Successfully signed out!');
-    } catch (err: any) {
-      toast.error(err.message || 'An error occurred during sign out');
-    } finally {
-      setIsLoading(false);
-    }
+    await supabase.auth.signOut();
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error };
   };
 
   return (
     <AuthContext.Provider
       value={{
-        session,
         user,
-        userDetails,
-        userRole, // Added for backward compatibility
+        session,
+        isLoading,
         signIn,
         signUp,
         signOut,
-        isLoading,
-        error,
+        resetPassword,
       }}
     >
       {children}
@@ -202,10 +102,4 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export default AuthProvider;
