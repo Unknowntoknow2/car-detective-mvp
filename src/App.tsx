@@ -23,10 +23,15 @@ import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerInventoryListPage from './pages/dealer/DealerInventoryListPage';
 import ValuationHomepage from './modules/valuation-homepage/page';
 import { AppProviders } from './providers/AppProviders';
+import ResultPage from './pages/ResultPage';
+import ResultsPage from './pages/ResultsPage';
+import ValuationDetailPage from './pages/ValuationDetailPage';
+import { AIAssistantDrawer } from './components/chat/AIAssistantDrawer';
 
 function App() {
   return (
     <AppProviders>
+      <AIAssistantDrawer />
       <Toaster position="top-right" richColors />
       <Routes>
         {/* Landing and Home Pages */}
@@ -45,7 +50,12 @@ function App() {
         {/* Valuation Process */}
         <Route path="/valuation-followup" element={<ValuationFollowupPage />} />
         <Route path="/valuation-result" element={<ValuationResultPage />} />
+        <Route path="/valuation-detail/:id" element={<ValuationDetailPage />} />
         <Route path="/vin-lookup" element={<VinLookupPage />} />
+        <Route path="/result" element={<ResultPage />} />
+        <Route path="/result/:id" element={<ResultPage />} />
+        <Route path="/results" element={<ResultsPage />} />
+        <Route path="/results/:id" element={<ResultsPage />} />
         
         {/* Authentication */}
         <Route path="/auth" element={<AuthLandingPage />} />

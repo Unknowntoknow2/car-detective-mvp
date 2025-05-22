@@ -10,6 +10,8 @@ type ValuationContextType = {
   setStateValue: (value: string) => void;
   lookupMethod: 'vin' | 'plate' | 'manual';
   setLookupMethod: (method: 'vin' | 'plate' | 'manual') => void;
+  vehicle: any; // Added vehicle property
+  valuationId: string | null; // Added valuationId property
 };
 
 const defaultContext: ValuationContextType = {
@@ -21,6 +23,8 @@ const defaultContext: ValuationContextType = {
   setStateValue: () => {},
   lookupMethod: 'vin',
   setLookupMethod: () => {},
+  vehicle: null, // Initialize vehicle property
+  valuationId: null, // Initialize valuationId property
 };
 
 const ValuationContext = createContext<ValuationContextType>(defaultContext);
@@ -30,6 +34,8 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [plateValue, setPlateValue] = useState('');
   const [stateValue, setStateValue] = useState('');
   const [lookupMethod, setLookupMethod] = useState<'vin' | 'plate' | 'manual'>('vin');
+  const [vehicle, setVehicle] = useState(null);
+  const [valuationId, setValuationId] = useState<string | null>(null);
 
   return (
     <ValuationContext.Provider
@@ -42,6 +48,8 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setStateValue,
         lookupMethod,
         setLookupMethod,
+        vehicle,
+        valuationId,
       }}
     >
       {children}
