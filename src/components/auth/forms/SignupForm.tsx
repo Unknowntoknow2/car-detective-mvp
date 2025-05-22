@@ -37,7 +37,7 @@ export interface SignupFormProps {
   isLoading?: boolean;
   setIsLoading?: (value: boolean) => void;
   redirectToLogin?: boolean;
-  userRole?: string; // Add the userRole prop to the interface
+  userRole?: string; // For role-based redirects and form handling
 }
 
 export function SignupForm({
@@ -46,7 +46,7 @@ export function SignupForm({
   isLoading: externalLoading,
   setIsLoading: setExternalLoading,
   redirectToLogin = false,
-  userRole, // Add the prop to the function parameters
+  userRole, // Include in function parameters
 }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -69,19 +69,28 @@ export function SignupForm({
     setLoading(true);
     
     try {
+      // Use the passed userRole if available, otherwise use the role prop
+      const effectiveRole = userRole || role;
+      
       await signUp(data.email, data.password, {
         full_name: data.fullName,
-        role: role,
+        role: effectiveRole,
       });
       
       toast.success('Account created successfully!', {
         description: 'Please check your email to verify your account.'
       });
       
+      // Determine redirect path based on role
+      let targetPath = redirectPath;
+      if (effectiveRole === 'dealer') {
+        targetPath = '/dealer/dashboard';
+      }
+      
       if (redirectToLogin) {
         navigate('/login');
       } else {
-        navigate(redirectPath);
+        navigate(targetPath);
       }
     } catch (error: any) {
       console.error('Signup error:', error);
