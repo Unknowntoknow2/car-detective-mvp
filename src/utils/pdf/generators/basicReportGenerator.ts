@@ -1,4 +1,3 @@
-
 import PDFDocument from 'pdfkit';
 import { ReportData } from '../types';
 import { drawHeaderSection } from '../sections/headerSection';
@@ -6,10 +5,8 @@ import { drawFooterSection } from '../sections/footerSection';
 import { drawVehicleInfoSection } from '../sections/vehicleInfoSection';
 import { drawValuationSummary } from '../sections/valuationSummary';
 import { drawPhotoAssessmentSection } from '../sections/photoAssessmentSection';
-import { safeString } from '@/utils/pdf/sections/sectionHelper';
-
-// Create a stub for the missing disclaimer section
 import { drawDisclaimerSection } from '../sections/disclaimerSection';
+import { safeString } from '@/utils/pdf/sections/sectionHelper';
 
 // Add a type definition for SectionParams to match what's expected by the section functions
 interface SectionParams {

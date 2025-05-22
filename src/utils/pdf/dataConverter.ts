@@ -22,7 +22,7 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
   zipCode: string;
   adjustments: AdjustmentBreakdown[];
   isPremium?: boolean;
-}): ReportData {
+}): Partial<ReportData> {
   // Process adjustments to ensure all have descriptions
   const processedAdjustments = additionalData.adjustments.map(adj => ({
     factor: adj.factor,
@@ -31,8 +31,6 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
   }));
 
   return {
-    // Use crypto.randomUUID() since DecodedVehicleInfo doesn't have an id property
-    id: crypto.randomUUID(),
     make: vehicleInfo.make,
     model: vehicleInfo.model,
     year: vehicleInfo.year,
@@ -64,7 +62,7 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
  * @param valuation Valuation result object
  * @returns Report data object
  */
-export function convertValuationToReportData(valuation: any): ReportData {
+export function convertValuationToReportData(valuation: any): Partial<ReportData> {
   // Extract adjustments or create empty array
   const adjustments = valuation.adjustments?.map((adj: any) => ({
     factor: adj.factor || adj.name || '',
@@ -82,7 +80,6 @@ export function convertValuationToReportData(valuation: any): ReportData {
   const price = valuation.price || valuation.estimatedValue || valuation.valuation || 0;
 
   return {
-    id: valuation.id || crypto.randomUUID(),
     make: valuation.make || '',
     model: valuation.model || '',
     year: valuation.year || 0,

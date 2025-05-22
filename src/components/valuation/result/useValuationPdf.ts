@@ -33,8 +33,7 @@ export const useValuationPdf = ({
     
     try {
       // Format data for PDF generation - handling both naming conventions
-      const reportData: ReportData = {
-        id: valuationData.id || crypto.randomUUID(),
+      const reportData: Partial<ReportData> = {
         make: valuationData.make || 'Unknown',
         model: valuationData.model || 'Unknown',
         year: valuationData.year || new Date().getFullYear(),
@@ -50,7 +49,7 @@ export const useValuationPdf = ({
         color: valuationData.color || '',
         bodyType: valuationData.bodyType || valuationData.bodyStyle || '', 
         confidenceScore: valuationData.confidence_score || valuationData.confidenceScore || 75,
-        isPremium: isPremium, // This is now a valid property
+        isPremium: isPremium,
         priceRange: valuationData.priceRange || [
           Math.floor((valuationData.estimated_value || valuationData.estimatedValue || 0) * 0.95),
           Math.ceil((valuationData.estimated_value || valuationData.estimatedValue || 0) * 1.05)
@@ -63,24 +62,20 @@ export const useValuationPdf = ({
         })) || [],
         generatedAt: new Date().toISOString(),
         explanation: valuationData.explanation || valuationData.gptExplanation || '',
-        // Add userId if available, with fallback
-        userId: (valuationData as any).userId || localStorage.getItem('user_id') || ''
       };
       
       // Add AI condition data if available
       if (conditionData) {
         reportData.aiCondition = {
-          condition: conditionData.condition,
-          confidenceScore: conditionData.confidenceScore,
+          summary: conditionData.summary || '',
+          score: conditionData.confidenceScore || 0,
           issuesDetected: conditionData.issuesDetected,
-          summary: conditionData.summary || ''
         };
       } else if (valuationData.aiCondition) {
         reportData.aiCondition = {
-          condition: valuationData.aiCondition.condition,
-          confidenceScore: valuationData.aiCondition.confidenceScore,
+          summary: valuationData.aiCondition.summary || '',
+          score: valuationData.aiCondition.confidenceScore || 0,
           issuesDetected: valuationData.aiCondition.issuesDetected,
-          summary: valuationData.aiCondition.summary || ''
         };
       }
       

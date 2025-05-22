@@ -2,7 +2,7 @@
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ReportData } from './types';
 
-export async function downloadPdf(reportData: ReportData): Promise<Blob> {
+export async function downloadPdf(reportData: Partial<ReportData>): Promise<Blob> {
   // Implement PDF generation and download
   // This is a placeholder implementation
   console.log('Generating PDF with data:', reportData);
@@ -12,18 +12,16 @@ export async function downloadPdf(reportData: ReportData): Promise<Blob> {
     Vehicle Valuation Report
     ${reportData.year} ${reportData.make} ${reportData.model}
     Estimated Value: $${reportData.estimatedValue}
-    Generated: ${reportData.generatedAt}
+    Generated: ${new Date().toISOString()}
   `;
   
   // Return a Blob with the PDF content
   return new Blob([pdfContent], { type: 'application/pdf' });
 }
 
-export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, valuationData: any): ReportData {
+export function convertVehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, valuationData: any): Partial<ReportData> {
   // Convert vehicle info and valuation data to report data format
   return {
-    // Since DecodedVehicleInfo doesn't have an id property, use valuationData.id or generate a new UUID
-    id: valuationData.id || crypto.randomUUID(),
     make: vehicleInfo.make,
     model: vehicleInfo.model,
     year: vehicleInfo.year,

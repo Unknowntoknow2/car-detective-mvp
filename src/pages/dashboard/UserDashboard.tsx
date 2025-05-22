@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -5,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
-import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
@@ -66,11 +66,11 @@ const UserDashboard = () => {
     fetchValuations();
   }, [user, navigate]);
 
-  const columns: ColumnDef<Valuation>[] = [
+  const columns = [
     {
       accessorKey: 'created_at',
       header: 'Date',
-      cell: ({ row }) => new Date(row.getValue('created_at')).toLocaleDateString(),
+      cell: ({ row }: { row: { getValue: (key: string) => any } }) => new Date(row.getValue('created_at')).toLocaleDateString(),
     },
     {
       accessorKey: 'year',
@@ -99,7 +99,7 @@ const UserDashboard = () => {
     {
       accessorKey: 'estimated_value',
       header: 'Estimated Value',
-      cell: ({ row }) => {
+      cell: ({ row }: { row: { getValue: (key: string) => any } }) => {
         const value = row.getValue('estimated_value');
         return new Intl.NumberFormat('en-US', {
           style: 'currency',
@@ -118,16 +118,16 @@ const UserDashboard = () => {
     {
       accessorKey: 'confidence_score',
       header: 'Confidence',
-      cell: ({ row }) => {
+      cell: ({ row }: { row: { original: Valuation } }) => {
         const valuation = row.original;
-        // Replace the property confidenceScore with confidence_score
         const confidenceDisplay = valuation.confidence_score ? `${valuation.confidence_score}%` : 'N/A';
         return confidenceDisplay;
       }
     },
     {
       id: 'actions',
-      cell: ({ row }) => (
+      header: 'Actions',
+      cell: ({ row }: { row: { original: Valuation } }) => (
         <Button variant="outline" size="sm" onClick={() => {
           const valuation = row.original;
           downloadValuationPdf({

@@ -1,143 +1,69 @@
 
-// Fixed import for formatCurrency from the correct module path
-import { formatCurrency } from '@/utils/formatters';
-import { AdjustmentBreakdown, SectionParams } from '../types';
+import { SectionParams, AdjustmentBreakdown } from '../types';
+import { safeString, formatCurrency } from './sectionHelper';
 
-export const drawAdjustmentTable = (params: SectionParams, adjustments: AdjustmentBreakdown[]): number => {
-  const { page, y, width, margin, boldFont, regularFont, primaryColor, textColor } = params;
-  const tableX = margin || 72; // Default margin if not provided
-  let currentY = y;
-  const rowHeight = 20;
-  const numColumns = 3;
-  const columnWidths = [(width || 500) * 0.4, (width || 500) * 0.3, (width || 500) * 0.3]; // Adjusted for 3 columns
-  const headers = ['Factor', 'Description', 'Impact'];
-
-  // Function to draw a cell with text wrapping
-  const drawTableCell = (
-    page: any,
-    text: string,
-    x: number,
-    y: number,
-    colWidth: number,
-    font: any,
-    fontSize: number,
-    color: any,
-    alignment: 'left' | 'center' | 'right' = 'left'
-  ) => {
-    const words = text.split(' ');
-    let line = '';
-    let yOffset = y;
-
-    words.forEach((word, index) => {
-      const testLine = line + word + ' ';
-      const textWidth = font?.widthOfTextAtSize ? font.widthOfTextAtSize(testLine, fontSize) : testLine.length * fontSize * 0.6;
-
-      if (textWidth > colWidth && line !== '') {
-        // Draw the line
-        page.drawText(line.trim(), {
-          x: x,
-          y: yOffset,
-          font: font,
-          size: fontSize,
-          color: color,
-          wordBreaks: ['break-word']
-        });
-        yOffset -= fontSize * 1.2; // Adjust line spacing
-        line = word + ' ';
-      } else {
-        line = testLine;
-      }
-
-      if (index === words.length - 1) {
-        // Draw the last line
-        page.drawText(line.trim(), {
-          x: x,
-          y: yOffset,
-          font: font,
-          size: fontSize,
-          color: color,
-          wordBreaks: ['break-word']
-        });
-      }
-    });
-
-    return yOffset; // Return the new Y offset after drawing the cell
-  };
-
-  // Check if page is available before drawing
-  if (!page) {
-    console.error('Page object is missing in SectionParams');
-    return currentY;
+export const drawAdjustmentTable = (params: SectionParams): number => {
+  const { doc, data, margin = 40 } = params;
+  const { adjustments = [] } = data;
+  
+  if (!adjustments || adjustments.length === 0) {
+    return doc.y;
   }
-
+  
+  // Set the current Y position
+  const startY = doc.y + 20;
+  
+  // Draw section title
+  doc.fontSize(14)
+     .font('Helvetica-Bold')
+     .text('Value Adjustments', margin, startY);
+  
   // Draw table headers
-  for (let i = 0; i < numColumns; i++) {
-    page.drawText(headers[i], {
-      x: tableX + columnWidths[0] * i,
-      y: currentY,
-      font: boldFont,
-      size: 10,
-      color: primaryColor,
-    });
-  }
-  currentY -= rowHeight;
-
-  // Draw table rows
-  adjustments.forEach((adjustment) => {
-    let cellY = currentY; // Start the cell's Y position at the current row Y
-
-    // Draw Factor cell
-    const factorY = drawTableCell(
-      page,
-      adjustment.factor,
-      tableX,
-      cellY,
-      columnWidths[0],
-      regularFont,
-      10,
-      textColor
-    );
-
-    // Draw Description cell
-    const descriptionY = drawTableCell(
-      page,
-      adjustment.description || 'N/A',
-      tableX + columnWidths[0],
-      cellY,
-      columnWidths[1],
-      regularFont,
-      10,
-      textColor
-    );
-
-    // Draw Impact cell
-    const impactText = formatCurrency(adjustment.impact);
-    const impactY = drawTableCell(
-      page,
-      impactText,
-      tableX + columnWidths[0] + columnWidths[1],
-      cellY,
-      columnWidths[2],
-      regularFont,
-      10,
-      textColor,
-      'right'
-    );
-
-    // Determine the lowest Y value after drawing all cells in the row
-    const lowestY = Math.min(factorY, descriptionY, impactY);
-
-    // Update currentY to the lowest Y value minus some padding
-    currentY = lowestY - 5;
-
-    // Draw row separator
-    page.drawLine({
-      start: { x: tableX, y: currentY + 3 },
-      end: { x: tableX + (width || 500), y: currentY + 3 },
-      color: primaryColor,
-      thickness: 0.5,
-    });
+  const tableTop = startY + 30;
+  const tableWidth = doc.page.width - (margin * 2);
+  const colWidths = [tableWidth * 0.4, tableWidth * 0.2, tableWidth * 0.4];
+  const rowHeight = 25;
+  
+  doc.fontSize(12)
+     .font('Helvetica-Bold')
+     .text('Factor', margin, tableTop)
+     .text('Impact', margin + colWidths[0], tableTop)
+     .text('Description', margin + colWidths[0] + colWidths[1], tableTop);
+  
+  // Draw divider line
+  doc.moveTo(margin, tableTop + 20)
+     .lineTo(margin + tableWidth, tableTop + 20)
+     .stroke();
+  
+  // Draw rows
+  let currentY = tableTop + 30;
+  adjustments.forEach((adjustment: AdjustmentBreakdown) => {
+    const factor = safeString(adjustment.factor);
+    const impact = formatCurrency(adjustment.impact);
+    const description = safeString(adjustment.description || '');
+    
+    doc.fontSize(12)
+       .font('Helvetica')
+       .text(factor, margin, currentY)
+       .text(impact, margin + colWidths[0], currentY)
+       .text(description, margin + colWidths[0] + colWidths[1], currentY);
+    
+    currentY += rowHeight;
   });
-
-  return currentY;
+  
+  // Draw footer line
+  doc.moveTo(margin, currentY + 5)
+     .lineTo(margin + tableWidth, currentY + 5)
+     .stroke();
+  
+  // Calculate total adjustments
+  const total = adjustments.reduce((sum: number, adj: AdjustmentBreakdown) => sum + adj.impact, 0);
+  
+  // Draw total
+  doc.fontSize(12)
+     .font('Helvetica-Bold')
+     .text('Total Adjustments:', margin, currentY + 15)
+     .text(formatCurrency(total), margin + colWidths[0], currentY + 15);
+  
+  return currentY + 40;
 };
