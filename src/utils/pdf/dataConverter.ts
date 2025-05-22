@@ -81,7 +81,7 @@ export function convertPremiumValuationToPdfData(
     ...basicData,
     
     // Premium flag
-    premium: true,
+    isPremium: true,
     
     // Additional details
     fuelType: valuationResult.fuelType || valuationResult.fuel_type || '',

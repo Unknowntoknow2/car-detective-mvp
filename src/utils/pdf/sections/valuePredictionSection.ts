@@ -2,11 +2,11 @@
 import { SectionParams } from '../types';
 
 export function drawValuePredictionSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, fonts, textColor, primaryColor } = params;
+  const { page, startY, margin, width, data, fonts, textColor, primaryColor, options } = params;
   let y = startY;
   
-  // This section is only included in premium reports
-  if (!data.isPremium) {
+  // Only include this section for premium reports
+  if (options.isPremium !== true && data.isPremium !== true) {
     return y;
   }
   
@@ -14,17 +14,19 @@ export function drawValuePredictionSection(params: SectionParams): number {
   page.drawText('Value Prediction', {
     x: margin,
     y,
-    size: 14,
+    size: 12,
     font: fonts.bold,
     color: primaryColor,
   });
   
-  y -= 20;
+  y -= 15;
   
-  // Draw prediction note
-  const predictionText = "Based on market trends, we predict this vehicle's value will depreciate approximately 10-15% over the next 12 months. This is consistent with average depreciation rates for vehicles in this category.";
+  // Sample value prediction text
+  const predictionText = 
+    "Based on current market trends, this vehicle is expected to depreciate approximately 15% over the next 12 months. " + 
+    "Demand for this model remains strong in your area, which may help retain value better than average.";
   
-  // Split the text into multiple lines
+  // Split text into multiple lines for better readability
   const maxWidth = width - (margin * 2);
   const words = predictionText.split(' ');
   let currentLine = '';
@@ -34,6 +36,7 @@ export function drawValuePredictionSection(params: SectionParams): number {
     const textWidth = fonts.regular.widthOfTextAtSize(testLine, 9);
     
     if (textWidth > maxWidth) {
+      // Draw the current line and move to next line
       page.drawText(currentLine, {
         x: margin,
         y,

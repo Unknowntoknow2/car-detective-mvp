@@ -65,7 +65,7 @@ export function convertVehicleInfoToReportData(
     
     // Additional information
     adjustments: formattedAdjustments,
-    premium: valuationData.isPremium,
+    isPremium: valuationData.isPremium,
     generatedAt: new Date().toISOString()
   };
   
