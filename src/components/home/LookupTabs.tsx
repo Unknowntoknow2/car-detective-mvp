@@ -8,12 +8,31 @@ import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-export function LookupTabs() {
-  const [activeTab, setActiveTab] = useState('vin');
+interface LookupTabsProps {
+  defaultTab?: string;
+  onSubmit?: (type: string, value: string, state?: string) => void;
+  isSubmitting?: boolean;
+}
+
+export function LookupTabs({ 
+  defaultTab = "vin",
+  onSubmit,
+  isSubmitting = false
+}: LookupTabsProps) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
   const handleVinSubmit = (vin: string) => {
+    if (onSubmit) {
+      onSubmit("vin", vin);
+      return;
+    }
+
     setIsLoading(true);
     
     // In a real app, you'd call an API here
@@ -25,6 +44,11 @@ export function LookupTabs() {
   };
 
   const handlePlateSubmit = (plate: string, state: string) => {
+    if (onSubmit) {
+      onSubmit("plate", plate, state);
+      return;
+    }
+
     setIsLoading(true);
     
     // In a real app, you'd call an API here
@@ -36,6 +60,12 @@ export function LookupTabs() {
   };
 
   const handleManualSubmit = (data: any) => {
+    if (onSubmit) {
+      const jsonData = JSON.stringify(data);
+      onSubmit("manual", jsonData);
+      return;
+    }
+
     setIsLoading(true);
     
     // In a real app, you'd call an API here
@@ -55,7 +85,7 @@ export function LookupTabs() {
   return (
     <Card className="shadow-md">
       <CardContent className="pt-6">
-        <Tabs defaultValue="vin" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue={defaultTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-3 mb-8">
             <TabsTrigger value="vin">VIN</TabsTrigger>
             <TabsTrigger value="plate">License Plate</TabsTrigger>
@@ -65,21 +95,21 @@ export function LookupTabs() {
           <TabsContent value="vin" className="space-y-4">
             <VinLookup 
               onSubmit={handleVinSubmit}
-              isLoading={isLoading}
+              isLoading={isSubmitting ? isSubmitting && activeTab === 'vin' : isLoading}
             />
           </TabsContent>
           
           <TabsContent value="plate" className="space-y-4">
             <PlateLookup 
               onSubmit={handlePlateSubmit}
-              isLoading={isLoading}
+              isLoading={isSubmitting ? isSubmitting && activeTab === 'plate' : isLoading}
             />
           </TabsContent>
           
           <TabsContent value="manual" className="space-y-4">
             <ManualEntryForm 
               onSubmit={handleManualSubmit}
-              isLoading={isLoading}
+              isLoading={isSubmitting ? isSubmitting && activeTab === 'manual' : isLoading}
             />
           </TabsContent>
         </Tabs>

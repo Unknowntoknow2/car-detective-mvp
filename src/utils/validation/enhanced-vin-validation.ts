@@ -15,4 +15,4 @@ export function validateVinEnhanced(vin: string): { isValid: boolean; error: str
   };
 }
 
-export { validateVIN, validateVin } from './vin-validation';
+export { validateVIN } from './vin-validation';

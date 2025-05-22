@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import MainLayout from '@/components/layout/MainLayout';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { SignupForm } from '@/components/auth/forms/SignupForm';
 
 const SignupPage: React.FC = () => {
