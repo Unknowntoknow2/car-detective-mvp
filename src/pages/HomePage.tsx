@@ -1,6 +1,5 @@
 
 import React, { useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
 import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 

@@ -1,11 +1,8 @@
 
-// Global constants for the application
-
-// Set to true to reveal all UI components during development
-export const DEBUG_MODE = true;
-
-// Environment detection
-export const isDevelopment = process.env.NODE_ENV === 'development';
-
-// Show all components in development mode if DEBUG_MODE is true
-export const SHOW_ALL_COMPONENTS = isDevelopment && DEBUG_MODE;
+// Feature flags and development constants
+export const SHOW_ALL_COMPONENTS = import.meta.env.DEV || false;
+export const DEBUG_MODE = import.meta.env.DEV || false;
+export const ENABLE_ANALYTICS = true;
+export const ENABLE_NOTIFICATIONS = true;
+export const ENABLE_DEALER_FEATURES = true;
+export const PREMIUM_PRICE = 29.99;
