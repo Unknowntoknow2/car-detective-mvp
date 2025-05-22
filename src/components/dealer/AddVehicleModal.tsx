@@ -7,11 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { AddEditVehicleForm } from './AddEditVehicleForm';
-import { VehicleFormData } from './schemas/vehicleSchema';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { vehicleSchema } from './schemas/vehicleSchema';
+import AddEditVehicleForm from './AddEditVehicleForm';
 
 interface AddVehicleModalProps {
   open: boolean;
@@ -24,20 +20,6 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
   onOpenChange,
   onVehicleAdded
 }) => {
-  const form = useForm<VehicleFormData>({
-    resolver: zodResolver(vehicleSchema),
-    defaultValues: {
-      make: '',
-      model: '',
-      year: new Date().getFullYear(),
-      mileage: null,
-      price: 0,
-      condition: 'Good',
-      status: 'available',
-      photos: [],
-    },
-  });
-
   const handleSuccess = () => {
     onOpenChange(false);
     if (onVehicleAdded) {

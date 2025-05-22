@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { validateVin } from '@/utils/validation/vin-validation';
+import { validateVIN } from '@/utils/validation/vin-validation';
 import { AlertCircle } from 'lucide-react';
 
 interface VinInputFieldProps {
@@ -17,9 +17,9 @@ export const VinInputField: React.FC<VinInputFieldProps> = ({ form }) => {
   // Validate VIN whenever it changes
   useEffect(() => {
     if (value && value.trim() !== '') {
-      const validation = validateVin(value);
+      const validation = validateVIN(value);
       if (!validation.isValid) {
-        setValidationError(validation.message || 'Invalid VIN');
+        setValidationError(validation.error || 'Invalid VIN');
       } else {
         setValidationError(null);
       }
