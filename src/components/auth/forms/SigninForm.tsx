@@ -15,7 +15,7 @@ export interface SigninFormProps {
   redirectPath?: string;
   alternateLoginPath?: string;
   alternateLoginText?: string;
-  userRole?: UserRole;
+  role?: UserRole;
 }
 
 export const SigninForm = ({ 
@@ -24,7 +24,7 @@ export const SigninForm = ({
   redirectPath = '/dashboard',
   alternateLoginPath,
   alternateLoginText,
-  userRole = 'user'
+  role = 'individual'
 }: SigninFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,7 +33,20 @@ export const SigninForm = ({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, userDetails } = useAuth();
+
+  // Check if we already have user details with a role
+  useEffect(() => {
+    if (userDetails) {
+      const userRole = userDetails.role || 'individual';
+      // Redirect to appropriate dashboard based on role
+      if (userRole === 'dealer') {
+        navigate('/dealer-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [userDetails, navigate]);
 
   // Form validation
   const validateForm = () => {
@@ -82,9 +95,8 @@ export const SigninForm = ({
       await signIn(email, password);
       toast.success('Successfully signed in!');
       
-      // Redirect to appropriate dashboard based on user role
-      const redirectTo = userRole === 'dealer' ? '/dealer/dashboard' : redirectPath;
-      navigate(redirectTo);
+      // If role is dealer, we'll redirect to dealer dashboard, otherwise to user dashboard
+      // The actual redirect will happen in the useEffect when userDetails is populated
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'An unexpected error occurred');
@@ -178,6 +190,13 @@ export const SigninForm = ({
           </Link>
         </div>
       )}
+      
+      <div className="text-center mt-4 text-sm text-muted-foreground">
+        Don't have an account?{' '}
+        <Link to={`/signup/${role}`} className="text-primary hover:underline">
+          Sign Up
+        </Link>
+      </div>
     </form>
   );
 };

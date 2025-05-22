@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { SignupForm } from '@/components/auth/forms/SignupForm';
 import { Toaster } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
@@ -36,34 +36,45 @@ export default function RegisterPage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.4 }}
         >
-          <Card className="w-full shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl">Create an Account</CardTitle>
-              <CardDescription>Sign up as an individual user to access car valuations</CardDescription>
+          <Card className="w-full shadow-sm border-2">
+            <CardHeader className="space-y-1">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl">Individual Registration</CardTitle>
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-5 w-5 text-primary" />
+                </div>
+              </div>
+              <CardDescription>
+                Create a personal account to manage your vehicle valuations
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <SignupForm 
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
+                role="individual"
                 redirectPath="/dashboard"
-                redirectToLogin={true}
-                userRole="individual"
+                showDealershipField={false}
               />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
               <div className="text-center text-sm text-muted-foreground">
                 <div>Already have an account?{' '}
-                  <Link to="/login" className="text-primary hover:underline">
-                    Sign In
+                  <Link to="/signin/individual" className="text-primary hover:underline">
+                    Sign in
+                  </Link>
+                </div>
+                <div className="mt-2">
+                  <Link to="/signup/dealer" className="text-primary hover:underline">
+                    Need to register as a dealer?
                   </Link>
                 </div>
               </div>
               
               <div className="text-center text-xs text-muted-foreground">
-                <p>Looking to register as a dealer instead?{' '}
-                  <Link to="/dealer-signup" className="text-primary hover:underline">
-                    Dealer Signup
-                  </Link>
+                <p>By signing up, you agree to our{' '}
+                  <Link to="/terms" className="text-primary hover:underline">Terms</Link> and{' '}
+                  <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
                 </p>
               </div>
             </CardFooter>

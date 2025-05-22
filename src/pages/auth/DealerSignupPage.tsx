@@ -52,12 +52,25 @@ export default function DealerSignupPage() {
               <SignupForm 
                 isLoading={isLoading} 
                 setIsLoading={setIsLoading}
-                redirectPath="/dealer/dashboard"
-                userRole="dealer"
+                role="dealer"
+                redirectPath="/dealer-dashboard"
                 showDealershipField={true}
               />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
+              <div className="text-center text-sm text-muted-foreground">
+                <div>Already have a dealer account?{' '}
+                  <Link to="/signin/dealer" className="text-primary hover:underline">
+                    Sign in
+                  </Link>
+                </div>
+                <div className="mt-2">
+                  <Link to="/signup/individual" className="text-primary hover:underline">
+                    Need to register as an individual?
+                  </Link>
+                </div>
+              </div>
+              
               <div className="text-center text-xs text-muted-foreground">
                 <p>By signing up, you agree to our{' '}
                   <Link to="/terms" className="text-primary hover:underline">Terms</Link> and{' '}

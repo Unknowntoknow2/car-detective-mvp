@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -33,12 +34,11 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export interface SignupFormProps {
-  role?: 'individual' | 'dealer';
+  role?: UserRole;
   redirectPath?: string;
   isLoading?: boolean;
   setIsLoading?: (value: boolean) => void;
   redirectToLogin?: boolean;
-  userRole?: UserRole; // Update to use the imported UserRole type
   showDealershipField?: boolean;
 }
 
@@ -48,7 +48,6 @@ export function SignupForm({
   isLoading: externalLoading,
   setIsLoading: setExternalLoading,
   redirectToLogin = false,
-  userRole, 
   showDealershipField = false,
 }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,9 +57,6 @@ export function SignupForm({
   // Use local or external loading state based on props
   const loading = externalLoading !== undefined ? externalLoading : isLoading;
   const setLoading = setExternalLoading || setIsLoading;
-
-  // Determine effective role
-  const effectiveRole = userRole || role;
   
   // Create form with or without dealership field based on role
   const form = useForm<SignupFormValues>({
@@ -80,11 +76,11 @@ export function SignupForm({
       // Prepare user metadata
       const userData = {
         full_name: data.fullName,
-        role: effectiveRole,
+        role: role,
       };
       
       // Add dealership name to metadata if provided
-      if (effectiveRole === 'dealer' && data.dealershipName) {
+      if (role === 'dealer' && data.dealershipName) {
         Object.assign(userData, { dealership_name: data.dealershipName });
       }
       
@@ -96,12 +92,12 @@ export function SignupForm({
       
       // Determine redirect path based on role
       let targetPath = redirectPath;
-      if (effectiveRole === 'dealer') {
-        targetPath = '/dealer/dashboard';
+      if (role === 'dealer') {
+        targetPath = '/dealer-dashboard';
       }
       
       if (redirectToLogin) {
-        navigate('/login');
+        navigate('/signin/' + role);
       } else {
         navigate(targetPath);
       }
@@ -116,7 +112,7 @@ export function SignupForm({
   }
 
   // Determine if dealership field should be shown
-  const shouldShowDealershipField = showDealershipField || effectiveRole === 'dealer';
+  const shouldShowDealershipField = showDealershipField || role === 'dealer';
 
   return (
     <Form {...form}>
@@ -169,7 +165,7 @@ export function SignupForm({
             name="dealershipName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dealership Name {effectiveRole === 'dealer' ? '' : '(Optional)'}</FormLabel>
+                <FormLabel>Dealership Name {role === 'dealer' ? '' : '(Optional)'}</FormLabel>
                 <FormControl>
                   <Input placeholder="Your Dealership Name" {...field} disabled={loading} />
                 </FormControl>
