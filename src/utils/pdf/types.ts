@@ -1,4 +1,3 @@
-
 export interface ReportData {
   id: string;
   make: string;
@@ -38,6 +37,11 @@ export interface ReportData {
   photoExplanation?: string;
   narrative?: string;
   features?: string[];
+  // Add missing properties needed by basicReportGenerator
+  photoUrl?: string;
+  licensePlate?: string;
+  engine?: string;
+  doors?: number;
 }
 
 export interface ReportOptions {

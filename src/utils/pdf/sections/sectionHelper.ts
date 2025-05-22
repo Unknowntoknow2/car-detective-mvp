@@ -1,34 +1,21 @@
 
-export function ensureNotUndefined<T>(value: T | undefined, defaultValue: T): T {
-  return typeof value !== 'undefined' ? value : defaultValue;
-}
+/**
+ * Safely converts a value to a string, returning an empty string for undefined/null
+ */
+export const safeString = (value: string | undefined | null): string => {
+  return value || '';
+};
 
-// Safe helper function to handle possibly undefined values
-export function safeValue<T>(value: T | undefined, defaultValue: T): T {
-  return value !== undefined ? value : defaultValue;
-}
+/**
+ * Ensures a value is defined, using a default value if not
+ */
+export const withDefault = <T>(value: T | undefined | null, defaultValue: T): T => {
+  return value !== undefined && value !== null ? value : defaultValue;
+};
 
-// Additional helper functions for PDF generation
-export function safeMargin(margin: number | undefined): number {
-  return margin !== undefined ? margin : 40;
-}
-
-export function safeWidth(width: number | undefined): number {
-  return width !== undefined ? width : 595;
-}
-
-export function safeContentWidth(contentWidth: number | undefined): number {
-  return contentWidth !== undefined ? contentWidth : 515;
-}
-
-// New helper function to safely access properties
-export function safeString(value: string | undefined): string {
-  return value !== undefined ? value : '';
-}
-
-// New helper function for safely accessing heights
-export function safeHeight(height: number | undefined): number {
-  return height !== undefined ? height : 842;
-}
-
-// Export these helpers to be used in other PDF section files
+/**
+ * Safely accesses object properties that might be undefined
+ */
+export const safeProp = <T, K extends keyof T>(obj: T | undefined | null, key: K, defaultValue: T[K]): T[K] => {
+  return obj && obj[key] !== undefined ? obj[key] : defaultValue;
+};

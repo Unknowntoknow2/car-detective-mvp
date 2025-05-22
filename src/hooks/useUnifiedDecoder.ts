@@ -38,15 +38,20 @@ export const useUnifiedDecoder = () => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const data = await decodeVin(vin);
+      const response = await decodeVin(vin);
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to decode VIN');
+      }
+      
       setState({
         isLoading: false,
         error: null,
-        data,
+        data: response.data,
         decoderType: 'vin',
         isValid: true
       });
-      return data;
+      return response.data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to decode VIN';
       setState({
