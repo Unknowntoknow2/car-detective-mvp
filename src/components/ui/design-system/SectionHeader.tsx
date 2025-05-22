@@ -7,6 +7,8 @@ interface SectionHeaderProps {
   description?: string;
   className?: string;
   align?: 'left' | 'center' | 'right';
+  badge?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -14,6 +16,8 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   description,
   className,
   align = 'left',
+  badge,
+  size = 'md',
 }) => {
   const alignClasses = {
     left: 'text-left',
@@ -21,9 +25,28 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
     right: 'text-right ml-auto',
   };
 
+  const sizeClasses = {
+    sm: 'mb-4',
+    md: 'mb-8',
+    lg: 'mb-10',
+  };
+
+  const titleSizeClasses = {
+    sm: 'text-xl',
+    md: 'text-3xl',
+    lg: 'text-4xl',
+  };
+
   return (
-    <div className={cn('mb-8 max-w-3xl', alignClasses[align], className)}>
-      <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
+    <div className={cn(sizeClasses[size], alignClasses[align], className, 'max-w-3xl')}>
+      <div className="flex items-center gap-3">
+        <h2 className={cn("font-bold tracking-tight", titleSizeClasses[size])}>{title}</h2>
+        {badge && (
+          <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
+            {badge}
+          </span>
+        )}
+      </div>
       {description && (
         <p className="mt-3 text-muted-foreground">{description}</p>
       )}

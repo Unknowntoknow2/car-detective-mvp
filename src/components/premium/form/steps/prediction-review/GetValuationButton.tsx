@@ -20,7 +20,7 @@ export function GetValuationButton({
     <Button
       onClick={onClick}
       disabled={disabled}
-      variant={isPremium ? "premium" : "default"}
+      variant={isPremium ? "default" : "default"}
       className="flex items-center gap-2"
     >
       {isLoading ? (
