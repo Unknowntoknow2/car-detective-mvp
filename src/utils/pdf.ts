@@ -42,18 +42,42 @@ export function convertVehicleInfoToReportData(
 export async function downloadPdf(reportData: ReportData): Promise<void> {
   console.log('Generating PDF with data:', reportData);
   
-  // Ensure priceRange is in tuple format
-  if (reportData.priceRange && !Array.isArray(reportData.priceRange)) {
-    // Convert from object format to tuple format if needed
-    const min = typeof reportData.priceRange === 'object' && 'min' in reportData.priceRange 
-      ? reportData.priceRange.min 
-      : reportData.estimatedValue * 0.95;
+  // Ensure priceRange is always in tuple format [min, max]
+  if (reportData.priceRange) {
+    if (Array.isArray(reportData.priceRange)) {
+      // Already a tuple, make sure it has two elements
+      if (reportData.priceRange.length < 2) {
+        reportData.priceRange = [
+          Math.floor(reportData.estimatedValue * 0.95),
+          Math.ceil(reportData.estimatedValue * 1.05)
+        ];
+      }
+    } else if (typeof reportData.priceRange === 'object') {
+      // Handle the object format with explicit type checking
+      const priceObj = reportData.priceRange as any;
       
-    const max = typeof reportData.priceRange === 'object' && 'max' in reportData.priceRange 
-      ? reportData.priceRange.max 
-      : reportData.estimatedValue * 1.05;
-      
-    reportData.priceRange = [Number(min), Number(max)];
+      if ('min' in priceObj && 'max' in priceObj) {
+        reportData.priceRange = [Number(priceObj.min), Number(priceObj.max)];
+      } else {
+        // Fallback if the format is unexpected
+        reportData.priceRange = [
+          Math.floor(reportData.estimatedValue * 0.95),
+          Math.ceil(reportData.estimatedValue * 1.05)
+        ];
+      }
+    } else {
+      // If it's neither an array nor an object, set a default
+      reportData.priceRange = [
+        Math.floor(reportData.estimatedValue * 0.95),
+        Math.ceil(reportData.estimatedValue * 1.05)
+      ];
+    }
+  } else {
+    // If priceRange is undefined, calculate a default
+    reportData.priceRange = [
+      Math.floor(reportData.estimatedValue * 0.95),
+      Math.ceil(reportData.estimatedValue * 1.05)
+    ];
   }
   
   // Mock PDF generation for now (will be replaced with real PDF generation)
