@@ -87,7 +87,7 @@ serve(async (req) => {
       
       // Check if user already has premium access
       const { data: existingAccess } = await serviceClient
-        .from('premium_access')
+        .from('premium_credits')
         .select('*')
         .eq('user_id', userId)
         .order('updated_at', { ascending: false })
@@ -95,21 +95,21 @@ serve(async (req) => {
       
       if (existingAccess && existingAccess.length > 0) {
         // Add credits to existing access
-        const currentCredits = existingAccess[0].credits_remaining || 0;
+        const currentCredits = existingAccess[0].remaining_credits || 0;
         const newCredits = currentCredits + bundle;
         
         // Update with new credits and potentially extend expiration
-        await serviceClient.from('premium_access').update({
-          credits_remaining: newCredits,
-          expires_at: expiresAt.toISOString()
+        await serviceClient.from('premium_credits').update({
+          remaining_credits: newCredits,
+          updated_at: new Date().toISOString()
         }).eq('id', existingAccess[0].id);
       } else {
         // Create new premium access record
-        await serviceClient.from('premium_access').insert({
+        await serviceClient.from('premium_credits').insert({
           user_id: userId,
-          credits_remaining: bundle,
-          expires_at: expiresAt.toISOString(),
-          purchase_date: new Date().toISOString()
+          remaining_credits: bundle,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
       }
       

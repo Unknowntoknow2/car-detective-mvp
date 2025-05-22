@@ -1,209 +1,181 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/contexts/AuthContext';
-import { usePremiumCredits } from '@/hooks/usePremiumCredits';
-import { Loader2, Car, User, FileText, History, Plus, CreditCard } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FileBarChart, Car, CreditCard, Loader2 } from 'lucide-react';
 import ValuationHistoryList from '@/components/dashboard/ValuationHistoryList';
+import PremiumReportsList from '@/components/dashboard/PremiumReportsList';
+import { usePremiumCredits } from '@/hooks/usePremiumCredits';
 
-const DashboardPage: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, userDetails, isLoading: authLoading } = useAuth();
-  const { credits, isLoading: creditsLoading } = usePremiumCredits();
+export default function DashboardPage() {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const { credits, isLoading: isCreditsLoading } = usePremiumCredits();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const checkoutSuccess = searchParams.get('checkout_success') === 'true';
 
-  useEffect(() => {
-    // Set a short loading state for UI polish
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(loadingTimer);
-  }, []);
-
-  useEffect(() => {
-    // If authentication has finished loading and there's no user, redirect to auth
-    if (!authLoading && !user) {
+  React.useEffect(() => {
+    if (!isAuthLoading && !user) {
       navigate('/auth');
     }
-  }, [user, authLoading, navigate]);
+  }, [isAuthLoading, user, navigate]);
 
-  if (authLoading || isLoading) {
+  if (isAuthLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <h2 className="text-xl font-semibold mt-4">Loading dashboard...</h2>
-          <p className="text-muted-foreground mt-1">Please wait</p>
-        </div>
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1 container py-10 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <Footer />
       </div>
     );
   }
 
+  // Extract initials for avatar
+  const getInitials = () => {
+    if (!user) return '?';
+    
+    const name = user.full_name || user.email || '';
+    return name.split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {userDetails?.full_name || user?.email?.split('@')[0] || 'there'}!
-            </p>
-          </div>
-          <Button onClick={() => navigate('/valuation')}>New Valuation</Button>
-        </div>
-
-        {checkoutSuccess && (
-          <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800">
-            <AlertTitle className="text-green-800 dark:text-green-400">Payment Successful</AlertTitle>
-            <AlertDescription className="text-green-700 dark:text-green-500">
-              Thank you for your purchase! Your premium credits have been added to your account.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Premium Credits</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {creditsLoading ? (
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  <span>Loading credits...</span>
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1 container py-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14 border-2 border-muted">
+                  <AvatarImage src={user?.avatar_url || ''} />
+                  <AvatarFallback>{getInitials()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">
+                    Welcome, {user?.full_name || 'User'}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    {user?.email}
+                  </p>
                 </div>
-              ) : (
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <CreditCard className="h-8 w-8 text-primary" />
-                      <div>
-                        <p className="text-2xl font-bold">{credits}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Premium report credit{credits !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant={credits > 0 ? "outline" : "secondary"}>
-                      {credits > 0 ? 'Available' : 'None Available'}
-                    </Badge>
-                  </div>
-                  <Button 
-                    variant={credits > 0 ? "outline" : "default"} 
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {!isCreditsLoading && credits > 0 && (
+                  <Badge className="bg-primary text-white px-3 py-1 text-sm">
+                    {credits} Premium Credit{credits !== 1 ? 's' : ''}
+                  </Badge>
+                )}
+                {user?.role === 'dealer' && (
+                  <Badge variant="outline" className="px-3 py-1 text-sm">
+                    Dealer Account
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">New Valuation</CardTitle>
+                  <CardDescription>Get a value for your vehicle</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
                     className="w-full"
+                    onClick={() => navigate('/valuation')}
+                  >
+                    <Car className="mr-2 h-4 w-4" />
+                    Start Valuation
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Premium Reports</CardTitle>
+                  <CardDescription>
+                    {credits > 0
+                      ? `You have ${credits} premium credit${credits !== 1 ? 's' : ''}`
+                      : 'Get detailed market analysis'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    className="w-full"
+                    variant={credits > 0 ? "default" : "outline"}
                     onClick={() => navigate('/pricing')}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {credits > 0 ? 'Buy More Credits' : 'Get Premium Credits'}
+                    <FileBarChart className="mr-2 h-4 w-4" />
+                    {credits > 0 ? 'Use Credits' : 'Buy Credits'}
                   </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card className="md:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Button variant="outline" className="h-auto py-4 px-3 flex flex-col items-center justify-center space-y-2" onClick={() => navigate('/valuation')}>
-                  <Car className="h-6 w-6" />
-                  <div className="text-center">
-                    <p className="font-medium">New Valuation</p>
-                    <p className="text-xs text-muted-foreground">Value any vehicle</p>
-                  </div>
-                </Button>
-                
-                <Button variant="outline" className="h-auto py-4 px-3 flex flex-col items-center justify-center space-y-2" onClick={() => navigate('/valuation/history')}>
-                  <History className="h-6 w-6" />
-                  <div className="text-center">
-                    <p className="font-medium">History</p>
-                    <p className="text-xs text-muted-foreground">View past valuations</p>
-                  </div>
-                </Button>
-                
-                <Button variant="outline" className="h-auto py-4 px-3 flex flex-col items-center justify-center space-y-2" onClick={() => navigate('/profile')}>
-                  <User className="h-6 w-6" />
-                  <div className="text-center">
-                    <p className="font-medium">Profile</p>
-                    <p className="text-xs text-muted-foreground">Manage your account</p>
-                  </div>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
 
-        <Tabs defaultValue="valuations" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="valuations">My Valuations</TabsTrigger>
-            <TabsTrigger value="vehicles">My Vehicles</TabsTrigger>
-            <TabsTrigger value="history">Service History</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="valuations" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Valuations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ValuationHistoryList limit={5} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="vehicles" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Vehicles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-10">
-                  <Car className="h-16 w-16 text-muted-foreground/60 mx-auto" />
-                  <h3 className="mt-4 text-lg font-medium">No vehicles saved</h3>
-                  <p className="text-muted-foreground mt-2 mb-4">
-                    Add your vehicles to keep track of their value over time
-                  </p>
-                  <Button onClick={() => navigate('/vin-lookup')}>
-                    Add a Vehicle
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="history" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Service History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-10">
-                  <History className="h-16 w-16 text-muted-foreground/60 mx-auto" />
-                  <h3 className="mt-4 text-lg font-medium">No service history</h3>
-                  <p className="text-muted-foreground mt-2 mb-4">
-                    Track your vehicle's service history to maintain its value
-                  </p>
-                  <Button onClick={() => navigate('/service-history')}>
-                    Add Service Record
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+              {user?.role === 'dealer' ? (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Dealer Dashboard</CardTitle>
+                    <CardDescription>Access dealer tools</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      onClick={() => navigate('/dealer/dashboard')}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Go to Dealer Tools
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Buy Credits</CardTitle>
+                    <CardDescription>Save with credit bundles</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      onClick={() => navigate('/pricing')}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      View Pricing
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            <Tabs defaultValue="reports" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="reports">Premium Reports</TabsTrigger>
+                <TabsTrigger value="history">Valuation History</TabsTrigger>
+              </TabsList>
+              <TabsContent value="reports" className="space-y-4">
+                <PremiumReportsList />
+              </TabsContent>
+              <TabsContent value="history" className="space-y-4">
+                <ValuationHistoryList />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
-};
-
-export default DashboardPage;
+}
