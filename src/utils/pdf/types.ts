@@ -52,7 +52,7 @@ export interface ReportOptions {
   isPremium?: boolean;
 }
 
-// Add SectionParams interface
+// Enhanced SectionParams interface with all necessary types
 export interface SectionParams {
   doc: any;
   page?: any;
@@ -64,8 +64,10 @@ export interface SectionParams {
   pageWidth?: number;
   pageHeight?: number;
   textColor?: any;
+  primaryColor?: any;
   regularFont?: any;
   boldFont?: any;
+  italicFont?: any;
 }
 
 // Add ReportGeneratorParams interface
