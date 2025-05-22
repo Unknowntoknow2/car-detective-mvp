@@ -1,159 +1,147 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 
-// Define types for our auction data
-interface AuctionResult {
-  vin: string;
-  price: string;
-  sold_date: string;
-  odometer: string;
-  condition_grade?: string;
-  location?: string;
-  auction_source: string;
-  photo_urls: string[];
-}
-
-// Set up CORS headers for browser requests
+// Set up CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const url = new URL(req.url);
+  const vin = url.searchParams.get('vin');
+  const source = url.searchParams.get('source');
+  
+  if (!vin) {
+    return new Response(
+      JSON.stringify({ error: "Missing VIN parameter" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-
-    // Initialize Supabase client with the service role key
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Parse request body
-    const { vin } = await req.json();
-
-    if (!vin || typeof vin !== 'string' || vin.length !== 17) {
+    // Create a Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+    
+    // Check if we already have auction data for this VIN
+    const { data: existingData } = await supabaseClient
+      .from('auction_results_by_vin')
+      .select('*')
+      .eq('vin', vin)
+      .order('fetched_at', { ascending: false });
+      
+    // If we have recent data (less than 7 days old), return it
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    if (existingData && existingData.length > 0 &&
+        (!source || existingData.some(record => record.auction_source === source)) &&
+        new Date(existingData[0].fetched_at) > oneWeekAgo) {
+      
+      // Filter by source if specified
+      const filteredData = source 
+        ? existingData.filter(record => record.auction_source === source)
+        : existingData;
+      
       return new Response(
-        JSON.stringify({ error: 'Invalid VIN parameter' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ 
+          results: filteredData,
+          fromCache: true
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // In a real implementation, we would fetch data from a real auction API
-    // For this example, we'll simulate fetching data from an API
-    const auctionResults = await fetchAuctionDataFromAPI(vin);
-
-    // Store results in the database
-    if (auctionResults.length > 0) {
-      const { error } = await supabase
-        .from('auction_results_by_vin')
-        .upsert(
-          auctionResults.map(result => ({
-            ...result,
-            fetched_at: new Date().toISOString()
-          })),
-          { onConflict: 'vin,sold_date,auction_source' }
-        );
-
-      if (error) {
-        console.error('Error storing auction results:', error);
-        return new Response(
-          JSON.stringify({ error: 'Failed to store auction results' }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+    
+    // In a real implementation, we would call external APIs here
+    // For demo purposes, we'll generate mock data
+    
+    // Generate mock auction results
+    const mockResults = [];
+    const possibleSources = ['manheim', 'iaai', 'copart'];
+    const sourcesToUse = source ? [source] : possibleSources;
+    
+    for (const auctionSource of sourcesToUse) {
+      // Create 0-3 auction records per source
+      const numRecords = Math.floor(Math.random() * 4);
+      
+      for (let i = 0; i < numRecords; i++) {
+        // Generate random date in the past year
+        const soldDate = new Date();
+        soldDate.setDate(soldDate.getDate() - Math.floor(Math.random() * 365));
+        
+        // Generate random price between $5,000 and $30,000
+        const price = 5000 + Math.floor(Math.random() * 25000);
+        
+        // Generate random mileage between 10,000 and 150,000
+        const odometer = 10000 + Math.floor(Math.random() * 140000);
+        
+        // Generate random location
+        const locations = ['Atlanta, GA', 'Dallas, TX', 'Chicago, IL', 'Los Angeles, CA', 'New York, NY'];
+        const location = locations[Math.floor(Math.random() * locations.length)];
+        
+        // Generate condition grades
+        let conditionGrade;
+        if (auctionSource === 'manheim') {
+          conditionGrade = ['3.8', '4.2', '4.5', '3.2', '2.9'][Math.floor(Math.random() * 5)];
+        } else {
+          conditionGrade = ['Clean', 'Minor Damage', 'Moderate Damage', 'Severe Damage'][Math.floor(Math.random() * 4)];
+        }
+        
+        // Generate mock photo URLs
+        const photoUrls = [];
+        for (let j = 0; j < 3; j++) {
+          photoUrls.push(`https://example.com/${auctionSource}-${vin}-${j}.jpg`);
+        }
+        
+        mockResults.push({
+          id: crypto.randomUUID(),
+          vin,
+          auction_source: auctionSource,
+          price: price.toString(),
+          sold_date: soldDate.toISOString().split('T')[0],
+          odometer: odometer.toString(),
+          condition_grade: conditionGrade,
+          location,
+          photo_urls: photoUrls,
+          fetched_at: new Date().toISOString(),
+          source_priority: auctionSource === 'manheim' ? 1 : (auctionSource === 'iaai' ? 2 : 3)
+        });
       }
     }
-
+    
+    // In a real implementation, we would save these results to the database
+    if (mockResults.length > 0) {
+      const { error: insertError } = await supabaseClient
+        .from('auction_results_by_vin')
+        .insert(mockResults);
+        
+      if (insertError) {
+        console.error("Error saving auction results:", insertError);
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Auction data fetched successfully',
-        count: auctionResults.length
+      JSON.stringify({
+        results: mockResults,
+        fromCache: false
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+    
   } catch (error) {
-    console.error('Error in fetch-auction-data:', error);
+    console.error("Error fetching auction data:", error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
-
-// Mock function to simulate fetching auction data from an API
-async function fetchAuctionDataFromAPI(vin: string): Promise<AuctionResult[]> {
-  // In a real implementation, this would make an API call to a service like Stat.VIN or AutoAuctions.io
-  
-  // For demonstration purposes, we'll return mock data
-  // In a production app, you would replace this with actual API calls
-  
-  // Simulate API latency
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Generate between 0 and 5 auction results
-  const resultCount = Math.floor(Math.random() * 6);
-  const results: AuctionResult[] = [];
-  
-  for (let i = 0; i < resultCount; i++) {
-    // Generate a date between 3 years ago and now
-    const soldDate = new Date();
-    soldDate.setDate(soldDate.getDate() - Math.floor(Math.random() * 1095)); // Up to 3 years ago
-    
-    // Generate a random price between $5,000 and $50,000
-    const price = (5000 + Math.floor(Math.random() * 45000)).toString();
-    
-    // Generate a random mileage between 10,000 and 150,000
-    const odometer = (10000 + Math.floor(Math.random() * 140000)).toString();
-    
-    // Generate a random condition grade (sometimes)
-    const conditionGrade = Math.random() > 0.3 ? 
-      ['Excellent', 'Good', 'Fair', 'Poor'][Math.floor(Math.random() * 4)] : 
-      undefined;
-    
-    // Generate a random location (sometimes)
-    const location = Math.random() > 0.3 ? 
-      ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Miami, FL'][Math.floor(Math.random() * 5)] : 
-      undefined;
-    
-    // Use one of several auction sources
-    const auctionSource = ['Manheim', 'ADESA', 'Copart', 'IAA'][Math.floor(Math.random() * 4)];
-    
-    // Generate some photo URLs (sometimes)
-    const photoCount = Math.floor(Math.random() * 3);
-    const photoUrls = [];
-    
-    for (let j = 0; j < photoCount; j++) {
-      // Generate placeholder image URLs
-      photoUrls.push(`https://placehold.co/600x400?text=Auction+${i}+Photo+${j}`);
-    }
-    
-    results.push({
-      vin,
-      price,
-      sold_date: soldDate.toISOString(),
-      odometer,
-      condition_grade: conditionGrade,
-      location,
-      auction_source: auctionSource,
-      photo_urls: photoUrls
-    });
-  }
-  
-  return results;
-}
