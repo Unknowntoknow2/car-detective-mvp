@@ -22,7 +22,7 @@ export function ValuePropositionSection() {
     {
       icon: <Calendar className="h-10 w-10 text-primary" />,
       title: 'Future Predictions',
-      description: 'AI-powered forecasting helps predict your vehicle's value over the next 12 months.'
+      description: 'AI-powered forecasting helps predict your vehicle\'s value over the next 12 months.'
     }
   ];
 
