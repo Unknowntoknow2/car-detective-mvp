@@ -1,5 +1,5 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from "../rules/types";
+import { AdjustmentBreakdown, RulesEngineInput } from "../valuation/rules/types";
 
 export class DrivingBehaviorCalculator {
   calculate(input: RulesEngineInput): AdjustmentBreakdown {
