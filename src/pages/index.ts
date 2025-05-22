@@ -12,3 +12,8 @@ export { default as SignInPage } from './auth/SigninPage';
 export { default as SignUpPage } from './auth/SignupPage';
 export { default as RegisterPage } from './auth/RegisterPage';
 export { default as DealerSignupPage } from './auth/DealerSignupPage';
+
+// New Auth Flow pages
+export { default as ChooseRolePage } from './auth/ChooseRolePage';
+export { default as IndividualAuthPage } from './auth/IndividualAuthPage';
+export { default as DealerAuthPage } from './auth/DealerAuthPage';

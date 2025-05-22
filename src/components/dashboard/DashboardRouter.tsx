@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const DashboardRouter: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { userDetails } = useAuth();
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -17,20 +19,20 @@ const DashboardRouter: React.FC = () => {
         
         if (error || !user) {
           console.error('Authentication error:', error);
-          navigate('/auth/login');
+          navigate('/auth/choose');
           return;
         }
 
-        // Get the user's role from metadata
-        const role = user.user_metadata?.role;
+        // Get the user's role from context or metadata
+        const role = userDetails?.role || user.user_metadata?.role;
 
         // Route based on role
         switch (role) {
           case 'dealer':
-            navigate('/dashboard/dealer');
+            navigate('/dealer/dashboard');
             break;
           case 'admin':
-            navigate('/dashboard/admin');
+            navigate('/admin/dashboard');
             break;
           default:
             navigate('/dashboard/individual');
@@ -39,14 +41,14 @@ const DashboardRouter: React.FC = () => {
       } catch (err) {
         console.error('Error checking user role:', err);
         toast.error('Failed to load dashboard. Please try again.');
-        navigate('/auth/login');
+        navigate('/auth/choose');
       } finally {
         setIsLoading(false);
       }
     };
 
     checkUserRole();
-  }, [navigate]);
+  }, [navigate, userDetails]);
 
   if (isLoading) {
     return (
