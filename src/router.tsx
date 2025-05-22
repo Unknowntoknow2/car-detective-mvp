@@ -6,6 +6,8 @@ import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
 import SigninPage from './pages/auth/SigninPage';
 import SignupPage from './pages/auth/SignupPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import DealerSignupPage from './pages/auth/DealerSignupPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
@@ -20,6 +22,7 @@ import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
+import DealerSignup from './pages/DealerSignup';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -45,11 +48,39 @@ const routes: RouteObject[] = [
       },
       {
         path: 'register',
+        element: <RegisterPage />
+      },
+      {
+        path: 'sign-up',
         element: <SignupPage />
+      },
+      {
+        path: 'signup',
+        element: <SignupPage />
+      },
+      {
+        path: 'signup/individual',
+        element: <RegisterPage />
+      },
+      {
+        path: 'signup/dealer',
+        element: <DealerSignupPage />
       },
       {
         path: 'sign-in',
         element: <SigninPage />
+      },
+      {
+        path: 'signin/individual',
+        element: <SigninPage />
+      },
+      {
+        path: 'signin/dealer',
+        element: <SigninPage />
+      },
+      {
+        path: 'dealer-signup',
+        element: <DealerSignup />
       },
       {
         path: 'auth',
