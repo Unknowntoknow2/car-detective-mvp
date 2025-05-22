@@ -1111,6 +1111,77 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_credits: {
+        Row: {
+          created_at: string
+          id: string
+          remaining_credits: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          remaining_credits?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          remaining_credits?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      premium_transactions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          product_name: string | null
+          quantity: number | null
+          stripe_session_id: string | null
+          type: string
+          user_id: string
+          valuation_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          product_name?: string | null
+          quantity?: number | null
+          stripe_session_id?: string | null
+          type: string
+          user_id: string
+          valuation_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          product_name?: string | null
+          quantity?: number | null
+          stripe_session_id?: string | null
+          type?: string
+          user_id?: string
+          valuation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_transactions_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       premium_valuations: {
         Row: {
           created_at: string
@@ -2098,6 +2169,10 @@ export type Database = {
       urlencode: {
         Args: { data: Json } | { string: string } | { string: string }
         Returns: string
+      }
+      use_premium_credit: {
+        Args: { p_user_id: string; p_valuation_id: string }
+        Returns: boolean
       }
     }
     Enums: {
