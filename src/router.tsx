@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { RouteObject } from 'react-router-dom';
 import AuthLayout from '@/layouts/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DealerLayout from '@/layouts/DealerLayout';
@@ -44,9 +44,8 @@ const PageLoader = () => (
   </div>
 );
 
-// Since we now use Router in App.tsx, we'll create the router configuration differently
-// This file is useful if you want to use Data Routers with createBrowserRouter instead
-const router = createBrowserRouter([
+// Export routes configuration that can be used with useRoutes() hook
+const routes: RouteObject[] = [
   // Auth routes
   {
     path: '/',
@@ -122,7 +121,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // Dashboard routes - for regular users
+  // Dashboard routes
   {
     path: '/',
     element: <DashboardLayout />,
@@ -235,8 +234,6 @@ const router = createBrowserRouter([
     path: '/access-denied',
     element: <AccessDeniedPage />,
   },
-]);
+];
 
-export default function Router() {
-  return <RouterProvider router={router} />;
-}
+export default routes;
