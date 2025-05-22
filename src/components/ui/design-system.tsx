@@ -50,6 +50,7 @@ export interface DesignCardProps {
   footer?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
+  variant?: string;
 }
 
 export const DesignCard: React.FC<DesignCardProps> = ({
@@ -58,10 +59,15 @@ export const DesignCard: React.FC<DesignCardProps> = ({
   icon,
   footer,
   className,
-  children
+  children,
+  variant
 }) => {
+  const variantClasses = variant === 'premium' 
+    ? 'border-amber-200 bg-amber-50' 
+    : 'bg-card text-card-foreground';
+
   return (
-    <div className={cn("rounded-lg border bg-card text-card-foreground shadow", className)}>
+    <div className={cn("rounded-lg border shadow", variantClasses, className)}>
       <div className="p-6">
         <div className="flex items-center gap-4 mb-4">
           {icon && <div className="text-primary">{icon}</div>}

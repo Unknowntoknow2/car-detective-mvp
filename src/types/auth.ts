@@ -9,9 +9,9 @@ export interface AuthContextType {
   userDetails: any;
   userRole?: UserRole;
   isLoading: boolean;
+  error?: any;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
-  error?: any;
 }

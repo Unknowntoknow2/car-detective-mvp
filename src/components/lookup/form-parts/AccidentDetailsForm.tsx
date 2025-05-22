@@ -13,11 +13,11 @@ interface AccidentDetailsFormProps {
 
 export function AccidentDetailsForm({ value, onChange }: AccidentDetailsFormProps) {
   const handleToggle = (checked: boolean) => {
-    onChange({ ...value, hasAccidents: checked, hasAccident: checked });
+    onChange({ ...value, hasAccident: checked });
   };
 
   const handleSeverityChange = (severity: string) => {
-    onChange({ ...value, severity, accidentSeverity: severity as any });
+    onChange({ ...value, severity: severity as 'minor' | 'moderate' | 'severe' });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -33,31 +33,31 @@ export function AccidentDetailsForm({ value, onChange }: AccidentDetailsFormProp
       <div className="flex items-center space-x-2">
         <Switch
           id="accident-toggle"
-          checked={value.hasAccidents || value.hasAccident || false}
+          checked={value.hasAccident || false}
           onCheckedChange={handleToggle}
         />
         <Label htmlFor="accident-toggle">Vehicle has been in an accident</Label>
       </div>
 
-      {(value.hasAccidents || value.hasAccident) && (
+      {value.hasAccident && (
         <div className="pl-6 space-y-4 border-l-2 border-gray-200">
           <div className="space-y-2">
             <Label>Severity</Label>
             <RadioGroup 
-              value={value.severity || value.accidentSeverity || 'Minor'} 
+              value={value.severity || 'minor'} 
               onValueChange={handleSeverityChange}
               className="flex flex-col space-y-1"
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Minor" id="severity-minor" />
+                <RadioGroupItem value="minor" id="severity-minor" />
                 <Label htmlFor="severity-minor">Minor</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Moderate" id="severity-moderate" />
+                <RadioGroupItem value="moderate" id="severity-moderate" />
                 <Label htmlFor="severity-moderate">Moderate</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Severe" id="severity-severe" />
+                <RadioGroupItem value="severe" id="severity-severe" />
                 <Label htmlFor="severity-severe">Severe</Label>
               </div>
             </RadioGroup>
