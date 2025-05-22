@@ -59,7 +59,7 @@ export interface ValuationResponse {
 }
 
 export interface VehicleIdentifier {
-  type: 'vin' | 'plate' | 'manual';
+  type: 'vin' | 'plate' | 'manual' | 'photo';
   value: string;
   state?: string;
 }

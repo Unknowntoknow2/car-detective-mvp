@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobile } from '@/hooks/use-mobile';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 const Layout = () => {
   // Get isMobile directly, as the hook returns a boolean
   let isMobile = false;
   try {
-    isMobile = useIsMobile();
+    isMobile = useMobile();
   } catch (error) {
     console.error("Error in Layout when checking mobile status:", error);
   }
