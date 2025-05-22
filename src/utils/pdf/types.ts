@@ -1,5 +1,6 @@
 
 import { PDFFont, RGB } from 'pdf-lib';
+import { PDFDocument as PDFLibDocument } from 'pdf-lib';
 
 export interface ReportData {
   // Vehicle Information
@@ -7,7 +8,7 @@ export interface ReportData {
   model: string;
   year: number;
   trim?: string;
-  mileage?: number; // Changed from required to optional
+  mileage: number; // Required field
   vin?: string;
   
   // Valuation Information
@@ -106,7 +107,7 @@ export interface ReportOptions {
 export interface ReportGeneratorParams {
   data: ReportData;
   options: ReportOptions;
-  document: typeof PDFDocument; // Fixed to use typeof PDFDocument
+  document: typeof PDFLibDocument; // Fixed to use PDFLibDocument
 }
 
 // Add AdjustmentBreakdown interface for PDF sections

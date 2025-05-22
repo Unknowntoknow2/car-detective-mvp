@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ValuationResult } from '@/types/valuation';
-import { getValuationHistory } from '@/services/valuationService';
+import { getUserValuations } from '@/utils/valuationService';
 import { formatCurrency } from '@/utils/formatters';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { useValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { downloadPdf, openValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
 interface VehicleCardProps {
   vehicle: ValuationResult;
@@ -25,14 +26,14 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
       model: vehicle.model,
       trim: vehicle.trim || '',
       vin: vehicle.vin || '',
-      mileage: vehicle.mileage || 0, // Add mileage with default value
+      mileage: vehicle.mileage || 0,
       estimatedValue: vehicle.estimatedValue || 0,
       photoScore: vehicle.photoScore || 0,
       bestPhotoUrl: vehicle.photoUrl || '',
     };
     
     // Call PDF generation function
-    useValuationPdf(reportData);
+    openValuationPdf(reportData);
   };
 
   return (
@@ -66,7 +67,7 @@ const UserDashboard = () => {
       setError(null);
       try {
         if (user) {
-          const history = await getValuationHistory(user.id);
+          const history = await getUserValuations(user.id);
           setValuations(history);
         } else {
           setError('User not authenticated.');
