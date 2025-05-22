@@ -1,209 +1,134 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChartBar, Info, Users, TrendingUp, MapPin } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Progress } from '@/components/ui/progress';
-import { formatCurrency } from '@/utils/formatters';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MarketTrendCard } from './MarketTrendCard';
+import { LocalMarketCard } from './LocalMarketCard';
+import { PriceComparisonChart } from './PriceComparisonChart';
+import { ComparableListingsTable } from './ComparableListingsTable';
+import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
 
 interface MarketAnalysisTabProps {
-  vehicleData?: {
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-  };
+  valuationId: string;
+  isPremium?: boolean;
+  zipCode?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  onUpgrade?: () => void;
 }
 
-export function MarketAnalysisTab({ vehicleData }: MarketAnalysisTabProps) {
-  const { user } = useAuth();
-  
-  if (!user) {
+export function MarketAnalysisTab({
+  valuationId,
+  isPremium = false,
+  zipCode = '90210',
+  make = 'Unknown',
+  model = 'Vehicle',
+  year = new Date().getFullYear(),
+  onUpgrade
+}: MarketAnalysisTabProps) {
+  // If not premium, show the lock component
+  if (!isPremium) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Market Analysis</CardTitle>
-          <CardDescription>Compare your vehicle to similar listings with detailed market insights</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-            <ChartBar className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-amber-800 mb-2">Authentication Required</h3>
-            <p className="text-amber-700 mb-4">
-              You need to be logged in to view market analysis data.
-            </p>
-            <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white">
-              <a href="/auth">Sign In / Register</a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <PremiumFeatureLock
+        valuationId={valuationId}
+        feature="market analysis"
+        ctaText="Unlock Market Analysis"
+        returnUrl={`/valuation/${valuationId}`}
+      />
     );
   }
   
-  if (!vehicleData) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Market Analysis</CardTitle>
-          <CardDescription>Compare your vehicle to similar listings with detailed market insights</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-            <Info className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-amber-800 mb-2">Vehicle Information Required</h3>
-            <p className="text-amber-700 mb-4">
-              Please first look up a vehicle using VIN, license plate, or manual entry
-              to generate a market analysis.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  // Mock data for demo purposes
+  const mockData = {
+    trend: 'increasing' as 'increasing' | 'decreasing' | 'stable',
+    trendPercentage: 2.5,
+    listingCount: 27,
+    averageDaysOnMarket: 45,
+    similarVehiclesNearby: 18,
+    demandScore: 7,
+    comparableListings: [
+      {
+        id: 'cl1',
+        title: `${year} ${make} ${model}`,
+        price: 24500,
+        mileage: 35000,
+        condition: 'Good',
+        location: 'Beverly Hills, CA',
+        daysListed: 14,
+        source: 'Autotrader'
+      },
+      {
+        id: 'cl2',
+        title: `${year} ${make} ${model}`,
+        price: 25900,
+        mileage: 28000,
+        condition: 'Excellent',
+        location: 'Santa Monica, CA',
+        daysListed: 7,
+        source: 'Cars.com'
+      },
+      {
+        id: 'cl3',
+        title: `${year} ${make} ${model}`,
+        price: 23200,
+        mileage: 41000,
+        condition: 'Good',
+        location: 'Los Angeles, CA',
+        daysListed: 21,
+        source: 'Carvana'
+      }
+    ]
+  };
+  
+  // For demo purposes, show a decreasing trend if the year is older
+  if (year < new Date().getFullYear() - 3) {
+    mockData.trend = 'decreasing';
+    mockData.trendPercentage = -1.8;
   }
-  
-  // Mock data for market analysis
-  const marketData = {
-    averagePrice: 24500,
-    lowestPrice: 21800,
-    highestPrice: 27200,
-    priceDistribution: [3, 8, 14, 22, 18, 10, 5, 2],
-    listingCount: 82,
-    averageDaysOnMarket: 28,
-    priceTrend: "decreasing" as const,
-    trendPercentage: -2.3,
-    similarVehiclesNearby: 14,
-    demandScore: 7.5
-  };
-  
-  const renderTrendIcon = () => {
-    if (marketData.priceTrend === "increasing") {
-      return <TrendingUp className="h-5 w-5 text-green-500" />;
-    } else {
-      return <TrendingUp className="h-5 w-5 text-red-500 transform rotate-180" />;
-    }
-  };
   
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Market Analysis</CardTitle>
-          <CardDescription>{vehicleData.year} {vehicleData.make} {vehicleData.model} {vehicleData.trim || ""}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Price Range Section */}
-          <div>
-            <h3 className="text-lg font-medium mb-4">Market Price Range</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="bg-muted/20">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Lowest Price</p>
-                      <p className="text-xl font-bold">{formatCurrency(marketData.lowestPrice)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-primary/10">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Average Price</p>
-                      <p className="text-xl font-bold text-primary">{formatCurrency(marketData.averagePrice)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-muted/20">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Highest Price</p>
-                      <p className="text-xl font-bold">{formatCurrency(marketData.highestPrice)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Market Analysis</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <Tabs defaultValue="trends">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="trends">Market Trends</TabsTrigger>
+            <TabsTrigger value="listings">Comparable Listings</TabsTrigger>
+          </TabsList>
           
-          {/* Market Trends Section */}
-          <div>
-            <h3 className="text-lg font-medium mb-4">Market Trends</h3>
+          <TabsContent value="trends" className="space-y-6 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    {renderTrendIcon()}
-                    <div>
-                      <h4 className="font-medium">Price Trend</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Prices are {marketData.priceTrend} by {Math.abs(marketData.trendPercentage)}% in your area
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <MarketTrendCard 
+                trend={mockData.trend}
+                trendPercentage={mockData.trendPercentage}
+                listingCount={mockData.listingCount}
+                averageDaysOnMarket={mockData.averageDaysOnMarket}
+              />
               
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-primary" />
-                    <div>
-                      <h4 className="font-medium">Market Activity</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {marketData.listingCount} listings with avg. {marketData.averageDaysOnMarket} days on market
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <LocalMarketCard
+                similarVehiclesNearby={mockData.similarVehiclesNearby}
+                demandScore={mockData.demandScore}
+              />
             </div>
-          </div>
+            
+            <PriceComparisonChart
+              vehicleData={{
+                make,
+                model,
+                year,
+                zipCode
+              }}
+            />
+          </TabsContent>
           
-          {/* Local Market Section */}
-          <div>
-            <h3 className="text-lg font-medium mb-4">Local Market</h3>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <div>
-                    <h4 className="font-medium">Regional Demand</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {marketData.similarVehiclesNearby} similar vehicles listed nearby
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Demand Score</span>
-                    <span className="text-sm font-medium">{marketData.demandScore}/10</span>
-                  </div>
-                  <Progress value={marketData.demandScore * 10} className="h-2" />
-                  <p className="text-xs text-muted-foreground">
-                    {marketData.demandScore >= 7 
-                      ? "High demand in your area. Good time to sell."
-                      : marketData.demandScore >= 5
-                      ? "Moderate demand in your area. Average selling conditions."
-                      : "Low demand in your area. Expect longer selling times."}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Button className="w-full sm:w-auto">
-            Download Full Market Report
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+          <TabsContent value="listings" className="pt-4">
+            <ComparableListingsTable listings={mockData.comparableListings} />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }
