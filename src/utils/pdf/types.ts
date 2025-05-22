@@ -54,7 +54,7 @@ export interface ReportOptions {
 
 // Enhanced SectionParams interface with all necessary types
 export interface SectionParams {
-  doc: any;
+  doc?: any;  // Make doc optional
   page?: any;
   data: ReportData;
   y?: number;
