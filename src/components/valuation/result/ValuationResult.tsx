@@ -17,6 +17,10 @@ export interface ValuationResultProps {
   isLoading?: boolean;
   error?: string;
   onUpgrade?: () => void;
+  onDownloadPdf?: () => Promise<void>;
+  onEmailPdf?: () => Promise<void>;
+  isGeneratingPdf?: boolean;
+  isEmailingSending?: boolean;
 }
 
 export default function ValuationResult({
@@ -25,7 +29,11 @@ export default function ValuationResult({
   isPremium = false,
   isLoading = false,
   error,
-  onUpgrade
+  onUpgrade,
+  onDownloadPdf,
+  onEmailPdf,
+  isGeneratingPdf = false,
+  isEmailingSending = false
 }: ValuationResultProps) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();

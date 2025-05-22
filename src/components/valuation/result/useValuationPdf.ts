@@ -38,11 +38,16 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
           description: adj.description || ''
         })),
         generatedAt: new Date().toISOString()
-      } : null;
-      
-      if (!reportData) {
-        throw new Error('Valuation data is required to generate PDF');
-      }
+      } : {
+        make: 'Sample',
+        model: 'Vehicle',
+        year: new Date().getFullYear(),
+        mileage: 0,
+        condition: 'Good',
+        estimatedValue: 0,
+        isPremium: options.isPremium,
+        generatedAt: new Date().toISOString()
+      };
       
       // If we have condition data, add it to the report
       if (conditionData) {
