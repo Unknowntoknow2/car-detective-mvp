@@ -1,247 +1,94 @@
-
 import { useState } from 'react';
-import { analyzePhotos } from '@/services/photo/analyzePhotos';
-import { Photo, PhotoAnalysisResult, PhotoScore } from '@/types/photo';
+import { Photo, PhotoAnalysisResult } from '@/types/photo';
+import * as photoScoringService from '@/services/photoScoringService';
 
-interface UsePhotoScoringOptions {
-  onSuccess?: (result: PhotoAnalysisResult) => void;
-  onError?: (error: Error) => void;
-}
-
-export const usePhotoScoring = (options: UsePhotoScoringOptions = {}) => {
-  const [photos, setPhotos] = useState<Photo[]>([]);
+export function usePhotoScoring() {
   const [result, setResult] = useState<PhotoAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
-  // For compatibility with existing code
-  const analysisResult = result;
-  const photoScores = result?.individualScores || [];
 
-  const addPhotos = (newPhotos: Photo[]) => {
-    setPhotos(prev => [...prev, ...newPhotos]);
-  };
-
-  const clearPhotos = () => {
-    setPhotos([]);
+  const clearResult = () => {
     setResult(null);
   };
 
-  const handleFileSelect = (files: File[]) => {
-    const newPhotos = files.map(file => ({
-      id: Math.random().toString(36).substring(2, 15),
-      file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      preview: URL.createObjectURL(file),
-      uploading: false,
-      uploaded: false
-    }));
-
-    addPhotos(newPhotos);
-  };
-
-  const uploadPhoto = async (file: File): Promise<Photo> => {
-    setIsUploading(true);
-    try {
-      // Create a new photo object
-      const newPhoto: Photo = {
-        id: Math.random().toString(36).substring(2, 15),
-        file,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        preview: URL.createObjectURL(file),
-        uploading: true,
-        uploaded: false
-      };
-      
-      addPhotos([newPhoto]);
-      
-      // Simulate upload process
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update photo status after "upload"
-      const updatedPhotos = photos.map(p => 
-        p.id === newPhoto.id 
-          ? { ...p, uploading: false, uploaded: true, url: p.preview } 
-          : p
-      );
-      
-      setPhotos(updatedPhotos);
-      
-      // Return the updated photo
-      return {
-        ...newPhoto,
-        uploading: false,
-        uploaded: true,
-        url: newPhoto.preview
-      };
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to upload photo');
-      setError(error);
-      throw error;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const analyzePhotos = async (valuationId?: string): Promise<PhotoAnalysisResult | null> => {
-    if (!photos.length) {
-      const err = new Error('No photos to analyze');
-      setError(err);
-      options.onError?.(err);
-      return null;
-    }
-
-    try {
-      setIsAnalyzing(true);
-      setError(null);
-
-      // Get photo URLs from photos
-      const photoUrls = photos
-        .filter(photo => photo.url || photo.preview)
-        .map(photo => photo.url || photo.preview as string);
-
-      if (!photoUrls.length) {
-        throw new Error('No valid photo URLs found');
-      }
-
-      // Call the photo analysis service
-      const analysisResult = await scorePhotos(photoUrls, valuationId || 'test-id');
-      
-      if (analysisResult) {
-        setResult(analysisResult);
-        options.onSuccess?.(analysisResult);
-      }
-      
-      return analysisResult;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to analyze photos');
-      setError(error);
-      options.onError?.(error);
-      return null;
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const scorePhotos = async (photosToScore: Photo[] | string[], valuationId: string): Promise<PhotoAnalysisResult | null> => {
-    if (!photosToScore.length) {
-      const err = new Error('No photos provided');
-      setError(err);
-      options.onError?.(err);
-      return null;
-    }
-
+  const scorePhotos = async (
+    photos: Photo[],
+    valuationId: string
+  ): Promise<PhotoAnalysisResult | null> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Get photo URLs from photos
-      let photoUrls: string[];
-      
-      if (typeof photosToScore[0] === 'string') {
-        photoUrls = photosToScore as string[];
-      } else {
-        photoUrls = (photosToScore as Photo[])
-          .filter(photo => photo.url) // Filter out photos without URLs
-          .map(photo => photo.url as string); // We've filtered out undefined values
+      // Extract URLs from photos
+      const photoUrls = photos.map(photo => photo.url || photo.preview || '').filter(Boolean);
+
+      if (photoUrls.length === 0) {
+        throw new Error('No photo URLs available for scoring');
       }
 
-      if (!photoUrls.length) {
-        throw new Error('No valid photo URLs found');
-      }
-
-      // Call the photo analysis service - fixed to use 1 argument for analyzePhotos
-      const result = await analyzePhotos(photoUrls);
+      // Use the photoScoringService to score the photos
+      const scoringResult = await photoScoringService.scorePhotos(photoUrls, valuationId);
       
-      if (result) {
-        // Ensure result has all required properties for PhotoAnalysisResult
-        const completeResult: PhotoAnalysisResult = {
-          ...result,
-          overallScore: result.score || 0,
-          individualScores: result.individualScores || []
-        };
-        
-        setResult(completeResult);
-        options.onSuccess?.(completeResult);
-        return completeResult;
-      }
+      // Convert the result to PhotoAnalysisResult format
+      const analysisResult = photoScoringService.convertToPhotoAnalysisResult(scoringResult);
       
-      return null;
+      setResult(analysisResult);
+      return analysisResult;
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to score photos');
+      const error = err instanceof Error ? err : new Error('An error occurred during photo scoring');
       setError(error);
-      options.onError?.(error);
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Select the best photo based on score
-  const getBestPhoto = (): PhotoScore | null => {
-    if (!result || !result.individualScores.length) return null;
-
-    const sorted = [...result.individualScores].sort((a, b) => b.score - a.score);
-    return sorted[0];
-  };
-
-  // Calculate average score
-  const getAverageScore = (): number => {
-    if (!result || !result.individualScores.length) return 0;
-    
-    const sum = result.individualScores.reduce((total, item) => total + item.score, 0);
-    return sum / result.individualScores.length;
-  };
-
-  // Mark a photo as primary
-  const markAsPrimary = (url: string): void => {
+  const markAsPrimary = (url: string) => {
     if (!result) return;
-
+    
     const updatedScores = result.individualScores.map(score => ({
       ...score,
       isPrimary: score.url === url
     }));
-
+    
     setResult({
       ...result,
       individualScores: updatedScores
     });
   };
 
-  // Transform Photos to format expected by backend
-  const preparePhotosForScoring = (photosToPrep: Photo[]): { photoUrls: string[] } => {
-    // Extract URLs from photos, fallback to preview for local files
-    const photoUrls = photosToPrep.map(photo => photo.url || photo.preview || '').filter(Boolean);
-    
-    return { photoUrls };
+  const getBestPhoto = () => {
+    if (!result || !result.individualScores || result.individualScores.length === 0) return null;
+    return result.individualScores.find(s => s.isPrimary) || result.individualScores[0];
+  };
+
+  const getAverageScore = () => {
+    if (!result || !result.individualScores || result.individualScores.length === 0) return 0;
+    const sum = result.individualScores.reduce((acc, score) => acc + score.score, 0);
+    return Math.round(sum / result.individualScores.length);
+  };
+
+  const preparePhotosForScoring = (photos: Photo[]) => {
+    return photos.filter(p => p.preview || p.url);
   };
 
   return {
-    photos,
     result,
     isLoading,
-    isAnalyzing,
-    isUploading,
     error,
-    analysisResult,
-    photoScores,
-    addPhotos,
-    clearPhotos,
-    handleFileSelect,
-    uploadPhoto,
-    analyzePhotos,
     scorePhotos,
-    getBestPhoto,
-    getAverageScore,
+    getBestPhoto: () => {
+      if (!result || !result.individualScores || result.individualScores.length === 0) return null;
+      return result.individualScores.find(s => s.isPrimary) || result.individualScores[0];
+    },
+    getAverageScore: () => {
+      if (!result || !result.individualScores || result.individualScores.length === 0) return 0;
+      const sum = result.individualScores.reduce((acc, score) => acc + score.score, 0);
+      return Math.round(sum / result.individualScores.length);
+    },
     markAsPrimary,
-    preparePhotosForScoring
+    preparePhotosForScoring: (photos: Photo[]) => {
+      return photos.filter(p => p.preview || p.url);
+    }
   };
-};
-
-export default usePhotoScoring;
+}

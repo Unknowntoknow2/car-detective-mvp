@@ -21,4 +21,14 @@ export function safeContentWidth(contentWidth: number | undefined): number {
   return contentWidth !== undefined ? contentWidth : 515;
 }
 
+// New helper function to safely access properties
+export function safeString(value: string | undefined): string {
+  return value !== undefined ? value : '';
+}
+
+// New helper function for safely accessing heights
+export function safeHeight(height: number | undefined): number {
+  return height !== undefined ? height : 842;
+}
+
 // Export these helpers to be used in other PDF section files
