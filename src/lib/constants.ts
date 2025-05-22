@@ -29,3 +29,6 @@ export const VALUATION_TYPES = {
 // Default values
 export const DEFAULT_VALUATION_CONFIDENCE = 85;
 export const DEFAULT_ZIP_CODE = '90210';
+
+// Feature flags
+export const SHOW_ALL_COMPONENTS = process.env.NODE_ENV === 'development';

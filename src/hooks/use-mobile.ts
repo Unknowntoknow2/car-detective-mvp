@@ -30,3 +30,6 @@ export function useTablet(): boolean {
 export function useDesktop(): boolean {
   return useMediaQuery('(min-width: 1024px)');
 }
+
+// Alias for useMobile for components that import useIsMobile
+export const useIsMobile = useMobile;
