@@ -1,7 +1,8 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, MessageCircleQuestion } from 'lucide-react';
 
 interface AIAssistantDrawerProps {
   isOpen: boolean;
@@ -28,6 +29,24 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
         </div>
       </DrawerContent>
     </Drawer>
+  );
+};
+
+export const AIAssistantTrigger: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <>
+      <Button 
+        onClick={() => setIsOpen(true)} 
+        variant="outline" 
+        size="icon" 
+        className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg"
+      >
+        <MessageCircleQuestion className="h-6 w-6" />
+      </Button>
+      <AIAssistantDrawer isOpen={isOpen} onClose={() => setIsOpen(false)} />
+    </>
   );
 };
 
