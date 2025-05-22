@@ -1,18 +1,19 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import QADashboardPage from '../page';
 
-// Mock the async component by wrapping it in a component that renders its result
+// Create a synchronous mock component instead of an async one
 jest.mock('../page', () => {
-  const MockComponent = () => (
+  const MockQADashboardPage = () => (
     <div data-testid="qa-dashboard">
       <h1>QA Dashboard</h1>
     </div>
   );
-  // Return a regular component, not an async one
-  return MockComponent;
+  return MockQADashboardPage;
 });
+
+// Import the mocked component
+const QADashboardPage = require('../page').default;
 
 describe('QA Dashboard', () => {
   it('renders the dashboard correctly', () => {
