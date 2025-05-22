@@ -8,7 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
 
-const VinDecoderForm = () => {
+interface VinDecoderFormProps {
+  onSubmit?: (vin: string) => void;
+}
+
+const VinDecoderForm: React.FC<VinDecoderFormProps> = ({ onSubmit }) => {
   const [vin, setVin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,11 +35,16 @@ const VinDecoderForm = () => {
       // Store VIN in localStorage for follow-up steps
       localStorage.setItem('current_vin', vin);
       
-      // Simulate API call with a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Navigate to follow-up page
-      navigate(`/valuation-followup?vin=${vin}`);
+      if (onSubmit) {
+        // If onSubmit callback is provided, use it
+        onSubmit(vin);
+      } else {
+        // Simulate API call with a delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Navigate to follow-up page
+        navigate(`/valuation-followup?vin=${vin}`);
+      }
     } catch (err) {
       console.error('Error:', err);
       setError('An error occurred while processing your request. Please try again.');

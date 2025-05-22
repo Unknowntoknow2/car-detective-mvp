@@ -5,7 +5,7 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { validateVin } from '@/utils/validation/vin-validation';
+import { validateVIN } from '@/utils/validation/vin-validation';
 import { AlertCircle } from 'lucide-react';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 
@@ -65,7 +65,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const handleSubmit = (values: FormValues) => {
     // Only check VIN validation if a value is provided
     if (values.vin && values.vin.trim() !== '') {
-      const validation = validateVin(values.vin);
+      const validation = validateVIN(values.vin);
       if (!validation.isValid) {
         // We don't need to set error state here as it's handled in the VinInputField component
         return;
