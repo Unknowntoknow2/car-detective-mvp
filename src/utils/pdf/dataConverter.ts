@@ -35,7 +35,10 @@ export function vehicleInfoToReportData(vehicleInfo: DecodedVehicleInfo, additio
     model: vehicleInfo.model,
     year: vehicleInfo.year,
     mileage: additionalData.mileage,
-    condition: additionalData.condition,
+    aiCondition: {
+      summary: additionalData.condition,
+      score: additionalData.confidenceScore || 75,
+    },
     // Use estimated value as price when generating report
     price: additionalData.estimatedValue,
     estimatedValue: additionalData.estimatedValue,
@@ -84,7 +87,11 @@ export function convertValuationToReportData(valuation: any): Partial<ReportData
     model: valuation.model || '',
     year: valuation.year || 0,
     mileage: valuation.mileage || 0,
-    condition: valuation.condition || 'Good',
+    aiCondition: {
+      summary: valuation.condition || 'Good',
+      score: valuation.photoScore || 0,
+      condition: valuation.condition || 'Good',
+    },
     price: price,
     estimatedValue: valuation.estimatedValue || valuation.valuation || 0,
     priceRange: priceRange,
@@ -95,7 +102,6 @@ export function convertValuationToReportData(valuation: any): Partial<ReportData
     confidenceScore: valuation.confidenceScore || 75,
     photoScore: valuation.photoScore || 0,
     isPremium: valuation.isPremium || false,
-    aiCondition: valuation.aiCondition || null,
     vin: valuation.vin || '',
     zipCode: valuation.zipCode || valuation.zip || '',
     trim: valuation.trim || '',

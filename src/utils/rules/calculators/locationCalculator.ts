@@ -1,94 +1,99 @@
 
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-import rulesConfig from '../../valuationRules.json';
-import { supabase } from '@/integrations/supabase/client';
-import { getMarketMultiplier, getMarketMultiplierDescription } from '../../valuation/marketData';
+// Import rules dynamically to avoid TypeScript error
+const rulesConfig = require('../../valuationRules.json');
 
-interface ZipLocationData {
-  places: {
-    'place name': string;
-    'state abbreviation': string;
-    latitude?: string;
-    longitude?: string;
-  }[];
-}
-
+/**
+ * Calculator to adjust vehicle price based on location
+ * This calculator uses zip code to determine regional pricing differences
+ */
 export class LocationCalculator implements AdjustmentCalculator {
-  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    if (!input.zipCode) return null;
-    
+  /**
+   * Calculate location-based adjustment
+   * @param input Input data including zip code
+   * @returns Adjustment breakdown or null if no zip code
+   */
+  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown> {
+    if (!input.zipCode) {
+      return {
+        factor: 'Location',
+        impact: 0,
+        description: 'No location data provided',
+        name: 'Location',
+        value: 0,
+        percentAdjustment: 0
+      };
+    }
+
     try {
-      // Get market multiplier from our utility function
-      const marketMultiplier = await getMarketMultiplier(input.zipCode);
+      const basePrice = input.basePrice || 0;
       
-      // Early return if we have a valid multiplier
-      if (marketMultiplier !== 0) {
-        // Convert percentage to decimal for calculation
-        const multiplier = marketMultiplier / 100;
-        const adjustment = input.basePrice * multiplier;
-        
-        // Get location info for better description
-        let locationName = input.zipCode;
-        
-        // Try to get the cached location data for better description
-        try {
-          const { data: zipData } = await supabase
-            .from('zip_cache')
-            .select('location_data')
-            .eq('zip', input.zipCode)
-            .maybeSingle();
-          
-          if (zipData?.location_data) {
-            const locationData = zipData.location_data as unknown as ZipLocationData;
-            if (locationData.places && locationData.places.length > 0) {
-              const place = locationData.places[0];
-              locationName = `${place['place name']}, ${place['state abbreviation']}`;
-            }
-          }
-        } catch (err) {
-          // If there's an error with zip_cache, just use the ZIP code as the location name
-          console.log('Error fetching location data from zip_cache:', err);
-        }
-        
-        const factor = 'Location Impact';
-        const impact = Math.round(adjustment);
-        
-        return {
-          name: 'Location Impact',
-          value: impact,
-          description: `${getMarketMultiplierDescription(marketMultiplier)} (${locationName})`,
-          percentAdjustment: marketMultiplier,
-          factor,
-          impact
-        };
+      // In a real implementation, we would fetch location-specific
+      // market data here based on the zip code
+      
+      // For now, we'll use a simple formula that gives a slight
+      // premium to coastal and urban areas
+      
+      // Get the first digit of the zip code to determine region
+      const region = parseInt(input.zipCode.charAt(0));
+      
+      // Apply regional adjustments
+      let percentAdjustment = 0;
+      
+      switch (region) {
+        case 0: // Northeastern US
+        case 1:
+          percentAdjustment = 0.03;
+          break;
+        case 2: // Eastern US
+          percentAdjustment = 0.02;
+          break;
+        case 3: // Southeastern US
+          percentAdjustment = 0.01;
+          break;
+        case 4: // Midwestern US
+          percentAdjustment = -0.01;
+          break;
+        case 5: // South Central US
+          percentAdjustment = 0;
+          break;
+        case 6: // North Central US
+          percentAdjustment = -0.02;
+          break;
+        case 7: // Mountain states
+          percentAdjustment = -0.01;
+          break;
+        case 8: // Western US
+        case 9: // West Coast
+          percentAdjustment = 0.04;
+          break;
+        default:
+          percentAdjustment = 0;
       }
-    } catch (err) {
-      console.error('Error in LocationCalculator market_adjustments:', err);
-      // Fall through to default calculation
+      
+      // Apply the adjustment
+      const adjustment = basePrice * percentAdjustment;
+      
+      return {
+        factor: 'Location',
+        impact: Math.round(adjustment),
+        description: `Regional market adjustment for ZIP ${input.zipCode}`,
+        name: 'Location',
+        value: Math.round(adjustment),
+        percentAdjustment
+      };
+    } catch (error) {
+      console.error('Error calculating location adjustment:', error);
+      
+      // Return a neutral adjustment in case of error
+      return {
+        factor: 'Location',
+        impact: 0,
+        description: 'Error calculating location adjustment',
+        name: 'Location',
+        value: 0,
+        percentAdjustment: 0
+      };
     }
-    
-    // Fallback to configured rules if no market data found
-    const zipRules = rulesConfig.adjustments.zip;
-    
-    let zoneType: 'hot' | 'cold' | 'default' = 'default';
-    if (zipRules.hot.includes(input.zipCode)) {
-      zoneType = 'hot';
-    } else if (zipRules.cold.includes(input.zipCode)) {
-      zoneType = 'cold';
-    }
-    
-    const adjustment = input.basePrice * zipRules.adjustments[zoneType];
-    const description = `Based on market demand in ${input.zipCode}`;
-    const factor = 'Location Impact';
-    const impact = Math.round(adjustment);
-    
-    return {
-      name: 'Location Impact',
-      value: impact,
-      description,
-      percentAdjustment: zipRules.adjustments[zoneType] * 100, // Convert to percentage
-      factor,
-      impact
-    };
   }
 }

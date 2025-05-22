@@ -39,6 +39,10 @@ export interface ReportData {
   isPremium?: boolean;
   explanation?: string;
   generatedAt?: string;
+  companyName?: string;
+  website?: string;
+  reportDate?: Date;
+  disclaimerText?: string;
 }
 
 export interface SectionParams {
@@ -56,6 +60,7 @@ export interface SectionParams {
   contentWidth?: number;
   textColor?: any;
   primaryColor?: any;
+  height?: number; // Added missing height property
 }
 
 export interface ReportOptions {
@@ -81,5 +86,8 @@ export interface ReportOptions {
 export interface AdjustmentBreakdown {
   factor: string;
   impact: number;
-  description?: string;
+  description: string;
+  name?: string;
+  value?: number;
+  percentAdjustment?: number;
 }

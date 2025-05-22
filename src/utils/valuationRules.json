@@ -1,78 +1,60 @@
 
 {
   "adjustments": {
-    "mileage": [
-      { "min": 0, "max": 15000, "percent": 0.05 },
-      { "min": 15001, "max": 30000, "percent": 0.03 },
-      { "min": 30001, "max": 60000, "percent": 0 },
-      { "min": 60001, "max": 90000, "percent": -0.05 },
-      { "min": 90001, "max": 120000, "percent": -0.1 },
-      { "min": 120001, "max": 150000, "percent": -0.15 },
-      { "min": 150001, "max": 999999, "percent": -0.25 }
-    ],
     "condition": {
-      "excellent": 0.1,
-      "good": 0.05,
+      "excellent": 0.05,
+      "good": 0,
       "fair": -0.05,
       "poor": -0.15
     },
-    "zip": {
-      "hot": ["90210", "10001", "94105", "33139", "98101"],
-      "cold": ["49503", "56301", "87101", "68102", "59601"],
-      "adjustments": {
-        "hot": 0.05,
-        "cold": -0.05,
-        "default": 0
-      }
+    "mileage": {
+      "baseline": 12000,
+      "adjustment": -0.0005
     },
-    "accidents": [
-      { "count": 0, "percent": 0 },
-      { "count": 1, "percent": -0.05 },
-      { "count": 2, "percent": -0.1 },
-      { "count": 3, "percent": -0.15 }
-    ],
     "trims": {
-      "toyota": {
-        "camry": [
-          { "trim": "le", "percent": 0 },
-          { "trim": "se", "percent": 0.03 },
-          { "trim": "xle", "percent": 0.05 },
-          { "trim": "xse", "percent": 0.07 },
-          { "trim": "trd", "percent": 0.1 }
+      "Toyota": {
+        "Camry": [
+          {"trim": "LE", "percent": 0},
+          {"trim": "SE", "percent": 0.05},
+          {"trim": "XLE", "percent": 0.10},
+          {"trim": "XSE", "percent": 0.12},
+          {"trim": "TRD", "percent": 0.15}
         ],
-        "rav4": [
-          { "trim": "le", "percent": 0 },
-          { "trim": "xle", "percent": 0.04 },
-          { "trim": "adventure", "percent": 0.08 },
-          { "trim": "trd off-road", "percent": 0.12 }
+        "Corolla": [
+          {"trim": "L", "percent": 0},
+          {"trim": "LE", "percent": 0.03},
+          {"trim": "SE", "percent": 0.06},
+          {"trim": "XLE", "percent": 0.08},
+          {"trim": "XSE", "percent": 0.10}
         ]
       },
-      "honda": {
-        "accord": [
-          { "trim": "lx", "percent": 0 },
-          { "trim": "sport", "percent": 0.05 },
-          { "trim": "ex", "percent": 0.03 },
-          { "trim": "touring", "percent": 0.1 }
+      "Honda": {
+        "Civic": [
+          {"trim": "LX", "percent": 0},
+          {"trim": "Sport", "percent": 0.04},
+          {"trim": "EX", "percent": 0.07},
+          {"trim": "Touring", "percent": 0.12}
+        ],
+        "Accord": [
+          {"trim": "LX", "percent": 0},
+          {"trim": "Sport", "percent": 0.06},
+          {"trim": "EX", "percent": 0.08},
+          {"trim": "EX-L", "percent": 0.12},
+          {"trim": "Touring", "percent": 0.15}
         ]
       }
     },
-    "premiumFeatures": {
-      "leather": { "value": 0.02, "description": "Leather Interior" },
-      "sunroof": { "value": 0.01, "description": "Sunroof" },
-      "navigation": { "value": 0.01, "description": "Navigation System" },
-      "premium_audio": { "value": 0.015, "description": "Premium Audio System" },
-      "third_row": { "value": 0.02, "description": "Third Row Seating" },
-      "awd": { "value": 0.03, "description": "All-Wheel Drive" }
-    },
-    "featureValueCap": 0.10
-  },
-  "confidenceScores": {
-    "baselineScore": 80,
-    "adjustments": {
-      "hasVin": 5,
-      "hasAccidentData": 3,
-      "hasPhotoAnalysis": 5,
-      "hasPremiumFeatures": 2
+    "features": {
+      "sunroof": 0.02,
+      "leatherSeats": 0.03,
+      "navigationSystem": 0.01,
+      "premiumAudio": 0.02,
+      "adaptiveCruiseControl": 0.01,
+      "blindSpotMonitoring": 0.01,
+      "heatedSeats": 0.02,
+      "cooledSeats": 0.01,
+      "parkingAssist": 0.01,
+      "laneDepartureWarning": 0.01
     }
   }
 }

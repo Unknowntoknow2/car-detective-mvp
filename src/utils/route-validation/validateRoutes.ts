@@ -1,34 +1,86 @@
-// Import statement needs to be updated to not use JSON directly, 
-// or tsconfig needs to include resolveJsonModule option
 
-// Replace:
-// import routeSnapshot from './ROUTE_SNAPSHOT.json';
-// With:
-const routeSnapshot = {
-  routes: [
-    "/",
-    "/about",
-    "/auth",
-    "/contact",
-    "/dashboard",
-    "/valuation",
-    "/premium",
-    "/not-found"
-  ]
+/**
+ * Validates the integrity of application routes
+ */
+export const enforceRouteIntegrity = (route: string): boolean => {
+  // Validate route format
+  if (!route || typeof route !== 'string') {
+    console.error('Invalid route format:', route);
+    return false;
+  }
+
+  // Basic route integrity checks
+  if (route.includes('..')) {
+    console.error('Potential path traversal attack detected:', route);
+    return false;
+  }
+
+  // Check for malicious injection attempts
+  const suspiciousPatterns = [
+    'javascript:',
+    'data:',
+    '<script',
+    'onclick=',
+    'onerror='
+  ];
+
+  for (const pattern of suspiciousPatterns) {
+    if (route.toLowerCase().includes(pattern)) {
+      console.error('Suspicious pattern detected in route:', route);
+      return false;
+    }
+  }
+
+  return true;
 };
 
-export function validateRoutes(currentRoutes: string[]): { valid: boolean; missingRoutes: string[] } {
-  const criticalRoutes = routeSnapshot.routes;
-  const missingRoutes: string[] = [];
-  
-  criticalRoutes.forEach((criticalRoute: string) => {
-    if (!currentRoutes.includes(criticalRoute)) {
-      missingRoutes.push(criticalRoute);
+/**
+ * Route validation system
+ */
+export const validateRouteAccess = (
+  route: string,
+  userRole?: string | null
+): boolean => {
+  // Check route integrity first
+  if (!enforceRouteIntegrity(route)) {
+    return false;
+  }
+
+  // Protected routes that require authentication
+  const protectedRoutes = [
+    '/dashboard',
+    '/profile',
+    '/settings',
+    '/premium',
+    '/valuation'
+  ];
+
+  // Admin-only routes
+  const adminRoutes = [
+    '/admin',
+    '/manage'
+  ];
+
+  // Check admin routes
+  for (const adminRoute of adminRoutes) {
+    if (route.startsWith(adminRoute) && userRole !== 'admin') {
+      console.warn('Unauthorized access attempt to admin route:', route);
+      return false;
     }
-  });
-  
-  return {
-    valid: missingRoutes.length === 0,
-    missingRoutes
-  };
-}
+  }
+
+  // Check protected routes
+  for (const protectedRoute of protectedRoutes) {
+    if (route.startsWith(protectedRoute) && !userRole) {
+      console.warn('Unauthorized access attempt to protected route:', route);
+      return false;
+    }
+  }
+
+  return true;
+};
+
+export default {
+  enforceRouteIntegrity,
+  validateRouteAccess
+};

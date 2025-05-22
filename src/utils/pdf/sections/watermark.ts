@@ -1,126 +1,81 @@
 
-// ✅ TS check passed
-import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
-import { RotationTypes } from 'pdf-lib';
+import { safeString } from './sectionHelper';
 
 /**
- * Applies a watermark to the PDF page
- * @param params The section parameters 
- * @param customText Optional custom text for the watermark
+ * Draw a watermark on the PDF
  */
-export function applyWatermark(
-  params: SectionParams,
-  customText?: string
-): void {
-  const { page, width, height, boldFont } = params;
-  const watermarkText = customText || "Car Detective™ • Confidential";
+export const drawWatermark = (params: SectionParams): number => {
+  const { doc, data, margin = 40 } = params;
+  const pageWidth = params.pageWidth || doc.page.width;
+  const pageHeight = params.pageHeight || doc.page.height;
   
-  // Calculate center position
-  const centerX = width / 2;
-  const centerY = height / 2;
+  // Only draw watermark for non-premium reports
+  if (data.isPremium) {
+    return doc.y;
+  }
   
-  // Draw the main watermark
-  page.drawText(watermarkText, {
-    x: centerX - 200, // Approximate offset to center the text
-    y: centerY,
-    size: 60,
-    font: boldFont,
-    color: rgb(0.9, 0.9, 0.9),
-    opacity: 0.04,
-    rotate: {
-      type: RotationTypes.Degrees,
-      angle: -30
-    }
+  // Set up watermark text
+  const watermarkText = 'DRAFT VALUATION';
+  
+  // Save the current graphics state
+  doc.save();
+  
+  // Set up transparency and rotation for watermark
+  doc.opacity(0.2);
+  doc.rotate(45, {
+    origin: [pageWidth / 2, pageHeight / 2]
   });
   
-  // Add additional watermarks if the page is large enough
-  if (height > 600) {
-    // Top watermark
-    page.drawText(watermarkText, {
-      x: centerX - 200,
-      y: centerY + 300,
-      size: 60,
-      font: boldFont,
-      color: rgb(0.9, 0.9, 0.9),
-      opacity: 0.04,
-      rotate: {
-        type: RotationTypes.Degrees,
-        angle: -30
-      }
-    });
-    
-    // Bottom watermark
-    page.drawText(watermarkText, {
-      x: centerX - 200,
-      y: centerY - 300,
-      size: 60,
-      font: boldFont,
-      color: rgb(0.9, 0.9, 0.9),
-      opacity: 0.04,
-      rotate: {
-        type: RotationTypes.Degrees,
-        angle: -30
-      }
-    });
-  }
-}
+  // Draw the watermark text
+  doc.fontSize(60)
+     .fillColor('#999999')
+     .text(watermarkText, 
+           0, 
+           pageHeight / 2 - 30, 
+           {
+             align: 'center',
+             width: pageWidth
+           });
+  
+  // Restore the graphics state
+  doc.restore();
+  
+  return doc.y;
+};
 
 /**
- * Helper function to create a proper rotation object
- * @param angle The angle in degrees
- * @returns A properly formatted rotation object
+ * Draw a premium watermark on the PDF
  */
-function degrees(angle: number) {
-  return { 
-    type: RotationTypes.Degrees, 
-    angle 
-  };
-}
-
-/**
- * Applies a repeating watermark pattern to the entire page
- * More sophisticated than the single watermark
- * @param params The section parameters
- * @param customText Optional custom text for the watermark
- */
-export function applyWatermarkPattern(
-  params: SectionParams,
-  customText?: string
-): void {
-  const { page, width, height, boldFont } = params;
-  const watermarkText = customText || "Car Detective™ • Confidential";
+export const drawPremiumWatermark = (params: SectionParams): number => {
+  const { doc, data, margin = 40 } = params;
+  const pageWidth = params.pageWidth || doc.page.width;
+  const pageHeight = params.pageHeight || doc.page.height;
   
-  // Define a grid of watermarks
-  const stepX = 400;
-  const stepY = 300;
-  
-  // Calculate how many watermarks to place horizontally and vertically
-  const countX = Math.ceil(width / stepX) + 1;
-  const countY = Math.ceil(height / stepY) + 1;
-  
-  // Start from outside the page to ensure coverage
-  const startX = -100;
-  const startY = -100;
-  
-  // Create a grid of watermarks
-  for (let y = 0; y < countY; y++) {
-    for (let x = 0; x < countX; x++) {
-      const posX = startX + x * stepX;
-      const posY = startY + y * stepY;
-      
-      page.drawText(watermarkText, {
-        x: posX,
-        y: posY,
-        size: 40, // Smaller size for the pattern
-        font: boldFont,
-        color: rgb(0.9, 0.9, 0.9),
-        opacity: 0.03, // Very subtle
-        rotate: {
-          type: RotationTypes.Degrees,
-          angle: -30
-        }
-      });
-    }
+  // Only draw premium watermark for premium reports
+  if (!data.isPremium) {
+    return doc.y;
   }
-}
+  
+  // Set up watermark text
+  const watermarkText = 'PREMIUM REPORT';
+  
+  // Save the current graphics state
+  doc.save();
+  
+  // Draw small premium indicator in the top-right corner
+  doc.opacity(0.7);
+  doc.fontSize(10)
+     .fillColor('#007bff')
+     .text('PREMIUM', 
+           pageWidth - 80, 
+           20, 
+           {
+             align: 'right'
+           });
+  
+  // Restore the graphics state
+  doc.restore();
+  
+  return doc.y;
+};
