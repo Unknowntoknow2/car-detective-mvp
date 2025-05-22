@@ -60,14 +60,14 @@ export interface SectionParams {
   options: ReportOptions;
   font: any;
   boldFont: any;
-  italicFont?: any; // Make sure italicFont is defined here
+  italicFont?: any;
   textColor: any;
   primaryColor: any;
   // Additional properties needed by sections
   y?: number;
   regularFont?: any;
   height?: number; // Height property for the page
-  fonts?: { // Add a fonts object for more clarity
+  fonts: {  // Make fonts required and ensure it has the necessary properties
     regular: any;
     bold: any;
     italic?: any;
