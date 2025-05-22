@@ -1,122 +1,196 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { validateVIN } from '@/utils/validation/vin-validation';
-import { AlertCircle } from 'lucide-react';
-import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 
-// Import our component parts
-import { VehicleBasicInfoFields } from './manual/components/VehicleBasicInfoFields';
-import { VehicleDetailsFields } from './manual/components/VehicleDetailsFields';
-import { ConditionAndZipFields } from './manual/components/ConditionAndZipFields';
-import { VinInputField } from './manual/components/VinInputField';
-
-// Extend the form schema to include VIN
-const formSchema = z.object({
-  make: z.string().min(1, "Make is required"),
-  model: z.string().min(1, "Model is required"),
-  year: z.string().regex(/^\d{4}$/, "Enter a valid 4-digit year"),
-  mileage: z.string().regex(/^\d+$/, "Enter a valid mileage"),
-  condition: z.string().min(1, "Condition is required"),
-  zipCode: z.string().regex(/^\d{5}$/, "Enter a valid 5-digit ZIP code"),
-  vin: z.string().optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional(),
-  trim: z.string().optional(),
-  color: z.string().optional()
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-export interface ManualEntryFormProps {
-  onSubmit: (data: ManualEntryFormData) => void;
+interface ManualEntryFormProps {
+  onSubmit: (data: any) => void;
   isLoading?: boolean;
-  submitButtonText?: string;
-  isPremium?: boolean;
 }
 
-export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
-  onSubmit, 
-  isLoading = false,
-  submitButtonText = "Get Valuation",
-  isPremium = false
-}) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      make: '',
-      model: '',
-      year: '',
-      mileage: '',
-      condition: '',
-      zipCode: '',
-      vin: '',
-      fuelType: '',
-      transmission: '',
-      trim: '',
-      color: ''
-    }
+const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLoading = false }) => {
+  const [formData, setFormData] = useState({
+    make: '',
+    model: '',
+    year: new Date().getFullYear().toString(),
+    mileage: '',
+    condition: 'good',
+    zipCode: '',
+    vin: ''
   });
   
-  const handleSubmit = (values: FormValues) => {
-    // Only check VIN validation if a value is provided
-    if (values.vin && values.vin.trim() !== '') {
-      const validation = validateVIN(values.vin);
-      if (!validation.isValid) {
-        // We don't need to set error state here as it's handled in the VinInputField component
-        return;
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user changes a field
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+  
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.make) newErrors.make = 'Make is required';
+    if (!formData.model) newErrors.model = 'Model is required';
+    if (!formData.year) newErrors.year = 'Year is required';
+    if (!formData.mileage) newErrors.mileage = 'Mileage is required';
+    if (!formData.zipCode) newErrors.zipCode = 'ZIP code is required';
+    
+    // If VIN is provided, validate it
+    if (formData.vin) {
+      const vinValidation = validateVIN(formData.vin);
+      if (!vinValidation.isValid) {
+        newErrors.vin = vinValidation.error || 'Invalid VIN';
       }
     }
     
-    // Convert string values to appropriate types for ManualEntryFormData
-    const formattedData: ManualEntryFormData = {
-      make: values.make,
-      model: values.model,
-      year: parseInt(values.year),
-      mileage: parseInt(values.mileage),
-      condition: (values.condition as ConditionLevel) || ConditionLevel.Good,
-      zipCode: values.zipCode,
-      fuelType: values.fuelType,
-      transmission: values.transmission,
-      trim: values.trim,
-      color: values.color,
-      vin: values.vin
-    };
-    
-    onSubmit(formattedData);
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
-
-  const conditionOptions = [
-    { value: ConditionLevel.Excellent, label: 'Excellent' },
-    { value: ConditionLevel.Good, label: 'Good' },
-    { value: ConditionLevel.Fair, label: 'Fair' },
-    { value: ConditionLevel.Poor, label: 'Poor' }
-  ];
-
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
+      // Convert year and mileage to numbers
+      const submitData = {
+        ...formData,
+        year: parseInt(formData.year, 10),
+        mileage: parseInt(formData.mileage, 10)
+      };
+      
+      onSubmit(submitData);
+    }
+  };
+  
+  // Generate a list of years from current year down to 1980
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="space-y-4">
-          <VehicleBasicInfoFields form={form} />
-          <VehicleDetailsFields form={form} />
-          <ConditionAndZipFields 
-            form={form} 
-            conditionOptions={conditionOptions} 
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="make">Make</Label>
+          <Input
+            id="make"
+            value={formData.make}
+            onChange={(e) => handleChange('make', e.target.value)}
+            placeholder="e.g. Toyota"
+            className={errors.make ? 'border-red-500' : ''}
           />
+          {errors.make && <p className="text-red-500 text-sm">{errors.make}</p>}
         </div>
         
-        {/* VIN field with validation */}
-        <VinInputField form={form} />
+        <div className="space-y-2">
+          <Label htmlFor="model">Model</Label>
+          <Input
+            id="model"
+            value={formData.model}
+            onChange={(e) => handleChange('model', e.target.value)}
+            placeholder="e.g. Camry"
+            className={errors.model ? 'border-red-500' : ''}
+          />
+          {errors.model && <p className="text-red-500 text-sm">{errors.model}</p>}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="year">Year</Label>
+          <Select
+            value={formData.year}
+            onValueChange={(value) => handleChange('year', value)}
+          >
+            <SelectTrigger id="year" className={errors.year ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Select Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.year && <p className="text-red-500 text-sm">{errors.year}</p>}
+        </div>
         
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Processing..." : submitButtonText}
-        </Button>
-      </form>
-    </Form>
+        <div className="space-y-2">
+          <Label htmlFor="mileage">Mileage</Label>
+          <Input
+            id="mileage"
+            type="number"
+            value={formData.mileage}
+            onChange={(e) => handleChange('mileage', e.target.value)}
+            placeholder="e.g. 50000"
+            min="0"
+            className={errors.mileage ? 'border-red-500' : ''}
+          />
+          {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage}</p>}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="condition">Condition</Label>
+          <Select
+            value={formData.condition}
+            onValueChange={(value) => handleChange('condition', value)}
+          >
+            <SelectTrigger id="condition">
+              <SelectValue placeholder="Select Condition" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="excellent">Excellent</SelectItem>
+              <SelectItem value="good">Good</SelectItem>
+              <SelectItem value="fair">Fair</SelectItem>
+              <SelectItem value="poor">Poor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="zipCode">ZIP Code</Label>
+          <Input
+            id="zipCode"
+            value={formData.zipCode}
+            onChange={(e) => handleChange('zipCode', e.target.value)}
+            placeholder="e.g. 90210"
+            maxLength={5}
+            className={errors.zipCode ? 'border-red-500' : ''}
+          />
+          {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="vin">VIN (Optional)</Label>
+        <Input
+          id="vin"
+          value={formData.vin}
+          onChange={(e) => handleChange('vin', e.target.value.toUpperCase())}
+          placeholder="e.g. 1HGCM82633A004352"
+          maxLength={17}
+          className={errors.vin ? 'border-red-500' : ''}
+        />
+        {errors.vin && <p className="text-red-500 text-sm">{errors.vin}</p>}
+      </div>
+      
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? 'Processing...' : 'Get Valuation'}
+      </Button>
+    </form>
   );
 };
 

@@ -1,25 +1,28 @@
 
-import React from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
-import MainLayout from './components/layout/MainLayout';
-import VinLookupPage from './pages/VinLookupPage';
-import LookupPage from './pages/LookupPage';
-import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
+import { Route, Routes, BrowserRouter } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import UpgradePage from './pages/UpgradePage';
+import PremiumPage from './pages/PremiumPage';
+import PremiumSuccessPage from './pages/PremiumSuccessPage';
+import UserDashboardPage from './pages/UserDashboardPage';
+import ValuationFollowupPage from './pages/ValuationFollowupPage';
 import ValuationResultPage from './pages/ValuationResultPage';
-import { EnhancedHomePage } from './components/home/EnhancedHomePage';
+import { Toaster } from 'sonner';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<MainLayout><Outlet /></MainLayout>}>
-        <Route index element={<EnhancedHomePage />} />
-        <Route path="/lookup" element={<LookupPage />} />
-        <Route path="/vin-lookup" element={<VinLookupPage />} />
-        <Route path="/valuation-followup" element={<ValuationFollowUpPage />} />
+    <BrowserRouter>
+      <Toaster position="top-right" richColors />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/premium" element={<PremiumPage />} />
+        <Route path="/premium-success" element={<PremiumSuccessPage />} />
+        <Route path="/upgrade" element={<UpgradePage />} />
+        <Route path="/dashboard" element={<UserDashboardPage />} />
+        <Route path="/valuation-followup" element={<ValuationFollowupPage />} />
         <Route path="/valuation-result" element={<ValuationResultPage />} />
-        {/* Add other routes as needed */}
-      </Route>
-    </Routes>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
