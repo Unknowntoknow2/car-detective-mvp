@@ -9,10 +9,15 @@ import { states } from '@/data/states';
 
 export interface PlateLookupProps {
   onSubmit: (plate: string, state: string) => void;
-  isLoading?: boolean; // Add the isLoading prop
+  isLoading?: boolean;
+  onResultsReady?: (result: any) => void;
 }
 
-export const PlateLookup: React.FC<PlateLookupProps> = ({ onSubmit, isLoading = false }) => {
+export const PlateLookup: React.FC<PlateLookupProps> = ({ 
+  onSubmit, 
+  isLoading = false,
+  onResultsReady
+}) => {
   const [plate, setPlate] = useState('');
   const [state, setState] = useState('CA');
 

@@ -6,6 +6,7 @@ export interface CarfaxData {
   salvageTitle: boolean;
   reportUrl: string;
   titleEvents: string[]; // Add the missing property
+  damageSeverity?: string; // Add this property for VehicleInfoCard.tsx
 }
 
 export const fetchCarfaxReport = async (vin: string): Promise<CarfaxData | null> => {
@@ -19,6 +20,10 @@ export const fetchCarfaxReport = async (vin: string): Promise<CarfaxData | null>
     serviceRecords: Math.floor(Math.random() * 10) + 2,
     salvageTitle: Math.random() > 0.9,
     reportUrl: `https://example.com/carfax/${vin}`,
-    titleEvents: [] // Initialize with empty array
+    titleEvents: [], // Initialize with empty array
+    damageSeverity: Math.random() > 0.7 ? 'Minor' : 'None' // Add damage severity
   };
 };
+
+// Add alias for backward compatibility
+export const getCarfaxReport = fetchCarfaxReport;

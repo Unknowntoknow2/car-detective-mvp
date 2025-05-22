@@ -1,42 +1,51 @@
 
-/**
- * Validates a Vehicle Identification Number (VIN)
- */
-export function validateVin(vin: string): { isValid: boolean; message?: string } {
+import { ValidationResult } from './types';
+
+// VIN validation helper function
+export function validateVin(vin: string): ValidationResult {
+  // Trim whitespace
+  vin = vin.trim();
+  
+  // Check if VIN is empty
   if (!vin) {
-    return { isValid: false, message: 'VIN is required' };
+    return { 
+      isValid: false, 
+      message: 'VIN is required',
+      error: 'VIN is required'
+    };
   }
-
-  // Remove any spaces and convert to uppercase
-  const sanitizedVin = vin.replace(/\s/g, '').toUpperCase();
-
-  // Check length
-  if (sanitizedVin.length !== 17) {
-    return { isValid: false, message: 'VIN must be exactly 17 characters' };
+  
+  // Check VIN length
+  if (vin.length !== 17) {
+    return { 
+      isValid: false, 
+      message: 'VIN must be exactly 17 characters',
+      error: 'VIN must be exactly 17 characters'
+    };
   }
-
-  // Check for invalid characters (I, O, Q are not used in VINs)
-  if (/[IOQ]/.test(sanitizedVin)) {
-    return { isValid: false, message: 'VIN contains invalid characters (I, O, or Q are not used in VINs)' };
+  
+  // Check for invalid characters (VINs should only contain alphanumeric characters excluding I, O, Q)
+  const invalidChars = vin.match(/[IOQ]/gi);
+  if (invalidChars) {
+    return { 
+      isValid: false, 
+      message: `VIN contains invalid characters: ${invalidChars.join(', ')}`,
+      error: `VIN contains invalid characters: ${invalidChars.join(', ')}`
+    };
   }
-
-  // Basic pattern check (alphanumeric only)
-  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(sanitizedVin)) {
-    return { isValid: false, message: 'VIN contains invalid characters' };
+  
+  // Basic format check (alphanumeric only)
+  if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin)) {
+    return { 
+      isValid: false, 
+      message: 'VIN must contain only alphanumeric characters (excluding I, O, Q)',
+      error: 'VIN must contain only alphanumeric characters (excluding I, O, Q)'
+    };
   }
-
+  
+  // VIN is valid
   return { isValid: true };
 }
 
-/**
- * Checks if a VIN is valid
- */
-export function isValidVIN(vin: string): boolean {
-  return validateVin(vin).isValid;
-}
-
-// Added to satisfy test imports
-export function validateVinCheckDigit(vin: string): { isValid: boolean; message?: string; error?: string } {
-  const result = validateVin(vin);
-  return { ...result, error: result.message };
-}
+// Simple wrapper that re-exports the function with a shorter name
+export const isValidVIN = validateVin;

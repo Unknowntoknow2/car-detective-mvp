@@ -1,202 +1,66 @@
 
 import React from 'react';
-import { Line } from 'react-chartjs-2';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-
-interface PriceRangeChartProps {
-  currentValue: number;
-  historicalPrices?: {
-    date: string;
-    price: number;
-  }[];
-  forecast?: {
-    date: string;
-    price: number;
-    isEstimate: boolean;
-  }[];
-  isPremium?: boolean;
+export interface PriceRangeChartProps {
+  priceRange: { low: number; high: number } | [number, number];
+  estimatedValue?: number;
 }
 
-export const PriceRangeChart: React.FC<PriceRangeChartProps> = ({
-  currentValue,
-  historicalPrices = [],
-  forecast = [],
-  isPremium = false
+export const PriceRangeChart: React.FC<PriceRangeChartProps> = ({ 
+  priceRange, 
+  estimatedValue 
 }) => {
-  // Generate sample data if not provided or if not premium
-  const generateSampleData = () => {
-    const currentDate = new Date();
-    const result = [];
-    
-    // Historical prices (last 12 months)
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setMonth(currentDate.getMonth() - i);
-      const month = date.toLocaleString('default', { month: 'short' });
-      const year = date.getFullYear().toString().slice(2);
-      
-      const randomFactor = 0.95 + (Math.random() * 0.1); // Between 0.95 and 1.05
-      const price = Math.round(currentValue * randomFactor);
-      
-      result.push({
-        date: `${month} '${year}`,
-        price,
-        isEstimate: false
-      });
-    }
-    
-    // Current month (actual value)
-    const currentMonth = currentDate.toLocaleString('default', { month: 'short' });
-    const currentYear = currentDate.getFullYear().toString().slice(2);
-    result.push({
-      date: `${currentMonth} '${currentYear}`,
-      price: currentValue,
-      isEstimate: false
-    });
-    
-    if (isPremium) {
-      // Future forecast (next 6 months)
-      for (let i = 1; i <= 6; i++) {
-        const date = new Date(currentDate);
-        date.setMonth(currentDate.getMonth() + i);
-        const month = date.toLocaleString('default', { month: 'short' });
-        const year = date.getFullYear().toString().slice(2);
-        
-        // Simulating a trend (slight decrease)
-        const randomFactor = 0.99 - (i * 0.005) + (Math.random() * 0.02);
-        const price = Math.round(currentValue * randomFactor);
-        
-        result.push({
-          date: `${month} '${year}`,
-          price,
-          isEstimate: true
-        });
-      }
-    }
-    
-    return result;
-  };
+  // Normalize price range format
+  const lowPrice = Array.isArray(priceRange) ? priceRange[0] : priceRange.low;
+  const highPrice = Array.isArray(priceRange) ? priceRange[1] : priceRange.high;
   
-  // Use provided data or generate sample data
-  const combinedData = historicalPrices.length > 0 || forecast.length > 0
-    ? [...historicalPrices.map(item => ({ ...item, isEstimate: false })), ...forecast]
-    : generateSampleData();
-  
-  // Separate actual values and estimates for the chart
-  const labels = combinedData.map(item => item.date);
-  const actualValues = combinedData
-    .map(item => item.isEstimate ? null : item.price);
-  const estimatedValues = combinedData
-    .map(item => item.isEstimate ? item.price : null);
-  
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: 'Actual Value',
-        data: actualValues,
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        pointBorderColor: 'rgb(59, 130, 246)',
-        pointBackgroundColor: '#fff',
-        tension: 0.3,
-        fill: false
-      },
-      {
-        label: 'Estimated Value',
-        data: estimatedValues,
-        borderColor: 'rgb(99, 102, 241)',
-        backgroundColor: 'rgba(99, 102, 241, 0.3)',
-        pointBorderColor: 'rgb(99, 102, 241)',
-        pointBackgroundColor: '#fff',
-        borderDash: [5, 5],
-        tension: 0.3,
-        fill: false
-      }
-    ]
-  };
-  
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          usePointStyle: true,
-          boxWidth: 6
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += formatCurrency(context.parsed.y);
-            }
-            return label;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        ticks: {
-          callback: function(value: any) {
-            return formatCurrency(value);
-          }
-        }
-      }
-    }
-  };
-  
+  // Calculate range width and position of estimated value
+  const rangeWidth = highPrice - lowPrice;
+  const valuePosition = estimatedValue ? 
+    Math.min(Math.max(((estimatedValue - lowPrice) / rangeWidth) * 100, 0), 100) : 50;
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-muted/20">
-        <CardTitle className="text-lg">Price Trend</CardTitle>
-      </CardHeader>
-      <CardContent className="py-4">
-        <div className="h-64">
-          <Line data={data} options={options} />
+    <div className="space-y-4">
+      <div className="relative h-8 w-full rounded-md bg-gray-100">
+        {/* Low Price Marker */}
+        <div className="absolute -bottom-6 left-0 text-center">
+          <div className="h-4 w-0.5 bg-gray-400 mx-auto"></div>
+          <span className="text-xs text-gray-600 whitespace-nowrap">
+            {formatCurrency(lowPrice)}
+          </span>
         </div>
         
-        {!isPremium && (
-          <div className="mt-4 p-4 bg-muted/30 rounded-md text-center text-sm">
-            <p className="text-muted-foreground">
-              Upgrade to Premium to see projected value forecast for the next 6 months
-            </p>
+        {/* High Price Marker */}
+        <div className="absolute -bottom-6 right-0 text-center">
+          <div className="h-4 w-0.5 bg-gray-400 mx-auto"></div>
+          <span className="text-xs text-gray-600 whitespace-nowrap">
+            {formatCurrency(highPrice)}
+          </span>
+        </div>
+        
+        {/* Price Range Bar */}
+        <div className="absolute top-0 left-0 h-full w-full rounded-md bg-gradient-to-r from-green-100 via-green-200 to-green-100"></div>
+        
+        {/* Estimated Value Marker */}
+        {estimatedValue && (
+          <div 
+            className="absolute top-0 h-full w-2 bg-primary"
+            style={{ left: `calc(${valuePosition}% - 4px)` }}
+          >
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-1.5 py-0.5 text-xs font-medium text-white">
+              {formatCurrency(estimatedValue)}
+            </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+      
+      <div className="mt-6 text-sm text-muted-foreground">
+        <p>
+          This price range represents what similar vehicles are selling for in your area. 
+          Your specific vehicle's value may vary based on its condition, options, and local market demand.
+        </p>
+      </div>
+    </div>
   );
 };
-
-export default PriceRangeChart;
