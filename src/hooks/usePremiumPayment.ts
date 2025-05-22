@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
-import { verifyPaymentSession } from '@/utils/stripeService';
+import { verifyPaymentSession, createCheckoutSession } from '@/utils/stripeService';
 import { toast } from 'sonner';
 
 interface UsePremiumPaymentResult {
   isLoading: boolean;
   error: Error | null;
   verifyPaymentSession: (sessionId: string) => Promise<boolean>;
+  createPaymentSession: (valuationId: string, returnUrl?: string) => Promise<void>;
 }
 
 export function usePremiumPayment(): UsePremiumPaymentResult {
@@ -44,9 +45,37 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
     }
   };
 
+  const createPaymentSession = async (valuationId: string, returnUrl?: string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const result = await createCheckoutSession({
+        bundle: 'single',
+        valuationId,
+        successUrl: returnUrl
+      });
+      
+      if (result.success && result.url) {
+        // Redirect to Stripe checkout
+        window.location.href = result.url;
+      } else {
+        throw new Error(result.error || 'Failed to create checkout session');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error creating payment session';
+      console.error('Error creating payment session:', errorMessage);
+      toast.error(errorMessage);
+      setError(err instanceof Error ? err : new Error(errorMessage));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
     error,
-    verifyPaymentSession: verifyPayment
+    verifyPaymentSession: verifyPayment,
+    createPaymentSession
   };
 }
