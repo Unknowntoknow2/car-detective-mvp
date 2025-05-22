@@ -2,128 +2,140 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePhotoScoring } from './usePhotoScoring';
 import { Photo, PhotoScore } from '@/types/photo';
-import * as photoScoringService from '@/services/photoScoringService';
 
-// Mock the photo scoring service
-jest.mock('@/services/photoScoringService', () => ({
-  scorePhotos: jest.fn().mockResolvedValue({
-    photoUrls: ['url1', 'url2'],
-    score: 85,
-    aiCondition: {
-      condition: 'Good',
-      confidenceScore: 0.85,
-      issuesDetected: [],
-      summary: 'Vehicle is in good condition'
-    },
+// Mock implementation
+jest.mock('@/services/photoService', () => ({
+  uploadPhotos: jest.fn().mockResolvedValue({
+    photoUrls: ['https://example.com/photo1.jpg'],
+    score: 0.85,
+    confidence: 0.9,
+    issues: [],
     individualScores: [
-      { url: 'url1', score: 80, isPrimary: false },
-      { url: 'url2', score: 90, isPrimary: true }
+      { url: 'https://example.com/photo1.jpg', score: 0.85 }
     ]
   }),
-  convertToPhotoAnalysisResult: jest.fn().mockImplementation((result) => ({
-    photoUrls: result.photoUrls || [result.photoUrl],
-    overallScore: result.score || 0,
-    score: result.score || 0,
-    aiCondition: result.aiCondition,
-    individualScores: result.individualScores || []
-  }))
+  deletePhoto: jest.fn().mockResolvedValue(true),
 }));
 
 describe('usePhotoScoring', () => {
-  // Updated test to match the new hook interface
-  test('should initialize with empty state', () => {
+  // Sample test data
+  const mockPhotos: Photo[] = [
+    {
+      id: '1',
+      file: new File(['test'], 'test1.jpg', { type: 'image/jpeg' }),
+      preview: 'data:image/jpeg;base64,test1',
+      name: 'test1.jpg',
+      size: 1024,
+      type: 'image/jpeg',
+    },
+    {
+      id: '2',
+      file: new File(['test'], 'test2.jpg', { type: 'image/jpeg' }),
+      preview: 'data:image/jpeg;base64,test2',
+      name: 'test2.jpg',
+      size: 1024,
+      type: 'image/jpeg',
+    },
+  ];
+
+  it('should initialize with empty values', () => {
     const { result } = renderHook(() => usePhotoScoring());
     
+    expect(result.current.isAnalyzing).toBe(false);
+    expect(result.current.isUploading).toBe(false);
     expect(result.current.result).toBeNull();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(result.current.photoScores).toEqual([]);
   });
-  
-  // Mocked version of tests for backward compatibility
-  test('should score photos successfully', async () => {
+
+  it('should handle photo analysis successfully', async () => {
     const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring());
     
-    const mockPhotos: Photo[] = [
-      { 
-        id: '123', 
-        url: 'url1',
-        preview: 'preview-url1'
-      }
+    act(() => {
+      result.current.analyzePhotos(mockPhotos);
+    });
+    
+    expect(result.current.isUploading).toBe(true);
+    
+    await waitForNextUpdate();
+    
+    expect(result.current.isUploading).toBe(false);
+    expect(result.current.result).toEqual({
+      photoId: expect.any(String),
+      score: 0.85,
+      confidence: 0.9,
+      issues: [],
+      url: 'https://example.com/photo1.jpg',
+      photoUrls: ['https://example.com/photo1.jpg'],
+      individualScores: [
+        { url: 'https://example.com/photo1.jpg', score: 0.85 }
+      ]
+    });
+  });
+  
+  it('should handle photo deletion', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring());
+    
+    // First upload photos
+    act(() => {
+      result.current.analyzePhotos(mockPhotos);
+    });
+    
+    await waitForNextUpdate();
+    
+    // Then delete a photo
+    act(() => {
+      result.current.deletePhoto('https://example.com/photo1.jpg');
+    });
+    
+    expect(result.current.isDeleting).toBe(true);
+    
+    await waitForNextUpdate();
+    
+    expect(result.current.isDeleting).toBe(false);
+    expect(result.current.photoScores).toEqual([]);
+  });
+  
+  it('should handle photo replacement', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => usePhotoScoring());
+    
+    // First upload initial photos
+    act(() => {
+      result.current.analyzePhotos(mockPhotos);
+    });
+    
+    await waitForNextUpdate();
+    
+    // Then replace with new photos
+    const newMockPhotos = [
+      {
+        id: '3',
+        file: new File(['newtest'], 'newtest.jpg', { type: 'image/jpeg' }),
+        preview: 'data:image/jpeg;base64,newtest',
+        name: 'newtest.jpg',
+        size: 2048,
+        type: 'image/jpeg',
+      },
     ];
     
-    let analysisResult;
-    await act(async () => {
-      analysisResult = await result.current.scorePhotos(mockPhotos, 'test-valuation-id');
-      await waitForNextUpdate();
-    });
-    
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.result).not.toBeNull();
-    expect(analysisResult).toHaveProperty('overallScore');
-    expect(analysisResult).toHaveProperty('individualScores');
-  });
-  
-  test('should get best photo', () => {
-    const { result } = renderHook(() => usePhotoScoring());
-    
-    // Manually set result state for testing
     act(() => {
-      // @ts-ignore - Directly setting private state for testing
-      result.current.result = {
-        overallScore: 85,
-        individualScores: [
-          { url: 'url1', score: 80, isPrimary: false },
-          { url: 'url2', score: 90, isPrimary: true }
-        ]
-      };
+      result.current.analyzePhotos(newMockPhotos);
     });
     
-    const bestPhoto = result.current.getBestPhoto();
-    expect(bestPhoto).not.toBeNull();
-    expect(bestPhoto?.url).toBe('url2');
-    expect(bestPhoto?.isPrimary).toBe(true);
-  });
-  
-  test('should calculate average score', () => {
-    const { result } = renderHook(() => usePhotoScoring());
+    expect(result.current.isUploading).toBe(true);
     
-    // Manually set result state for testing
-    act(() => {
-      // @ts-ignore - Directly setting private state for testing
-      result.current.result = {
-        overallScore: 85,
-        individualScores: [
-          { url: 'url1', score: 80, isPrimary: false },
-          { url: 'url2', score: 90, isPrimary: true }
-        ]
-      };
+    await waitForNextUpdate();
+    
+    expect(result.current.isUploading).toBe(false);
+    expect(result.current.result).toEqual({
+      photoId: expect.any(String),
+      score: 0.85,
+      confidence: 0.9,
+      issues: [],
+      url: 'https://example.com/photo1.jpg',
+      photoUrls: ['https://example.com/photo1.jpg'],
+      individualScores: [
+        { url: 'https://example.com/photo1.jpg', score: 0.85 }
+      ]
     });
-    
-    const averageScore = result.current.getAverageScore();
-    expect(averageScore).toBe(85);
-  });
-  
-  test('should mark photo as primary', () => {
-    const { result } = renderHook(() => usePhotoScoring());
-    
-    // Manually set result state for testing
-    act(() => {
-      // @ts-ignore - Directly setting private state for testing
-      result.current.result = {
-        overallScore: 85,
-        individualScores: [
-          { url: 'url1', score: 80, isPrimary: false },
-          { url: 'url2', score: 90, isPrimary: true }
-        ]
-      };
-    });
-    
-    act(() => {
-      result.current.markAsPrimary('url1');
-    });
-    
-    const bestPhoto = result.current.getBestPhoto();
-    expect(bestPhoto?.url).toBe('url1');
-    expect(bestPhoto?.isPrimary).toBe(true);
   });
 });

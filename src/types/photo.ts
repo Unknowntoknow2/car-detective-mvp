@@ -21,6 +21,7 @@ export interface PhotoAnalysisResult {
   photoUrls?: string[];
   aiCondition?: AICondition;
   individualScores?: PhotoScore[];
+  overallScore?: number; // Added to fix errors
 }
 
 export interface PhotoAssessment {
@@ -30,7 +31,7 @@ export interface PhotoAssessment {
   summary: string;
 }
 
-// Add missing types needed by photo upload components
+// Photo types needed by photo upload components
 export interface Photo {
   id: string;
   file?: File;
@@ -55,6 +56,15 @@ export interface PhotoScore {
   url: string;
   score: number;
   isPrimary?: boolean;
+}
+
+// Add PhotoScoringResult for photoScoringService
+export interface PhotoScoringResult {
+  overallScore: number;
+  individualScores: PhotoScore[];
+  condition: string;
+  issues: string[];
+  summary: string;
 }
 
 // Constants for photo upload limits

@@ -1,106 +1,109 @@
 
-import { useState } from 'react';
-import { Photo, PhotoAnalysisResult, PhotoScore, AICondition } from '@/types/photo';
-import * as photoScoringService from '@/services/photoScoringService';
+import { useState, useCallback } from 'react';
+import { Photo, PhotoScore, PhotoAnalysisResult } from '@/types/photo';
+import { uploadPhotos, deletePhoto } from '@/services/photoService';
+import { v4 as uuidv4 } from 'uuid';
 
-export interface UsePhotoScoringResult {
-  result: PhotoAnalysisResult | null;
-  isLoading: boolean;
-  error: Error | null;
-  scorePhotos: (photos: Photo[], valuationId: string) => Promise<PhotoAnalysisResult | null>;
-  getBestPhoto: () => PhotoScore | null;
-  getAverageScore: () => number;
-  markAsPrimary: (url: string) => void;
-  preparePhotosForScoring: (photos: Photo[]) => Photo[];
-}
-
-export function usePhotoScoring(): UsePhotoScoringResult {
+export function usePhotoScoring() {
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PhotoAnalysisResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [photoScores, setPhotoScores] = useState<PhotoScore[]>([]);
 
-  const clearResult = () => {
-    setResult(null);
-  };
-
-  const scorePhotos = async (
-    photos: Photo[],
-    valuationId: string
-  ): Promise<PhotoAnalysisResult | null> => {
+  const analyzePhotos = useCallback(async (photos: Photo[]) => {
+    if (photos.length === 0) return;
+    
+    setIsUploading(true);
+    setError(null);
+    
     try {
-      setIsLoading(true);
-      setError(null);
-
-      // Extract URLs from photos
-      const photoUrls = photos.map(photo => photo.url || photo.preview || '').filter(Boolean);
-
-      if (photoUrls.length === 0) {
-        throw new Error('No photo URLs available for scoring');
-      }
-
-      // Use the photoScoringService to score the photos
-      const scoringResult = await photoScoringService.scorePhotos(photoUrls, valuationId);
+      // Prepare files for upload
+      const filesToUpload = photos
+        .filter(photo => photo.file)
+        .map(photo => photo.file as File);
       
-      // Convert the result to PhotoAnalysisResult format
-      const analysisResult = photoScoringService.convertToPhotoAnalysisResult(scoringResult);
-      
-      // Ensure the result has individualScores property
-      if (!analysisResult.individualScores) {
-        analysisResult.individualScores = photoUrls.map((url, index) => ({
-          url,
-          score: 0.7 + (Math.random() * 0.3), // Random score between 0.7 and 1.0
-          isPrimary: index === 0 // First photo is primary by default
-        }));
+      if (filesToUpload.length === 0) {
+        throw new Error('No valid files to upload');
       }
       
-      setResult(analysisResult);
-      return analysisResult;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('An error occurred during photo scoring');
-      setError(error);
-      return null;
+      // Upload photos and get analysis
+      const response = await uploadPhotos(filesToUpload);
+      
+      // Update result with the response
+      setResult({
+        photoId: uuidv4(),
+        score: response.score,
+        confidence: response.confidence,
+        issues: response.issues,
+        url: response.photoUrls[0],
+        photoUrls: response.photoUrls,
+        individualScores: response.individualScores || [],
+        aiCondition: response.aiCondition
+      });
+      
+      // Set photo scores from individual scores
+      if (response.individualScores && response.individualScores.length > 0) {
+        setPhotoScores(response.individualScores);
+      }
+      
+    } catch (err: any) {
+      console.error('Error analyzing photos:', err);
+      setError(err.message || 'Failed to analyze photos');
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
-  };
-
-  const markAsPrimary = (url: string) => {
-    if (!result || !result.individualScores) return;
+  }, []);
+  
+  const deletePhotoById = useCallback(async (url: string) => {
+    setIsDeleting(true);
+    setError(null);
     
-    const updatedScores = result.individualScores.map((score: PhotoScore) => ({
-      ...score,
-      isPrimary: score.url === url
-    }));
-    
-    setResult({
-      ...result,
-      individualScores: updatedScores
-    });
-  };
-
-  const getBestPhoto = (): PhotoScore | null => {
-    if (!result || !result.individualScores || result.individualScores.length === 0) return null;
-    return result.individualScores.find((s: PhotoScore) => s.isPrimary) || result.individualScores[0];
-  };
-
-  const getAverageScore = (): number => {
-    if (!result || !result.individualScores || result.individualScores.length === 0) return 0;
-    const sum = result.individualScores.reduce((acc: number, score: PhotoScore) => acc + score.score, 0);
-    return Math.round(sum / result.individualScores.length);
-  };
-
-  const preparePhotosForScoring = (photos: Photo[]): Photo[] => {
-    return photos.filter(p => p.preview || p.url);
-  };
-
+    try {
+      await deletePhoto(url);
+      
+      // Remove the deleted photo from scores
+      setPhotoScores(prev => prev.filter(score => score.url !== url));
+      
+      // Update result if needed
+      if (result && result.photoUrls) {
+        const updatedPhotoUrls = result.photoUrls.filter(photoUrl => photoUrl !== url);
+        
+        if (updatedPhotoUrls.length === 0) {
+          setResult(null);
+        } else {
+          setResult({
+            ...result,
+            photoUrls: updatedPhotoUrls,
+            url: updatedPhotoUrls[0]
+          });
+        }
+      }
+      
+    } catch (err: any) {
+      console.error('Error deleting photo:', err);
+      setError(err.message || 'Failed to delete photo');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [result]);
+  
+  const resetState = useCallback(() => {
+    setResult(null);
+    setPhotoScores([]);
+    setError(null);
+  }, []);
+  
   return {
-    result,
-    isLoading,
+    isUploading,
+    isDeleting,
+    isAnalyzing,
     error,
-    scorePhotos,
-    getBestPhoto,
-    getAverageScore,
-    markAsPrimary,
-    preparePhotosForScoring
+    result,
+    photoScores,
+    analyzePhotos,
+    deletePhoto: deletePhotoById,
+    resetState
   };
 }

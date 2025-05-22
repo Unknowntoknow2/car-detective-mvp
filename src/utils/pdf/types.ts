@@ -4,6 +4,7 @@ import { PDFDocument } from 'pdf-lib';
 
 export interface ReportData {
   // Vehicle information
+  id?: string;
   make: string;
   model: string;
   year: number;
@@ -20,6 +21,7 @@ export interface ReportData {
   estimatedValue: number;
   confidenceScore: number;
   photoScore?: number;
+  price?: number;
   
   // Location information
   zipCode: string;
@@ -30,6 +32,7 @@ export interface ReportData {
   aiCondition: AICondition;
   photoCondition?: any;
   bestPhotoUrl?: string;
+  photoUrl?: string;
   vehiclePhotos?: string[];
   
   // Owner information
@@ -44,6 +47,15 @@ export interface ReportData {
   premium?: boolean;
   reportDate?: Date;
   generatedDate: Date;
+  
+  // Report presentation
+  reportTitle?: string;
+  priceRange?: [number, number];
+  companyName?: string;
+  website?: string;
+  explanation?: string;
+  disclaimerText?: string;
+  photoAssessment?: any;
 }
 
 export interface AICondition {
@@ -51,6 +63,7 @@ export interface AICondition {
   confidenceScore: number;
   issuesDetected: string[];
   summary: string;
+  score?: number;
 }
 
 export interface AdjustmentItem {
@@ -72,6 +85,10 @@ export interface SectionParams {
   margin?: number;
   data: ReportData;
   y: number;
+  page?: any;
+  textColor?: string;
+  regularFont?: string;
+  boldFont?: string;
 }
 
 export interface PremiumSectionParams extends SectionParams {
@@ -93,3 +110,20 @@ export type PDFDocumentWithOutline = PDFDocument & {
     addItem: (title: string) => void;
   };
 };
+
+export interface ReportOptions {
+  includeBranding: boolean;
+  includeExplanation: boolean;
+  includePhotoAssessment: boolean;
+  watermark: boolean;
+  fontSize: number;
+  pdfQuality: 'low' | 'standard' | 'high';
+}
+
+export interface ReportGeneratorParams {
+  data: ReportData;
+  options: ReportOptions;
+  document: typeof PDFDocument;
+}
+
+export type AdjustmentBreakdown = AdjustmentItem;
