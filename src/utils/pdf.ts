@@ -1,27 +1,9 @@
-import type { DecodedVehicleInfo } from '@/types/vehicle';
-import { ReportData } from './pdf/types';
 
-export interface ReportData {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  estimatedValue: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  explanation?: string;
-  generatedAt?: string;
-  vin?: string;
-  zipCode?: string;
-  aiCondition?: any;
-  isPremium?: boolean;
-}
+import type { DecodedVehicleInfo } from '@/types/vehicle';
+import { ReportData as ReportDataType, AdjustmentItem } from './pdf/types';
+
+// Don't redefine ReportData - instead use a type alias to avoid conflicts
+export type ReportData = ReportDataType;
 
 export function convertVehicleInfoToReportData(
   vehicleInfo: DecodedVehicleInfo, 
@@ -31,7 +13,7 @@ export function convertVehicleInfoToReportData(
     condition: string,
     zipCode: string,
     confidenceScore?: number,
-    adjustments?: any[],
+    adjustments?: AdjustmentItem[],
     aiCondition?: any,
     isPremium?: boolean
   }
@@ -43,7 +25,7 @@ export function convertVehicleInfoToReportData(
     mileage: additionalData.mileage,
     condition: additionalData.condition,
     estimatedValue: additionalData.estimatedValue,
-    confidenceScore: additionalData.confidenceScore,
+    confidenceScore: additionalData.confidenceScore || 0, // Provide default to avoid undefined
     zipCode: additionalData.zipCode,
     adjustments: additionalData.adjustments || [],
     aiCondition: additionalData.aiCondition,
@@ -62,9 +44,15 @@ export async function downloadPdf(reportData: ReportData): Promise<void> {
   
   // Ensure priceRange is in tuple format
   if (reportData.priceRange && !Array.isArray(reportData.priceRange)) {
-    // This should not happen with our new types, but just in case
-    const min = 'min' in reportData.priceRange ? reportData.priceRange.min : reportData.estimatedValue * 0.95;
-    const max = 'max' in reportData.priceRange ? reportData.priceRange.max : reportData.estimatedValue * 1.05;
+    // Convert from object format to tuple format if needed
+    const min = typeof reportData.priceRange === 'object' && 'min' in reportData.priceRange 
+      ? reportData.priceRange.min 
+      : reportData.estimatedValue * 0.95;
+      
+    const max = typeof reportData.priceRange === 'object' && 'max' in reportData.priceRange 
+      ? reportData.priceRange.max 
+      : reportData.estimatedValue * 1.05;
+      
     reportData.priceRange = [Number(min), Number(max)];
   }
   

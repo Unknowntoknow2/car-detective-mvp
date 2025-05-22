@@ -61,9 +61,13 @@ export async function addValuationSummary(params: SectionParams): Promise<number
   
   // Draw price range if available
   if (data.priceRange) {
-    const priceRange = Array.isArray(data.priceRange) 
+    // Ensure priceRange is always a tuple [min, max]
+    const priceRange: [number, number] = Array.isArray(data.priceRange) 
       ? data.priceRange 
-      : [data.priceRange.min, data.priceRange.max];
+      : [
+          Math.floor(data.estimatedValue * 0.95),
+          Math.ceil(data.estimatedValue * 1.05)
+        ];
     
     page.drawText('Value Range:', {
       x: margin,

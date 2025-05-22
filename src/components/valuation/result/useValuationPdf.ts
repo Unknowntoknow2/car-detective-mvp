@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { downloadPdf } from '@/utils/pdf';
 import { ReportData, ReportOptions } from '@/utils/pdf/types';
@@ -32,7 +31,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         mileage: valuationData.mileage,
         condition: valuationData.condition,
         estimatedValue: valuationData.estimatedValue,
-        confidenceScore: valuationData.confidenceScore,
+        confidenceScore: valuationData.confidenceScore || 0,
         vin: valuationData.vin,
         zipCode: valuationData.zipCode,
         isPremium: isPremium,
@@ -48,7 +47,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
             Number(valuationData.priceRange[1])
           ];
         } else if (typeof valuationData.priceRange === 'object') {
-          // Convert from object format to tuple format
+          // Convert from object format to tuple format if needed
           if ('min' in valuationData.priceRange && 'max' in valuationData.priceRange) {
             reportData.priceRange = [
               Number(valuationData.priceRange.min),
@@ -60,6 +59,12 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
               Number(valuationData.priceRange.high)
             ];
           }
+        } else {
+          // If no price range provided, calculate one based on estimated value
+          reportData.priceRange = [
+            Math.floor(reportData.estimatedValue * 0.95),
+            Math.ceil(reportData.estimatedValue * 1.05)
+          ];
         }
       }
       
@@ -73,14 +78,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         };
       }
       
-      // Generate PDF options
-      const options: Partial<ReportOptions> = {
-        includeExplanation: true,
-        isPremium: isPremium,
-        watermarkText: isPremium ? 'Premium Report' : 'Car Detective Report',
-      };
-      
-      // Generate PDF
+      // Pass the reportData to the downloadPdf function
       await downloadPdf(reportData);
       
       toast.success('Valuation report downloaded successfully');

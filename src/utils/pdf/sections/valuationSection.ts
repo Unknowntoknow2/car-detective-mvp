@@ -1,4 +1,3 @@
-
 import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
@@ -44,17 +43,13 @@ export async function addValuationSection(params: SectionParams): Promise<number
   
   // Draw price range if available
   if (data.priceRange) {
-    let priceRangeValues: [number, number];
-    
-    if (Array.isArray(data.priceRange)) {
-      priceRangeValues = [data.priceRange[0], data.priceRange[1]];
-    } else if (typeof data.priceRange === 'object' && 'min' in data.priceRange && 'max' in data.priceRange) {
-      priceRangeValues = [data.priceRange.min, data.priceRange.max];
-    } else {
-      // Fallback - use estimated value with +/- 5%
-      const value = data.estimatedValue;
-      priceRangeValues = [Math.floor(value * 0.95), Math.ceil(value * 1.05)];
-    }
+    // Ensure priceRange is always treated as a tuple [min, max]
+    const priceRangeValues: [number, number] = Array.isArray(data.priceRange) 
+      ? data.priceRange 
+      : [
+          Math.floor(data.estimatedValue * 0.95),
+          Math.ceil(data.estimatedValue * 1.05)
+        ];
     
     page.drawText('Price Range:', {
       x: margin,
