@@ -1,4 +1,3 @@
-
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { ReportGeneratorParams } from '../types';
 
@@ -381,7 +380,7 @@ export async function generatePremiumPdf(
       font: boldFont,
       color: rgb(0.85, 0.85, 0.85), // Light gray
       opacity: 0.3,
-      rotate: Math.PI / -4, // -45 degrees in radians
+      rotate: { angle: Math.PI / -4 }, // Properly formatted rotation object
     });
     
     // Instead of rotating, we'll use a workaround - the watermark is drawn
