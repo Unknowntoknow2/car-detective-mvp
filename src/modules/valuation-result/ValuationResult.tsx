@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from './sections/Header';
@@ -149,9 +150,9 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         
         {/* Market Analysis Tab */}
         <MarketInsightsTab
-          valuationId={resultId || ''}
+          valuationId={id || ''}
           isPremium={isPremium}
-          zipCode={data.zipCode || data.zip_code || data.state}
+          zipCode={data.zipCode || data.zip_code || ''}
           make={data.make}
           model={data.model}
           year={data.year}

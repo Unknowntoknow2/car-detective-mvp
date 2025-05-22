@@ -1,3 +1,4 @@
+
 export * from './types';
 export { 
   mileageAdjustmentCurve,
@@ -10,7 +11,7 @@ export {
   getConditionAdjustment 
 } from './conditionAdjustments';
 export { 
-  getRegionalMarketMultiplier, 
+  getRegionalMarketMultiplier,
   getRegionNameFromZip,
   getZipAdjustment 
 } from './locationAdjustments';

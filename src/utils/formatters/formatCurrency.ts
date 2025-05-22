@@ -2,28 +2,26 @@
 /**
  * Format a number as currency
  * @param value - The numeric value to format
- * @param locale - The locale to use for formatting (default: en-US)
- * @param currency - The currency code (default: USD)
  * @returns Formatted currency string
  */
-export const formatCurrency = (
-  value: number,
-  locale: string = 'en-US',
-  currency: string = 'USD'
-): string => {
-  // If value is null or undefined, return $0
-  if (value == null) return '$0';
+export const formatCurrency = (value: number | null | undefined): string => {
+  // Handle invalid values
+  if (value === null || value === undefined || isNaN(Number(value))) {
+    return '$0';
+  }
   
+  // Create number formatter with strict en-US locale and USD currency
   try {
-    // Format as currency
-    return new Intl.NumberFormat(locale, {
+    const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency,
+      currency: 'USD',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2 
-    }).format(value);
+      maximumFractionDigits: 0
+    });
+    
+    return formatter.format(Number(value));
   } catch (error) {
     // Fallback in case of error
-    return `$${value.toLocaleString()}`;
+    return `$${Number(value).toLocaleString('en-US', {maximumFractionDigits: 0})}`;
   }
 };

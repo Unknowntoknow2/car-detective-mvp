@@ -15,7 +15,7 @@ export function formatCurrency(value: number, notation: string = 'standard'): st
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    notation: notation as Intl.NumberFormatNotationOptions,
+    notation: notation as Intl.NumberFormatOptions['notation'],
     maximumFractionDigits: 0
   });
   
