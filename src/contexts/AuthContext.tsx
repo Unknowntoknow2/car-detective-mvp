@@ -15,6 +15,7 @@ export interface AuthContextType {
     dealership_name?: string;
     id?: string;
   } | null;
+  userRole?: UserRole; // Added for backward compatibility
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string, userData?: Record<string, any>) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<AuthContextType['userDetails']>(null);
+  const [userRole, setUserRole] = useState<UserRole | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -65,15 +67,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (session?.user) {
         const userData = await fetchUserDetails(session.user.id);
+        const role = userData?.role || session.user.user_metadata?.role as UserRole;
+        
         setUserDetails({
           id: session.user.id,
           // Get role from profiles table or from user metadata
-          role: userData?.role || session.user.user_metadata?.role as UserRole,
+          role: role,
           full_name: userData?.full_name || session.user.user_metadata?.full_name,
           dealership_name: userData?.dealership_name || session.user.user_metadata?.dealership_name
         });
+        
+        // Set userRole for backward compatibility
+        setUserRole(role);
       } else {
         setUserDetails(null);
+        setUserRole(undefined);
       }
       
       setIsLoading(false);
@@ -86,13 +94,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (session?.user) {
         const userData = await fetchUserDetails(session.user.id);
+        const role = userData?.role || session.user.user_metadata?.role as UserRole;
+        
         setUserDetails({
           id: session.user.id,
           // Get role from profiles table or from user metadata
-          role: userData?.role || session.user.user_metadata?.role as UserRole,
+          role: role,
           full_name: userData?.full_name || session.user.user_metadata?.full_name,
           dealership_name: userData?.dealership_name || session.user.user_metadata?.dealership_name
         });
+        
+        // Set userRole for backward compatibility
+        setUserRole(role);
       }
       
       setIsLoading(false);
@@ -176,6 +189,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         session,
         user,
         userDetails,
+        userRole, // Added for backward compatibility
         signIn,
         signUp,
         signOut,

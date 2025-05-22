@@ -63,15 +63,15 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 
 const DealerSubscriptionPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const { user, userRole } = useAuth();
+  const { user, userDetails } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if not a dealer
   React.useEffect(() => {
-    if (user && userRole !== 'dealer') {
+    if (user && userDetails?.role !== 'dealer') {
       navigate('/dashboard');
     }
-  }, [user, userRole, navigate]);
+  }, [user, userDetails, navigate]);
   
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);

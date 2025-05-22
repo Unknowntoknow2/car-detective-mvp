@@ -11,7 +11,7 @@ interface LocationState {
 }
 
 const AccessDeniedPage = () => {
-  const { signOut, userRole, user } = useAuth();
+  const { signOut, userDetails, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as LocationState || {};
@@ -77,9 +77,9 @@ const AccessDeniedPage = () => {
             )}
           </div>
           
-          {userRole && (
+          {userDetails?.role && (
             <p className="text-sm text-muted-foreground mt-6">
-              You are currently signed in as: <span className="font-medium">{userRole}</span>
+              You are currently signed in as: <span className="font-medium">{userDetails.role}</span>
             </p>
           )}
         </div>
