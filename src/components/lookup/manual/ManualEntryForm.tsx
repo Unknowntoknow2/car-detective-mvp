@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useValuation } from '@/hooks/useValuation';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Import our component parts
 import { VehicleBasicInfoFields } from './components/VehicleBasicInfoFields';
@@ -46,8 +48,8 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   submitButtonText = "Get Valuation",
   isPremium = false
 }) => {
-  const { manualValuation, isLoading: hookIsLoading } = useValuation();
-  const isLoading = propIsLoading || hookIsLoading;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +69,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     }
   });
   
-  const handleSubmit = (values: FormValues) => {
+  const handleSubmit = async (values: FormValues) => {
     // Convert string values to appropriate types for ManualEntryFormData
     const formattedData: ManualEntryFormData = {
       make: values.make,
@@ -89,8 +91,70 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       return;
     }
     
-    // Use our hook
-    manualValuation(formattedData);
+    // Handle submission ourselves
+    setIsSubmitting(true);
+    
+    try {
+      // Calculate estimated value based on basic formula (real implementation would be more complex)
+      const basePrice = 15000;
+      const yearFactor = 1 + ((formattedData.year - 2010) * 0.05);
+      const mileageFactor = 1 - ((formattedData.mileage / 100000) * 0.2);
+      
+      let conditionFactor = 1;
+      switch (formattedData.condition) {
+        case ConditionLevel.Excellent:
+          conditionFactor = 1.2;
+          break;
+        case ConditionLevel.VeryGood:
+          conditionFactor = 1.1;
+          break;
+        case ConditionLevel.Good:
+          conditionFactor = 1.0;
+          break;
+        case ConditionLevel.Fair:
+          conditionFactor = 0.85;
+          break;
+        case ConditionLevel.Poor:
+          conditionFactor = 0.7;
+          break;
+      }
+      
+      const estimatedValue = Math.floor(basePrice * yearFactor * mileageFactor * conditionFactor);
+      
+      // Create valuation in database
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .insert({
+          make: formattedData.make,
+          model: formattedData.model,
+          year: formattedData.year,
+          mileage: formattedData.mileage,
+          condition: formattedData.condition,
+          vin: formattedData.vin,
+          fuel_type: formattedData.fuelType,
+          transmission: formattedData.transmission,
+          color: formattedData.color,
+          is_vin_lookup: false,
+          estimated_value: estimatedValue,
+          confidence_score: 80,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          zip_code: formattedData.zipCode
+        })
+        .select()
+        .single();
+      
+      if (valuationError) {
+        throw new Error(valuationError.message);
+      }
+      
+      // Navigate to result page
+      navigate(`/valuation/${valuationData.id}`);
+    } catch (error) {
+      console.error('Error creating valuation:', error);
+      toast.error('Failed to create valuation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const conditionOptions = [
@@ -100,6 +164,8 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     { value: ConditionLevel.Fair, label: 'Fair' },
     { value: ConditionLevel.Poor, label: 'Poor' }
   ];
+
+  const isLoading = propIsLoading || isSubmitting;
 
   return (
     <Form {...form}>

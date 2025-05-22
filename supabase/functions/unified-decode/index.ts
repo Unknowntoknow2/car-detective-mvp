@@ -98,36 +98,41 @@ serve(async (req) => {
         displacementL: getField(results, "Displacement (L)"),
       };
 
-      // Store in cache
-      await supabase
-        .from("vpic_cache")
-        .upsert({
-          vin,
-          vpic_data: vehicle,
-          fetched_at: new Date().toISOString(),
-        })
-        .select();
+      // Store in cache if possible
+      try {
+        await supabase
+          .from("vpic_cache")
+          .upsert({
+            vin,
+            vpic_data: vehicle,
+            fetched_at: new Date().toISOString(),
+          })
+          .select();
 
-      // Save to decoded_vehicles table
-      await supabase
-        .from("decoded_vehicles")
-        .upsert({
-          vin,
-          make: vehicle.make,
-          model: vehicle.model,
-          year: vehicle.year,
-          trim: vehicle.trim,
-          bodyType: vehicle.bodyType,
-          engine: vehicle.engine,
-          transmission: vehicle.transmission,
-          drivetrain: vehicle.drivetrain,
-          doors: vehicle.doors,
-          fueltype: vehicle.fuelType,
-          enginecylinders: vehicle.engineCylinders,
-          displacementl: vehicle.displacementL,
-          created_at: new Date().toISOString(),
-        })
-        .select();
+        // Try to save to decoded_vehicles table
+        await supabase
+          .from("decoded_vehicles")
+          .upsert({
+            vin,
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            trim: vehicle.trim,
+            bodyType: vehicle.bodyType,
+            engine: vehicle.engine,
+            transmission: vehicle.transmission,
+            drivetrain: vehicle.drivetrain,
+            doors: vehicle.doors,
+            fueltype: vehicle.fuelType,
+            enginecylinders: vehicle.engineCylinders,
+            displacementl: vehicle.displacementL,
+            created_at: new Date().toISOString(),
+          })
+          .select();
+      } catch (error) {
+        // Just log the error but continue processing
+        console.error("Error saving to cache or decoded_vehicles:", error);
+      }
 
       return new Response(
         JSON.stringify(vehicle),
@@ -179,19 +184,24 @@ serve(async (req) => {
         transmission: "Automatic",
       };
 
-      // Store mock data in cache
-      await supabase
-        .from("plate_lookups")
-        .upsert({
-          plate,
-          state,
-          make: mockVehicle.make,
-          model: mockVehicle.model,
-          year: mockVehicle.year,
-          color: mockVehicle.color,
-          created_at: new Date().toISOString(),
-        })
-        .select();
+      // Store mock data in cache if possible
+      try {
+        await supabase
+          .from("plate_lookups")
+          .upsert({
+            plate,
+            state,
+            make: mockVehicle.make,
+            model: mockVehicle.model,
+            year: mockVehicle.year,
+            color: mockVehicle.color,
+            created_at: new Date().toISOString(),
+          })
+          .select();
+      } catch (error) {
+        // Just log the error but continue processing
+        console.error("Error saving plate lookup to cache:", error);
+      }
 
       return new Response(
         JSON.stringify(mockVehicle),
