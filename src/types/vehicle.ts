@@ -13,7 +13,7 @@ export interface DecodedVehicleInfo {
   interiorColor?: string;
   drivetrain?: string;
   features?: string[];
-  // Add missing properties to resolve errors
+  // Add required properties to resolve errors
   mileage?: number;
   condition?: string;
   zipCode?: string;
@@ -42,6 +42,10 @@ export interface ValuationResponse {
   transmission?: string;
   bodyType?: string;
   color?: string;
+  // Add aliases for backward compatibility
+  estimated_value?: number;
+  confidence_score?: number;
+  price_range?: { low: number; high: number } | [number, number];
 }
 
 export interface VinDecoderResponse {
@@ -68,7 +72,7 @@ export interface ManualValuationResponse {
   error?: string;
 }
 
-// Add the missing DealerInventoryItem interface
+// Update the DealerInventoryItem interface
 export interface DealerInventoryItem {
   id: string;
   make: string;
@@ -80,9 +84,10 @@ export interface DealerInventoryItem {
   sellingPrice?: number;
   status: string;
   mileage?: number;
+  price?: number; // For backward compatibility
 }
 
-// Add the missing DealerVehicleFormData interface
+// Update the DealerVehicleFormData interface
 export interface DealerVehicleFormData {
   make: string;
   model: string;
@@ -94,6 +99,8 @@ export interface DealerVehicleFormData {
   fuelType?: string;
   transmission?: string;
   zipCode?: string;
-  photos?: string[];
+  photos?: string[] | File[];
   status?: string;
+  color?: string;
+  description?: string;
 }

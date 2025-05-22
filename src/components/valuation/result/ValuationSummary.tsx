@@ -1,93 +1,85 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
-import { ValuationResult } from '@/types/valuation';
+import { cn } from '@/lib/utils';
 
-// Define the props interface
 export interface ValuationSummaryProps {
-  confidenceScore?: number;
-  estimatedValue?: number;
-  vehicleInfo?: any;
-  onEmailReport?: () => void;
-  valuation?: ValuationResult;
-  showEstimatedValue?: boolean;
+  estimatedValue: number;
+  confidenceScore: number;
+  vehicleInfo: {
+    year: number;
+    make: string;
+    model: string;
+    mileage?: number;
+    condition?: string;
+  };
 }
 
-const ValuationSummary: React.FC<ValuationSummaryProps> = ({
-  confidenceScore,
+export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
   estimatedValue,
-  vehicleInfo,
-  onEmailReport,
-  valuation,
-  showEstimatedValue = false
+  confidenceScore,
+  vehicleInfo
 }) => {
-  // Use valuation data if provided, otherwise fall back to props
-  const displayValue = showEstimatedValue && valuation 
-    ? valuation.estimatedValue || valuation.estimated_value || 0
-    : estimatedValue || 0;
+  const confidenceLevel = confidenceScore >= 85 ? 'High' :
+                          confidenceScore >= 70 ? 'Medium' : 'Low';
   
-  const displayConfidence = valuation
-    ? valuation.confidenceScore || valuation.confidence_score || 0
-    : confidenceScore || 0;
-  
-  const formatVehicleInfo = () => {
-    // If we have valuation data, use it
-    if (valuation) {
-      const { year, make, model, trim } = valuation;
-      let result = '';
-      
-      if (year) result += year + ' ';
-      if (make) result += make + ' ';
-      if (model) result += model;
-      if (trim) result += ' ' + trim;
-      
-      return result.trim() || 'Vehicle';
-    }
-    
-    // Otherwise use vehicleInfo
-    if (!vehicleInfo) return 'Vehicle';
-    
-    const { year, make, model, trim } = vehicleInfo;
-    let result = '';
-    
-    if (year) result += year + ' ';
-    if (make) result += make + ' ';
-    if (model) result += model;
-    if (trim) result += ' ' + trim;
-    
-    return result.trim() || 'Vehicle';
-  };
-  
+  const confidenceColor = confidenceScore >= 85 ? 'text-green-600' :
+                          confidenceScore >= 70 ? 'text-amber-500' : 'text-red-500';
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl">Valuation Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-1">{formatVehicleInfo()}</h3>
-          <p className="text-3xl font-bold text-primary">
-            {formatCurrency(displayValue)}
-          </p>
-          <div className="mt-2 text-sm text-muted-foreground">
-            Confidence Score: {displayConfidence}%
-          </div>
+    <div className="space-y-4">
+      <div className="flex flex-col items-center justify-center text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">Estimated Value</h3>
+          <p className="text-3xl font-bold">{formatCurrency(estimatedValue)}</p>
         </div>
         
-        {onEmailReport && (
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={onEmailReport}
-          >
-            Email Report
-          </Button>
+        <div className="mt-2 sm:mt-0">
+          <h3 className="text-sm font-medium text-muted-foreground">Confidence Score</h3>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-full rounded-full bg-gray-200">
+              <div 
+                className={cn("h-2 rounded-full", 
+                  confidenceScore >= 85 ? "bg-green-500" : 
+                  confidenceScore >= 70 ? "bg-amber-500" : 
+                  "bg-red-500"
+                )}
+                style={{ width: `${confidenceScore}%` }}
+              />
+            </div>
+            <span className={cn("text-sm font-medium", confidenceColor)}>
+              {confidenceScore}% ({confidenceLevel})
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-4 grid grid-cols-2 gap-2 rounded-md bg-gray-50 p-3 sm:grid-cols-3">
+        <div>
+          <p className="text-xs text-muted-foreground">Year</p>
+          <p className="font-medium">{vehicleInfo.year}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Make</p>
+          <p className="font-medium">{vehicleInfo.make}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Model</p>
+          <p className="font-medium">{vehicleInfo.model}</p>
+        </div>
+        {vehicleInfo.mileage && (
+          <div>
+            <p className="text-xs text-muted-foreground">Mileage</p>
+            <p className="font-medium">{vehicleInfo.mileage.toLocaleString()} mi</p>
+          </div>
         )}
-      </CardContent>
-    </Card>
+        {vehicleInfo.condition && (
+          <div>
+            <p className="text-xs text-muted-foreground">Condition</p>
+            <p className="font-medium">{vehicleInfo.condition}</p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
-
-export default ValuationSummary;

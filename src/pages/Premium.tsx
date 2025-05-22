@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Container } from '@/components/ui/container';
 import { PremiumValuationForm } from '@/components/premium/form/PremiumValuationForm';
@@ -39,10 +38,11 @@ const Premium: React.FC = () => {
   // Mock CARFAX data for demo
   const mockCarfaxData = {
     accidentsReported: 0,
-    owners: 1,
-    serviceRecords: 12,
+    owners: 2,
+    serviceRecords: 8,
     salvageTitle: false,
-    reportUrl: '#',
+    reportUrl: "https://example.com/carfax/report",
+    titleEvents: [] // Add the missing property
   };
   
   // Track mouse for 3D card effect

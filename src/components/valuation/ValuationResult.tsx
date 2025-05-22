@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ValuationResponse } from '@/types/vehicle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,7 @@ export interface ValuationResultProps {
   onUpgrade?: () => void;
 }
 
-const ValuationResult: React.FC<ValuationResultProps> = ({ 
+export const ValuationResult: React.FC<ValuationResultProps> = ({ 
   valuationId, 
   data, 
   isPremium,
@@ -32,8 +33,8 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
     console.log('Download PDF for valuation:', valuationId);
   };
 
-  const estimatedValue = data.estimatedValue || data.estimated_value || 0;
-  const confidenceScore = data.confidenceScore || data.confidence_score || 85;
+  const estimatedValue = data.estimatedValue || 0;
+  const confidenceScore = data.confidenceScore || 85;
 
   return (
     <div className="space-y-6">
@@ -81,11 +82,11 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         </CardHeader>
         <CardContent>
           <PriceRangeChart 
-            estimatedValue={estimatedValue}
             priceRange={data.price_range || {
               low: estimatedValue * 0.9,
               high: estimatedValue * 1.1
             }}
+            estimatedValue={estimatedValue}
           />
         </CardContent>
       </Card>
@@ -96,11 +97,14 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         </CardHeader>
         <CardContent>
           <MarketComparison 
-            make={data.make}
-            model={data.model}
-            year={data.year}
+            vehicleData={{
+              make: data.make,
+              model: data.model,
+              year: data.year
+            }}
             estimatedValue={estimatedValue}
             isPremium={isPremium}
+            onUpgrade={onUpgrade}
           />
         </CardContent>
       </Card>

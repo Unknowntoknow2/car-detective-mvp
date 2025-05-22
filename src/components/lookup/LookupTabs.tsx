@@ -6,7 +6,7 @@ import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { useNavigate } from 'react-router-dom';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
+import ValuationResult from '@/components/valuation/ValuationResult';
 import { Card } from '@/components/ui/card';
 import { ValuationEmptyState } from '@/components/valuation/ValuationEmptyState';
 
@@ -33,12 +33,79 @@ export function LookupTabs({
     setError(null);
   };
 
-  const handleResultsReady = (result: any) => {
-    setValuationResult(result);
+  const handleVinSubmit = (vin: string) => {
+    console.log('LOOKUP TABS VIN: Form submitted with VIN:', vin);
+    setIsLoading(true);
     
-    if (onResultsReady) {
-      onResultsReady(result);
-    }
+    // Simulate API call
+    setTimeout(() => {
+      const mockResult = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        mileage: 35000,
+        condition: 'Good',
+        estimatedValue: 22500,
+        confidenceScore: 85
+      };
+      
+      setValuationResult(mockResult);
+      setIsLoading(false);
+      
+      if (onResultsReady) {
+        onResultsReady(mockResult);
+      }
+    }, 1500);
+  };
+
+  const handlePlateSubmit = (plate: string, state: string) => {
+    console.log('LOOKUP TABS PLATE: Form submitted with plate:', plate, 'state:', state);
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      const mockResult = {
+        make: 'Honda',
+        model: 'Accord',
+        year: 2019,
+        mileage: 42000,
+        condition: 'Good',
+        estimatedValue: 21000,
+        confidenceScore: 80
+      };
+      
+      setValuationResult(mockResult);
+      setIsLoading(false);
+      
+      if (onResultsReady) {
+        onResultsReady(mockResult);
+      }
+    }, 1500);
+  };
+
+  const handleManualSubmit = (data: ManualEntryFormData) => {
+    console.log('LOOKUP TABS MANUAL: Form submitted with data:', data);
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      const mockResult = {
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        estimatedValue: 20000 + (Math.random() * 5000),
+        confidenceScore: 75
+      };
+      
+      setValuationResult(mockResult);
+      setIsLoading(false);
+      
+      if (onResultsReady) {
+        onResultsReady(mockResult);
+      }
+    }, 1500);
   };
 
   const handleReset = () => {
@@ -57,15 +124,15 @@ export function LookupTabs({
           </TabsList>
           
           <TabsContent value="vin" className="space-y-4 mt-4">
-            <VinLookup onResultsReady={handleResultsReady} />
+            <VinLookup onSubmit={handleVinSubmit} isLoading={isLoading && activeTab === 'vin'} />
           </TabsContent>
           
           <TabsContent value="plate" className="space-y-4 mt-4">
-            <PlateLookup onResultsReady={handleResultsReady} />
+            <PlateLookup onSubmit={handlePlateSubmit} isLoading={isLoading && activeTab === 'plate'} />
           </TabsContent>
           
           <TabsContent value="manual" className="space-y-4 mt-4">
-            <ManualLookup onResultsReady={handleResultsReady} />
+            <ManualLookup onSubmit={handleManualSubmit} isLoading={isLoading && activeTab === 'manual'} />
           </TabsContent>
         </Tabs>
       ) : (
@@ -81,6 +148,7 @@ export function LookupTabs({
               <ValuationResult 
                 data={valuationResult}
                 isPremium={false}
+                onUpgrade={() => navigate('/premium')}
               />
             )}
           </Card>
