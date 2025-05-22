@@ -1,8 +1,28 @@
 
-// Debug constants
-export const DEBUG_MODE = process.env.NODE_ENV === 'development';
-export const SHOW_ALL_COMPONENTS = DEBUG_MODE || false;
+// Environment & debug settings
+export const SHOW_ALL_COMPONENTS = true;
 
-// Feature flags
-export const ENABLE_PREMIUM_FEATURES = true;
-export const ENABLE_DEALER_FEATURES = true;
+// Feature flag defaults
+export const DEFAULT_FEATURES = {
+  premiumTools: true,
+  vinLookup: true,
+  aiAssistant: true,
+  pdfPreview: true,
+  marketAnalysis: true,
+  photoUpload: true,
+  dealerOffers: true,
+  drivingBehavior: true,
+};
+
+// Application defaults
+export const DEFAULT_APP_SETTINGS = {
+  theme: 'light',
+  notifications: true,
+  analyticsEnabled: true,
+};
+
+// API endpoints and config
+export const API_CONFIG = {
+  baseUrl: '/api',
+  timeout: 30000,
+};

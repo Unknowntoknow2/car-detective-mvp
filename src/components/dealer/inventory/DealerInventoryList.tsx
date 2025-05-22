@@ -20,16 +20,16 @@ export const fixStatusCheck = (status?: string) => {
 };
 
 // Dealer inventory list component
-export const DealerInventoryList = ({ 
-  inventory, 
-  isLoading, 
-  onEdit, 
-  onDelete 
-}: { 
+export const DealerInventoryList: React.FC<{ 
   inventory: DealerInventoryItem[];
   isLoading: boolean;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+}> = ({ 
+  inventory, 
+  isLoading, 
+  onEdit, 
+  onDelete 
 }) => {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -83,3 +83,5 @@ export const DealerInventoryList = ({
     </div>
   );
 };
+
+export default DealerInventoryList;
