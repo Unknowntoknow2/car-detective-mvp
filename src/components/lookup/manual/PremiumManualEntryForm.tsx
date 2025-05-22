@@ -45,9 +45,13 @@ export function PremiumManualEntryForm({
   const [bodyType, setBodyType] = useState(initialData?.bodyType || '');
   const [vin, setVin] = useState(initialData?.vin || '');
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(initialData?.selectedFeatures || []);
-  const [hasAccident, setHasAccident] = useState<boolean>(initialData?.accidentDetails?.hasAccident || false);
+  const [hasAccident, setHasAccident] = useState<boolean>(
+    initialData?.accidentDetails?.hasAccidents || 
+    initialData?.accidentDetails?.hasAccident || 
+    false
+  );
   const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>(
-    initialData?.accidentDetails || { hasAccident: false }
+    initialData?.accidentDetails || { hasAccidents: false, hasAccident: false }
   );
   
   // Add validation state to enable/disable the Continue button
@@ -100,7 +104,8 @@ export function PremiumManualEntryForm({
       selectedFeatures,
       accidentDetails: {
         ...accidentDetails,
-        hasAccident
+        hasAccidents: hasAccident,
+        hasAccident: hasAccident
       }
     };
     
@@ -109,7 +114,7 @@ export function PremiumManualEntryForm({
 
   const handleAccidentDetailsChange = (details: AccidentDetails) => {
     setAccidentDetails(details);
-    setHasAccident(details.hasAccident || false);
+    setHasAccident(details.hasAccidents || details.hasAccident || false);
   };
 
   return (
