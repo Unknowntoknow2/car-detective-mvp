@@ -93,9 +93,20 @@ export function ValuationResultStep({
   
   if (result.price_range) {
     if (Array.isArray(result.price_range)) {
-      priceRange = [result.price_range[0], result.price_range[1]];
+      priceRange = [
+        Number(result.price_range[0]), 
+        Number(result.price_range[1])
+      ];
     } else if ('min' in result.price_range && 'max' in result.price_range) {
-      priceRange = [result.price_range.min, result.price_range.max];
+      priceRange = [
+        Number(result.price_range.min), 
+        Number(result.price_range.max)
+      ];
+    } else if ('low' in result.price_range && 'high' in result.price_range) {
+      priceRange = [
+        Number(result.price_range.low), 
+        Number(result.price_range.high)
+      ];
     } else {
       priceRange = [
         Math.round(result.estimatedValue * 0.95),

@@ -1,172 +1,202 @@
 
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { useDealerVehicles } from '@/hooks/useDealerVehicles';
+import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { Label } from '@/components/ui/label';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
 
-// Define the interface for form data
-export interface DealerVehicleFormData {
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  condition: string;
-  price: number;
-  mileage?: number;
-  fuelType?: string;
-  transmission?: string;
-  zipCode?: string;
-  photos?: string[] | File[];
-  status?: string;
-  color?: string;
-  description?: string;
+interface AddEditVehicleFormProps {
+  vehicleId?: string;
+  onSuccess?: () => void;
 }
 
-export function AddEditVehicleForm({ existingVehicle = null }: { existingVehicle?: any }) {
-  const navigate = useNavigate();
+// Vehicle schema for form validation
+const vehicleSchema = z.object({
+  make: z.string().min(1, "Make is required"),
+  model: z.string().min(1, "Model is required"),
+  year: z.number().min(1900, "Year must be after 1900").max(new Date().getFullYear() + 1, "Year cannot be in the future"),
+  price: z.number().min(1, "Price is required"),
+  mileage: z.number().optional(),
+  condition: z.string().min(1, "Condition is required"),
+  fuel_type: z.string().optional(),
+  transmission: z.string().optional(),
+  zip_code: z.string().optional(),
+  status: z.string().default("available"),
+  color: z.string().optional(),
+  description: z.string().optional(),
+  photos: z.array(z.any()).optional(),
+});
+
+export const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({ vehicleId, onSuccess }) => {
+  const { addVehicle, isLoading } = useDealerVehicles();
+  const [files, setFiles] = useState<File[]>([]);
   
-  const [formData, setFormData] = useState<Partial<DealerVehicleFormData>>({
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    trim: '',
-    condition: 'Good',
-    price: 0,
-    mileage: 0,
-    fuelType: 'Gasoline',
-    transmission: 'Automatic',
-    zipCode: '',
-    status: 'available',
-    color: '',
-    description: '',
-    photos: []
+  const form = useForm<DealerVehicleFormData>({
+    resolver: zodResolver(vehicleSchema),
+    defaultValues: {
+      make: '',
+      model: '',
+      year: new Date().getFullYear(),
+      price: 0,
+      mileage: undefined,
+      condition: 'Good',
+      status: 'available',
+      photos: [],
+      color: '',
+      description: '',
+    },
   });
-  
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Load existing vehicle data if editing
+
   useEffect(() => {
-    if (existingVehicle) {
-      setFormData(prev => ({
-        ...prev,
-        ...existingVehicle
-      }));
+    if (vehicleId) {
+      // In a real app, fetch vehicle data by ID
+      // For now, just a placeholder
+      console.log(`Would fetch vehicle with ID: ${vehicleId}`);
     }
-  }, [existingVehicle]);
-  
-  const handleInputChange = (key: string, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const filesArray = Array.from(event.target.files);
-      setFormData(prev => ({
-        ...prev,
-        photos: filesArray as File[]
-      }));
+  }, [vehicleId]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...newFiles]);
+      form.setValue('photos', [...files, ...newFiles] as any);
     }
   };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
+
+  const onSubmit = async (data: DealerVehicleFormData) => {
     try {
-      // In a real implementation, you'd upload the data to your backend
-      console.log('Submitting vehicle data:', formData);
+      // Submit data with files
+      const success = await addVehicle({
+        ...data,
+        photos: files,
+      });
       
-      // Mock API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success(existingVehicle ? 'Vehicle updated successfully!' : 'Vehicle added successfully!');
-      navigate('/dealer/inventory');
+      if (success) {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }
     } catch (error) {
-      console.error('Error saving vehicle:', error);
+      console.error('Error adding vehicle:', error);
       toast.error('Failed to save vehicle. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
-  
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{existingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Basic Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="make">Make</Label>
-                <Input
-                  id="make"
-                  value={formData.make}
-                  onChange={(e) => handleInputChange('make', e.target.value)}
-                  placeholder="e.g. Toyota"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="model">Model</Label>
-                <Input
-                  id="model"
-                  value={formData.model}
-                  onChange={(e) => handleInputChange('model', e.target.value)}
-                  placeholder="e.g. Camry"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="year">Year</Label>
-                <Input
-                  id="year"
-                  type="number"
-                  value={formData.year}
-                  onChange={(e) => handleInputChange('year', parseInt(e.target.value))}
-                  min={1900}
-                  max={new Date().getFullYear() + 1}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="trim">Trim</Label>
-                <Input
-                  id="trim"
-                  value={formData.trim}
-                  onChange={(e) => handleInputChange('trim', e.target.value)}
-                  placeholder="e.g. LE, XLE, Sport"
-                />
-              </div>
-              <div>
-                <Label htmlFor="color">Color</Label>
-                <Input
-                  id="color"
-                  value={formData.color}
-                  onChange={(e) => handleInputChange('color', e.target.value)}
-                  placeholder="e.g. Silver, White, Black"
-                />
-              </div>
-              <div>
-                <Label htmlFor="condition">Condition</Label>
-                <Select
-                  value={formData.condition}
-                  onValueChange={(value) => handleInputChange('condition', value)}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Basic Vehicle Information */}
+          <FormField
+            control={form.control}
+            name="make"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Make*</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Toyota" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model*</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Camry" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year*</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="e.g. 2020" 
+                    {...field}
+                    onChange={e => field.onChange(parseInt(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price*</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="e.g. 25000" 
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="mileage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mileage</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="e.g. 35000" 
+                    {...field}
+                    value={field.value || ''}
+                    onChange={e => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="condition"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Condition*</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
                 >
-                  <SelectTrigger id="condition">
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select condition" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     <SelectItem value="Excellent">Excellent</SelectItem>
                     <SelectItem value="Good">Good</SelectItem>
@@ -174,46 +204,52 @@ export function AddEditVehicleForm({ existingVehicle = null }: { existingVehicle
                     <SelectItem value="Poor">Poor</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-          </div>
-          
-          {/* Pricing and Mileage */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Pricing and Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="price">Price ($)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange('price', parseInt(e.target.value))}
-                  min={0}
-                  placeholder="e.g. 25000"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="mileage">Mileage</Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  value={formData.mileage}
-                  onChange={(e) => handleInputChange('mileage', parseInt(e.target.value))}
-                  min={0}
-                  placeholder="e.g. 35000"
-                />
-              </div>
-              <div>
-                <Label htmlFor="fuelType">Fuel Type</Label>
-                <Select
-                  value={formData.fuelType}
-                  onValueChange={(value) => handleInputChange('fuelType', value)}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="transmission"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Transmission</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
                 >
-                  <SelectTrigger id="fuelType">
-                    <SelectValue placeholder="Select fuel type" />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select transmission" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Automatic">Automatic</SelectItem>
+                    <SelectItem value="Manual">Manual</SelectItem>
+                    <SelectItem value="CVT">CVT</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="fuel_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fuel Type</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select fuel type" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     <SelectItem value="Gasoline">Gasoline</SelectItem>
                     <SelectItem value="Diesel">Diesel</SelectItem>
@@ -221,110 +257,116 @@ export function AddEditVehicleForm({ existingVehicle = null }: { existingVehicle
                     <SelectItem value="Electric">Electric</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label htmlFor="transmission">Transmission</Label>
-                <Select
-                  value={formData.transmission}
-                  onValueChange={(value) => handleInputChange('transmission', value)}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
                 >
-                  <SelectTrigger id="transmission">
-                    <SelectValue placeholder="Select transmission" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Automatic">Automatic</SelectItem>
-                    <SelectItem value="Manual">Manual</SelectItem>
-                    <SelectItem value="CVT">CVT</SelectItem>
-                    <SelectItem value="Semi-Automatic">Semi-Automatic</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="zipCode">ZIP Code</Label>
-                <Input
-                  id="zipCode"
-                  value={formData.zipCode}
-                  onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                  placeholder="e.g. 90210"
-                />
-              </div>
-              <div>
-                <Label htmlFor="status">Listing Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleInputChange('status', value)}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
                     <SelectItem value="available">Available</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="sold">Sold</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-          </div>
-          
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Enter vehicle description"
-              rows={4}
-            />
-          </div>
-          
-          {/* Photos */}
-          <div className="space-y-2">
-            <Label htmlFor="photos">Photos</Label>
-            <Input
-              id="photos"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="cursor-pointer"
-            />
-            <p className="text-sm text-muted-foreground">
-              Upload up to 10 photos of the vehicle. First photo will be used as the main image.
-            </p>
-            
-            {formData.photos && (formData.photos as any).length > 0 && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {(formData.photos as File[]).map((file, index) => (
-                  <div key={index} className="relative overflow-hidden rounded-md aspect-square bg-gray-100">
-                    <img 
-                      src={URL.createObjectURL(file)} 
-                      alt={`Vehicle preview ${index + 1}`}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                ))}
-              </div>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
-          
-          <div className="flex justify-end space-x-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => navigate('/dealer/inventory')}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : existingVehicle ? 'Update Vehicle' : 'Add Vehicle'}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          />
+
+          <FormField
+            control={form.control}
+            name="color"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Color</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Red" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="zip_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ZIP Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 90210" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Enter vehicle description" 
+                  className="h-32" 
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="space-y-2">
+          <Label htmlFor="photos">Photos</Label>
+          <Input 
+            id="photos" 
+            type="file" 
+            multiple 
+            accept="image/*" 
+            onChange={handleFileChange} 
+          />
+          {files.length > 0 && (
+            <div className="text-sm text-gray-500">
+              {files.length} file(s) selected
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              vehicleId ? 'Update Vehicle' : 'Add Vehicle'
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
-}
+};
+
+// Also export as default for backward compatibility
+export default AddEditVehicleForm;

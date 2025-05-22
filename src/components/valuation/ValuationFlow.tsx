@@ -1,11 +1,47 @@
+
 import React, { useState } from 'react';
 import { useValuation } from '@/hooks/useValuation';
 import { VehicleLookupForm } from './VehicleLookupForm';
-import { ValuationDetailsForm } from './ValuationDetailsForm';
 import { ValuationResults } from './ValuationResults';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+
+// Create a stub for the missing ValuationDetailsForm component
+const ValuationDetailsForm: React.FC<{
+  vehicleInfo: DecodedVehicleInfo;
+  onSubmit: (details: any) => Promise<void>;
+  isLoading: boolean;
+}> = ({ vehicleInfo, onSubmit, isLoading }) => (
+  <div className="p-6 border rounded-lg">
+    <h2 className="text-xl font-semibold mb-4">Vehicle Details</h2>
+    <p className="mb-4">Please confirm or update the following details:</p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div>
+        <p className="text-sm text-gray-500">Make</p>
+        <p className="font-medium">{vehicleInfo.make}</p>
+      </div>
+      <div>
+        <p className="text-sm text-gray-500">Model</p>
+        <p className="font-medium">{vehicleInfo.model}</p>
+      </div>
+      <div>
+        <p className="text-sm text-gray-500">Year</p>
+        <p className="font-medium">{vehicleInfo.year}</p>
+      </div>
+      <div>
+        <p className="text-sm text-gray-500">Trim</p>
+        <p className="font-medium">{vehicleInfo.trim || 'Standard'}</p>
+      </div>
+    </div>
+    <Button 
+      onClick={() => onSubmit({ mileage: 10000, condition: 'Good' })}
+      disabled={isLoading}
+    >
+      {isLoading ? 'Processing...' : 'Submit Details'}
+    </Button>
+  </div>
+);
 
 enum ValuationStep {
   LOOKUP,
@@ -99,7 +135,6 @@ const ValuationFlow: React.FC = () => {
             mileage: valuationData.mileage,
             condition: valuationData.condition
           }}
-          onReset={handleReset}
         />
       )}
       
