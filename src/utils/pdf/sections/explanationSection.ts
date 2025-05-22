@@ -22,7 +22,8 @@ export function drawExplanationSection(params: SectionParams): number {
   
   // Split explanation into multiple lines for better readability
   const maxWidth = width - (margin * 2);
-  const words = data.explanation.split(' ');
+  const explanationText = data.explanation || '';
+  const words = explanationText.split(' ');
   let currentLine = '';
   
   for (const word of words) {

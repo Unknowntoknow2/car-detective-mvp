@@ -30,6 +30,10 @@ export interface ReportData {
   trim?: string;
   photoUrl?: string;
   priceRange?: [number, number] | { min: number; max: number };
+  explanation?: string;
+  isPremium?: boolean;
+  premium?: boolean;
+  baseValue?: number;
 }
 
 export interface ReportOptions {
@@ -50,6 +54,7 @@ export interface ReportOptions {
   includeBranding?: boolean;
   includePhotoAssessment?: boolean;
   watermark?: string;
+  pdfDoc?: any;
 }
 
 export interface DocumentFonts {
@@ -72,4 +77,18 @@ export interface SectionParams {
   textColor?: any;
   primaryColor?: any;
   height?: number;
+  pdfDoc?: any;
 }
+
+export type AdjustmentItem = {
+  factor: string;
+  impact: number;
+  description?: string;
+};
+
+export type Rotation = {
+  type: RotationTypes;
+  angle: number;
+};
+
+export type RotationTypes = 'radians' | 'degrees';

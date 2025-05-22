@@ -2,11 +2,11 @@
 import { SectionParams } from '../types';
 
 export function drawProfessionalOpinionSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, fonts, textColor, primaryColor } = params;
+  const { page, startY, margin, width, data, fonts, textColor, primaryColor, options } = params;
   let y = startY;
   
-  // This section is optional and only included in premium reports
-  if (!data.isPremium) {
+  // Only include this section for premium reports
+  if (options.isPremium !== true && data.isPremium !== true) {
     return y;
   }
   
@@ -14,21 +14,21 @@ export function drawProfessionalOpinionSection(params: SectionParams): number {
   page.drawText('Professional Opinion', {
     x: margin,
     y,
-    size: 14,
+    size: 12,
     font: fonts.bold,
     color: primaryColor,
   });
   
-  y -= 20;
+  y -= 15;
   
   // Sample professional opinion text
-  const opinion = "Based on our analysis, this vehicle represents a fair value in the current market. " +
-    "The condition is consistent with vehicles of similar age and mileage, and the price reflects current market trends. " +
-    "We recommend a professional inspection before purchase as standard practice.";
+  const opinionText = 
+    "Based on our expert assessment, this vehicle appears to be in line with market expectations for its age, mileage, and condition. " + 
+    "The maintenance history and condition details provided suggest the vehicle has been well-maintained.";
   
-  // Split the opinion into multiple lines
+  // Split text into multiple lines for better readability
   const maxWidth = width - (margin * 2);
-  const words = opinion.split(' ');
+  const words = opinionText.split(' ');
   let currentLine = '';
   
   for (const word of words) {
@@ -36,6 +36,7 @@ export function drawProfessionalOpinionSection(params: SectionParams): number {
     const textWidth = fonts.regular.widthOfTextAtSize(testLine, 9);
     
     if (textWidth > maxWidth) {
+      // Draw the current line and move to next line
       page.drawText(currentLine, {
         x: margin,
         y,
