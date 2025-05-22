@@ -25,6 +25,9 @@ export interface RulesEngineInput {
   drivingScore?: number;
   bodyType?: string;
   bodyStyle?: string;
+  // Add the following to fix calculator errors
+  transmission?: string;
+  transmissionMultiplier?: number;
 }
 
 // Alias for backward compatibility

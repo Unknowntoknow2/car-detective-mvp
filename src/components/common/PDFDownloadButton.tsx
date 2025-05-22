@@ -49,22 +49,20 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         year: valuationResult.year || new Date().getFullYear(),
         mileage: valuationResult.mileage || 0,
         zipCode: valuationResult.zip || valuationResult.zipCode || '',
-        // Use estimated value for both price and estimatedValue
+        // Use estimated value for price and estimatedValue
         estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
-        price: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
         adjustments: (valuationResult.adjustments || []).map((adj: any) => ({
           factor: adj.factor || '',
           impact: adj.impact || 0,
           description: adj.description || `Adjustment for ${adj.factor || 'unknown'}`
         })),
         generatedDate: new Date(),
-        generatedAt: new Date().toISOString(),
         confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore || 0,
-        priceRange: valuationResult.price_range || valuationResult.priceRange || [0, 0],
         aiCondition: valuationResult.aiCondition || {
-          summary: '',
-          score: 0,
-          condition: ''
+          condition: 'Unknown',
+          confidenceScore: 0,
+          issuesDetected: [],
+          summary: 'No condition assessment available'
         }
       };
       

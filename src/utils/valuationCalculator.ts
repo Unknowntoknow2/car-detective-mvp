@@ -1,64 +1,116 @@
 
-import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
 import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
+import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
 
-/**
- * Calculate a vehicle's value
- */
-export async function calculateVehicleValue(input: RulesEngineInput): Promise<{
-  estimatedValue: number;
-  adjustments: AdjustmentBreakdown[];
-  confidenceScore: number;
-}> {
-  try {
-    // Starting point - base value
-    const baseValue = input.baseValue || 20000; // Example default
-    
-    // Calculate adjustments
-    const adjustments = await calculateAdjustments(input);
-    
-    // Calculate total adjustment amount
-    const totalAdjustment = calculateTotalAdjustment(adjustments);
-    
-    // Final value
-    const estimatedValue = baseValue + totalAdjustment;
-    
-    // Simple confidence score (in real app, would be more sophisticated)
-    const confidenceScore = Math.min(95, 70 + adjustments.length * 5);
-    
-    return {
-      estimatedValue: Math.max(0, Math.round(estimatedValue)),
-      adjustments,
-      confidenceScore
-    };
-  } catch (error) {
-    console.error('Error calculating vehicle value:', error);
-    throw error;
-  }
+// Export these type definitions for the ValuationCalculatorDemo component
+export interface ValuationParams {
+  baseMarketValue?: number;
+  mileage?: number;
+  condition?: string;
+  zipCode: string;
+  features?: string[];
+  make?: string;
+  model?: string;
+  year?: number;
+  vehicleYear?: number;
+  accidentCount?: number;
+  trim?: string;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+  titleStatus?: string;
+  exteriorColor?: string;
+  colorMultiplier?: number;
+  saleDate?: string;
+  mpg?: number;
+  aiConditionOverride?: any;
+  photoScore?: number;
 }
 
-/**
- * Advanced valuation calculator with confidence scoring
- */
-export async function calculateEnhancedValuation(input: RulesEngineInput): Promise<{
+export interface ValuationResult {
   estimatedValue: number;
-  adjustments: AdjustmentBreakdown[];
   confidenceScore: number;
-  priceRange: { min: number; max: number };
-}> {
-  const { estimatedValue, adjustments, confidenceScore } = await calculateVehicleValue(input);
+  priceRange: [number, number];
+  basePrice?: number;
+  baseValue?: number;
+  finalValue?: number;
+  adjustments: AdjustmentBreakdown[];
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  vin?: string;
+  isPremium?: boolean;
+  features?: string[];
+  color?: string;
+  bodyStyle?: string;
+  bodyType?: string;
+  fuelType?: string;
+  explanation?: string;
+  transmission?: string;
+  bestPhotoUrl?: string;
+  photoScore?: number;
+  photoExplanation?: string;
+}
+
+// Provide a renamed version of calculateAdjustments as calculateFinalValuation for backward compatibility
+export const calculateFinalValuation = async (input: ValuationParams): Promise<ValuationResult> => {
+  // Convert ValuationParams to RulesEngineInput
+  const rulesInput: RulesEngineInput = {
+    make: input.make || '',
+    model: input.model || '',
+    year: input.year || input.vehicleYear || new Date().getFullYear(),
+    mileage: input.mileage || 0,
+    condition: input.condition || 'Good',
+    zipCode: input.zipCode,
+    trim: input.trim,
+    fuelType: input.fuelType,
+    transmissionType: input.transmission,
+    accidentCount: input.accidentCount,
+    exteriorColor: input.exteriorColor,
+    features: input.features,
+    aiConditionOverride: input.aiConditionOverride,
+    photoScore: input.photoScore,
+    basePrice: input.baseMarketValue,
+    bodyType: input.bodyType,
+    bodyStyle: input.bodyType,
+    colorMultiplier: input.colorMultiplier
+  };
+
+  // Calculate adjustments
+  const adjustments = await calculateAdjustments(rulesInput);
+  const totalAdjustment = calculateTotalAdjustment(adjustments);
   
-  // Create price range (in real app, would be more sophisticated)
-  const variancePercentage = Math.max(5, 20 - (confidenceScore / 5));
-  const variance = estimatedValue * (variancePercentage / 100);
+  // Calculate estimated value
+  const baseValue = input.baseMarketValue || 20000;
+  const estimatedValue = Math.round(baseValue + totalAdjustment);
+  
+  // Calculate confidence score (mock implementation)
+  const confidenceScore = 85;
+  
+  // Calculate price range
+  const priceRange: [number, number] = [
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05)
+  ];
   
   return {
     estimatedValue,
-    adjustments,
     confidenceScore,
-    priceRange: {
-      min: Math.max(0, Math.round(estimatedValue - variance)),
-      max: Math.round(estimatedValue + variance)
-    }
+    priceRange,
+    basePrice: baseValue,
+    baseValue,
+    finalValue: estimatedValue,
+    adjustments,
+    make: input.make,
+    model: input.model,
+    year: input.year,
+    mileage: input.mileage,
+    condition: input.condition,
+    photoScore: input.photoScore
   };
-}
+};
+
+// Add an alias for backward compatibility
+export const calculateEnhancedValuation = calculateFinalValuation;
