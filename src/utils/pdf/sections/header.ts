@@ -1,5 +1,6 @@
 
 import { SectionParams } from '../types';
+import { rgb } from 'pdf-lib';
 
 /**
  * Add the header section to the PDF
@@ -7,7 +8,17 @@ import { SectionParams } from '../types';
  * @returns The new Y position after adding the section
  */
 export async function addHeaderSection(params: SectionParams): Promise<number> {
-  // This is a placeholder implementation that's already fully implemented
-  // in the premiumReportGenerator.ts file directly
-  return params.y ?? params.startY - 100;
+  const { page, fonts, data, margin, width, pageWidth } = params;
+  const y = params.y ?? params.startY;
+  
+  // Draw title
+  page.drawText('Vehicle Valuation Report', {
+    x: margin,
+    y,
+    size: 24,
+    font: fonts.bold,
+    color: params.textColor || rgb(0.1, 0.1, 0.1),
+  });
+  
+  return y - 50;
 }
