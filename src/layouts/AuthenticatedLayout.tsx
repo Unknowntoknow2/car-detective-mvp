@@ -19,7 +19,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate('/sign-in', { state: { from: window.location.pathname } });
+      navigate('/auth', { state: { from: window.location.pathname } });
     }
     
     if (!isLoading && user && requireRole && userDetails?.role !== requireRole) {
