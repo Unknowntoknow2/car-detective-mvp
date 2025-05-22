@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -110,7 +111,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading} 
               redirectPath={from}
-              userRole="individual" as UserRole
+              userRole={'individual' as UserRole}
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -129,7 +130,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading}
               redirectPath={from}
-              userRole="individual" as UserRole
+              userRole={'individual' as UserRole}
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -148,7 +149,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading} 
               redirectPath="/dealer/dashboard"
-              userRole="dealer" as UserRole
+              userRole={'dealer' as UserRole}
             />
             <div className="text-center pt-4 border-t mt-4">
               <button
@@ -167,7 +168,7 @@ const AuthForm = ({
               isLoading={isLoading} 
               setIsLoading={setIsLoading}
               redirectPath="/dealer/dashboard"
-              userRole="dealer" as UserRole
+              userRole={'dealer' as UserRole}
               showDealershipField={true}
             />
             <div className="text-center pt-4 border-t mt-4">
