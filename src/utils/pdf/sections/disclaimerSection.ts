@@ -1,24 +1,52 @@
+
 import { SectionParams } from '../types';
 
-export const drawDisclaimerSection = (params: SectionParams): number => {
-  const { doc, data, margin = 40 } = params;
+export function drawDisclaimerSection(params: SectionParams): number {
+  const { page, startY, margin, width, font, textColor } = params;
+  let y = startY;
   
-  // Current Y position
-  const currentY = doc.y + 20;
+  const disclaimer = 'DISCLAIMER: This valuation is an estimate based on market data and the vehicle information provided. Actual sale prices may vary based on factors not considered in this report including but not limited to local market conditions, vehicle history, and specific vehicle features. This report is not a guarantee of any specific sale price.';
   
-  // Draw disclaimer text
-  doc.fontSize(9)
-     .font('Helvetica-Italic')
-     .fillColor('#888888')
-     .text(
-       data.disclaimerText || 'This valuation is an estimate based on market data and may not reflect the actual value of this specific vehicle. Factors such as actual condition, local market variations, and unique vehicle history can affect the real-world value.',
-       margin,
-       currentY,
-       {
-         width: doc.page.width - (margin * 2),
-         align: 'left'
-       }
-     );
+  // Split disclaimer into multiple lines for better readability
+  const maxWidth = width - (margin * 2);
+  const words = disclaimer.split(' ');
+  let currentLine = '';
   
-  return doc.y + 10;
-};
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const textWidth = font.widthOfTextAtSize(testLine, 7);
+    
+    if (textWidth > maxWidth) {
+      // Draw the current line and move to next line
+      page.drawText(currentLine, {
+        x: margin,
+        y,
+        size: 7,
+        font: font,
+        color: textColor,
+        opacity: 0.7,
+      });
+      
+      y -= 10;
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  // Draw the last line if there's anything left
+  if (currentLine) {
+    page.drawText(currentLine, {
+      x: margin,
+      y,
+      size: 7,
+      font: font,
+      color: textColor,
+      opacity: 0.7,
+    });
+    
+    y -= 10;
+  }
+  
+  return y; // Return the new Y position
+}

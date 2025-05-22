@@ -1,23 +1,68 @@
+
 import { SectionParams } from '../types';
 
-/**
- * Draw professional opinion section on the PDF
- */
-export const drawProfessionalOpinionSection = (params: SectionParams) => {
-  const { doc, data, margin = 40 } = params;
+export function drawProfessionalOpinionSection(params: SectionParams): number {
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor } = params;
+  let y = startY;
   
-  // Calculate the current Y position
-  const currentY = doc.y + 20;
-
+  // This section is optional and only included in premium reports
+  if (!data.isPremium) {
+    return y;
+  }
+  
   // Draw section title
-  doc.fontSize(14)
-     .font('Helvetica-Bold')
-     .text('Professional Opinion', margin, currentY);
+  page.drawText('Professional Opinion', {
+    x: margin,
+    y,
+    size: 14,
+    font: boldFont,
+    color: primaryColor,
+  });
   
-  // Placeholder for actual implementation
-  doc.fontSize(10)
-     .font('Helvetica')
-     .text('Professional analysis of vehicle condition and market position will appear here.', margin, currentY + 25);
-
-  return doc.y + 20; // Return the new Y position
-};
+  y -= 20;
+  
+  // Sample professional opinion text
+  const opinion = "Based on our analysis, this vehicle represents a fair value in the current market. " +
+    "The condition is consistent with vehicles of similar age and mileage, and the price reflects current market trends. " +
+    "We recommend a professional inspection before purchase as standard practice.";
+  
+  // Split the opinion into multiple lines
+  const maxWidth = width - (margin * 2);
+  const words = opinion.split(' ');
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const textWidth = font.widthOfTextAtSize(testLine, 9);
+    
+    if (textWidth > maxWidth) {
+      page.drawText(currentLine, {
+        x: margin,
+        y,
+        size: 9,
+        font: font,
+        color: textColor,
+      });
+      
+      y -= 12;
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  // Draw the last line if there's anything left
+  if (currentLine) {
+    page.drawText(currentLine, {
+      x: margin,
+      y,
+      size: 9,
+      font: font,
+      color: textColor,
+    });
+    
+    y -= 20;
+  }
+  
+  return y; // Return the new Y position
+}

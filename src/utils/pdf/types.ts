@@ -8,11 +8,7 @@ export interface ReportData {
   estimatedValue: number;
   confidenceScore?: number;
   priceRange?: [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
+  adjustments?: Array<AdjustmentItem>;
   explanation?: string;
   generatedAt?: string;
   vin?: string;
@@ -21,6 +17,23 @@ export interface ReportData {
   premium?: boolean;
   isPremium?: boolean;
   isSample?: boolean;
+  trim?: string;
+  transmission?: string;
+  bodyStyle?: string;
+  color?: string;
+  fuelType?: string;
+  photoUrl?: string;
+  bestPhotoUrl?: string;
+  photoScore?: number;
+  features?: string[];
+  regionName?: string;
+  price?: number;
+}
+
+export interface AdjustmentItem {
+  factor: string;
+  impact: number;
+  description?: string;
 }
 
 export interface ReportOptions {
@@ -31,4 +44,23 @@ export interface ReportOptions {
   fontSize: number;
   pdfQuality: 'standard' | 'high';
   isPremium?: boolean;
+}
+
+export interface SectionParams {
+  page: any;
+  startY: number;
+  width: number;
+  margin: number;
+  data: ReportData;
+  options: ReportOptions;
+  font: any;
+  boldFont: any;
+  italicFont?: any;
+  textColor: any;
+  primaryColor: any;
+}
+
+export interface ReportGeneratorParams {
+  data: ReportData;
+  options: ReportOptions;
 }

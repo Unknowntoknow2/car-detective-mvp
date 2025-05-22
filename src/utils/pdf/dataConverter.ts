@@ -1,6 +1,6 @@
 
 import { ValuationResult } from '@/types/valuation';
-import { ReportData } from './types';
+import { ReportData, AdjustmentItem } from './types';
 
 /**
  * Convert a basic valuation result to the PDF report data format
@@ -14,7 +14,6 @@ export function convertBasicValuationToPdfData(
     make: valuationResult.make || '',
     model: valuationResult.model || '',
     year: valuationResult.year || new Date().getFullYear(),
-    trim: valuationResult.trim || '',
     mileage: valuationResult.mileage || 0,
     vin: valuationResult.vin || '',
     
@@ -22,6 +21,7 @@ export function convertBasicValuationToPdfData(
     estimatedValue: valuationResult.estimatedValue || valuationResult.estimated_value || 0,
     confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore || 75,
     priceRange: Array.isArray(valuationResult.priceRange) ? valuationResult.priceRange as [number, number] : [0, 0],
+    condition: valuationResult.condition || 'Good',
     
     // Additional adjustment data
     adjustments: Array.isArray(valuationResult.adjustments) 
@@ -42,10 +42,9 @@ export function convertBasicValuationToPdfData(
     
     // Location Information
     zipCode: valuationResult.zipCode || valuationResult.zip_code || valuationResult.zip || '',
-    regionName: valuationResult.regionName || '',
     
     // Additional Information
-    generatedDate: new Date(),
+    generatedAt: new Date().toISOString(),
     explanation: explanation || generateDefaultExplanation(valuationResult)
   };
 }
@@ -81,22 +80,11 @@ export function convertPremiumValuationToPdfData(
   return {
     ...basicData,
     
-    // Photo information
-    photoUrl: valuationResult.photoUrl || valuationResult.photo_url || '',
-    bestPhotoUrl: valuationResult.bestPhotoUrl || valuationResult.photo_url || '',
-    photoScore: valuationResult.photoScore || 0,
-    
-    // Features
-    features: valuationResult.features || [],
-    
     // Premium flag
     premium: true,
     
     // Additional details
     fuelType: valuationResult.fuelType || valuationResult.fuel_type || '',
-    transmission: valuationResult.transmission || '',
-    bodyStyle: valuationResult.bodyType || valuationResult.bodyStyle || '',
-    color: valuationResult.color || '',
     
     // Override condition with more detailed data if available
     aiCondition: valuationResult.aiCondition || { 
@@ -113,11 +101,11 @@ export function convertPremiumValuationToPdfData(
  */
 function generateDefaultExplanation(valuationResult: ValuationResult): string {
   return `
-This valuation for the ${valuationResult.year || ''} ${valuationResult.make || ''} ${valuationResult.model || ''} ${valuationResult.trim || ''} 
+This valuation for the ${valuationResult.year || ''} ${valuationResult.make || ''} ${valuationResult.model || ''} 
 is based on current market conditions and the vehicle's specific details.
 
 The vehicle's condition (${typeof valuationResult.condition === 'string' ? valuationResult.condition : 'Average'}) and mileage (${(valuationResult.mileage || 0).toLocaleString()} miles) 
-have been factored into this valuation, along with regional market trends for ${valuationResult.regionName || 'your area'}.
+have been factored into this valuation, along with regional market trends for your area.
 
 The estimated value represents the private party sale value. Dealership trade-in values 
 may be approximately 10-15% lower than this estimate.

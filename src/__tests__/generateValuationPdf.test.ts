@@ -35,6 +35,7 @@ describe('generateValuationPdf', () => {
       mileage: 15000,
       zipCode: '90210',
       estimatedValue: 25000,
+      condition: 'Good',
       adjustments: [
         {
           factor: 'Mileage',
@@ -54,7 +55,7 @@ describe('generateValuationPdf', () => {
         issuesDetected: [],
         summary: 'Vehicle is in good condition.'
       },
-      generatedDate: new Date(),
+      generatedAt: new Date().toISOString(),
     };
 
     // Generate the PDF
@@ -73,6 +74,7 @@ describe('generateValuationPdf', () => {
       year: 2019,
       mileage: 20000,
       estimatedValue: 18000,
+      condition: 'Fair',
       confidenceScore: 80,
       zipCode: '10001',
       aiCondition: {
@@ -81,7 +83,7 @@ describe('generateValuationPdf', () => {
         issuesDetected: [],
         summary: 'Vehicle is in fair condition.'
       },
-      generatedDate: new Date(),
+      generatedAt: new Date().toISOString(),
     };
 
     // Generate the PDF with minimal data
