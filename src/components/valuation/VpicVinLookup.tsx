@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Check, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatDate, formatRelativeTime } from '@/utils/formatters';
+import { formatDate } from '@/utils/formatters';
+import { formatRelativeTime } from '@/utils/formatters/formatRelativeTime';
 
 export function VpicVinLookup({ vin }: { vin: string }) {
   const [isLoading, setIsLoading] = useState(false);
