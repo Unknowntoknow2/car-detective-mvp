@@ -15,7 +15,7 @@ import PremiumReportsList from '@/components/dashboard/PremiumReportsList';
 import { usePremiumCredits } from '@/hooks/usePremiumCredits';
 
 export default function DashboardPage() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, userDetails, isLoading: isAuthLoading } = useAuth();
   const { credits, isLoading: isCreditsLoading } = usePremiumCredits();
   const navigate = useNavigate();
 
@@ -41,9 +41,9 @@ export default function DashboardPage() {
   const getInitials = () => {
     if (!user) return '?';
     
-    const name = user.full_name || user.email || '';
+    const name = userDetails?.full_name || user.email || '';
     return name.split(' ')
-      .map(part => part[0])
+      .map((part: string) => part[0])
       .join('')
       .toUpperCase()
       .substring(0, 2);
@@ -58,12 +58,12 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-14 w-14 border-2 border-muted">
-                  <AvatarImage src={user?.avatar_url || ''} />
+                  <AvatarImage src={userDetails?.avatar_url || ''} />
                   <AvatarFallback>{getInitials()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight">
-                    Welcome, {user?.full_name || 'User'}
+                    Welcome, {userDetails?.full_name || 'User'}
                   </h1>
                   <p className="text-muted-foreground">
                     {user?.email}
@@ -76,7 +76,7 @@ export default function DashboardPage() {
                     {credits} Premium Credit{credits !== 1 ? 's' : ''}
                   </Badge>
                 )}
-                {user?.role === 'dealer' && (
+                {userDetails?.role === 'dealer' && (
                   <Badge variant="outline" className="px-3 py-1 text-sm">
                     Dealer Account
                   </Badge>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {user?.role === 'dealer' ? (
+              {userDetails?.role === 'dealer' ? (
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg">Dealer Dashboard</CardTitle>
