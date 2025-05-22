@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -48,8 +49,9 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
       // Sign in using the auth context
       const result = await signIn(email, password);
       
-      if (result?.error) {
-        throw new Error(errorToString(result.error));
+      if (result === false || (typeof result === 'object' && result?.error)) {
+        const errorMessage = typeof result === 'object' ? errorToString(result.error) : 'Authentication failed';
+        throw new Error(errorMessage);
       }
       
       // Check if the user has the expected role

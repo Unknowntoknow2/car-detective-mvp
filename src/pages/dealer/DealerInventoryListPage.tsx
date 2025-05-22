@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
 import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
@@ -31,44 +30,56 @@ export default function DealerInventoryListPage() {
         // Mock inventory data
         const mockInventory: DealerInventoryItem[] = [
           {
-            id: '1',
-            make: 'Toyota',
-            model: 'Camry',
-            year: 2019,
-            listingPrice: 23500,
-            condition: 'Excellent',
-            mileage: 32000,
-            status: 'available'
-          },
-          {
-            id: '2',
-            make: 'Honda',
-            model: 'Accord',
+            id: "1",
+            dealerId: "dealer-123",
+            vin: "1HGCM82633A123456",
+            make: "Toyota",
+            model: "Camry",
             year: 2020,
-            listingPrice: 25900,
-            condition: 'Good',
-            mileage: 28000,
-            status: 'available'
+            listingPrice: 25000,
+            price: 25000,
+            condition: "Excellent",
+            mileage: 15000,
+            status: "available"
           },
           {
-            id: '3',
-            make: 'Ford',
-            model: 'F-150',
-            year: 2018,
-            listingPrice: 29800,
-            condition: 'Good',
-            mileage: 45000,
-            status: 'available'
-          },
-          {
-            id: '4',
-            make: 'Chevrolet',
-            model: 'Equinox',
+            id: "2",
+            dealerId: "dealer-456",
+            vin: "1HGCM82633A123457",
+            make: "Honda",
+            model: "Accord",
             year: 2021,
+            listingPrice: 26000,
+            price: 26000,
+            condition: "Good",
+            mileage: 29000,
+            status: "available"
+          },
+          {
+            id: "3",
+            dealerId: "dealer-789",
+            vin: "1HGCM82633A123458",
+            make: "Ford",
+            model: "F-150",
+            year: 2019,
+            listingPrice: 28000,
+            price: 28000,
+            condition: "Good",
+            mileage: 46000,
+            status: "available"
+          },
+          {
+            id: "4",
+            dealerId: "dealer-012",
+            vin: "1HGCM82633A123459",
+            make: "Chevrolet",
+            model: "Equinox",
+            year: 2022,
             listingPrice: 27500,
-            condition: 'Excellent',
-            mileage: 18000,
-            status: 'pending'
+            price: 27500,
+            condition: "Excellent",
+            mileage: 19000,
+            status: "pending"
           }
         ];
         

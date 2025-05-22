@@ -18,7 +18,8 @@ const ValuationDetailPage = () => {
     accidents: 0,
     condition: 'Good',
     estimatedValue: 22500,
-    confidenceScore: 85 // Add the required property
+    confidenceScore: 85,
+    valuationId: id || 'mock-valuation-id' // Added the required valuationId
   };
 
   return (

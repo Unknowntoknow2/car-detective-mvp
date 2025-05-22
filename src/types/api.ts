@@ -7,6 +7,18 @@ export interface VinDecoderResponse {
   error?: string;
 }
 
+export interface DecodedVINResponse {
+  success: boolean;
+  data?: DecodedVehicleInfo;
+  error?: string;
+}
+
+export interface PlateLookupResponse {
+  success: boolean;
+  data?: DecodedVehicleInfo;
+  error?: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

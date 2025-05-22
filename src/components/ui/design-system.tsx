@@ -1,117 +1,87 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
+
+export interface DesignCardProps {
+  children: React.ReactNode;
+  variant?: 'solid' | 'outlined' | 'glass' | 'elevated';
+  className?: string;
+  title?: string; // Make title optional
+}
+
+export const DesignCard: React.FC<DesignCardProps> = ({ 
+  children, 
+  variant = 'solid', 
+  className,
+  title
+}) => {
+  const variantClasses = {
+    'solid': 'bg-card text-card-foreground shadow-sm',
+    'outlined': 'border border-border bg-background',
+    'glass': 'backdrop-blur-sm bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10',
+    'elevated': 'bg-white dark:bg-black shadow-lg'
+  };
+
+  return (
+    <div className={cn('rounded-lg p-6', variantClasses[variant], className)}>
+      {title && <h3 className="text-lg font-semibold mb-2">{title}</h3>}
+      {children}
+    </div>
+  );
+};
 
 export interface SectionHeaderProps {
   title: string;
   description?: string;
-  size?: 'sm' | 'md' | 'lg';
   align?: 'left' | 'center' | 'right';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
+  badge?: string; // Added badge property
 }
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   description,
-  size = 'md',
   align = 'left',
+  size = 'md',
   className,
+  badge
 }) => {
-  const alignClass = {
+  const alignClasses = {
     left: 'text-left',
-    center: 'text-center',
-    right: 'text-right',
-  }[align];
+    center: 'text-center mx-auto',
+    right: 'text-right ml-auto'
+  };
 
   const sizeClasses = {
-    sm: 'text-xl md:text-2xl',
-    md: 'text-2xl md:text-3xl',
-    lg: 'text-3xl md:text-4xl',
-  }[size];
+    sm: 'max-w-md',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl'
+  };
 
   return (
-    <div className={cn("mb-8", alignClass, className)}>
-      <h2 className={cn("font-bold tracking-tight", sizeClasses)}>
-        {title}
-      </h2>
+    <div className={cn(alignClasses[align], sizeClasses[size], className)}>
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <h2 className={cn(
+          "font-bold tracking-tight",
+          size === 'lg' ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'
+        )}>
+          {title}
+        </h2>
+        {badge && (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-foreground">
+            {badge}
+          </span>
+        )}
+      </div>
       {description && (
-        <p className="mt-2 text-muted-foreground max-w-3xl">
+        <p className={cn(
+          "text-muted-foreground",
+          size === 'lg' ? 'text-lg' : 'text-base'
+        )}>
           {description}
         </p>
       )}
     </div>
-  );
-};
-
-export interface DesignCardProps {
-  title: string;
-  description?: string;
-  icon?: React.ReactNode;
-  footer?: React.ReactNode;
-  className?: string;
-  children?: React.ReactNode;
-  variant?: 'default' | 'premium' | string;
-}
-
-export const DesignCard: React.FC<DesignCardProps> = ({
-  title,
-  description,
-  icon,
-  footer,
-  className,
-  children,
-  variant = 'default'
-}) => {
-  const variantClasses = variant === 'premium' 
-    ? 'border-amber-200 bg-amber-50' 
-    : 'bg-card text-card-foreground';
-
-  return (
-    <div className={cn("rounded-lg border shadow", variantClasses, className)}>
-      <div className="p-6">
-        <div className="flex items-center gap-4 mb-4">
-          {icon && <div className="text-primary">{icon}</div>}
-          <h3 className="text-lg font-semibold">{title}</h3>
-        </div>
-        {description && (
-          <p className="text-sm text-muted-foreground mb-4">{description}</p>
-        )}
-        {children && <div className="mt-4">{children}</div>}
-      </div>
-      {footer && (
-        <div className="p-6 pt-0 border-t mt-4">
-          {footer}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Create a Button component that extends the UI button with isLoading support
-export interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  isLoading?: boolean;
-  loadingText?: string;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'premium';
-}
-
-export const LoadingButton: React.FC<LoadingButtonProps> = ({
-  children,
-  isLoading,
-  loadingText = 'Loading...',
-  variant = 'default',
-  ...props
-}) => {
-  // Map premium variant to default with custom styling
-  const buttonVariant = variant === 'premium' ? 'default' : variant;
-  const premiumClasses = variant === 'premium' ? 'bg-amber-500 hover:bg-amber-600 text-white' : '';
-  
-  return (
-    <button
-      {...props}
-      className={cn(props.className, premiumClasses)}
-      disabled={isLoading || props.disabled}
-    >
-      {isLoading ? loadingText : children}
-    </button>
   );
 };

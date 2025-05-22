@@ -1,5 +1,4 @@
 
-
 export enum ConditionLevel {
   Poor = "Poor",
   Fair = "Fair",
