@@ -78,7 +78,20 @@ export function MarketAnalysisTab({
         daysListed: 21,
         source: 'Carvana'
       }
-    ]
+    ],
+    // Add mock data for PriceComparisonChart
+    averagePrices: {
+      retail: 25500,
+      auction: 21200,
+      private: 23800,
+      overall: 24000
+    },
+    priceRange: {
+      min: 21000,
+      max: 27000
+    },
+    estimatedValue: 24000,
+    normalizedValue: 24500
   };
   
   // For demo purposes, show a decreasing trend if the year is older
@@ -121,6 +134,10 @@ export function MarketAnalysisTab({
                 year,
                 zipCode
               }}
+              averagePrices={mockData.averagePrices}
+              priceRange={mockData.priceRange}
+              estimatedValue={mockData.estimatedValue}
+              normalizedValue={mockData.normalizedValue}
             />
           </TabsContent>
           

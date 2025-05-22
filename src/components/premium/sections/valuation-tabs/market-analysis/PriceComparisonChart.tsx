@@ -109,7 +109,7 @@ export function PriceComparisonChart({
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="name" />
             <YAxis 
-              tickFormatter={(value) => formatCurrency(value, { notation: 'compact' })} 
+              tickFormatter={(value) => formatCurrency(value, "compact")} 
               domain={[0, Math.max(priceRange.max * 1.1, normalizedValue * 1.1)]}
             />
             <Tooltip content={<CustomTooltip />} />
