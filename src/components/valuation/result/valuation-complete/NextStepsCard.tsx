@@ -8,12 +8,14 @@ interface NextStepsCardProps {
   valuationId: string;
   onShareClick?: () => void;
   isPremium?: boolean;
+  onUpgrade?: () => void;
 }
 
 export const NextStepsCard: React.FC<NextStepsCardProps> = ({
   valuationId,
   onShareClick,
-  isPremium = false
+  isPremium = false,
+  onUpgrade
 }) => {
   return (
     <Card>
@@ -39,13 +41,16 @@ export const NextStepsCard: React.FC<NextStepsCardProps> = ({
             </Button>
           </div>
           
-          {!isPremium && (
+          {!isPremium && onUpgrade && (
             <div className="bg-amber-50 border border-amber-200 p-4 rounded-md">
               <h3 className="font-semibold text-amber-700">Unlock Premium Features</h3>
               <p className="text-sm text-amber-600 mb-2">
                 Get detailed market analysis, trade-in values, and dealer offers.
               </p>
-              <Button className="w-full bg-amber-500 hover:bg-amber-600">
+              <Button 
+                className="w-full bg-amber-500 hover:bg-amber-600"
+                onClick={onUpgrade}
+              >
                 Upgrade to Premium
               </Button>
             </div>

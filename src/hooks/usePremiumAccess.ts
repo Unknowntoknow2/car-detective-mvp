@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PremiumAccessState {
@@ -91,5 +91,37 @@ export const usePremiumAccess = (valuationId?: string) => {
     checkPremiumAccess();
   }, [valuationId]);
 
-  return state;
+  // Add the usePremiumCredit method
+  const usePremiumCredit = useCallback(async (valId: string) => {
+    try {
+      if (!valId) {
+        throw new Error('Valuation ID is required');
+      }
+
+      const { data, error } = await supabase.functions.invoke('use-premium-credit', {
+        body: { valuation_id: valId }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Refresh premium access state after using a credit
+      setState(prev => ({
+        ...prev,
+        hasPremiumAccess: true,
+        creditsRemaining: Math.max(0, prev.creditsRemaining - 1),
+      }));
+
+      return data;
+    } catch (err) {
+      console.error('Error using premium credit:', err);
+      return { success: false, error: err instanceof Error ? err.message : 'Failed to use premium credit' };
+    }
+  }, []);
+
+  return {
+    ...state,
+    usePremiumCredit
+  };
 };
