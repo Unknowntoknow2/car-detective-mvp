@@ -1,42 +1,40 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
 export interface DesignCardProps {
   children: React.ReactNode;
+  variant?: 'default' | 'outlined' | 'elevated' | 'filled';
   className?: string;
-  title?: string;
-  variant?: 'default' | 'outline' | 'premium' | string;
+  title?: string; // Make title optional
 }
 
 export const DesignCard: React.FC<DesignCardProps> = ({
   children,
+  variant = 'default',
   className,
   title,
-  variant = 'default'
 }) => {
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'outline':
-        return 'border border-border bg-background/50 hover:bg-background/80';
-      case 'premium':
-        return 'border border-amber-200 bg-amber-50/50 hover:bg-amber-50/80 text-amber-900';
-      default:
-        return 'bg-white border border-border shadow-sm hover:shadow';
-    }
+  // Apply different styles based on variant
+  const variantStyles = {
+    default: 'bg-white border border-border',
+    outlined: 'border border-border bg-transparent',
+    elevated: 'shadow-md bg-white',
+    filled: 'bg-muted',
   };
 
   return (
-    <div
-      className={cn(
-        'rounded-lg p-4 transition-all duration-200',
-        getVariantStyles(),
-        className
+    <Card className={cn(variantStyles[variant], className)}>
+      {title && (
+        <div className="px-5 py-3 border-b font-medium">
+          {title}
+        </div>
       )}
-    >
-      {title && <h3 className="text-lg font-semibold mb-2">{title}</h3>}
-      {children}
-    </div>
+      <CardContent className={cn("p-5", !title && "pt-5")}>
+        {children}
+      </CardContent>
+    </Card>
   );
 };
 
