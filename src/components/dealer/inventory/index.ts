@@ -1,5 +1,5 @@
 
 // Export DealerInventoryList
-export { default } from './DealerInventoryList';
-// Alternatively, if there's a named export
-// export * from './DealerInventoryList';
+export { fixStatusCheck } from './DealerInventoryList';
+export * from './DealerInventoryList';
+
