@@ -2,7 +2,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 const Layout = () => {
@@ -19,13 +18,11 @@ const Layout = () => {
   console.log("✅ Debug mode:", SHOW_ALL_COMPONENTS ? "ENABLED" : "DISABLED");
   
   return (
-    <TooltipProvider>
-      <div className="min-h-screen flex flex-col bg-surface">
-        <main className={`flex-grow container mx-auto ${isMobile ? 'px-4 py-6' : 'px-6 py-8'}`}>
-          <Outlet />
-        </main>
-      </div>
-    </TooltipProvider>
+    <div className="min-h-screen flex flex-col bg-surface">
+      <main className={`flex-grow container mx-auto ${isMobile ? 'px-4 py-6' : 'px-6 py-8'}`}>
+        <Outlet />
+      </main>
+    </div>
   );
 };
 
