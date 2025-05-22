@@ -1,281 +1,330 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { DealerVehicleFormData } from '@/types/vehicle';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ImageUploadSection } from './vehicle-upload/ImageUploadSection';
+import { useNavigate } from 'react-router-dom';
 
-export interface AddEditVehicleFormProps {
-  vehicleId?: string;
-  onSuccess?: () => void;
-  initialData?: Partial<DealerVehicleFormData>;
-  isSubmitting?: boolean;
+// Define the interface for form data
+export interface DealerVehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  condition: string;
+  price: number;
+  mileage?: number;
+  fuelType?: string;
+  transmission?: string;
+  zipCode?: string;
+  photos?: string[] | File[];
+  status?: string;
+  color?: string;
+  description?: string;
 }
 
-const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
-  vehicleId,
-  onSuccess,
-  initialData = {},
-  isSubmitting = false
-}) => {
-  const [formData, setFormData] = useState<DealerVehicleFormData>({
-    make: initialData.make || '',
-    model: initialData.model || '',
-    year: initialData.year || new Date().getFullYear(),
-    price: initialData.price,
-    mileage: initialData.mileage,
-    condition: initialData.condition || 'Good',
-    status: initialData.status || 'Available',
-    fuelType: initialData.fuelType,
-    transmission: initialData.transmission,
-    color: initialData.color || '',
-    description: initialData.description || '',
-    photos: initialData.photos || []
+export function AddEditVehicleForm({ existingVehicle = null }: { existingVehicle?: any }) {
+  const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState<Partial<DealerVehicleFormData>>({
+    make: '',
+    model: '',
+    year: new Date().getFullYear(),
+    trim: '',
+    condition: 'Good',
+    price: 0,
+    mileage: 0,
+    fuelType: 'Gasoline',
+    transmission: 'Automatic',
+    zipCode: '',
+    status: 'available',
+    color: '',
+    description: '',
+    photos: []
   });
-
-  const [uploading, setUploading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (value === '') {
-      setFormData(prev => ({ ...prev, [name]: undefined }));
-      return;
+  
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Load existing vehicle data if editing
+  useEffect(() => {
+    if (existingVehicle) {
+      setFormData(prev => ({
+        ...prev,
+        ...existingVehicle
+      }));
     }
-    
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue)) {
-      setFormData(prev => ({ ...prev, [name]: numValue }));
+  }, [existingVehicle]);
+  
+  const handleInputChange = (key: string, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const filesArray = Array.from(event.target.files);
+      setFormData(prev => ({
+        ...prev,
+        photos: filesArray as File[]
+      }));
     }
   };
-
-  const handlePhotosChange = (photos: File[]) => {
-    setFormData(prev => ({ ...prev, photos }));
-  };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form
-    if (!formData.make || !formData.model || !formData.year) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+    setIsLoading(true);
     
     try {
-      setUploading(true);
+      // In a real implementation, you'd upload the data to your backend
+      console.log('Submitting vehicle data:', formData);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Mock API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success(`Vehicle ${vehicleId ? 'updated' : 'added'} successfully!`);
-      
-      if (onSuccess) {
-        onSuccess();
-      }
+      toast.success(existingVehicle ? 'Vehicle updated successfully!' : 'Vehicle added successfully!');
+      navigate('/dealer/inventory');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Error saving vehicle');
+      console.error('Error saving vehicle:', error);
+      toast.error('Failed to save vehicle. Please try again.');
     } finally {
-      setUploading(false);
+      setIsLoading(false);
     }
   };
-
+  
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid gap-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>{existingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="make">Make <span className="text-red-500">*</span></Label>
+              <div>
+                <Label htmlFor="make">Make</Label>
                 <Input
                   id="make"
-                  name="make"
                   value={formData.make}
-                  onChange={handleChange}
-                  placeholder="e.g., Toyota"
+                  onChange={(e) => handleInputChange('make', e.target.value)}
+                  placeholder="e.g. Toyota"
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="model">Model <span className="text-red-500">*</span></Label>
+              <div>
+                <Label htmlFor="model">Model</Label>
                 <Input
                   id="model"
-                  name="model"
                   value={formData.model}
-                  onChange={handleChange}
-                  placeholder="e.g., Camry"
+                  onChange={(e) => handleInputChange('model', e.target.value)}
+                  placeholder="e.g. Camry"
                   required
                 />
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="year">Year <span className="text-red-500">*</span></Label>
+              <div>
+                <Label htmlFor="year">Year</Label>
                 <Input
                   id="year"
-                  name="year"
                   type="number"
-                  min="1900"
-                  max={new Date().getFullYear() + 1}
                   value={formData.year}
-                  onChange={handleNumberChange}
+                  onChange={(e) => handleInputChange('year', parseInt(e.target.value))}
+                  min={1900}
+                  max={new Date().getFullYear() + 1}
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
+              <div>
+                <Label htmlFor="trim">Trim</Label>
                 <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  min="0"
-                  value={formData.price || ''}
-                  onChange={handleNumberChange}
-                  placeholder="Enter price"
+                  id="trim"
+                  value={formData.trim}
+                  onChange={(e) => handleInputChange('trim', e.target.value)}
+                  placeholder="e.g. LE, XLE, Sport"
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="mileage">Mileage</Label>
-                <Input
-                  id="mileage"
-                  name="mileage"
-                  type="number"
-                  min="0"
-                  value={formData.mileage || ''}
-                  onChange={handleNumberChange}
-                  placeholder="Enter mileage"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="condition">Condition</Label>
-                <select
-                  id="condition"
-                  name="condition"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={formData.condition}
-                  onChange={handleChange}
-                >
-                  <option value="Excellent">Excellent</option>
-                  <option value="Good">Good</option>
-                  <option value="Fair">Fair</option>
-                  <option value="Poor">Poor</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="fuelType">Fuel Type</Label>
-                <select
-                  id="fuelType"
-                  name="fuelType"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={formData.fuelType || ''}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Fuel Type</option>
-                  <option value="Gasoline">Gasoline</option>
-                  <option value="Diesel">Diesel</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Electric">Electric</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="transmission">Transmission</Label>
-                <select
-                  id="transmission"
-                  name="transmission"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={formData.transmission || ''}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Transmission</option>
-                  <option value="Automatic">Automatic</option>
-                  <option value="Manual">Manual</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="color">Color</Label>
                 <Input
                   id="color"
-                  name="color"
-                  value={formData.color || ''}
-                  onChange={handleChange}
-                  placeholder="e.g., Silver"
+                  value={formData.color}
+                  onChange={(e) => handleInputChange('color', e.target.value)}
+                  placeholder="e.g. Silver, White, Black"
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  name="status"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={formData.status}
-                  onChange={handleChange}
+              <div>
+                <Label htmlFor="condition">Condition</Label>
+                <Select
+                  value={formData.condition}
+                  onValueChange={(value) => handleInputChange('condition', value)}
                 >
-                  <option value="Available">Available</option>
-                  <option value="Sold">Sold</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Reserved">Reserved</option>
-                </select>
+                  <SelectTrigger id="condition">
+                    <SelectValue placeholder="Select condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Excellent">Excellent</SelectItem>
+                    <SelectItem value="Good">Good</SelectItem>
+                    <SelectItem value="Fair">Fair</SelectItem>
+                    <SelectItem value="Poor">Poor</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <textarea
-                id="description"
-                name="description"
-                rows={3}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={formData.description || ''}
-                onChange={handleChange}
-                placeholder="Enter vehicle description..."
-              />
+          </div>
+          
+          {/* Pricing and Mileage */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Pricing and Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="price">Price ($)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => handleInputChange('price', parseInt(e.target.value))}
+                  min={0}
+                  placeholder="e.g. 25000"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="mileage">Mileage</Label>
+                <Input
+                  id="mileage"
+                  type="number"
+                  value={formData.mileage}
+                  onChange={(e) => handleInputChange('mileage', parseInt(e.target.value))}
+                  min={0}
+                  placeholder="e.g. 35000"
+                />
+              </div>
+              <div>
+                <Label htmlFor="fuelType">Fuel Type</Label>
+                <Select
+                  value={formData.fuelType}
+                  onValueChange={(value) => handleInputChange('fuelType', value)}
+                >
+                  <SelectTrigger id="fuelType">
+                    <SelectValue placeholder="Select fuel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gasoline">Gasoline</SelectItem>
+                    <SelectItem value="Diesel">Diesel</SelectItem>
+                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="Electric">Electric</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="transmission">Transmission</Label>
+                <Select
+                  value={formData.transmission}
+                  onValueChange={(value) => handleInputChange('transmission', value)}
+                >
+                  <SelectTrigger id="transmission">
+                    <SelectValue placeholder="Select transmission" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Automatic">Automatic</SelectItem>
+                    <SelectItem value="Manual">Manual</SelectItem>
+                    <SelectItem value="CVT">CVT</SelectItem>
+                    <SelectItem value="Semi-Automatic">Semi-Automatic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="zipCode">ZIP Code</Label>
+                <Input
+                  id="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                  placeholder="e.g. 90210"
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Listing Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => handleInputChange('status', value)}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="sold">Sold</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardContent className="pt-6">
-          <ImageUploadSection 
-            onChange={handlePhotosChange} 
-            maxPhotos={10} 
-            onPhotosChange={handlePhotosChange}
-          />
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline">
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting || uploading}>
-          {isSubmitting || uploading ? 'Saving...' : vehicleId ? 'Update Vehicle' : 'Add Vehicle'}
-        </Button>
-      </div>
-    </form>
+          
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Enter vehicle description"
+              rows={4}
+            />
+          </div>
+          
+          {/* Photos */}
+          <div className="space-y-2">
+            <Label htmlFor="photos">Photos</Label>
+            <Input
+              id="photos"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              className="cursor-pointer"
+            />
+            <p className="text-sm text-muted-foreground">
+              Upload up to 10 photos of the vehicle. First photo will be used as the main image.
+            </p>
+            
+            {formData.photos && (formData.photos as any).length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {(formData.photos as File[]).map((file, index) => (
+                  <div key={index} className="relative overflow-hidden rounded-md aspect-square bg-gray-100">
+                    <img 
+                      src={URL.createObjectURL(file)} 
+                      alt={`Vehicle preview ${index + 1}`}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end space-x-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => navigate('/dealer/inventory')}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : existingVehicle ? 'Update Vehicle' : 'Add Vehicle'}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
-};
-
-export default AddEditVehicleForm;
+}

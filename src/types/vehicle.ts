@@ -1,4 +1,3 @@
-
 export interface DecodedVehicleInfo {
   make: string;
   model: string;
@@ -42,10 +41,20 @@ export interface ValuationResponse {
   transmission?: string;
   bodyType?: string;
   color?: string;
+  // Add missing properties
+  price_range?: { low: number; high: number } | [number, number];
+  priceRange?: { low: number; high: number } | [number, number] | { min: number; max: number };
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  photoUrl?: string;
+  bestPhotoUrl?: string;
+  zipCode?: string;
   // Add aliases for backward compatibility
   estimated_value?: number;
   confidence_score?: number;
-  price_range?: { low: number; high: number } | [number, number];
 }
 
 export interface VinDecoderResponse {
