@@ -1,175 +1,259 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Footer } from '@/components/layout/Footer';
-import { Navbar } from '@/components/layout/Navbar';
-import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
-import FollowUpForm from '@/components/followup/FollowUpForm';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
-// Interface for the valuation result data
-interface ValuationResultData {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  estimatedValue: number;
-  confidenceScore?: number;
-  priceRange?: [number, number];
-  adjustments?: Array<{ factor: string; impact: number; description: string }>;
-}
-
-// MainLayout component for consistent page layout
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      {children}
-      <Footer />
-    </div>
-  );
-};
+import { Loader2, AlertCircle, ArrowLeft, FileText, Camera, BarChart, Download } from 'lucide-react';
+import { Container } from '@/components/ui/container';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
+import { PhotoConditionScore } from '@/components/valuation/PhotoConditionScore';
+import { MarketAnalysisTab } from '@/components/premium/sections/valuation-tabs/MarketAnalysisTab';
+import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
+import { DownloadPDFButton } from '@/components/ui/DownloadPDFButton';
+import { formatCurrency } from '@/utils/formatters';
 
 export default function ValuationResultPage() {
+  const { valuationId } = useParams<{ valuationId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const id = searchParams.get('id');
-  const vin = searchParams.get('vin');
-
-  const [valuationData, setValuationData] = useState<ValuationResultData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [conditionScore, setConditionScore] = useState<number>(75);
-  const [showFollowUpSubmitted, setShowFollowUpSubmitted] = useState(false);
-
-  useEffect(() => {
-    const fetchValuationData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        if (!id && !vin) throw new Error('No valuation ID or VIN provided');
-
-        const key = id ? `valuation_${id}` : `vin_lookup_${vin}`;
-        const storedData = localStorage.getItem(key);
-
-        if (storedData) {
-          setValuationData(JSON.parse(storedData));
-        } else {
-          throw new Error('Valuation data not found');
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch valuation data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchValuationData();
-  }, [id, vin]);
-
-  const vehicleInfo = valuationData
-    ? {
-        make: valuationData.make,
-        model: valuationData.model,
-        year: valuationData.year,
-        mileage: valuationData.mileage,
-        condition: valuationData.condition,
-      }
-    : {
-        make: 'Unknown',
-        model: 'Vehicle',
-        year: new Date().getFullYear(),
-        mileage: 0,
-        condition: 'Good',
-      };
-
-  const estimatedValue = valuationData?.estimatedValue || 25000;
-  const priceRange = valuationData?.priceRange || [
-    Math.round(estimatedValue * 0.9),
-    Math.round(estimatedValue * 1.1),
-  ];
-
-  if (isLoading) {
+  
+  const [activeTab, setActiveTab] = useState('summary');
+  
+  // Fetch valuation data
+  const { 
+    data: valuationData, 
+    isLoading, 
+    error, 
+    isError 
+  } = useValuationResult(valuationId || '');
+  
+  // Check if user has premium access
+  const { hasPremiumAccess, isLoading: isPremiumLoading } = usePremiumAccess(valuationId);
+  
+  // Handle back navigation
+  const handleBack = () => {
+    navigate('/valuation');
+  };
+  
+  // Handle premium upgrade
+  const handleUpgradeToPremium = () => {
+    if (valuationId) {
+      navigate(`/valuation/${valuationId}/premium`);
+    } else {
+      navigate('/premium');
+    }
+  };
+  
+  if (isLoading || isPremiumLoading) {
     return (
-      <MainLayout>
-        <main className="flex-1 bg-gray-50 flex items-center justify-center">
-          <p className="text-lg text-gray-600">Loading vehicle data...</p>
-        </main>
-      </MainLayout>
+      <Container className="py-16">
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Loading valuation data...</p>
+        </div>
+      </Container>
     );
   }
-
-  if (!valuationData || error) {
+  
+  if (isError || !valuationData) {
     return (
-      <MainLayout>
-        <main className="flex-1 bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-md mx-auto text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
-            <p className="text-gray-600 mb-6">{error || 'Could not find the requested vehicle data.'}</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button onClick={() => navigate('/')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Return Home
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/valuation')}>
-                Start New Valuation
-              </Button>
+      <Container className="py-16">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0 mt-1" />
+              <div>
+                <h2 className="text-xl font-bold text-red-700 mb-2">
+                  Error Loading Valuation
+                </h2>
+                <p className="text-red-600 mb-4">
+                  {error || "Could not load the valuation details. Please try again."}
+                </p>
+                <Button onClick={handleBack} variant="outline" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Valuation
+                </Button>
+              </div>
             </div>
-          </div>
-        </main>
-      </MainLayout>
+          </CardContent>
+        </Card>
+      </Container>
     );
   }
-
+  
+  // Extract necessary data
+  const {
+    make = 'Unknown',
+    model = 'Unknown',
+    year = new Date().getFullYear(),
+    mileage = 0,
+    condition = 'Good',
+    vin,
+    zipCode,
+    photoUrl,
+    photoUrls,
+    estimatedValue = 0,
+    confidenceScore = 85,
+    explanation,
+    priceRange
+  } = valuationData;
+  
+  // Determine if we have photo data
+  const hasPhotoData = !!photoUrl || (photoUrls && photoUrls.length > 0);
+  
+  // Determine if we have location data for market analysis
+  const hasLocationData = !!zipCode;
+  
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Vehicle Valuation Result</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <UnifiedValuationResult
-                valuationId={id || vin || ''}
-                vehicleInfo={vehicleInfo}
-                estimatedValue={estimatedValue}
-                confidenceScore={valuationData?.confidenceScore || 85}
-                priceRange={priceRange}
-                adjustments={valuationData?.adjustments || []}
-              />
-            </CardContent>
-          </Card>
-
-          {!showFollowUpSubmitted ? (
+    <Container className="py-8 md:py-16">
+      <div className="mb-6">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleBack}
+          className="mb-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Valuation
+        </Button>
+        
+        <h1 className="text-3xl font-bold mb-2">
+          {year} {make} {model} Valuation
+        </h1>
+        
+        <p className="text-xl font-medium text-primary">
+          Estimated Value: {formatCurrency(estimatedValue)}
+        </p>
+      </div>
+      
+      <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsTrigger value="summary" className="flex gap-2 items-center">
+            <FileText className="h-4 w-4" />
+            <span>Summary</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="photos" className="flex gap-2 items-center" disabled={!hasPhotoData}>
+            <Camera className="h-4 w-4" />
+            <span>Photo Analysis</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="market" className="flex gap-2 items-center" disabled={!hasLocationData}>
+            <BarChart className="h-4 w-4" />
+            <span>Market Analysis</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="report" className="flex gap-2 items-center">
+            <Download className="h-4 w-4" />
+            <span>Full Report</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="summary" className="space-y-6">
+          <ValuationResult 
+            valuationId={valuationId || ''}
+            data={valuationData}
+            isPremium={hasPremiumAccess}
+            onUpgrade={handleUpgradeToPremium}
+          />
+        </TabsContent>
+        
+        <TabsContent value="photos" className="space-y-6">
+          {hasPhotoData ? (
+            <PhotoConditionScore 
+              photoUrl={photoUrl}
+              photoUrls={photoUrls}
+              isPremium={hasPremiumAccess}
+              onUpgrade={handleUpgradeToPremium}
+              valuationId={valuationId}
+            />
+          ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Refine Your Valuation Details</CardTitle>
+                <CardTitle>Photo Analysis</CardTitle>
+                <CardDescription>No photos available for this valuation</CardDescription>
               </CardHeader>
               <CardContent>
-                <FollowUpForm
-                  onSubmit={(data) => {
-                    console.log('Follow-up answers:', data);
-                    setShowFollowUpSubmitted(true);
-                  }}
-                />
+                <p className="text-muted-foreground">
+                  Upload photos during the valuation process to receive a detailed condition analysis.
+                </p>
               </CardContent>
             </Card>
-          ) : (
-            <div className="text-center text-green-600 text-lg font-medium mt-6">
-              ✅ Thank you! Your additional details have been saved.
-            </div>
           )}
-        </div>
-      </main>
-      <Footer />
-    </div>
+        </TabsContent>
+        
+        <TabsContent value="market" className="space-y-6">
+          {hasLocationData ? (
+            hasPremiumAccess ? (
+              <MarketAnalysisTab 
+                vehicleData={{
+                  make,
+                  model,
+                  year,
+                  trim: valuationData.trim
+                }}
+              />
+            ) : (
+              <PremiumFeatureLock 
+                valuationId={valuationId || ''}
+                feature="market analysis"
+                ctaText="Unlock Market Analysis"
+              />
+            )
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Market Analysis</CardTitle>
+                <CardDescription>No location data available for market analysis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Enter your ZIP code during the valuation process to receive location-based market insights.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="report" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Full Valuation Report</CardTitle>
+              <CardDescription>
+                {hasPremiumAccess 
+                  ? "Download a comprehensive PDF report of your vehicle valuation" 
+                  : "Upgrade to premium to access the comprehensive PDF report"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {hasPremiumAccess ? (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <DownloadPDFButton
+                    valuationId={valuationId || ''}
+                    fileName={`${year}-${make}-${model}-valuation.pdf`}
+                    className="w-full sm:w-auto"
+                  >
+                    Download PDF Report
+                  </DownloadPDFButton>
+                  
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    Email Report
+                  </Button>
+                </div>
+              ) : (
+                <PremiumFeatureLock 
+                  valuationId={valuationId || ''}
+                  feature="PDF report"
+                  ctaText="Unlock Full Report"
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </Container>
   );
 }
