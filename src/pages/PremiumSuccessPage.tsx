@@ -17,15 +17,6 @@ export default function PremiumSuccessPage() {
   
   useEffect(() => {
     if (sessionId) {
-      // Store the valuation ID as premium in localStorage for demo purposes
-      if (valuationId) {
-        const premiumIds = JSON.parse(localStorage.getItem('premium_valuations') || '[]');
-        if (!premiumIds.includes(valuationId)) {
-          premiumIds.push(valuationId);
-          localStorage.setItem('premium_valuations', JSON.stringify(premiumIds));
-        }
-      }
-      
       // Verify the payment session
       verifyPaymentSession(sessionId)
         .then(() => {
@@ -33,7 +24,7 @@ export default function PremiumSuccessPage() {
         })
         .catch(console.error);
     }
-  }, [sessionId, valuationId, verifyPaymentSession]);
+  }, [sessionId, verifyPaymentSession]);
   
   const handleViewReport = () => {
     if (valuationId) {
