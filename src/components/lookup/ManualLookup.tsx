@@ -1,87 +1,46 @@
-
 import React from 'react';
-import ManualEntryForm from '@/components/lookup/manual/ManualEntryForm';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
-import ValuationEmptyState from '@/components/valuation/ValuationEmptyState';
-import { useValuationFlow } from '@/hooks/useValuationFlow';
 import { Card, CardContent } from '@/components/ui/card';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { useValuation } from '@/hooks/useValuation';
+import ManualEntryForm from './ManualEntryForm';
+import { ManualEntryFormData } from './types/manualEntry';
 
 interface ManualLookupProps {
   onSubmit?: (data: ManualEntryFormData) => void;
-  onResultsReady?: (data: any) => void;
+  onResultsReady?: (result: any) => void;
 }
 
-export function ManualLookup({
+export const ManualLookup: React.FC<ManualLookupProps> = ({
   onSubmit,
   onResultsReady
-}: ManualLookupProps) {
-  const { 
-    isLoading, 
-    error, 
-    valuationData, 
-    submitManualEntry,
-    resetState
-  } = useValuationFlow();
-
+}) => {
+  const { isLoading, manualValuation, valuationData } = useValuation();
+  
   const handleSubmit = async (data: ManualEntryFormData) => {
+    // If custom onSubmit is provided, use it
     if (onSubmit) {
       onSubmit(data);
       return;
     }
     
-    const result = await submitManualEntry(data);
+    // Otherwise use our hook
+    const result = await manualValuation(data);
     
-    if (result && onResultsReady) {
-      onResultsReady(result);
+    if (result.success && valuationData) {
+      if (onResultsReady) {
+        onResultsReady(valuationData);
+      }
     }
   };
-
-  const handleReset = () => {
-    resetState();
-  };
-
+  
   return (
-    <div className="space-y-6">
-      {!valuationData ? (
-        <Card className="shadow-sm border-2">
-          <CardContent className="p-5">
-            <ManualEntryForm
-              onSubmit={handleSubmit}
-              isLoading={isLoading}
-              submitButtonText="Get Valuation"
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          <ValuationResult 
-            data={valuationData} 
-            isPremium={false}
-            isLoading={isLoading}
-            error={error || undefined}
-          />
-          
-          <div className="flex justify-center">
-            <button 
-              onClick={handleReset}
-              className="text-sm text-primary hover:underline"
-            >
-              Valuate another vehicle
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {error && !isLoading && !valuationData && (
-        <ValuationEmptyState 
-          message={`We couldn't generate a valuation with the provided information. ${error}`}
-          actionLabel="Try different details"
-          onAction={handleReset}
-        />
-      )}
+    <div className="space-y-4">
+      <ManualEntryForm 
+        onSubmit={handleSubmit} 
+        isLoading={isLoading}
+        submitButtonText="Get Valuation"
+      />
     </div>
   );
-}
+};
 
 export default ManualLookup;

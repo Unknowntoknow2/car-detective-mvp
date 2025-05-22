@@ -2,129 +2,16 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.8";
 
-// Initialize Supabase client with environment variables
-const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
-const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 // CORS headers
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function getRandomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function adjustPriceForCondition(basePrice: number, condition: string): number {
-  const conditionMultipliers: { [key: string]: number } = {
-    excellent: 1.15,
-    very_good: 1.05,
-    good: 1.0,
-    fair: 0.85,
-    poor: 0.7
-  };
-
-  const multiplier = conditionMultipliers[condition] || 1.0;
-  return Math.round(basePrice * multiplier);
-}
-
-function adjustPriceForMileage(price: number, mileage: number, year: number): number {
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-  
-  // Calculate expected mileage based on age (12,000 miles per year is average)
-  const expectedMileage = age * 12000;
-  
-  // If mileage is significantly higher than expected, reduce price
-  if (mileage > expectedMileage * 1.5) {
-    return Math.round(price * 0.85);
-  }
-  
-  // If mileage is significantly lower than expected, increase price
-  if (mileage < expectedMileage * 0.5) {
-    return Math.round(price * 1.1);
-  }
-  
-  return price;
-}
-
-function generateAdjustments(basePrice: number, vehicleData: any): any[] {
-  const adjustments = [];
-  
-  // Condition adjustment
-  if (vehicleData.condition) {
-    const conditionMap: { [key: string]: string } = {
-      excellent: "Excellent condition adds premium",
-      very_good: "Very good condition adds value",
-      good: "Good condition maintains value",
-      fair: "Fair condition reduces value",
-      poor: "Poor condition significantly reduces value"
-    };
-    
-    const conditionMultipliers: { [key: string]: number } = {
-      excellent: 0.15,
-      very_good: 0.05,
-      good: 0,
-      fair: -0.15,
-      poor: -0.3
-    };
-    
-    const impact = Math.round(basePrice * (conditionMultipliers[vehicleData.condition] || 0));
-    
-    adjustments.push({
-      factor: "Condition",
-      impact,
-      description: conditionMap[vehicleData.condition] || "Condition affects value"
-    });
-  }
-  
-  // Mileage adjustment
-  if (vehicleData.mileage && vehicleData.year) {
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - vehicleData.year;
-    const expectedMileage = age * 12000;
-    let impact = 0;
-    let description = "";
-    
-    if (vehicleData.mileage > expectedMileage * 1.5) {
-      impact = Math.round(basePrice * -0.15);
-      description = "High mileage reduces value";
-    } else if (vehicleData.mileage < expectedMileage * 0.5) {
-      impact = Math.round(basePrice * 0.1);
-      description = "Low mileage adds value";
-    } else {
-      impact = 0;
-      description = "Average mileage for age";
-    }
-    
-    adjustments.push({
-      factor: "Mileage",
-      impact,
-      description
-    });
-  }
-  
-  // Optional features adjustment
-  if (vehicleData.transmission === "manual") {
-    adjustments.push({
-      factor: "Transmission",
-      impact: Math.round(basePrice * -0.05),
-      description: "Manual transmission typically less desirable"
-    });
-  }
-  
-  if (vehicleData.fuelType === "hybrid" || vehicleData.fuelType === "electric") {
-    adjustments.push({
-      factor: "Fuel Type",
-      impact: Math.round(basePrice * 0.08),
-      description: "Hybrid/Electric vehicles command premium"
-    });
-  }
-  
-  return adjustments;
-}
+// Initialize Supabase client with environment variables
+const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
+const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") as string;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 serve(async (req) => {
   // Handle CORS preflight request
@@ -135,15 +22,29 @@ serve(async (req) => {
   }
 
   try {
-    const vehicleData = await req.json();
-    console.log("Received valuation request:", vehicleData);
+    // Parse the request body
+    const {
+      make,
+      model,
+      year,
+      mileage,
+      condition,
+      zipCode,
+      fuelType,
+      transmission,
+      color,
+      bodyType,
+      vin
+    } = await req.json();
+
+    console.log("Received request for valuation:", { make, model, year, mileage, condition });
 
     // Validate required fields
-    if (!vehicleData.make || !vehicleData.model) {
+    if (!make || !model || !year) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Make and model are required",
+          error: "Make, model, and year are required for valuation",
         }),
         {
           status: 400,
@@ -152,91 +53,100 @@ serve(async (req) => {
       );
     }
 
-    // Capitalize make and model
-    const make = vehicleData.make.charAt(0).toUpperCase() + vehicleData.make.slice(1).toLowerCase();
-    const model = vehicleData.model.charAt(0).toUpperCase() + vehicleData.model.slice(1).toLowerCase();
+    // For demo purposes, we'll use a simple algorithm to calculate the value
+    // In a real application, this would be a more complex model
+    let baseValue = 0;
     
-    // Generate a base price (in a real system, this would come from a pricing model)
-    // Here we use a simple formula based on the make, model, and year
+    // Base price by make/model/year
+    switch (make.toLowerCase()) {
+      case 'toyota':
+        baseValue = 15000;
+        if (model.toLowerCase() === 'camry') baseValue = 20000;
+        if (model.toLowerCase() === 'corolla') baseValue = 17000;
+        break;
+      case 'honda':
+        baseValue = 14000;
+        if (model.toLowerCase() === 'accord') baseValue = 19000;
+        if (model.toLowerCase() === 'civic') baseValue = 16000;
+        break;
+      case 'ford':
+        baseValue = 12000;
+        if (model.toLowerCase() === 'f-150') baseValue = 25000;
+        break;
+      default:
+        baseValue = 10000;
+        break;
+    }
+    
+    // Year adjustment
     const currentYear = new Date().getFullYear();
-    const year = vehicleData.year || currentYear - 5;
-    const yearFactor = 1 - ((currentYear - year) * 0.08);
+    const age = currentYear - year;
+    const yearAdjustment = age * 500; // $500 per year of age
     
-    // Base prices by make (just for demo purposes)
-    const makePrices: { [key: string]: number } = {
-      toyota: 25000,
-      honda: 24000,
-      ford: 28000,
-      chevrolet: 27000,
-      bmw: 45000,
-      mercedes: 50000,
-      audi: 48000,
-      tesla: 60000,
-      hyundai: 22000,
-      kia: 21000,
-      nissan: 23000,
-      volkswagen: 26000,
-      subaru: 27000,
-      mazda: 25000,
-      lexus: 40000,
-    };
+    // Mileage adjustment
+    const mileageAdjustment = mileage ? (mileage / 10000) * 500 : 0; // $500 per 10k miles
     
-    // Get the base price for the make or use a default
-    const makeBasePrice = makePrices[make.toLowerCase()] || 25000;
-    
-    // Calculate base price using the make base price and year factor
-    let basePrice = Math.round(makeBasePrice * yearFactor);
-    
-    // Adjust for condition if provided
-    if (vehicleData.condition) {
-      basePrice = adjustPriceForCondition(basePrice, vehicleData.condition);
+    // Condition adjustment
+    let conditionMultiplier = 1.0;
+    if (condition) {
+      switch (condition.toLowerCase()) {
+        case 'excellent':
+          conditionMultiplier = 1.1;
+          break;
+        case 'very_good':
+          conditionMultiplier = 1.05;
+          break;
+        case 'good':
+          conditionMultiplier = 1.0;
+          break;
+        case 'fair':
+          conditionMultiplier = 0.9;
+          break;
+        case 'poor':
+          conditionMultiplier = 0.8;
+          break;
+        default:
+          conditionMultiplier = 1.0;
+      }
     }
     
-    // Adjust for mileage if provided
-    if (vehicleData.mileage && vehicleData.year) {
-      basePrice = adjustPriceForMileage(basePrice, vehicleData.mileage, vehicleData.year);
-    }
+    // Calculate the final value
+    let estimatedValue = (baseValue - yearAdjustment - mileageAdjustment) * conditionMultiplier;
     
-    // Generate adjustments
-    const adjustments = generateAdjustments(basePrice, vehicleData);
+    // Ensure the value is positive
+    estimatedValue = Math.max(estimatedValue, 500);
     
-    // Calculate final value based on adjustments
-    const adjustmentTotal = adjustments.reduce((sum, adj) => sum + adj.impact, 0);
-    const estimatedValue = basePrice + adjustmentTotal;
+    // Calculate confidence and condition scores
+    const confidenceScore = Math.min(95, 70 + (vin ? 15 : 0) + (mileage ? 5 : 0) + (condition ? 5 : 0));
+    const conditionScore = condition ? 
+      {
+        'excellent': 95,
+        'very_good': 85,
+        'good': 75,
+        'fair': 60,
+        'poor': 40
+      }[condition.toLowerCase()] || 75 : 75;
     
-    // Generate a random confidence score (in a real system, this would be based on data quality)
-    const confidenceScore = getRandomInt(70, 95);
-    
-    // Calculate price range (wider range for lower confidence)
-    const rangeFactor = (100 - confidenceScore) / 100;
-    const minPrice = Math.round(estimatedValue * (1 - rangeFactor * 0.15));
-    const maxPrice = Math.round(estimatedValue * (1 + rangeFactor * 0.15));
-    
-    // Generate a valuation ID
-    const valuationId = crypto.randomUUID();
-    
-    // Prepare the valuation response
+    // Prepare the response
     const valuationResult = {
-      id: valuationId,
+      estimatedValue: Math.round(estimatedValue),
+      confidenceScore,
+      conditionScore,
       make,
       model,
       year,
-      mileage: vehicleData.mileage,
-      condition: vehicleData.condition,
-      vin: vehicleData.vin,
-      estimatedValue,
-      basePrice,
-      priceRange: [minPrice, maxPrice],
-      confidenceScore,
-      conditionScore: getRandomInt(60, 95),
-      adjustments,
-      features: [],
-      fuelType: vehicleData.fuelType,
-      transmission: vehicleData.transmission,
-      bodyType: vehicleData.bodyType,
-      created_at: new Date().toISOString()
+      mileage,
+      condition,
+      vin,
+      fuelType,
+      transmission,
+      bodyType,
+      color
     };
 
+    console.log("Valuation result:", valuationResult);
+    
+    // Return the valuation result
     return new Response(
       JSON.stringify(valuationResult),
       {
@@ -245,7 +155,8 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error processing valuation:", error);
+    console.error("Error processing valuation request:", error);
+    
     return new Response(
       JSON.stringify({
         success: false,

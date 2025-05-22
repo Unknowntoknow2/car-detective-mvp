@@ -8,6 +8,7 @@ import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { useNavigate } from 'react-router-dom';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
 import { Card } from '@/components/ui/card';
+import { ValuationEmptyState } from '@/components/valuation/ValuationEmptyState';
 
 interface LookupTabsProps {
   defaultTab?: string;
@@ -20,6 +21,8 @@ export function LookupTabs({
 }: LookupTabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [valuationResult, setValuationResult] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   
   const handleTabChange = (value: string) => {
@@ -27,6 +30,7 @@ export function LookupTabs({
     setActiveTab(value);
     // Reset any results when changing tabs
     setValuationResult(null);
+    setError(null);
   };
 
   const handleResultsReady = (result: any) => {
@@ -35,6 +39,11 @@ export function LookupTabs({
     if (onResultsReady) {
       onResultsReady(result);
     }
+  };
+
+  const handleReset = () => {
+    setValuationResult(null);
+    setError(null);
   };
 
   return (
@@ -62,15 +71,23 @@ export function LookupTabs({
       ) : (
         <div className="space-y-4">
           <Card className="p-6">
-            <ValuationResult 
-              data={valuationResult}
-              isPremium={false}
-            />
+            {error ? (
+              <ValuationEmptyState 
+                message={error || "Failed to get valuation. Please try again."} 
+                actionLabel="Try Again" 
+                onAction={handleReset}
+              />
+            ) : (
+              <ValuationResult 
+                data={valuationResult}
+                isPremium={false}
+              />
+            )}
           </Card>
           
           <div className="flex justify-center">
             <button 
-              onClick={() => setValuationResult(null)}
+              onClick={handleReset}
               className="text-sm text-primary hover:underline"
             >
               Start a new valuation
@@ -81,3 +98,5 @@ export function LookupTabs({
     </div>
   );
 }
+
+export default LookupTabs;

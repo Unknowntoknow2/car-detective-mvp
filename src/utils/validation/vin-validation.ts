@@ -34,3 +34,9 @@ export function validateVin(vin: string): { isValid: boolean; message?: string }
 export function isValidVIN(vin: string): boolean {
   return validateVin(vin).isValid;
 }
+
+// Added to satisfy test imports
+export function validateVinCheckDigit(vin: string): { isValid: boolean; message?: string; error?: string } {
+  const result = validateVin(vin);
+  return { ...result, error: result.message };
+}
