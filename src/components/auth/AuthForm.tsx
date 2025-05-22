@@ -6,8 +6,13 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from '@/hooks/useAuth';
 import { AuthMode, UserRole } from '@/types/auth';
 
+interface AuthFormProps {
+  initialMode?: AuthMode;
+  initialRole?: UserRole | string;
+}
+
 // This is now a redirector component that helps users navigate to the correct auth page
-const AuthForm = () => {
+const AuthForm = ({ initialMode, initialRole }: AuthFormProps) => {
   const navigate = useNavigate();
   const { session, user } = useAuth();
   
