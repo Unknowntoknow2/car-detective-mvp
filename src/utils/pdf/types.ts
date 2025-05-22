@@ -1,6 +1,6 @@
 
 // Import PDF library types
-import { PDFDocument, PDFPage, PDFFont } from 'pdf-lib';
+import { PDFDocument, PDFPage, PDFFont, Color } from 'pdf-lib';
 
 /**
  * Report data model for PDF generation
@@ -23,6 +23,9 @@ export interface ReportData {
   
   // Optional base values (if not provided, calculated from adjustments)
   baseValue?: number;
+  
+  // Price range (optional)
+  priceRange?: [number, number] | { min: number; max: number; };
   
   // Price adjustments
   adjustments: AdjustmentItem[];
@@ -53,6 +56,7 @@ export interface ReportData {
     confidenceScore: number;
     issuesDetected: string[];
     summary: string;
+    score?: number;
   } | null;
 }
 
@@ -82,6 +86,10 @@ export interface ReportOptions {
     titleFont: string;
     bodyFont: string;
   };
+  // Additional options
+  isPremium?: boolean;
+  includeBranding?: boolean;
+  includePhotoAssessment?: boolean;
 }
 
 /**
@@ -111,4 +119,24 @@ export interface SectionParams {
   height?: number;
   pageWidth: number;
   pageHeight?: number;
+  
+  // Colors
+  textColor?: Color;
+  primaryColor?: Color;
+}
+
+/**
+ * PDF Rotation types enumeration
+ */
+export enum RotationTypes {
+  Degrees = 'degrees',
+  Radians = 'radians'
+}
+
+/**
+ * PDF Rotation definition
+ */
+export interface Rotation {
+  type: RotationTypes;
+  angle: number;
 }
