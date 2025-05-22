@@ -1,16 +1,25 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { SigninForm } from '@/components/auth/forms/SigninForm';
 import { Toaster } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginUserPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   return (
     <motion.div 
@@ -59,11 +68,17 @@ export default function LoginUserPage() {
               />
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-              <div className="text-center text-xs text-muted-foreground">
-                <p>By signing in, you agree to our{' '}
-                  <Link to="/terms" className="text-primary hover:underline">Terms</Link> and{' '}
-                  <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-                </p>
+              <div className="text-center text-sm text-muted-foreground">
+                <div>Need assistance?{' '}
+                  <Link to="/support" className="text-primary hover:underline">
+                    Contact Support
+                  </Link>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-center text-xs text-muted-foreground gap-2">
+                <Shield className="h-3 w-3" />
+                <span>Secure login protected by 256-bit encryption</span>
               </div>
             </CardFooter>
           </Card>
