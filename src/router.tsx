@@ -19,6 +19,7 @@ import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
 import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -53,6 +54,10 @@ const routes: RouteObject[] = [
       {
         path: 'auth',
         element: <AuthPage />
+      },
+      {
+        path: 'dashboard',
+        element: <DashboardPage />
       },
       {
         path: 'valuation',
