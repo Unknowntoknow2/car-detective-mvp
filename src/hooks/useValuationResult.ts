@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { ValuationResponse } from '@/components/lookup/types/valuation';
+import { ValuationResponse } from '@/types/vehicle';
 
 interface ProcessedValuationResult {
   estimatedValue: number;
@@ -30,7 +31,7 @@ interface ProcessedValuationResult {
 export const processValuationResponse = (data: ValuationResponse): ProcessedValuationResult => {
   return {
     estimatedValue: data.estimatedValue,
-    confidenceScore: data.confidenceScore,
+    confidenceScore: data.confidenceScore || 0,
     valuationId: data.valuationId,
     make: data.make,
     model: data.model,

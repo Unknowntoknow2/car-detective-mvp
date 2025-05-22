@@ -127,12 +127,12 @@ const ValuationFlow: React.FC = () => {
       {currentStep === ValuationStep.RESULTS && valuationData && (
         <ValuationResults 
           estimatedValue={valuationData.estimatedValue}
-          confidenceScore={valuationData.confidenceScore}
+          confidenceScore={valuationData.confidenceScore || 0}
           vehicleInfo={{
             make: valuationData.make,
             model: valuationData.model,
             year: valuationData.year,
-            mileage: valuationData.mileage,
+            mileage: valuationData.mileage || 0,
             condition: valuationData.condition
           }}
         />

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -11,13 +12,33 @@ interface SignInResult {
   error?: string;
 }
 
-export const SigninForm: React.FC = () => {
+interface SigninFormProps {
+  isLoading?: boolean;
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  redirectPath?: string;
+  role?: string;
+  alternateLoginPath?: string;
+  alternateLoginText?: string;
+}
+
+export const SigninForm: React.FC<SigninFormProps> = ({ 
+  isLoading: externalIsLoading, 
+  setIsLoading: externalSetIsLoading,
+  redirectPath = '/dashboard',
+  role,
+  alternateLoginPath,
+  alternateLoginText
+}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  
+  // Use external or internal loading state
+  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
+  const setIsLoading = externalSetIsLoading || setInternalIsLoading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +59,7 @@ export const SigninForm: React.FC = () => {
       }
       
       toast.success('Login successful!');
-      navigate('/dashboard');
+      navigate(redirectPath);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setIsLoading(false);
@@ -82,6 +103,14 @@ export const SigninForm: React.FC = () => {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Signing in...' : 'Sign In'}
       </Button>
+
+      {alternateLoginPath && alternateLoginText && (
+        <div className="text-center mt-4 text-sm text-muted-foreground">
+          <a href={alternateLoginPath} className="hover:underline">
+            {alternateLoginText}
+          </a>
+        </div>
+      )}
     </form>
   );
 };
