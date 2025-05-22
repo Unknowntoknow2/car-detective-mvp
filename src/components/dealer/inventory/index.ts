@@ -1,5 +1,5 @@
 
-// Export DealerInventoryList
+// Export fixStatusCheck
 export { fixStatusCheck } from './DealerInventoryList';
 export * from './DealerInventoryList';
 
