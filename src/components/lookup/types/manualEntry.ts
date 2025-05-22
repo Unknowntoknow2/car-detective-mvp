@@ -3,13 +3,15 @@ export enum ConditionLevel {
   Poor = 'Poor',
   Fair = 'Fair',
   Good = 'Good',
-  Excellent = 'Excellent'
+  Excellent = 'Excellent',
+  VeryGood = 'Very Good' // Adding VeryGood condition level
 }
 
 export interface AccidentDetails {
   hasAccident: boolean;
   count?: number;
   severity?: string;
+  description?: string; // Adding description property
 }
 
 export interface ManualEntryFormData {

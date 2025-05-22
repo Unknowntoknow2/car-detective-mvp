@@ -42,7 +42,7 @@ export function PremiumManualEntryForm({
   const [transmission, setTransmission] = useState(initialData?.transmission || 'Automatic');
   const [trim, setTrim] = useState(initialData?.trim || '');
   const [color, setColor] = useState(initialData?.color || '');
-  const [bodyType, setBodyType] = useState(initialData?.bodyType || '');
+  const [bodyStyle, setBodyStyle] = useState(initialData?.bodyStyle || '');
   const [vin, setVin] = useState(initialData?.vin || '');
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(initialData?.selectedFeatures || []);
   const [hasAccident, setHasAccident] = useState<boolean>(
@@ -97,7 +97,7 @@ export function PremiumManualEntryForm({
       transmission,
       trim,
       color,
-      bodyType,
+      bodyStyle,
       vin,
       selectedFeatures,
       accidentDetails: {

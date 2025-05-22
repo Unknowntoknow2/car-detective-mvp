@@ -1,68 +1,178 @@
 
 import { useState } from 'react';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { ValuationResponse } from '@/types/api';
+import { ValuationResponse } from '@/types/vehicle';
+import { toast } from 'sonner';
 
-export const useValuation = () => {
+export function useValuation() {
   const [valuationData, setValuationData] = useState<ValuationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const manualValuation = async (formData: ManualEntryFormData) => {
+  // Function to handle manual valuation
+  const manualValuation = async (formData: ManualEntryFormData): Promise<{
+    success: boolean;
+    data?: ValuationResponse;
+    error?: string;
+  }> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      // Simulate API call
+      // This would be a real API call in production
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Calculate a mock estimated value based on year, mileage, and condition
-      const baseValue = (2023 - formData.year) * 1000;
-      const mileageAdjustment = formData.mileage ? -formData.mileage / 100 : 0;
-      const conditionAdjustment = 
-        formData.condition === 'Excellent' ? 3000 :
-        formData.condition === 'Good' ? 1500 :
-        formData.condition === 'Fair' ? 0 : -1500;
+      // Mock response - simulating API valuation calculation
+      const calculatedValue = 10000 + (Math.random() * 15000);
       
-      const calculatedValue = 20000 - baseValue + mileageAdjustment + conditionAdjustment;
-      const finalValue = Math.max(calculatedValue, 1000);
-      
-      // Set valuation data
-      const valuationData: ValuationResponse = {
+      const mockValuationData: ValuationResponse = {
         make: formData.make,
         model: formData.model,
         year: formData.year,
         mileage: formData.mileage,
-        condition: formData.condition,
+        condition: formData.condition.toString(),
+        estimatedValue: Math.round(calculatedValue),
+        confidenceScore: 85,
+        valuationId: `manual-${Date.now()}`,
         zipCode: formData.zipCode,
         fuelType: formData.fuelType,
         transmission: formData.transmission,
-        bodyType: formData.bodyStyle,
+        bodyStyle: formData.bodyStyle,
         color: formData.color,
         trim: formData.trim,
-        accidents: formData.accidents?.hasAccident ? 1 : 0,
-        estimatedValue: finalValue,
-        confidenceScore: 85,
-        valuationId: `manual-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
+        vin: formData.vin
       };
-
-      setValuationData(valuationData);
-      return { success: true, data: valuationData };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
+      
+      setValuationData(mockValuationData);
       setIsLoading(false);
+      
+      return {
+        success: true,
+        data: mockValuationData
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process valuation';
+      setError(errorMessage);
+      setIsLoading(false);
+      
+      return {
+        success: false,
+        error: errorMessage
+      };
     }
+  };
+
+  // Function to decode VIN
+  const decodeVin = async (vin: string): Promise<{
+    success: boolean;
+    data?: ValuationResponse;
+    error?: string;
+  }> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Mock VIN decoding response
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const mockData: ValuationResponse = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        mileage: 45000,
+        condition: 'Good',
+        estimatedValue: 18500,
+        confidenceScore: 90,
+        valuationId: `vin-${Date.now()}`,
+        vin: vin,
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
+        bodyStyle: 'Sedan',
+        trim: 'LE',
+        color: 'Silver'
+      };
+      
+      setValuationData(mockData);
+      setIsLoading(false);
+      
+      return {
+        success: true,
+        data: mockData
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to decode VIN';
+      setError(errorMessage);
+      setIsLoading(false);
+      
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
+  };
+
+  // Function to decode license plate
+  const decodePlate = async (plate: string, state: string): Promise<{
+    success: boolean;
+    data?: ValuationResponse;
+    error?: string;
+  }> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Mock plate decoding response
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const mockData: ValuationResponse = {
+        make: 'Honda',
+        model: 'Accord',
+        year: 2020,
+        mileage: 35000,
+        condition: 'Excellent',
+        estimatedValue: 22500,
+        confidenceScore: 85,
+        valuationId: `plate-${Date.now()}`,
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
+        bodyStyle: 'Sedan',
+        trim: 'Sport',
+        color: 'Blue'
+      };
+      
+      setValuationData(mockData);
+      setIsLoading(false);
+      
+      return {
+        success: true,
+        data: mockData
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to decode license plate';
+      setError(errorMessage);
+      setIsLoading(false);
+      
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
+  };
+
+  // Function to reset valuation state
+  const resetValuation = () => {
+    setValuationData(null);
+    setError(null);
+    setIsLoading(false);
   };
 
   return {
     valuationData,
     isLoading,
     error,
-    manualValuation
+    manualValuation,
+    decodeVin,
+    decodePlate,
+    resetValuation
   };
-};
-
-export default useValuation;
+}

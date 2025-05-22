@@ -10,6 +10,7 @@ export interface DecodedVehicleInfo {
   drivetrain?: string;
   bodyType?: string;
   exteriorColor?: string;
+  color?: string; // Adding color property for compatibility
   fuelType?: string;
   features?: string[];
   condition?: string; 
@@ -17,6 +18,30 @@ export interface DecodedVehicleInfo {
   mileage?: number;
   valuationId?: string;
   interiorColor?: string;
+}
+
+export interface ValuationResponse {
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition: string;
+  estimatedValue: number;
+  confidenceScore?: number;
+  valuationId: string;
+  zipCode?: string;
+  fuelType?: string;
+  transmission?: string;
+  bodyStyle?: string;
+  color?: string;
+  accidents?: number;
+  trim?: string;
+  vin?: string;
+  price_range?: {
+    low: number;
+    high: number;
+  };
+  [key: string]: any;
 }
 
 export interface DealerInventoryItem {

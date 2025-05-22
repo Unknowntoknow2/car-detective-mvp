@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { ValuationResponse } from '@/types/vehicle';
+import { ValuationResponse } from '@/components/lookup/types/valuation';
 
 interface ProcessedValuationResult {
   estimatedValue: number;

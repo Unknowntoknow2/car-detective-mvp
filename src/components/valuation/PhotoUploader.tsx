@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DesignCard } from "@/components/ui/design-system";
 import { Badge } from "@/components/ui/badge";
+import { Card } from '@/components/ui/card';
 import { 
   ImagePlus, 
   Trash2, 
