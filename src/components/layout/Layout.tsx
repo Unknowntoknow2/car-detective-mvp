@@ -5,6 +5,7 @@ import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 const Layout = () => {
   // Get isMobile directly, as the hook returns a boolean
@@ -14,6 +15,10 @@ const Layout = () => {
   } catch (error) {
     console.error("Error in Layout when checking mobile status:", error);
   }
+  
+  // Log to help with debugging
+  console.log("✅ Layout component rendering with isMobile:", isMobile);
+  console.log("✅ Debug mode:", SHOW_ALL_COMPONENTS ? "ENABLED" : "DISABLED");
   
   return (
     <TooltipProvider>

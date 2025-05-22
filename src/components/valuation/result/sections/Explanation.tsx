@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
+import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 interface ExplanationProps {
   explanation: string;
@@ -15,15 +16,23 @@ export const Explanation: React.FC<ExplanationProps> = ({
   isPremium,
   onUpgrade
 }) => {
+  // In debug mode, always show the premium content
+  const showPremiumContent = SHOW_ALL_COMPONENTS || isPremium;
+  
   return (
     <Card className="overflow-hidden">
+      {SHOW_ALL_COMPONENTS && (
+        <div className="bg-green-100 text-green-800 text-xs p-1 rounded-t-sm">
+          Explanation Component (Premium: {isPremium ? 'Yes' : 'No'})
+        </div>
+      )}
       <CardHeader className="bg-muted/20">
         <CardTitle className="text-lg">Market Analysis & Expert Insights</CardTitle>
       </CardHeader>
       <CardContent className="py-4 relative">
-        {isPremium ? (
+        {showPremiumContent ? (
           <div className="prose prose-sm max-w-none">
-            <p className="whitespace-pre-line">{explanation}</p>
+            <p className="whitespace-pre-line">{explanation || "This is a sample explanation of the vehicle's value based on market trends and the vehicle's condition. In a real implementation, this would be dynamically generated."}</p>
           </div>
         ) : (
           <div className="blur-sm pointer-events-none">
@@ -35,7 +44,7 @@ export const Explanation: React.FC<ExplanationProps> = ({
           </div>
         )}
         
-        {!isPremium && (
+        {!showPremiumContent && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80">
             <div className="text-center">
               <Lock className="h-8 w-8 mx-auto mb-2 text-primary" />
