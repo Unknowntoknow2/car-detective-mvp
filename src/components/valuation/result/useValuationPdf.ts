@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { ReportData } from '@/utils/pdf/types';
-import buildValuationReport from '@/utils/pdf/buildValuationReport';
 
 interface UseValuationPdfOptions {
   valuationId?: string;
@@ -21,7 +20,25 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       setIsGenerating(true);
       
       // Build the report data
-      const reportData = valuationData ? buildValuationReport(valuationData, options.isPremium) : null;
+      const reportData: ReportData = valuationData ? {
+        make: valuationData.make || '',
+        model: valuationData.model || '',
+        year: valuationData.year || new Date().getFullYear(),
+        mileage: valuationData.mileage || 0,
+        condition: valuationData.condition || 'Good',
+        estimatedValue: valuationData.estimatedValue || valuationData.estimated_value || 0,
+        confidenceScore: valuationData.confidenceScore || valuationData.confidence_score || 75,
+        priceRange: Array.isArray(valuationData.priceRange) ? valuationData.priceRange : [0, 0],
+        vin: valuationData.vin || '',
+        zipCode: valuationData.zipCode || valuationData.zip || '',
+        isPremium: options.isPremium,
+        adjustments: (valuationData.adjustments || []).map((adj: any) => ({
+          factor: adj.factor || '',
+          impact: adj.impact || 0,
+          description: adj.description || ''
+        })),
+        generatedAt: new Date().toISOString()
+      } : null;
       
       if (!reportData) {
         throw new Error('Valuation data is required to generate PDF');

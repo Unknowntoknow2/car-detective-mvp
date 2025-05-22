@@ -46,6 +46,7 @@ export function convertVehicleInfoToReportData(
     year: vehicleInfo.year,
     vin: vehicleInfo.vin,
     mileage: valuationData.mileage,
+    condition: valuationData.condition || 'Good',
     
     // Valuation information
     estimatedValue: valuationData.estimatedValue,
@@ -64,9 +65,8 @@ export function convertVehicleInfoToReportData(
     
     // Additional information
     adjustments: formattedAdjustments,
-    transmission: vehicleInfo.transmission,
     premium: valuationData.isPremium,
-    generatedDate: new Date()
+    generatedAt: new Date().toISOString()
   };
   
   return reportData;

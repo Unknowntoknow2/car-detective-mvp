@@ -1,31 +1,63 @@
+
 import { SectionParams } from '../types';
 
-/**
- * Draws the explanation section of the PDF
- */
 export function drawExplanationSection(params: SectionParams): number {
-  const { doc, data, margin = 40 } = params;
-  const explanation = data.explanation || '';
-  const sectionTitle = "Valuation Explanation";
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor, options } = params;
+  let y = startY;
+  
+  if (!options.includeExplanation || !data.explanation) {
+    return y; // Skip if explanation is not to be included
+  }
   
   // Draw section title
-  doc.fontSize(14)
-     .font('Helvetica-Bold')
-     .fillColor('#333333')
-     .text(sectionTitle, margin, doc.y + 20);
+  page.drawText('Valuation Explanation', {
+    x: margin,
+    y,
+    size: 12,
+    font: boldFont,
+    color: primaryColor,
+  });
   
-  // Add some space
-  doc.moveDown(1);
+  y -= 15;
   
-  // Draw explanation text
-  doc.fontSize(10)
-     .font('Helvetica')
-     .fillColor('#666666')
-     .text(explanation, {
-       width: doc.page.width - (margin * 2),
-       align: 'left'
-     });
+  // Split explanation into multiple lines for better readability
+  const maxWidth = width - (margin * 2);
+  const words = data.explanation.split(' ');
+  let currentLine = '';
   
-  // Return the new vertical position after the explanation section
-  return doc.y + 20;
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const textWidth = font.widthOfTextAtSize(testLine, 9);
+    
+    if (textWidth > maxWidth) {
+      // Draw the current line and move to next line
+      page.drawText(currentLine, {
+        x: margin,
+        y,
+        size: 9,
+        font: font,
+        color: textColor,
+      });
+      
+      y -= 12;
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  // Draw the last line if there's anything left
+  if (currentLine) {
+    page.drawText(currentLine, {
+      x: margin,
+      y,
+      size: 9,
+      font: font,
+      color: textColor,
+    });
+    
+    y -= 20;
+  }
+  
+  return y; // Return the new Y position
 }

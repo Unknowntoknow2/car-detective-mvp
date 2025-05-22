@@ -44,7 +44,7 @@ export async function generateBasicReport(
   y -= 30;
   
   // Draw vehicle information
-  page.drawText(`${data.year} ${data.make} ${data.model} ${data.trim || ''}`, {
+  page.drawText(`${data.year} ${data.make} ${data.model}`, {
     x: margin,
     y,
     size: 14,

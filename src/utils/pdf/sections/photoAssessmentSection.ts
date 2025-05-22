@@ -1,174 +1,146 @@
 
+import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
 export function drawPhotoAssessmentSection(params: SectionParams): number {
-  const { data, page, y = 0, width = 500, margin = 50, regularFont, boldFont, textColor, doc } = params;
+  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor, options } = params;
+  let y = startY;
   
-  // Exit early if no photo data
-  const photoUrl = data.photoUrl || data.bestPhotoUrl;
-  const photoScore = data.photoScore;
-  if (!photoUrl && !photoScore && !data.aiCondition) {
-    return y;
+  if (!options.includePhotoAssessment || !data.aiCondition) {
+    return y; // Skip if photo assessment is not to be included
   }
-  
-  // Ensure currentY is defined with a default value
-  let currentY = y;
   
   // Draw section title
-  if (page) {
-    page.drawText('Photo Assessment', {
-      x: margin,
-      y: currentY,
-      size: 16,
-      font: boldFont,
-      color: textColor
-    });
-  }
-  currentY -= 30;
+  page.drawText('Photo Assessment', {
+    x: margin,
+    y,
+    size: 14,
+    font: boldFont,
+    color: primaryColor,
+  });
   
-  // Draw photo if available
-  if (photoUrl && page) {
-    // Logic to embed an image would go here
-    // For now, just add placeholder text
-    page.drawText('Photo available: ' + photoUrl, {
+  y -= 20;
+  
+  // Draw condition assessment
+  if (data.aiCondition.condition) {
+    page.drawText('Condition Assessment:', {
       x: margin,
-      y: currentY,
+      y,
       size: 10,
-      font: regularFont,
-      color: textColor
-    });
-    currentY -= 20;
-  }
-  
-  // Draw photo score if available
-  if (photoScore !== undefined && page) {
-    page.drawText(`Photo Score: ${(photoScore * 100).toFixed(0)}%`, {
-      x: margin,
-      y: currentY,
-      size: 12,
       font: boldFont,
-      color: textColor
+      color: textColor,
     });
-    currentY -= 20;
     
-    // Add explanation of score
-    const scoreText = getScoreDescription(photoScore);
-    page.drawText(scoreText, {
-      x: margin,
-      y: currentY,
+    page.drawText(data.aiCondition.condition, {
+      x: margin + 150,
+      y,
       size: 10,
-      font: regularFont,
-      color: textColor
+      font: font,
+      color: textColor,
     });
-    currentY -= 30;
+    
+    y -= 15;
   }
   
-  // Draw AI condition assessment if available
-  if (data.aiCondition && page) {
-    const aiCondition = data.aiCondition;
-    
-    // Helper function to check if aiCondition is an object
-    const isAiConditionObject = (obj: any): obj is { 
-      summary?: string; 
-      score?: number; 
-      confidenceScore?: number; 
-      issuesDetected?: string[];
-      condition?: string;
-    } => {
-      return typeof obj === 'object' && obj !== null;
-    };
-    
-    // Draw condition summary
-    page.drawText('AI Condition Assessment:', {
+  // Draw confidence score if available
+  if (data.aiCondition.confidenceScore) {
+    page.drawText('Assessment Confidence:', {
       x: margin,
-      y: currentY,
-      size: 12,
+      y,
+      size: 10,
       font: boldFont,
-      color: textColor
+      color: textColor,
     });
-    currentY -= 20;
     
-    // Draw summary if available
-    if (isAiConditionObject(aiCondition) && aiCondition.summary) {
-      page.drawText(aiCondition.summary, {
+    page.drawText(`${data.aiCondition.confidenceScore}%`, {
+      x: margin + 150,
+      y,
+      size: 10,
+      font: font,
+      color: textColor,
+    });
+    
+    y -= 20;
+  }
+  
+  // Draw issues detected if available
+  if (data.aiCondition.issuesDetected && data.aiCondition.issuesDetected.length > 0) {
+    page.drawText('Issues Detected:', {
+      x: margin,
+      y,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
+    
+    y -= 15;
+    
+    // List all issues
+    for (const issue of data.aiCondition.issuesDetected) {
+      page.drawText(`• ${issue}`, {
         x: margin + 10,
-        y: currentY,
-        size: 10,
-        font: regularFont,
-        color: textColor
+        y,
+        size: 9,
+        font: font,
+        color: textColor,
       });
-      currentY -= 20;
-    } else if (typeof aiCondition === 'string') {
-      page.drawText(aiCondition, {
-        x: margin + 10,
-        y: currentY,
-        size: 10,
-        font: regularFont,
-        color: textColor
-      });
-      currentY -= 20;
+      
+      y -= 12;
     }
     
-    // Draw confidence score if available
-    if (isAiConditionObject(aiCondition) && aiCondition.confidenceScore) {
-      page.drawText('Confidence Score:', {
-        x: margin,
-        y: currentY,
-        size: 11,
-        font: boldFont,
-        color: textColor
-      });
-      currentY -= 15;
-      
-      page.drawText(`${aiCondition.confidenceScore.toFixed(0)}%`, {
-        x: margin + 10,
-        y: currentY,
-        size: 10,
-        font: regularFont,
-        color: textColor
-      });
-      currentY -= 20;
-    }
+    y -= 5;
+  }
+  
+  // Draw summary if available
+  if (data.aiCondition.summary) {
+    page.drawText('Summary:', {
+      x: margin,
+      y,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
     
-    // Draw issues detected if available
-    if (isAiConditionObject(aiCondition) && aiCondition.issuesDetected && aiCondition.issuesDetected.length > 0) {
-      page.drawText('Issues Detected:', {
-        x: margin,
-        y: currentY,
-        size: 11,
-        font: boldFont,
-        color: textColor
-      });
-      currentY -= 15;
+    y -= 15;
+    
+    // Split summary into multiple lines
+    const maxWidth = width - (margin * 2) - 10; // Slight indent
+    const words = data.aiCondition.summary.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const textWidth = font.widthOfTextAtSize(testLine, 9);
       
-      // List all issues
-      for (const issue of aiCondition.issuesDetected) {
-        page.drawText(`• ${issue}`, {
+      if (textWidth > maxWidth) {
+        page.drawText(currentLine, {
           x: margin + 10,
-          y: currentY,
-          size: 10,
-          font: regularFont,
-          color: textColor
+          y,
+          size: 9,
+          font: font,
+          color: textColor,
         });
-        currentY -= 15;
+        
+        y -= 12;
+        currentLine = word;
+      } else {
+        currentLine = testLine;
       }
     }
+    
+    // Draw the last line if there's anything left
+    if (currentLine) {
+      page.drawText(currentLine, {
+        x: margin + 10,
+        y,
+        size: 9,
+        font: font,
+        color: textColor,
+      });
+      
+      y -= 20;
+    }
   }
   
-  // Return the updated Y position
-  return currentY;
-}
-
-function getScoreDescription(score: number): string {
-  if (score >= 0.9) {
-    return 'Excellent: Photos show a vehicle in exceptional condition.';
-  } else if (score >= 0.8) {
-    return 'Very Good: Photos show a well-maintained vehicle with minimal wear.';
-  } else if (score >= 0.7) {
-    return 'Good: Photos show a vehicle in good condition with normal wear.';
-  } else if (score >= 0.6) {
-    return 'Fair: Photos show a vehicle with noticeable wear and potential issues.';
-  } else {
-    return 'Poor: Photos show a vehicle with significant wear or potential problems.';
-  }
+  return y; // Return the new Y position
 }

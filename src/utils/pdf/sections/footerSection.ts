@@ -1,59 +1,43 @@
 
+import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
-/**
- * Draw the footer section of the PDF
- * @param params Section parameters
- */
 export function drawFooterSection(params: SectionParams): void {
-  const { 
-    page, 
-    data, 
-    doc, 
-    pageWidth = 600, // Default value if undefined
-    pageHeight = 800, // Default value if undefined
-    textColor = { r: 0, g: 0, b: 0 },
-    regularFont,
-    boldFont
-  } = params;
+  const { page, margin, width, font, textColor, options } = params;
   
-  if (!page) {
-    console.warn("Page object is missing in footerSection");
-    return;
-  }
+  const { height } = page.getSize();
+  const footerY = 20; // 20 points from bottom
   
-  const footerY = 30;
-  
-  // Draw a line above the footer
+  // Draw a thin line above the footer
   page.drawLine({
-    start: { x: 50, y: footerY + 15 },
-    end: { x: pageWidth - 50, y: footerY + 15 },
+    start: { x: margin, y: footerY + 10 },
+    end: { x: width - margin, y: footerY + 10 },
     thickness: 0.5,
-    color: { r: 0.8, g: 0.8, b: 0.8 },
+    color: rgb(0.8, 0.8, 0.8),
   });
   
-  // Draw footer text - includes report date and company info if available
-  const footerText = `Report generated on ${data.reportDate ? data.reportDate.toLocaleDateString() : new Date().toLocaleDateString()}${data.companyName ? ` by ${data.companyName}` : ''}${data.website ? ` | ${data.website}` : ''}`;
+  // Draw copyright text
+  const copyrightText = '© ' + new Date().getFullYear() + ' Car Detective - All Rights Reserved';
   
-  page.drawText(footerText, {
-    x: 50,
+  page.drawText(copyrightText, {
+    x: margin,
     y: footerY,
     size: 8,
-    font: regularFont,
+    font: font,
     color: textColor,
+    opacity: 0.7,
   });
   
-  // Draw page number if multiple pages
-  const pageNumber = `Page 1`;
-  const pageNumberWidth = regularFont && typeof regularFont.widthOfTextAtSize === 'function'
-    ? regularFont.widthOfTextAtSize(pageNumber, 8)
-    : 30; // Fallback width
+  // Draw page number on the right
+  const pageText = 'Page 1';
+  const pageTextWidth = font.widthOfTextAtSize(pageText, 8);
   
-  page.drawText(pageNumber, {
-    x: pageWidth - 50 - pageNumberWidth,
+  page.drawText(pageText, {
+    x: width - margin - pageTextWidth,
     y: footerY,
     size: 8,
-    font: regularFont,
+    font: font,
     color: textColor,
+    opacity: 0.7,
   });
 }

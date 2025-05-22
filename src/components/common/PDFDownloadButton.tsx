@@ -49,6 +49,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         year: valuationResult.year || new Date().getFullYear(),
         mileage: valuationResult.mileage || 0,
         zipCode: valuationResult.zip || valuationResult.zipCode || '',
+        condition: valuationResult.condition || 'Good',
         // Use estimated value for price and estimatedValue
         estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
         adjustments: (valuationResult.adjustments || []).map((adj: any) => ({
@@ -56,7 +57,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
           impact: adj.impact || 0,
           description: adj.description || `Adjustment for ${adj.factor || 'unknown'}`
         })),
-        generatedDate: new Date(),
+        generatedAt: new Date().toISOString(),
         confidenceScore: valuationResult.confidence_score || valuationResult.confidenceScore || 0,
         aiCondition: valuationResult.aiCondition || {
           condition: 'Unknown',

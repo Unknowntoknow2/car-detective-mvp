@@ -1,41 +1,40 @@
+
 import { SectionParams } from '../types';
 
-/**
- * Draws the header section of the valuation report
- * @returns The new vertical position after drawing the header
- */
 export function drawHeaderSection(params: SectionParams): number {
-  const { doc, data, margin = 40 } = params;
+  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  let y = startY;
   
-  // Current Y position
-  const currentY = doc.y || 40;
-  
-  // Add title
-  doc.fontSize(18)
-     .font('Helvetica-Bold')
-     .fillColor('#333333')
-     .text(data.reportTitle || 'VEHICLE VALUATION REPORT', margin, currentY);
-  
-  // Add subtitle with date
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  // Draw title
+  page.drawText('Vehicle Valuation Report', {
+    x: margin,
+    y,
+    size: 16,
+    font: boldFont,
+    color: primaryColor,
   });
   
-  doc.fontSize(10)
-     .font('Helvetica')
-     .fillColor('#666666')
-     .text(`Generated on ${dateStr}`, margin, currentY + 25);
+  y -= 25;
   
-  // Draw a line to separate the header from the content
-  doc.strokeColor('#cccccc')
-     .lineWidth(1)
-     .moveTo(margin, currentY + 45)
-     .lineTo(doc.page.width - margin, currentY + 45)
-     .stroke();
+  // Draw generated date if available
+  if (data.generatedAt) {
+    const date = new Date(data.generatedAt);
+    const formattedDate = date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    page.drawText(`Generated: ${formattedDate}`, {
+      x: margin,
+      y,
+      size: 8,
+      font: font,
+      color: textColor,
+    });
+    
+    y -= 20;
+  }
   
-  // Return the new vertical position
-  return currentY + 60;
+  return y; // Return the new Y position
 }

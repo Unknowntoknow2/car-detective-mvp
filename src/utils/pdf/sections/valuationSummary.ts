@@ -1,66 +1,84 @@
-import { SectionParams } from '../types';
-import { formatCurrency } from './sectionHelper';
 
-export const drawValuationSummary = (params: SectionParams): number => {
-  const { doc, data, margin = 40 } = params;
-  
-  // Start position
-  const startY = doc.y + 20;
+import { SectionParams } from '../types';
+
+export function drawValuationSummary(params: SectionParams): number {
+  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  let y = startY;
   
   // Draw section title
-  doc.fontSize(14)
-     .font('Helvetica-Bold')
-     .text('Valuation Summary', margin, startY);
+  page.drawText('Valuation Summary', {
+    x: margin,
+    y,
+    size: 14,
+    font: boldFont,
+    color: primaryColor,
+  });
   
-  // Add some spacing
-  let currentY = startY + 30;
+  y -= 25;
+  
+  // Create a formatted valuation summary box
+  const boxWidth = 300;
+  const boxHeight = 100;
+  const boxX = margin;
+  const boxY = y - boxHeight;
+  
+  // Draw box outline
+  page.drawRectangle({
+    x: boxX,
+    y: boxY,
+    width: boxWidth,
+    height: boxHeight,
+    borderColor: primaryColor,
+    borderWidth: 1,
+    color: { r: 0.97, g: 0.97, b: 1.0 }, // Very light blue background
+  });
+  
+  // Draw the vehicle name
+  page.drawText(`${data.year} ${data.make} ${data.model}`, {
+    x: boxX + 15,
+    y: boxY + boxHeight - 25,
+    size: 12,
+    font: boldFont,
+    color: textColor,
+  });
   
   // Draw estimated value
-  doc.fontSize(22)
-     .font('Helvetica-Bold')
-     .fillColor('#0066cc')
-     .text(formatCurrency(data.estimatedValue), margin, currentY);
+  page.drawText('Estimated Value:', {
+    x: boxX + 15,
+    y: boxY + boxHeight - 50,
+    size: 10,
+    font: boldFont,
+    color: textColor,
+  });
   
-  currentY += 30;
+  page.drawText(`$${data.estimatedValue.toLocaleString()}`, {
+    x: boxX + 120,
+    y: boxY + boxHeight - 50,
+    size: 14,
+    font: boldFont,
+    color: primaryColor,
+  });
   
-  // Draw price range if available
-  if (data.priceRange && data.priceRange.length >= 2) {
-    doc.fontSize(12)
-       .font('Helvetica')
-       .fillColor('#333333')
-       .text('Estimated Price Range:', margin, currentY);
+  // Draw price range
+  if (data.priceRange && data.priceRange.length === 2) {
+    page.drawText('Price Range:', {
+      x: boxX + 15,
+      y: boxY + boxHeight - 75,
+      size: 10,
+      font: boldFont,
+      color: textColor,
+    });
     
-    doc.fontSize(12)
-       .font('Helvetica-Bold')
-       .text(`${formatCurrency(data.priceRange[0])} - ${formatCurrency(data.priceRange[1])}`, margin + 150, currentY);
-    
-    currentY += 20;
+    page.drawText(`$${data.priceRange[0].toLocaleString()} - $${data.priceRange[1].toLocaleString()}`, {
+      x: boxX + 120,
+      y: boxY + boxHeight - 75,
+      size: 10,
+      font: font,
+      color: textColor,
+    });
   }
   
-  // Draw confidence score if available
-  if (data.confidenceScore !== undefined) {
-    doc.fontSize(12)
-       .font('Helvetica')
-       .fillColor('#333333')
-       .text('Confidence Score:', margin, currentY);
-    
-    doc.fontSize(12)
-       .font('Helvetica-Bold')
-       .text(`${data.confidenceScore}%`, margin + 150, currentY);
-    
-    currentY += 20;
-  }
+  y = boxY - 10; // Update Y position to below the box
   
-  // Draw valuation date
-  doc.fontSize(12)
-     .font('Helvetica')
-     .fillColor('#333333')
-     .text('Valuation Date:', margin, currentY);
-  
-  doc.fontSize(12)
-     .font('Helvetica')
-     .text(new Date().toLocaleDateString(), margin + 150, currentY);
-  
-  // Return the updated Y position
-  return currentY + 30;
-};
+  return y; // Return the new Y position
+}

@@ -1,47 +1,74 @@
-import { SectionParams } from '../types';
-import { safeString } from './sectionHelper';
 
-export const drawVehicleInfoSection = (params: SectionParams): number => {
-  const { doc, data, margin = 40 } = params;
-  let currentY = doc.y + 20;
+import { SectionParams } from '../types';
+
+export function drawVehicleInfoSection(params: SectionParams): number {
+  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  let y = startY;
   
   // Draw section title
-  doc.fontSize(14)
-     .font('Helvetica-Bold')
-     .text('Vehicle Information', margin, currentY);
-  
-  currentY += 30;
-  
-  // Draw vehicle information table
-  const vehicleInfo = [
-    { label: 'Make', value: safeString(data.make) },
-    { label: 'Model', value: safeString(data.model) },
-    { label: 'Year', value: safeString(data.year) },
-    { label: 'Trim', value: safeString(data.trim) },
-    { label: 'VIN', value: safeString(data.vin) },
-    { label: 'Mileage', value: data.mileage ? `${data.mileage.toLocaleString()} miles` : 'N/A' },
-    { label: 'Body Type', value: safeString(data.bodyType) },
-    { label: 'Color', value: safeString(data.color) },
-    { label: 'Fuel Type', value: safeString(data.fuelType) },
-    { label: 'Transmission', value: safeString(data.transmission) }
-  ];
-  
-  // Draw each info row
-  vehicleInfo.forEach(item => {
-    if (item.value) {
-      doc.fontSize(11)
-         .font('Helvetica')
-         .fillColor('#666666')
-         .text(item.label + ':', margin, currentY);
-      
-      doc.fontSize(11)
-         .font('Helvetica-Bold')
-         .fillColor('#333333')
-         .text(item.value, margin + 100, currentY);
-      
-      currentY += 18;
-    }
+  page.drawText('Vehicle Information', {
+    x: margin,
+    y,
+    size: 14,
+    font: boldFont,
+    color: primaryColor,
   });
   
-  return currentY + 10;
-};
+  y -= 20;
+  
+  // Draw vehicle name
+  page.drawText(`${data.year} ${data.make} ${data.model}`, {
+    x: margin,
+    y,
+    size: 12,
+    font: boldFont,
+    color: textColor,
+  });
+  
+  y -= 20;
+  
+  // Draw vehicle details in a table format
+  const drawDetail = (label: string, value: string) => {
+    page.drawText(label, {
+      x: margin,
+      y,
+      size: 9,
+      font: boldFont,
+      color: textColor,
+    });
+    
+    page.drawText(value, {
+      x: margin + 120,
+      y,
+      size: 9,
+      font: font,
+      color: textColor,
+    });
+    
+    y -= 15;
+  };
+  
+  // Mileage
+  if (data.mileage) {
+    drawDetail('Mileage:', `${data.mileage.toLocaleString()} miles`);
+  }
+  
+  // VIN
+  if (data.vin) {
+    drawDetail('VIN:', data.vin);
+  }
+  
+  // Condition
+  if (data.condition) {
+    drawDetail('Condition:', data.condition);
+  }
+  
+  // Location
+  if (data.zipCode) {
+    drawDetail('Location:', `ZIP: ${data.zipCode}`);
+  }
+  
+  y -= 10; // Add some space after the table
+  
+  return y; // Return the new Y position
+}
