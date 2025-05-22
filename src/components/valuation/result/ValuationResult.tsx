@@ -10,12 +10,13 @@ import { ValuationFactorsGrid } from '../condition/factors/ValuationFactorsGrid'
 import { ConditionValues } from '../condition/types';
 import { toast } from 'sonner';
 
-interface ValuationResultProps {
+export interface ValuationResultProps {
   valuationId?: string;
   data?: any;
   isPremium?: boolean;
   isLoading?: boolean;
   error?: string;
+  onUpgrade?: () => void;
 }
 
 export default function ValuationResult({
@@ -23,7 +24,8 @@ export default function ValuationResult({
   data,
   isPremium = false,
   isLoading = false,
-  error
+  error,
+  onUpgrade
 }: ValuationResultProps) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -190,6 +192,7 @@ export default function ValuationResult({
           valuationId={resultId}
           onShareClick={handleShareValuation}
           isPremium={isPremium}
+          onUpgrade={onUpgrade}
         />
       )}
     </div>
