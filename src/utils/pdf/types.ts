@@ -1,121 +1,95 @@
 
-import { PDFFont, RGB } from 'pdf-lib';
-import { PDFDocument as PDFLibDocument } from 'pdf-lib';
+// Import PDFKit for PDF document types
+import { PDFDocument } from 'pdf-lib';
 
 export interface ReportData {
-  // Vehicle Information
+  // Vehicle information
   make: string;
   model: string;
   year: number;
-  trim?: string;
-  mileage: number; // Required field
   vin?: string;
-  
-  // Valuation Information
-  estimatedValue: number;
-  price?: number;
-  priceRange?: [number, number];
-  conditionAdjustment?: number;
-  mileageAdjustment?: number;
-  locationAdjustment?: number;
-  marketAdjustment?: number;
-  
-  // Condition Information
-  aiCondition?: string | { 
-    summary?: string;
-    score?: number;
-    confidenceScore?: number;
-    issuesDetected?: string[];
-    condition?: string;
-  };
-  conditionScore?: number;
-  conditionNotes?: string[];
-  
-  // Location Information
-  zipCode?: string;
-  regionName?: string;
-  
-  // Photo Assessment
-  photoAssessment?: {
-    exterior?: string[];
-    interior?: string[];
-    mechanical?: string[];
-    [key: string]: string[] | undefined; // Add index signature for photoAssessment
-  };
-  photoUrl?: string;
-  bestPhotoUrl?: string;
-  photoScore?: number;
-  photoExplanation?: string;
-  
-  // Document Information
-  id?: string;
-  reportTitle?: string;
-  reportDate?: Date;
-  disclaimerText?: string;
-  companyName?: string;
-  website?: string;
-  
-  // Additional Information
-  generatedDate?: Date;
-  generatedAt?: string;
-  explanation?: string;
-  features?: string[];
-  premium?: boolean;
-  
-  // PDF-specific properties
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  confidenceScore?: number;
-  bodyType?: string;
-  bodyStyle?: string;
+  mileage: number;
+  trim?: string;
   color?: string;
-  fuelType?: string;
+  bodyStyle?: string;
   transmission?: string;
-  isPremium?: boolean;
+  engineSize?: string;
+  fuelType?: string;
+  
+  // Valuation information
+  estimatedValue: number;
+  confidenceScore: number;
+  photoScore?: number;
+  
+  // Location information
+  zipCode: string;
+  regionName?: string;
+  stateCode?: string;
+  
+  // Condition information
+  aiCondition: AICondition;
+  photoCondition?: any;
+  bestPhotoUrl?: string;
+  vehiclePhotos?: string[];
+  
+  // Owner information
+  ownerCount?: number;
+  titleStatus?: string;
+  
+  // Accident information
+  accidentCount?: number;
+  
+  // Additional information
+  adjustments?: AdjustmentItem[];
+  premium?: boolean;
+  reportDate?: Date;
+  generatedDate: Date;
 }
 
-export interface SectionParams {
-  data: ReportData;
-  page: any;
-  y: number;
-  width?: number;
-  height?: number;
-  margin?: number;
-  contentWidth?: number;
-  regularFont?: PDFFont;
-  boldFont?: PDFFont;
-  textColor?: RGB;
-  primaryColor?: RGB;
-  doc?: any;
-  pageWidth?: number;
-  pageHeight?: number;
+export interface AICondition {
+  condition: string;
+  confidenceScore: number;
+  issuesDetected: string[];
+  summary: string;
 }
 
-export interface ReportOptions {
-  includeBranding: boolean;
-  includeExplanation: boolean;
-  includePhotoAssessment: boolean;
-  watermark: boolean;
-  fontSize: number;
-  pdfQuality: 'draft' | 'standard' | 'high';
-  pageSize?: string;
-}
-
-export interface ReportGeneratorParams {
-  data: ReportData;
-  options: ReportOptions;
-  document: typeof PDFLibDocument; // Fixed to use PDFLibDocument
-}
-
-// Add AdjustmentBreakdown interface for PDF sections
-export interface AdjustmentBreakdown {
+export interface AdjustmentItem {
   factor: string;
   impact: number;
   description: string;
-  name?: string;
-  value?: number;
-  percentAdjustment?: number;
 }
+
+export interface FooterData {
+  reportDate?: Date;
+  pageNumber: number;
+  totalPages: number;
+}
+
+export interface SectionParams {
+  doc: any;
+  pageWidth?: number;
+  pageHeight?: number;
+  margin?: number;
+  data: ReportData;
+  y: number;
+}
+
+export interface PremiumSectionParams extends SectionParams {
+  title: string;
+  description?: string;
+}
+
+export interface PremiumHeaderParams {
+  doc: any;
+  pageWidth?: number;
+  pageHeight?: number;
+  logoPath: string;
+  title: string;
+  subtitle?: string;
+}
+
+export type PDFDocumentWithOutline = PDFDocument & {
+  outline: {
+    addItem: (title: string) => void;
+  };
+};

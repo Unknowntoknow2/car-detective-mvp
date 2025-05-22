@@ -46,3 +46,8 @@ export async function fetchCarMaxApi(
   
   return mockListings;
 }
+
+/**
+ * For compatibility with scripts that expect this function name
+ */
+export const fetchCarMaxApiListings = fetchCarMaxApi;

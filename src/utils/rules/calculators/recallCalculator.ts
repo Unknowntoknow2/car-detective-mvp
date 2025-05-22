@@ -1,35 +1,29 @@
 
-import { RulesEngineInput, AdjustmentCalculator } from '../types';
+import { AdjustmentBreakdown, RulesEngineInput } from "../types";
 
-export class RecallCalculator implements AdjustmentCalculator {
-  calculate(input: RulesEngineInput) {
-    let impact = 0;
-    let description = "";
+export class RecallCalculator {
+  calculate(input: RulesEngineInput): AdjustmentBreakdown {
+    // Get recall status
+    const hasOpenRecall = input.hasOpenRecall || false;
+    const basePrice = input.basePrice || 20000; // Default if not provided
     
-    // Check if there are open recalls
-    if (input.hasOpenRecall === true) {
-      impact = -500; // Negative impact for open recalls
-      description = "Vehicle has open recalls";
-    } else if (input.hasOpenRecall === false) {
-      impact = 0; // No impact for no open recalls
-      description = "No open recalls";
+    // Only apply adjustment if there are open recalls
+    if (hasOpenRecall) {
+      // Apply a discount for open recalls
+      const impact = Math.round(basePrice * -0.05); // 5% discount for open recalls
+      
+      return {
+        factor: "Open Safety Recall",
+        impact,
+        description: "Vehicle has open safety recalls that need to be addressed"
+      };
     } else {
-      // If recall information is not available
-      impact = 0;
-      description = "Recall information not available";
+      // No impact if no open recalls
+      return {
+        factor: "Safety Recalls",
+        impact: 0,
+        description: "No open safety recalls detected"
+      };
     }
-    
-    // Calculate percentage impact relative to base price
-    const basePrice = input.basePrice || 0;
-    const percentAdjustment = basePrice > 0 ? (impact / basePrice) * 100 : 0;
-    
-    return {
-      factor: "Recall Status",
-      impact,
-      description,
-      name: "Recall Status",
-      value: impact,
-      percentAdjustment
-    };
   }
 }

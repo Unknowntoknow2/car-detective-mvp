@@ -1,99 +1,69 @@
 
-import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-// Import rules dynamically to avoid TypeScript error
-const rulesConfig = require('../../valuationRules.json');
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from "../types";
 
-/**
- * Calculator to adjust vehicle price based on location
- * This calculator uses zip code to determine regional pricing differences
- */
 export class LocationCalculator implements AdjustmentCalculator {
-  /**
-   * Calculate location-based adjustment
-   * @param input Input data including zip code
-   * @returns Adjustment breakdown or null if no zip code
-   */
   async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown> {
-    if (!input.zipCode) {
-      return {
-        factor: 'Location',
-        impact: 0,
-        description: 'No location data provided',
-        name: 'Location',
-        value: 0,
-        percentAdjustment: 0
-      };
-    }
-
-    try {
-      const basePrice = input.basePrice || 0;
-      
-      // In a real implementation, we would fetch location-specific
-      // market data here based on the zip code
-      
-      // For now, we'll use a simple formula that gives a slight
-      // premium to coastal and urban areas
-      
-      // Get the first digit of the zip code to determine region
-      const region = parseInt(input.zipCode.charAt(0));
-      
-      // Apply regional adjustments
-      let percentAdjustment = 0;
-      
-      switch (region) {
-        case 0: // Northeastern US
-        case 1:
-          percentAdjustment = 0.03;
-          break;
-        case 2: // Eastern US
-          percentAdjustment = 0.02;
-          break;
-        case 3: // Southeastern US
-          percentAdjustment = 0.01;
-          break;
-        case 4: // Midwestern US
-          percentAdjustment = -0.01;
-          break;
-        case 5: // South Central US
-          percentAdjustment = 0;
-          break;
-        case 6: // North Central US
-          percentAdjustment = -0.02;
-          break;
-        case 7: // Mountain states
-          percentAdjustment = -0.01;
-          break;
-        case 8: // Western US
-        case 9: // West Coast
-          percentAdjustment = 0.04;
-          break;
-        default:
-          percentAdjustment = 0;
-      }
-      
-      // Apply the adjustment
-      const adjustment = basePrice * percentAdjustment;
-      
-      return {
-        factor: 'Location',
-        impact: Math.round(adjustment),
-        description: `Regional market adjustment for ZIP ${input.zipCode}`,
-        name: 'Location',
-        value: Math.round(adjustment),
-        percentAdjustment
-      };
-    } catch (error) {
-      console.error('Error calculating location adjustment:', error);
-      
-      // Return a neutral adjustment in case of error
-      return {
-        factor: 'Location',
-        impact: 0,
-        description: 'Error calculating location adjustment',
-        name: 'Location',
-        value: 0,
-        percentAdjustment: 0
-      };
-    }
+    const zipCode = input.zipCode;
+    const basePrice = input.basePrice || 20000; // Default if not provided
+    
+    // In a real implementation, this would call an API or database
+    // to get the regional demand multiplier
+    const multiplier = await this.getRegionalMultiplier(zipCode);
+    
+    // Calculate impact
+    const impact = Math.round(basePrice * multiplier);
+    const regionName = await this.getRegionName(zipCode);
+    
+    return {
+      factor: "Regional Market",
+      impact,
+      description: `Market demand in ${regionName} affects vehicle value`
+    };
+  }
+  
+  private async getRegionalMultiplier(zipCode: string): Promise<number> {
+    // Mock implementation - in a real app, this would lookup from database
+    // Add artificial delay to simulate API call
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Example regional demand multipliers (simplified)
+    const firstDigit = zipCode.charAt(0);
+    const zipMultipliers: Record<string, number> = {
+      "0": 0.02,  // New England (higher demand)
+      "1": 0.01,  // Northeast
+      "2": 0.005, // Mid-Atlantic
+      "3": -0.01, // Southeast
+      "4": -0.005, // Midwest
+      "5": -0.01, // South
+      "6": -0.005, // South Central
+      "7": 0,     // Midwest/Plains (neutral)
+      "8": 0.01,  // Mountain
+      "9": 0.03   // West Coast (highest demand)
+    };
+    
+    return zipMultipliers[firstDigit] || 0;
+  }
+  
+  private async getRegionName(zipCode: string): Promise<string> {
+    // Mock implementation - in a real app, this would lookup from database
+    // Add artificial delay to simulate API call
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Example region names (simplified)
+    const firstDigit = zipCode.charAt(0);
+    const regionNames: Record<string, string> = {
+      "0": "New England",
+      "1": "Northeast",
+      "2": "Mid-Atlantic",
+      "3": "Southeast",
+      "4": "Midwest",
+      "5": "South",
+      "6": "South Central",
+      "7": "Midwest/Plains",
+      "8": "Mountain",
+      "9": "West Coast"
+    };
+    
+    return regionNames[firstDigit] || "Unknown Region";
   }
 }

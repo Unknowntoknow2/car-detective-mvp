@@ -8,7 +8,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { downloadPdf, openValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { openValuationPdf, downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
 interface VehicleCardProps {
   vehicle: ValuationResult;
@@ -19,17 +19,26 @@ function VehicleCard({ vehicle }: VehicleCardProps) {
   const handleDownloadPdf = () => {
     if (!vehicle) return;
     
-    // Create report data with necessary fields
+    // Create report data with necessary fields, ensuring required fields are not undefined
     const reportData = {
-      year: vehicle.year,
-      make: vehicle.make,
-      model: vehicle.model,
+      year: vehicle.year || 0,
+      make: vehicle.make || '',
+      model: vehicle.model || '',
       trim: vehicle.trim || '',
       vin: vehicle.vin || '',
       mileage: vehicle.mileage || 0,
       estimatedValue: vehicle.estimatedValue || 0,
       photoScore: vehicle.photoScore || 0,
       bestPhotoUrl: vehicle.photoUrl || '',
+      zipCode: vehicle.zipCode || '00000', // Ensure zipCode is always provided
+      confidenceScore: vehicle.confidenceScore || 0,
+      aiCondition: {
+        condition: vehicle.condition || 'Unknown',
+        confidenceScore: vehicle.confidenceScore || 0,
+        issuesDetected: [],
+        summary: `Vehicle is in ${vehicle.condition || 'unknown'} condition.`
+      },
+      generatedDate: new Date()
     };
     
     // Call PDF generation function
@@ -68,7 +77,20 @@ const UserDashboard = () => {
       try {
         if (user) {
           const history = await getUserValuations(user.id);
-          setValuations(history);
+          // Make sure the data conforms to ValuationResult type
+          const formattedHistory = history.map(item => ({
+            ...item,
+            // Add required properties for ValuationResult
+            priceRange: item.priceRange || { min: 0, max: 0 },
+            adjustments: item.adjustments || [],
+            // Ensure other required fields have default values
+            estimatedValue: item.estimatedValue || 0,
+            condition: item.condition || 'Unknown',
+            confidenceScore: item.confidenceScore || 0,
+            zipCode: item.zipCode || ''
+          })) as ValuationResult[];
+          
+          setValuations(formattedHistory);
         } else {
           setError('User not authenticated.');
         }

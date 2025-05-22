@@ -1,52 +1,34 @@
 
-import { RulesEngineInput, AdjustmentBreakdown } from '../rules/types';
-import { AICondition } from '@/types/photo';
-import * as rulesEngine from '../rulesEngine';
-import { getPhotoScoreAdjustmentDescription } from '../rules/descriptions';
-
-export interface ValuationInput {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  zipCode: string;
-  trim?: string;
-  fuelType?: string;
-  transmission?: string;
-  features?: string[];
-  accidentCount?: number;
-  color?: string;
-  premiumFeatures?: boolean[] | string[];
-  photoScore?: number;
-  aiConditionOverride?: AICondition;
-  baseMarketValue?: number;
-}
-
-export interface FinalValuationResult {
-  basePrice: number;
-  estimatedValue: number;
-  priceRange: [number, number];
-  confidenceScore: number;
-  adjustments: AdjustmentBreakdown[];
-  aiSummary?: string;
-  conditionSource?: string;
-  baseValue: number;
-  finalValue: number;
-}
+import { AICondition, AdjustmentBreakdown } from '@/types/photo';
+import rulesEngine from '../rulesEngine';
+import { RulesEngineInput } from '../rules/types';
 
 /**
- * Calculate the final valuation for a vehicle
+ * Calculate the final valuation based on inputs
  */
 export async function calculateFinalValuation(
-  input: ValuationInput,
-  basePrice: number,
-  aiCondition?: AICondition | null
-): Promise<FinalValuationResult> {
-  // Convert input to RulesEngineInput
-  const rulesInput: RulesEngineInput = {
-    baseValue: basePrice,
-    basePrice,
+  input: {
+    make: string;
+    model: string;
+    year: number;
+    mileage: number;
+    zipCode: string;
+    condition: string;
+    trim?: string;
+    baseValue?: number;
+    aiCondition?: AICondition;
+    photoScore?: number;
+    accidentCount?: number;
+    marketData?: any;
+  }
+): Promise<{
+  estimatedValue: number;
+  confidenceScore: number;
+  adjustments: AdjustmentBreakdown[];
+  basePrice: number;
+}> {
+  // Transform input to RulesEngineInput
+  const engineInput: RulesEngineInput = {
     make: input.make,
     model: input.model,
     year: input.year,
@@ -54,128 +36,77 @@ export async function calculateFinalValuation(
     condition: input.condition,
     zipCode: input.zipCode,
     trim: input.trim,
-    fuelType: input.fuelType,
-    transmissionType: input.transmission,
-    accidentCount: input.accidentCount || 0,
-    exteriorColor: input.color,
-    features: input.features,
-    premiumFeatures: input.premiumFeatures || [],
-    // Add AI condition override if present
-    aiConditionOverride: aiCondition,
-    photoScore: input.photoScore
+    baseValue: input.baseValue || getBaseValueEstimate(input),
+    aiConditionOverride: input.aiCondition,
+    photoScore: input.photoScore,
+    accidentCount: input.accidentCount || 0
   };
-  
-  // Calculate adjustments using rules engine
-  const adjustments = await rulesEngine.calculateAdjustments(rulesInput);
-  
-  // Add photo score adjustment if available
-  if (input.photoScore !== undefined && input.photoScore > 0) {
-    const photoAdjustment = calculatePhotoScoreAdjustment(input.photoScore, basePrice);
-    const photoImpactPercent = (photoAdjustment / basePrice) * 100;
-    
-    const photoAdjustmentBreakdown: AdjustmentBreakdown = {
-      name: 'Photo Condition',
-      factor: 'Photo Condition',
-      value: photoAdjustment,
-      impact: photoAdjustment,
-      description: getPhotoScoreAdjustmentDescription(input.photoScore, photoImpactPercent, photoAdjustment),
-      percentAdjustment: photoImpactPercent
-    };
-    
-    adjustments.push(photoAdjustmentBreakdown);
-  }
+
+  // Get adjustments from the rules engine
+  const adjustments = await rulesEngine.calculateAdjustments(engineInput);
   
   // Calculate total adjustment
   const totalAdjustment = rulesEngine.calculateTotalAdjustment(adjustments);
   
-  // Calculate estimated value
+  // Calculate base price and final value
+  const basePrice = engineInput.baseValue || 20000; // Fallback
   const estimatedValue = basePrice + totalAdjustment;
   
-  // Calculate confidence score based on available data
-  const confidenceScore = calculateConfidenceScore(input, adjustments, aiCondition);
+  // Calculate confidence score
+  let confidenceScore = 80; // Default
   
-  // Calculate price range based on confidence score
-  const priceRange = calculatePriceRange(estimatedValue, confidenceScore);
+  // Adjust confidence based on photo assessment
+  if (input.aiCondition) {
+    confidenceScore = Math.min(
+      95,
+      confidenceScore + input.aiCondition.confidenceScore / 10
+    );
+  }
   
-  // Format the result
+  // Adjust based on data quality
+  if (input.accidentCount !== undefined) {
+    confidenceScore += 3; // More data = more confidence
+  }
+  
+  if (input.aiCondition && input.aiCondition.summary) {
+    confidenceScore += 2; // AI assessment improves confidence
+  }
+  
   return {
-    basePrice,
-    baseValue: basePrice,
-    estimatedValue,
-    finalValue: estimatedValue,
-    priceRange,
-    confidenceScore,
+    estimatedValue: Math.max(0, Math.round(estimatedValue)),
+    confidenceScore: Math.round(confidenceScore),
     adjustments,
-    aiSummary: aiCondition?.summary, // Fix: use summary instead of aiSummary
-    conditionSource: aiCondition ? 'AI' : 'User' 
+    basePrice
   };
 }
 
 /**
- * Calculate adjustment based on photo score
+ * Estimate base value based on year, make, model
  */
-function calculatePhotoScoreAdjustment(photoScore: number, basePrice: number): number {
-  if (photoScore >= 0.9) {
-    // Excellent condition photos get a bonus
-    return basePrice * 0.05;
-  } else if (photoScore >= 0.7) {
-    // Good condition photos get no adjustment
-    return 0;
-  } else if (photoScore >= 0.5) {
-    // Fair condition photos get a small penalty
-    return basePrice * -0.03;
-  } else {
-    // Poor condition photos get a larger penalty
-    return basePrice * -0.08;
-  }
-}
-
-/**
- * Calculate confidence score based on input data quality
- */
-function calculateConfidenceScore(
-  input: ValuationInput, 
-  adjustments: AdjustmentBreakdown[],
-  aiCondition?: AICondition | null
-): number {
-  // Base confidence starts at 70%
-  let confidence = 70;
+function getBaseValueEstimate(input: { 
+  make: string;
+  model: string; 
+  year: number;
+  mileage: number;
+}): number {
+  // In real app, this would call database or API
+  // For now, use a simple calculation
+  const currentYear = new Date().getFullYear();
+  const ageDiscount = (currentYear - input.year) * 1500;
+  const mileageDiscount = Math.floor(input.mileage / 10000) * 500;
   
-  // Adjust based on data completeness
-  if (input.fuelType) confidence += 2;
-  if (input.transmission) confidence += 2;
-  if (input.trim) confidence += 3;
-  if (input.color) confidence += 1;
-  if (input.features && input.features.length > 0) confidence += 3;
+  // Base values by make (very simplified)
+  const baseMakeValues: Record<string, number> = {
+    'Toyota': 30000,
+    'Honda': 28000,
+    'Ford': 26000,
+    'Chevrolet': 25000,
+    'BMW': 45000,
+    'Mercedes': 48000,
+    'Audi': 42000
+  };
   
-  // Adjust based on AI condition data
-  if (aiCondition) {
-    // Add the AI confidence score (normalized to 0-15 range)
-    const aiConfidenceBoost = (aiCondition.confidenceScore / 100) * 15;
-    confidence += aiConfidenceBoost;
-  }
+  const baseValue = baseMakeValues[input.make] || 25000;
   
-  // Adjust based on adjustment validity
-  if (adjustments.length >= 3) confidence += 2;
-  if (adjustments.length >= 5) confidence += 3;
-  
-  // Cap confidence at 95%
-  return Math.min(confidence, 95);
-}
-
-/**
- * Calculate price range based on estimated value and confidence
- */
-function calculatePriceRange(
-  estimatedValue: number, 
-  confidenceScore: number
-): [number, number] {
-  // Calculate margin based on confidence (less confident = wider range)
-  const margin = ((100 - confidenceScore) / 100) * estimatedValue;
-  
-  // Return price range as [min, max]
-  return [
-    Math.floor(estimatedValue - margin),
-    Math.ceil(estimatedValue + margin)
-  ];
+  return Math.max(5000, baseValue - ageDiscount - mileageDiscount);
 }
