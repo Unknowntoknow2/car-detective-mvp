@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawValuationSummary(params: SectionParams): number {
-  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  const { page, startY, margin, data, fonts, textColor, primaryColor } = params;
   let y = startY;
   
   // Draw section title
@@ -10,7 +10,7 @@ export function drawValuationSummary(params: SectionParams): number {
     x: margin,
     y,
     size: 14,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -38,7 +38,7 @@ export function drawValuationSummary(params: SectionParams): number {
     x: boxX + 15,
     y: boxY + boxHeight - 25,
     size: 12,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -47,7 +47,7 @@ export function drawValuationSummary(params: SectionParams): number {
     x: boxX + 15,
     y: boxY + boxHeight - 50,
     size: 10,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -55,7 +55,7 @@ export function drawValuationSummary(params: SectionParams): number {
     x: boxX + 120,
     y: boxY + boxHeight - 50,
     size: 14,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -65,7 +65,7 @@ export function drawValuationSummary(params: SectionParams): number {
       x: boxX + 15,
       y: boxY + boxHeight - 75,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -73,7 +73,7 @@ export function drawValuationSummary(params: SectionParams): number {
       x: boxX + 120,
       y: boxY + boxHeight - 75,
       size: 10,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
   }

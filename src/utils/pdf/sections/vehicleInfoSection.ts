@@ -2,7 +2,7 @@
 import { SectionParams } from '../types';
 
 export function drawVehicleInfoSection(params: SectionParams): number {
-  const { page, startY, margin, data, font, boldFont, textColor, primaryColor } = params;
+  const { page, startY, margin, data, fonts, textColor, primaryColor } = params;
   let y = startY;
   
   // Draw section title
@@ -10,7 +10,7 @@ export function drawVehicleInfoSection(params: SectionParams): number {
     x: margin,
     y,
     size: 14,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -21,7 +21,7 @@ export function drawVehicleInfoSection(params: SectionParams): number {
     x: margin,
     y,
     size: 12,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -33,7 +33,7 @@ export function drawVehicleInfoSection(params: SectionParams): number {
       x: margin,
       y,
       size: 9,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -41,7 +41,7 @@ export function drawVehicleInfoSection(params: SectionParams): number {
       x: margin + 120,
       y,
       size: 9,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     

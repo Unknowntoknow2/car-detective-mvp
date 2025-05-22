@@ -3,7 +3,7 @@ import { rgb } from 'pdf-lib';
 import { SectionParams } from '../types';
 
 export function drawValuationSection(params: SectionParams): number {
-  const { page, startY, margin, width, data, font, boldFont, textColor, primaryColor } = params;
+  const { page, startY, margin, width, data, fonts, textColor, primaryColor } = params;
   let y = startY;
   
   // Draw section title
@@ -11,7 +11,7 @@ export function drawValuationSection(params: SectionParams): number {
     x: margin,
     y,
     size: 14,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -22,7 +22,7 @@ export function drawValuationSection(params: SectionParams): number {
     x: margin,
     y,
     size: 10,
-    font: boldFont,
+    font: fonts.bold,
     color: textColor,
   });
   
@@ -30,7 +30,7 @@ export function drawValuationSection(params: SectionParams): number {
     x: margin + 120,
     y,
     size: 16,
-    font: boldFont,
+    font: fonts.bold,
     color: primaryColor,
   });
   
@@ -42,7 +42,7 @@ export function drawValuationSection(params: SectionParams): number {
       x: margin,
       y,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -50,7 +50,7 @@ export function drawValuationSection(params: SectionParams): number {
       x: margin + 120,
       y,
       size: 10,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     
@@ -63,7 +63,7 @@ export function drawValuationSection(params: SectionParams): number {
       x: margin,
       y,
       size: 10,
-      font: boldFont,
+      font: fonts.bold,
       color: textColor,
     });
     
@@ -72,7 +72,7 @@ export function drawValuationSection(params: SectionParams): number {
       x: margin + 120,
       y,
       size: 10,
-      font: font,
+      font: fonts.regular,
       color: textColor,
     });
     
