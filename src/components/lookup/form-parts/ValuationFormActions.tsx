@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingButton } from '@/components/ui/loading-button';
 
@@ -17,12 +18,12 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
   isNewSearch,
   isResetting
 }) => {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleNewSearch = () => {
     toast.success('Starting a new search!');
     onNewSearch();
-    router.push('/valuation');
+    navigate('/valuation');
   };
 
   const handleStartOver = () => {
@@ -53,4 +54,3 @@ export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
     </div>
   );
 };
-

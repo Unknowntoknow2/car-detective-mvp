@@ -20,6 +20,11 @@ interface SharedLoginFormProps {
   alternateLoginText: string;
 }
 
+interface SignInResult {
+  success: boolean;
+  error?: string;
+}
+
 export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
   isLoading,
   setIsLoading,
@@ -47,10 +52,10 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
     
     try {
       // Sign in using the auth context
-      const result = await signIn(email, password);
+      const result = await signIn(email, password) as SignInResult;
       
-      if (result === false || (typeof result === 'object' && result?.error)) {
-        const errorMessage = typeof result === 'object' ? errorToString(result.error) : 'Authentication failed';
+      if (result === false || (typeof result === 'object' && !result.success)) {
+        const errorMessage = typeof result === 'object' && result.error ? errorToString(result.error) : 'Authentication failed';
         throw new Error(errorMessage);
       }
       

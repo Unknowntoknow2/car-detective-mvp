@@ -1,6 +1,9 @@
 
 import { PlateLookupInfo } from '@/types/lookup';
-import { PlateLookupResponse } from '@/types/api';
+import { ApiResponse } from '@/types/api';
+
+// Define a better response type
+export interface PlateLookupResponse extends ApiResponse<PlateLookupInfo> {}
 
 export const lookupPlate = async (
   plate: string,
