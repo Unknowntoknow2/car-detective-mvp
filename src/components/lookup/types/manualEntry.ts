@@ -32,4 +32,5 @@ export interface ManualEntryFormData {
   accidentDetails?: AccidentDetails;
   isPremium?: boolean;
   fileType?: string;
+  fileName?: string;
 }

@@ -51,6 +51,7 @@ export interface ValuationResponse {
   trim?: string;
   color?: string;
   price_range?: any;
+  priceRange?: any;
   adjustments?: Array<{
     factor: string;
     impact: number;
