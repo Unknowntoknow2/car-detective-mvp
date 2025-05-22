@@ -13,6 +13,10 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { TabNavigation } from '@/components/premium/sections/valuation-tabs/TabNavigation';
 import { TabContent } from '@/components/premium/sections/valuation-tabs/TabContent';
 import { ValuationServiceId } from '@/components/premium/sections/valuation-tabs/services';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { PremiumAccessRequired } from '@/components/premium/PremiumAccessRequired';
+import { CarfaxSummary } from '@/components/lookup/CarfaxSummary';
+import { useAuth } from '@/hooks/useAuth';
 
 const Premium: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
@@ -21,6 +25,8 @@ const Premium: React.FC = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { hasPremiumAccess, isLoading: isPremiumLoading } = usePremiumAccess();
   
   // Add states for lookup tabs
   const [activeTab, setActiveTab] = useState<ValuationServiceId>('vin');
@@ -29,6 +35,15 @@ const Premium: React.FC = () => {
   const [plateState, setPlateState] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [vehicle, setVehicle] = useState<any>(null);
+  
+  // Mock CARFAX data for demo
+  const mockCarfaxData = {
+    accidentsReported: 0,
+    owners: 1,
+    serviceRecords: 12,
+    salvageTitle: false,
+    reportUrl: '#',
+  };
   
   // Track mouse for 3D card effect
   useEffect(() => {
@@ -159,6 +174,57 @@ const Premium: React.FC = () => {
                 />
               </Tabs>
               
+              {vehicle && (
+                <div className="mt-8">
+                  <h3 className="text-xl font-semibold mb-4">Vehicle Information</h3>
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border">
+                    <div>
+                      <p className="text-sm text-gray-500">Make</p>
+                      <p className="font-medium">{vehicle.make}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Model</p>
+                      <p className="font-medium">{vehicle.model}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Year</p>
+                      <p className="font-medium">{vehicle.year}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Trim</p>
+                      <p className="font-medium">{vehicle.trim || 'N/A'}</p>
+                    </div>
+                  </div>
+                  
+                  {/* CARFAX Report Preview - Only visible to premium users */}
+                  {hasPremiumAccess ? (
+                    <div className="mt-6">
+                      <CarfaxSummary carfaxData={mockCarfaxData} />
+                    </div>
+                  ) : (
+                    <div className="mt-6">
+                      <PremiumAccessRequired />
+                    </div>
+                  )}
+                  
+                  {/* AI Photo Upload Section */}
+                  <div className="mt-6">
+                    <h3 className="text-xl font-semibold mb-4">AI Photo Analysis</h3>
+                    {hasPremiumAccess ? (
+                      <div className="p-4 bg-gray-50 rounded-lg border">
+                        <p className="mb-3">Upload photos of your vehicle for AI-powered condition analysis</p>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                          <Button variant="outline">Upload Photos</Button>
+                          <p className="mt-2 text-sm text-gray-500">Supports JPG, PNG up to 10MB</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <PremiumAccessRequired />
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <div className="mt-8">
                 <PremiumTabs showFreeValuation={true} />
               </div>
@@ -182,7 +248,13 @@ const Premium: React.FC = () => {
               </div>
             </div>
             
-            <PremiumValuationForm />
+            {hasPremiumAccess ? (
+              <PremiumValuationForm />
+            ) : (
+              <div className="max-w-lg mx-auto">
+                <PremiumAccessRequired />
+              </div>
+            )}
           </Container>
         </div>
       </div>
