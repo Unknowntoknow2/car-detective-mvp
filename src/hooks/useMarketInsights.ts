@@ -9,7 +9,7 @@ interface MarketInsightsProps {
   zipCode?: string;
 }
 
-interface MarketInsightsData {
+export interface MarketInsightsData {
   trendDirection: 'increasing' | 'decreasing' | 'stable';
   trendPercentage: number;
   averagePrices: {
