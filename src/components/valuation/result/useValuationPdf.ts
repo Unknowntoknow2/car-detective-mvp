@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { downloadPdf } from '@/utils/pdf';
 import { ReportData, ReportOptions } from '@/utils/pdf/types';
@@ -47,25 +48,38 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
             Number(valuationData.priceRange[1])
           ];
         } else if (typeof valuationData.priceRange === 'object') {
+          const priceObj = valuationData.priceRange as any;
           // Convert from object format to tuple format if needed
-          if ('min' in valuationData.priceRange && 'max' in valuationData.priceRange) {
+          if ('min' in priceObj && 'max' in priceObj) {
             reportData.priceRange = [
-              Number(valuationData.priceRange.min),
-              Number(valuationData.priceRange.max)
+              Number(priceObj.min),
+              Number(priceObj.max)
             ];
-          } else if ('low' in valuationData.priceRange && 'high' in valuationData.priceRange) {
+          } else if ('low' in priceObj && 'high' in priceObj) {
             reportData.priceRange = [
-              Number(valuationData.priceRange.low),
-              Number(valuationData.priceRange.high)
+              Number(priceObj.low),
+              Number(priceObj.high)
+            ];
+          } else {
+            // Fallback if the format is unexpected
+            reportData.priceRange = [
+              Math.floor(reportData.estimatedValue * 0.95),
+              Math.ceil(reportData.estimatedValue * 1.05)
             ];
           }
         } else {
-          // If no price range provided, calculate one based on estimated value
+          // If no price range provided or it's in an invalid format, calculate one based on estimated value
           reportData.priceRange = [
             Math.floor(reportData.estimatedValue * 0.95),
             Math.ceil(reportData.estimatedValue * 1.05)
           ];
         }
+      } else {
+        // If no price range provided, calculate one based on estimated value
+        reportData.priceRange = [
+          Math.floor(reportData.estimatedValue * 0.95),
+          Math.ceil(reportData.estimatedValue * 1.05)
+        ];
       }
       
       // Add condition data if available
@@ -153,7 +167,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
           issuesDetected: [],
           summary: 'Vehicle is in excellent condition with no visible issues.'
         },
-        // Convert to tuple format
+        // Use tuple format directly
         priceRange: [25500, 28000],
       };
       
