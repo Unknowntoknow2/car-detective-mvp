@@ -9,9 +9,16 @@ import { validateVIN } from '@/utils/validation/vin-validation';
 interface ManualEntryFormProps {
   onSubmit: (data: any) => void;
   isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
 }
 
-const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLoading = false }) => {
+const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ 
+  onSubmit, 
+  isLoading = false,
+  submitButtonText = "Get Valuation",
+  isPremium = false
+}) => {
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -188,7 +195,7 @@ const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onSubmit, isLoading =
       </div>
       
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Processing...' : 'Get Valuation'}
+        {isLoading ? 'Processing...' : submitButtonText}
       </Button>
     </form>
   );
