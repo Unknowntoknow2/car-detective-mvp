@@ -1,5 +1,4 @@
-
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export function WelcomeBanner() {
   const { user } = useAuth();
