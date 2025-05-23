@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { VEHICLE_MAKES, VEHICLE_YEARS } from '@/data/vehicle-data';
+import { useVehicleData } from '@/hooks/useVehicleData';
 
 interface VehicleDetailsInputsProps {
   make: string;
@@ -42,6 +43,9 @@ export function VehicleDetailsInputs({
   setColor,
   availableModels = []
 }: VehicleDetailsInputsProps) {
+  const { getModelsByMake } = useVehicleData();
+  const [models, setModels] = useState<string[]>(availableModels);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
@@ -54,6 +58,32 @@ export function VehicleDetailsInputs({
       setMileage(parseInt(value, 10));
     }
   };
+
+  // Fetch models when make changes
+  useEffect(() => {
+    if (make) {
+      setIsLoadingModels(true);
+      getModelsByMake(make)
+        .then(modelData => {
+          const modelNames = modelData.map(m => m.model_name);
+          setModels(modelNames);
+          // If current model is not in the new model list, reset it
+          if (model && !modelNames.includes(model)) {
+            setModel('');
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching models:', err);
+          setModels([]);
+        })
+        .finally(() => {
+          setIsLoadingModels(false);
+        });
+    } else {
+      setModels([]);
+      if (model) setModel(''); // Reset model when make is cleared
+    }
+  }, [make, getModelsByMake]);
   
   return (
     <>
@@ -82,20 +112,27 @@ export function VehicleDetailsInputs({
           <Select
             value={model}
             onValueChange={setModel}
-            disabled={!make}
+            disabled={!make || isLoadingModels}
           >
             <SelectTrigger id="model">
-              <SelectValue placeholder={make ? "Select model" : "Select make first"} />
+              <SelectValue placeholder={
+                !make 
+                  ? "Select make first" 
+                  : isLoadingModels 
+                    ? "Loading models..." 
+                    : "Select model"
+              } />
             </SelectTrigger>
             <SelectContent>
-              {availableModels.length > 0 ? (
-                availableModels.map((modelName) => (
+              {isLoadingModels ? (
+                <SelectItem value="loading" disabled>Loading models...</SelectItem>
+              ) : models.length > 0 ? (
+                models.map((modelName) => (
                   <SelectItem key={modelName} value={modelName}>
                     {modelName}
                   </SelectItem>
                 ))
               ) : (
-                // This was likely causing the error - an empty value in SelectItem
                 make && <SelectItem value="no_models_found">No models found</SelectItem>
               )}
             </SelectContent>

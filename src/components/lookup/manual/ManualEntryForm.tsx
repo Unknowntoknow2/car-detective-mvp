@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -30,6 +30,17 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [zipCode, setZipCode] = useState('');
   const [fuelType, setFuelType] = useState('Gasoline');
   const [transmission, setTransmission] = useState('Automatic');
+  const [isValid, setIsValid] = useState(false);
+  
+  // Validate form fields
+  useEffect(() => {
+    const isValidForm = Boolean(
+      make.trim() !== '' && 
+      model.trim() !== '' && 
+      zipCode.length === 5
+    );
+    setIsValid(isValidForm);
+  }, [make, model, zipCode]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +114,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           <Button 
             type="submit"
             className="w-full" 
-            disabled={isLoading || !make || !model || !zipCode}
+            disabled={isLoading || !isValid}
           >
             {isLoading ? (
               <>
