@@ -58,7 +58,7 @@ export async function scrapeCraigslist(
 
   // Optional: store into Supabase if needed
   if (listings.length) {
-    await supabase.from('marketplace_listings').upsert(listings, { onConflict: 'url' });
+    await supabase.from('marketplace_listings').upsert(listings, { onConflict: 'id' });
   }
 
   return listings;
