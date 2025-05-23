@@ -59,12 +59,18 @@ export function DealerSignupForm() {
     
     try {
       // Sign up the user with dealer role and metadata
-      await signUp(data.email, data.password, {
+      const metadata = {
         full_name: data.fullName,
         role: 'dealer',
         dealership_name: data.dealershipName,
         phone: data.phone || null,
-      });
+      };
+      
+      const result = await signUp(data.email, data.password, metadata);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Registration failed');
+      }
       
       toast.success('Dealership registration successful!', {
         description: 'Please check your email to verify your account.'

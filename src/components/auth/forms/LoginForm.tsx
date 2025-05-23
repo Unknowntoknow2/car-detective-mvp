@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Mail, KeyRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 // Define form schema
 const formSchema = z.object({
@@ -28,7 +27,6 @@ export const LoginForm = ({ isLoading, setIsLoading, redirectPath = '/dashboard'
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   
   // Get the redirect path from location state, defaulting to dashboard
   const from = location.state?.from || redirectPath;

@@ -7,11 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
-interface SignInResult {
-  success: boolean;
-  error?: string;
-}
-
 interface SigninFormProps {
   isLoading?: boolean;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -46,10 +41,7 @@ export const SigninForm: React.FC<SigninFormProps> = ({
     setError(null);
     
     try {
-      const signInResponse = await signIn(email, password);
-      const result = typeof signInResponse === 'boolean' 
-        ? { success: signInResponse, error: signInResponse ? undefined : 'Authentication failed' }
-        : signInResponse as SignInResult;
+      const result = await signIn(email, password);
       
       if (!result.success) {
         const errorMessage = result.error || 'Authentication failed';

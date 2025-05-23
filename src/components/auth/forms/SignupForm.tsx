@@ -63,7 +63,7 @@ export const SignupForm = ({
       
       const result = await signUp(email, password, metadata);
       
-      if (result.error) {
+      if (!result.success) {
         const errorMessage = result.error || 'Error creating account';
         setFormError(errorMessage);
         setIsLoading(false);

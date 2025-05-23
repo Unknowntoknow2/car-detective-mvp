@@ -8,7 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { toast } from 'sonner';
 
 // Mock Supabase
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('@/lib/supabaseClient', () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
@@ -16,7 +16,12 @@ vi.mock('@/integrations/supabase/client', () => ({
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn()
-    }
+    },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null })
+    })
   }
 }));
 
@@ -85,7 +90,7 @@ describe('AuthContext', () => {
       data: { user: { id: '123', email: 'test@example.com' } }
     });
     
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/lib/supabaseClient');
     supabase.auth.signInWithPassword = mockSignInWithPassword;
     
     renderWithAuth();
@@ -111,7 +116,7 @@ describe('AuthContext', () => {
       data: { user: null }
     });
     
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/lib/supabaseClient');
     supabase.auth.signInWithPassword = mockSignInWithPassword;
     
     renderWithAuth();
@@ -136,7 +141,7 @@ describe('AuthContext', () => {
       data: { user: { id: '123', email: 'test@example.com' } }
     });
     
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/lib/supabaseClient');
     supabase.auth.signUp = mockSignUp;
     
     renderWithAuth();
@@ -150,7 +155,8 @@ describe('AuthContext', () => {
     
     expect(mockSignUp).toHaveBeenCalledWith({
       email: 'test@example.com',
-      password: 'password'
+      password: 'password',
+      options: undefined
     });
     
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('Sign up successful'));
@@ -159,7 +165,7 @@ describe('AuthContext', () => {
   it('handles sign out', async () => {
     const mockSignOut = vi.fn().mockResolvedValue({ error: null });
     
-    const { supabase } = await import('@/integrations/supabase/client');
+    const { supabase } = await import('@/lib/supabaseClient');
     supabase.auth.signOut = mockSignOut;
     
     renderWithAuth();
