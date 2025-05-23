@@ -18,7 +18,11 @@ const SignupPage: React.FC = () => {
             </p>
           </div>
           
-          <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
+          <SignupForm 
+            isLoading={isLoading} 
+            setIsLoading={setIsLoading} 
+            role="individual" 
+          />
           
           <div className="text-center text-sm">
             <p>

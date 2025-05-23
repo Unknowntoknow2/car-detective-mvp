@@ -1,198 +1,98 @@
 
-import React, { useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Toaster } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { Building, User, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SigninForm } from '@/components/auth/forms/SigninForm';
-import { SignupForm } from '@/components/auth/forms/SignupForm';
-import { Building, User, ArrowLeft, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 
-const AuthPage: React.FC = () => {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("sign-in");
+export default function AuthPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  // Animation variants for framer-motion
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        delayChildren: 0.3,
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
-  };
 
   return (
-    <motion.div 
-      className="container mx-auto py-8 px-4 flex justify-center items-center min-h-[80vh]"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <div className="max-w-md w-full">
-        <motion.div variants={itemVariants}>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="mb-6 text-muted-foreground"
-            onClick={() => navigate('/')}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-50 to-gray-50">
+      <Toaster richColors position="top-center" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Welcome to Car Detective</h1>
+          <p className="text-gray-600 mt-2">Please choose how you want to sign in</p>
+        </div>
+        
+        <div className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border-2" 
+                onClick={() => navigate('/signin/individual')}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xl font-medium">Individual Login</CardTitle>
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-5 w-5 text-primary" />
+                </div>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <p className="text-sm text-muted-foreground">
+                  Access your saved valuations and manage your personal account
+                </p>
+              </CardContent>
+              <CardFooter className="pt-2 flex justify-between items-center">
+                <Button variant="ghost" className="text-primary" onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/signup/individual');
+                }}>
+                  Create Account
+                </Button>
+                <ArrowRight className="h-5 w-5 text-primary" />
+              </CardFooter>
+            </Card>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+          >
+            <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border-2 border-blue-100" 
+                onClick={() => navigate('/signin/dealer')}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-xl font-medium">Dealer Login</CardTitle>
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Building className="h-5 w-5 text-blue-600" />
+                </div>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <p className="text-sm text-muted-foreground">
+                  Access dealer tools, leads, and manage your dealership
+                </p>
+              </CardContent>
+              <CardFooter className="pt-2 flex justify-between items-center">
+                <Button variant="ghost" className="text-blue-600" onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/signup/dealer');
+                }}>
+                  Register Dealership
+                </Button>
+                <ArrowRight className="h-5 w-5 text-blue-600" />
+              </CardFooter>
+            </Card>
+          </motion.div>
+        </div>
+        
+        <div className="mt-8 text-center">
+          <Button variant="outline" className="text-muted-foreground" onClick={() => navigate('/')}>
             Back to Home
           </Button>
-        </motion.div>
-        
-        <motion.h1 
-          className="text-3xl font-bold mb-2 text-center"
-          variants={itemVariants}
-        >
-          Welcome to Car Detective
-        </motion.h1>
-        
-        <motion.p 
-          className="text-muted-foreground text-center mb-8"
-          variants={itemVariants}
-        >
-          Your trusted platform for accurate vehicle valuations
-        </motion.p>
-        
-        <motion.div variants={itemVariants}>
-          <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="sign-in">Sign In</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="sign-in">
-              <Card className="border-2 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Sign In</CardTitle>
-                  <CardDescription>
-                    Access your account to view your valuations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SigninForm isLoading={isLoading} setIsLoading={setIsLoading} />
-                </CardContent>
-                <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-                  <div className="text-center text-sm text-muted-foreground">
-                    <p>Don't have an account?{' '}
-                      <Button variant="link" className="p-0" onClick={() => setActiveTab("register")}>
-                        Register now
-                      </Button>
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-muted-foreground">
-                        Or continue with
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-2 w-full">
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center justify-between"
-                      onClick={() => navigate('/signin/individual')}
-                    >
-                      <span>Sign in as Individual</span>
-                      <User className="h-4 w-4 ml-2" />
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center justify-between"
-                      onClick={() => navigate('/signin/dealer')}
-                    >
-                      <span>Sign in as Dealer</span>
-                      <Building className="h-4 w-4 ml-2" />
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="register">
-              <Card className="border-2 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Create an Account</CardTitle>
-                  <CardDescription>
-                    Register to get started with Car Detective
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SignupForm isLoading={isLoading} setIsLoading={setIsLoading} />
-                </CardContent>
-                <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-                  <div className="text-center text-sm text-muted-foreground">
-                    <p>Already have an account?{' '}
-                      <Button variant="link" className="p-0" onClick={() => setActiveTab("sign-in")}>
-                        Sign in
-                      </Button>
-                    </p>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-muted-foreground">
-                        Or register as
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-2 w-full">
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center justify-between"
-                      onClick={() => navigate('/signup/individual')}
-                    >
-                      <span>Register as Individual</span>
-                      <User className="h-4 w-4 ml-2" />
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center justify-between"
-                      onClick={() => navigate('/signup/dealer')}
-                    >
-                      <span>Register as Dealer</span>
-                      <Building className="h-4 w-4 ml-2" />
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
-      </div>
-    </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
-};
-
-export default AuthPage;
+}
