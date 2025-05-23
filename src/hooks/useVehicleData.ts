@@ -1,7 +1,18 @@
 
 import { useState, useCallback } from 'react';
+import { VEHICLE_MODELS_BY_MAKE } from '@/data/vehicle-data';
 
 // Define our interfaces
+export interface MakeData {
+  id: string;
+  make_name: string;
+}
+
+export interface ModelData {
+  id: string;
+  model_name: string;
+}
+
 export interface TrimData {
   id: string;
   trim_name: string;
@@ -9,6 +20,8 @@ export interface TrimData {
 
 export interface UseVehicleDataReturn {
   isLoading: boolean;
+  makes: MakeData[];
+  getModelsByMake: (makeId: string) => ModelData[];
   getYearOptions: (startYear: number) => number[];
   getTrimsByModel: (modelId: string) => Promise<TrimData[]>;
   counts: {
@@ -16,7 +29,8 @@ export interface UseVehicleDataReturn {
     models: number;
     years: number;
   };
-  refreshData: () => Promise<void>;
+  refreshData: () => Promise<{success: boolean, makeCount: number, modelCount: number}>;
+  error?: string;
 }
 
 // Fallback vehicle data
@@ -42,6 +56,26 @@ type MakesModelsType = {
 
 export function useVehicleData(): UseVehicleDataReturn {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
+  
+  // Convert makes to MakeData format
+  const makes: MakeData[] = Object.keys(VEHICLE_MODELS_BY_MAKE).map((makeName, index) => ({
+    id: index.toString(),
+    make_name: makeName
+  }));
+  
+  // Get models by make
+  const getModelsByMake = useCallback((makeId: string): ModelData[] => {
+    const makeName = makes.find(m => m.id === makeId)?.make_name;
+    if (!makeName || !VEHICLE_MODELS_BY_MAKE[makeName as keyof typeof VEHICLE_MODELS_BY_MAKE]) {
+      return [];
+    }
+    
+    return VEHICLE_MODELS_BY_MAKE[makeName as keyof typeof VEHICLE_MODELS_BY_MAKE].map((modelName, index) => ({
+      id: `${makeId}_${index}`,
+      model_name: modelName
+    }));
+  }, [makes]);
   
   // Generate years from startYear to current year + 1
   const getYearOptions = useCallback((startYear: number): number[] => {
@@ -68,22 +102,31 @@ export function useVehicleData(): UseVehicleDataReturn {
   }, []);
   
   // Mock function to refresh data
-  const refreshData = useCallback(async (): Promise<void> => {
+  const refreshData = useCallback(async (): Promise<{success: boolean, makeCount: number, modelCount: number}> => {
     setIsLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     setIsLoading(false);
-  }, []);
+    
+    return {
+      success: true,
+      makeCount: makes.length,
+      modelCount: Object.values(VEHICLE_MODELS_BY_MAKE).flat().length
+    };
+  }, [makes]);
   
   return {
     isLoading,
+    makes,
+    getModelsByMake,
     getYearOptions,
     getTrimsByModel,
     counts: {
-      makes: Object.keys(fallbackMakesModels).length,
-      models: Object.values(fallbackMakesModels).flat().length,
+      makes: Object.keys(VEHICLE_MODELS_BY_MAKE).length,
+      models: Object.values(VEHICLE_MODELS_BY_MAKE).flat().length,
       years: getYearOptions(1990).length
     },
-    refreshData
+    refreshData,
+    error
   };
 }
