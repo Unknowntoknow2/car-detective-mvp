@@ -1,127 +1,67 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabaseClient';
 
-interface PremiumAccessState {
-  hasPremiumAccess: boolean;
-  creditsRemaining: number;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export const usePremiumAccess = (valuationId?: string) => {
-  const [state, setState] = useState<PremiumAccessState>({
-    hasPremiumAccess: false,
-    creditsRemaining: 0,
-    isLoading: true,
-    error: null
-  });
+export function usePremiumAccess(valuationId?: string) {
+  const [hasPremiumAccess, setHasPremiumAccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkPremiumAccess = async () => {
+      setIsLoading(true);
+      
       try {
-        // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) throw userError;
-        
+        // If no user, definitely no premium access
         if (!user) {
-          setState({
-            hasPremiumAccess: false,
-            creditsRemaining: 0,
-            isLoading: false,
-            error: null
-          });
+          setHasPremiumAccess(false);
+          setIsLoading(false);
           return;
         }
         
-        // If we have a valuation ID, check if it already has premium access
+        // Check user's subscription status
+        const { data: subscriptionData, error: subscriptionError } = await supabase
+          .from('user_subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+          
+        if (subscriptionData && !subscriptionError) {
+          setHasPremiumAccess(true);
+          setIsLoading(false);
+          return;
+        }
+        
+        // If valuationId is provided, check if this specific valuation has premium access
         if (valuationId) {
-          const { data: premiumValuation, error: pvError } = await supabase
+          const { data: premiumValuation, error: premiumError } = await supabase
             .from('premium_valuations')
             .select('*')
-            .eq('user_id', user.id)
             .eq('valuation_id', valuationId)
+            .eq('user_id', user.id)
             .maybeSingle();
             
-          if (premiumValuation) {
-            setState({
-              hasPremiumAccess: true,
-              creditsRemaining: 0, // We'll get this from the premium_access table below
-              isLoading: false,
-              error: null
-            });
+          if (premiumValuation && !premiumError) {
+            setHasPremiumAccess(true);
+            setIsLoading(false);
             return;
           }
         }
         
-        // Check user's premium access
-        const { data: premiumAccess, error: accessError } = await supabase
-          .from('premium_access')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-          
-        if (accessError) throw accessError;
-        
-        // Determine if user has valid premium access
-        const hasAccess = !!premiumAccess && 
-                          premiumAccess.credits_remaining > 0 && 
-                          (!premiumAccess.expires_at || new Date(premiumAccess.expires_at) > new Date());
-        
-        setState({
-          hasPremiumAccess: hasAccess,
-          creditsRemaining: premiumAccess?.credits_remaining || 0,
-          isLoading: false,
-          error: null
-        });
-      } catch (err) {
-        console.error('Error checking premium access:', err);
-        setState({
-          hasPremiumAccess: false,
-          creditsRemaining: 0,
-          isLoading: false,
-          error: err instanceof Error ? err.message : 'Failed to check premium access'
-        });
+        // No premium access found
+        setHasPremiumAccess(false);
+      } catch (error) {
+        console.error('Error checking premium access:', error);
+        setHasPremiumAccess(false);
+      } finally {
+        setIsLoading(false);
       }
     };
     
     checkPremiumAccess();
-  }, [valuationId]);
+  }, [user, valuationId]);
 
-  // Add the usePremiumCredit method
-  const usePremiumCredit = useCallback(async (valId: string) => {
-    try {
-      if (!valId) {
-        throw new Error('Valuation ID is required');
-      }
-
-      const { data, error } = await supabase.functions.invoke('use-premium-credit', {
-        body: { valuation_id: valId }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Refresh premium access state after using a credit
-      setState(prev => ({
-        ...prev,
-        hasPremiumAccess: true,
-        creditsRemaining: Math.max(0, prev.creditsRemaining - 1),
-      }));
-
-      return data;
-    } catch (err) {
-      console.error('Error using premium credit:', err);
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to use premium credit' };
-    }
-  }, []);
-
-  return {
-    ...state,
-    usePremiumCredit
-  };
-};
+  return { hasPremiumAccess, isLoading };
+}
