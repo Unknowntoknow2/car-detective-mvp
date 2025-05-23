@@ -95,9 +95,8 @@ export function VehicleDetailsInputs({
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="" disabled>
-                  {make ? "No models found" : "Select make first"}
-                </SelectItem>
+                // This was likely causing the error - an empty value in SelectItem
+                make && <SelectItem value="no_models_found">No models found</SelectItem>
               )}
             </SelectContent>
           </Select>
