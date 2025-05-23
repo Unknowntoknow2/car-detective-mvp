@@ -17,8 +17,15 @@ const defaultFlags = {
 export function useFeatureFlags() {
   const [flags, setFlags] = useState(defaultFlags);
   const [isLoading, setIsLoading] = useState(true);
-  const auth = useAuth();
-  const user = auth?.user;
+  
+  // Use try/catch to handle the case where AuthContext might not be available
+  let user = null;
+  try {
+    const auth = useAuth();
+    user = auth?.user;
+  } catch (error) {
+    console.warn('Auth context not available in useFeatureFlags');
+  }
 
   useEffect(() => {
     const fetchFeatureFlags = async () => {

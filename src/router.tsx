@@ -16,14 +16,11 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
-import AuthPage from './pages/AuthPage';
+import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
 import DashboardPage from './pages/DashboardPage';
-import DealerSignup from './pages/DealerSignup';
-import ChooseRolePage from './pages/auth/ChooseRolePage';
-import IndividualAuthPage from './pages/auth/IndividualAuthPage';
-import DealerAuthPage from './pages/auth/DealerAuthPage';
 import DashboardRouter from './components/dashboard/DashboardRouter';
 import ResultsPage from './pages/ResultsPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -43,64 +40,47 @@ const routes: RouteObject[] = [
         path: 'vin-lookup',
         element: <VinLookupPage />
       },
-      // Auth related routes
+      
+      // Unified auth routes
       {
         path: 'auth',
-        element: <AuthPage />
+        element: <UnifiedAuthPage />
       },
       {
-        path: 'auth/choose',
-        element: <ChooseRolePage />
+        path: 'auth/callback',
+        element: <AuthCallbackPage />
       },
-      {
-        path: 'auth/individual',
-        element: <IndividualAuthPage />
-      },
-      {
-        path: 'auth/dealer',
-        element: <DealerAuthPage />
-      },
-      // Redirect legacy auth routes
+      
+      // Redirect legacy auth routes to the new unified auth page
       {
         path: 'login',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'register',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'sign-up',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'signup',
-        element: <ChooseRolePage />
-      },
-      {
-        path: 'signup/individual',
-        element: <IndividualAuthPage />
-      },
-      {
-        path: 'signup/dealer',
-        element: <DealerAuthPage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'sign-in',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
-        path: 'signin/individual',
-        element: <IndividualAuthPage />
-      },
-      {
-        path: 'signin/dealer',
-        element: <DealerAuthPage />
+        path: 'signin',
+        element: <UnifiedAuthPage />
       },
       {
         path: 'dealer-signup',
-        element: <DealerAuthPage />
+        element: <UnifiedAuthPage />
       },
+      
       {
         path: 'dashboard',
         element: <DashboardRouter />
