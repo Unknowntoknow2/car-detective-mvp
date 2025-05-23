@@ -7,7 +7,7 @@ import { Container } from '@/components/ui/container';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 export default function ValuationFollowUp() {
