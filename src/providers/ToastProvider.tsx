@@ -10,3 +10,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     </>
   );
 };
+
+// Add a default export for compatibility with imports
+export default ToastProvider;
