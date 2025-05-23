@@ -1,221 +1,242 @@
-// This file is responsible for handling context for the AI assistant
-import { supabase } from '@/lib/supabaseClient';
 
-export interface VehicleContext {
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  zipCode?: string;
-  accidentHistory?: boolean;
-  condition?: string;
-  trim?: string;
-  color?: string;
-  vin?: string;
-  // Additional properties
-  bodyType?: string;
-  fuelType?: string;
-  estimatedValue?: number;
-  accidentCount?: number;
-  accidentSeverity?: string;
+import { AssistantContext, VehicleContext } from '@/types/assistant';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
-export interface AssistantContext {
-  vehicle: VehicleContext;
-  isPremium: boolean;
-  previousIntents?: string[];
-  userLocation?: string;
-}
+// Intent detection keywords for different categories
+const intentKeywords = {
+  valuation: [
+    'worth', 'value', 'price', 'valuation', 'appraisal', 'estimate', 'how much',
+    'kbb', 'kelly blue book', 'trade-in', 'retail', 'fair market'
+  ],
+  accident: [
+    'accident', 'damage', 'crash', 'collision', 'repair', 'totaled', 'salvage', 
+    'carfax', 'history', 'insurance claim'
+  ],
+  timing: [
+    'when', 'best time', 'market trend', 'sell now', 'wait', 'depreciation', 
+    'appreciate', 'season', 'month', 'fall', 'summer', 'winter', 'spring'
+  ],
+  general: [
+    'premium', 'report', 'carfax', 'offer', 'dealer', 'subscription', 'feature',
+    'benefits', 'help', 'info', 'information', 'explain'
+  ]
+};
 
-// Extract vehicle context from conversation
-export function extractVehicleContext(conversation: { role: string; content: string }[]): VehicleContext {
-  const context: VehicleContext = {};
+type IntentCategory = 'valuation' | 'accident' | 'timing' | 'general' | 'unknown';
 
-  const text = conversation
-    .map(msg => msg.content)
-    .join(' ')
-    .toLowerCase();
-
-  const currentYear = new Date().getFullYear();
-  const yearRegex = /\b(19[5-9]\d|20\d{2})\b/g;
-  const yearMatches = [...text.matchAll(yearRegex)];
-  if (yearMatches.length > 0) {
-    const validYears = yearMatches.map(match => parseInt(match[0])).filter(y => y >= 1950 && y <= currentYear + 1);
-    if (validYears.length > 0) context.year = validYears[validYears.length - 1];
-  }
-
-  const makes = ['toyota','honda','ford','chevrolet','chevy','nissan','hyundai','kia','subaru','bmw','mercedes','audi','lexus','acura','volkswagen','vw','mazda','jeep','tesla','dodge','ram','chrysler','buick','cadillac','gmc','lincoln','volvo','porsche'];
-  for (const make of makes) {
-    if (text.includes(make)) {
-      context.make = make.charAt(0).toUpperCase() + make.slice(1);
-      if (make === 'chevy') context.make = 'Chevrolet';
-      if (make === 'vw') context.make = 'Volkswagen';
-      break;
-    }
-  }
-
-  if (context.make) {
-    const makeModels: Record<string, string[]> = {
-      'Toyota': ['camry','corolla','rav4','highlander','tacoma','tundra','prius','4runner','sienna'],
-      'Honda': ['civic','accord','cr-v','crv','pilot','odyssey','fit','hr-v','hrv','ridgeline'],
-      'Ford': ['f-150','f150','mustang','escape','explorer','edge','ranger','bronco','fusion'],
-      'Chevrolet': ['silverado','equinox','tahoe','malibu','traverse','suburban','colorado','camaro','impala'],
-      'Nissan': ['altima','rogue','sentra','pathfinder','frontier','murano','maxima','titan','kicks']
-    };
-    const models = makeModels[context.make] || [];
-    for (const model of models) {
-      if (text.includes(model)) {
-        context.model = model.charAt(0).toUpperCase() + model.slice(1);
-        break;
-      }
-    }
-  }
-
-  const mileageRegex = /\b(\d{1,3}(?:,\d{3})*|\d+)(?:\s*k)?\s*(miles?|mi\.?|000)\b/gi;
-  const mileageMatches = text.match(mileageRegex);
-  if (mileageMatches && mileageMatches.length > 0) {
-    const mileageText = mileageMatches[mileageMatches.length - 1];
-    const numericPart = mileageText.replace(/[^\d.]/g, '');
-    if (numericPart) {
-      let mileage = parseInt(numericPart);
-      if (mileage < 1000 && /\bk\b/i.test(mileageText)) mileage *= 1000;
-      context.mileage = mileage;
-    }
-  }
-
-  const zipRegex = /\b\d{5}(?:-\d{4})?\b/g;
-  const zipMatches = text.match(zipRegex);
-  if (zipMatches && zipMatches.length > 0) context.zipCode = zipMatches[0].substring(0, 5);
-
-  const vinRegex = /\b[A-HJ-NPR-Z0-9]{17}\b/i;
-  const vinMatch = text.match(vinRegex);
-  if (vinMatch) context.vin = vinMatch[0].toUpperCase();
-
-  const accidentTerms = ['accident','collision','crash','damaged','totaled','wrecked'];
-  for (const term of accidentTerms) {
-    if (text.includes(term)) {
-      context.accidentHistory = true;
-      break;
-    }
-  }
-
-  const conditionTerms = {
-    'excellent': ['excellent','perfect','like new','mint'],
-    'good': ['good','nice','clean'],
-    'fair': ['fair','average','okay','ok'],
-    'poor': ['poor','bad','rough','needs work']
-  };
-  for (const [condition, terms] of Object.entries(conditionTerms)) {
-    for (const term of terms) {
-      if (text.includes(term)) {
-        context.condition = condition;
-        break;
-      }
-    }
-    if (context.condition) break;
-  }
-
-  return context;
-}
-
-// Detect the user's intent from their message
-export function detectIntent(message: string): string {
-  const message_lower = message.toLowerCase();
+// Extract vehicle context from conversation history
+export function extractVehicleContext(messages: Message[]): VehicleContext {
+  const vehicleContext: VehicleContext = {};
   
-  // Intent categories
-  const intents = {
-    valuation: ['worth', 'value', 'price', 'cost', 'sell for', 'selling', 'estimate'],
-    accident: ['accident', 'damage', 'crash', 'collision', 'wreck', 'damaged'],
-    market: ['market', 'trend', 'compare', 'demand', 'selling fast', 'inventory'],
-    timing: ['when', 'best time', 'season', 'wait', 'right time', 'sell now'],
-    condition: ['condition', 'shape', 'state', 'good condition', 'excellent', 'poor'],
-    features: ['feature', 'option', 'package', 'upgrade', 'accessory', 'add-on'],
-    dealership: ['dealer', 'dealership', 'trade', 'offer', 'buy', 'purchase'],
-    carfax: ['carfax', 'history', 'report', 'vehicle history', 'record', 'previous owner'],
-    premium: ['premium', 'subscription', 'pay', 'unlock', 'full report', 'detailed'],
-    location: ['location', 'area', 'city', 'state', 'country', 'zip', 'region']
-  };
+  // Extract information from user messages
+  for (const message of messages) {
+    if (message.role === 'user') {
+      const content = message.content.toLowerCase();
+      
+      // Extract year (4 digit number between 1980-2025)
+      const yearMatch = content.match(/\b(19[8-9]\d|20[0-2]\d)\b/);
+      if (yearMatch && !vehicleContext.year) {
+        vehicleContext.year = parseInt(yearMatch[0]);
+      }
+      
+      // Extract make
+      const commonMakes = ['toyota', 'honda', 'ford', 'chevrolet', 'bmw', 'audi', 'tesla', 'hyundai', 'kia'];
+      for (const make of commonMakes) {
+        if (content.includes(make) && !vehicleContext.make) {
+          vehicleContext.make = make.charAt(0).toUpperCase() + make.slice(1);
+          break;
+        }
+      }
+      
+      // Extract model - simplified approach
+      const commonModels = ['camry', 'civic', 'f-150', 'model 3', 'accord', '3 series', 'silverado'];
+      for (const model of commonModels) {
+        if (content.includes(model) && !vehicleContext.model) {
+          vehicleContext.model = model.charAt(0).toUpperCase() + model.slice(1);
+          break;
+        }
+      }
+      
+      // Extract mileage
+      const mileageMatch = content.match(/\b(\d{1,3}(,\d{3})*|\d+)\s*(k|thousand|mi|miles)\b/i);
+      if (mileageMatch && !vehicleContext.mileage) {
+        let mileage = mileageMatch[1].replace(/,/g, '');
+        if (mileageMatch[3].toLowerCase() === 'k' || mileageMatch[3].toLowerCase() === 'thousand') {
+          mileage = String(parseInt(mileage) * 1000);
+        }
+        vehicleContext.mileage = parseInt(mileage);
+      }
+      
+      // Extract condition
+      const conditions = ['excellent', 'good', 'fair', 'poor'];
+      for (const condition of conditions) {
+        if (content.includes(condition) && !vehicleContext.condition) {
+          vehicleContext.condition = condition;
+          break;
+        }
+      }
+      
+      // Extract ZIP code (5-digit number)
+      const zipMatch = content.match(/\b\d{5}\b/);
+      if (zipMatch && !vehicleContext.zipCode) {
+        vehicleContext.zipCode = zipMatch[0];
+      }
+      
+      // Extract VIN (17 character alphanumeric)
+      const vinMatch = content.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i);
+      if (vinMatch && !vehicleContext.vin) {
+        vehicleContext.vin = vinMatch[0].toUpperCase();
+      }
+      
+      // Extract estimated value
+      const valueMatch = content.match(/\$\s?(\d{1,3}(,\d{3})*|\d+)/);
+      if (valueMatch && !vehicleContext.estimatedValue) {
+        vehicleContext.estimatedValue = parseInt(valueMatch[1].replace(/,/g, ''));
+      }
+      
+      // Extract accident information
+      if (content.includes('accident') || content.includes('accidents')) {
+        // Count of accidents
+        const countMatch = content.match(/(\d+)\s+(accident|accidents)/);
+        if (countMatch && !vehicleContext.accidentCount) {
+          vehicleContext.accidentCount = parseInt(countMatch[1]);
+        }
+        
+        // Severity
+        const severities = ['minor', 'moderate', 'major', 'severe'];
+        for (const severity of severities) {
+          if (content.includes(severity) && !vehicleContext.accidentSeverity) {
+            vehicleContext.accidentSeverity = severity;
+            break;
+          }
+        }
+      }
+    }
+  }
+  
+  return vehicleContext;
+}
+
+// Detect intent from user message
+export function detectIntent(message: string): IntentCategory {
+  const lowerMessage = message.toLowerCase();
   
   // Check each intent category
-  for (const [intent, keywords] of Object.entries(intents)) {
-    for (const keyword of keywords) {
-      if (message_lower.includes(keyword)) {
-        return intent;
+  for (const category of Object.keys(intentKeywords) as Array<keyof typeof intentKeywords>) {
+    for (const keyword of intentKeywords[category]) {
+      if (lowerMessage.includes(keyword)) {
+        return category as IntentCategory;
       }
     }
   }
   
-  // Default intent if no matches
-  return 'general';
+  return 'unknown';
 }
 
-// Generate AI response based on intent and context
-export async function generateResponse(intent: string, context: AssistantContext, message: string): Promise<string> {
-  // Create a more personalized message based on the vehicle context
-  const vehicle = context.vehicle;
-  const vehicleDesc = vehicle.year && vehicle.make && vehicle.model 
-    ? `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ' ' + vehicle.trim : ''}` 
-    : "your vehicle";
-  
+// Generate response based on intent and context
+export async function generateResponse(
+  intent: string, 
+  context: AssistantContext, 
+  userMessage: string
+): Promise<string> {
+  // Default responses for different intents
   const responses = {
     valuation: [
-      `Based on my analysis, ${vehicleDesc} has an estimated value between $${randomRange(15000, 25000)} and $${randomRange(17000, 28000)} in your area. This takes into account its ${vehicle.year || 'recent'} model year${vehicle.mileage ? ', ' + vehicle.mileage + ' miles' : ''}, and ${vehicle.condition || 'current'} condition.`,
-      `${vehicleDesc} is currently valued at approximately $${randomRange(18000, 30000)} in your local market. Keep in mind that factors like ${getRandomFactors()} can influence the final selling price.`,
-      `I estimate ${vehicleDesc} to be worth around $${randomRange(16000, 27000)}. ${context.isPremium ? 'Your premium account gives you access to a more detailed valuation breakdown including local market analysis.' : 'Upgrade to premium for a more detailed valuation with local market analysis and dealer offers.'}`
+      "Based on the information you've provided, I can help estimate your vehicle's value.",
+      "To give you an accurate valuation, I'd need to know the make, model, year, and condition of your vehicle.",
+      "Vehicle values can vary based on many factors including mileage, condition, and local market trends."
     ],
     accident: [
-      `Accident history can reduce a vehicle's value by 10-30%. ${vehicle.accidentHistory ? 'Since your ' + vehicleDesc + ' has accident history, expect it to impact the value by approximately 15-20%.' : 'If your ' + vehicleDesc + ' has a clean history, that\'s a strong selling point you should highlight.'}`,
-      `For ${vehicleDesc}, each accident can decrease the value by about $${randomRange(1000, 3000)}, depending on severity. ${context.isPremium ? 'Your premium report includes a detailed accident impact analysis.' : 'A premium report would show you exactly how much value is affected by accidents.'}`,
-      `Accident history affects buyer confidence more than actual vehicle performance in many cases. ${vehicle.accidentHistory ? 'Be transparent about the ' + vehicleDesc + '\'s history to build trust with potential buyers.' : 'Your clean history on the ' + vehicleDesc + ' is a major selling advantage.'}`
+      "Accident history can impact a vehicle's value by 10-30% depending on severity.",
+      "If your vehicle has been in an accident, the impact on value depends on how well it was repaired.",
+      "Multiple accidents generally have a compounding effect on a vehicle's value."
     ],
     timing: [
-      `Based on market trends, the best time to sell ${vehicleDesc} would be in ${['spring', 'early summer', 'late winter'][Math.floor(Math.random() * 3)]}. This is when demand for ${vehicle.make || 'this type of vehicle'} typically increases.`,
-      `If you're planning to sell ${vehicleDesc}, consider waiting until ${['March-May', 'June-July', 'January-February'][Math.floor(Math.random() * 3)]} when you could get 5-7% more due to seasonal demand.`,
-      `Right now is actually ${['a great', 'a good', 'not the ideal'][Math.floor(Math.random() * 3)]} time to sell ${vehicleDesc}. ${context.isPremium ? 'Your premium report includes a 12-month price forecast to help you time the market perfectly.' : 'Upgrade to premium to see a 12-month price forecast that could help you maximize your selling price.'}`
+      "The best time to sell is typically spring and early summer when demand is highest.",
+      "If you're not in a rush, monitoring market trends can help you identify the optimal selling time.",
+      "Waiting for the right season can sometimes increase your selling price by 5-10%."
     ],
-    // Add more intent responses as needed
     general: [
-      `I'm here to help you with any questions about ${vehicleDesc}. What specific information are you looking for regarding its value, accident history, or the best time to sell?`,
-      `Is there something specific you'd like to know about ${vehicleDesc}? I can provide information on its value, market trends, or how various factors might affect your selling price.`,
-      `I'd be happy to assist with information about ${vehicleDesc}. I can help with valuation estimates, accident impact analysis, or timing your sale for maximum value.`
+      "Our premium reports include CARFAX® history, market analysis, and detailed valuation breakdowns.",
+      "Premium features give you access to dealer offers, market forecasts, and comprehensive condition assessments.",
+      "I'm here to help with any car-related questions you might have."
+    ],
+    unknown: [
+      "I'm here to help with vehicle valuations, accident impact assessments, market timing, and more.",
+      "Could you provide more details about your vehicle so I can better assist you?",
+      "Feel free to ask about your car's value, accident history impact, or the best time to sell."
     ]
   };
   
-  // Get response array for the detected intent, or fall back to general
-  const responseArray = responses[intent] || responses.general;
+  // Use the correct type for indexing
+  const intentCategory = (intent in responses) ? 
+    intent as keyof typeof responses : 
+    'unknown' as keyof typeof responses;
   
   // Select a random response from the appropriate category
-  return responseArray[Math.floor(Math.random() * responseArray.length)];
-}
-
-// Helper functions for generating realistic responses
-function randomRange(min: number, max: number): string {
-  const value = Math.floor(min + Math.random() * (max - min));
-  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function getRandomFactors(): string {
-  const factors = [
-    'local market demand', 
-    'seasonal trends', 
-    'color popularity', 
-    'optional features', 
-    'maintenance history',
-    'fuel efficiency',
-    'recent repairs',
-    'title status',
-    'number of previous owners'
-  ];
+  const responseOptions = responses[intentCategory];
+  const randomResponse = responseOptions[Math.floor(Math.random() * responseOptions.length)];
   
-  // Get 2-3 random factors
-  const count = 2 + Math.floor(Math.random() * 2);
-  const selected = [];
+  // Enhance the response with context if available
+  let enhancedResponse = randomResponse;
   
-  for (let i = 0; i < count; i++) {
-    const index = Math.floor(Math.random() * factors.length);
-    selected.push(factors[index]);
-    factors.splice(index, 1);
+  if (context.vehicle) {
+    if (context.vehicle.make && context.vehicle.model) {
+      enhancedResponse += ` For your ${context.vehicle.year || ''} ${context.vehicle.make} ${context.vehicle.model}`;
+      
+      if (context.vehicle.mileage) {
+        enhancedResponse += ` with ${context.vehicle.mileage.toLocaleString()} miles`;
+      }
+      
+      enhancedResponse += ", ";
+    }
+    
+    if (intent === 'valuation' && context.vehicle.estimatedValue) {
+      enhancedResponse += ` I estimate a value of approximately $${context.vehicle.estimatedValue.toLocaleString()}, `;
+    }
+    
+    if (intent === 'accident' && context.vehicle.accidentCount !== undefined) {
+      if (context.vehicle.accidentCount === 0) {
+        enhancedResponse += " with no accident history, your vehicle should maintain its full market value, ";
+      } else {
+        enhancedResponse += ` with ${context.vehicle.accidentCount} ${context.vehicle.accidentSeverity || ''} accident${context.vehicle.accidentCount > 1 ? 's' : ''}, you might see a value reduction of approximately `;
+        
+        let reductionPercent = 10;
+        if (context.vehicle.accidentCount > 1) reductionPercent += 5 * (context.vehicle.accidentCount - 1);
+        if (context.vehicle.accidentSeverity === 'major' || context.vehicle.accidentSeverity === 'severe') reductionPercent += 10;
+        
+        enhancedResponse += `${reductionPercent}%, `;
+      }
+    }
   }
   
-  return selected.join(', ');
+  if (context.userLocation && intent === 'timing') {
+    const region = context.userLocation.region;
+    const zipCode = context.userLocation.zipCode;
+    
+    if (region === 'Northeast') {
+      enhancedResponse += " In the Northeast, spring is particularly good for selling as buyers emerge after winter. ";
+    } else if (region === 'Southwest' || region === 'West') {
+      enhancedResponse += " In your region, the market remains relatively consistent year-round due to the climate. ";
+    }
+    
+    if (zipCode) {
+      enhancedResponse += ` Based on your location (${zipCode}), local market conditions appear favorable. `;
+    }
+  }
+  
+  if (context.isPremium) {
+    enhancedResponse += " As a premium user, you have access to our complete market analysis and dealer network. ";
+  } else if (intent === 'valuation' || intent === 'accident') {
+    enhancedResponse += " For a more detailed analysis, consider upgrading to our premium service. ";
+  }
+  
+  // Personalize the ending
+  enhancedResponse += " Would you like more specific information about something else?";
+  
+  return enhancedResponse;
 }
