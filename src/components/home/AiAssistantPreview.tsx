@@ -24,7 +24,13 @@ const exampleAnswers = {
     "You'll need: 1) Clear vehicle title (most important), 2) Maintenance records, 3) Bill of sale, 4) Release of liability form, 5) Warranty documents if applicable, and 6) Vehicle history report (like CARFAX). Having complete documentation can increase buyer confidence and help you command a better price.",
   
   "Is it better to sell privately or to a dealer?": 
-    "Selling privately typically nets 10-15% more money but requires more effort (listings, showing the car, paperwork). Selling to a dealer is faster and easier but usually offers less money. If your vehicle is in excellent condition with lower mileage, the private sale premium is often worth pursuing."
+    "Selling privately typically nets 10-15% more money but requires more effort (listings, showing the car, paperwork). Selling to a dealer is faster and easier but usually offers less money. If your vehicle is in excellent condition with lower mileage, the private sale premium is often worth pursuing.",
+    
+  "what about my car": 
+    "To give you specific insights about your car, I'd need some details like make, model, year, mileage, and condition. Once you provide this information, I can tell you about its estimated value, market trends, and factors affecting its worth. Would you like to provide those details or start with a VIN lookup?",
+    
+  "how are you": 
+    "I'm here and ready to help with any car valuation questions you have! Whether you're wondering about your vehicle's value, market trends, or selling strategies, I can provide insights based on current data. What specific information about cars or valuations can I help you with today?"
 };
 
 export function AiAssistantPreview() {
@@ -49,7 +55,7 @@ export function AiAssistantPreview() {
       setIsTyping(false);
       // Add AI response
       const answer = exampleAnswers[q as keyof typeof exampleAnswers] || 
-        "I don't have specific information on that yet, but with a premium valuation, I can provide detailed insights about your specific vehicle's value factors.";
+        "To give you specific insights about your vehicle, I'd need some details like make, model, year, and mileage. Would you like to provide that information or run a full valuation?";
       
       setConversation(prev => [...prev, {role: 'assistant', content: answer}]);
     }, 1500);
