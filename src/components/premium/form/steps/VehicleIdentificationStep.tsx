@@ -147,9 +147,10 @@ export function VehicleIdentificationStep({
     }
   };
 
-  const handlePlateLookup = async (plate: string, state: string) => {
+  // Fix the function signature to match the expected type
+  const handlePlateLookup = async (data: { plate: string; state: string; zipCode: string }) => {
     try {
-      const result = await lookupVehicle('plate', plate, state);
+      const result = await lookupVehicle('plate', data.plate, data.state);
       
       if (result) {
         setFormData(prev => ({
@@ -158,8 +159,9 @@ export function VehicleIdentificationStep({
           model: result.model,
           year: result.year,
           identifierType: 'plate',
-          identifier: `${plate} (${state})`,
-          condition: prev.condition || "good" // Ensure condition is a valid value
+          identifier: `${data.plate} (${data.state})`,
+          condition: prev.condition || "good", // Ensure condition is a valid value
+          zipCode: data.zipCode || prev.zipCode
         }));
         
         toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
@@ -196,3 +198,4 @@ export function VehicleIdentificationStep({
     </Card>
   );
 }
+
