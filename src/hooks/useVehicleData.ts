@@ -21,7 +21,7 @@ export interface TrimData {
 export interface UseVehicleDataReturn {
   isLoading: boolean;
   makes: MakeData[];
-  models: ModelData[]; // Add this property
+  models: ModelData[]; // This property is now officially supported
   getModelsByMake: (makeId: string) => ModelData[];
   getYearOptions: (startYear: number) => number[];
   getTrimsByModel: (modelId: string) => Promise<TrimData[]>;
@@ -37,7 +37,7 @@ export interface UseVehicleDataReturn {
 export function useVehicleData(): UseVehicleDataReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [models, setModels] = useState<ModelData[]>([]); // Add state for models
+  const [models, setModels] = useState<ModelData[]>([]); // State for models
   
   // Convert makes to MakeData format
   const makes: MakeData[] = Object.keys(VEHICLE_MODELS_BY_MAKE).map((makeName, index) => ({
