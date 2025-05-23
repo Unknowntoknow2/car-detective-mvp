@@ -1,8 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Upload, X, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
 
 interface PhotoUploadStepProps {
   step: number;
@@ -11,133 +13,146 @@ interface PhotoUploadStepProps {
   updateValidity: (step: number, isValid: boolean) => void;
 }
 
-export function PhotoUploadStep({
+export const PhotoUploadStep: React.FC<PhotoUploadStepProps> = ({
   step,
   formData,
   setFormData,
-  updateValidity
-}: PhotoUploadStepProps) {
-  const [photos, setPhotos] = useState<File[]>(formData.photos || []);
-  const [previewUrls, setPreviewUrls] = useState<string[]>(formData.photoUrls || []);
-  
-  // Set initial validity
-  useEffect(() => {
-    // This step is optional, so always valid
+  updateValidity,
+}) => {
+  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>(formData.photos || []);
+  const [photoUrls, setPhotoUrls] = useState<string[]>(formData.photoUrls || []);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Set initial validity based on existing data
+  React.useEffect(() => {
+    // Photos are optional, so this step is always valid
     updateValidity(step, true);
   }, [step, updateValidity]);
-  
-  // Update form data when photos change
-  useEffect(() => {
-    if (photos.length > 0) {
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+
+    // Create preview URLs
+    const newUrls = acceptedFiles.map(file => URL.createObjectURL(file));
+    
+    // Update state
+    setUploadedPhotos(prev => [...prev, ...acceptedFiles]);
+    setPhotoUrls(prev => [...prev, ...newUrls]);
+    
+    // Simulate upload
+    setIsUploading(true);
+    setTimeout(() => {
+      setIsUploading(false);
+      
+      // Update form data
       setFormData(prev => ({
         ...prev,
-        photos: photos,
-        photoUrls: previewUrls
+        photos: [...(prev.photos || []), ...acceptedFiles],
+        photoUrls: [...(prev.photoUrls || []), ...newUrls]
       }));
-    }
-  }, [photos, previewUrls, setFormData]);
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files);
-      setPhotos(prev => [...prev, ...selectedFiles]);
-      
-      // Create preview URLs
-      const newPreviewUrls = selectedFiles.map(file => URL.createObjectURL(file));
-      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-    }
-  };
-  
+    }, 1500);
+  }, [setFormData]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.heic']
+    },
+    maxSize: 10485760 // 10MB
+  });
+
   const removePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
+    const newPhotos = [...uploadedPhotos];
+    const newUrls = [...photoUrls];
     
-    // Revoke object URL to avoid memory leaks
-    URL.revokeObjectURL(previewUrls[index]);
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    // Release object URL to avoid memory leaks
+    URL.revokeObjectURL(newUrls[index]);
+    
+    newPhotos.splice(index, 1);
+    newUrls.splice(index, 1);
+    
+    setUploadedPhotos(newPhotos);
+    setPhotoUrls(newUrls);
     
     setFormData(prev => ({
       ...prev,
-      photos: photos.filter((_, i) => i !== index),
-      photoUrls: previewUrls.filter((_, i) => i !== index)
+      photos: newPhotos,
+      photoUrls: newUrls
     }));
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Vehicle Photos</h2>
-        <p className="text-gray-600 mb-6">
-          Adding photos of your vehicle can increase the accuracy of your valuation.
-          Photos are analyzed by our AI to detect condition factors.
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Upload Vehicle Photos</h2>
+        <p className="text-muted-foreground">
+          Adding photos helps us provide a more accurate valuation based on your vehicle's condition.
         </p>
       </div>
-      
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-          id="photo-upload"
-        />
-        <label
-          htmlFor="photo-upload"
-          className="flex flex-col items-center justify-center cursor-pointer"
-        >
-          <Upload className="h-12 w-12 text-gray-400 mb-3" />
-          <span className="text-sm font-medium text-gray-900">Click to upload</span>
-          <span className="text-xs text-gray-500 mt-1">
-            JPG, PNG, WEBP (max 10MB)
-          </span>
-        </label>
+
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <p className="text-lg font-medium mb-1">Drag and drop photos here</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          or click to browse files (JPEG, PNG, up to 10MB)
+        </p>
+        <Button variant="outline" type="button" disabled={isUploading}>
+          {isUploading ? 'Uploading...' : 'Select Photos'}
+        </Button>
       </div>
-      
-      {previewUrls.length > 0 && (
-        <div className="mt-4 space-y-3">
-          <h3 className="text-lg font-medium">Uploaded Photos</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {previewUrls.map((url, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={url}
-                  alt={`Vehicle photo ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => removePhoto(index)}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+
+      {photoUrls.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="font-medium">Uploaded Photos ({photoUrls.length})</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {photoUrls.map((url, index) => (
+              <Card key={index} className="overflow-hidden group relative">
+                <CardContent className="p-0">
+                  <div className="relative pt-[75%] bg-muted">
+                    <img
+                      src={url}
+                      alt={`Vehicle photo ${index + 1}`}
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
-                  </svg>
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePhoto(index);
+                      }}
+                      className="absolute top-2 right-2 bg-background/80 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-background/80 py-1 px-2 text-xs truncate">
+                      Photo {index + 1}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       )}
-      
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <p className="text-sm text-blue-700">
-          <strong>Pro Tip:</strong> Include clear photos of the exterior (all sides), interior,
-          dashboard, and any damage or special features for the most accurate assessment.
-        </p>
+
+      <div className="bg-muted/40 rounded-lg p-4 flex items-start space-x-3">
+        <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
+        <div className="text-sm">
+          <p className="font-medium">Photo tips for the best valuation:</p>
+          <ul className="list-disc pl-5 mt-2 space-y-1 text-muted-foreground">
+            <li>Include exterior photos from multiple angles</li>
+            <li>Show the interior, including dashboard and seats</li>
+            <li>Capture any damage or special features</li>
+            <li>Good lighting helps us assess condition better</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
-}
-
-export default PhotoUploadStep;
+};

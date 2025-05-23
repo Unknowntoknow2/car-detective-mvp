@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { ValuationResponse } from '@/types/vehicle';
@@ -37,7 +36,7 @@ export function useValuation() {
         zipCode: formData.zipCode,
         fuelType: formData.fuelType,
         transmission: formData.transmission,
-        bodyStyle: formData.bodyStyle,
+        bodyType: formData.bodyStyle,
         color: formData.color,
         trim: formData.trim,
         vin: formData.vin
@@ -87,7 +86,7 @@ export function useValuation() {
         vin: vin,
         fuelType: 'Gasoline',
         transmission: 'Automatic',
-        bodyStyle: 'Sedan',
+        bodyType: 'Sedan',
         trim: 'LE',
         color: 'Silver'
       };
@@ -135,7 +134,7 @@ export function useValuation() {
         valuationId: `plate-${Date.now()}`,
         fuelType: 'Gasoline',
         transmission: 'Automatic',
-        bodyStyle: 'Sedan',
+        bodyType: 'Sedan',
         trim: 'Sport',
         color: 'Blue'
       };
