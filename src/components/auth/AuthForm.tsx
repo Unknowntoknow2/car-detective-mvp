@@ -21,7 +21,7 @@ const AuthForm = ({ initialMode, initialRole }: AuthFormProps) => {
       // Check user role and redirect accordingly
       const userRole = user.user_metadata?.role || 'individual';
       if (userRole === 'dealer') {
-        navigate('/dealer/dashboard');
+        navigate('/dealer-dashboard');
       } else {
         navigate('/dashboard');
       }

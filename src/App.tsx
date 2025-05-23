@@ -69,6 +69,9 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dealer-signup" element={<DealerSignupPage />} />
+        <Route path="/login" element={<SignInPage />} />
+        <Route path="/login-user" element={<IndividualAuthPage />} />
+        <Route path="/login-dealer" element={<DealerAuthPage />} />
         
         {/* New Auth Flow */}
         <Route path="/auth/choose-role" element={<ChooseRolePage />} />
