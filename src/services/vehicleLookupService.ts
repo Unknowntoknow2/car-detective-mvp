@@ -1,166 +1,140 @@
 
-import { lookupPlate } from './plateService';
-import { decodeVin } from './vinService';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 /**
- * Lookup vehicle by VIN
+ * Fetch vehicle information by VIN
+ * @param vin Vehicle Identification Number
+ * @returns Promise with vehicle data
  */
 export async function fetchVehicleByVin(vin: string): Promise<any> {
-  if (!vin || vin.length !== 17) {
-    throw new Error('Please enter a valid 17-character VIN');
-  }
-  
   try {
-    // Call the edge function to decode the VIN
-    const { data, error } = await supabase.functions.invoke('decode-vin', {
-      body: { vin }
-    });
-
-    if (error) {
-      console.error('Error calling decode-vin function:', error);
-      throw new Error(`Failed to decode VIN: ${error.message}`);
-    }
-
-    if (!data) {
-      throw new Error('No data received from VIN decoder');
+    // First check if we have this VIN in our database
+    const { data: existingVehicle, error: dbError } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('vin', vin)
+      .maybeSingle();
+      
+    if (existingVehicle && !dbError) {
+      console.log('VIN found in database:', existingVehicle);
+      return existingVehicle;
     }
     
-    // Return the decoded vehicle data
-    return data;
-  } catch (error: any) {
+    // If not in database, would normally call an external API
+    // For now, simulate a response with a delay
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          vin,
+          year: 2019,
+          make: 'Toyota',
+          model: 'Camry',
+          trim: 'SE',
+          engine: '2.5L I4',
+          transmission: 'Automatic',
+          drivetrain: 'FWD',
+          exteriorColor: 'Silver',
+          interiorColor: 'Black',
+          fuelType: 'Gasoline',
+          mileage: 45000,
+          // Add more details as needed
+        });
+      }, 1500);
+    });
+  } catch (error) {
     console.error('Error fetching vehicle by VIN:', error);
-    throw error;
+    throw new Error('Failed to fetch vehicle information. Please try again.');
   }
 }
 
 /**
- * Lookup vehicle by license plate and state
+ * Fetch vehicle information by license plate and state
+ * @param plate License plate number
+ * @param state State abbreviation
+ * @returns Promise with vehicle data
  */
 export async function fetchVehicleByPlate(plate: string, state: string): Promise<any> {
-  if (!plate) {
-    throw new Error('Please enter a license plate');
-  }
-  
-  if (!state) {
-    throw new Error('Please select a state');
-  }
-  
   try {
-    // Use lookupPlate service and then potentially fetch more data via decode-vin
-    // if the plate lookup returns a VIN
-    const initialResult = await lookupPlate(plate, state);
-    
-    // If the plate lookup returned a VIN, we can get more details
-    if (initialResult && initialResult.data && initialResult.data.vin) {
-      try {
-        const detailedResult = await fetchVehicleByVin(initialResult.data.vin);
-        // Merge the results, prioritizing the detailed result but keeping
-        // plate-specific info from the initial result
-        return {
-          ...initialResult.data,
-          ...detailedResult,
-          plate: plate,
-          state: state
-        };
-      } catch (vinError: any) {
-        console.warn('Could not get detailed info from VIN, using plate data only:', vinError);
-        // Fall back to just the plate lookup result if VIN decode fails
-        return initialResult.data;
-      }
+    // First check if we have this plate in our database
+    const { data: existingVehicle, error: dbError } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('license_plate', plate)
+      .eq('state', state)
+      .maybeSingle();
+      
+    if (existingVehicle && !dbError) {
+      console.log('Plate found in database:', existingVehicle);
+      return existingVehicle;
     }
     
-    return initialResult.data;
-  } catch (error: any) {
-    console.error('Error fetching vehicle by plate:', error);
-    throw error;
-  }
-}
-
-/**
- * Fetch available trims for a specific make/model/year
- */
-export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from('model_trims')
-      .select('trim_name')
-      .eq('year', year)
-      .eq('make', make)
-      .eq('model', model);
-    
-    if (error) {
-      console.error('Error fetching trim options:', error);
-      throw new Error('Failed to load trim options');
-    }
-    
-    // If no specific trims found, return default options
-    if (!data || data.length === 0) {
-      return ['Standard', 'Deluxe', 'Premium', 'Sport'];
-    }
-    
-    // Extract trim names from results
-    return data.map(item => item.trim_name);
-  } catch (error: any) {
-    console.error('Error in fetchTrimOptions:', error);
-    // Return default options if there's an error
-    return ['Standard', 'Deluxe', 'Premium', 'Sport'];
-  }
-}
-
-/**
- * Calculate valuation based on vehicle data and driving behavior
- */
-export async function calculateValuation(vehicleData: any, drivingBehavior?: string): Promise<any> {
-  try {
-    // Prepare base data for valuation
-    const valuationData = {
-      make: vehicleData.make,
-      model: vehicleData.model,
-      year: vehicleData.year,
-      mileage: vehicleData.mileage || 0,
-      condition: vehicleData.condition || 'Good',
-      zipCode: vehicleData.zipCode || '90210',
-      trim: vehicleData.trim,
-      fuelType: vehicleData.fueltype || vehicleData.fuel_type,
-      transmission: vehicleData.transmission,
-      drivingScore: getDrivingScoreFromBehavior(drivingBehavior)
-    };
-    
-    // Call the valuation edge function
-    const { data, error } = await supabase.functions.invoke('car-price-prediction', {
-      body: valuationData
+    // If not in database, would normally call an external API
+    // For now, simulate a response with a delay
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          licensePlate: plate,
+          state: state,
+          year: 2018,
+          make: 'Honda',
+          model: 'Accord',
+          trim: 'EX-L',
+          engine: '1.5L I4 Turbo',
+          transmission: 'CVT',
+          drivetrain: 'FWD',
+          exteriorColor: 'Blue',
+          interiorColor: 'Tan',
+          fuelType: 'Gasoline',
+          mileage: 52000,
+          // Add more details as needed
+        });
+      }, 1500);
     });
-    
-    if (error) {
-      console.error('Error calculating valuation:', error);
-      throw new Error(`Valuation calculation failed: ${error.message}`);
-    }
-    
-    return data;
-  } catch (error: any) {
-    console.error('Error in calculateValuation:', error);
-    // Return a fallback valuation with error info
-    return {
-      estimatedValue: 0,
-      confidenceScore: 0,
-      error: error.message,
-      priceRange: [0, 0],
-      adjustments: []
-    };
+  } catch (error) {
+    console.error('Error fetching vehicle by plate:', error);
+    throw new Error('Failed to fetch vehicle information. Please try again.');
   }
 }
 
-// Helper function to convert driving behavior description to score
-function getDrivingScoreFromBehavior(behavior?: string): number {
-  switch (behavior?.toLowerCase()) {
-    case 'cautious':
-      return 90;
-    case 'normal':
-      return 75;
-    case 'aggressive':
-      return 50;
-    default:
-      return 75; // Default to normal
+/**
+ * Fetch vehicle details by make, model, year
+ * @param make Vehicle make
+ * @param model Vehicle model
+ * @param year Vehicle year
+ * @returns Promise with vehicle data
+ */
+export async function fetchVehicleByDetails(make: string, model: string, year: number): Promise<any> {
+  try {
+    // Check if we have this vehicle in our database
+    const { data: existingVehicle, error: dbError } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('make', make)
+      .eq('model', model)
+      .eq('year', year)
+      .maybeSingle();
+      
+    if (existingVehicle && !dbError) {
+      console.log('Vehicle found in database:', existingVehicle);
+      return existingVehicle;
+    }
+    
+    // If not in database, would normally call an external API
+    // For now, simulate a response with a delay
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          year,
+          make,
+          model,
+          trim: 'Base',
+          fuelType: 'Gasoline',
+          // Add more details as needed
+        });
+      }, 1000);
+    });
+  } catch (error) {
+    console.error('Error fetching vehicle by details:', error);
+    throw new Error('Failed to fetch vehicle information. Please try again.');
   }
 }

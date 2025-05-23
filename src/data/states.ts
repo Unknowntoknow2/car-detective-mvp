@@ -1,6 +1,5 @@
 
-// US States data
-
+// U.S. States data for select inputs
 export const usStates = [
   { value: 'AL', label: 'Alabama' },
   { value: 'AK', label: 'Alaska' },
@@ -10,6 +9,7 @@ export const usStates = [
   { value: 'CO', label: 'Colorado' },
   { value: 'CT', label: 'Connecticut' },
   { value: 'DE', label: 'Delaware' },
+  { value: 'DC', label: 'District of Columbia' },
   { value: 'FL', label: 'Florida' },
   { value: 'GA', label: 'Georgia' },
   { value: 'HI', label: 'Hawaii' },
@@ -51,6 +51,17 @@ export const usStates = [
   { value: 'WA', label: 'Washington' },
   { value: 'WV', label: 'West Virginia' },
   { value: 'WI', label: 'Wisconsin' },
-  { value: 'WY', label: 'Wyoming' },
-  { value: 'DC', label: 'District of Columbia' }
+  { value: 'WY', label: 'Wyoming' }
 ];
+
+// Lookup function to get state label from value
+export function getStateLabel(stateCode: string): string {
+  const state = usStates.find(state => state.value === stateCode);
+  return state ? state.label : stateCode;
+}
+
+// Lookup function to get state value from label
+export function getStateValue(stateLabel: string): string | undefined {
+  const state = usStates.find(state => state.label.toLowerCase() === stateLabel.toLowerCase());
+  return state?.value;
+}
