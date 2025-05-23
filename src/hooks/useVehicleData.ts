@@ -36,7 +36,7 @@ export const useVehicleData = () => {
   
   // Add model cache to prevent repeated API calls
   const modelCache = useRef<Record<string, ModelData[]>>({});
-  const fetchingMakes = useRef<Record<string, boolean>>({});
+  const isFetchingModels = useRef<Record<string, boolean>>({});
 
   const fetchMakes = useCallback(async (forceRefresh = false) => {
     try {
@@ -90,22 +90,23 @@ export const useVehicleData = () => {
   }, [fetchMakes]);
 
   // Get models by make name with caching
-  const getModelsByMake = async (makeName: string): Promise<ModelData[]> => {
+  const getModelsByMake = useCallback(async (makeName: string): Promise<ModelData[]> => {
     if (!makeName) return [];
     
     try {
       // Return cached results if available
-      if (modelCache.current[makeName]) {
+      if (modelCache.current[makeName] && modelCache.current[makeName].length > 0) {
+        console.log(`Returning cached models for ${makeName}:`, modelCache.current[makeName]);
         return modelCache.current[makeName];
       }
       
       // Prevent duplicate requests for the same make
-      if (fetchingMakes.current[makeName]) {
+      if (isFetchingModels.current[makeName]) {
+        console.log(`Already fetching models for ${makeName}, returning empty array for now`);
         return [];
       }
       
-      fetchingMakes.current[makeName] = true;
-      console.log('Fetching models for make:', makeName);
+      isFetchingModels.current[makeName] = true;
       
       // Find the make_id for the given make name
       const { data: makeData, error: makeError } = await supabase
@@ -116,12 +117,12 @@ export const useVehicleData = () => {
       
       if (makeError || !makeData) {
         console.error('Error finding make ID:', makeError);
-        fetchingMakes.current[makeName] = false;
+        isFetchingModels.current[makeName] = false;
         return [];
       }
       
       const makeId = makeData.id;
-      console.log('Found make ID:', makeId);
+      console.log(`Found make ID for ${makeName}:`, makeId);
       
       // Then fetch models for that make_id
       const { data, error } = await supabase
@@ -132,32 +133,47 @@ export const useVehicleData = () => {
         
       if (error) {
         console.error('Error fetching models:', error);
-        fetchingMakes.current[makeName] = false;
+        isFetchingModels.current[makeName] = false;
         return [];
       }
       
       const models = data || [];
-      console.log(`Found ${models.length} models for make ${makeName}`);
+      console.log(`Found ${models.length} models for make ${makeName}:`, models);
+      
+      // If no models found, use hardcoded data as fallback
+      if (models.length === 0) {
+        // Import fallback data from vehicle-data.ts
+        const { VEHICLE_MODELS } = await import('@/data/vehicle-data');
+        const fallbackModels = VEHICLE_MODELS.map((modelName, index) => ({
+          id: `fallback-${index}`,
+          model_name: modelName,
+          make_id: makeId
+        }));
+        
+        // Store in cache
+        modelCache.current[makeName] = fallbackModels;
+        console.log(`Using fallback models for ${makeName}:`, fallbackModels);
+        isFetchingModels.current[makeName] = false;
+        return fallbackModels;
+      }
       
       // Store in cache
       modelCache.current[makeName] = models;
-      fetchingMakes.current[makeName] = false;
+      isFetchingModels.current[makeName] = false;
       
       return models;
     } catch (err: any) {
       console.error('Error in getModelsByMake:', err);
-      fetchingMakes.current[makeName] = false;
+      isFetchingModels.current[makeName] = false;
       return [];
     }
-  };
+  }, []);
 
   // Get trims by model ID
   const getTrimsByModel = async (modelId: string): Promise<TrimData[]> => {
     if (!modelId) return [];
     
     try {
-      console.log('Fetching trims for model ID:', modelId);
-      
       const { data, error } = await supabase
         .from('model_trims')
         .select('id, trim_name, model_id, year, fuel_type, transmission')
@@ -169,7 +185,6 @@ export const useVehicleData = () => {
         return [];
       }
       
-      console.log(`Found ${data?.length || 0} trims for model ID ${modelId}`);
       return data || [];
     } catch (err: any) {
       console.error('Error in getTrimsByModel:', err);

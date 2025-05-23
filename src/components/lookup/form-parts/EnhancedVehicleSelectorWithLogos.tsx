@@ -30,6 +30,7 @@ export function EnhancedVehicleSelectorWithLogos({
   const [modelOptions, setModelOptions] = useState<{ value: string, label: string }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const { t, isRTL } = useLocalization();
+  const [hasModels, setHasModels] = useState(false);
   
   // Validate selection and notify parent if necessary
   useEffect(() => {
@@ -53,6 +54,7 @@ export function EnhancedVehicleSelectorWithLogos({
         label: model.model_name
       }));
       
+      setHasModels(mappedModels.length > 0);
       return mappedModels;
     } catch (error) {
       errorHandler.handle(error, 'VehicleSelector.fetchModels');
@@ -68,6 +70,7 @@ export function EnhancedVehicleSelectorWithLogos({
     
     if (!selectedMake) {
       setModelOptions([]);
+      setHasModels(false);
       // Clear model when make is cleared
       if (selectedModel) {
         onModelChange('');
@@ -173,7 +176,9 @@ export function EnhancedVehicleSelectorWithLogos({
               loadingModels
                 ? t('vehicle.selector.loadingModels', 'Loading models...')
                 : (selectedMake
-                  ? t('vehicle.selector.noModelsFound', 'No models found')
+                  ? (hasModels 
+                    ? t('vehicle.selector.noModelsFound', 'No models found')
+                    : t('vehicle.selector.noModelsAvailable', 'No models available for this make'))
                   : t('vehicle.selector.selectMakeFirst', 'Select a make first'))
             }
             disabled={!selectedMake || disabled || loadingModels}

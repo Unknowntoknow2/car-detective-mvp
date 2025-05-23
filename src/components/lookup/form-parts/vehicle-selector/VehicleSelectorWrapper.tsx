@@ -41,7 +41,8 @@ export const VehicleSelectorWrapper = ({
     modelSearchTerm,
     setModelSearchTerm,
     validationError,
-    loadingModels
+    loadingModels,
+    models
   } = useVehicleSelector({
     selectedMake,
     setSelectedMake,
@@ -75,6 +76,9 @@ export const VehicleSelectorWrapper = ({
     setSelectedModel(''); // Always reset model when make changes
   };
 
+  // Check if models are available for the selected make
+  const hasModels = models && models.length > 0;
+
   return (
     <div className="space-y-4">
       <MakeModelSelectors
@@ -95,6 +99,7 @@ export const VehicleSelectorWrapper = ({
         disabled={disabled}
         required={required}
         loadingModels={loadingModels}
+        hasModels={hasModels}
       />
       <ValidationMessage error={validationError} />
     </div>
