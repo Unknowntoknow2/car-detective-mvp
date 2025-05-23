@@ -29,6 +29,21 @@ export interface FormData {
     featureImpact?: number;
     locationImpact?: number;
   };
+  
+  // Adding missing properties
+  hasAccident?: boolean | string;
+  accidentDescription?: string;
+  drivingProfile?: 'light' | 'average' | 'heavy';
+  saleDate?: Date;
+  bodyStyle?: string;
+  valuationId?: string;
+  exteriorColor?: string;
+  colorMultiplier?: number;
+  identifierType?: string;
+  identifier?: string;
+  vin?: string;
+  valuation?: number;
+  confidenceScore?: number;
 }
 
 export interface ValidationStep {

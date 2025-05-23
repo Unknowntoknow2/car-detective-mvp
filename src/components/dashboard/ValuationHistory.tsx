@@ -68,7 +68,7 @@ export const ValuationHistory: React.FC<ValuationHistoryProps> = ({
               <div className="grid grid-cols-2 gap-y-2 mb-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Estimated Value</p>
-                  <p className="font-semibold">${valuation.estimatedValue.toLocaleString()}</p>
+                  <p className="font-semibold">${(valuation.estimatedValue || 0).toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Mileage</p>
@@ -78,10 +78,10 @@ export const ValuationHistory: React.FC<ValuationHistoryProps> = ({
                   <p className="text-sm text-muted-foreground">Condition</p>
                   <p>{valuation.condition || "Not specified"}</p>
                 </div>
-                {valuation.confidenceScore && (
+                {(valuation.confidenceScore || valuation.confidence_score) && (
                   <div>
                     <p className="text-sm text-muted-foreground">Confidence</p>
-                    <p>{valuation.confidenceScore}%</p>
+                    <p>{valuation.confidenceScore || valuation.confidence_score}%</p>
                   </div>
                 )}
               </div>
