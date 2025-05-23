@@ -1,31 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { Label } from '@/components/ui/label';
+import { useVehicleData } from '@/hooks/useVehicleData';
+import { FormSelect } from './FormSelect';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useVehicleData, TrimData } from '@/hooks/useVehicleData';
 
 export interface VehicleDetailsInputsProps {
-  make?: string;
-  setMake?: React.Dispatch<React.SetStateAction<string>>;
-  model?: string;
-  setModel?: React.Dispatch<React.SetStateAction<string>>;
-  year?: number | string;
-  setYear?: React.Dispatch<React.SetStateAction<number | string>>;
-  mileage?: number | string;
-  setMileage?: React.Dispatch<React.SetStateAction<number | string>>;
-  condition?: string;
-  setCondition?: React.Dispatch<React.SetStateAction<string>>;
-  fuelType?: string;
-  setFuelType?: React.Dispatch<React.SetStateAction<string>>;
-  transmission?: string;
-  setTransmission?: React.Dispatch<React.SetStateAction<string>>;
+  make: string;
+  setMake: (value: string) => void;
+  model: string;
+  setModel: (value: string) => void;
+  year: number | string | '';
+  setYear: (value: number | string | '') => void;
+  mileage: number | string;
+  setMileage: (value: number | string) => void;
+  trim?: string;
+  setTrim?: (value: string) => void;
   color?: string;
-  setColor?: React.Dispatch<React.SetStateAction<string>>;
-  errors?: Record<string, string>;
+  setColor?: (value: string) => void;
 }
 
-export function VehicleDetailsInputs({
+export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
   make,
   setMake,
   model,
@@ -34,143 +29,170 @@ export function VehicleDetailsInputs({
   setYear,
   mileage,
   setMileage,
-  condition,
-  setCondition,
-  fuelType,
-  setFuelType,
-  transmission,
-  setTransmission,
-  color,
+  trim = '',
+  setTrim,
+  color = '',
   setColor,
-  errors = {}
-}: VehicleDetailsInputsProps) {
-  const [trims, setTrims] = useState<TrimData[]>([]);
-  const [selectedTrim, setSelectedTrim] = useState<string>('');
-  const { getTrimsByModel, getYearOptions } = useVehicleData();
+}) => {
+  const { makes, getModelsByMake, getYearOptions } = useVehicleData();
+  const [models, setModels] = useState<{ id: string; model_name: string }[]>([]);
+  const yearOptions = getYearOptions(1990);
   
+  // Update models when make changes
   useEffect(() => {
-    if (model) {
-      const fetchTrims = async () => {
-        const trimData = await getTrimsByModel(model);
-        setTrims(trimData);
-      };
-      fetchTrims();
+    if (make) {
+      const makeObj = makes.find(m => m.make_name.toLowerCase() === make.toLowerCase());
+      if (makeObj) {
+        const modelsList = getModelsByMake(makeObj.id);
+        setModels(modelsList);
+      } else {
+        setModels([]);
+      }
     } else {
-      setTrims([]);
+      setModels([]);
     }
-  }, [model, getTrimsByModel]);
+  }, [make, makes, getModelsByMake]);
   
-  const fuelTypes = [
-    { value: 'gasoline', label: 'Gasoline' },
-    { value: 'diesel', label: 'Diesel' },
-    { value: 'hybrid', label: 'Hybrid' },
-    { value: 'electric', label: 'Electric' },
-    { value: 'lpg', label: 'LPG' },
-    { value: 'cng', label: 'CNG' }
-  ];
+  const handleMakeChange = (value: string) => {
+    setMake(value);
+    setModel(''); // Reset model when make changes
+  };
   
-  const transmissionTypes = [
-    { value: 'automatic', label: 'Automatic' },
-    { value: 'manual', label: 'Manual' },
-    { value: 'cvt', label: 'CVT' },
-    { value: 'dualClutch', label: 'Dual Clutch' }
-  ];
+  const handleYearChange = (value: string) => {
+    if (value === '') {
+      setYear('');
+    } else {
+      setYear(parseInt(value));
+    }
+  };
   
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '') {
+      setMileage('');
+    } else {
+      const numericValue = parseInt(value.replace(/\D/g, ''));
+      if (!isNaN(numericValue)) {
+        setMileage(numericValue);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="mileage">Mileage</Label>
+          <label htmlFor="make" className="block text-sm font-medium text-gray-700">
+            Make *
+          </label>
+          <Select 
+            value={make} 
+            onValueChange={handleMakeChange}
+          >
+            <SelectTrigger id="make" className="w-full">
+              <SelectValue placeholder="Select make" />
+            </SelectTrigger>
+            <SelectContent>
+              {makes.map((makeItem) => (
+                <SelectItem key={makeItem.id} value={makeItem.make_name}>
+                  {makeItem.make_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="model" className="block text-sm font-medium text-gray-700">
+            Model *
+          </label>
+          <Select 
+            value={model} 
+            onValueChange={setModel} 
+            disabled={!make}
+          >
+            <SelectTrigger id="model" className="w-full">
+              <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent>
+              {models.map((modelItem) => (
+                <SelectItem key={modelItem.id} value={modelItem.model_name}>
+                  {modelItem.model_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label htmlFor="year" className="block text-sm font-medium text-gray-700">
+            Year
+          </label>
+          <Select 
+            value={year?.toString() || ''} 
+            onValueChange={handleYearChange}
+          >
+            <SelectTrigger id="year" className="w-full">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {yearOptions.map((yearOption) => (
+                <SelectItem key={yearOption} value={yearOption.toString()}>
+                  {yearOption}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label htmlFor="mileage" className="block text-sm font-medium text-gray-700">
+            Mileage
+          </label>
           <Input
             id="mileage"
-            type="number"
-            placeholder="Enter vehicle mileage"
-            value={mileage || ''}
-            onChange={(e) => setMileage && setMileage(parseInt(e.target.value) || '')}
-            className={errors.mileage ? 'border-red-500' : ''}
+            type="text"
+            placeholder="Enter mileage"
+            value={mileage?.toString() || ''}
+            onChange={handleMileageChange}
+            className="w-full"
           />
-          {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage}</p>}
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="condition">Condition</Label>
-          <Select value={condition} onValueChange={(value) => setCondition && setCondition(value)}>
-            <SelectTrigger className={errors.condition ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="excellent">Excellent</SelectItem>
-              <SelectItem value="good">Good</SelectItem>
-              <SelectItem value="fair">Fair</SelectItem>
-              <SelectItem value="poor">Poor</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.condition && <p className="text-red-500 text-sm">{errors.condition}</p>}
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {setTrim && (
         <div className="space-y-2">
-          <Label htmlFor="fuelType">Fuel Type</Label>
-          <Select value={fuelType} onValueChange={(value) => setFuelType && setFuelType(value)}>
-            <SelectTrigger className={errors.fuelType ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Select fuel type" />
-            </SelectTrigger>
-            <SelectContent>
-              {fuelTypes.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.fuelType && <p className="text-red-500 text-sm">{errors.fuelType}</p>}
+          <label htmlFor="trim" className="block text-sm font-medium text-gray-700">
+            Trim (Optional)
+          </label>
+          <Input
+            id="trim"
+            type="text"
+            placeholder="e.g. Sport, Limited, etc."
+            value={trim}
+            onChange={(e) => setTrim(e.target.value)}
+            className="w-full"
+          />
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="transmission">Transmission</Label>
-          <Select value={transmission} onValueChange={(value) => setTransmission && setTransmission(value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select transmission" />
-            </SelectTrigger>
-            <SelectContent>
-              {transmissionTypes.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {setColor && (
         <div className="space-y-2">
-          <Label htmlFor="trim">Trim</Label>
-          <Select value={selectedTrim} onValueChange={setSelectedTrim}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select trim (optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              {trims.map((trim) => (
-                <SelectItem key={trim.id} value={trim.id}>
-                  {trim.trim_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
+          <label htmlFor="color" className="block text-sm font-medium text-gray-700">
+            Color (Optional)
+          </label>
           <Input
             id="color"
-            placeholder="Enter vehicle color"
-            value={color || ''}
-            onChange={(e) => setColor && setColor(e.target.value)}
+            type="text"
+            placeholder="e.g. Red, Blue, etc."
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            className="w-full"
           />
         </div>
-      </div>
+      )}
     </div>
   );
-}
+};
