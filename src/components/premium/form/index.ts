@@ -1,3 +1,5 @@
 
 // Export form-related components
-export { PremiumValuationForm } from './PremiumValuationForm';
+import PremiumValuationForm from './PremiumValuationForm';
+
+export { PremiumValuationForm };

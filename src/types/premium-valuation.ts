@@ -30,7 +30,7 @@ export interface FormData {
     locationImpact?: number;
   };
   
-  // Adding missing properties
+  // Adding properties for form steps
   hasAccident?: boolean | string;
   accidentDescription?: string;
   drivingProfile?: 'light' | 'average' | 'heavy';
@@ -44,6 +44,10 @@ export interface FormData {
   vin?: string;
   valuation?: number;
   confidenceScore?: number;
+  
+  // Additional properties for vehicle identification step
+  trim?: string;
+  titleStatus?: string;
 }
 
 export interface ValidationStep {

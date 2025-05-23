@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
 // Define a type for the step data
-type StepItem = string | { id: string; label: string };
+export type StepItem = string | { id: string; label: string };
 
-interface StepperProps {
+export interface StepperProps {
   steps: StepItem[];
   currentStep: number;
   className?: string;

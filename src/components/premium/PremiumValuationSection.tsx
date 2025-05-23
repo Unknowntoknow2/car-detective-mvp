@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/design-system";
 import { Button } from "@/components/ui/button";
-import { PremiumValuationForm } from './form/PremiumValuationForm';
+import PremiumValuationForm from './form/PremiumValuationForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
