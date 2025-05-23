@@ -1,30 +1,33 @@
 
 import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
-import DealerLayout from '@/layouts/DealerLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { DealerSidebar } from '@/components/dealer/DealerSidebar';
+import { DealerHeader } from '@/components/dealer/DealerHeader';
+import Loading from '@/components/Loading';
 
-const DealerLayoutPage = () => {
-  const { user, userDetails, isLoading } = useAuth();
-
-  // Show loading spinner while checking authentication
+const DealerLayoutPage: React.FC = () => {
+  const { user, userRole, isLoading } = useAuth();
+  
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loading />;
   }
-
-  // If not logged in or not a dealer, redirect to login
-  if (!user || (userDetails && userDetails.role !== 'dealer')) {
+  
+  // Redirect if not logged in or not a dealer
+  if (!user || userRole !== 'dealer') {
     return <Navigate to="/auth/dealer" replace />;
   }
-
+  
   return (
-    <DealerLayout>
-      <Outlet />
-    </DealerLayout>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <DealerSidebar />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <DealerHeader />
+        <main className="flex-1 overflow-y-auto p-4">
+          <Outlet />
+        </main>
+      </div>
+    </div>
   );
 };
 

@@ -1,17 +1,14 @@
 
-export type UserRole = 'individual' | 'dealer' | 'admin';
+export type UserRole = 'admin' | 'dealer' | 'individual';
 
-export type AuthMode = 'signin' | 'signup' | 'reset-password';
+export type AuthMode = 'signin' | 'signup' | 'reset';
 
-export interface AuthContextType {
-  user: any;
-  session: any;
-  userDetails: any;
-  userRole?: UserRole;
-  error?: any;
-  isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
+export interface AuthFormData {
+  email: string;
+  password: string;
+  confirmPassword?: string;
+  fullName?: string;
+  dealershipName?: string;
+  role?: UserRole;
+  acceptTerms?: boolean;
 }
