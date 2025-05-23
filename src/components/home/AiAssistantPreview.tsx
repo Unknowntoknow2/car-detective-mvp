@@ -5,12 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import { 
+  VehicleContext,
+  AssistantContext
+} from '@/types/assistant';
+import { 
   extractVehicleContext, 
+  extractLocationContext,
   detectIntent, 
-  generateResponse, 
-  AssistantContext, 
-  VehicleContext 
-} from '@/utils/assistantContext';
+  generateResponse 
+} from '@/lib/valuation/extractVehicleContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,22 +25,34 @@ export function AiAssistantPreview() {
   const [conversation, setConversation] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [context, setContext] = useState<AssistantContext>({
-    vehicle: {},
     isPremium: false,
-    previousIntents: []
+    hasDealerAccess: false,
+    userLocation: { 
+      region: 'California'
+    }
   });
+  const [vehicleContext, setVehicleContext] = useState<VehicleContext>({});
   
   // Update context when conversation changes
   useEffect(() => {
     if (conversation.length > 0) {
-      const vehicleContext = extractVehicleContext(conversation);
-      setContext(prev => ({
+      const extractedVehicle = extractVehicleContext(conversation);
+      const locationInfo = extractLocationContext(conversation);
+      
+      setVehicleContext(prev => ({
         ...prev,
-        vehicle: {
-          ...prev.vehicle,
-          ...vehicleContext
-        }
+        ...extractedVehicle
       }));
+      
+      if (locationInfo.region || locationInfo.zipCode) {
+        setContext(prev => ({
+          ...prev,
+          userLocation: {
+            ...prev.userLocation,
+            ...locationInfo
+          }
+        }));
+      }
     }
   }, [conversation]);
   
@@ -62,34 +77,25 @@ export function AiAssistantPreview() {
     setIsTyping(true);
     
     // Generate response based on intent and context
-    const response = await simulateResponseGeneration(userMsg, intent);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-      setConversation(prev => [...prev, {role: 'assistant', content: response}]);
-    }, 800 + Math.random() * 1200); // Realistic typing delay
-  };
-  
-  // Simulate response generation with our context-aware system
-  const simulateResponseGeneration = async (userMsg: string, intent: string): Promise<string> => {
-    // Update context with any new information from this message
-    const updatedVehicleContext: VehicleContext = extractVehicleContext([{role: 'user', content: userMsg}]);
-    
-    const updatedContext: AssistantContext = {
+    const assistantContext = {
       ...context,
-      vehicle: {
-        ...context.vehicle,
-        ...updatedVehicleContext
-      }
+      vehicle: vehicleContext
     };
     
-    // For the preview, we'll use our pre-defined responses for specific intents
-    // but in a real implementation, we would call an API or use the assistant API
     try {
-      return await generateResponse(intent, updatedContext, userMsg);
+      const response = await generateResponse(intent, assistantContext, userMsg);
+      
+      setTimeout(() => {
+        setIsTyping(false);
+        setConversation(prev => [...prev, {role: 'assistant', content: response}]);
+      }, 800 + Math.random() * 1200); // Realistic typing delay
     } catch (error) {
       console.error("Error generating response:", error);
-      return "I apologize, but I'm having trouble processing that request. Could you try again or rephrase your question?";
+      setIsTyping(false);
+      setConversation(prev => [...prev, {
+        role: 'assistant', 
+        content: "I apologize, but I'm having trouble processing that request. Could you try again or rephrase your question?"
+      }]);
     }
   };
   
@@ -154,6 +160,8 @@ export function AiAssistantPreview() {
         <div className="mt-4 p-2 border rounded text-xs bg-gray-50">
           <p>Debug - Current Context:</p>
           <pre>{JSON.stringify(context, null, 2)}</pre>
+          <p>Vehicle Context:</p>
+          <pre>{JSON.stringify(vehicleContext, null, 2)}</pre>
         </div>
       )}
     </div>

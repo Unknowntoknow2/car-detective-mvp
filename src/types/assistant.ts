@@ -1,7 +1,10 @@
 
+// Define types for the AI assistant context
+
 export interface AssistantContext {
   isPremium: boolean;
   hasDealerAccess: boolean;
+  previousIntents?: string[];
   userLocation?: {
     zip?: string;
     city?: string;
@@ -23,6 +26,9 @@ export interface VehicleContext {
   estimatedValue?: number;
   accidentCount?: number;
   accidentSeverity?: string;
+  bodyType?: string;
+  fuelType?: string;
+  color?: string;
 }
 
 export interface ChatMessage {
