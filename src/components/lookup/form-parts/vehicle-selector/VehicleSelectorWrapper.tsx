@@ -4,7 +4,6 @@ import { LoadingMessage } from './LoadingMessage';
 import { ErrorMessage } from './ErrorMessage';
 import { MakeModelSelectors } from './MakeModelSelectors';
 import { ValidationMessage } from './ValidationMessage';
-import { MakeData } from '@/hooks/useVehicleData';
 
 interface VehicleSelectorWrapperProps {
   selectedMake: string;

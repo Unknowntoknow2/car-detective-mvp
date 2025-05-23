@@ -19,6 +19,8 @@ export interface TrimData {
   trim_name: string;
   model_id: string;
   year?: number;
+  fuel_type?: string;
+  transmission?: string;
 }
 
 export interface VehicleDataCounts {
@@ -37,17 +39,26 @@ export const useVehicleData = () => {
       setIsLoading(true);
       setError(null);
       
+      // Only select fields that actually exist in the database
+      // Note: We know logo_url doesn't exist from the error logs
       const { data, error } = await supabase
         .from('makes')
-        .select('id, make_name, logo_url')
+        .select('id, make_name')
         .order('make_name');
         
       if (error) throw error;
       
-      setMakes(data || []);
+      // Since we know logo_url doesn't exist in the database, we'll create objects without it
+      const makesData: MakeData[] = data?.map(make => ({
+        id: make.id,
+        make_name: make.make_name,
+        // logo_url is undefined since it doesn't exist in the database
+      })) || [];
+      
+      setMakes(makesData);
       
       // Update counts
-      const makeCount = data?.length || 0;
+      const makeCount = makesData.length || 0;
       let modelCount = 0;
       
       if (makeCount > 0) {
@@ -84,6 +95,8 @@ export const useVehicleData = () => {
     if (!makeName) return [];
     
     try {
+      console.log('Fetching models for make:', makeName);
+      
       // First, find the make_id for the given make name
       const { data: makeData, error: makeError } = await supabase
         .from('makes')
@@ -97,6 +110,7 @@ export const useVehicleData = () => {
       }
       
       const makeId = makeData.id;
+      console.log('Found make ID:', makeId);
       
       // Then fetch models for that make_id
       const { data, error } = await supabase
@@ -110,6 +124,7 @@ export const useVehicleData = () => {
         return [];
       }
       
+      console.log(`Found ${data?.length || 0} models for make ${makeName}`);
       return data || [];
     } catch (err: any) {
       console.error('Error in getModelsByMake:', err);
@@ -122,9 +137,11 @@ export const useVehicleData = () => {
     if (!modelId) return [];
     
     try {
+      console.log('Fetching trims for model ID:', modelId);
+      
       const { data, error } = await supabase
         .from('model_trims')
-        .select('id, trim_name, model_id, year')
+        .select('id, trim_name, model_id, year, fuel_type, transmission')
         .eq('model_id', modelId)
         .order('trim_name');
         
@@ -133,6 +150,7 @@ export const useVehicleData = () => {
         return [];
       }
       
+      console.log(`Found ${data?.length || 0} trims for model ID ${modelId}`);
       return data || [];
     } catch (err: any) {
       console.error('Error in getTrimsByModel:', err);
