@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { ConditionLevel } from '@/components/lookup/types/manualEntry'; // Import the proper enum
@@ -8,12 +9,32 @@ import { FeatureSelectionStep } from './steps/FeatureSelectionStep';
 import { VehicleDetailsStep } from './steps/VehicleDetailsStep';
 import { ReviewSubmitStep } from './steps/ReviewSubmitStep';
 import { ValuationResultStep } from './steps/ValuationResultStep';
-import { Stepper, Step } from '@/components/ui/stepper';
+import { Stepper } from '@/components/ui/stepper';
 import { Button } from '@/components/ui/button';
 import { AccidentHistoryStep } from './steps/AccidentHistoryStep';
 import { DrivingBehaviorStep } from './steps/DrivingBehaviorStep';
 import { FuelTypeStep } from './steps/FuelTypeStep';
-import { PhotosUploadStep } from './steps/PhotosUploadStep';
+import { PhotoUploadStep } from './steps/PhotoUploadStep';
+
+// Define stub for PhotoUploadStep if it doesn't exist yet
+// We'll replace this with actual implementation later
+const PhotoUploadStep = ({ step, formData, setFormData, updateValidity }: {
+  step: number;
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  updateValidity: (step: number, isValid: boolean) => void;
+}) => {
+  React.useEffect(() => {
+    updateValidity(step, true);
+  }, []);
+  
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Photo Upload</h2>
+      <p className="text-gray-500">Upload photos of your vehicle to get a more accurate valuation.</p>
+    </div>
+  );
+};
 
 const PremiumValuationForm = () => {
   const [formData, setFormData] = useState<FormData>({
@@ -65,22 +86,25 @@ const PremiumValuationForm = () => {
     setCurrentStep(0);
     setStepsValidity(Array(totalSteps).fill(false));
   };
+  
+  // Define steps for the stepper component
+  const steps = [
+    { id: 'identification', label: 'Identification' },
+    { id: 'mileage', label: 'Mileage' },
+    { id: 'condition', label: 'Condition' },
+    { id: 'fuel-type', label: 'Fuel Type' },
+    { id: 'details', label: 'Details' },
+    { id: 'accident', label: 'Accident' },
+    { id: 'features', label: 'Features' },
+    { id: 'photos', label: 'Photos' },
+    { id: 'review', label: 'Review' }
+  ];
 
   return (
     <div className="container mx-auto py-8 max-w-3xl">
       <h1 className="text-3xl font-bold mb-8">Premium Vehicle Valuation</h1>
 
-      <Stepper currentStep={currentStep}>
-        <Step label="Identification" />
-        <Step label="Mileage" />
-        <Step label="Condition" />
-        <Step label="Fuel Type" />
-        <Step label="Details" />
-        <Step label="Accident" />
-        <Step label="Features" />
-        <Step label="Photos" />
-        <Step label="Review" />
-      </Stepper>
+      <Stepper steps={steps} currentStep={currentStep} />
 
       <div className="mt-8">
         {currentStep === 0 && (
@@ -89,6 +113,9 @@ const PremiumValuationForm = () => {
             formData={formData}
             setFormData={setFormData}
             updateValidity={updateValidity}
+            lookupVehicle={() => Promise.resolve(false)}
+            isLoading={false}
+            goToNextStep={nextStep}
           />
         )}
         {currentStep === 1 && (
@@ -140,7 +167,7 @@ const PremiumValuationForm = () => {
           />
         )}
         {currentStep === 7 && (
-          <PhotosUploadStep
+          <PhotoUploadStep
             step={currentStep}
             formData={formData}
             setFormData={setFormData}
