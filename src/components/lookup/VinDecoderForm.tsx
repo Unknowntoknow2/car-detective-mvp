@@ -1,53 +1,110 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { VINLookupForm } from './vin/VINLookupForm';
-import { useNavigate } from 'react-router-dom';
-import { validateVIN } from '@/utils/validation/vin-validation';
-import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useVinDecoderForm } from '@/components/lookup/vin/useVinDecoderForm';
+import VinDecoderResults from '@/components/lookup/vin/VinDecoderResults';
+import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 
 const VinDecoderForm: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  
-  const handleSubmit = async (vin: string) => {
-    // First validate VIN
-    const validation = validateVIN(vin);
-    if (!validation.isValid) {
-      toast.error(validation.error || 'Invalid VIN');
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // In a real app, we would call an API here
-      // For now, just simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store VIN in localStorage for follow-up steps
-      localStorage.setItem('current_vin', vin);
-      
-      // Navigate to valuation follow-up page
-      navigate(`/valuation-followup?vin=${vin}`);
-    } catch (error) {
-      console.error('Error decoding VIN:', error);
-      toast.error('Failed to decode VIN. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const {
+    vin,
+    setVin,
+    zipCode,
+    setZipCode,
+    result,
+    isLoading,
+    error,
+    carfaxData,
+    isLoadingCarfax,
+    carfaxError,
+    stage,
+    pipelineVehicle,
+    requiredInputs,
+    valuationResult,
+    valuationError,
+    pipelineLoading,
+    handleSubmit,
+    handleDetailsSubmit,
+    submitValuation,
+    valuationId,
+  } = useVinDecoderForm();
+
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVin(e.target.value);
   };
-  
+
+  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setZipCode(e.target.value);
+  };
+
+  const handleDownloadPdf = () => {
+    console.log('Downloading PDF...');
+    // Implement PDF download logic
+  };
+
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <VINLookupForm 
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-          submitButtonText="Decode VIN"
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label 
+            htmlFor="vin-input" 
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Vehicle Identification Number (VIN)
+          </label>
+          <Input
+            id="vin-input"
+            value={vin}
+            onChange={handleVinChange}
+            placeholder="Enter 17-character VIN"
+            maxLength={17}
+            className="w-full"
+          />
+        </div>
+        
+        <div>
+          <label 
+            htmlFor="zip-input" 
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            ZIP Code (Optional)
+          </label>
+          <Input
+            id="zip-input"
+            value={zipCode}
+            onChange={handleZipCodeChange}
+            placeholder="Enter ZIP code for regional pricing"
+            maxLength={5}
+            className="w-full"
+          />
+        </div>
+        
+        <Button 
+          type="submit" 
+          disabled={isLoading || !vin || vin.length !== 17}
+          className="w-full"
+        >
+          {isLoading ? 'Loading...' : 'Lookup VIN'}
+        </Button>
+      </form>
+
+      {(result || pipelineVehicle || valuationResult) && (
+        <VinDecoderResults
+          stage={stage}
+          result={result}
+          pipelineVehicle={pipelineVehicle}
+          requiredInputs={requiredInputs}
+          valuationResult={valuationResult}
+          valuationError={valuationError}
+          pipelineLoading={pipelineLoading}
+          submitValuation={handleDetailsSubmit}
+          vin={vin}
+          carfaxData={carfaxData}
+          onDownloadPdf={handleDownloadPdf}
         />
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
 
