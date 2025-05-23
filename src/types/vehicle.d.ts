@@ -17,6 +17,7 @@ export interface DealerInventoryItem {
   transmission?: string;
   createdAt: string;
   updatedAt?: string;
+  images?: string[]; // Added for compatibility with some components
 }
 
 export interface DecodedVehicleInfo {
@@ -35,7 +36,7 @@ export interface DecodedVehicleInfo {
   interiorColor?: string;
   features?: string[];
   condition?: string;
-  zipCode?: string;
+  zipCode?: string; 
   mileage?: number;
   valuationId?: string;
 }

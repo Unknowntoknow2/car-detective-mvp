@@ -63,7 +63,7 @@ function App() {
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/results/:id" element={<ResultsPage />} />
         
-        {/* Authentication */}
+        {/* Authentication - Support both old and new paths */}
         <Route path="/auth" element={<AuthLandingPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
@@ -75,8 +75,15 @@ function App() {
         <Route path="/auth/individual" element={<IndividualAuthPage />} />
         <Route path="/auth/dealer" element={<DealerAuthPage />} />
         
+        {/* Legacy auth paths for backward compatibility */}
+        <Route path="/signin/individual" element={<IndividualAuthPage />} />
+        <Route path="/signin/dealer" element={<DealerAuthPage />} />
+        <Route path="/signup/individual" element={<IndividualAuthPage />} />
+        <Route path="/signup/dealer" element={<DealerAuthPage />} />
+        
         {/* Dealer Pages */}
         <Route path="/dealer/dashboard" element={<DealerDashboardPage />} />
+        <Route path="/dealer-dashboard" element={<DealerDashboardPage />} />
         <Route path="/dealer/inventory" element={<DealerInventoryListPage />} />
         
         {/* Not Found */}
