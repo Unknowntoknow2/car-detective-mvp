@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Car, Check } from 'lucide-react';
-import { useVehicleData } from '@/hooks/useVehicleData';
+import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { Skeleton } from '@/components/ui/skeleton';

@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function VehicleDataInfo() {
-  const { makes, models, counts, isLoading, refreshData } = useVehicleData();
+  const { makes, counts, isLoading, refreshData } = useVehicleData();
   
   const handleRefresh = async () => {
     try {

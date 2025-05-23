@@ -1,10 +1,11 @@
 
 import React from 'react';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { getMileageDescription } from '@/utils/adjustments/descriptions';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface YearMileageInputsProps {
   selectedYear: number | '';
@@ -12,86 +13,112 @@ interface YearMileageInputsProps {
   mileage: string;
   setMileage: (mileage: string) => void;
   isDisabled?: boolean;
+  errors?: Record<string, string>;
 }
 
-export const YearMileageInputs: React.FC<YearMileageInputsProps> = ({
+export function YearMileageInputs({
   selectedYear,
   setSelectedYear,
   mileage,
   setMileage,
-  isDisabled = false
-}) => {
-  const { getYearOptions } = useVehicleData();
+  isDisabled = false,
+  errors = {}
+}: YearMileageInputsProps) {
+  const { isLoading, getYearOptions } = useVehicleData();
+  const years = getYearOptions();
+
+  const handleYearChange = (value: string) => {
+    setSelectedYear(value ? parseInt(value, 10) : '');
+  };
 
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    const numberValue = parseInt(value, 10);
+    const value = e.target.value.replace(/[^\d]/g, '');
     
-    if (value === '' || (numberValue > 0 && numberValue <= 999999)) {
-      // Format with comma separators for thousands
-      if (value) {
-        const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        const plainValue = formattedValue.replace(/,/g, '');
-        setMileage(plainValue);
-      } else {
-        setMileage(value);
+    // Format with commas as user types (only if there's a value)
+    if (value) {
+      const numericValue = parseInt(value.replace(/,/g, ''), 10);
+      if (!isNaN(numericValue)) {
+        setMileage(numericValue.toLocaleString());
+        return;
+      }
+    }
+    
+    setMileage(value);
+  };
+
+  const handleMileageBlur = () => {
+    if (mileage) {
+      // Ensure mileage is formatted with commas on blur
+      const numericValue = parseInt(mileage.replace(/,/g, ''), 10);
+      if (!isNaN(numericValue)) {
+        setMileage(numericValue.toLocaleString());
       }
     }
   };
 
-  const getMileageInfo = (miles: string) => {
-    const numericMiles = parseInt(miles.replace(/,/g, ''), 10);
-    if (!isNaN(numericMiles) && numericMiles > 0) {
-      return getMileageDescription(numericMiles);
-    }
-    return "";
+  const handleMileageFocus = () => {
+    // Remove commas when focusing for easier editing
+    setMileage(mileage.replace(/,/g, ''));
   };
 
   return (
     <>
-      <Select 
-        onValueChange={(value) => setSelectedYear(Number(value))}
-        disabled={isDisabled}
-        value={selectedYear ? String(selectedYear) : ''}
-      >
-        <SelectTrigger className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary">
-          <SelectValue placeholder="Select Year" />
-        </SelectTrigger>
-        <SelectContent className="max-h-[300px] overflow-y-auto">
-          {getYearOptions().map(year => (
-            <SelectItem 
-              key={year} 
-              value={String(year)}
-              className="py-2.5 cursor-pointer hover:bg-primary/10"
+      <div className="space-y-2">
+        <Label htmlFor="year" className="text-sm font-medium text-slate-700">
+          Year <span className="text-red-500">*</span>
+        </Label>
+        
+        {isLoading ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <>
+            <Select
+              value={selectedYear ? selectedYear.toString() : ''}
+              onValueChange={handleYearChange}
+              disabled={isDisabled}
             >
-              {year}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+              <SelectTrigger 
+                id="year" 
+                className={`h-10 transition-all duration-200 ${errors.year ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+              >
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[350px]">
+                {years.map((year: number) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.year && <FormValidationError error={errors.year} />}
+          </>
+        )}
+      </div>
 
-      <div className="space-y-1 w-full">
-        <Input 
-          type="text" 
-          inputMode="numeric"
-          placeholder="Enter Mileage" 
-          value={mileage.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+      <div className="space-y-2">
+        <Label htmlFor="mileage" className="text-sm font-medium text-slate-700">
+          Mileage <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="mileage"
+          type="text"
+          value={mileage}
           onChange={handleMileageChange}
+          onBlur={handleMileageBlur}
+          onFocus={handleMileageFocus}
+          placeholder="e.g. 45,000"
+          className={`h-10 transition-all duration-200 ${errors.mileage ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
           disabled={isDisabled}
-          className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary"
-          onBlur={() => {
-            if (mileage === '' || parseInt(mileage, 10) <= 0) {
-              toast.error("Mileage must be a positive number greater than zero");
-              setMileage('');
-            }
-          }}
         />
-        {mileage && (
-          <p className="text-xs text-muted-foreground">
-            {getMileageInfo(mileage)}
+        {errors.mileage ? (
+          <FormValidationError error={errors.mileage} />
+        ) : (
+          <p className="text-xs text-slate-500">
+            Current odometer reading in miles
           </p>
         )}
       </div>
     </>
   );
-};
+}
