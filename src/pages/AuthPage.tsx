@@ -32,7 +32,7 @@ export default function AuthPage() {
             transition={{ delay: 0.2, duration: 0.4 }}
           >
             <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border-2" 
-                onClick={() => navigate('/signin/individual')}>
+                onClick={() => navigate('/auth/individual')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xl font-medium">Individual Login</CardTitle>
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -62,7 +62,7 @@ export default function AuthPage() {
             transition={{ delay: 0.3, duration: 0.4 }}
           >
             <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer border-2 border-blue-100" 
-                onClick={() => navigate('/signin/dealer')}>
+                onClick={() => navigate('/auth/dealer')}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xl font-medium">Dealer Login</CardTitle>
                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
