@@ -8,8 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface YearMileageInputsProps {
-  selectedYear: number | '';
-  setSelectedYear: (year: number | '') => void;
+  selectedYear: number | string | '';
+  setSelectedYear: (year: number | string | '') => void;
   mileage: string;
   setMileage: (mileage: string) => void;
   isDisabled?: boolean;
@@ -29,7 +29,11 @@ export function YearMileageInputs({
   const years = Array.from({ length: 35 }, (_, i) => currentYear - i);
 
   const handleYearChange = (value: string) => {
-    setSelectedYear(value ? parseInt(value, 10) : '');
+    if (value === '') {
+      setSelectedYear('');
+    } else {
+      setSelectedYear(parseInt(value, 10));
+    }
   };
 
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +78,7 @@ export function YearMileageInputs({
         ) : (
           <>
             <Select
-              value={selectedYear ? selectedYear.toString() : ''}
+              value={selectedYear !== null && selectedYear !== undefined ? selectedYear.toString() : ''}
               onValueChange={handleYearChange}
               disabled={isDisabled}
             >

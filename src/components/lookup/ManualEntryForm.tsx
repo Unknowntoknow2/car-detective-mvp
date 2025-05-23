@@ -24,8 +24,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 }) => {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
-  const [year, setYear] = useState<number | ''>(new Date().getFullYear());
-  const [mileage, setMileage] = useState<number>(0);
+  const [year, setYear] = useState<number | string | ''>(new Date().getFullYear());
+  const [mileage, setMileage] = useState<number | string>(0);
   const [condition, setCondition] = useState<ConditionLevel>(ConditionLevel.Good);
   const [zipCode, setZipCode] = useState('');
   const [fuelType, setFuelType] = useState('Gasoline');
@@ -75,7 +75,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       make,
       model,
       year: typeof year === 'number' ? year : new Date().getFullYear(),
-      mileage: mileage || 0,
+      mileage: typeof mileage === 'number' ? mileage : parseInt(mileage.toString()) || 0,
       condition,
       zipCode,
       fuelType,
@@ -85,6 +85,15 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     };
     
     onSubmit(formattedData);
+  };
+
+  // Create wrapper functions to handle the type differences
+  const handleYearChange = (value: number | string | '') => {
+    setYear(value);
+  };
+
+  const handleMileageChange = (value: number | string) => {
+    setMileage(value);
   };
   
   return (
@@ -98,9 +107,9 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
               model={model}
               setModel={setModel}
               year={year}
-              setYear={setYear}
+              setYear={handleYearChange}
               mileage={mileage}
-              setMileage={setMileage}
+              setMileage={handleMileageChange}
               trim={trim}
               setTrim={setTrim}
               color={isPremium ? color : ''}

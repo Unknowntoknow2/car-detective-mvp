@@ -32,8 +32,8 @@ export function PremiumManualEntryForm({
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
   const [model, setModel] = useState(initialData?.model || '');
-  const [year, setYear] = useState<number | ''>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
-  const [mileage, setMileage] = useState<number>(initialData?.mileage ? Number(initialData.mileage) : 0);
+  const [year, setYear] = useState<number | string | ''>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
+  const [mileage, setMileage] = useState<number | string>(initialData?.mileage ? Number(initialData.mileage) : 0);
   const [condition, setCondition] = useState<ConditionLevel>(
     (initialData?.condition as ConditionLevel) || ConditionLevel.Good
   );
@@ -90,7 +90,7 @@ export function PremiumManualEntryForm({
       make,
       model,
       year: typeof year === 'number' ? year : new Date().getFullYear(),
-      mileage,
+      mileage: typeof mileage === 'number' ? mileage : parseInt(mileage.toString()) || 0,
       condition,
       zipCode,
       fuelType,
@@ -114,8 +114,13 @@ export function PremiumManualEntryForm({
     setHasAccident(details.hasAccident || false);
   };
 
-  const handleYearChange = (value: number | '') => {
+  // Create wrapper functions to handle type differences
+  const handleYearChange = (value: number | string | '') => {
     setYear(value);
+  };
+
+  const handleMileageChange = (value: number | string) => {
+    setMileage(value);
   };
 
   return (
@@ -132,7 +137,7 @@ export function PremiumManualEntryForm({
               year={year}
               setYear={handleYearChange}
               mileage={mileage}
-              setMileage={setMileage}
+              setMileage={handleMileageChange}
               trim={trim}
               setTrim={setTrim}
               color={color}
