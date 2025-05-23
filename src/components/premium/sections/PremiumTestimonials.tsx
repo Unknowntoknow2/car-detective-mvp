@@ -20,7 +20,7 @@ export const PremiumTestimonials: React.FC = () => {
     {
       name: 'David Thompson',
       role: 'Ford F-150 Owner',
-      content: 'The premium service identified several features I didn't know added value to my truck. Totally worth the investment before selling.',
+      content: 'The premium service identified several features I didn\'t know added value to my truck. Totally worth the investment before selling.',
       rating: 4,
     },
   ];

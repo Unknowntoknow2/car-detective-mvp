@@ -25,6 +25,7 @@ const PremiumValuationForm = () => {
     zipCode: '',
     fuelType: '',
     transmission: '',
+    conditionScore: 75, // Add missing conditionScore field with default value
   });
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -63,6 +64,7 @@ const PremiumValuationForm = () => {
       zipCode: '',
       fuelType: '',
       transmission: '',
+      conditionScore: 75, // Add missing conditionScore field with default value
     });
     setCurrentStep(0);
     setStepsValidity(Array(totalSteps).fill(false));

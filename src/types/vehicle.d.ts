@@ -1,3 +1,4 @@
+
 export interface DealerInventoryItem {
   id: string;
   make: string;
@@ -71,6 +72,7 @@ export interface ValuationResponse {
   trim?: string;
   color?: string;
   price_range?: { low: number; high: number } | [number, number];
+  priceRange?: { low: number; high: number } | [number, number]; // Add this for consistency
   adjustments?: Array<{
     factor: string;
     impact: number;
@@ -84,4 +86,11 @@ export interface ValuationResponse {
   basePrice?: number;
   photoScore?: number;
   bestPhotoUrl?: string;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary?: string;
+  };
+  userId?: string;
 }

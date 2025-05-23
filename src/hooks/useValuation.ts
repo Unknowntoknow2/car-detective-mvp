@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { ValuationResponse } from '@/types/vehicle';
@@ -39,7 +40,19 @@ export function useValuation() {
         bodyType: formData.bodyStyle,
         color: formData.color,
         trim: formData.trim,
-        vin: formData.vin
+        vin: formData.vin,
+        isPremium: false,
+        price_range: {
+          low: Math.round(calculatedValue * 0.95),
+          high: Math.round(calculatedValue * 1.05)
+        },
+        adjustments: [],
+        userId: '', // Empty userId as default
+        aiCondition: {
+          condition: formData.condition.toString(),
+          confidenceScore: 85,
+          issuesDetected: []
+        }
       };
       
       setValuationData(mockValuationData);
@@ -88,7 +101,18 @@ export function useValuation() {
         transmission: 'Automatic',
         bodyType: 'Sedan',
         trim: 'LE',
-        color: 'Silver'
+        color: 'Silver',
+        isPremium: false,
+        price_range: {
+          low: 17575,
+          high: 19425
+        },
+        userId: '',
+        aiCondition: {
+          condition: 'Good',
+          confidenceScore: 90,
+          issuesDetected: []
+        }
       };
       
       setValuationData(mockData);
@@ -136,7 +160,18 @@ export function useValuation() {
         transmission: 'Automatic',
         bodyType: 'Sedan',
         trim: 'Sport',
-        color: 'Blue'
+        color: 'Blue',
+        isPremium: false,
+        price_range: {
+          low: 21375,
+          high: 23625
+        },
+        userId: '',
+        aiCondition: {
+          condition: 'Excellent',
+          confidenceScore: 85,
+          issuesDetected: []
+        }
       };
       
       setValuationData(mockData);
