@@ -117,3 +117,105 @@ export function extractVehicleContext(conversation: { role: string; content: str
 
   return context;
 }
+
+// Detect the user's intent from their message
+export function detectIntent(message: string): string {
+  const message_lower = message.toLowerCase();
+  
+  // Intent categories
+  const intents = {
+    valuation: ['worth', 'value', 'price', 'cost', 'sell for', 'selling', 'estimate'],
+    accident: ['accident', 'damage', 'crash', 'collision', 'wreck', 'damaged'],
+    market: ['market', 'trend', 'compare', 'demand', 'selling fast', 'inventory'],
+    timing: ['when', 'best time', 'season', 'wait', 'right time', 'sell now'],
+    condition: ['condition', 'shape', 'state', 'good condition', 'excellent', 'poor'],
+    features: ['feature', 'option', 'package', 'upgrade', 'accessory', 'add-on'],
+    dealership: ['dealer', 'dealership', 'trade', 'offer', 'buy', 'purchase'],
+    carfax: ['carfax', 'history', 'report', 'vehicle history', 'record', 'previous owner'],
+    premium: ['premium', 'subscription', 'pay', 'unlock', 'full report', 'detailed'],
+    location: ['location', 'area', 'city', 'state', 'country', 'zip', 'region']
+  };
+  
+  // Check each intent category
+  for (const [intent, keywords] of Object.entries(intents)) {
+    for (const keyword of keywords) {
+      if (message_lower.includes(keyword)) {
+        return intent;
+      }
+    }
+  }
+  
+  // Default intent if no matches
+  return 'general';
+}
+
+// Generate AI response based on intent and context
+export async function generateResponse(intent: string, context: AssistantContext, message: string): Promise<string> {
+  // Create a more personalized message based on the vehicle context
+  const vehicle = context.vehicle;
+  const vehicleDesc = vehicle.year && vehicle.make && vehicle.model 
+    ? `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ' ' + vehicle.trim : ''}` 
+    : "your vehicle";
+  
+  const responses = {
+    valuation: [
+      `Based on my analysis, ${vehicleDesc} has an estimated value between $${randomRange(15000, 25000)} and $${randomRange(17000, 28000)} in your area. This takes into account its ${vehicle.year || 'recent'} model year${vehicle.mileage ? ', ' + vehicle.mileage + ' miles' : ''}, and ${vehicle.condition || 'current'} condition.`,
+      `${vehicleDesc} is currently valued at approximately $${randomRange(18000, 30000)} in your local market. Keep in mind that factors like ${getRandomFactors()} can influence the final selling price.`,
+      `I estimate ${vehicleDesc} to be worth around $${randomRange(16000, 27000)}. ${context.isPremium ? 'Your premium account gives you access to a more detailed valuation breakdown including local market analysis.' : 'Upgrade to premium for a more detailed valuation with local market analysis and dealer offers.'}`
+    ],
+    accident: [
+      `Accident history can reduce a vehicle's value by 10-30%. ${vehicle.accidentHistory ? 'Since your ' + vehicleDesc + ' has accident history, expect it to impact the value by approximately 15-20%.' : 'If your ' + vehicleDesc + ' has a clean history, that\'s a strong selling point you should highlight.'}`,
+      `For ${vehicleDesc}, each accident can decrease the value by about $${randomRange(1000, 3000)}, depending on severity. ${context.isPremium ? 'Your premium report includes a detailed accident impact analysis.' : 'A premium report would show you exactly how much value is affected by accidents.'}`,
+      `Accident history affects buyer confidence more than actual vehicle performance in many cases. ${vehicle.accidentHistory ? 'Be transparent about the ' + vehicleDesc + '\'s history to build trust with potential buyers.' : 'Your clean history on the ' + vehicleDesc + ' is a major selling advantage.'}`
+    ],
+    timing: [
+      `Based on market trends, the best time to sell ${vehicleDesc} would be in ${['spring', 'early summer', 'late winter'][Math.floor(Math.random() * 3)]}. This is when demand for ${vehicle.make || 'this type of vehicle'} typically increases.`,
+      `If you're planning to sell ${vehicleDesc}, consider waiting until ${['March-May', 'June-July', 'January-February'][Math.floor(Math.random() * 3)]} when you could get 5-7% more due to seasonal demand.`,
+      `Right now is actually ${['a great', 'a good', 'not the ideal'][Math.floor(Math.random() * 3)]} time to sell ${vehicleDesc}. ${context.isPremium ? 'Your premium report includes a 12-month price forecast to help you time the market perfectly.' : 'Upgrade to premium to see a 12-month price forecast that could help you maximize your selling price.'}`
+    ],
+    // Add more intent responses as needed
+    general: [
+      `I'm here to help you with any questions about ${vehicleDesc}. What specific information are you looking for regarding its value, accident history, or the best time to sell?`,
+      `Is there something specific you'd like to know about ${vehicleDesc}? I can provide information on its value, market trends, or how various factors might affect your selling price.`,
+      `I'd be happy to assist with information about ${vehicleDesc}. I can help with valuation estimates, accident impact analysis, or timing your sale for maximum value.`
+    ]
+  };
+  
+  // Get response array for the detected intent, or fall back to general
+  const responseArray = responses[intent] || responses.general;
+  
+  // Select a random response from the appropriate category
+  return responseArray[Math.floor(Math.random() * responseArray.length)];
+}
+
+// Helper functions for generating realistic responses
+function randomRange(min: number, max: number): string {
+  const value = Math.floor(min + Math.random() * (max - min));
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function getRandomFactors(): string {
+  const factors = [
+    'local market demand', 
+    'seasonal trends', 
+    'color popularity', 
+    'optional features', 
+    'maintenance history',
+    'fuel efficiency',
+    'recent repairs',
+    'title status',
+    'number of previous owners'
+  ];
+  
+  // Get 2-3 random factors
+  const count = 2 + Math.floor(Math.random() * 2);
+  const selected = [];
+  
+  for (let i = 0; i < count; i++) {
+    const index = Math.floor(Math.random() * factors.length);
+    selected.push(factors[index]);
+    factors.splice(index, 1);
+  }
+  
+  return selected.join(', ');
+}

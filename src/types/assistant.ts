@@ -6,6 +6,8 @@ export interface AssistantContext {
     zip?: string;
     city?: string;
     state?: string;
+    region?: string;
+    zipCode?: string;
   };
 }
 
