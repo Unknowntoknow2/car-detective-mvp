@@ -1,6 +1,6 @@
 
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ui/theme-provider';
@@ -25,36 +25,34 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/valuation" element={<ValuationPage />} />
-              <Route path="/vin-lookup" element={<VinLookupPage />} />
-              <Route path="/plate-lookup" element={<PlateLookupPage />} />
-              <Route path="/results/:id" element={<ResultsPage />} />
-              <Route path="/results" element={<ResultsPage />} />
-              
-              {/* Auth Routes */}
-              <Route path="/sign-in" element={<SigninPage />} />
-              <Route path="/sign-up" element={<SignupPage />} />
-              <Route path="/auth/individual" element={<AuthPage />} />
-              <Route path="/auth/dealer" element={<DealerAuthPage />} />
-              <Route path="/auth" element={<Navigate to="/auth/individual" replace />} />
-              
-              {/* User Routes */}
-              <Route path="/settings" element={<SettingsPage />} />
-              
-              {/* Dealer Routes */}
-              <Route path="/dealer/*" element={<DealerLayoutPage />} />
-              <Route path="/dealer/dashboard" element={<DealerDashboard />} />
-              
-              {/* Catch all route - 404 */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Suspense>
-        </Router>
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/valuation" element={<ValuationPage />} />
+            <Route path="/vin-lookup" element={<VinLookupPage />} />
+            <Route path="/plate-lookup" element={<PlateLookupPage />} />
+            <Route path="/results/:id" element={<ResultsPage />} />
+            <Route path="/results" element={<ResultsPage />} />
+            
+            {/* Auth Routes */}
+            <Route path="/sign-in" element={<SigninPage />} />
+            <Route path="/sign-up" element={<SignupPage />} />
+            <Route path="/auth/individual" element={<AuthPage />} />
+            <Route path="/auth/dealer" element={<DealerAuthPage />} />
+            <Route path="/auth" element={<Navigate to="/auth/individual" replace />} />
+            
+            {/* User Routes */}
+            <Route path="/settings" element={<SettingsPage />} />
+            
+            {/* Dealer Routes */}
+            <Route path="/dealer/*" element={<DealerLayoutPage />} />
+            <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+            
+            {/* Catch all route - 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
         <Toaster />
       </AuthProvider>
     </ThemeProvider>
