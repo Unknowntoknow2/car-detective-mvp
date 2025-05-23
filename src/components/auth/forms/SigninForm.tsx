@@ -1,20 +1,20 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { Mail, KeyRound } from 'lucide-react';
 
 export interface SigninFormProps {
   isLoading?: boolean;
-  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoading?: (loading: boolean) => void;
   redirectPath?: string;
   role?: string;
   alternateLoginPath?: string;
   alternateLoginText?: string;
-  userType?: string; // Added userType prop
+  userType?: 'individual' | 'dealer';
 }
 
 export const SigninForm: React.FC<SigninFormProps> = ({ 
@@ -24,7 +24,7 @@ export const SigninForm: React.FC<SigninFormProps> = ({
   role,
   alternateLoginPath,
   alternateLoginText,
-  userType // Accept userType prop
+  userType = 'individual'
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,6 +32,7 @@ export const SigninForm: React.FC<SigninFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Use external or internal loading state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
@@ -52,8 +53,11 @@ export const SigninForm: React.FC<SigninFormProps> = ({
         return;
       }
       
-      toast.success('Login successful!');
-      navigate(redirectPath);
+      // Determine where to redirect the user
+      const from = location.state?.from?.pathname || 
+                  (userType === 'dealer' ? '/dealer/dashboard' : redirectPath);
+      
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setIsLoading(false);
@@ -70,28 +74,36 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="your@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isLoading}
-          required
-        />
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+            className="pl-10"
+            required
+          />
+        </div>
       </div>
       
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={isLoading}
-          required
-        />
+        <div className="relative">
+          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+            className="pl-10"
+            required
+          />
+        </div>
       </div>
       
       <Button type="submit" className="w-full" disabled={isLoading}>

@@ -1,18 +1,20 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/auth';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: any | null;
   userDetails: UserDetails | null;
   session: any | null;
   isLoading: boolean;
-  userRole: UserRole | null; // Add userRole property
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<any>;
+  userRole: UserRole | null;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   updateUserDetails: (details: Partial<UserDetails>) => Promise<void>;
-  error?: string | null; // Add error property
+  error?: string | null;
 }
 
 interface UserDetails {
@@ -26,7 +28,6 @@ interface UserDetails {
   created_at?: string;
 }
 
-// Export the AuthContext so it can be imported in useAuth.tsx
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -71,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               id: session.user.id,
               full_name: data.full_name,
               avatar_url: data.avatar_url,
-              role: data.role,
+              role: data.role || data.user_role,
               email: session.user.email,
               dealership_name: data.dealership_name,
               premium_access: data.premium_access,
@@ -94,28 +95,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Get user profile details when auth state changes
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (error) {
-            console.error('Error getting profile on auth change:', error);
-            setError(error.message);
-          } else if (data) {
-            setUserDetails({
-              id: session.user.id,
-              full_name: data.full_name,
-              avatar_url: data.avatar_url,
-              role: data.role,
-              email: session.user.email,
-              dealership_name: data.dealership_name,
-              premium_access: data.premium_access,
-              created_at: data.created_at
-            });
-          }
+          // Get user profile details
+          setTimeout(async () => {
+            const { data, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (profileError) {
+              console.error('Error getting profile:', profileError);
+            } else if (data) {
+              setUserDetails({
+                id: session.user.id,
+                full_name: data.full_name,
+                avatar_url: data.avatar_url,
+                role: data.role || data.user_role,
+                email: session.user.email,
+                dealership_name: data.dealership_name,
+                premium_access: data.premium_access,
+                created_at: data.created_at
+              });
+            }
+          }, 0);
         } else {
           setUserDetails(null);
         }
@@ -131,86 +133,142 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      setError(null);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
       if (error) {
-        setError(error.message);
+        console.error('Sign in error:', error);
+        toast({
+          title: 'Sign in failed',
+          description: error.message,
+          variant: 'destructive'
+        });
         return { success: false, error: error.message };
       }
-      return { success: true, data };
+
+      toast({
+        title: 'Signed in successfully',
+        variant: 'success'
+      });
+      
+      return { success: true };
     } catch (error: any) {
-      console.error('Error signing in:', error);
-      setError(error.message);
+      console.error('Unexpected sign in error:', error);
+      toast({
+        title: 'Sign in failed',
+        description: error.message,
+        variant: 'destructive'
+      });
       return { success: false, error: error.message };
     }
   };
 
-  const signUp = async (email: string, password: string, metadata = {}) => {
+  const signUp = async (email: string, password: string, metadata?: any) => {
     try {
-      setError(null);
+      // Configure the options for signup
+      const options = metadata ? { data: metadata } : undefined;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: metadata,
-        },
+        options
       });
 
       if (error) {
-        setError(error.message);
+        console.error('Sign up error:', error);
+        toast({
+          title: 'Sign up failed',
+          description: error.message,
+          variant: 'destructive'
+        });
         return { success: false, error: error.message };
       }
-      return { success: true, data };
+
+      toast({
+        title: 'Sign up successful',
+        description: 'Welcome to Car Detective!',
+        variant: 'success'
+      });
+      
+      return { success: true };
     } catch (error: any) {
-      console.error('Error signing up:', error);
-      setError(error.message);
+      console.error('Unexpected sign up error:', error);
+      toast({
+        title: 'Sign up failed',
+        description: error.message,
+        variant: 'destructive'
+      });
       return { success: false, error: error.message };
     }
   };
 
   const signOut = async () => {
     try {
-      setError(null);
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
-        setError(error.message);
-        throw error;
+        console.error('Sign out error:', error);
+        toast({
+          title: 'Sign out failed',
+          description: error.message,
+          variant: 'destructive'
+        });
+        return;
       }
+
       setUser(null);
       setSession(null);
       setUserDetails(null);
+      
+      toast({
+        title: 'Signed out successfully',
+        variant: 'success'
+      });
     } catch (error: any) {
-      console.error('Error signing out:', error);
-      setError(error.message);
-      throw error;
+      console.error('Unexpected sign out error:', error);
+      toast({
+        title: 'Sign out failed',
+        description: error.message,
+        variant: 'destructive'
+      });
     }
   };
 
   const updateUserDetails = async (details: Partial<UserDetails>) => {
+    if (!user) return;
+    
     try {
-      setError(null);
-      if (!user) throw new Error('User not authenticated');
-
       const { error } = await supabase
         .from('profiles')
         .update(details)
         .eq('id', user.id);
-
+      
       if (error) {
-        setError(error.message);
-        throw error;
+        console.error('Profile update error:', error);
+        toast({
+          title: 'Profile update failed',
+          description: error.message,
+          variant: 'destructive'
+        });
+        return;
       }
-
+      
       // Update local state
       setUserDetails(prev => prev ? { ...prev, ...details } : null);
+      
+      toast({
+        title: 'Profile updated successfully',
+        variant: 'success'
+      });
     } catch (error: any) {
-      console.error('Error updating user details:', error);
-      setError(error.message);
-      throw error;
+      console.error('Unexpected profile update error:', error);
+      toast({
+        title: 'Profile update failed',
+        description: error.message,
+        variant: 'destructive'
+      });
     }
   };
 
@@ -224,13 +282,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     updateUserDetails,
-    error,
+    error
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Export the useAuth hook directly from this file as a convenience
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

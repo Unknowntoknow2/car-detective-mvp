@@ -12,7 +12,9 @@ import {
   Menu, 
   Store, 
   User,
-  X 
+  X,
+  LogOut,
+  Settings
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -34,7 +36,7 @@ const navLinks = [
 export function Navbar() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, userDetails, signOut } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname !== '/') {
@@ -51,7 +53,7 @@ export function Navbar() {
   };
 
   const getInitials = (name?: string) => {
-    if (!name) return 'U';
+    if (!name) return user?.email?.[0]?.toUpperCase() || 'U';
     const parts = name.split(' ');
     if (parts.length > 1) {
       return `${parts[0][0]}${parts[1][0]}`;
@@ -101,27 +103,27 @@ export function Navbar() {
               <Button variant="ghost" className="rounded-full" size="icon">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(user.email)}
+                    {getInitials(userDetails?.full_name)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to="/dashboard" className="cursor-pointer">
+                <Link to={userDetails?.role === 'dealer' ? '/dealer/dashboard' : '/dashboard'} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   Dashboard
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/account" className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
+                  <Settings className="mr-2 h-4 w-4" />
                   My Account
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                <LogIn className="mr-2 h-4 w-4" />
+                <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>

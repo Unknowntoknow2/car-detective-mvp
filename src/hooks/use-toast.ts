@@ -1,62 +1,32 @@
 
-import { toast as sonnerToast, ExternalToast } from 'sonner';
-import * as React from 'react';
+import { toast as sonnerToast } from 'sonner';
 
-export type ToastProps = {
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
-  className?: string;
+type ToastProps = {
+  title: string;
+  description?: string;
+  variant?: 'default' | 'destructive' | 'success';
 };
 
-// Convert our app's ToastProps to Sonner's ExternalToast format
-const convertToExternalToast = (props: ToastProps): [string | React.ReactNode, ExternalToast?] => {
-  const { title, description, variant = 'default', className } = props;
-  
-  return [
-    title || '', 
-    { 
-      description,
-      className
-    }
-  ];
-};
-
-export function useToast() {
-  return {
-    toast: (props: ToastProps) => {
-      const { variant = 'default' } = props;
-      const [message, options] = convertToExternalToast(props);
-      
-      if (variant === 'destructive') {
-        sonnerToast.error(message, options);
-      } else if (variant === 'success') {
-        sonnerToast.success(message, options);
-      } else if (variant === 'warning') {
-        sonnerToast.warning(message, options);
-      } else if (variant === 'info') {
-        sonnerToast.info(message, options);
-      } else {
-        sonnerToast(message, options);
-      }
-    }
-  };
-}
-
-// Toast function for direct usage without the hook
-export function toast(props: ToastProps) {
-  const { variant = 'default' } = props;
-  const [message, options] = convertToExternalToast(props);
-  
+export const toast = ({ title, description, variant = 'default' }: ToastProps) => {
   if (variant === 'destructive') {
-    sonnerToast.error(message, options);
-  } else if (variant === 'success') {
-    sonnerToast.success(message, options);
-  } else if (variant === 'warning') {
-    sonnerToast.warning(message, options);
-  } else if (variant === 'info') {
-    sonnerToast.info(message, options);
-  } else {
-    sonnerToast(message, options);
+    return sonnerToast.error(title, {
+      description,
+    });
   }
-}
+  
+  if (variant === 'success') {
+    return sonnerToast.success(title, {
+      description,
+    });
+  }
+  
+  return sonnerToast(title, {
+    description,
+  });
+};
+
+export const useToast = () => {
+  return {
+    toast,
+  };
+};
