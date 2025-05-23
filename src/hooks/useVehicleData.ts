@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface MakeData {
   id: string;
   make_name: string;
+  logo_url?: string | null;
 }
 
 export interface ModelData {
@@ -38,7 +39,7 @@ export const useVehicleData = () => {
       
       const { data, error } = await supabase
         .from('makes')
-        .select('id, make_name')
+        .select('id, make_name, logo_url')
         .order('make_name');
         
       if (error) throw error;

@@ -96,7 +96,8 @@ export function EnhancedVehicleSelectorWithLogos({
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
-    icon: make.logo_url || undefined  // Convert null to undefined
+    // Use the logo_url property if it exists, otherwise undefined
+    icon: make.logo_url || undefined
   })) : [];
 
   const handleMakeChange = (make: string) => {
