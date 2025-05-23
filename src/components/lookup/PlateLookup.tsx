@@ -60,7 +60,7 @@ export const PlateLookup: React.FC<PlateLookupProps> = ({
       
       // Navigate to the follow-up questions page
       navigate(`/valuation-followup?plate=${plate}&state=${state}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Plate lookup error:', error);
       setError(error.message || 'Failed to lookup license plate. Please try again.');
       toast.error(error.message || 'Failed to lookup license plate');

@@ -51,13 +51,13 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
     const initialResult = await lookupPlate(plate, state);
     
     // If the plate lookup returned a VIN, we can get more details
-    if (initialResult && initialResult.vin) {
+    if (initialResult && initialResult.data && initialResult.data.vin) {
       try {
-        const detailedResult = await fetchVehicleByVin(initialResult.vin);
+        const detailedResult = await fetchVehicleByVin(initialResult.data.vin);
         // Merge the results, prioritizing the detailed result but keeping
         // plate-specific info from the initial result
         return {
-          ...initialResult,
+          ...initialResult.data,
           ...detailedResult,
           plate: plate,
           state: state
@@ -65,11 +65,11 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
       } catch (vinError) {
         console.warn('Could not get detailed info from VIN, using plate data only:', vinError);
         // Fall back to just the plate lookup result if VIN decode fails
-        return initialResult;
+        return initialResult.data;
       }
     }
     
-    return initialResult;
+    return initialResult.data;
   } catch (error) {
     console.error('Error fetching vehicle by plate:', error);
     throw error;
