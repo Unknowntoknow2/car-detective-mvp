@@ -28,6 +28,8 @@ export function ManualLookup({
       isLoading={isLoading}
       submitButtonText={submitButtonText}
       isPremium={true}
+      initialData={initialData}
+      onCancel={onCancel}
     />
   );
 }

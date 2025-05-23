@@ -9,7 +9,6 @@ import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
 import { toast } from '@/hooks/use-toast';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { supabase } from '@/lib/supabase';
-import { useVehicleData } from '@/hooks/useVehicleData';
 
 interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -114,6 +113,7 @@ export function ManualLookup({
             user_id: user.id,
             fuel_type: fuelType,
             transmission,
+            trim,
             selected_features: [],
             accident: false
           });
