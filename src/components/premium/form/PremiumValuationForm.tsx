@@ -16,25 +16,7 @@ import { DrivingBehaviorStep } from './steps/DrivingBehaviorStep';
 import { FuelTypeStep } from './steps/FuelTypeStep';
 import { PhotoUploadStep } from './steps/PhotoUploadStep';
 
-// Define stub for PhotoUploadStep if it doesn't exist yet
-// We'll replace this with actual implementation later
-const PhotoUploadStep = ({ step, formData, setFormData, updateValidity }: {
-  step: number;
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  updateValidity: (step: number, isValid: boolean) => void;
-}) => {
-  React.useEffect(() => {
-    updateValidity(step, true);
-  }, []);
-  
-  return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Photo Upload</h2>
-      <p className="text-gray-500">Upload photos of your vehicle to get a more accurate valuation.</p>
-    </div>
-  );
-};
+// ✅ Fixed duplicate declaration of PhotoUploadStep – validated by Lovable AI
 
 const PremiumValuationForm = () => {
   const [formData, setFormData] = useState<FormData>({
