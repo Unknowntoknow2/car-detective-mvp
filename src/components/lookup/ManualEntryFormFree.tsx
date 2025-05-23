@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,14 +6,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
 import { ConditionAndFuelInputs } from './form-parts/ConditionAndFuelInputs';
 import { ZipCodeInput } from './form-parts/ZipCodeInput';
-import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
-
-export interface ManualEntryFormProps {
-  onSubmit: (data: ManualEntryFormData) => void;
-  isLoading?: boolean;
-  submitButtonText?: string;
-  isPremium?: boolean;
-}
+import { ManualEntryFormData, ConditionLevel, ManualEntryFormProps } from './types/manualEntry';
 
 export const ManualEntryFormFree: React.FC<ManualEntryFormProps> = ({
   onSubmit,
