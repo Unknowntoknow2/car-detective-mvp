@@ -3,6 +3,7 @@ import { toast as sonnerToast } from 'sonner';
 import * as React from 'react';
 
 export type ToastProps = {
+  title?: React.ReactNode;
   description?: React.ReactNode;
   variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
   className?: string;
@@ -11,18 +12,18 @@ export type ToastProps = {
 export function useToast() {
   return {
     toast: (props: ToastProps) => {
-      const { description, variant = 'default', className } = props;
+      const { title, description, variant = 'default', className } = props;
       
       if (variant === 'destructive') {
-        sonnerToast.error(description);
+        sonnerToast.error(title, description);
       } else if (variant === 'success') {
-        sonnerToast.success(description);
+        sonnerToast.success(title, description);
       } else if (variant === 'warning') {
-        sonnerToast.warning(description);
+        sonnerToast.warning(title, description);
       } else if (variant === 'info') {
-        sonnerToast.info(description);
+        sonnerToast.info(title, description);
       } else {
-        sonnerToast(description);
+        sonnerToast(title, description);
       }
     }
   };
@@ -30,17 +31,17 @@ export function useToast() {
 
 // Toast function for direct usage without the hook
 export function toast(props: ToastProps) {
-  const { description, variant = 'default', className } = props;
+  const { title, description, variant = 'default', className } = props;
   
   if (variant === 'destructive') {
-    sonnerToast.error(description);
+    sonnerToast.error(title, description);
   } else if (variant === 'success') {
-    sonnerToast.success(description);
+    sonnerToast.success(title, description);
   } else if (variant === 'warning') {
-    sonnerToast.warning(description);
+    sonnerToast.warning(title, description);
   } else if (variant === 'info') {
-    sonnerToast.info(description);
+    sonnerToast.info(title, description);
   } else {
-    sonnerToast(description);
+    sonnerToast(title, description);
   }
 }
