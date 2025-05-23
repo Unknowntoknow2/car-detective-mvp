@@ -1,16 +1,16 @@
 import React from 'react';
-import { ConditionValues } from '../types';
-import { ValuationFactorPaint } from './ValuationFactorPaint';
-import { ValuationFactorTires } from './ValuationFactorTires';
-import { ValuationFactorInterior } from './ValuationFactorInterior';
-import { ValuationFactorExterior } from './ValuationFactorExterior';
-import { ValuationFactorEngine } from './ValuationFactorEngine';
-import { ValuationFactorTransmission } from './ValuationFactorTransmission';
+import { ConditionValues } from '../types'; // ✅ FIXED path
+import { ValuationFactorPaint } from './factors/ValuationFactorPaint';
+import { ValuationFactorTires } from './factors/ValuationFactorTires';
+import { ValuationFactorInterior } from './factors/ValuationFactorInterior';
+import { ValuationFactorExterior } from './factors/ValuationFactorExterior';
+import { ValuationFactorEngine } from './factors/ValuationFactorEngine';
+import { ValuationFactorTransmission } from './factors/ValuationFactorTransmission';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ValuationFactorsGridProps {
   values: ConditionValues;
-  onChange: (field: keyof ConditionValues, value: any) => void;
+  onChange: (field: keyof ConditionValues, value: string | number) => void;
 }
 
 export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
@@ -20,27 +20,57 @@ export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
   const factors = [
     {
       title: 'Exterior Body',
-      component: <ValuationFactorExterior value={values.exteriorBody} onChange={(val) => onChange('exteriorBody', val)} />
+      component: (
+        <ValuationFactorExterior
+          value={values.exteriorBody}
+          onChange={(val: string) => onChange('exteriorBody', val)}
+        />
+      ),
     },
     {
       title: 'Exterior Paint',
-      component: <ValuationFactorPaint value={values.exteriorPaint} onChange={(val) => onChange('exteriorPaint', val)} />
+      component: (
+        <ValuationFactorPaint
+          value={values.exteriorPaint}
+          onChange={(val: string) => onChange('exteriorPaint', val)}
+        />
+      ),
     },
     {
-      title: 'Interior Condition',
-      component: <ValuationFactorInterior value={values.interiorSeats} onChange={(val) => onChange('interiorSeats', val)} />
+      title: 'Interior Seats',
+      component: (
+        <ValuationFactorInterior
+          value={values.interiorSeats}
+          onChange={(val: string) => onChange('interiorSeats', val)}
+        />
+      ),
     },
     {
       title: 'Engine Condition',
-      component: <ValuationFactorEngine value={values.mechanicalEngine} onChange={(val) => onChange('mechanicalEngine', val)} />
+      component: (
+        <ValuationFactorEngine
+          value={values.mechanicalEngine}
+          onChange={(val: string) => onChange('mechanicalEngine', val)}
+        />
+      ),
     },
     {
       title: 'Transmission',
-      component: <ValuationFactorTransmission value={values.mechanicalTransmission} onChange={(val) => onChange('mechanicalTransmission', val)} />
+      component: (
+        <ValuationFactorTransmission
+          value={values.mechanicalTransmission}
+          onChange={(val: string) => onChange('mechanicalTransmission', val)}
+        />
+      ),
     },
     {
       title: 'Tires',
-      component: <ValuationFactorTires value={values.tiresCondition} onChange={(val) => onChange('tiresCondition', val)} />
+      component: (
+        <ValuationFactorTires
+          value={values.tiresCondition}
+          onChange={(val: string) => onChange('tiresCondition', val)}
+        />
+      ),
     },
   ];
 
@@ -51,9 +81,7 @@ export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
           <CardHeader>
             <CardTitle className="text-base">{factor.title}</CardTitle>
           </CardHeader>
-          <CardContent>
-            {factor.component}
-          </CardContent>
+          <CardContent>{factor.component}</CardContent>
         </Card>
       ))}
     </div>
