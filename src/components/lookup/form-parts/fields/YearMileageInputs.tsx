@@ -22,7 +22,13 @@ export const YearMileageInputs: React.FC<YearMileageInputsProps> = ({ form }) =>
           <FormItem>
             <FormLabel>Year</FormLabel>
             <Select 
-              onValueChange={(value) => field.onChange(parseInt(value))} 
+              onValueChange={(value) => {
+                if (value === '') {
+                  field.onChange('');
+                } else {
+                  field.onChange(parseInt(value));
+                }
+              }} 
               defaultValue={field.value?.toString() || ''}
             >
               <FormControl>
