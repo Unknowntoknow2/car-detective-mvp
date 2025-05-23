@@ -9,12 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
 import { ConditionValues } from './types';
-import { ValuationFactorPaint } from './factors/ValuationFactorPaint';
-import { ValuationFactorTires } from './factors/ValuationFactorTires';
-import { ValuationFactorInterior } from './factors/ValuationFactorInterior';
-import { ValuationFactorExterior } from './factors/ValuationFactorExterior';
-import { ValuationFactorEngine } from './factors/ValuationFactorEngine';
-import { ValuationFactorTransmission } from './factors/ValuationFactorTransmission';
+import { ValuationFactorPaint } from './ValuationFactorPaint';
+import { ValuationFactorTires } from './ValuationFactorTires';
+import { ValuationFactorInterior } from './ValuationFactorInterior';
+import { ValuationFactorExterior } from './ValuationFactorExterior';
+import { ValuationFactorEngine } from './ValuationFactorEngine';
+import { ValuationFactorTransmission } from './ValuationFactorTransmission';
 
 interface ValuationConditionFormProps {
   initialValues?: Partial<ConditionValues>;
