@@ -88,7 +88,7 @@ export function PremiumManualLookup() {
               selectedModel={vehicle.model}
               setSelectedModel={(model) => setVehicle(prev => ({ ...prev, model }))}
               selectedYear={vehicle.year}
-              setSelectedYear={(year) => setVehicle(prev => ({ ...prev, year }))}
+              setSelectedYear={(year) => setVehicle(prev => ({ ...prev, year: String(year) }))}
               mileage={vehicle.mileage}
               setMileage={(mileage) => setVehicle(prev => ({ ...prev, mileage }))}
               zipCode={vehicle.zipCode}

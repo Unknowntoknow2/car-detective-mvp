@@ -44,15 +44,9 @@ export function VinInput({
       </div>
       
       {touched && validationError ? (
-        <FormValidationError 
-          error={validationError}
-          variant="error"
-        />
+        <FormValidationError error={validationError} />
       ) : externalError ? (
-        <FormValidationError 
-          error={externalError} 
-          variant="error"
-        />
+        <FormValidationError error={externalError} />
       ) : (
         <div className="flex items-start gap-2 text-xs text-slate-500">
           <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
