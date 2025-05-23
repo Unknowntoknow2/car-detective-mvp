@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { generateValuationReport, buildValuationReport } from '@/lib/valuation/buildValuationReport';
 import { calculateValuation } from '@/utils/valuation/calculator';
 import { ValuationParams, ValuationResult } from '@/utils/valuation/types';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient';
 
 export interface ManualVehicleInfo {
   make: string;

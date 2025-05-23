@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { ManualEntryForm, ManualEntryFormProps } from './ManualEntryForm';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
 
