@@ -20,6 +20,7 @@ export interface RulesEngineInput {
   bodyType?: string;
   bodyStyle?: string;
   colorMultiplier?: number;
+  baseValue?: number;
   drivingScore?: number;  // Added for DrivingBehaviorCalculator
 }
 
