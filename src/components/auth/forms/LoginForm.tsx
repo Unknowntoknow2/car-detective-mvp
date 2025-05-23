@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Mail, KeyRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 
 // Define form schema
 const formSchema = z.object({
@@ -20,39 +20,23 @@ const formSchema = z.object({
 interface LoginFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  redirectPath?: string;
 }
 
-interface SignInResult {
-  success: boolean;
-  error?: string;
-}
-
-export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
+export const LoginForm = ({ isLoading, setIsLoading, redirectPath = '/dashboard' }: LoginFormProps) => {
   const { signIn, user } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
-  const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   
   // Get the redirect path from location state, defaulting to dashboard
-  const from = location.state?.from || '/dashboard';
-
-  // Clear any redirect timer when component unmounts
-  useEffect(() => {
-    return () => {
-      if (redirectTimer) clearTimeout(redirectTimer);
-    };
-  }, [redirectTimer]);
+  const from = location.state?.from || redirectPath;
 
   // Redirect if user is already authenticated
   useEffect(() => {
-    console.log("Auth state changed. User:", user);
     if (user) {
-      // Add a small delay to ensure navigation happens after render
-      const timer = setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 100);
-      return () => clearTimeout(timer);
+      navigate(from, { replace: true });
     }
   }, [user, navigate, from]);
 
@@ -71,35 +55,30 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
     setIsLoading(true);
     
     try {
-      console.log("Attempting to sign in with:", values.email);
-      const signInResponse = await signIn(values.email, values.password);
-      const result = typeof signInResponse === 'boolean' 
-        ? { success: signInResponse, error: signInResponse ? undefined : 'Authentication failed' }
-        : signInResponse as SignInResult;
+      const result = await signIn(values.email, values.password);
       
       if (!result.success) {
-        const errorMessage = result.error ? result.error : 'Invalid email or password';
+        const errorMessage = result.error || 'Invalid email or password';
         setFormError(errorMessage);
         setIsLoading(false);
         return;
       }
       
-      // If sign-in was successful but no immediate user state update
-      toast.success("Login successful!");
+      // If sign-in was successful
+      toast({
+        title: "Login successful!",
+        description: "Welcome back!",
+      });
       
-      // Set a fallback timeout to redirect if authStateChange doesn't trigger
-      const timer = setTimeout(() => {
-        console.log("Fallback redirect timer triggered");
-        navigate(from, { replace: true });
-        setIsLoading(false);
-      }, 2000); // 2 seconds should be enough for auth state to update
-      
-      setRedirectTimer(timer);
-      
+      // Automatic redirect happens in the useEffect when user state updates
     } catch (err: any) {
       console.error('Login error:', err);
       setFormError('An unexpected error occurred');
-      toast.error('Login failed. Please try again.');
+      toast({
+        title: "Login failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
       setIsLoading(false);
     }
   };
@@ -189,3 +168,5 @@ export const LoginForm = ({ isLoading, setIsLoading }: LoginFormProps) => {
     </Form>
   );
 };
+
+export default LoginForm;
