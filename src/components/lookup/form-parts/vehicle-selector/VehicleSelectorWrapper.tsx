@@ -4,6 +4,7 @@ import { LoadingMessage } from './LoadingMessage';
 import { ErrorMessage } from './ErrorMessage';
 import { MakeModelSelectors } from './MakeModelSelectors';
 import { ValidationMessage } from './ValidationMessage';
+import { MakeData } from '@/hooks/useVehicleData';
 
 interface VehicleSelectorWrapperProps {
   selectedMake: string;
@@ -37,7 +38,8 @@ export const VehicleSelectorWrapper = ({
     setSearchTerm,
     modelSearchTerm,
     setModelSearchTerm,
-    validationError
+    validationError,
+    loadingModels
   } = useVehicleSelector({
     selectedMake,
     setSelectedMake,
@@ -57,6 +59,9 @@ export const VehicleSelectorWrapper = ({
     return <ErrorMessage error={errorMessage} />;
   }
 
+  // Convert MakeData objects to make names (strings) for the MakeModelSelectors component
+  const makeNames = filteredMakes.map(make => make.make_name);
+
   return (
     <div className="space-y-4">
       <MakeModelSelectors
@@ -68,7 +73,7 @@ export const VehicleSelectorWrapper = ({
         setMakesOpen={setMakesOpen}
         modelsOpen={modelsOpen}
         setModelsOpen={setModelsOpen}
-        filteredMakes={filteredMakes || []} 
+        filteredMakes={makeNames} 
         filteredModels={filteredModels || []}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

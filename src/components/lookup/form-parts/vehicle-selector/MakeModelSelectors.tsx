@@ -27,7 +27,7 @@ interface MakeModelSelectorsProps {
   modelsOpen: boolean;
   setModelsOpen: (open: boolean) => void;
   filteredMakes: string[];
-  filteredModels: string[];
+  filteredModels: any[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   modelSearchTerm: string;
@@ -143,8 +143,8 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                   <CommandGroup>
                     {filteredModels.map((model) => (
                       <CommandItem
-                        key={model}
-                        value={model}
+                        key={model.model_name}
+                        value={model.model_name}
                         onSelect={(currentValue) => {
                           setSelectedModel(currentValue === selectedModel ? "" : currentValue);
                           setModelsOpen(false);
@@ -153,10 +153,10 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            selectedModel === model ? "opacity-100" : "opacity-0"
+                            selectedModel === model.model_name ? "opacity-100" : "opacity-0"
                           )}
                         />
-                        {model}
+                        {model.model_name}
                       </CommandItem>
                     ))}
                   </CommandGroup>
