@@ -1,24 +1,36 @@
 
-export interface DecodedVehicleInfo {
-  vin: string;
-  year: number;
+import { ValuationResult } from './valuation';
+
+export interface ValuationResponse {
+  estimatedValue: number;
+  confidenceScore: number;
+  valuationId: string;
   make: string;
   model: string;
-  trim?: string;
-  bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  color?: string;
-  engine?: string;
-  drivetrain?: string;
-  mpgCity?: string;
-  mpgHighway?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  // Add these properties to fix type errors
+  year: number;
   mileage?: number;
   condition?: string;
+  vin?: string;
+  plate?: string;
+  state?: string;
   zipCode?: string;
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  trim?: string;
+  color?: string;
+  price_range?: { low: number; high: number } | [number, number];
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
+  gptExplanation?: string;
+  explanation?: string;
+  isPremium?: boolean;
   features?: string[];
-  valuationId?: string;
+  pdfUrl?: string;
+  basePrice?: number;
+  photoScore?: number;
+  bestPhotoUrl?: string;
 }

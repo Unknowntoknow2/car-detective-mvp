@@ -1,4 +1,3 @@
-
 import { ValuationResult } from '@/types/valuation';
 
 export const buildValuationReport = (result: ValuationResult | null, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
@@ -47,14 +46,14 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     mileage: result.mileage || 0,
     condition: result.condition || 'N/A',
     price: result.estimatedValue || result.estimated_value || 0,
-    zipCode: result.zipCode || result.zip_code || result.zip || 'N/A',
+    zipCode: result.zipCode || 'N/A',
     vin: result.vin || 'N/A',
     fuelType: result.fuelType || result.fuel_type || 'N/A',
     transmission: result.transmission || 'N/A',
     color: result.color || 'N/A',
-    bodyType: result.bodyType || result.bodyStyle || 'N/A',
+    bodyType: result.bodyType || result.body_type || 'N/A',
     confidenceScore: result.confidenceScore || result.confidence_score || 0,
-    isPremium: result.isPremium || result.is_premium || result.premium_unlocked || false,
+    isPremium: result.isPremium || result.premium_unlocked || false,
     priceRange: formattedPriceRange,
     adjustments: result.adjustments || [],
     generatedAt: new Date().toISOString(),
