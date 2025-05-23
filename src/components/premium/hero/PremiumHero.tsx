@@ -10,7 +10,7 @@ interface PremiumHeroProps {
 
 export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
   return (
-    <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 md:py-24 relative overflow-hidden rounded-xl">
+    <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 md:py-24 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20 pointer-events-none"></div>
       
@@ -51,7 +51,7 @@ export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
             </Button>
           </div>
           
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm">
+          <div className="mt-10 flex items-center justify-center gap-6 text-sm">
             <div className="flex items-center">
               <Check className="mr-2 h-4 w-4 text-green-300" />
               <span>CARFAX® Included</span>
@@ -70,3 +70,5 @@ export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
     </section>
   );
 }
+
+export default PremiumHero;
