@@ -9,7 +9,7 @@ export interface ValuationResponse {
   model: string;
   year: number;
   mileage?: number;
-  condition?: string;
+  condition: string;  // Changed from optional to required
   vin?: string;
   plate?: string;
   state?: string;
