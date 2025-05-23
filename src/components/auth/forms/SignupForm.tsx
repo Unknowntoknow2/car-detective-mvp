@@ -6,33 +6,27 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Mail, KeyRound, User } from 'lucide-react';
+import { Loader2, Mail, KeyRound, User, Building } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { UserRole } from '@/types/auth';
 
 // Define form schema
-const signupSchema = z.object({
+const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
-  password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
-  confirmPassword: z.string(),
-  fullName: z.string().min(2, { message: 'Name must be at least 2 characters' }).optional(),
-  dealershipName: z.string().optional(),
-  acceptTerms: z.boolean().refine(val => val === true, {
-    message: 'You must accept the terms and conditions',
-  }),
-})
-.refine(data => data.password === data.confirmPassword, {
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  passwordConfirm: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  fullName: z.string().min(2, { message: 'Please enter your full name' }).optional(),
+  dealershipName: z.string().min(2, { message: 'Please enter your dealership name' }).optional(),
+}).refine((data) => data.password === data.passwordConfirm, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["passwordConfirm"],
 });
 
 interface SignupFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  role?: UserRole;
+  role?: 'individual' | 'dealer';
   redirectPath?: string;
   showDealershipField?: boolean;
 }
@@ -42,67 +36,70 @@ export const SignupForm = ({
   setIsLoading, 
   role = 'individual',
   redirectPath = '/dashboard',
-  showDealershipField = false,
+  showDealershipField = false
 }: SignupFormProps) => {
   const { signUp } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Initialize form
-  const form = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
-      confirmPassword: '',
+      passwordConfirm: '',
       fullName: '',
       dealershipName: '',
-      acceptTerms: false,
     },
   });
 
   // Form submission handler
-  const onSubmit = async (values: z.infer<typeof signupSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setFormError(null);
     setIsLoading(true);
     
     try {
-      // Prepare metadata based on role
-      const metadata: any = {
+      const userData = {
+        email: values.email,
+        password: values.password,
         role,
-        full_name: values.fullName
+        fullName: values.fullName || undefined,
+        dealershipName: values.dealershipName || undefined,
       };
       
-      if (role === 'dealer' && values.dealershipName) {
-        metadata.dealership_name = values.dealershipName;
-      }
+      const result = await signUp(userData);
       
-      const { error, data } = await signUp(values.email, values.password, metadata);
-      
-      if (error) {
-        setFormError(error.message || 'Failed to create account');
+      if (!result.success) {
+        const errorMessage = result.error || 'Failed to create account';
+        setFormError(errorMessage);
         setIsLoading(false);
+        toast({
+          title: "Signup failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
         return;
       }
       
+      // If sign-up was successful
       toast({
-        title: "Account created successfully!",
-        description: "Please check your email to verify your account.",
+        title: "Account created!",
+        description: "Your account has been successfully created.",
+        variant: "success",
       });
       
-      // Redirect to appropriate page based on role
-      const redirectTo = role === 'dealer' ? '/dealer' : redirectPath;
-      navigate(redirectTo, { replace: true });
+      // Redirect to appropriate dashboard
+      navigate(redirectPath, { replace: true });
     } catch (err: any) {
       console.error('Signup error:', err);
-      setFormError(err.message || 'An unexpected error occurred');
+      setFormError('An unexpected error occurred');
       toast({
-        title: "Sign up failed",
+        title: "Signup failed",
         description: "Please try again",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -114,48 +111,6 @@ export const SignupForm = ({
           <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
             {formError}
           </div>
-        )}
-        
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    {...field}
-                    placeholder="Enter your full name"
-                    className="pl-10"
-                    disabled={isLoading}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {showDealershipField && (
-          <FormField
-            control={form.control}
-            name="dealershipName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dealership Name</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Enter your dealership name"
-                    disabled={isLoading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         )}
         
         <FormField
@@ -182,6 +137,55 @@ export const SignupForm = ({
           )}
         />
         
+        {role === 'individual' && (
+          <FormField
+            control={form.control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      {...field}
+                      placeholder="Enter your full name"
+                      className="pl-10"
+                      disabled={isLoading}
+                      autoComplete="name"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
+        {showDealershipField && (
+          <FormField
+            control={form.control}
+            name="dealershipName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dealership Name</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      {...field}
+                      placeholder="Enter your dealership name"
+                      className="pl-10"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
         <FormField
           control={form.control}
           name="password"
@@ -193,10 +197,11 @@ export const SignupForm = ({
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     {...field}
-                    placeholder="Create a secure password"
+                    placeholder="Create a password" 
                     type="password"
                     className="pl-10"
                     disabled={isLoading}
+                    autoComplete="new-password"
                   />
                 </div>
               </FormControl>
@@ -207,7 +212,7 @@ export const SignupForm = ({
         
         <FormField
           control={form.control}
-          name="confirmPassword"
+          name="passwordConfirm"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
@@ -216,35 +221,14 @@ export const SignupForm = ({
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     {...field}
-                    placeholder="Confirm your password"
+                    placeholder="Confirm your password" 
                     type="password"
                     className="pl-10"
                     disabled={isLoading}
+                    autoComplete="new-password"
                   />
                 </div>
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="acceptTerms"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-3 border">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={isLoading}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="text-sm font-normal">
-                  I accept the terms and conditions
-                </FormLabel>
-              </div>
               <FormMessage />
             </FormItem>
           )}
