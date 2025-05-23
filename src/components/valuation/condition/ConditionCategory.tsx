@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 
 export interface ConditionCategoryProps {
   title?: string;
-  description?: string;
   children?: React.ReactNode;
   ratings?: any[];
   selectedRating?: any | null;
@@ -14,6 +13,7 @@ export interface ConditionCategoryProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  description?: string;
 }
 
 export function ConditionCategory({ 
