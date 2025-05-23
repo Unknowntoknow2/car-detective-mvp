@@ -1,14 +1,14 @@
 
 export interface User {
   id: string;
-  email?: string; // Changed from required to optional to match Supabase User type
-  created_at?: string; // Made optional to match Supabase User type
+  email?: string;
+  created_at?: string;
   last_sign_in_at?: string | null;
   isAdmin?: boolean;
   user_metadata?: {
     role?: string;
     full_name?: string;
-    dealership_name?: string; // Added dealership_name
+    dealership_name?: string;
     [key: string]: any;
   };
 }
@@ -21,7 +21,7 @@ export interface UserDetails {
   website?: string | null;
   bio?: string | null;
   role?: string;
-  dealership_name?: string; // Added dealership_name
+  dealership_name?: string;
   is_admin?: boolean;
   created_at?: string;
   updated_at?: string;
