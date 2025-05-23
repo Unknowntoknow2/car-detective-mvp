@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useVehicleData, MakeData } from '@/hooks/useVehicleData';
+import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
 
 interface UseVehicleSelectorProps {
   selectedMake: string;
@@ -25,8 +25,8 @@ export const useVehicleSelector = ({
   const [filteredMakes, setFilteredMakes] = useState<MakeData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modelSearchTerm, setModelSearchTerm] = useState('');
-  const [models, setModels] = useState<any[]>([]);
-  const [filteredModels, setFilteredModels] = useState<any[]>([]);
+  const [models, setModels] = useState<ModelData[]>([]);
+  const [filteredModels, setFilteredModels] = useState<ModelData[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
 
@@ -43,7 +43,9 @@ export const useVehicleSelector = ({
       if (selectedMake) {
         try {
           setLoadingModels(true);
+          console.log('Fetching models for make:', selectedMake);
           const availableModels = await getModelsByMake(selectedMake);
+          console.log('Models fetched:', availableModels);
           setModels(availableModels);
           setFilteredModels(availableModels);
         } catch (error) {
@@ -62,7 +64,7 @@ export const useVehicleSelector = ({
     fetchModels();
   }, [selectedMake, getModelsByMake]);
 
-  // Handle search terms
+  // Handle search terms for makes
   useEffect(() => {
     if (searchTerm) {
       const filtered = makes.filter(make => 
@@ -74,6 +76,7 @@ export const useVehicleSelector = ({
     }
   }, [searchTerm, makes]);
 
+  // Handle search terms for models
   useEffect(() => {
     if (modelSearchTerm) {
       const filtered = models.filter(model => 
