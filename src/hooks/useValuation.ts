@@ -51,7 +51,8 @@ export function useValuation() {
           condition: formData.condition.toString(),
           confidenceScore: 85,
           issuesDetected: []
-        }
+        },
+        userId: '' // Empty string as default
       };
       
       setValuationData(mockValuationData);
@@ -110,7 +111,8 @@ export function useValuation() {
           condition: 'Good',
           confidenceScore: 90,
           issuesDetected: []
-        }
+        },
+        userId: '' // Empty string as default
       };
       
       setValuationData(mockData);
@@ -168,7 +170,8 @@ export function useValuation() {
           condition: 'Excellent',
           confidenceScore: 85,
           issuesDetected: []
-        }
+        },
+        userId: '' // Empty string as default
       };
       
       setValuationData(mockData);

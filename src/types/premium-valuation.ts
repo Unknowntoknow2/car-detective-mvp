@@ -28,6 +28,20 @@ export interface FormData {
   conditionScore: number;
   valuationId?: string;
   userId?: string;
+  
+  // Adding missing properties
+  hasAccident?: boolean | 'yes' | 'no';
+  accidentDescription?: string;
+  drivingProfile?: 'light' | 'average' | 'heavy';
+  saleDate?: string | Date;
+  bodyStyle?: string;
+  conditionLabel?: string;
+  exteriorColor?: string;
+  interiorColor?: string;
+  colorMultiplier?: number;
+  identifierType?: string;
+  valuation?: number;
+  confidenceScore?: number;
 }
 
 export interface PremiumFeatureProps {
@@ -41,4 +55,15 @@ export interface PremiumTestimonialProps {
   role: string;
   content: string;
   rating: number;
+}
+
+// Add FeatureOption interface for components using it
+export interface FeatureOption {
+  id: string | number;
+  name: string;
+  description?: string;
+  category?: string;
+  value?: number;
+  impact?: number;
+  selected?: boolean;
 }

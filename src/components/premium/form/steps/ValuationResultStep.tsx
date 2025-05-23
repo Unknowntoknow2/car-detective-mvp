@@ -90,6 +90,7 @@ export function ValuationResultStep({
 
   // Ensure priceRange is a tuple with exactly two elements
   let priceRange: [number, number];
+  const estimatedValue = result.estimatedValue || 0;
   
   if (result.price_range) {
     if (Array.isArray(result.price_range)) {
@@ -109,14 +110,14 @@ export function ValuationResultStep({
       ];
     } else {
       priceRange = [
-        Math.round((result.estimatedValue || 0) * 0.95),
-        Math.ceil((result.estimatedValue || 0) * 1.05)
+        Math.round(estimatedValue * 0.95),
+        Math.ceil(estimatedValue * 1.05)
       ];
     }
   } else {
     priceRange = [
-      Math.round((result.estimatedValue || 0) * 0.95),
-      Math.ceil((result.estimatedValue || 0) * 1.05)
+      Math.round(estimatedValue * 0.95),
+      Math.ceil(estimatedValue * 1.05)
     ];
   }
 
@@ -132,7 +133,7 @@ export function ValuationResultStep({
       <UnifiedValuationResult
         valuationId={valuationId || ''}
         displayMode="full"
-        estimatedValue={result.estimatedValue || 0}
+        estimatedValue={estimatedValue}
         confidenceScore={result.confidenceScore || 0}
         priceRange={priceRange}
         adjustments={result.adjustments || []}

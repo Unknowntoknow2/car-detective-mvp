@@ -7,7 +7,7 @@ interface PriceRange {
   high: number;
 }
 
-interface UseValuationResultReturn {
+export interface UseValuationResultReturn {
   data: ValuationResult | null;
   isLoading: boolean;
   error: string | null;

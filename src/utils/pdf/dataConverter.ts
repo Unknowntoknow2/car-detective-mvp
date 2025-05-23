@@ -39,6 +39,12 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     }
   } else if (result.priceRange && typeof result.priceRange === 'object' && 'min' in result.priceRange && 'max' in result.priceRange) {
     formattedPriceRange = [result.priceRange.min, result.priceRange.max];
+  } else if (result.price_range) {
+    if (Array.isArray(result.price_range)) {
+      formattedPriceRange = [result.price_range[0], result.price_range[1]];
+    } else if ('low' in result.price_range && 'high' in result.price_range) {
+      formattedPriceRange = [result.price_range.low, result.price_range.high];
+    }
   }
 
   const vehicleCondition = result.aiCondition?.condition || result.condition || 'Unknown';
