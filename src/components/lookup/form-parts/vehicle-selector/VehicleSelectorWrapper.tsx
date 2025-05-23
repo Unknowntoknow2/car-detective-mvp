@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useVehicleSelector } from '@/hooks/useVehicleSelector';
 import { LoadingMessage } from './LoadingMessage';
 import { ErrorMessage } from './ErrorMessage';
@@ -26,6 +26,7 @@ export const VehicleSelectorWrapper = ({
   onValidationChange
 }: VehicleSelectorWrapperProps) => {
   const [attempts, setAttempts] = useState(0);
+  const [forcedRender, setForcedRender] = useState(0);
 
   const {
     isLoading,
@@ -42,7 +43,8 @@ export const VehicleSelectorWrapper = ({
     setModelSearchTerm,
     validationError,
     loadingModels,
-    models
+    models,
+    fetchAttempts
   } = useVehicleSelector({
     selectedMake,
     setSelectedMake,
@@ -51,6 +53,17 @@ export const VehicleSelectorWrapper = ({
     required,
     onValidationChange
   });
+
+  // Force a re-render if we've exceeded fetch attempts to ensure fallback data is used
+  useEffect(() => {
+    if (fetchAttempts > 2 && selectedMake && !loadingModels && models.length === 0) {
+      // Force a re-render to ensure everything is correctly wired up
+      const timer = setTimeout(() => {
+        setForcedRender(prev => prev + 1);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [fetchAttempts, selectedMake, loadingModels, models.length]);
 
   if (isLoading && attempts < 2) {
     // After 2 attempts, we'll show the UI even if it's still loading
@@ -100,6 +113,7 @@ export const VehicleSelectorWrapper = ({
         required={required}
         loadingModels={loadingModels}
         hasModels={hasModels}
+        forcedRender={forcedRender}
       />
       <ValidationMessage error={validationError} />
     </div>
