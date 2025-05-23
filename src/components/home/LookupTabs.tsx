@@ -5,6 +5,7 @@ import VinLookup from '@/components/lookup/VinLookup';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { toast } from 'sonner';
 
 interface LookupTabsProps {
   defaultTab?: string;
@@ -28,6 +29,8 @@ export function LookupTabs({
     console.log(`LOOKUP TABS VIN: Form submitted with VIN: ${vin}`);
     if (onSubmit) {
       onSubmit("vin", vin);
+    } else {
+      toast.success("VIN lookup submitted successfully");
     }
   };
 
@@ -35,6 +38,8 @@ export function LookupTabs({
     console.log(`LOOKUP TABS PLATE: Form submitted with plate: ${plate} and state: ${state}`);
     if (onSubmit) {
       onSubmit("plate", plate, state);
+    } else {
+      toast.success("Plate lookup submitted successfully");
     }
   };
 
@@ -47,6 +52,8 @@ export function LookupTabs({
     
     if (onSubmit) {
       onSubmit("manual", jsonData);
+    } else {
+      toast.success("Manual lookup submitted successfully");
     }
   };
 

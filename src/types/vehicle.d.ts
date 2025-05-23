@@ -31,6 +31,13 @@ export interface DecodedVehicleInfo {
   bodyType?: string;
   color?: string;
   fuelType?: string;
+  exteriorColor?: string;
+  interiorColor?: string;
+  features?: string[];
+  condition?: string;
+  zipCode?: string;
+  mileage?: number;
+  valuationId?: string;
 }
 
 export interface VehicleValuation {

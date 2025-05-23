@@ -11,7 +11,6 @@ interface AuthFormProps {
   initialRole?: UserRole | string;
 }
 
-// This is now a redirector component that helps users navigate to the correct auth page
 const AuthForm = ({ initialMode, initialRole }: AuthFormProps) => {
   const navigate = useNavigate();
   const { session, user } = useAuth();
@@ -22,7 +21,7 @@ const AuthForm = ({ initialMode, initialRole }: AuthFormProps) => {
       // Check user role and redirect accordingly
       const userRole = user.user_metadata?.role || 'individual';
       if (userRole === 'dealer') {
-        navigate('/dealer-dashboard');
+        navigate('/dealer/dashboard');
       } else {
         navigate('/dashboard');
       }
@@ -30,11 +29,11 @@ const AuthForm = ({ initialMode, initialRole }: AuthFormProps) => {
   }, [session, user, navigate]);
 
   const handleIndividualClick = () => {
-    navigate('/signin/individual');
+    navigate('/auth/individual');
   };
 
   const handleDealerClick = () => {
-    navigate('/signin/dealer');
+    navigate('/auth/dealer');
   };
 
   // Don't render if redirecting
