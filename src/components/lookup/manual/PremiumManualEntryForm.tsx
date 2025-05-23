@@ -32,7 +32,7 @@ export function PremiumManualEntryForm({
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
   const [model, setModel] = useState(initialData?.model || '');
-  const [year, setYear] = useState<number>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
+  const [year, setYear] = useState<number | ''>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
   const [mileage, setMileage] = useState<number>(initialData?.mileage ? Number(initialData.mileage) : 0);
   const [condition, setCondition] = useState<ConditionLevel>(
     (initialData?.condition as ConditionLevel) || ConditionLevel.Good
@@ -60,7 +60,7 @@ export function PremiumManualEntryForm({
     const isValidForm = Boolean(
       make.trim() !== '' && 
       model.trim() !== '' && 
-      year > 1900 && 
+      typeof year === 'number' && year > 1900 && 
       zipCode.length === 5
     );
     setIsValid(isValidForm);
@@ -89,7 +89,7 @@ export function PremiumManualEntryForm({
     const formData: ManualEntryFormData = {
       make,
       model,
-      year,
+      year: typeof year === 'number' ? year : new Date().getFullYear(),
       mileage,
       condition,
       zipCode,
@@ -114,6 +114,10 @@ export function PremiumManualEntryForm({
     setHasAccident(details.hasAccident || false);
   };
 
+  const handleYearChange = (value: number | '') => {
+    setYear(value);
+  };
+
   return (
     <Card className="shadow-sm border-2">
       <form onSubmit={handleSubmit}>
@@ -126,9 +130,9 @@ export function PremiumManualEntryForm({
               model={model}
               setModel={setModel}
               year={year}
-              setYear={(val: number) => setYear(val)}
+              setYear={handleYearChange}
               mileage={mileage}
-              setMileage={(val: number) => setMileage(val)}
+              setMileage={setMileage}
               trim={trim}
               setTrim={setTrim}
               color={color}

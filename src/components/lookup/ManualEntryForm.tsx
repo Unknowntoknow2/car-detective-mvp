@@ -24,7 +24,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
 }) => {
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
-  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [year, setYear] = useState<number | ''>(new Date().getFullYear());
   const [mileage, setMileage] = useState<number>(0);
   const [condition, setCondition] = useState<ConditionLevel>(ConditionLevel.Good);
   const [zipCode, setZipCode] = useState('');
@@ -74,7 +74,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     const formattedData: ManualEntryFormData = {
       make,
       model,
-      year,
+      year: typeof year === 'number' ? year : new Date().getFullYear(),
       mileage: mileage || 0,
       condition,
       zipCode,
@@ -101,9 +101,9 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
               setYear={setYear}
               mileage={mileage}
               setMileage={setMileage}
-              trim={isPremium ? trim : undefined}
-              setTrim={isPremium ? setTrim : undefined}
-              color={isPremium ? color : undefined}
+              trim={trim}
+              setTrim={setTrim}
+              color={isPremium ? color : ''}
               setColor={isPremium ? setColor : undefined}
             />
           </div>
