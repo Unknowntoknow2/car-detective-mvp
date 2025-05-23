@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Mail, KeyRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { errorToString } from '@/utils/errorHandling';
 
 interface SharedLoginFormProps {
@@ -18,11 +17,6 @@ interface SharedLoginFormProps {
   redirectPath: string;
   alternateLoginPath: string;
   alternateLoginText: string;
-}
-
-interface SignInResult {
-  success: boolean;
-  error?: string;
 }
 
 export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
@@ -52,38 +46,11 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
     
     try {
       // Sign in using the auth context
-      const signInResponse = await signIn(email, password);
-      const result = typeof signInResponse === 'boolean' 
-        ? { success: signInResponse, error: signInResponse ? undefined : 'Authentication failed' }
-        : signInResponse as SignInResult;
+      const result = await signIn(email, password);
       
       if (!result.success) {
         const errorMessage = result.error ? errorToString(result.error) : 'Authentication failed';
         throw new Error(errorMessage);
-      }
-      
-      // Check if the user has the expected role
-      if (expectedRole) {
-        const { data, error: roleError } = await supabase
-          .from('profiles')
-          .select('user_role')
-          .eq('id', (await supabase.auth.getUser()).data.user?.id)
-          .single();
-          
-        if (roleError) {
-          console.error('Error fetching user role:', roleError);
-          toast.error('Error verifying user role');
-          setIsLoading(false);
-          return;
-        }
-        
-        // If the user doesn't have the expected role, show an error
-        if (data?.user_role !== expectedRole) {
-          setError(`This account is not registered as a ${expectedRole}. Please use the correct login page.`);
-          await supabase.auth.signOut();
-          setIsLoading(false);
-          return;
-        }
       }
       
       // Redirect to the appropriate dashboard

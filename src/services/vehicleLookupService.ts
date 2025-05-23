@@ -138,3 +138,58 @@ export async function fetchVehicleByDetails(make: string, model: string, year: n
     throw new Error('Failed to fetch vehicle information. Please try again.');
   }
 }
+
+/**
+ * Fetch trim options for a specific make, model, and year
+ * @param make Vehicle make
+ * @param model Vehicle model
+ * @param year Vehicle year
+ * @returns Promise with array of trim options
+ */
+export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
+  try {
+    // Check if we have trim options for this vehicle in our database
+    const { data: trimData, error: dbError } = await supabase
+      .from('model_trims')
+      .select('trim_name')
+      .eq('make', make)
+      .eq('model_name', model)
+      .eq('year', year);
+      
+    if (trimData && !dbError && trimData.length > 0) {
+      return trimData.map(item => item.trim_name);
+    }
+    
+    // If not in database, simulate a response with common trim levels
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Default trim levels based on make
+        let trims: string[] = ['Base', 'Standard'];
+        
+        if (make === 'Toyota') {
+          if (model === 'Camry') {
+            trims = ['LE', 'SE', 'XLE', 'XSE', 'TRD'];
+          } else if (model === 'RAV4') {
+            trims = ['LE', 'XLE', 'XLE Premium', 'Adventure', 'TRD Off-Road', 'Limited'];
+          }
+        } else if (make === 'Honda') {
+          if (model === 'Accord') {
+            trims = ['LX', 'Sport', 'Sport Special Edition', 'EX-L', 'Touring'];
+          } else if (model === 'Civic') {
+            trims = ['LX', 'Sport', 'EX', 'Touring'];
+          }
+        } else if (make === 'Ford') {
+          if (model === 'F-150') {
+            trims = ['XL', 'XLT', 'Lariat', 'King Ranch', 'Platinum', 'Limited', 'Raptor'];
+          }
+        }
+        
+        resolve(trims);
+      }, 800);
+    });
+  } catch (error) {
+    console.error('Error fetching trim options:', error);
+    // Return default trims on error
+    return ['Standard', 'Deluxe', 'Premium'];
+  }
+}

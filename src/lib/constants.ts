@@ -3,6 +3,7 @@
 export const SHOW_ALL_COMPONENTS = process.env.NODE_ENV === 'development';
 export const ENABLE_DEV_TOOLS = process.env.NODE_ENV === 'development';
 export const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
+export const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
 // API Configuration
 export const API_TIMEOUT = 10000; // 10 seconds
