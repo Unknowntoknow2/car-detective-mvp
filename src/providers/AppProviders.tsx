@@ -1,20 +1,29 @@
 
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ToastProvider } from '@/providers/ToastProvider';
+import { Toaster } from 'sonner';
 
-interface AppProvidersProps {
-  children: React.ReactNode;
-}
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
+}) => {
   return (
-    <AuthProvider>
-      <ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         {children}
-      </ToastProvider>
-    </AuthProvider>
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
-
-export default AppProviders;
