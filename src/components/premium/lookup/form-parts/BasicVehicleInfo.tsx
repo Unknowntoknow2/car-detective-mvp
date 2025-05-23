@@ -11,8 +11,8 @@ interface BasicVehicleInfoProps {
   setSelectedMakeId: (id: string) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
-  selectedYear: number | '';
-  setSelectedYear: (year: number | '') => void;
+  selectedYear: number | string | '';
+  setSelectedYear: (year: number | string | '') => void;
   mileage: string;
   setMileage: (mileage: string) => void;
   zipCode: string;

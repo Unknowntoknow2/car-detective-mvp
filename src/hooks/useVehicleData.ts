@@ -21,6 +21,7 @@ export interface TrimData {
 export interface UseVehicleDataReturn {
   isLoading: boolean;
   makes: MakeData[];
+  models: ModelData[]; // Add this property
   getModelsByMake: (makeId: string) => ModelData[];
   getYearOptions: (startYear: number) => number[];
   getTrimsByModel: (modelId: string) => Promise<TrimData[]>;
@@ -33,30 +34,10 @@ export interface UseVehicleDataReturn {
   error?: string;
 }
 
-// Fallback vehicle data
-const fallbackMakesModels = {
-  'Acura': ['ILX', 'MDX', 'RDX', 'TLX'],
-  'Audi': ['A3', 'A4', 'Q5', 'Q7'],
-  'BMW': ['3 Series', '5 Series', 'X3', 'X5'],
-  'Chevrolet': ['Cruze', 'Equinox', 'Malibu', 'Silverado'],
-  'Ford': ['Edge', 'Escape', 'F-150', 'Explorer'],
-  'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot'],
-  'Hyundai': ['Elantra', 'Santa Fe', 'Sonata', 'Tucson'],
-  'Lexus': ['ES', 'NX', 'RX', 'IS'],
-  'Mercedes-Benz': ['C-Class', 'E-Class', 'GLE', 'GLC'],
-  'Nissan': ['Altima', 'Maxima', 'Rogue', 'Sentra'],
-  'Tesla': ['Model 3', 'Model S', 'Model X', 'Model Y'],
-  'Toyota': ['Camry', 'Corolla', 'RAV4', 'Tacoma']
-};
-
-// Define types for the makes/models data structure
-type MakesModelsType = {
-  [key: string]: string[];
-};
-
 export function useVehicleData(): UseVehicleDataReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [models, setModels] = useState<ModelData[]>([]); // Add state for models
   
   // Convert makes to MakeData format
   const makes: MakeData[] = Object.keys(VEHICLE_MODELS_BY_MAKE).map((makeName, index) => ({
@@ -71,10 +52,15 @@ export function useVehicleData(): UseVehicleDataReturn {
       return [];
     }
     
-    return VEHICLE_MODELS_BY_MAKE[makeName as keyof typeof VEHICLE_MODELS_BY_MAKE].map((modelName, index) => ({
+    const modelsList = VEHICLE_MODELS_BY_MAKE[makeName as keyof typeof VEHICLE_MODELS_BY_MAKE].map((modelName, index) => ({
       id: `${makeId}_${index}`,
       model_name: modelName
     }));
+    
+    // Update the models state
+    setModels(modelsList);
+    
+    return modelsList;
   }, [makes]);
   
   // Generate years from startYear to current year + 1
@@ -118,6 +104,7 @@ export function useVehicleData(): UseVehicleDataReturn {
   return {
     isLoading,
     makes,
+    models, // Return the models state
     getModelsByMake,
     getYearOptions,
     getTrimsByModel,

@@ -29,7 +29,7 @@ export const YearMileageInputs: React.FC<YearMileageInputsProps> = ({ form }) =>
                   field.onChange(parseInt(value));
                 }
               }} 
-              defaultValue={field.value?.toString() || ''}
+              defaultValue={field.value !== undefined && field.value !== null ? field.value.toString() : ''}
             >
               <FormControl>
                 <SelectTrigger>
@@ -68,7 +68,7 @@ export const YearMileageInputs: React.FC<YearMileageInputsProps> = ({ form }) =>
                     field.onChange(parseInt(value));
                   }
                 }}
-                value={field.value?.toString() || ''}
+                value={field.value !== undefined && field.value !== null ? field.value.toString() : ''}
               />
             </FormControl>
             <FormMessage />
