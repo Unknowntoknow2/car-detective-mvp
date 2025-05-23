@@ -31,6 +31,7 @@ export interface AssistantContext {
     zipCode?: string;
   };
   vehicleContext?: VehicleContext;
+  vehicle?: VehicleContext; // Added vehicle property to match usage in askAI.ts
 }
 
 export interface ChatMessage {
@@ -75,27 +76,27 @@ export function detectIntent(message: string): string {
 // Basic implementation of response generation based on intent
 export function generateResponse(intent: string, context: AssistantContext, userMessage: string): Promise<string> {
   return new Promise((resolve) => {
-    const { isPremium, vehicleContext } = context;
+    const { isPremium, vehicleContext, vehicle } = context;
     
-    // Extract vehicle details for response
-    const vehicleInfo = vehicleContext 
-      ? `${vehicleContext.year || ''} ${vehicleContext.make || ''} ${vehicleContext.model || ''}`.trim()
+    // Extract vehicle details for response - use either vehicle or vehicleContext property
+    const vehicleInfo = (vehicle || vehicleContext) 
+      ? `${(vehicle || vehicleContext)?.year || ''} ${(vehicle || vehicleContext)?.make || ''} ${(vehicle || vehicleContext)?.model || ''}`.trim()
       : 'your vehicle';
     
     let response = '';
     
     switch (intent) {
       case 'value_inquiry':
-        if (vehicleContext?.estimatedValue) {
-          response = `Based on our data, your ${vehicleInfo} has an estimated value of $${vehicleContext.estimatedValue.toLocaleString()}. This estimate takes into account the vehicle's age, condition, and mileage.`;
+        if ((vehicle || vehicleContext)?.estimatedValue) {
+          response = `Based on our data, your ${vehicleInfo} has an estimated value of $${(vehicle || vehicleContext)?.estimatedValue.toLocaleString()}. This estimate takes into account the vehicle's age, condition, and mileage.`;
         } else {
           response = `I'd be happy to help you determine the value of ${vehicleInfo}. To provide an accurate estimate, I'll need some information like the year, make, model, mileage, and condition of your vehicle.`;
         }
         break;
         
       case 'accident_impact':
-        if (vehicleContext?.accidentHistory) {
-          response = `Accident history can impact a vehicle's value. For your ${vehicleInfo}, the accident records show ${vehicleContext.accidentCount || 'some'} incidents, which typically reduces value by 10-30% depending on severity.`;
+        if ((vehicle || vehicleContext)?.accidentHistory) {
+          response = `Accident history can impact a vehicle's value. For your ${vehicleInfo}, the accident records show ${(vehicle || vehicleContext)?.accidentCount || 'some'} incidents, which typically reduces value by 10-30% depending on severity.`;
         } else {
           response = `Accident history can significantly impact a vehicle's value. Generally, a vehicle with accident history can see a reduction in value of 10-30% depending on the severity of the damage.`;
         }
