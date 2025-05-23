@@ -1,28 +1,8 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import { UserRole } from '@/types/auth';
-
-interface User {
-  id: string;
-  email?: string; // Changed to optional to match Supabase User type
-  name?: string;
-  user_metadata?: {
-    role?: string;
-    full_name?: string;
-    dealership_name?: string; // Added dealership_name
-    [key: string]: any;
-  };
-  created_at?: string; // Made optional
-}
-
-interface UserDetails {
-  id: string;
-  full_name?: string;
-  email?: string;
-  role?: UserRole;
-  dealership_name?: string; // Added dealership_name
-}
+import { User, UserDetails } from '@/types/user';
 
 interface AuthContextType {
   user: User | null;
@@ -37,7 +17,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: any }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
