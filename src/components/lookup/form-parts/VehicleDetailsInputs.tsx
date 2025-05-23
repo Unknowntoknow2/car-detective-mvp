@@ -4,8 +4,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useVehicleData, TrimData } from '@/hooks/useVehicleData';
+import { useVehicleData } from '@/hooks/useVehicleData';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
+
+export interface TrimData {
+  id: string;
+  trim_name: string;
+}
 
 interface VehicleDetailsInputsProps {
   selectedModel: string;
@@ -26,7 +31,7 @@ export function VehicleDetailsInputs({
 }: VehicleDetailsInputsProps) {
   const [trims, setTrims] = useState<TrimData[]>([]);
   const [loadingTrims, setLoadingTrims] = useState(false);
-  const { isLoading, getTrimsByModel, getYearOptions } = useVehicleData();
+  const { isLoading, getTrimsByModel } = useVehicleData();
 
   useEffect(() => {
     const fetchTrims = async () => {
@@ -139,3 +144,4 @@ export function VehicleDetailsInputs({
     </div>
   );
 }
+
