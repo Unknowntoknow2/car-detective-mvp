@@ -21,17 +21,23 @@ interface Message {
 interface AIAssistantProps {
   initialContext?: Partial<AssistantContext>;
   initialVehicleContext?: Partial<VehicleContext>;
+  onClose?: () => void;
+  valuationId?: string;
+  isPremium?: boolean;
 }
 
 export function AIAssistant({ 
   initialContext, 
-  initialVehicleContext 
+  initialVehicleContext,
+  onClose,
+  valuationId,
+  isPremium = false
 }: AIAssistantProps) {
   const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [context, setContext] = useState<AssistantContext>({
-    isPremium: initialContext?.isPremium || false,
+    isPremium: isPremium || initialContext?.isPremium || false,
     hasDealerAccess: initialContext?.hasDealerAccess || false,
     userLocation: initialContext?.userLocation || { region: 'California' },
     previousIntents: initialContext?.previousIntents || []
