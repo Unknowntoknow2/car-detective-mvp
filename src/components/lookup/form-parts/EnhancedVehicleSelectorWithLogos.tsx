@@ -55,6 +55,11 @@ export function EnhancedVehicleSelectorWithLogos({
           }));
           console.log(`EnhancedVehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
           setModelOptions(mappedModels);
+          
+          // If current model is not in new options, reset it
+          if (selectedModel && !safeModels.some(model => model.model_name === selectedModel)) {
+            onModelChange('');
+          }
         } catch (error) {
           errorHandler.handle(error, 'VehicleSelector.fetchModels');
           setModelOptions([]);
@@ -64,11 +69,15 @@ export function EnhancedVehicleSelectorWithLogos({
       } else {
         console.log("EnhancedVehicleSelectorWithLogos: No make selected, clearing models");
         setModelOptions([]);
+        // Clear model when make is cleared
+        if (selectedModel) {
+          onModelChange('');
+        }
       }
     }
     
     fetchModels();
-  }, [selectedMake, getModelsByMake]);
+  }, [selectedMake, getModelsByMake, selectedModel, onModelChange]);
 
   if (isLoading) {
     return (
@@ -96,7 +105,6 @@ export function EnhancedVehicleSelectorWithLogos({
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
-    // We don't expect logo_url to exist, so we won't try to use it
   })) : [];
 
   const handleMakeChange = (make: string) => {
