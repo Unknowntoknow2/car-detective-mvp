@@ -1,13 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ValuationFactorsGrid } from './factors/ValuationFactorsGrid';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ConditionValues } from './types';
+import { useForm, FormProvider } from 'react-hook-form';
 
 interface ValuationConditionFormProps {
   initialValues?: Partial<ConditionValues>;
@@ -41,6 +42,9 @@ export function ValuationConditionForm({
     titleStatus: initialValues?.titleStatus || 'Clean',
     zipCode: initialValues?.zipCode || ''
   });
+
+  // Create a form instance for the form context
+  const formMethods = useForm();
 
   const handleConditionChange = (id: string, value: any) => {
     setConditionValues(prev => ({
@@ -77,52 +81,54 @@ export function ValuationConditionForm({
   };
 
   return (
-    <Card className="bg-white">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl">Vehicle Condition Factors</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {vehicleInfo && (
-            <div className="bg-primary/5 p-4 rounded-md mb-6">
-              <h3 className="font-semibold text-lg">
-                {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-              </h3>
-              {vehicleInfo.vin && (
-                <p className="text-sm text-muted-foreground mt-1 font-mono">
-                  VIN: {vehicleInfo.vin}
-                </p>
-              )}
-            </div>
-          )}
-          
-          <ValuationFactorsGrid 
-            values={conditionValues}
-            onChange={handleConditionChange}
-          />
-          
-          <div className="pt-4">
-            <Label htmlFor="zipCode">ZIP Code (Optional)</Label>
-            <Input
-              id="zipCode"
-              value={conditionValues.zipCode}
-              onChange={(e) => handleConditionChange('zipCode', e.target.value)}
-              placeholder="Enter ZIP code for more accurate valuation"
-              className="mt-1"
-              maxLength={5}
+    <FormProvider {...formMethods}>
+      <Card className="bg-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">Vehicle Condition Factors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {vehicleInfo && (
+              <div className="bg-primary/5 p-4 rounded-md mb-6">
+                <h3 className="font-semibold text-lg">
+                  {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+                </h3>
+                {vehicleInfo.vin && (
+                  <p className="text-sm text-muted-foreground mt-1 font-mono">
+                    VIN: {vehicleInfo.vin}
+                  </p>
+                )}
+              </div>
+            )}
+            
+            <ValuationFactorsGrid 
+              values={conditionValues}
+              onChange={handleConditionChange}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Adding your ZIP code helps us provide more accurate regional pricing data.
-            </p>
-          </div>
-          
-          <div className="pt-4">
-            <Button type="submit" className="w-full">
-              Calculate Value
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            
+            <div className="pt-4">
+              <Label htmlFor="zipCode">ZIP Code (Optional)</Label>
+              <Input
+                id="zipCode"
+                value={conditionValues.zipCode}
+                onChange={(e) => handleConditionChange('zipCode', e.target.value)}
+                placeholder="Enter ZIP code for more accurate valuation"
+                className="mt-1"
+                maxLength={5}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Adding your ZIP code helps us provide more accurate regional pricing data.
+              </p>
+            </div>
+            
+            <div className="pt-4">
+              <Button type="submit" className="w-full">
+                Calculate Value
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </FormProvider>
   );
 }
