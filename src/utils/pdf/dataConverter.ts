@@ -1,3 +1,4 @@
+
 // utils/pdf/dataConverter.ts
 
 import { ValuationResult } from '@/types/valuation';
@@ -40,6 +41,11 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     formattedPriceRange = [result.priceRange.min, result.priceRange.max];
   }
 
+  const vehicleCondition = result.aiCondition?.condition || result.condition || 'Unknown';
+  const conditionConfidence = result.aiCondition?.confidenceScore || result.confidenceScore || 0;
+  const detectedIssues = result.aiCondition?.issuesDetected || [];
+  const conditionSummary = result.aiCondition?.summary || `Vehicle is in ${vehicleCondition} condition.`;
+
   return {
     id: result.id || 'N/A',
     make: result.make || 'N/A',
@@ -62,17 +68,11 @@ export const buildValuationReport = (result: ValuationResult | null, includeCarf
     explanation: result.explanation || result.gptExplanation || 'N/A',
     userId: result.userId || 'N/A',
     trim: result.trim || 'N/A',
-    aiCondition: result.aiCondition || {
-      condition: result.condition || 'Unknown',
-      confidenceScore: result.confidenceScore || 75,
-      issuesDetected: [], // Default empty array instead of undefined
-      summary: `Vehicle is in ${result.condition || 'average'} condition.`
-    },
-    aiCondition: result.aiCondition || {
-      summary: typeof result.condition === 'string' ? result.condition : '',
-      condition: typeof result.condition === 'string' ? result.condition : '',
-      confidenceScore: result.confidenceScore || 0,
-      issuesDetected: [] // Default empty array
+    aiCondition: {
+      condition: vehicleCondition,
+      confidenceScore: conditionConfidence,
+      issuesDetected: detectedIssues,
+      summary: conditionSummary
     }
   };
 };

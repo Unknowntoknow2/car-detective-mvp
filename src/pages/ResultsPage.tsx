@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 import { useValuationResult } from '@/hooks/useValuationResult';
+import { ValuationResponse } from '@/types/vehicle';
 
 export default function ResultsPage() {
   const [searchParams] = useSearchParams();
@@ -29,6 +30,37 @@ export default function ResultsPage() {
       setError('No valuation ID provided.');
     }
   }, [valuationId]);
+
+  // Convert ValuationResult to ValuationResponse
+  const convertToValuationResponse = (data: any): ValuationResponse => {
+    return {
+      make: data.make || '',
+      model: data.model || '',
+      year: data.year || 0,
+      estimatedValue: data.estimatedValue || data.estimated_value || 0,
+      confidenceScore: data.confidenceScore || data.confidence_score || 0,
+      valuationId: data.valuationId || data.id || '',
+      condition: data.condition || 'Unknown',
+      mileage: data.mileage || 0,
+      vin: data.vin || '',
+      zipCode: data.zipCode || data.zip_code || '',
+      fuelType: data.fuelType || data.fuel_type || '',
+      transmission: data.transmission || '',
+      bodyType: data.bodyType || data.body_type || '',
+      color: data.color || '',
+      trim: data.trim || '',
+      price_range: data.price_range || {
+        low: Math.round((data.estimatedValue || 0) * 0.95),
+        high: Math.round((data.estimatedValue || 0) * 1.05)
+      },
+      isPremium: hasPremiumAccess,
+      aiCondition: data.aiCondition || {
+        condition: data.condition || 'Unknown',
+        confidenceScore: data.confidenceScore || 75,
+        issuesDetected: []
+      }
+    };
+  };
   
   if (isLoading) {
     return (
@@ -60,7 +92,7 @@ export default function ResultsPage() {
           <div className="container mx-auto px-4">
             <ValuationResult
               valuationId={valuationId || undefined}
-              data={data}
+              data={convertToValuationResponse(data)}
               isPremium={hasPremiumAccess}
               onUpgrade={handleUpgrade}
             />

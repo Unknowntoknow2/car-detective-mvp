@@ -31,9 +31,9 @@ export interface DecodedVehicleInfo {
   drivetrain?: string;
   bodyType?: string;
   color?: string;
-  fuelType?: string;
   exteriorColor?: string;
   interiorColor?: string;
+  fuelType?: string;
   features?: string[];
   condition?: string;
   zipCode?: string; 

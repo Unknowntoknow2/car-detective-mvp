@@ -47,7 +47,6 @@ export function useValuation() {
           high: Math.round(calculatedValue * 1.05)
         },
         adjustments: [],
-        userId: '', // Empty userId as default
         aiCondition: {
           condition: formData.condition.toString(),
           confidenceScore: 85,
@@ -107,7 +106,6 @@ export function useValuation() {
           low: 17575,
           high: 19425
         },
-        userId: '',
         aiCondition: {
           condition: 'Good',
           confidenceScore: 90,
@@ -166,7 +164,6 @@ export function useValuation() {
           low: 21375,
           high: 23625
         },
-        userId: '',
         aiCondition: {
           condition: 'Excellent',
           confidenceScore: 85,

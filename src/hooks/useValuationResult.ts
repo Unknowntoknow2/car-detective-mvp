@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ValuationResult } from '@/types/valuation';
 
@@ -11,6 +12,8 @@ interface UseValuationResultReturn {
   isLoading: boolean;
   error: string | null;
   priceRange: PriceRange;
+  isError: boolean;
+  refetch: () => void;
 }
 
 export const useValuationResult = (valuationId: string): UseValuationResultReturn => {
@@ -18,57 +21,64 @@ export const useValuationResult = (valuationId: string): UseValuationResultRetur
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Mock data
-        const mockData: ValuationResult = {
-          id: valuationId,
-          make: 'Toyota',
-          model: 'Camry',
-          year: 2019,
-          mileage: 45000,
+      // Mock data
+      const mockData: ValuationResult = {
+        id: valuationId,
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        mileage: 45000,
+        condition: 'Good',
+        estimatedValue: 18500,
+        confidenceScore: 90,
+        valuationId: `vin-${Date.now()}`,
+        vin: '1234567890',
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
+        bodyType: 'Sedan',
+        trim: 'LE',
+        color: 'Silver',
+        isPremium: false,
+        price_range: {
+          low: 17575,
+          high: 19425
+        },
+        userId: '',
+        aiCondition: {
           condition: 'Good',
-          estimatedValue: 18500,
           confidenceScore: 90,
-          valuationId: `vin-${Date.now()}`,
-          vin: '1234567890',
-          fuelType: 'Gasoline',
-          transmission: 'Automatic',
-          bodyType: 'Sedan',
-          trim: 'LE',
-          color: 'Silver',
-          isPremium: false,
-          price_range: {
-            low: 17575,
-            high: 19425
-          },
-          userId: '',
-          aiCondition: {
-            condition: 'Good',
-            confidenceScore: 90,
-            issuesDetected: []
-          }
-        };
+          issuesDetected: []
+        }
+      };
 
-        setData(mockData);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch valuation result');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      setData(mockData);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch valuation result');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (valuationId) {
       fetchData();
     }
   }, [valuationId]);
+
+  // Add refetch function
+  const refetch = () => {
+    if (valuationId) {
+      fetchData();
+    }
+  };
 
   // Update the code to handle both array and object price range formats correctly:
   const priceRange = data?.priceRange || data?.price_range;
@@ -85,6 +95,8 @@ export const useValuationResult = (valuationId: string): UseValuationResultRetur
     data,
     isLoading,
     error,
-    priceRange: formattedPriceRange
+    priceRange: formattedPriceRange,
+    isError: !!error,
+    refetch
   };
 };
