@@ -1,11 +1,12 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
+import { VEHICLE_MAKES, VEHICLE_MODELS, VEHICLE_MODELS_BY_MAKE } from '@/data/vehicle-data';
 
+// Define types for our API responses
 export interface MakeData {
   id: string;
   make_name: string;
-  logo_url?: string | null;
 }
 
 export interface ModelData {
@@ -14,300 +15,161 @@ export interface ModelData {
   make_id: string;
 }
 
-export interface TrimData {
-  id: string;
-  trim_name: string;
-  model_id: string;
-  year?: number;
-  fuel_type?: string;
-  transmission?: string;
+// Type definition for our hook's return value
+interface UseVehicleDataReturn {
+  makes: MakeData[];
+  models: ModelData[];
+  getModelsByMake: (makeName: string) => Promise<ModelData[]>;
+  isLoading: boolean;
+  error: Error | string | null;
 }
 
-export interface VehicleDataCounts {
-  makes: number;
-  models: number;
-}
-
-// Default fallback models for testing and when API fails
-const FALLBACK_MODELS = {
-  "Acura": ["ILX", "MDX", "NSX", "RDX", "TLX", "TSX"],
-  "Audi": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "R8", "TT"],
-  "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4"],
-  "Chevrolet": ["Blazer", "Camaro", "Colorado", "Corvette", "Equinox", "Malibu", "Silverado", "Suburban", "Tahoe", "Traverse"],
-  "Ford": ["Bronco", "Edge", "Escape", "Explorer", "F-150", "Fusion", "Mustang", "Ranger"],
-  "Honda": ["Accord", "Civic", "CR-V", "Fit", "HR-V", "Odyssey", "Pilot", "Ridgeline"],
-  "Hyundai": ["Accent", "Elantra", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Veloster"],
-  "Lexus": ["ES", "GS", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "UX"],
-  "Mercedes-Benz": ["A-Class", "C-Class", "CLA", "CLS", "E-Class", "G-Class", "GLA", "GLC", "GLE", "GLS", "S-Class", "SL"],
-  "Nissan": ["Altima", "Armada", "Frontier", "GT-R", "Leaf", "Maxima", "Murano", "Pathfinder", "Rogue", "Sentra", "Titan", "Versa"],
-  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
-  "Toyota": ["4Runner", "Avalon", "Camry", "Corolla", "Highlander", "Land Cruiser", "Prius", "RAV4", "Sienna", "Tacoma", "Tundra"]
+// Define a type for the VEHICLE_MODELS_BY_MAKE object
+type VehicleModelsByMakeType = {
+  [key: string]: string[];
 };
 
-export const useVehicleData = () => {
+// Create a properly typed version of the imported object
+const typedVehicleModelsByMake: VehicleModelsByMakeType = VEHICLE_MODELS_BY_MAKE;
+
+export function useVehicleData(): UseVehicleDataReturn {
   const [makes, setMakes] = useState<MakeData[]>([]);
+  const [models, setModels] = useState<ModelData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | Error | null>(null);
-  const [counts, setCounts] = useState<VehicleDataCounts>({ makes: 0, models: 0 });
-  
-  // Add model cache to prevent repeated API calls
-  const modelCache = useRef<Record<string, ModelData[]>>({});
-  const isFetchingModels = useRef<Record<string, boolean>>({});
-  const makeIdCache = useRef<Record<string, string>>({});
+  const [error, setError] = useState<Error | string | null>(null);
+  const [initialized, setInitialized] = useState<boolean>(false);
+  const [cachedModels, setCachedModels] = useState<Record<string, ModelData[]>>({});
 
-  const fetchMakes = useCallback(async (forceRefresh = false) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Use cached makes if available and not forcing refresh
-      if (makes.length > 0 && !forceRefresh) {
-        setIsLoading(false);
-        return { success: true, makeCount: makes.length, modelCount: counts.models };
-      }
-      
-      const { data, error } = await supabase
-        .from('makes')
-        .select('id, make_name')
-        .order('make_name');
-        
-      if (error) throw error;
-      
-      const makesData: MakeData[] = data?.map(make => ({
-        id: make.id,
-        make_name: make.make_name
-      })) || [];
-      
-      // Cache make IDs for faster lookup
-      makesData.forEach(make => {
-        makeIdCache.current[make.make_name] = make.id;
-      });
-      
-      setMakes(makesData);
-      
-      const makeCount = makesData.length || 0;
-      let modelCount = 0;
-      
-      if (makeCount > 0) {
-        const { count } = await supabase
-          .from('models')
-          .select('id', { count: 'exact', head: true });
-          
-        modelCount = count || 0;
-      }
-      
-      setCounts({ makes: makeCount, models: modelCount });
-      
-      return { 
-        success: true, 
-        makeCount: makeCount, 
-        modelCount: modelCount 
-      };
-    } catch (err: any) {
-      console.error('Error fetching makes:', err);
-      setError(err.message || 'Failed to load vehicle makes');
-      return { success: false };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [makes.length, counts.models]);
-
-  // Fetch makes on component mount
+  // Initialize with fallback data
   useEffect(() => {
-    fetchMakes();
-  }, [fetchMakes]);
-
-  // Get models by make name with caching
-  const getModelsByMake = useCallback(async (makeName: string): Promise<ModelData[]> => {
-    if (!makeName) return [];
-    
-    try {
-      // Return cached results if available
-      if (modelCache.current[makeName] && modelCache.current[makeName].length > 0) {
-        console.log(`Returning cached models for ${makeName}:`, modelCache.current[makeName]);
-        return modelCache.current[makeName];
-      }
-      
-      // Prevent duplicate requests for the same make
-      if (isFetchingModels.current[makeName]) {
-        console.log(`Already fetching models for ${makeName}, returning empty array for now`);
-        return [];
-      }
-      
-      isFetchingModels.current[makeName] = true;
-      
-      // Try to get make_id from cache first
-      let makeId = makeIdCache.current[makeName];
-      
-      // If not in cache, find it from the database
-      if (!makeId) {
-        const { data: makeData, error: makeError } = await supabase
-          .from('makes')
-          .select('id')
-          .eq('make_name', makeName)
-          .single();
-        
-        if (makeError || !makeData) {
-          console.error('Error finding make ID:', makeError);
-          isFetchingModels.current[makeName] = false;
-          
-          // Use fallback models if available
-          if (FALLBACK_MODELS[makeName]) {
-            const fallbackModels = FALLBACK_MODELS[makeName].map((modelName, index) => ({
-              id: `fallback-${index}`,
-              model_name: modelName,
-              make_id: `fallback-make-${makeName}`
-            }));
-            
-            // Store in cache
-            modelCache.current[makeName] = fallbackModels;
-            console.log(`Using direct fallback models for ${makeName}:`, fallbackModels);
-            return fallbackModels;
-          }
-          
-          return [];
-        }
-        
-        makeId = makeData.id;
-        makeIdCache.current[makeName] = makeId;
-      }
-      
-      console.log(`Found make ID for ${makeName}:`, makeId);
-      
-      // Then fetch models for that make_id
-      const { data, error } = await supabase
-        .from('models')
-        .select('id, model_name, make_id')
-        .eq('make_id', makeId)
-        .order('model_name');
-        
-      if (error) {
-        console.error('Error fetching models:', error);
-        isFetchingModels.current[makeName] = false;
-        
-        // Use fallback models if available after database error
-        if (FALLBACK_MODELS[makeName]) {
-          const fallbackModels = FALLBACK_MODELS[makeName].map((modelName, index) => ({
-            id: `fallback-${index}`,
-            model_name: modelName,
-            make_id: makeId
-          }));
-          
-          // Store in cache
-          modelCache.current[makeName] = fallbackModels;
-          console.log(`Using fallback models after error for ${makeName}:`, fallbackModels);
-          return fallbackModels;
-        }
-        
-        return [];
-      }
-      
-      const models = data || [];
-      console.log(`Found ${models.length} models for make ${makeName}`);
-      
-      // If no models found, use hardcoded data as fallback
-      if (models.length === 0) {
-        // Use fallback data
-        if (FALLBACK_MODELS[makeName]) {
-          const fallbackModels = FALLBACK_MODELS[makeName].map((modelName, index) => ({
-            id: `fallback-${index}`,
-            model_name: modelName,
-            make_id: makeId
-          }));
-          
-          // Store in cache
-          modelCache.current[makeName] = fallbackModels;
-          console.log(`Using fallback models for ${makeName}:`, fallbackModels);
-          isFetchingModels.current[makeName] = false;
-          return fallbackModels;
-        } else {
-          // Generic fallback if make not found in fallbacks
-          const genericModels = ["Base", "Standard", "Deluxe", "Premium", "Sport"].map((modelName, index) => ({
-            id: `generic-${index}`,
-            model_name: modelName,
-            make_id: makeId
-          }));
-          
-          modelCache.current[makeName] = genericModels;
-          isFetchingModels.current[makeName] = false;
-          return genericModels;
-        }
-      }
-      
-      // Store in cache
-      modelCache.current[makeName] = models;
-      isFetchingModels.current[makeName] = false;
-      console.log(`Fetched models for make: ${makeName}`, models);
-      return models;
-    } catch (err: any) {
-      console.error('Error in getModelsByMake:', err);
-      isFetchingModels.current[makeName] = false;
-      
-      // Return fallback models in case of error
-      if (FALLBACK_MODELS[makeName]) {
-        const fallbackModels = FALLBACK_MODELS[makeName].map((modelName, index) => ({
-          id: `fallback-${index}`,
-          model_name: modelName,
-          make_id: `fallback-make-${makeName}`
+    if (!initialized) {
+      try {
+        // Initialize with fallback data from the constants
+        const fallbackMakes: MakeData[] = VEHICLE_MAKES.map((makeName, index) => ({
+          id: `make-${index}`,
+          make_name: makeName
         }));
-        return fallbackModels;
+
+        setMakes(fallbackMakes);
+        
+        // Create fallback models for all makes
+        const allFallbackModels: ModelData[] = [];
+        
+        VEHICLE_MAKES.forEach((makeName, makeIndex) => {
+          // Get models for this make, either from the by-make object or the generic list
+          const makeModels = typedVehicleModelsByMake[makeName] || VEHICLE_MODELS;
+          
+          const modelsForMake = makeModels.map((modelName: string, index: number) => ({
+            id: `model-${makeIndex}-${index}`,
+            model_name: modelName,
+            make_id: `make-${makeIndex}`
+          }));
+          
+          allFallbackModels.push(...modelsForMake);
+        });
+        
+        setModels(allFallbackModels);
+        setInitialized(true);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing with fallback data:", error);
+        setError("Failed to initialize vehicle data");
+        setIsLoading(false);
       }
-      
+    }
+  }, [initialized]);
+
+  // Function to get models for a specific make
+  const getModelsByMake = useCallback(async (makeName: string): Promise<ModelData[]> => {
+    if (!makeName) {
       return [];
     }
-  }, []);
-
-  // Get trims by model ID
-  const getTrimsByModel = async (modelId: string): Promise<TrimData[]> => {
-    if (!modelId) return [];
+    
+    // Check if we already have models cached for this make
+    if (cachedModels[makeName]) {
+      console.log(`Using cached models for make: ${makeName}`);
+      return cachedModels[makeName];
+    }
     
     try {
-      const { data, error } = await supabase
-        .from('model_trims')
-        .select('id, trim_name, model_id, year, fuel_type, transmission')
-        .eq('model_id', modelId)
-        .order('trim_name');
-        
-      if (error) {
-        console.error('Error fetching trims:', error);
-        return [];
+      // For this example, we'll use our fallback data
+      // In a real app, this would make an API call
+      console.log(`Fetching models for make: ${makeName}`);
+      
+      // Find the make ID
+      const make = makes.find(m => m.make_name === makeName);
+      if (make) {
+        console.log(`Found make ID: ${make.id}`);
       }
       
-      return data || [];
-    } catch (err: any) {
-      console.error('Error in getTrimsByModel:', err);
+      // Get models for this make from our models array
+      const filteredModels = models.filter(
+        model => makes.find(m => m.id === model.make_id)?.make_name === makeName
+      );
+      
+      // If no models found, try to use fallback data from the constants
+      if (filteredModels.length === 0) {
+        // Get models for this make from our constants
+        const fallbackModels = typedVehicleModelsByMake[makeName] || [];
+        
+        if (make && fallbackModels.length > 0) {
+          console.log(`Using fallback models for make: ${makeName}`);
+          
+          const modelsList = fallbackModels.map((modelName: string, index: number) => ({
+            id: `model-fallback-${index}`,
+            model_name: modelName,
+            make_id: make.id
+          }));
+          
+          // Cache these models for future use
+          setCachedModels(prev => ({
+            ...prev,
+            [makeName]: modelsList
+          }));
+          
+          return modelsList;
+        } else {
+          console.log(`Found 0 models for make ${makeName}`);
+        }
+      }
+      
+      // Cache these models for future use
+      setCachedModels(prev => ({
+        ...prev,
+        [makeName]: filteredModels
+      }));
+      
+      console.log(`Fetched models for make: ${makeName}`, filteredModels);
+      return filteredModels;
+    } catch (error) {
+      console.error(`Error fetching models for make ${makeName}:`, error);
+      
+      // On error, try to use fallback data
+      if (makes.length > 0) {
+        const make = makes.find(m => m.make_name === makeName);
+        
+        if (make) {
+          const fallbackModels = typedVehicleModelsByMake[makeName] || [];
+          
+          const modelsList = fallbackModels.map((modelName: string, index: number) => ({
+            id: `model-error-${index}`,
+            model_name: modelName,
+            make_id: make.id
+          }));
+          
+          return modelsList;
+        }
+      }
+      
       return [];
     }
-  };
-
-  // Generate years
-  const getYearOptions = () => {
-    const currentYear = new Date().getFullYear() + 1; // Include next year for new models
-    const years: number[] = [];
-    
-    for (let year = currentYear; year >= 1990; year--) {
-      years.push(year);
-    }
-    
-    return years;
-  };
-
-  // Refresh data - useful for admin functions
-  const refreshData = async (forceRefresh = false) => {
-    // Clear model cache on refresh
-    modelCache.current = {};
-    makeIdCache.current = {};
-    return await fetchMakes(forceRefresh);
-  };
+  }, [makes, models, cachedModels]);
 
   return {
     makes,
-    isLoading,
-    error,
-    counts,
+    models,
     getModelsByMake,
-    getTrimsByModel,
-    getYearOptions,
-    refreshData
+    isLoading,
+    error
   };
-};
+}
