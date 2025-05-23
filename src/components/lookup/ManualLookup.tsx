@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ManualEntryForm, ManualEntryFormProps } from './ManualEntryForm';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
 
 interface ManualLookupProps extends Omit<ManualEntryFormProps, 'onSubmit'> {
-  onSubmit: (data: any) => void;
+  onSubmit: (data: ManualEntryFormData) => void;
 }
 
 export function ManualLookup({ 
@@ -15,7 +16,7 @@ export function ManualLookup({
   isPremium
 }: ManualLookupProps) {
   
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: ManualEntryFormData) => {
     try {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -34,8 +35,10 @@ export function ManualLookup({
             user_id: user.id,
             fuel_type: formData.fuelType,
             transmission: formData.transmission,
-            vin: formData.vin,
-            accident: false
+            vin: formData.vin || null,
+            accident: formData.accidentDetails?.hasAccident || false,
+            accident_severity: formData.accidentDetails?.severity || null,
+            selected_features: formData.selectedFeatures || []
           });
           
         if (error) {
@@ -70,7 +73,8 @@ export function ManualLookup({
         description: error.message || "Could not process your request",
         variant: "destructive",
       });
-      onSubmit(formData); // Still submit the data for valuation
+      // Still submit the data for valuation even if there's an error saving to Supabase
+      onSubmit(formData);
     }
   };
 

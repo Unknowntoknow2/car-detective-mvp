@@ -9,6 +9,7 @@ import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
 import { toast } from '@/hooks/use-toast';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { supabase } from '@/lib/supabase';
+import { useVehicleData } from '@/hooks/useVehicleData';
 
 interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -25,6 +26,8 @@ export function ManualLookup({
   initialData,
   submitButtonText = "Continue"
 }: ManualLookupProps) {
+  const { makes, getModelsByMake } = useVehicleData();
+  
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
   const [model, setModel] = useState(initialData?.model || '');
@@ -38,9 +41,33 @@ export function ManualLookup({
   const [transmission, setTransmission] = useState(initialData?.transmission || 'Automatic');
   const [trim, setTrim] = useState(initialData?.trim || '');
   const [color, setColor] = useState(initialData?.color || '');
+  const [models, setModels] = useState<string[]>([]);
   
   // Add validation state to enable/disable the Continue button
   const [isValid, setIsValid] = useState(false);
+  
+  // Fetch models when make changes
+  useEffect(() => {
+    if (make) {
+      const fetchModels = async () => {
+        try {
+          const modelData = await getModelsByMake(make);
+          if (modelData && Array.isArray(modelData)) {
+            setModels(modelData.map(m => m.model_name));
+          }
+        } catch (error) {
+          console.error('Error fetching models:', error);
+          setModels([]);
+        }
+      };
+      
+      fetchModels();
+    } else {
+      setModels([]);
+      // Clear model selection when make changes
+      if (model) setModel('');
+    }
+  }, [make, getModelsByMake]);
   
   // Validate form whenever key fields change
   useEffect(() => {
@@ -162,6 +189,7 @@ export function ManualLookup({
             setTrim={setTrim}
             color={color}
             setColor={setColor}
+            availableModels={models}
           />
           
           <ConditionAndFuelInputs
