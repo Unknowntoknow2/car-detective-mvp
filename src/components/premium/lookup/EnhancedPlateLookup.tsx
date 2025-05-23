@@ -1,56 +1,81 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card } from '@/components/ui/card';
+import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { BasicVehicleInfo } from '@/components/premium/lookup/form-parts/BasicVehicleInfo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BasicVehicleInfo } from './form-parts/BasicVehicleInfo';
+import { usStates } from '@/data/states';
 
 export function EnhancedPlateLookup() {
   const [plateNumber, setPlateNumber] = useState('');
-  const [stateCode, setStateCode] = useState('');
+  const [state, setState] = useState('');
+  const [plateNumberTouched, setPlateNumberTouched] = useState(false);
+  const [stateTouched, setStateTouched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [vehicle, setVehicle] = useState({
+  const [isVehicleFound, setIsVehicleFound] = useState(false);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const [errors, setErrors] = useState<{plateNumber?: string, state?: string, api?: string}>({});
+  
+  // Vehicle form state
+  const [formData, setFormData] = useState({
     makeId: '',
     model: '',
     year: '',
     mileage: '',
     zipCode: ''
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const states = [
-    { value: 'CA', label: 'California' },
-    { value: 'NY', label: 'New York' },
-    { value: 'TX', label: 'Texas' },
-    { value: 'FL', label: 'Florida' },
-    { value: 'IL', label: 'Illinois' }
-  ];
-
-  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlateNumber(e.target.value.toUpperCase());
+  // Simple validation
+  const validatePlateNumber = (value: string) => {
+    if (!value) return 'License plate number is required';
+    if (value.length < 2) return 'License plate number is too short';
+    return null;
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate inputs
-    const newErrors: Record<string, string> = {};
-    
-    if (!plateNumber) {
-      newErrors.plate = 'License plate is required';
+  
+  const validateState = (value: string) => {
+    if (!value) return 'State is required';
+    return null;
+  };
+  
+  const plateNumberValidationError = plateNumberTouched ? validatePlateNumber(plateNumber) : null;
+  const stateValidationError = stateTouched ? validateState(state) : null;
+  
+  const isFormValid = !plateNumberValidationError && !stateValidationError && plateNumber && state;
+  
+  const handlePlateNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPlateNumber = e.target.value.toUpperCase();
+    setPlateNumber(newPlateNumber);
+    if (!plateNumberTouched && newPlateNumber) {
+      setPlateNumberTouched(true);
     }
     
-    if (!stateCode) {
-      newErrors.state = 'State is required';
+    // Reset vehicle found state when plate changes
+    if (isVehicleFound) {
+      setIsVehicleFound(false);
+    }
+  };
+  
+  const handleStateChange = (value: string) => {
+    setState(value);
+    if (!stateTouched) {
+      setStateTouched(true);
     }
     
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    // Reset vehicle found state when state changes
+    if (isVehicleFound) {
+      setIsVehicleFound(false);
+    }
+  };
+  
+  const handlePlateSubmit = async () => {
+    if (!isFormValid) {
+      setErrors({
+        plateNumber: plateNumberValidationError,
+        state: stateValidationError
+      });
       return;
     }
     
@@ -58,136 +83,145 @@ export function EnhancedPlateLookup() {
     setErrors({});
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate API call to lookup plate
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock response
-      setVehicle({
-        makeId: '2',
-        model: 'Camry',
-        year: '2020',
-        mileage: '30000',
-        zipCode: ''
+      // For demo purposes, always "find" a vehicle
+      setIsVehicleFound(true);
+      setVehicleData({
+        make: 'Honda',
+        model: 'Accord',
+        year: '2019',
+        trim: 'EX',
+        engine: '1.5L Turbo 4-Cylinder'
       });
       
-      toast.success('Vehicle information retrieved successfully');
-      setIsSubmitted(true);
+      // Pre-populate form with found data
+      setFormData({
+        makeId: 'honda',
+        model: 'Accord',
+        year: '2019',
+        mileage: '',
+        zipCode: ''
+      });
     } catch (error) {
-      console.error('Error looking up plate:', error);
-      setErrors({ plate: 'Failed to lookup plate. Please try again.' });
-      toast.error('Error looking up license plate');
+      console.error('Error fetching plate data:', error);
+      setErrors({
+        api: 'Failed to retrieve vehicle data. Please try again.'
+      });
     } finally {
       setIsLoading(false);
     }
   };
-
+  
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle valuation request
+    console.log('Submitting valuation with data:', {
+      plateNumber,
+      state,
+      ...formData
+    });
+  };
+  
+  const handleYearChange = (year: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      year: String(year)
+    }));
+  };
+  
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">License Plate Lookup</h2>
-        <p className="text-muted-foreground">
-          Enter your license plate information to retrieve vehicle details.
-        </p>
-      </div>
-      
-      {!isSubmitted ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Enter License Plate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="plate">License Plate</Label>
-                <Input
-                  id="plate"
-                  value={plateNumber}
-                  onChange={handlePlateChange}
-                  placeholder="Enter plate number"
-                  className={errors.plate ? 'border-red-300' : ''}
-                />
-                {errors.plate && (
-                  <p className="text-sm text-red-500">{errors.plate}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Select
-                  value={stateCode}
-                  onValueChange={setStateCode}
-                >
-                  <SelectTrigger 
-                    id="state"
-                    className={errors.state ? 'border-red-300' : ''}
-                  >
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {states.map((state) => (
-                      <SelectItem key={state.value} value={state.value}>
-                        {state.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.state && (
-                  <p className="text-sm text-red-500">{errors.state}</p>
-                )}
-              </div>
-              
-              <Button 
-                type="submit" 
-                disabled={isLoading || !plateNumber || !stateCode}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Looking up plate...
-                  </>
-                ) : (
-                  'Lookup Plate'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BasicVehicleInfo
-              selectedMakeId={vehicle.makeId}
-              setSelectedMakeId={(id) => setVehicle(prev => ({ ...prev, makeId: id }))}
-              selectedModel={vehicle.model}
-              setSelectedModel={(model) => setVehicle(prev => ({ ...prev, model }))}
-              selectedYear={vehicle.year}
-              setSelectedYear={(year) => setVehicle(prev => ({ ...prev, year: String(year) }))}
-              mileage={vehicle.mileage}
-              setMileage={(mileage) => setVehicle(prev => ({ ...prev, mileage }))}
-              zipCode={vehicle.zipCode}
-              setZipCode={(zipCode) => setVehicle(prev => ({ ...prev, zipCode }))}
-              errors={errors}
-            />
+    <form onSubmit={handleFormSubmit}>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-medium mb-2">Enter your License Plate Details</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2 space-y-2">
+              <Label htmlFor="plateNumber">License Plate Number</Label>
+              <Input
+                id="plateNumber"
+                value={plateNumber}
+                onChange={handlePlateNumberChange}
+                placeholder="Enter plate number"
+                className={plateNumberValidationError ? 'border-red-500' : ''}
+              />
+              {plateNumberValidationError && (
+                <FormValidationError error={plateNumberValidationError} />
+              )}
+            </div>
             
-            <div className="mt-6 flex justify-end">
-              <Button 
-                onClick={() => setIsSubmitted(false)}
-                variant="outline" 
-                className="mr-2"
-              >
-                Back
-              </Button>
-              <Button>
-                Continue
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Select value={state} onValueChange={handleStateChange}>
+                <SelectTrigger id="state" className={stateValidationError ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {usStates.map((state) => (
+                    <SelectItem key={state.value} value={state.value}>
+                      {state.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {stateValidationError && (
+                <FormValidationError error={stateValidationError} />
+              )}
+            </div>
+          </div>
+          
+          {errors.api && (
+            <div className="mt-2">
+              <FormValidationError error={errors.api} />
+            </div>
+          )}
+          
+          <div className="mt-4">
+            <Button 
+              type="button"
+              onClick={handlePlateSubmit}
+              disabled={!isFormValid || isLoading}
+              className="w-full"
+            >
+              {isLoading ? 'Looking up Plate...' : 'Lookup Plate'}
+            </Button>
+          </div>
+        </div>
+        
+        {isVehicleFound && (
+          <Card className="p-4">
+            <div className="mb-4">
+              <h3 className="text-lg font-medium">Vehicle Found</h3>
+              <p className="text-sm text-muted-foreground">
+                {vehicleData.year} {vehicleData.make} {vehicleData.model} {vehicleData.trim}
+              </p>
+            </div>
+            
+            <div className="space-y-6">
+              <BasicVehicleInfo
+                selectedMakeId={formData.makeId}
+                setSelectedMakeId={(makeId) => setFormData(prev => ({ ...prev, makeId }))}
+                selectedModel={formData.model}
+                setSelectedModel={(model) => setFormData(prev => ({ ...prev, model }))}
+                selectedYear={formData.year}
+                setSelectedYear={handleYearChange}
+                mileage={formData.mileage}
+                setMileage={(mileage) => setFormData(prev => ({ ...prev, mileage }))}
+                zipCode={formData.zipCode}
+                setZipCode={(zipCode) => setFormData(prev => ({ ...prev, zipCode }))}
+                isDisabled={false}
+              />
+              
+              <Button type="submit" className="w-full">
+                Get Valuation
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </Card>
+        )}
+      </div>
+    </form>
   );
 }
+
+export default EnhancedPlateLookup;
