@@ -5,20 +5,29 @@ import { UserRole } from '@/types/auth';
 
 interface User {
   id: string;
-  email: string;
+  email?: string; // Changed to optional to match Supabase User type
   name?: string;
   user_metadata?: {
     role?: string;
     full_name?: string;
+    dealership_name?: string; // Added dealership_name
     [key: string]: any;
   };
-  created_at?: string;
+  created_at?: string; // Made optional
+}
+
+interface UserDetails {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: UserRole;
+  dealership_name?: string; // Added dealership_name
 }
 
 interface AuthContextType {
   user: User | null;
   session: any;
-  userDetails: any;
+  userDetails: UserDetails | null;
   userRole?: UserRole;
   error?: any;
   isLoading: boolean;
@@ -33,7 +42,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<any>(null);
-  const [userDetails, setUserDetails] = useState<any>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [userRole, setUserRole] = useState<UserRole | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<any>(null);
@@ -47,7 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error('Error fetching session:', error);
         } else {
           setSession(session);
-          setUser(session?.user ?? null);
+          // Use setState function form to avoid type errors
+          setUser(prevUser => session?.user ?? null);
           
           if (session?.user) {
             // Get user role from metadata
@@ -58,7 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               id: session.user.id,
               full_name: session.user.user_metadata?.full_name,
               email: session.user.email,
-              role: role,
+              role: role as UserRole,
+              dealership_name: session.user.user_metadata?.dealership_name,
             });
           }
         }
@@ -75,7 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        // Use setState function form to avoid type errors
+        setUser(prevUser => session?.user ?? null);
         
         if (session?.user) {
           const role = session.user.user_metadata?.role || 'individual';
@@ -84,7 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: session.user.id,
             full_name: session.user.user_metadata?.full_name,
             email: session.user.email,
-            role: role,
+            role: role as UserRole,
+            dealership_name: session.user.user_metadata?.dealership_name,
           });
         } else {
           setUserRole(undefined);
