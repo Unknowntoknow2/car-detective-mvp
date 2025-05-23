@@ -8,6 +8,7 @@ export interface FormData {
   mileage?: number;
   condition?: ConditionLevel;
   conditionLabel?: string;
+  conditionScore?: number;
   zipCode?: string;
   accidentHistory?: boolean;
   accidentDetails?: {
@@ -38,6 +39,7 @@ export interface FormData {
   bodyStyle?: string;
   valuationId?: string;
   exteriorColor?: string;
+  interiorColor?: string;
   colorMultiplier?: number;
   identifierType?: string;
   identifier?: string;
@@ -76,4 +78,14 @@ export interface ValuationResponse {
     description: string;
   }>;
   explanation?: string;
+}
+
+export interface FeatureOption {
+  id: string;
+  name: string;
+  value: number;
+  category: string;
+  description?: string;
+  popular?: boolean;
+  icon?: string;
 }

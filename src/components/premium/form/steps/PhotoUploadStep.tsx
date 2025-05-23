@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Button } from '@/components/ui/button';
-import { FileUpload, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 interface PhotoUploadStepProps {
   step: number;
@@ -85,7 +85,7 @@ export function PhotoUploadStep({
           htmlFor="photo-upload"
           className="flex flex-col items-center justify-center cursor-pointer"
         >
-          <FileUpload className="h-12 w-12 text-gray-400 mb-3" />
+          <Upload className="h-12 w-12 text-gray-400 mb-3" />
           <span className="text-sm font-medium text-gray-900">Click to upload</span>
           <span className="text-xs text-gray-500 mt-1">
             JPG, PNG, WEBP (max 10MB)
