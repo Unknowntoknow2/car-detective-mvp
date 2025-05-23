@@ -33,3 +33,11 @@ export interface ManualEntryFormData {
   selectedFeatures?: string[];
   accidentDetails?: AccidentDetails;
 }
+
+// Add the missing interface that ManualEntryForm.tsx is trying to import
+export interface ManualEntryFormProps {
+  onSubmit: (data: ManualEntryFormData) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
+}
