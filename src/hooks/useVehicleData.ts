@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface MakeData {
@@ -33,13 +33,16 @@ export const useVehicleData = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | Error | null>(null);
   const [counts, setCounts] = useState<VehicleDataCounts>({ makes: 0, models: 0 });
+  
+  // Add model cache to prevent repeated API calls
+  const modelCache = useRef<Record<string, ModelData[]>>({});
+  const fetchingMakes = useRef<Record<string, boolean>>({});
 
   const fetchMakes = useCallback(async (forceRefresh = false) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // Only select fields that actually exist in the database
       const { data, error } = await supabase
         .from('makes')
         .select('id, make_name')
@@ -47,7 +50,6 @@ export const useVehicleData = () => {
         
       if (error) throw error;
       
-      // Map the database results to our interface
       const makesData: MakeData[] = data?.map(make => ({
         id: make.id,
         make_name: make.make_name
@@ -55,7 +57,6 @@ export const useVehicleData = () => {
       
       setMakes(makesData);
       
-      // Update counts
       const makeCount = makesData.length || 0;
       let modelCount = 0;
       
@@ -88,14 +89,25 @@ export const useVehicleData = () => {
     fetchMakes();
   }, [fetchMakes]);
 
-  // Get models by make ID (not make name)
+  // Get models by make name with caching
   const getModelsByMake = async (makeName: string): Promise<ModelData[]> => {
     if (!makeName) return [];
     
     try {
+      // Return cached results if available
+      if (modelCache.current[makeName]) {
+        return modelCache.current[makeName];
+      }
+      
+      // Prevent duplicate requests for the same make
+      if (fetchingMakes.current[makeName]) {
+        return [];
+      }
+      
+      fetchingMakes.current[makeName] = true;
       console.log('Fetching models for make:', makeName);
       
-      // First, find the make_id for the given make name
+      // Find the make_id for the given make name
       const { data: makeData, error: makeError } = await supabase
         .from('makes')
         .select('id')
@@ -104,6 +116,7 @@ export const useVehicleData = () => {
       
       if (makeError || !makeData) {
         console.error('Error finding make ID:', makeError);
+        fetchingMakes.current[makeName] = false;
         return [];
       }
       
@@ -119,14 +132,21 @@ export const useVehicleData = () => {
         
       if (error) {
         console.error('Error fetching models:', error);
+        fetchingMakes.current[makeName] = false;
         return [];
       }
       
-      console.log(`Found ${data?.length || 0} models for make ${makeName}`);
-      console.log('Fetched models for make:', makeName, data);
-      return data || [];
+      const models = data || [];
+      console.log(`Found ${models.length} models for make ${makeName}`);
+      
+      // Store in cache
+      modelCache.current[makeName] = models;
+      fetchingMakes.current[makeName] = false;
+      
+      return models;
     } catch (err: any) {
       console.error('Error in getModelsByMake:', err);
+      fetchingMakes.current[makeName] = false;
       return [];
     }
   };
@@ -171,6 +191,8 @@ export const useVehicleData = () => {
 
   // Refresh data - useful for admin functions
   const refreshData = async (forceRefresh = false) => {
+    // Clear model cache on refresh
+    modelCache.current = {};
     return await fetchMakes(forceRefresh);
   };
 

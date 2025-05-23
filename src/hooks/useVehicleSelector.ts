@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
 
 interface UseVehicleSelectorProps {
@@ -29,6 +29,8 @@ export const useVehicleSelector = ({
   const [filteredModels, setFilteredModels] = useState<ModelData[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
+  
+  const fetchingRef = useRef(false);
 
   // Initialize filtered makes list
   useEffect(() => {
@@ -39,12 +41,19 @@ export const useVehicleSelector = ({
 
   // Get models for selected make
   useEffect(() => {
-    async function fetchModels() {
-      if (selectedMake) {
-        try {
-          setLoadingModels(true);
-          console.log('Fetching models for make:', selectedMake);
-          const availableModels = await getModelsByMake(selectedMake);
+    let isMounted = true;
+    
+    const fetchModels = async () => {
+      if (!selectedMake || fetchingRef.current) return;
+      
+      try {
+        fetchingRef.current = true;
+        setLoadingModels(true);
+        
+        console.log('Fetching models for make:', selectedMake);
+        const availableModels = await getModelsByMake(selectedMake);
+        
+        if (isMounted) {
           console.log('Models fetched:', availableModels);
           setModels(availableModels);
           setFilteredModels(availableModels);
@@ -54,20 +63,36 @@ export const useVehicleSelector = ({
             console.log('Resetting model because current selection is not in models list');
             setSelectedModel('');
           }
-        } catch (error) {
-          console.error("Error fetching models:", error);
+        }
+      } catch (error) {
+        console.error("Error fetching models:", error);
+        if (isMounted) {
           setModels([]);
           setFilteredModels([]);
-        } finally {
+        }
+      } finally {
+        if (isMounted) {
           setLoadingModels(false);
         }
-      } else {
-        setModels([]);
-        setFilteredModels([]);
+        fetchingRef.current = false;
+      }
+    };
+    
+    if (selectedMake) {
+      fetchModels();
+    } else {
+      setModels([]);
+      setFilteredModels([]);
+      
+      // Clear model when make is cleared
+      if (selectedModel) {
+        setSelectedModel('');
       }
     }
     
-    fetchModels();
+    return () => {
+      isMounted = false;
+    };
   }, [selectedMake, getModelsByMake, selectedModel, setSelectedModel]);
 
   // Handle search terms for makes
