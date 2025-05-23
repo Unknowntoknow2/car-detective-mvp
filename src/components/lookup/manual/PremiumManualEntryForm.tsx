@@ -1,120 +1,169 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { supabase } from '@/lib/supabaseClient';
 import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
 import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
 import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
-import { AccidentDetailsForm } from '@/components/lookup/form-parts/AccidentDetailsForm';
-import { toast } from 'sonner';
-import { 
-  ManualEntryFormData, 
-  ConditionLevel, 
-  AccidentDetails 
-} from '@/components/lookup/types/manualEntry';
 
-interface PremiumManualEntryFormProps {
-  onSubmit: (data: ManualEntryFormData) => void;
+export interface PremiumManualEntryFormProps {
+  onSubmit?: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
-  onCancel?: () => void;
-  initialData?: Partial<ManualEntryFormData>;
   submitButtonText?: string;
+  isPremium?: boolean;
 }
 
-export function PremiumManualEntryForm({
+export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
   onSubmit,
   isLoading = false,
-  onCancel,
-  initialData,
-  submitButtonText = "Continue"
-}: PremiumManualEntryFormProps) {
-  // States for form fields
-  const [make, setMake] = useState(initialData?.make || '');
-  const [model, setModel] = useState(initialData?.model || '');
-  const [year, setYear] = useState<number | string | ''>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
-  const [mileage, setMileage] = useState<number | string>(initialData?.mileage ? Number(initialData.mileage) : 0);
-  const [condition, setCondition] = useState<ConditionLevel>(
-    (initialData?.condition as ConditionLevel) || ConditionLevel.Good
-  );
-  const [zipCode, setZipCode] = useState(initialData?.zipCode || '');
-  const [fuelType, setFuelType] = useState(initialData?.fuelType || 'Gasoline');
-  const [transmission, setTransmission] = useState(initialData?.transmission || 'Automatic');
-  const [trim, setTrim] = useState(initialData?.trim || '');
-  const [color, setColor] = useState(initialData?.color || '');
-  const [bodyStyle, setBodyStyle] = useState(initialData?.bodyStyle || '');
-  const [vin, setVin] = useState(initialData?.vin || '');
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(initialData?.selectedFeatures || []);
-  const [hasAccident, setHasAccident] = useState<boolean>(
-    initialData?.accidentDetails?.hasAccident || false
-  );
-  const [accidentDetails, setAccidentDetails] = useState<AccidentDetails>(
-    initialData?.accidentDetails || { hasAccident: false }
-  );
-  
-  // Add validation state to enable/disable the Continue button
-  const [isValid, setIsValid] = useState(false);
-  
-  // Validate form whenever key fields change
-  useEffect(() => {
-    const isValidForm = Boolean(
-      make.trim() !== '' && 
-      model.trim() !== '' && 
-      typeof year === 'number' && year > 1900 && 
-      zipCode.length === 5
-    );
-    setIsValid(isValidForm);
-  }, [make, model, year, zipCode]);
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  submitButtonText = "Get Premium Valuation",
+  isPremium = true
+}) => {
+  const navigate = useNavigate();
+  const [formLoading, setFormLoading] = useState(false);
+  const [make, setMake] = useState('');
+  const [model, setModel] = useState('');
+  const [year, setYear] = useState<number | string | ''>(new Date().getFullYear());
+  const [mileage, setMileage] = useState<number | string>(0);
+  const [condition, setCondition] = useState('good');
+  const [zipCode, setZipCode] = useState('');
+  const [fuelType, setFuelType] = useState('Gasoline');
+  const [transmission, setTransmission] = useState('Automatic');
+  const [trim, setTrim] = useState('');
+  const [color, setColor] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!make) {
-      toast.error('Make is required');
+    if (!make.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the vehicle make",
+        variant: "destructive"
+      });
       return;
     }
     
-    if (!model) {
-      toast.error('Model is required');
+    if (!model.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the vehicle model",
+        variant: "destructive"
+      });
       return;
     }
     
-    if (!zipCode) {
-      toast.error('ZIP code is required');
+    if (!zipCode || zipCode.length !== 5) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid ZIP code",
+        variant: "destructive"
+      });
       return;
     }
     
-    // Create form data object
-    const formData: ManualEntryFormData = {
+    const formattedData: ManualEntryFormData = {
       make,
       model,
-      year: typeof year === 'number' ? year : new Date().getFullYear(),
+      year: typeof year === 'number' ? year : parseInt(year.toString()) || new Date().getFullYear(),
       mileage: typeof mileage === 'number' ? mileage : parseInt(mileage.toString()) || 0,
       condition,
       zipCode,
       fuelType,
       transmission,
-      trim,
-      color,
-      bodyStyle,
-      vin,
-      selectedFeatures,
-      accidentDetails: {
-        ...accidentDetails,
-        hasAccident
-      }
+      trim: trim || undefined,
+      color: color || undefined
     };
     
-    onSubmit(formData);
+    // If parent component provides onSubmit handler, use it
+    if (onSubmit) {
+      onSubmit(formattedData);
+      return;
+    }
+    
+    // Otherwise, handle submission internally
+    setFormLoading(true);
+    
+    try {
+      // Store data in Supabase
+      const { data, error } = await supabase
+        .from('valuations')
+        .insert({
+          make: formattedData.make,
+          model: formattedData.model,
+          year: formattedData.year,
+          mileage: formattedData.mileage,
+          condition: formattedData.condition,
+          state: formattedData.zipCode,
+          fuel_type: formattedData.fuelType,
+          transmission: formattedData.transmission,
+          color: formattedData.color,
+          body_type: 'Unknown', // Default value
+          is_vin_lookup: false,
+          estimated_value: calculateEstimatedValue(formattedData),
+          confidence_score: 75 // Manual entries get a medium confidence score
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Navigate to the result page with the new valuation ID
+      if (data && data.id) {
+        toast({
+          title: "Valuation Created",
+          description: "Your vehicle valuation has been created successfully.",
+          variant: "success"
+        });
+        navigate(`/valuation/${data.id}`);
+      }
+    } catch (error: any) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Error",
+        description: error.message || "There was an error creating your valuation.",
+        variant: "destructive"
+      });
+    } finally {
+      setFormLoading(false);
+    }
   };
 
-  const handleAccidentDetailsChange = (details: AccidentDetails) => {
-    setAccidentDetails(details);
-    setHasAccident(details.hasAccident || false);
+  // Helper function to calculate estimated value
+  const calculateEstimatedValue = (data: ManualEntryFormData): number => {
+    // Basic formula: base price adjusted for year, mileage, and condition
+    const basePrice = 15000;
+    const yearFactor = 1 + ((data.year - 2010) * 0.05);
+    const mileageFactor = data.mileage ? 1 - ((data.mileage / 100000) * 0.2) : 1;
+    
+    let conditionFactor = 1;
+    switch (data.condition) {
+      case 'excellent':
+        conditionFactor = 1.2;
+        break;
+      case 'good':
+        conditionFactor = 1.0;
+        break;
+      case 'fair':
+        conditionFactor = 0.8;
+        break;
+      case 'poor':
+        conditionFactor = 0.6;
+        break;
+      default:
+        conditionFactor = 1.0;
+    }
+    
+    return Math.floor(basePrice * yearFactor * mileageFactor * conditionFactor);
   };
 
-  // Create wrapper functions to handle type differences
+  // Create wrapper functions to handle the type differences
   const handleYearChange = (value: number | string | '') => {
     setYear(value);
   };
@@ -122,14 +171,13 @@ export function PremiumManualEntryForm({
   const handleMileageChange = (value: number | string) => {
     setMileage(value);
   };
-
+  
   return (
-    <Card className="shadow-sm border-2">
+    <Card>
       <form onSubmit={handleSubmit}>
-        <div className="p-6 space-y-6">
+        <CardContent className="space-y-4 pt-6">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Vehicle Information</h3>
-            <VehicleDetailsInputs
+            <VehicleDetailsInputs 
               make={make}
               setMake={setMake}
               model={model}
@@ -140,22 +188,15 @@ export function PremiumManualEntryForm({
               setMileage={handleMileageChange}
               trim={trim}
               setTrim={setTrim}
-              color={color}
-              setColor={setColor}
+              color={isPremium ? color : ''}
+              setColor={isPremium ? setColor : undefined}
             />
-            
-            {vin && (
-              <div className="flex items-center p-2 bg-gray-50 rounded">
-                <span className="text-sm">VIN: {vin}</span>
-              </div>
-            )}
           </div>
           
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Vehicle Condition</h3>
-            <ConditionAndFuelInputs
+            <ConditionAndFuelInputs 
               condition={condition}
-              setCondition={(val: ConditionLevel) => setCondition(val)}
+              setCondition={setCondition}
               fuelType={fuelType}
               setFuelType={setFuelType}
               transmission={transmission}
@@ -164,53 +205,32 @@ export function PremiumManualEntryForm({
           </div>
           
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Accident History</h3>
-            <AccidentDetailsForm
-              value={accidentDetails}
-              onChange={handleAccidentDetailsChange}
-            />
-          </div>
-          
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Location</h3>
-            <ZipCodeInput
+            <ZipCodeInput 
               zipCode={zipCode}
               setZipCode={setZipCode}
             />
           </div>
-        </div>
+        </CardContent>
         
-        <div className="p-6 bg-gray-50 flex justify-between gap-4 border-t">
-          {onCancel && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-          )}
+        <CardFooter className="border-t p-6 bg-gray-50">
           <Button 
-            type="submit" 
-            className="flex-1 flex items-center justify-center"
-            disabled={isLoading || !isValid}
+            type="submit"
+            className="w-full" 
+            disabled={isLoading || formLoading}
           >
-            {isLoading ? (
+            {(isLoading || formLoading) ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
             ) : (
-              <>
-                {submitButtonText} <ArrowRight className="ml-2 h-4 w-4" />
-              </>
+              submitButtonText
             )}
           </Button>
-        </div>
+        </CardFooter>
       </form>
     </Card>
   );
-}
+};
 
 export default PremiumManualEntryForm;

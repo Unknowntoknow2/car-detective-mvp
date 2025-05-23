@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RouteObject } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -7,7 +6,7 @@ import VinLookupPage from './pages/VinLookupPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
-import ValuationResultPage from './pages/ValuationResultPage';
+import ValuationResultPage from '@/pages/ValuationResultPage';
 import ResultPage from './pages/ResultPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
@@ -27,7 +26,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import DealerSignupPage from './pages/auth/DealerSignupPage';
 
 // Export routes configuration that can be used with useRoutes() hook
-const routes: RouteObject[] = [
+export const routes = [
   {
     path: '/',
     element: <Layout />,
@@ -153,6 +152,10 @@ const routes: RouteObject[] = [
         element: <NotFound />
       }
     ]
+  },
+  {
+    path: '/valuation/:id',
+    element: <ValuationResultPage />
   }
 ];
 
