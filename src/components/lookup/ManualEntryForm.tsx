@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
 import { ConditionAndFuelInputs } from './form-parts/ConditionAndFuelInputs';
 import { ZipCodeInput } from './form-parts/ZipCodeInput';
 import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
+import { useVehicleData } from '@/hooks/useVehicleData';
 
 export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -22,6 +23,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   submitButtonText = "Get Valuation",
   isPremium = false
 }) => {
+  const { makes, getModelsByMake } = useVehicleData();
+  
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState<number>(new Date().getFullYear());
@@ -30,22 +33,67 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [zipCode, setZipCode] = useState('');
   const [fuelType, setFuelType] = useState('Gasoline');
   const [transmission, setTransmission] = useState('Automatic');
+  const [models, setModels] = useState<string[]>([]);
+  const [isValid, setIsValid] = useState(false);
+  
+  // Fetch models when make changes
+  useEffect(() => {
+    if (make) {
+      const fetchModels = async () => {
+        try {
+          const modelData = await getModelsByMake(make);
+          if (modelData && Array.isArray(modelData)) {
+            setModels(modelData.map(m => m.model_name));
+          }
+        } catch (error) {
+          console.error('Error fetching models:', error);
+          setModels([]);
+        }
+      };
+      
+      fetchModels();
+    } else {
+      setModels([]);
+      // Clear model selection when make changes
+      if (model) setModel('');
+    }
+  }, [make, getModelsByMake]);
+  
+  // Validate form whenever key fields change
+  useEffect(() => {
+    const isValidForm = Boolean(
+      make.trim() !== '' && 
+      model.trim() !== '' && 
+      year > 1900 && 
+      zipCode.length === 5
+    );
+    setIsValid(isValidForm);
+  }, [make, model, year, zipCode]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!make.trim()) {
-      toast.error('Please enter the vehicle make');
+      toast({
+        title: "Please enter the vehicle make",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!model.trim()) {
-      toast.error('Please enter the vehicle model');
+      toast({
+        title: "Please enter the vehicle model",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!zipCode || zipCode.length !== 5) {
-      toast.error('Please enter a valid ZIP code');
+      toast({
+        title: "Please enter a valid ZIP code",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -77,6 +125,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
               setYear={setYear}
               mileage={mileage}
               setMileage={setMileage}
+              availableModels={models}
             />
           </div>
           
@@ -103,7 +152,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
           <Button 
             type="submit"
             className="w-full" 
-            disabled={isLoading || !make || !model || !zipCode}
+            disabled={isLoading || !isValid}
           >
             {isLoading ? (
               <>

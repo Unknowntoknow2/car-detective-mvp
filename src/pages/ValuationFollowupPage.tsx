@@ -1,12 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
+import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 export default function ValuationFollowupPage() {
   const navigate = useNavigate();
@@ -30,15 +32,18 @@ export default function ValuationFollowupPage() {
     }
   }, [location.search]);
   
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: ManualEntryFormData) => {
     setLoading(true);
     
     try {
-      // Store vehicle data for result page
-      localStorage.setItem('vehicle_data', JSON.stringify({
+      // Add VIN to the data if available
+      const formDataWithVin = {
         ...data,
         vin: vin || data.vin
-      }));
+      };
+      
+      // Store vehicle data for result page
+      localStorage.setItem('vehicle_data', JSON.stringify(formDataWithVin));
       
       // Get current user if available
       const { data: { user } } = await supabase.auth.getUser();
@@ -57,8 +62,10 @@ export default function ValuationFollowupPage() {
             user_id: user.id,
             fuel_type: data.fuelType,
             transmission: data.transmission,
-            vin: vin || data.vin,
-            accident: false
+            vin: vin || data.vin || null,
+            accident: data.accidentDetails?.hasAccident || false,
+            accident_severity: data.accidentDetails?.severity || null,
+            selected_features: data.selectedFeatures || []
           });
           
         if (error) {

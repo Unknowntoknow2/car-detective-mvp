@@ -1,7 +1,15 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { VEHICLE_MAKES, VEHICLE_YEARS } from '@/data/vehicle-data';
 
 interface VehicleDetailsInputsProps {
   make: string;
@@ -16,9 +24,10 @@ interface VehicleDetailsInputsProps {
   setTrim?: (value: string) => void;
   color?: string;
   setColor?: (value: string) => void;
+  availableModels?: string[];
 }
 
-export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
+export function VehicleDetailsInputs({
   make,
   setMake,
   model,
@@ -30,109 +39,129 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
   trim,
   setTrim,
   color,
-  setColor
-}) => {
+  setColor,
+  availableModels = []
+}: VehicleDetailsInputsProps) {
+  
   const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
   
-  // Handle year change with validation
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const yearValue = parseInt(e.target.value);
-    if (!isNaN(yearValue)) {
-      // Limit year between 1900 and current year + 1
-      if (yearValue >= 1900 && yearValue <= currentYear + 1) {
-        setYear(yearValue);
-      }
-    }
-  };
-  
-  // Handle mileage change with validation
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const mileageValue = parseInt(e.target.value);
-    if (!isNaN(mileageValue) && mileageValue >= 0) {
-      setMileage(mileageValue);
+    const value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      setMileage(0);
+    } else {
+      setMileage(parseInt(value, 10));
     }
   };
   
   return (
-    <div className="space-y-4">
+    <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="make">Make</Label>
-          <Input
-            id="make"
-            placeholder="e.g. Toyota"
+          <Select
             value={make}
-            onChange={(e) => setMake(e.target.value)}
-          />
+            onValueChange={setMake}
+          >
+            <SelectTrigger id="make">
+              <SelectValue placeholder="Select make" />
+            </SelectTrigger>
+            <SelectContent>
+              {VEHICLE_MAKES.map((makeName) => (
+                <SelectItem key={makeName} value={makeName}>
+                  {makeName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
-          <Input
-            id="model"
-            placeholder="e.g. Camry"
+          <Select
             value={model}
-            onChange={(e) => setModel(e.target.value)}
-          />
+            onValueChange={setModel}
+            disabled={!make}
+          >
+            <SelectTrigger id="model">
+              <SelectValue placeholder={make ? "Select model" : "Select make first"} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableModels.length > 0 ? (
+                availableModels.map((modelName) => (
+                  <SelectItem key={modelName} value={modelName}>
+                    {modelName}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="" disabled>
+                  {make ? "No models found" : "Select make first"}
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="year">Year</Label>
-          <Input
-            id="year"
-            type="number"
-            placeholder={`1900-${currentYear + 1}`}
-            value={year}
-            onChange={handleYearChange}
-            min={1900}
-            max={currentYear + 1}
-          />
+          <Select
+            value={year.toString()}
+            onValueChange={(value) => setYear(parseInt(value, 10))}
+          >
+            <SelectTrigger id="year">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((y) => (
+                <SelectItem key={y} value={y.toString()}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
           <Label htmlFor="mileage">Mileage</Label>
           <Input
             id="mileage"
-            type="number"
-            placeholder="e.g. 50000"
-            value={mileage}
+            type="text"
+            value={mileage || ''}
             onChange={handleMileageChange}
-            min={0}
+            placeholder="e.g. 45000"
           />
         </div>
       </div>
       
-      {(setTrim || setColor) && (
+      {/* Optional trim and color inputs for premium version */}
+      {setTrim && setColor && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {setTrim && (
-            <div className="space-y-2">
-              <Label htmlFor="trim">Trim (Optional)</Label>
-              <Input
-                id="trim"
-                placeholder="e.g. XLE"
-                value={trim}
-                onChange={(e) => setTrim(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="trim">Trim (Optional)</Label>
+            <Input
+              id="trim"
+              type="text"
+              value={trim || ''}
+              onChange={(e) => setTrim(e.target.value)}
+              placeholder="e.g. Sport, Limited"
+            />
+          </div>
           
-          {setColor && (
-            <div className="space-y-2">
-              <Label htmlFor="color">Color (Optional)</Label>
-              <Input
-                id="color"
-                placeholder="e.g. Silver"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="color">Color (Optional)</Label>
+            <Input
+              id="color"
+              type="text"
+              value={color || ''}
+              onChange={(e) => setColor(e.target.value)}
+              placeholder="e.g. Blue, Silver"
+            />
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
-};
-
-export default VehicleDetailsInputs;
+}
