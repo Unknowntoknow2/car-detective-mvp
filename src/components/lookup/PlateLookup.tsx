@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { states } from '@/data/states';
+import { usStates } from '@/data/states';
 
 export interface PlateLookupProps {
   onSubmit: (plate: string, state: string) => void;
@@ -42,12 +42,12 @@ export const PlateLookup: React.FC<PlateLookupProps> = ({
       
       <div className="space-y-2">
         <Label htmlFor="state">State</Label>
-        <Select value={state} onValueChange={setState}>
+        <Select value={state} onValueChange={(value: string) => setState(value)}>
           <SelectTrigger id="state">
             <SelectValue placeholder="Select state" />
           </SelectTrigger>
           <SelectContent>
-            {states.map((state) => (
+            {usStates.map((state) => (
               <SelectItem key={state.value} value={state.value}>
                 {state.label}
               </SelectItem>
