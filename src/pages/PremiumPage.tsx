@@ -9,8 +9,16 @@ import { EnhancedVinLookup } from '@/components/premium/lookup/EnhancedVinLookup
 import { EnhancedPlateLookup } from '@/components/premium/lookup/EnhancedPlateLookup';
 import { PremiumManualLookup } from '@/components/premium/lookup/PremiumManualLookup';
 import { PremiumHero } from '@/components/premium/hero/PremiumHero';
+import { toast } from 'sonner';
 
 export default function PremiumPage() {
+  // Define a handler for plate lookup submissions
+  const handlePlateLookupSubmit = (data: { plate: string; state: string; zipCode: string }) => {
+    console.log('Plate lookup submitted:', data);
+    toast.success('Plate lookup submitted successfully');
+    // Additional processing would go here
+  };
+
   return (
     <MainLayout>
       <Container className="py-8 px-4 md:px-6">
@@ -31,7 +39,7 @@ export default function PremiumPage() {
               </TabsContent>
               
               <TabsContent value="plate" className="space-y-4">
-                <EnhancedPlateLookup />
+                <EnhancedPlateLookup onSubmit={handlePlateLookupSubmit} />
               </TabsContent>
               
               <TabsContent value="manual" className="space-y-4">
