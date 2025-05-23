@@ -6,8 +6,9 @@ import { Loader2, ArrowRight } from 'lucide-react';
 import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
 import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
 import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { supabase } from '@/lib/supabase';
 
 interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -52,22 +53,31 @@ export function ManualLookup({
     setIsValid(isValidForm);
   }, [make, model, year, zipCode]);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
     if (!make) {
-      toast.error('Make is required');
+      toast({
+        title: "Make is required",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!model) {
-      toast.error('Model is required');
+      toast({
+        title: "Model is required",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!zipCode) {
-      toast.error('ZIP code is required');
+      toast({
+        title: "ZIP code is required",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -85,7 +95,51 @@ export function ManualLookup({
       color
     };
     
-    onSubmit(formData);
+    try {
+      // Get current user if available
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Save to Supabase if user is logged in
+        const { error } = await supabase
+          .from('manual_entry_valuations')
+          .insert({
+            make,
+            model,
+            year,
+            mileage,
+            condition: condition.toString(),
+            zip_code: zipCode,
+            user_id: user.id,
+            fuel_type: fuelType,
+            transmission,
+            selected_features: [],
+            accident: false
+          });
+          
+        if (error) {
+          console.error('Error saving to Supabase:', error);
+          toast({
+            title: "Error saving data",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Data saved to your account",
+            variant: "success",
+          });
+        }
+      }
+      
+      // Call the onSubmit prop with the form data
+      onSubmit(formData);
+      
+    } catch (error: any) {
+      console.error('Error in premium manual lookup:', error);
+      // Still call onSubmit even if there was an error saving to Supabase
+      onSubmit(formData);
+    }
   };
 
   return (

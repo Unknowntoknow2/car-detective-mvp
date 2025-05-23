@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ManualEntryForm from '@/components/lookup/ManualEntryForm';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 export default function ValuationFollowupPage() {
   const navigate = useNavigate();
@@ -30,20 +30,66 @@ export default function ValuationFollowupPage() {
     }
   }, [location.search]);
   
-  const handleSubmit = (data: any) => {
+  const handleSubmit = async (data: any) => {
     setLoading(true);
     
-    // Store vehicle data for result page
-    localStorage.setItem('vehicle_data', JSON.stringify({
-      ...data,
-      vin: vin || data.vin
-    }));
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Store vehicle data for result page
+      localStorage.setItem('vehicle_data', JSON.stringify({
+        ...data,
+        vin: vin || data.vin
+      }));
+      
+      // Get current user if available
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Save to Supabase if user is logged in
+        const { error } = await supabase
+          .from('manual_entry_valuations')
+          .insert({
+            make: data.make,
+            model: data.model,
+            year: data.year,
+            mileage: data.mileage,
+            condition: data.condition,
+            zip_code: data.zipCode,
+            user_id: user.id,
+            fuel_type: data.fuelType,
+            transmission: data.transmission,
+            vin: vin || data.vin,
+            accident: false
+          });
+          
+        if (error) {
+          console.error('Error saving to Supabase:', error);
+          toast({
+            title: "Error saving data",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Vehicle details saved",
+            variant: "success",
+          });
+        }
+      }
+      
+      // Navigate to results page
+      setTimeout(() => {
+        setLoading(false);
+        navigate('/valuation-result');
+      }, 1000);
+    } catch (error: any) {
+      console.error('Error in submit:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      });
       setLoading(false);
-      navigate('/valuation-result');
-    }, 1500);
+    }
   };
   
   const handleSkip = () => {
@@ -62,7 +108,11 @@ export default function ValuationFollowupPage() {
       
       navigate('/valuation-result');
     } else {
-      toast.error('Cannot skip without VIN information');
+      toast({
+        title: "Cannot skip",
+        description: "Cannot skip without VIN information",
+        variant: "destructive",
+      });
     }
   };
   
