@@ -33,7 +33,7 @@ export interface FormData {
   hasAccident?: boolean | 'yes' | 'no';
   accidentDescription?: string;
   drivingProfile?: 'light' | 'average' | 'heavy';
-  saleDate?: string | Date;
+  saleDate?: Date;
   bodyStyle?: string;
   conditionLabel?: string;
   exteriorColor?: string;
@@ -42,6 +42,7 @@ export interface FormData {
   identifierType?: string;
   valuation?: number;
   confidenceScore?: number;
+  identifier?: string;
 }
 
 export interface PremiumFeatureProps {
@@ -59,11 +60,11 @@ export interface PremiumTestimonialProps {
 
 // Add FeatureOption interface for components using it
 export interface FeatureOption {
-  id: string | number;
+  id: string;
   name: string;
   description?: string;
   category?: string;
-  value?: number;
+  value: number;
   impact?: number;
   selected?: boolean;
 }
