@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import DealerSidebar from '@/components/dealer/DealerSidebar';
+import { DealerSidebar } from '@/components/dealer/DealerSidebar';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
