@@ -109,14 +109,14 @@ export function ValuationResultStep({
       ];
     } else {
       priceRange = [
-        Math.round(result.estimatedValue * 0.95),
-        Math.ceil(result.estimatedValue * 1.05)
+        Math.round((result.estimatedValue || 0) * 0.95),
+        Math.ceil((result.estimatedValue || 0) * 1.05)
       ];
     }
   } else {
     priceRange = [
-      Math.round(result.estimatedValue * 0.95),
-      Math.ceil(result.estimatedValue * 1.05)
+      Math.round((result.estimatedValue || 0) * 0.95),
+      Math.ceil((result.estimatedValue || 0) * 1.05)
     ];
   }
 
@@ -132,8 +132,8 @@ export function ValuationResultStep({
       <UnifiedValuationResult
         valuationId={valuationId || ''}
         displayMode="full"
-        estimatedValue={result.estimatedValue}
-        confidenceScore={result.confidenceScore}
+        estimatedValue={result.estimatedValue || 0}
+        confidenceScore={result.confidenceScore || 0}
         priceRange={priceRange}
         adjustments={result.adjustments || []}
         vehicleInfo={{

@@ -5,87 +5,40 @@ export interface FormData {
   make?: string;
   model?: string;
   year?: number;
-  mileage?: number;
-  condition?: ConditionLevel;
-  conditionLabel?: string;
-  conditionScore?: number;
-  zipCode?: string;
+  mileage: number;
+  condition: ConditionLevel;
+  zipCode: string;
+  fuelType: string;
+  transmission: string;
+  vin?: string;
+  plate?: string;
+  stateCode?: string;
+  trim?: string;
+  bodyType?: string;
+  color?: string;
   accidentHistory?: boolean;
-  accidentDetails?: {
-    severity?: 'minor' | 'moderate' | 'severe';
-    repaired?: boolean;
-  };
-  drivingBehavior?: 'cautious' | 'normal' | 'aggressive';
-  transmission?: string;
+  accidentSeverity?: string;
   features?: string[];
+  serviceHistory?: boolean;
+  serviceFrequency?: string;
+  ownerCount?: number;
+  drivingBehavior?: string;
   photos?: File[];
   photoUrls?: string[];
-  hasWarranty?: boolean;
-  warrantyType?: string;
-  fuelType?: string;
-  bodyType?: string;
-  valueAdjustments?: {
-    conditionImpact?: number;
-    mileageImpact?: number;
-    featureImpact?: number;
-    locationImpact?: number;
-  };
-  
-  // Adding properties for form steps
-  hasAccident?: boolean | string;
-  accidentDescription?: string;
-  drivingProfile?: 'light' | 'average' | 'heavy';
-  saleDate?: Date;
-  bodyStyle?: string;
+  conditionScore: number;
   valuationId?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  colorMultiplier?: number;
-  identifierType?: string;
-  identifier?: string;
-  vin?: string;
-  valuation?: number;
-  confidenceScore?: number;
-  
-  // Additional properties for vehicle identification step
-  trim?: string;
-  titleStatus?: string;
+  userId?: string;
 }
 
-export interface ValidationStep {
+export interface PremiumFeatureProps {
   title: string;
   description: string;
-  isCompleted: boolean;
-  isValid: boolean;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-export interface ValuationParams {
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: ConditionLevel;
-  zipCode?: string;
-  features?: string[];
-}
-
-export interface ValuationResponse {
-  estimatedValue: number;
-  confidenceScore: number;
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
-  explanation?: string;
-}
-
-export interface FeatureOption {
-  id: string;
+export interface PremiumTestimonialProps {
   name: string;
-  value: number;
-  category: string;
-  description?: string;
-  popular?: boolean;
-  icon?: string;
+  role: string;
+  content: string;
+  rating: number;
 }
