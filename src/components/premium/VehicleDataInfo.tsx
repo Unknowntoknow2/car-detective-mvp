@@ -12,7 +12,7 @@ export function VehicleDataInfo() {
   const handleRefresh = async () => {
     try {
       toast.loading("Refreshing vehicle data...");
-      const result = await refreshData(true);
+      const result = await refreshData();
       if (result.success) {
         toast.success(`Vehicle data refreshed: ${result.makeCount} makes and ${result.modelCount} models loaded`);
       } else {

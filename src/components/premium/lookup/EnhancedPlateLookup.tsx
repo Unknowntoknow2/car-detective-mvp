@@ -1,103 +1,110 @@
+
 import React, { useState } from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { states } from '@/lib/states';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { US_STATES, State } from '@/lib/states';
+import { Search, AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function EnhancedPlateLookup() {
-  const [plateNumber, setPlateNumber] = useState('');
-  const [state, setState] = useState('');
+  const [plate, setPlate] = useState('');
+  const [selectedState, setSelectedState] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
-    if (!plateNumber.trim()) {
+    if (!plate.trim()) {
       setError('Please enter a license plate number');
       return;
     }
     
-    if (!state) {
+    if (!selectedState) {
       setError('Please select a state');
       return;
     }
     
-    setError('');
+    setError(null);
     setIsLoading(true);
     
     try {
-      // In a real app, this would make an API call to look up the plate
-      // For now, simulate a successful lookup with a delay
+      // In a real application, this would be an API call
+      // Simulate API call with a timeout
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Navigate to results page (in a real app, this would include the lookup ID)
-      navigate('/results?source=premium');
+      // Mock response
+      const mockResult = {
+        success: true,
+        vehicle: {
+          year: 2020,
+          make: 'Toyota',
+          model: 'Camry',
+          trim: 'SE',
+          engine: '2.5L 4-cylinder',
+          transmission: 'Automatic',
+          bodyType: 'Sedan',
+          color: 'Silver'
+        }
+      };
       
-      toast({
-        title: "Vehicle found!",
-        description: "We've found your vehicle based on the plate information.",
-      });
-    } catch (err) {
-      console.error('Error looking up plate:', err);
+      setResult(mockResult);
+      toast.success('Vehicle found!');
+    } catch (error) {
+      console.error('Error looking up license plate:', error);
       setError('Failed to look up license plate. Please try again.');
-      
-      toast({
-        title: "Lookup failed",
-        description: "We couldn't find a vehicle with that plate number. Please check and try again.",
-        variant: "destructive",
-      });
+      toast.error('Failed to look up license plate');
     } finally {
       setIsLoading(false);
     }
   };
-
+  
+  const handleStateChange = (state: string) => {
+    setSelectedState(state);
+  };
+  
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold">License Plate Lookup</h2>
         <p className="text-muted-foreground">
-          Enter your license plate number and select the state to get a detailed valuation.
+          Enter a license plate number and select the state to find vehicle details.
         </p>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="plateNumber" className="text-sm font-medium text-slate-700">
-              License Plate Number <span className="text-red-500">*</span>
-            </Label>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2 col-span-2">
+            <label htmlFor="plate" className="block text-sm font-medium">
+              License Plate Number
+            </label>
             <Input
-              id="plateNumber"
-              value={plateNumber}
-              onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
-              placeholder="Enter plate number"
-              className="h-10"
-              maxLength={10}
+              id="plate"
+              placeholder="Enter license plate (e.g., ABC123)"
+              value={plate}
+              onChange={(e) => setPlate(e.target.value)}
+              className="w-full"
               disabled={isLoading}
             />
           </div>
-
+          
           <div className="space-y-2">
-            <Label htmlFor="state" className="text-sm font-medium text-slate-700">
-              State <span className="text-red-500">*</span>
-            </Label>
+            <label htmlFor="state" className="block text-sm font-medium">
+              State
+            </label>
             <Select
-              value={state}
-              onValueChange={setState}
+              value={selectedState}
+              onValueChange={handleStateChange}
               disabled={isLoading}
             >
-              <SelectTrigger id="state" className="h-10">
+              <SelectTrigger id="state">
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent>
-                {states.map((state) => (
+                {US_STATES.map((state: State) => (
                   <SelectItem key={state.value} value={state.value}>
                     {state.label}
                   </SelectItem>
@@ -106,24 +113,80 @@ export function EnhancedPlateLookup() {
             </Select>
           </div>
         </div>
-
+        
         {error && (
-          <div className="text-red-500 text-sm">{error}</div>
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+            <p className="text-sm">{error}</p>
+          </div>
         )}
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
-            {isLoading ? 'Searching...' : 'Search'}
-          </Button>
-        </div>
+        
+        <Button 
+          type="submit" 
+          className="w-full md:w-auto"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Searching...
+            </>
+          ) : (
+            <>
+              <Search className="mr-2 h-4 w-4" />
+              Search
+            </>
+          )}
+        </Button>
       </form>
-
-      <div className="text-sm text-muted-foreground">
-        <p>
-          Note: Premium plate lookup provides enhanced vehicle details including
-          trim level, factory options, and more accurate valuation.
-        </p>
-      </div>
+      
+      {result && (
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-medium mb-4">Vehicle Found</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
+              <div>
+                <p className="text-sm text-gray-500">Year</p>
+                <p className="font-medium">{result.vehicle.year}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Make</p>
+                <p className="font-medium">{result.vehicle.make}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Model</p>
+                <p className="font-medium">{result.vehicle.model}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Trim</p>
+                <p className="font-medium">{result.vehicle.trim}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Engine</p>
+                <p className="font-medium">{result.vehicle.engine}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Transmission</p>
+                <p className="font-medium">{result.vehicle.transmission}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Body Type</p>
+                <p className="font-medium">{result.vehicle.bodyType}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Color</p>
+                <p className="font-medium">{result.vehicle.color}</p>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <Button variant="default" className="w-full">
+                Continue with this vehicle
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
