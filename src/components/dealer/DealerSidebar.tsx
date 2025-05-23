@@ -7,11 +7,22 @@ import {
   Users, 
   BarChart3, 
   Settings, 
-  LogOut
+  LogOut,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
-export const DealerSidebar: React.FC = () => {
+interface DealerSidebarProps {
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}
+
+export const DealerSidebar: React.FC<DealerSidebarProps> = ({ 
+  collapsed = false, 
+  onToggleCollapse 
+}) => {
   const { signOut, userDetails } = useAuth();
   
   const navItems = [
@@ -23,16 +34,29 @@ export const DealerSidebar: React.FC = () => {
   ];
   
   return (
-    <div className="hidden md:flex w-64 flex-col h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-          Dealer Portal
-        </h2>
-        {userDetails?.dealership_name && (
+    <div 
+      className={`${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 flex flex-col h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700`}
+    >
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        {!collapsed && (
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+            Dealer Portal
+          </h2>
+        )}
+        {userDetails?.dealership_name && !collapsed && (
           <p className="text-sm text-muted-foreground">
             {userDetails.dealership_name}
           </p>
         )}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={onToggleCollapse}
+          className="ml-auto"
+        >
+          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          <span className="sr-only">Toggle sidebar</span>
+        </Button>
       </div>
       
       <nav className="flex-1 py-4 px-2 space-y-1">
@@ -51,7 +75,7 @@ export const DealerSidebar: React.FC = () => {
               }
             >
               <Icon className="mr-3 h-5 w-5" />
-              {item.label}
+              {!collapsed && item.label}
             </NavLink>
           );
         })}
@@ -63,7 +87,7 @@ export const DealerSidebar: React.FC = () => {
           className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
         >
           <LogOut className="mr-3 h-5 w-5" />
-          Sign Out
+          {!collapsed && "Sign Out"}
         </button>
       </div>
     </div>
