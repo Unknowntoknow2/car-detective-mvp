@@ -12,6 +12,15 @@ interface LookupTabsProps {
 }
 
 export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProps) {
+  // Define a dummy onSubmit handler if none is provided
+  const handleSubmit = (data: { plate: string; state: string; zipCode: string }) => {
+    console.log('Plate lookup submitted:', data);
+    // Pass to formProps.onSubmit if available
+    if (formProps?.onSubmit) {
+      formProps.onSubmit(data);
+    }
+  };
+
   return (
     <Tabs value={lookup} onValueChange={(value) => onLookupChange(value as any)} className="w-full">
       <TabsList className="grid grid-cols-3 mb-6">
@@ -25,7 +34,7 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
       </TabsContent>
       
       <TabsContent value="plate" className="space-y-4">
-        <EnhancedPlateLookup />
+        <EnhancedPlateLookup onSubmit={handleSubmit} />
       </TabsContent>
       
       <TabsContent value="manual" className="space-y-4">
