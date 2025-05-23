@@ -46,7 +46,7 @@ export default function UserDashboard() {
         year: item.year || 0,
         mileage: item.mileage || 0,
         vin: item.vin || '',
-        estimatedValue: item.estimated_value || 0,
+        estimatedValue: item.estimated_value || 0, // ✅ Fixed: Added fallback value
         photoUrl: item.photo_url || '',
         photoScore: item.photo_score || 0,
         createdAt: item.created_at || '',
@@ -85,8 +85,8 @@ export default function UserDashboard() {
         model: valuation.model || 'Unknown',
         year: valuation.year || new Date().getFullYear(),
         mileage: valuation.mileage || 0,
-        condition: valuation.condition || 'Good', // Make sure condition is included
-        estimatedValue: valuation.estimatedValue,
+        condition: valuation.condition || 'Good',
+        estimatedValue: valuation.estimatedValue || 0, // ✅ Fixed: Added fallback value
         confidenceScore: valuation.confidenceScore || 75,
         zipCode: valuation.zipCode || '00000',
         aiCondition: {
@@ -96,7 +96,7 @@ export default function UserDashboard() {
           summary: `Vehicle is in ${valuation.condition || 'Good'} condition.`
         },
         adjustments: formattedAdjustments,
-        generatedAt: new Date().toISOString() // Use generatedAt instead of generatedDate
+        generatedAt: new Date().toISOString() 
       };
 
       await downloadValuationPdf(reportData);

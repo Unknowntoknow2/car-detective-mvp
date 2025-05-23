@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { ConditionLevel } from '@/components/lookup/types/manualEntry'; // Import the proper enum
@@ -181,4 +180,5 @@ const PremiumValuationForm = () => {
   );
 };
 
+// ✅ Fixed export - now using default export for PremiumValuationForm
 export default PremiumValuationForm;

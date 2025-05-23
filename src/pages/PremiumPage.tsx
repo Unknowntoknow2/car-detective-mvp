@@ -1,177 +1,55 @@
-
-import React, { useRef, useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { Container } from '@/components/ui/container';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PremiumValuationForm } from '@/components/premium/form/PremiumValuationForm';
-import { EnhancedVinLookup } from '@/components/premium/lookup/EnhancedVinLookup';
-import { EnhancedPlateLookup } from '@/components/premium/lookup/EnhancedPlateLookup';
-import { PremiumManualLookup } from '@/components/premium/lookup/PremiumManualLookup';
-import { PremiumHero } from '@/components/premium/hero/PremiumHero';
-import { ComparisonSection } from '@/components/premium/ComparisonSection';
-import { PremiumTabs } from '@/components/premium/PremiumTabs';
-import { KeyFeatures } from '@/components/home/KeyFeatures';
-import { TabNavigation } from '@/components/premium/sections/valuation-tabs/TabNavigation';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { ValuationServiceId } from '@/components/premium/sections/valuation-tabs/services';
-import { useVehicleLookup } from '@/hooks/useVehicleLookup';
+import React, { useRef } from 'react';
+import { Layout } from '@/components/layout';
+import { SEO } from '@/components/layout/seo';
+import { PremiumHero } from '@/components/premium/sections/PremiumHero';
+import { PremiumFeatures } from '@/components/premium/sections/PremiumFeatures';
+import PremiumValuationForm from '@/components/premium/form/PremiumValuationForm';
+import { PremiumTestimonials } from '@/components/premium/sections/PremiumTestimonials';
+import { PremiumPricing } from '@/components/premium/sections/PremiumPricing';
+import { PremiumFaq } from '@/components/premium/sections/PremiumFaq';
+import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
-  const valuationFormRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<ValuationServiceId>('vin');
-  const [vehicle, setVehicle] = useState<any>(null);
-  const navigate = useNavigate();
-  const { lookupVehicle, isLoading } = useVehicleLookup();
-  
-  // Define a handler for plate lookup submissions
-  const handlePlateLookupSubmit = async (data: { plate: string; state: string; zipCode: string }) => {
-    try {
-      const result = await lookupVehicle('plate', data.plate, data.state);
-      if (result) {
-        setVehicle(result);
-        toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
-        scrollToValuationForm();
-      }
-    } catch (error) {
-      console.error('Plate lookup error:', error);
-      toast.error('Failed to lookup license plate');
-    }
-  };
 
-  // Define a handler for VIN lookup submissions
-  const handleVinLookupSubmit = async (vin: string) => {
-    try {
-      const result = await lookupVehicle('vin', vin);
-      if (result) {
-        setVehicle(result);
-        toast.success(`Found: ${result.year} ${result.make} ${result.model}`);
-        scrollToValuationForm();
-      }
-    } catch (error) {
-      console.error('VIN lookup error:', error);
-      toast.error('Failed to lookup VIN');
-    }
-  };
-
-  // Define a handler for manual lookup submissions
-  const handleManualLookupSubmit = async (data: any) => {
-    try {
-      const result = await lookupVehicle('manual', 'manual-entry', undefined, data);
-      if (result) {
-        setVehicle(result);
-        toast.success(`Added: ${data.year} ${data.make} ${data.model}`);
-        scrollToValuationForm();
-      }
-    } catch (error) {
-      console.error('Manual lookup error:', error);
-      toast.error('Failed to add vehicle details');
-    }
-  };
-
-  // Function to scroll to the premium form
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-  
-  // Function to scroll to the valuation form after lookup
-  const scrollToValuationForm = () => {
-    valuationFormRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
-  const handleTabChange = (tab: ValuationServiceId) => {
-    setActiveTab(tab);
+  // Type annotation for valuationId parameter
+  const handlePurchaseCredit = (valuationId: string) => {
+    console.log(`Purchase credit for valuation ID: ${valuationId}`);
+    // Implement your logic here, e.g., open a modal or redirect to a payment page
   };
 
   return (
-    <MainLayout>
-      <Container className="py-8 px-4 md:px-6">
-        <PremiumHero scrollToForm={scrollToForm} />
-        
-        {/* Add Key Features section */}
-        <KeyFeatures />
-        
-        <div className="mt-16" ref={formRef}>
-          <Card className="p-6">
-            <Tabs defaultValue="vin" className="w-full">
-              <TabsList className="grid grid-cols-3 md:grid-cols-4 mb-6">
-                <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
-                <TabsTrigger value="plate">Plate Lookup</TabsTrigger>
-                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                <TabsTrigger value="photo" className="hidden md:block">Photo Upload</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="vin" className="space-y-4">
-                <EnhancedVinLookup onSubmit={handleVinLookupSubmit} isLoading={isLoading} />
-              </TabsContent>
-              
-              <TabsContent value="plate" className="space-y-4">
-                <EnhancedPlateLookup onSubmit={handlePlateLookupSubmit} isLoading={isLoading} />
-              </TabsContent>
-              
-              <TabsContent value="manual" className="space-y-4">
-                <PremiumManualLookup onSubmit={handleManualLookupSubmit} isLoading={isLoading} />
-              </TabsContent>
-              
-              <TabsContent value="photo" className="space-y-4">
-                <div className="text-center p-8">
-                  <h3 className="text-lg font-medium mb-2">Photo Upload Coming Soon</h3>
-                  <p className="text-muted-foreground">
-                    Our AI-powered photo recognition system is currently in development.
-                  </p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </Card>
+    <Layout>
+      <SEO title="Premium Valuation" description="Unlock the full potential of your vehicle's value with our premium valuation service." />
+      
+      <PremiumHero scrollToForm={scrollToForm} />
+      
+      <section className="bg-secondary py-12 md:py-20">
+        <div className="container grid items-center justify-center gap-6 pt-6 md:pt-10 pb-8 md:pb-14">
+          <h2 className="text-3xl font-bold text-center">Ready to see what your vehicle is really worth?</h2>
+          <p className="max-w-[85%] md:max-w-[70%] mx-auto text-lg text-muted-foreground text-center">
+            Our premium valuation service goes beyond the basics, providing you with an in-depth analysis of your vehicle's market value.
+          </p>
+          <Button onClick={scrollToForm} className="mx-auto flex items-center gap-2">
+            Get Started <ChevronDown className="h-4 w-4" />
+          </Button>
         </div>
-        
-        {vehicle && (
-          <div className="mt-8" ref={valuationFormRef}>
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">
-                {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim && `(${vehicle.trim})`}
-              </h2>
-              
-              <Tabs defaultValue="details" className="w-full">
-                <TabNavigation 
-                  activeTab={activeTab} 
-                  onTabChange={handleTabChange}
-                />
-                
-                <div className="mt-6">
-                  <PremiumValuationForm 
-                    vehicle={vehicle}
-                    onComplete={(valuationId) => {
-                      toast.success("Valuation completed!");
-                      navigate(`/premium-results/${valuationId}`);
-                    }}
-                  />
-                </div>
-              </Tabs>
-            </Card>
-          </div>
-        )}
-        
-        <div className="mt-16">
-          <ComparisonSection scrollToForm={scrollToForm} />
-        </div>
-        
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Choose Your Valuation Package</h2>
-          <PremiumTabs 
-            showFreeValuation={true}
-            onSubmit={(type) => {
-              if (type === 'premium') {
-                scrollToForm();
-              } else {
-                navigate('/valuation');
-              }
-            }}
-          />
-        </div>
-      </Container>
-    </MainLayout>
+      </section>
+      
+      <PremiumFeatures />
+      
+      <PremiumValuationForm formRef={formRef} />
+      
+      <PremiumTestimonials />
+      
+      <PremiumPricing onPurchaseCredit={handlePurchaseCredit} />
+      
+      <PremiumFaq />
+    </Layout>
   );
 }

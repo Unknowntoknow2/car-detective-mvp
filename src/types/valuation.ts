@@ -22,7 +22,7 @@ export interface ValuationResult {
   created_at?: string;
   updated_at?: string;
   
-  // Adding missing properties
+  // Updated properties
   confidenceScore?: number;
   confidence_score?: number;
   features?: string[];
@@ -45,6 +45,13 @@ export interface ValuationResult {
   photoScore?: number;
   bestPhotoUrl?: string;
   valuationId?: string;
+  userId?: string; // Added userId
+  aiCondition?: { // Added aiCondition type
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+  };
 }
 
 export interface ValuationResponse {

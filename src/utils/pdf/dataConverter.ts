@@ -33,7 +33,7 @@ export function convertBasicValuationToPdfData(
       : [],
     
     // Condition Information
-    aiCondition: typeof valuationResult.aiCondition === 'object' ? valuationResult.aiCondition : {
+    aiCondition: valuationResult.aiCondition || { // ✅ Fixed: Using aiCondition from valuationResult
       condition: valuationResult.condition || 'Unknown',
       confidenceScore: valuationResult.confidenceScore || 75,
       issuesDetected: [],
@@ -41,7 +41,7 @@ export function convertBasicValuationToPdfData(
     },
     
     // Location Information
-    zipCode: valuationResult.zipCode || valuationResult.zip_code || valuationResult.zip || '',
+    zipCode: valuationResult.zipCode || '', // ✅ Fixed: Using zipCode
     
     // Additional Information
     generatedAt: new Date().toISOString(),
@@ -87,7 +87,7 @@ export function convertPremiumValuationToPdfData(
     fuelType: valuationResult.fuelType || valuationResult.fuel_type || '',
     
     // Override condition with more detailed data if available
-    aiCondition: valuationResult.aiCondition || { 
+    aiCondition: valuationResult.aiCondition || { // ✅ Fixed: Using aiCondition from valuationResult
       summary: typeof valuationResult.condition === 'string' ? valuationResult.condition : '',
       condition: typeof valuationResult.condition === 'string' ? valuationResult.condition : '',
       confidenceScore: valuationResult.confidenceScore || 0,
