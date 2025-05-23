@@ -1,233 +1,156 @@
-
-import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { PremiumUpgradeCTA } from '@/components/premium/PremiumUpgradeCTA';
-import { usePremiumAccess } from '@/hooks/usePremiumAccess';
-import { useAuth } from '@/hooks/useAuth';
-import { verifyPaymentSession } from '@/utils/stripeClient';
-import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Container } from '@/components/ui/container';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { PdfPreview } from '@/components/home/PdfPreview';
+import { Loader2 } from 'lucide-react';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function PremiumValuationPage() {
-  const { valuationId } = useParams<{ valuationId: string }>();
-  const [searchParams] = useSearchParams();
+  const { id: valuationId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isLoading: authLoading, user } = useAuth();
-  const { hasPremiumAccess, isLoading: accessLoading, usePremiumCredit } = usePremiumAccess(valuationId);
+  const [valuation, setValuation] = useState<any>(null);
+  const [isLoadingValuation, setIsLoadingValuation] = useState(true);
+  const { hasPremiumAccess, isLoading, creditsRemaining, usePremiumCredit } = usePremiumAccess(valuationId);
   
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'success' | 'error' | 'none'>('none');
-  const [statusMessage, setStatusMessage] = useState('');
-  
-  const isLoading = authLoading || accessLoading;
-  
-  // Check if returning from Stripe checkout
   useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    const premiumParam = searchParams.get('premium');
-    
-    if (sessionId) {
-      setIsVerifying(true);
+    const fetchValuation = async () => {
+      if (!valuationId) return;
       
-      verifyPaymentSession(sessionId)
-        .then(data => {
-          if (data.success) {
-            setPaymentStatus('success');
-            setStatusMessage('Payment successful! Premium features are now unlocked.');
-            
-            // If we have a valuation ID, use a credit to unlock it
-            if (valuationId && data.bundle > 0) {
-              return usePremiumCredit(valuationId);
-            }
-          } else {
-            setPaymentStatus('error');
-            setStatusMessage('Payment verification failed. Please try again or contact support.');
-          }
-        })
-        .catch(error => {
-          console.error('Error verifying payment:', error);
-          setPaymentStatus('error');
-          setStatusMessage('Failed to verify payment. Please try again or contact support.');
-        })
-        .finally(() => {
-          setIsVerifying(false);
+      try {
+        setIsLoadingValuation(true);
+        const { data, error } = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('id', valuationId)
+          .maybeSingle();
+          
+        if (error) throw error;
+        setValuation(data);
+      } catch (error) {
+        console.error('Error fetching valuation:', error);
+        toast({
+          title: "Error loading valuation",
+          description: "Could not load valuation details.",
+          variant: "destructive",
         });
-    } else if (premiumParam === '1') {
-      setPaymentStatus('success');
-      setStatusMessage('Premium features are now available!');
-    }
-  }, [searchParams, valuationId, usePremiumCredit]);
+      } finally {
+        setIsLoadingValuation(false);
+      }
+    };
+    
+    fetchValuation();
+  }, [valuationId]);
   
-  const handleViewValuation = () => {
-    if (valuationId) {
-      navigate(`/valuation/${valuationId}`);
+  const handleUsePremiumCredit = async () => {
+    if (!valuationId) return;
+    
+    const success = await usePremiumCredit(valuationId);
+    
+    if (success) {
+      toast({
+        title: "Premium access granted!",
+        description: "You now have premium access to this valuation.",
+        variant: "success",
+      });
+      // Reload the page to show premium content
+      window.location.reload();
     } else {
-      navigate('/account');
+      toast({
+        title: "Error activating premium",
+        description: creditsRemaining > 0 
+          ? "Failed to use premium credit. Please try again." 
+          : "You don't have any premium credits available.",
+        variant: "destructive",
+      });
     }
   };
   
-  if (isLoading || isVerifying) {
+  if (isLoading || isLoadingValuation) {
     return (
-      <div className="container max-w-4xl py-8">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-lg font-medium">
-              {isVerifying ? 'Verifying payment...' : 'Loading...'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <MainLayout>
+        <Container className="py-12">
+          <div className="flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </Container>
+      </MainLayout>
     );
   }
   
-  if (paymentStatus === 'success') {
+  if (!valuation) {
     return (
-      <div className="container max-w-4xl py-8">
-        <Card className="border-green-200 bg-green-50 dark:bg-green-900/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-              Payment Successful
-            </CardTitle>
-            <CardDescription className="text-lg">
-              {statusMessage}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center mt-4">
-              <Button onClick={handleViewValuation}>
-                {valuationId ? 'View Valuation' : 'Go to Account'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <MainLayout>
+        <Container className="py-12">
+          <Card>
+            <CardContent className="py-12">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Valuation Not Found</h2>
+                <p className="text-muted-foreground mb-6">
+                  We couldn't find the valuation you're looking for.
+                </p>
+                <Button onClick={() => navigate('/')}>Return Home</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Container>
+      </MainLayout>
     );
   }
   
-  if (paymentStatus === 'error') {
+  if (!hasPremiumAccess) {
     return (
-      <div className="container max-w-4xl py-8">
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-              Payment Error
-            </CardTitle>
-            <CardDescription className="text-lg">
-              {statusMessage}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center mt-4">
-              <Button onClick={() => setPaymentStatus('none')}>
-                Try Again
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <MainLayout>
+        <Container className="py-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>Premium Access Required</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-6">
+                This valuation requires premium access. Unlock premium features to view detailed analysis and reports.
+              </p>
+              
+              {creditsRemaining > 0 ? (
+                <div className="space-y-4">
+                  <div className="bg-primary/10 p-4 rounded-md">
+                    <p className="font-medium">
+                      You have {creditsRemaining} premium credit{creditsRemaining !== 1 ? 's' : ''} available!
+                    </p>
+                  </div>
+                  <Button onClick={handleUsePremiumCredit}>
+                    Use 1 Credit to Unlock
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => navigate(`/premium-checkout?id=${valuationId}`)}>
+                  Upgrade to Premium
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </Container>
+      </MainLayout>
     );
   }
   
-  if (hasPremiumAccess && valuationId) {
-    return (
-      <div className="container max-w-4xl py-8">
-        <Card className="border-green-200 bg-green-50 dark:bg-green-900/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-              Premium Already Unlocked
-            </CardTitle>
-            <CardDescription className="text-lg">
-              You already have premium access to this valuation.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center mt-4">
-              <Button onClick={handleViewValuation}>
-                View Valuation
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
+  // Premium content display would go here
   return (
-    <div className="container max-w-4xl py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Upgrade to Premium</h1>
-        <p className="text-muted-foreground">
-          Get comprehensive valuation insights with premium features
-        </p>
-      </div>
-      
-      <PremiumUpgradeCTA valuationId={valuationId} />
-      
-      {/* Sample Report Preview Section */}
-      <div className="mt-12 mb-8">
-        <h2 className="text-xl font-semibold mb-6">Sample Premium Report</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="md:col-span-1">
-            <PdfPreview />
-          </div>
-          <div className="md:col-span-1 flex flex-col justify-center">
-            <h3 className="text-lg font-medium mb-4">See What You Get With Premium</h3>
-            <p className="text-muted-foreground mb-6">
-              Our premium valuation reports provide comprehensive details about your vehicle's value, 
-              condition assessment, and market position. Download a sample report to see the full benefits.
-            </p>
-            <Card className="bg-muted/40">
-              <CardContent className="pt-6">
-                <p className="font-medium">Sample reports include:</p>
-                <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>Detailed value breakdown</li>
-                  <li>Complete condition assessment</li>
-                  <li>Market comparison data</li>
-                  <li>Feature impact analysis</li>
-                  <li>CARFAX® history highlights</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-      
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-4">What's included with Premium</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="border rounded-lg p-4">
-            <h3 className="font-medium mb-2">Comprehensive Vehicle Analysis</h3>
-            <p className="text-muted-foreground">
-              Get detailed insights into your vehicle's condition, market position, and pricing factors.
-            </p>
-          </div>
-          <div className="border rounded-lg p-4">
-            <h3 className="font-medium mb-2">CARFAX Integration</h3>
-            <p className="text-muted-foreground">
-              Access vehicle history data including accidents, service records, and title information.
-            </p>
-          </div>
-          <div className="border rounded-lg p-4">
-            <h3 className="font-medium mb-2">Detailed PDF Reports</h3>
-            <p className="text-muted-foreground">
-              Download professional-quality reports for your records or to share with potential buyers.
-            </p>
-          </div>
-          <div className="border rounded-lg p-4">
-            <h3 className="font-medium mb-2">Market Comparison</h3>
-            <p className="text-muted-foreground">
-              See how your vehicle stacks up against similar models in your local market.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <MainLayout>
+      <Container className="py-12">
+        <Card>
+          <CardHeader>
+            <CardTitle>Premium Valuation Report</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Premium content for valuation {valuation.id}</p>
+            {/* Render premium valuation content here */}
+          </CardContent>
+        </Card>
+      </Container>
+    </MainLayout>
   );
 }

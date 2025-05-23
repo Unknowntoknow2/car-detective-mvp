@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 export function usePremiumAccess(valuationId?: string) {
   const [hasPremiumAccess, setHasPremiumAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [creditsRemaining, setCreditsRemaining] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -16,6 +17,7 @@ export function usePremiumAccess(valuationId?: string) {
         // If no user, definitely no premium access
         if (!user) {
           setHasPremiumAccess(false);
+          setCreditsRemaining(0);
           setIsLoading(false);
           return;
         }
@@ -31,6 +33,15 @@ export function usePremiumAccess(valuationId?: string) {
         if (subscriptionData && !subscriptionError) {
           setHasPremiumAccess(true);
           setIsLoading(false);
+          
+          // Also check credits
+          const { data: creditsData } = await supabase
+            .from('premium_access')
+            .select('credits_remaining')
+            .eq('user_id', user.id)
+            .maybeSingle();
+            
+          setCreditsRemaining(creditsData?.credits_remaining || 0);
           return;
         }
         
@@ -50,11 +61,21 @@ export function usePremiumAccess(valuationId?: string) {
           }
         }
         
+        // Check available credits
+        const { data: creditsData } = await supabase
+          .from('premium_access')
+          .select('credits_remaining')
+          .eq('user_id', user.id)
+          .maybeSingle();
+          
+        setCreditsRemaining(creditsData?.credits_remaining || 0);
+        
         // No premium access found
         setHasPremiumAccess(false);
       } catch (error) {
         console.error('Error checking premium access:', error);
         setHasPremiumAccess(false);
+        setCreditsRemaining(0);
       } finally {
         setIsLoading(false);
       }
@@ -63,5 +84,38 @@ export function usePremiumAccess(valuationId?: string) {
     checkPremiumAccess();
   }, [user, valuationId]);
 
-  return { hasPremiumAccess, isLoading };
+  // Add the usePremiumCredit function
+  const usePremiumCredit = async (valId: string): Promise<boolean> => {
+    if (!user || !valId) return false;
+    
+    try {
+      setIsLoading(true);
+      
+      // Call the Supabase Edge Function to use a premium credit
+      const { data, error } = await supabase.functions.invoke('use-premium-credit', {
+        body: { valuationId: valId }
+      });
+      
+      if (error) {
+        console.error('Error using premium credit:', error);
+        return false;
+      }
+      
+      if (data?.success) {
+        // Update local state
+        setHasPremiumAccess(true);
+        setCreditsRemaining(prev => Math.max(0, prev - 1));
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error using premium credit:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { hasPremiumAccess, isLoading, creditsRemaining, usePremiumCredit };
 }
