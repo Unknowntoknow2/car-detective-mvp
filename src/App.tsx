@@ -21,6 +21,7 @@ const DealerAuthPage = lazy(() => import('@/pages/auth/DealerAuthPage'));
 const AuthPage = lazy(() => import('@/pages/AuthPage'));
 const SignupPage = lazy(() => import('@/pages/auth/SignupPage'));
 const SigninPage = lazy(() => import('@/pages/auth/SigninPage'));
+const PremiumPage = lazy(() => import('@/pages/PremiumPage'));
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             <Route path="/plate-lookup" element={<PlateLookupPage />} />
             <Route path="/results/:id" element={<ResultsPage />} />
             <Route path="/results" element={<ResultsPage />} />
+            <Route path="/premium" element={<PremiumPage />} />
             
             {/* Auth Routes */}
             <Route path="/auth" element={<AuthPage />} />
