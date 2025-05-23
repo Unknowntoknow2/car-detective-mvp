@@ -58,7 +58,8 @@ export default function ResultsPage() {
         condition: data.condition || 'Unknown',
         confidenceScore: data.confidenceScore || 75,
         issuesDetected: []
-      }
+      },
+      userId: data.userId || ''
     };
   };
   
