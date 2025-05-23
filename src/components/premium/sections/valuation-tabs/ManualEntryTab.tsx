@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
+import { ManualLookup } from "@/components/lookup/ManualLookup";
 
 interface ManualEntryTabProps {
   isLoading: boolean;
@@ -15,7 +15,7 @@ export function ManualEntryTab({
   return (
     <Card>
       <CardContent className="p-6">
-        <ManualEntryForm
+        <ManualLookup
           onSubmit={onSubmit}
           isLoading={isLoading}
           submitButtonText="Continue"

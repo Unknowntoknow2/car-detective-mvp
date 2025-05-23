@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
-import { ManualEntryForm, ManualEntryFormProps } from './ManualEntryForm';
+import { ManualEntryFormFree } from './ManualEntryFormFree';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
 
-interface ManualLookupProps extends Omit<ManualEntryFormProps, 'onSubmit'> {
+interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
   initialData?: Partial<ManualEntryFormData>;
   onCancel?: () => void;
 }
@@ -84,7 +87,7 @@ export function ManualLookup({
   };
 
   return (
-    <ManualEntryForm
+    <ManualEntryFormFree
       onSubmit={handleSubmit}
       isLoading={isLoading}
       submitButtonText={submitButtonText}

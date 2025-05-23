@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { ValuationFactorsGrid } from '../condition/factors/ValuationFactorsGrid'
 import { ConditionValues } from '../condition/types';
 import { toast } from 'sonner';
 
-export interface ValuationResultProps {
+export interface ValuationResultPremiumProps {
   valuationId?: string;
   data?: any;
   isPremium?: boolean;
@@ -23,7 +22,7 @@ export interface ValuationResultProps {
   isEmailingSending?: boolean;
 }
 
-export default function ValuationResult({
+export function ValuationResultPremium({
   valuationId,
   data,
   isPremium = false,
@@ -34,7 +33,7 @@ export default function ValuationResult({
   onEmailPdf,
   isGeneratingPdf = false,
   isEmailingSending = false
-}: ValuationResultProps) {
+}: ValuationResultPremiumProps) {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const resultId = valuationId || id;
@@ -208,4 +207,4 @@ export default function ValuationResult({
 }
 
 // Also export as a named export for compatibility
-export { ValuationResult };
+export default ValuationResultPremium;
