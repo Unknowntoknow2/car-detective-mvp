@@ -1,21 +1,9 @@
 
 import React from 'react';
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MakeModelSelectorsProps {
   selectedMake: string;
@@ -46,8 +34,8 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
   setMakesOpen,
   modelsOpen,
   setModelsOpen,
-  filteredMakes = [],
-  filteredModels = [],
+  filteredMakes,
+  filteredModels,
   searchTerm,
   setSearchTerm,
   modelSearchTerm,
@@ -57,27 +45,29 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
   loadingModels = false
 }) => {
   return (
-    <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+    <div className="flex flex-col space-y-4">
       {/* Make Selector */}
-      <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Make {required && <span className="text-red-500">*</span>}
+      <div className="space-y-2">
+        <label htmlFor="make-selector" className="text-sm font-medium flex items-center">
+          Make {required && <span className="text-red-500 ml-1">*</span>}
         </label>
         <Popover open={makesOpen} onOpenChange={setMakesOpen}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={makesOpen}
-              className="w-full justify-between"
+            <button
+              id="make-selector-button"
+              type="button"
+              className={cn(
+                "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                !selectedMake && "text-muted-foreground"
+              )}
               disabled={disabled}
               data-testid="make-selector-button"
             >
               {selectedMake || "Select make..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
+            </button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
             <Command>
               <CommandInput 
                 placeholder="Search make..." 
@@ -86,32 +76,26 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
               />
               <CommandList>
                 <CommandEmpty>No makes found.</CommandEmpty>
-                {Array.isArray(filteredMakes) && filteredMakes.length > 0 && (
-                  <CommandGroup>
-                    {filteredMakes.map((make) => (
-                      <CommandItem
-                        key={make}
-                        value={make}
-                        onSelect={(currentValue) => {
-                          setSelectedMake(currentValue === selectedMake ? "" : currentValue);
-                          setMakesOpen(false);
-                          if (currentValue !== selectedMake) {
-                            setSelectedModel(""); // Reset model when make changes
-                          }
-                        }}
-                        data-testid={`make-option-${make}`}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedMake === make ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {make}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
+                <CommandGroup>
+                  {filteredMakes.map((make) => (
+                    <CommandItem
+                      key={make}
+                      value={make}
+                      onSelect={() => {
+                        setSelectedMake(make);
+                        setMakesOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedMake === make ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {make}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
               </CommandList>
             </Command>
           </PopoverContent>
@@ -119,29 +103,38 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
       </div>
 
       {/* Model Selector */}
-      <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Model {required && <span className="text-red-500">*</span>}
+      <div className="space-y-2">
+        <label htmlFor="model-selector" className="text-sm font-medium flex items-center">
+          Model {required && <span className="text-red-500 ml-1">*</span>}
         </label>
-        <Popover open={modelsOpen} onOpenChange={setModelsOpen}>
+        <Popover 
+          open={modelsOpen} 
+          onOpenChange={(open) => {
+            // Only allow opening if a make is selected and not in loading state
+            if (!selectedMake || loadingModels) return;
+            setModelsOpen(open);
+          }}
+        >
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={modelsOpen}
-              className="w-full justify-between"
+            <button
+              id="model-selector-button"
+              type="button"
+              className={cn(
+                "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                (!selectedModel || !selectedMake) && "text-muted-foreground"
+              )}
               disabled={disabled || !selectedMake}
               data-testid="model-selector-button"
             >
-              {selectedModel || (selectedMake ? "Select model..." : "Select make first")}
+              {selectedModel || (selectedMake ? (loadingModels ? "Loading models..." : "Select model...") : "Select make first")}
               {loadingModels ? (
                 <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin" />
               ) : (
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               )}
-            </Button>
+            </button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
             <Command>
               <CommandInput 
                 placeholder="Search model..." 
@@ -151,38 +144,33 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
               />
               <CommandList>
                 {loadingModels ? (
-                  <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading models...
+                  <div className="py-6 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span className="ml-2">Loading models...</span>
                   </div>
                 ) : (
                   <>
                     <CommandEmpty>No models found.</CommandEmpty>
-                    {Array.isArray(filteredModels) && filteredModels.length > 0 ? (
-                      <CommandGroup>
-                        {filteredModels.map((model) => (
-                          <CommandItem
-                            key={model}
-                            value={model}
-                            onSelect={(currentValue) => {
-                              setSelectedModel(currentValue === selectedModel ? "" : currentValue);
-                              setModelsOpen(false);
-                            }}
-                            data-testid={`model-option-${model}`}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedModel === model ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {model}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    ) : (
-                      selectedMake && <CommandEmpty>No models available for this make.</CommandEmpty>
-                    )}
+                    <CommandGroup>
+                      {filteredModels.map((model) => (
+                        <CommandItem
+                          key={model}
+                          value={model}
+                          onSelect={() => {
+                            setSelectedModel(model);
+                            setModelsOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedModel === model ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {model}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
                   </>
                 )}
               </CommandList>

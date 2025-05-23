@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,45 +39,61 @@ export function EnhancedVehicleSelectorWithLogos({
     }
   }, [selectedMake, selectedModel, required, onValidChange]);
 
+  // Memoized function to fetch models - this avoids recreating the function on every render
+  const fetchModels = useCallback(async (makeName: string) => {
+    if (!makeName) return [];
+    
+    try {
+      setLoadingModels(true);
+      const fetchedModels = await getModelsByMake(makeName);
+      const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
+      
+      const mappedModels = safeModels.map(model => ({
+        value: model.model_name,
+        label: model.model_name
+      }));
+      
+      return mappedModels;
+    } catch (error) {
+      errorHandler.handle(error, 'VehicleSelector.fetchModels');
+      return [];
+    } finally {
+      setLoadingModels(false);
+    }
+  }, [getModelsByMake]);
+
   // Effect to update model options when make changes
   useEffect(() => {
-    console.log("EnhancedVehicleSelectorWithLogos: Make changed to:", selectedMake);
+    let mounted = true;
     
-    async function fetchModels() {
-      if (selectedMake) {
-        try {
-          setLoadingModels(true);
-          const fetchedModels = await getModelsByMake(selectedMake);
-          const safeModels = Array.isArray(fetchedModels) ? fetchedModels : [];
-          const mappedModels = safeModels.map(model => ({
-            value: model.model_name,
-            label: model.model_name
-          }));
-          console.log(`EnhancedVehicleSelectorWithLogos: Found ${mappedModels.length} models for make ${selectedMake}`);
-          setModelOptions(mappedModels);
-          
-          // If current model is not in new options, reset it
-          if (selectedModel && !safeModels.some(model => model.model_name === selectedModel)) {
-            onModelChange('');
-          }
-        } catch (error) {
-          errorHandler.handle(error, 'VehicleSelector.fetchModels');
-          setModelOptions([]);
-        } finally {
-          setLoadingModels(false);
-        }
-      } else {
-        console.log("EnhancedVehicleSelectorWithLogos: No make selected, clearing models");
-        setModelOptions([]);
-        // Clear model when make is cleared
-        if (selectedModel) {
+    if (!selectedMake) {
+      setModelOptions([]);
+      // Clear model when make is cleared
+      if (selectedModel) {
+        onModelChange('');
+      }
+      return;
+    }
+    
+    const updateModels = async () => {
+      const models = await fetchModels(selectedMake);
+      
+      if (mounted) {
+        setModelOptions(models);
+        
+        // If current model is not in new options, reset it
+        if (selectedModel && !models.some(model => model.value === selectedModel)) {
           onModelChange('');
         }
       }
-    }
+    };
     
-    fetchModels();
-  }, [selectedMake, getModelsByMake, selectedModel, onModelChange]);
+    updateModels();
+    
+    return () => {
+      mounted = false;
+    };
+  }, [selectedMake, fetchModels, selectedModel, onModelChange]);
 
   if (isLoading) {
     return (
@@ -101,21 +117,17 @@ export function EnhancedVehicleSelectorWithLogos({
     );
   }
 
-  // Map MakeData objects to ComboBox items without assuming logo_url exists
+  // Map MakeData objects to ComboBox items
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
   })) : [];
 
   const handleMakeChange = (make: string) => {
-    console.log("EnhancedVehicleSelectorWithLogos: Make selection changed to:", make);
     onMakeChange(make);
-    // Reset model when make changes
-    onModelChange('');
   };
 
   const handleModelChange = (model: string) => {
-    console.log("EnhancedVehicleSelectorWithLogos: Model selection changed to:", model);
     onModelChange(model);
   };
 
@@ -157,7 +169,13 @@ export function EnhancedVehicleSelectorWithLogos({
                 ) 
                 : t('vehicle.selector.selectMakeFirst', 'Select a make first')
             }
-            emptyText={t('vehicle.selector.noModelsFound', 'No models found')}
+            emptyText={
+              loadingModels
+                ? t('vehicle.selector.loadingModels', 'Loading models...')
+                : (selectedMake
+                  ? t('vehicle.selector.noModelsFound', 'No models found')
+                  : t('vehicle.selector.selectMakeFirst', 'Select a make first'))
+            }
             disabled={!selectedMake || disabled || loadingModels}
             className="w-full"
           />

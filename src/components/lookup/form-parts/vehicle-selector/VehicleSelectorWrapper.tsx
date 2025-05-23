@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { useVehicleSelector } from '@/hooks/useVehicleSelector';
 import { LoadingMessage } from './LoadingMessage';
 import { ErrorMessage } from './ErrorMessage';
@@ -24,6 +25,8 @@ export const VehicleSelectorWrapper = ({
   required = false,
   onValidationChange
 }: VehicleSelectorWrapperProps) => {
+  const [attempts, setAttempts] = useState(0);
+
   const {
     isLoading,
     error,
@@ -48,7 +51,10 @@ export const VehicleSelectorWrapper = ({
     onValidationChange
   });
 
-  if (isLoading) {
+  if (isLoading && attempts < 2) {
+    // After 2 attempts, we'll show the UI even if it's still loading
+    // This prevents an infinite loading state
+    setTimeout(() => setAttempts(prev => prev + 1), 1000);
     return <LoadingMessage />;
   }
 
@@ -64,11 +70,16 @@ export const VehicleSelectorWrapper = ({
   // Get model names for the selector
   const modelNames = filteredModels.map(model => model.model_name);
 
+  const handleMakeChange = (make: string) => {
+    setSelectedMake(make);
+    setSelectedModel(''); // Always reset model when make changes
+  };
+
   return (
     <div className="space-y-4">
       <MakeModelSelectors
         selectedMake={selectedMake}
-        setSelectedMake={setSelectedMake}
+        setSelectedMake={handleMakeChange}
         selectedModel={selectedModel}
         setSelectedModel={setSelectedModel}
         makesOpen={makesOpen}
