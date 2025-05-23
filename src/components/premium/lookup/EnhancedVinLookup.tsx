@@ -1,36 +1,49 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VinInput } from '@/components/premium/lookup/vin/VinInput';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { BasicVehicleInfo } from '@/components/premium/lookup/form-parts/BasicVehicleInfo';
+import { Card } from '@/components/ui/card';
+import { validateVin } from '@/utils/validation';
+import { BasicVehicleInfo } from './form-parts/BasicVehicleInfo';
 
 export function EnhancedVinLookup() {
   const [vin, setVin] = useState('');
+  const [vinTouched, setVinTouched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [vehicle, setVehicle] = useState({
+  const [isVehicleFound, setIsVehicleFound] = useState(false);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const [errors, setErrors] = useState<{vin?: string, api?: string}>({});
+  
+  // Vehicle form state
+  const [formData, setFormData] = useState({
     makeId: '',
     model: '',
     year: '',
     mileage: '',
     zipCode: ''
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const vinValidationError = vinTouched ? validateVin(vin) : null;
+  const isVinValid = vin.length === 17 && !vinValidationError;
+  
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVin(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const newVin = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setVin(newVin);
+    if (!vinTouched && newVin) {
+      setVinTouched(true);
+    }
     
-    // Validate VIN
-    if (!vin || vin.length !== 17) {
-      setErrors({ vin: 'Please enter a valid 17-character VIN' });
+    // Reset vehicle found state when VIN changes
+    if (isVehicleFound) {
+      setIsVehicleFound(false);
+    }
+  };
+  
+  const handleVinSubmit = async () => {
+    if (!isVinValid) {
+      setErrors({
+        vin: 'Please enter a valid 17-character VIN'
+      });
       return;
     }
     
@@ -38,115 +51,120 @@ export function EnhancedVinLookup() {
     setErrors({});
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate API call to lookup VIN
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock response
-      setVehicle({
-        makeId: '1',
-        model: 'Accord',
-        year: '2019',
-        mileage: '45000',
-        zipCode: ''
+      // For demo purposes, always "find" a vehicle
+      setIsVehicleFound(true);
+      setVehicleData({
+        make: 'Toyota',
+        model: 'Camry',
+        year: '2020',
+        trim: 'LE',
+        engine: '2.5L 4-Cylinder'
       });
       
-      toast.success('Vehicle information retrieved successfully');
-      setIsSubmitted(true);
+      // Pre-populate form with found data
+      setFormData({
+        makeId: 'toyota',
+        model: 'Camry',
+        year: '2020',
+        mileage: '',
+        zipCode: ''
+      });
     } catch (error) {
-      console.error('Error looking up VIN:', error);
-      setErrors({ vin: 'Failed to lookup VIN. Please try again.' });
-      toast.error('Error looking up VIN');
+      console.error('Error fetching VIN data:', error);
+      setErrors({
+        api: 'Failed to retrieve vehicle data. Please try again.'
+      });
     } finally {
       setIsLoading(false);
     }
   };
-
+  
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleVinSubmit();
+    }
+  };
+  
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle valuation request
+    console.log('Submitting valuation with data:', {
+      vin,
+      ...formData
+    });
+  };
+  
+  const handleYearChange = (year: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      year: String(year)
+    }));
+  };
+  
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold">VIN Lookup</h2>
-        <p className="text-muted-foreground">
-          Enter your Vehicle Identification Number (VIN) to retrieve vehicle details.
-        </p>
-      </div>
-      
-      {!isSubmitted ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Enter VIN</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
-                <Input
-                  id="vin"
-                  value={vin}
-                  onChange={handleVinChange}
-                  placeholder="e.g. 1HGCM82633A123456"
-                  className={errors.vin ? 'border-red-300' : ''}
-                  maxLength={17}
-                />
-                {errors.vin && (
-                  <p className="text-sm text-red-500">{errors.vin}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  The VIN is a 17-character code that can be found on your vehicle registration, insurance card, or on the driver's side dashboard.
-                </p>
-              </div>
-              
-              <Button 
-                type="submit" 
-                disabled={isLoading || vin.length !== 17}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Looking up VIN...
-                  </>
-                ) : (
-                  'Lookup VIN'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BasicVehicleInfo
-              selectedMakeId={vehicle.makeId}
-              setSelectedMakeId={(id) => setVehicle(prev => ({ ...prev, makeId: id }))}
-              selectedModel={vehicle.model}
-              setSelectedModel={(model) => setVehicle(prev => ({ ...prev, model }))}
-              selectedYear={vehicle.year}
-              setSelectedYear={(year) => setVehicle(prev => ({ ...prev, year: String(year) }))}
-              mileage={vehicle.mileage}
-              setMileage={(mileage) => setVehicle(prev => ({ ...prev, mileage }))}
-              zipCode={vehicle.zipCode}
-              setZipCode={(zipCode) => setVehicle(prev => ({ ...prev, zipCode }))}
-              errors={errors}
-            />
+    <form onSubmit={handleFormSubmit}>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-medium mb-2">Enter your Vehicle Identification Number</h2>
+          <VinInput
+            value={vin}
+            onChange={handleVinChange}
+            validationError={vinValidationError}
+            externalError={errors.vin || errors.api}
+            touched={vinTouched}
+            isValid={isVinValid}
+            isLoading={isLoading}
+            onKeyPress={handleKeyPress}
+          />
+          <div className="mt-4">
+            <Button 
+              type="button"
+              onClick={handleVinSubmit}
+              disabled={!vin || isLoading}
+              className="w-full"
+            >
+              {isLoading ? 'Looking up VIN...' : 'Lookup VIN'}
+            </Button>
+          </div>
+        </div>
+        
+        {isVehicleFound && (
+          <Card className="p-4">
+            <div className="mb-4">
+              <h3 className="text-lg font-medium">Vehicle Found</h3>
+              <p className="text-sm text-muted-foreground">
+                {vehicleData.year} {vehicleData.make} {vehicleData.model} {vehicleData.trim}
+              </p>
+            </div>
             
-            <div className="mt-6 flex justify-end">
-              <Button 
-                onClick={() => setIsSubmitted(false)}
-                variant="outline" 
-                className="mr-2"
-              >
-                Back
-              </Button>
-              <Button>
-                Continue
+            <div className="space-y-6">
+              <BasicVehicleInfo
+                selectedMakeId={formData.makeId}
+                setSelectedMakeId={(makeId) => setFormData(prev => ({ ...prev, makeId }))}
+                selectedModel={formData.model}
+                setSelectedModel={(model) => setFormData(prev => ({ ...prev, model }))}
+                selectedYear={formData.year}
+                setSelectedYear={handleYearChange}
+                mileage={formData.mileage}
+                setMileage={(mileage) => setFormData(prev => ({ ...prev, mileage }))}
+                zipCode={formData.zipCode}
+                setZipCode={(zipCode) => setFormData(prev => ({ ...prev, zipCode }))}
+                isDisabled={false}
+              />
+              
+              <Button type="submit" className="w-full">
+                Get Valuation
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </Card>
+        )}
+      </div>
+    </form>
   );
 }
+
+export default EnhancedVinLookup;
