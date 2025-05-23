@@ -9,8 +9,22 @@ import { toast } from 'sonner';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 
+interface FormDataType {
+  make: string;
+  model: string;
+  year: number | string;
+  mileage: string | number;
+  trim: string;
+  color: string;
+  zipCode: string;
+  condition: string;
+  hasAccident: boolean;
+  accidentDescription: string;
+  titleStatus: string;
+}
+
 export function PremiumValuationForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     make: '',
     model: '',
     year: new Date().getFullYear(),
@@ -26,7 +40,7 @@ export function PremiumValuationForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { makes, models } = useVehicleData();
+  const { makes, getModelsByMake } = useVehicleData();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,9 +97,7 @@ export function PremiumValuationForm() {
   };
 
   const setMake = (value: string) => {
-    setFormData(prev => ({ ...prev, make: value }));
-    // Reset model when make changes
-    setFormData(prev => ({ ...prev, model: '' }));
+    setFormData(prev => ({ ...prev, make: value, model: '' }));
   };
 
   const setModel = (value: string) => {
