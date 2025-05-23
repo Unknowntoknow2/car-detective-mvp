@@ -1,9 +1,10 @@
 
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { generateValuationReport, buildValuationReport } from '@/lib/valuation/buildValuationReport';
 import { calculateValuation } from '@/utils/valuation/calculator';
 import { ValuationParams, ValuationResult } from '@/utils/valuation/types';
+import { supabase } from '@/lib/supabase';
 
 export interface ManualVehicleInfo {
   make: string;
@@ -57,6 +58,39 @@ export const useManualValuation = () => {
         id: crypto.randomUUID()
       };
 
+      // Save to Supabase if user is authenticated
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Save the valuation to the valuations table
+          const { error } = await supabase
+            .from('valuations')
+            .insert({
+              user_id: user.id,
+              make: params.make,
+              model: params.model,
+              year: params.year,
+              mileage: params.mileage,
+              condition: params.condition,
+              state: params.zipCode,
+              estimated_value: valuationResult.estimatedValue,
+              confidence_score: valuationResult.confidenceScore,
+              is_vin_lookup: false,
+              fuel_type: params.fuelType,
+              transmission: params.transmission,
+              body_style: params.bodyType,
+              premium_unlocked: isPremium
+            });
+            
+          if (error) {
+            console.error('Error saving valuation to Supabase:', error);
+          }
+        }
+      } catch (saveError) {
+        console.error('Error saving to Supabase:', saveError);
+        // Continue with the valuation process even if saving fails
+      }
+
       // Generate the PDF report
       const reportResult = await buildValuationReport(extendedParams, completeValuationResult, {});
 
@@ -85,7 +119,11 @@ export const useManualValuation = () => {
       }));
       
       // Show error toast
-      toast.error(`Valuation failed: ${errorMessage}`);
+      toast({
+        title: "Valuation failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
       
       return null;
     }
@@ -111,6 +149,49 @@ export const useManualValuation = () => {
         ...valuationResult,
         id: crypto.randomUUID()
       };
+
+      // Save to Supabase if user is authenticated
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Save the premium valuation to the valuations table
+          const { data, error } = await supabase
+            .from('valuations')
+            .insert({
+              user_id: user.id,
+              make: params.make,
+              model: params.model,
+              year: params.year,
+              mileage: params.mileage,
+              condition: params.condition,
+              state: params.zipCode,
+              estimated_value: valuationResult.estimatedValue,
+              confidence_score: valuationResult.confidenceScore,
+              is_vin_lookup: false,
+              fuel_type: params.fuelType,
+              transmission: params.transmission,
+              body_style: params.bodyType,
+              premium_unlocked: true
+            })
+            .select()
+            .single();
+            
+          if (error) {
+            console.error('Error saving premium valuation to Supabase:', error);
+          } else if (data) {
+            // Add entry to premium_valuations table
+            await supabase
+              .from('premium_valuations')
+              .insert({
+                user_id: user.id,
+                valuation_id: data.id
+              });
+          }
+        }
+      } catch (saveError) {
+        console.error('Error saving premium data to Supabase:', saveError);
+        // Continue with the valuation process even if saving fails
+      }
 
       // Generate premium report with additional options
       const reportResult = await buildValuationReport(premiumParams, completeValuationResult, options);
@@ -144,7 +225,11 @@ export const useManualValuation = () => {
       }));
       
       // Show error toast
-      toast.error(`Premium valuation failed: ${errorMessage}`);
+      toast({
+        title: "Premium valuation failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
       
       return null;
     }
