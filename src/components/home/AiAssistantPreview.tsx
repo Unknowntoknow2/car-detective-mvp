@@ -1,26 +1,17 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Avatar } from '@/components/ui/avatar';
-import { MessageSquare, Send } from 'lucide-react';
-
-const exampleQuestions = [
-  "What affects my car's value the most?",
-  "How does mileage impact resale value?",
-  "What documents do I need to sell my car?",
-  "Is it better to sell privately or to a dealer?"
-];
+import { Button } from '@/components/ui/button';
+import { Send } from 'lucide-react';
 
 const exampleAnswers = {
-  "What affects my car's value the most?": 
-    "The biggest factors affecting your car's value are: 1) Mileage (lower is better), 2) Condition (visible damage reduces value), 3) Service history (regular maintenance increases value), 4) Market demand (popular models retain value better), and 5) Vehicle age. Our AI analysis weighs these factors based on current market data.",
+  "What is my car worth?": 
+    "I can help you determine your car's value based on market data, condition, and features. Would you like to enter your VIN or vehicle details to get started with a valuation?",
   
-  "How does mileage impact resale value?": 
-    "For most vehicles, every 10,000 miles above average (12,000 miles/year) decreases value by 5-8%. Your vehicle's specific depreciation curve may vary based on make/model. Premium vehicles often experience steeper mileage-based depreciation, while reliable everyday models like Honda and Toyota tend to hold value better at higher mileages.",
+  "How does my mileage affect value?": 
+    "Mileage significantly impacts value. Generally, every 10,000 miles over average (12,000 miles/year) reduces value by 5-8%. For example, a 5-year-old car with 80,000 miles instead of the average 60,000 might be worth 8-16% less. Premium vehicles and certain models depreciate faster with high mileage.",
   
-  "What documents do I need to sell my car?": 
+  "What documents do I need when selling my car?": 
     "You'll need: 1) Clear vehicle title (most important), 2) Maintenance records, 3) Bill of sale, 4) Release of liability form, 5) Warranty documents if applicable, and 6) Vehicle history report (like CARFAX). Having complete documentation can increase buyer confidence and help you command a better price.",
   
   "Is it better to sell privately or to a dealer?": 
@@ -34,23 +25,20 @@ const exampleAnswers = {
 };
 
 export function AiAssistantPreview() {
-  const [question, setQuestion] = useState('');
+  const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-
-  const handleQuestionClick = (q: string) => {
-    if (!conversation.length) {
-      askQuestion(q);
-    }
-  };
-
-  const askQuestion = (q: string) => {
-    // Add user message
-    setConversation(prev => [...prev, {role: 'user', content: q}]);
-    setQuestion('');
-    setIsTyping(true);
+  
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
     
-    // Simulate typing delay
+    // Add user message
+    const q = message.trim();
+    setConversation(prev => [...prev, {role: 'user', content: q}]);
+    setMessage('');
+    
+    // Simulate AI typing response
+    setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
       // Add AI response
@@ -60,91 +48,52 @@ export function AiAssistantPreview() {
       setConversation(prev => [...prev, {role: 'assistant', content: answer}]);
     }, 1500);
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (question.trim()) {
-      askQuestion(question);
-    }
-  };
-
+  
   return (
-    <Card className="w-full shadow-md border-muted-foreground/20">
-      <CardHeader className="bg-surface-light pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-          <MessageSquare className="h-5 w-5 text-primary" />
-          <span>AI Assistant Preview</span>
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Ask questions about car values, market trends, or selling tips
-        </p>
-      </CardHeader>
+    <div className="bg-gray-50 rounded-lg shadow-md p-6">
+      <h2 className="text-lg font-semibold mb-4">AI Assistant Preview</h2>
       
-      <CardContent className="p-4">
-        <div className="mb-4 space-y-4 h-[280px] overflow-y-auto">
-          {conversation.length === 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {exampleQuestions.map((q, idx) => (
-                <Button 
-                  key={idx} 
-                  variant="outline" 
-                  className="justify-start h-auto py-2 text-left hover:bg-muted"
-                  onClick={() => handleQuestionClick(q)}
-                >
-                  <span className="truncate">{q}</span>
-                </Button>
-              ))}
+      <div className="space-y-4">
+        {conversation.map((msg, index) => (
+          <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+            {msg.role === 'assistant' && (
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="https://github.com/shadcn.png" alt="AI Assistant" />
+                <AvatarFallback>AI</AvatarFallback>
+              </Avatar>
+            )}
+            
+            <div className={`rounded-lg p-3 text-sm w-3/4 ${
+              msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-gray-100 text-gray-800'
+            }`}>
+              {msg.content}
             </div>
-          ) : (
-            <>
-              {conversation.map((message, idx) => (
-                <div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex items-start gap-2 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <Avatar className={`h-8 w-8 ${message.role === 'user' ? 'bg-primary' : 'bg-muted'}`}>
-                      {message.role === 'user' ? 'U' : 'AI'}
-                    </Avatar>
-                    <div className={`rounded-lg px-3 py-2 text-sm ${
-                      message.role === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-foreground'
-                    }`}>
-                      {message.content}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex items-start gap-2 max-w-[80%]">
-                    <Avatar className="h-8 w-8 bg-muted">AI</Avatar>
-                    <div className="rounded-lg px-3 py-2 text-sm bg-muted text-foreground">
-                      <div className="flex gap-1">
-                        <div className="animate-bounce">.</div>
-                        <div className="animate-bounce delay-75">.</div>
-                        <div className="animate-bounce delay-150">.</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </CardContent>
+          </div>
+        ))}
+        
+        {isTyping && (
+          <div className="flex items-start gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="https://github.com/shadcn.png" alt="AI Assistant" />
+              <AvatarFallback>AI</AvatarFallback>
+            </Avatar>
+            <div className="rounded-lg p-3 text-sm w-3/4 bg-gray-100 text-gray-800">
+              Typing...
+            </div>
+          </div>
+        )}
+      </div>
       
-      <CardFooter className="border-t bg-muted/20 p-2">
-        <form onSubmit={handleSubmit} className="w-full flex gap-2">
-          <Input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask about car values, market trends, or selling tips..."
-            className="flex-1"
-          />
-          <Button type="submit" size="sm" disabled={!question.trim() || isTyping}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </CardFooter>
-    </Card>
+      <div className="mt-4 flex items-center gap-2">
+        <Input 
+          type="text" 
+          placeholder="Ask a question..." 
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' ? handleSendMessage() : null}
+        />
+        <Button onClick={handleSendMessage}><Send className="h-4 w-4" /></Button>
+      </div>
+    </div>
   );
 }
