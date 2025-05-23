@@ -15,13 +15,30 @@ export interface ModelData {
   make_id: string;
 }
 
+export interface TrimData {
+  id: string;
+  trim_name: string;
+  model_id: string;
+}
+
 // Type definition for our hook's return value
 interface UseVehicleDataReturn {
   makes: MakeData[];
   models: ModelData[];
   getModelsByMake: (makeName: string) => Promise<ModelData[]>;
+  getTrimsByModel: (modelId: string) => Promise<TrimData[]>;
+  getYearOptions: (startYear?: number) => number[];
   isLoading: boolean;
   error: Error | string | null;
+  counts: {
+    makes: number;
+    models: number;
+  };
+  refreshData: (forceRefresh?: boolean) => Promise<{
+    success: boolean;
+    makeCount: number;
+    modelCount: number;
+  }>;
 }
 
 // Define a type for the VEHICLE_MODELS_BY_MAKE object
@@ -39,6 +56,7 @@ export function useVehicleData(): UseVehicleDataReturn {
   const [error, setError] = useState<Error | string | null>(null);
   const [initialized, setInitialized] = useState<boolean>(false);
   const [cachedModels, setCachedModels] = useState<Record<string, ModelData[]>>({});
+  const [cachedTrims, setCachedTrims] = useState<Record<string, TrimData[]>>({});
 
   // Initialize with fallback data
   useEffect(() => {
@@ -57,7 +75,7 @@ export function useVehicleData(): UseVehicleDataReturn {
         
         VEHICLE_MAKES.forEach((makeName, makeIndex) => {
           // Get models for this make, either from the by-make object or the generic list
-          const makeModels = typedVehicleModelsByMake[makeName] || VEHICLE_MODELS;
+          const makeModels = typedVehicleModelsByMake[makeName as keyof typeof typedVehicleModelsByMake] || VEHICLE_MODELS;
           
           const modelsForMake = makeModels.map((modelName: string, index: number) => ({
             id: `model-${makeIndex}-${index}`,
@@ -110,7 +128,7 @@ export function useVehicleData(): UseVehicleDataReturn {
       // If no models found, try to use fallback data from the constants
       if (filteredModels.length === 0) {
         // Get models for this make from our constants
-        const fallbackModels = typedVehicleModelsByMake[makeName] || [];
+        const fallbackModels = typedVehicleModelsByMake[makeName as keyof typeof typedVehicleModelsByMake] || [];
         
         if (make && fallbackModels.length > 0) {
           console.log(`Using fallback models for make: ${makeName}`);
@@ -149,7 +167,7 @@ export function useVehicleData(): UseVehicleDataReturn {
         const make = makes.find(m => m.make_name === makeName);
         
         if (make) {
-          const fallbackModels = typedVehicleModelsByMake[makeName] || [];
+          const fallbackModels = typedVehicleModelsByMake[makeName as keyof typeof typedVehicleModelsByMake] || [];
           
           const modelsList = fallbackModels.map((modelName: string, index: number) => ({
             id: `model-error-${index}`,
@@ -165,11 +183,147 @@ export function useVehicleData(): UseVehicleDataReturn {
     }
   }, [makes, models, cachedModels]);
 
+  // Function to get trims for a specific model
+  const getTrimsByModel = useCallback(async (modelId: string): Promise<TrimData[]> => {
+    if (!modelId) {
+      return [];
+    }
+    
+    // Check if we already have trims cached for this model
+    if (cachedTrims[modelId]) {
+      console.log(`Using cached trims for model: ${modelId}`);
+      return cachedTrims[modelId];
+    }
+    
+    try {
+      // For this example, we'll create some dummy trim data
+      console.log(`Fetching trims for model: ${modelId}`);
+      
+      const model = models.find(m => m.id === modelId);
+      if (!model) {
+        return [];
+      }
+      
+      // Create some basic trim levels
+      const trimLevels = ['Base', 'LE', 'XLE', 'Limited', 'Sport', 'Touring'];
+      const trims: TrimData[] = trimLevels.map((trim, index) => ({
+        id: `trim-${modelId}-${index}`,
+        trim_name: trim,
+        model_id: modelId
+      }));
+      
+      // Cache these trims for future use
+      setCachedTrims(prev => ({
+        ...prev,
+        [modelId]: trims
+      }));
+      
+      console.log(`Created dummy trims for model: ${modelId}`, trims);
+      return trims;
+    } catch (error) {
+      console.error(`Error creating trims for model ${modelId}:`, error);
+      return [];
+    }
+  }, [models, cachedTrims]);
+
+  // Function to get year options
+  const getYearOptions = useCallback((startYear: number = 1990): number[] => {
+    const currentYear = new Date().getFullYear() + 1; // Include next year for new models
+    const years: number[] = [];
+    
+    for (let year = currentYear; year >= startYear; year--) {
+      years.push(year);
+    }
+    
+    return years;
+  }, []);
+
+  // Function to refresh data
+  const refreshData = useCallback(async (forceRefresh: boolean = false): Promise<{
+    success: boolean;
+    makeCount: number;
+    modelCount: number;
+  }> => {
+    try {
+      setIsLoading(true);
+      
+      // In a real app, this would make API calls to refresh data
+      // For this example, we'll just use our fallback data again
+      
+      if (forceRefresh || !initialized) {
+        // Reset everything and initialize again
+        setInitialized(false);
+        setCachedModels({});
+        setCachedTrims({});
+        
+        // Wait a moment to simulate a network call
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Initialize with fallback data from the constants
+        const fallbackMakes: MakeData[] = VEHICLE_MAKES.map((makeName, index) => ({
+          id: `make-${index}-${Date.now()}`, // Add timestamp to ensure new IDs
+          make_name: makeName
+        }));
+
+        setMakes(fallbackMakes);
+        
+        // Create fallback models for all makes
+        const allFallbackModels: ModelData[] = [];
+        
+        VEHICLE_MAKES.forEach((makeName, makeIndex) => {
+          // Get models for this make, either from the by-make object or the generic list
+          const makeModels = typedVehicleModelsByMake[makeName as keyof typeof typedVehicleModelsByMake] || VEHICLE_MODELS;
+          
+          const modelsForMake = makeModels.map((modelName: string, index: number) => ({
+            id: `model-${makeIndex}-${index}-${Date.now()}`, // Add timestamp to ensure new IDs
+            model_name: modelName,
+            make_id: `make-${makeIndex}-${Date.now()}`
+          }));
+          
+          allFallbackModels.push(...modelsForMake);
+        });
+        
+        setModels(allFallbackModels);
+        setInitialized(true);
+        
+        return {
+          success: true,
+          makeCount: fallbackMakes.length,
+          modelCount: allFallbackModels.length
+        };
+      }
+      
+      return {
+        success: true,
+        makeCount: makes.length,
+        modelCount: models.length
+      };
+    } catch (error) {
+      console.error("Error refreshing vehicle data:", error);
+      setError("Failed to refresh vehicle data");
+      
+      return {
+        success: false,
+        makeCount: makes.length,
+        modelCount: models.length
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [initialized, makes.length, models.length]);
+
   return {
     makes,
     models,
     getModelsByMake,
+    getTrimsByModel,
+    getYearOptions,
     isLoading,
-    error
+    error,
+    counts: {
+      makes: makes.length,
+      models: models.length
+    },
+    refreshData
   };
 }

@@ -1,90 +1,42 @@
 
-import React, { useState, useEffect } from 'react';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useVehicleData, MakeData, ModelData, TrimData } from '@/hooks/useVehicleData';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useVehicleData, TrimData } from '@/hooks/useVehicleData';
+import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface VehicleDetailsInputsProps {
-  make: string;
-  setMake: (make: string) => void;
-  model: string;
-  setModel: (model: string) => void;
-  trim: string;
-  setTrim: (trim: string) => void;
-  year: number | '';
-  setYear: (year: number | '') => void;
-  mileage?: number;
-  setMileage?: (mileage: number) => void;
-  color?: string;
-  setColor?: (color: string) => void;
+  selectedModel: string;
+  selectedModelId: string;
+  selectedTrim: string;
+  setSelectedTrim: (trim: string) => void;
   isDisabled?: boolean;
+  errors?: Record<string, string>;
 }
 
 export function VehicleDetailsInputs({
-  make,
-  setMake,
-  model,
-  setModel,
-  trim,
-  setTrim,
-  year,
-  setYear,
-  mileage,
-  setMileage,
-  color,
-  setColor,
-  isDisabled = false
+  selectedModel,
+  selectedModelId,
+  selectedTrim,
+  setSelectedTrim,
+  isDisabled = false,
+  errors = {}
 }: VehicleDetailsInputsProps) {
-  const { makes, isLoading, error, getModelsByMake, getTrimsByModel, getYearOptions } = useVehicleData();
-  const [models, setModels] = useState<ModelData[]>([]);
   const [trims, setTrims] = useState<TrimData[]>([]);
-  const [loadingModels, setLoadingModels] = useState(false);
   const [loadingTrims, setLoadingTrims] = useState(false);
-  const yearOptions = getYearOptions();
+  const { isLoading, getTrimsByModel, getYearOptions } = useVehicleData();
 
-  // Fetch models when make changes
   useEffect(() => {
-    async function fetchModels() {
-      if (make) {
+    const fetchTrims = async () => {
+      if (selectedModelId) {
+        setLoadingTrims(true);
         try {
-          setLoadingModels(true);
-          const modelData = await getModelsByMake(make);
-          console.log('Fetched models for make:', make, modelData);
-          setModels(modelData);
-        } catch (err) {
-          console.error('Error fetching models:', err);
-          setModels([]);
-        } finally {
-          setLoadingModels(false);
-        }
-      } else {
-        setModels([]);
-      }
-    }
-    
-    fetchModels();
-  }, [make, getModelsByMake]);
-
-  // Fetch trims when model changes
-  useEffect(() => {
-    async function fetchTrims() {
-      if (model) {
-        try {
-          setLoadingTrims(true);
-          const selectedModel = models.find(m => m.model_name === model);
-          console.log('Selected model for trims:', selectedModel);
-          if (selectedModel) {
-            const trimData = await getTrimsByModel(selectedModel.id);
-            console.log('Fetched trims:', trimData);
-            setTrims(trimData);
-          } else {
-            console.log('No matching model found in models array');
-            setTrims([]);
-          }
-        } catch (err) {
-          console.error('Error fetching trims:', err);
+          const trimData = await getTrimsByModel(selectedModelId);
+          setTrims(trimData);
+        } catch (error) {
+          console.error("Failed to fetch trims:", error);
           setTrims([]);
         } finally {
           setLoadingTrims(false);
@@ -92,165 +44,98 @@ export function VehicleDetailsInputs({
       } else {
         setTrims([]);
       }
-    }
-    
+    };
+
     fetchTrims();
-  }, [model, models, getTrimsByModel]);
+  }, [selectedModelId, getTrimsByModel]);
 
-  // Reset dependent fields when parent field changes
-  useEffect(() => {
-    if (make && !models.some(m => m.model_name === model)) {
-      console.log('Resetting model because current selection is not in models list');
-      setModel('');
-    }
-  }, [make, model, models, setModel]);
-
-  useEffect(() => {
-    if (model && !trims.some(t => t.trim_name === trim)) {
-      console.log('Resetting trim because current selection is not in trims list');
-      setTrim('');
-    }
-  }, [model, trim, trims, setTrim]);
-
-  const handleYearChange = (value: string) => {
-    setYear(value ? parseInt(value, 10) : '');
+  const handleTrimChange = (value: string) => {
+    setSelectedTrim(value);
   };
 
   return (
     <div className="space-y-4">
-      {/* Make Selection */}
-      <div>
-        <Label htmlFor="make">Make</Label>
-        {isLoading ? (
+      <div className="space-y-2">
+        <Label htmlFor="trim" className="text-sm font-medium text-slate-700">
+          Trim
+        </Label>
+        
+        {isLoading || loadingTrims ? (
           <Skeleton className="h-10 w-full" />
         ) : (
+          <>
+            <Select
+              value={selectedTrim || ''}
+              onValueChange={handleTrimChange}
+              disabled={isDisabled || !selectedModel}
+            >
+              <SelectTrigger 
+                id="trim" 
+                className={`h-10 transition-all duration-200 ${errors.trim ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+              >
+                <SelectValue placeholder={selectedModel ? "Select trim" : "Select model first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {trims.length > 0 ? (
+                  trims.map((trim) => (
+                    <SelectItem key={trim.id} value={trim.trim_name}>
+                      {trim.trim_name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="standard" disabled>
+                    {selectedModel ? "No trims available" : "Select a model first"}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            {errors.trim && <FormValidationError error={errors.trim} />}
+          </>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="transmission" className="text-sm font-medium text-slate-700">
+            Transmission
+          </Label>
           <Select
             disabled={isDisabled}
-            value={make}
-            onValueChange={setMake}
+            defaultValue="automatic"
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select make" />
+            <SelectTrigger id="transmission">
+              <SelectValue placeholder="Select transmission" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                {makes.map((makeItem: MakeData) => (
-                  <SelectItem key={makeItem.id} value={makeItem.make_name}>
-                    {makeItem.make_name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
+              <SelectItem value="automatic">Automatic</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
+              <SelectItem value="cvt">CVT</SelectItem>
+              <SelectItem value="dct">Dual-Clutch</SelectItem>
             </SelectContent>
           </Select>
-        )}
-      </div>
-
-      {/* Model Selection */}
-      <div>
-        <Label htmlFor="model">Model</Label>
-        {loadingModels ? (
-          <Skeleton className="h-10 w-full" />
-        ) : (
-          <Select
-            disabled={isDisabled || !make}
-            value={model}
-            onValueChange={setModel}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={make ? "Select model" : "Select make first"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {models.map((modelData: ModelData) => (
-                  <SelectItem key={modelData.id} value={modelData.model_name}>
-                    {modelData.model_name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-
-      {/* Trim Selection */}
-      <div>
-        <Label htmlFor="trim">Trim</Label>
-        {loadingTrims ? (
-          <Skeleton className="h-10 w-full" />
-        ) : (
-          <Select
-            disabled={isDisabled || !model}
-            value={trim}
-            onValueChange={setTrim}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={model ? "Select trim" : "Select model first"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {trims.map((trimData: TrimData) => (
-                  <SelectItem key={trimData.id} value={trimData.trim_name}>
-                    {trimData.trim_name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-
-      {/* Year Selection */}
-      <div>
-        <Label htmlFor="year">Year</Label>
-        <Select
-          disabled={isDisabled}
-          value={year ? year.toString() : ''}
-          onValueChange={handleYearChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select year" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {yearOptions.map((yearOption: number) => (
-                <SelectItem key={yearOption} value={yearOption.toString()}>
-                  {yearOption}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Mileage Input */}
-      {setMileage && (
-        <div>
-          <Label htmlFor="mileage">Mileage</Label>
-          <Input
-            id="mileage"
-            type="number"
-            placeholder="Enter mileage"
-            value={mileage || ''}
-            onChange={(e) => setMileage(parseInt(e.target.value) || 0)}
-            disabled={isDisabled}
-          />
         </div>
-      )}
 
-      {/* Color Input (Optional) */}
-      {setColor && (
-        <div>
-          <Label htmlFor="color">Color</Label>
-          <Input
-            id="color"
-            type="text"
-            placeholder="Enter color"
-            value={color || ''}
-            onChange={(e) => setColor(e.target.value)}
+        <div className="space-y-2">
+          <Label htmlFor="fuelType" className="text-sm font-medium text-slate-700">
+            Fuel Type
+          </Label>
+          <Select
             disabled={isDisabled}
-          />
+            defaultValue="gasoline"
+          >
+            <SelectTrigger id="fuelType">
+              <SelectValue placeholder="Select fuel type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gasoline">Gasoline</SelectItem>
+              <SelectItem value="diesel">Diesel</SelectItem>
+              <SelectItem value="hybrid">Hybrid</SelectItem>
+              <SelectItem value="electric">Electric</SelectItem>
+              <SelectItem value="plugin_hybrid">Plug-in Hybrid</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export function YearMileageInputs({
   errors = {}
 }: YearMileageInputsProps) {
   const { isLoading, getYearOptions } = useVehicleData();
-  const years = getYearOptions();
+  const years = getYearOptions(1990);
 
   const handleYearChange = (value: string) => {
     setSelectedYear(value ? parseInt(value, 10) : '');
