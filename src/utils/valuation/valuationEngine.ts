@@ -41,8 +41,56 @@ export const calculateConfidenceScore = (
     score += 3; // Trim specified
   }
   
+  // Adjust confidence based on accident data quality
+  if (input.accidentCount !== undefined) {
+    if (input.accidentDetails && input.accidentDetails.length > 0) {
+      score += 2; // Detailed accident info provided
+    } else {
+      score -= 1; // Just count without details reduces confidence slightly
+    }
+  }
+  
   // Cap score at 100
   return Math.min(score, 100);
+};
+
+/**
+ * Calculate accident impact on vehicle value
+ * @param baseValue Base vehicle value
+ * @param accidentCount Number of accidents
+ * @param severity Optional severity level of accidents
+ * @returns Percentage impact and dollar amount
+ */
+export const calculateAccidentImpact = (
+  baseValue: number,
+  accidentCount: number = 0,
+  severity: 'minor' | 'moderate' | 'severe' | string = 'minor'
+): { percentImpact: number; dollarImpact: number } => {
+  if (accidentCount === 0) {
+    return { percentImpact: 0, dollarImpact: 0 };
+  }
+  
+  // Base impact percentages by severity
+  const severityImpact = {
+    minor: 0.05, // 5% for minor accidents
+    moderate: 0.12, // 12% for moderate accidents
+    severe: 0.20, // 20% for severe accidents
+  };
+  
+  // Default to minor if severity not recognized
+  const impactRate = severityImpact[severity as keyof typeof severityImpact] || severityImpact.minor;
+  
+  // Multiple accidents have exponential impact up to a cap
+  const multiplier = Math.min(accidentCount, 3); // Cap at 3x for multiple accidents
+  const percentImpact = Math.min(impactRate * multiplier, 0.35); // Cap at 35% total impact
+  
+  // Calculate dollar amount
+  const dollarImpact = Math.round(baseValue * percentImpact);
+  
+  return {
+    percentImpact: percentImpact,
+    dollarImpact: -dollarImpact // Negative because it reduces value
+  };
 };
 
 // For backward compatibility with existing code
