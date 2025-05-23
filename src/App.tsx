@@ -46,8 +46,10 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             
             {/* Dealer Routes */}
-            <Route path="/dealer/*" element={<DealerLayoutPage />} />
-            <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+            <Route path="/dealer" element={<DealerLayoutPage />}>
+              <Route index element={<DealerDashboard />} />
+              <Route path="dashboard" element={<DealerDashboard />} />
+            </Route>
             
             {/* Catch all route - 404 */}
             <Route path="*" element={<NotFoundPage />} />
