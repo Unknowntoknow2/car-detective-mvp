@@ -1,12 +1,12 @@
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export function WelcomeBanner() {
-  const { user } = useAuth();
+  const { user, userDetails } = useAuth();
 
   if (!user) return null;
 
-  const name = user.user_metadata?.full_name || 
+  const name = userDetails?.full_name || 
                user.email?.split('@')[0] || 
                'there';
 
