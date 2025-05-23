@@ -1,3 +1,11 @@
+// ✅ This file defines and exports AssistantContext for use across the app
+
+import { createContext, useContext } from 'react';
+
+export const AssistantContext = createContext<any>(null);
+
+// Optional: You can also export a hook to use the context
+export const useAssistantContext = () => useContext(AssistantContext);
 
 import { VehicleContext, AssistantContext } from '@/types/assistant';
 
