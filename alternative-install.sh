@@ -1,18 +1,18 @@
 
 #!/bin/bash
-# Alternative installation script with simplified approach
+# Super simplified installation script for environments with limited resources
 
-echo "Starting alternative installation process..."
+echo "Starting simplified installation process..."
 
-# Set memory and timeout options
-export NODE_OPTIONS="--max-old-space-size=8192"
-export NPM_CONFIG_NETWORK_TIMEOUT=600000
+# Set memory allocation and timeout
+export NODE_OPTIONS="--max-old-space-size=4096"
+export NPM_CONFIG_NETWORK_TIMEOUT=300000
 
-# Install only core dependencies first to reduce initial load
-echo "Installing core dependencies..."
-npm install react react-dom @supabase/supabase-js --no-fund --no-audit --loglevel=error
-
-echo "Core dependencies installed. Installing remaining packages..."
-npm install --no-fund --no-audit --prefer-offline --loglevel=error
+# Install only the most essential packages first
+echo "Installing minimal dependencies..."
+npm install react react-dom @supabase/supabase-js --no-fund --no-audit --loglevel=error || {
+  echo "Minimal install failed. Trying different approach..."
+  npm install --no-package-lock --no-fund --prefer-offline --loglevel=error
+}
 
 echo "Installation completed."
