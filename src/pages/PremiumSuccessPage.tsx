@@ -4,10 +4,11 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, FileDown, ChevronRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 const PremiumSuccessPage: React.FC = () => {
   const navigate = useNavigate();
+  const { valuationId } = useParams<{ valuationId?: string }>();
   
   useEffect(() => {
     // In a real app, this would verify the payment was successful
@@ -79,8 +80,14 @@ const PremiumSuccessPage: React.FC = () => {
               </Link>
             </Button>
             
-            <Button size="lg" onClick={() => navigate(-1)}>
-              Return to Valuation
+            <Button size="lg" onClick={() => {
+              if (valuationId) {
+                navigate(`/premium-results/${valuationId}`);
+              } else {
+                navigate(-1);
+              }
+            }}>
+              {valuationId ? "View Valuation Results" : "Return to Valuation"}
             </Button>
           </div>
         </div>

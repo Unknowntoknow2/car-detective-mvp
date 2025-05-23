@@ -13,6 +13,7 @@ import { MarketingBanner } from '@/components/marketing/MarketingBanner';
 import { OnboardingTour } from '@/components/home/OnboardingTour';
 import { PdfPreview } from '@/components/home/PdfPreview';
 import { LookupTabs } from '@/components/home/LookupTabs';
+import { AiAssistantPreview } from '@/components/home/AiAssistantPreview';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 export const EnhancedHomePage: React.FC = () => {
@@ -41,7 +42,7 @@ export const EnhancedHomePage: React.FC = () => {
   };
 
   return (
-    <MainLayout>
+    <>
       <div className="min-h-screen">
         {/* Core sections */}
         <HeroSection onFreeValuationClick={handleFreeValuationClick} />
@@ -67,6 +68,14 @@ export const EnhancedHomePage: React.FC = () => {
         
         <PremiumServicesGrid />
         
+        {/* Add AI Assistant Preview */}
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl font-semibold text-center mb-8">Ask Our AI Assistant</h2>
+            <AiAssistantPreview />
+          </div>
+        </div>
+        
         {/* Add PDF preview */}
         <div className="container mx-auto max-w-md px-4 py-12">
           <PdfPreview />
@@ -79,7 +88,7 @@ export const EnhancedHomePage: React.FC = () => {
         {/* Always show onboarding tour */}
         <OnboardingTour />
       </div>
-    </MainLayout>
+    </>
   );
 };
 
