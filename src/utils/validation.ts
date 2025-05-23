@@ -14,6 +14,21 @@ export const validateVin = (vin: string): string | null => {
   return null;
 };
 
+export const validatePlate = (plate: string): string | undefined => {
+  if (!plate) return 'License plate is required';
+  
+  // Basic plate validation
+  if (plate.length < 2) {
+    return 'License plate must be at least 2 characters';
+  }
+  
+  if (plate.length > 8) {
+    return 'License plate cannot exceed 8 characters';
+  }
+  
+  return undefined;
+};
+
 export const validateMileage = (mileage: string | number): string | null => {
   if (typeof mileage === 'string' && !mileage) return 'Mileage is required';
   
@@ -25,7 +40,7 @@ export const validateMileage = (mileage: string | number): string | null => {
   return null;
 };
 
-export const validateZipCode = (zipCode: string): string | null => {
+export const validateZipCode = (zipCode: string): string | undefined => {
   if (!zipCode) return 'ZIP code is required';
   
   const zipRegex = /^\d{5}$/;
@@ -33,5 +48,5 @@ export const validateZipCode = (zipCode: string): string | null => {
     return 'ZIP code must be 5 digits';
   }
   
-  return null;
+  return undefined;
 };

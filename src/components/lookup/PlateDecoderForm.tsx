@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { states } from '@/data/states';
+import { usStates } from '@/data/states';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useValuation } from '@/hooks/useValuation';
 import { toast } from 'sonner';
@@ -108,7 +108,7 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
-              <Select value={state} onValueChange={setState}>
+              <Select value={state} onValueChange={(value: string) => setState(value)}>
                 <SelectTrigger 
                   id="state"
                   className={validationErrors.state ? 'border-red-500' : ''}
@@ -118,7 +118,7 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {states.map((state) => (
+                  {usStates.map((state) => (
                     <SelectItem key={state.value} value={state.value}>
                       {state.label}
                     </SelectItem>
