@@ -15,6 +15,7 @@ export interface ValuationResult {
   mileage?: number;
   condition?: string;
   zipCode?: string;
+  zip_code?: string; // For backward compatibility
   estimatedValue?: number;
   estimated_value?: number;
   accident_count?: number;
@@ -27,6 +28,7 @@ export interface ValuationResult {
   confidence_score?: number;
   features?: string[];
   pdfUrl?: string;
+  pdf_url?: string; // For backward compatibility
   gptExplanation?: string;
   explanation?: string;
   price_range?: any;
@@ -49,7 +51,7 @@ export interface ValuationResult {
   aiCondition?: { // Added aiCondition type
     condition: string;
     confidenceScore: number;
-    issuesDetected?: string[];
+    issuesDetected: string[];
     summary?: string;
   };
 }

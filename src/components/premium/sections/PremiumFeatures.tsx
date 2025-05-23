@@ -7,7 +7,7 @@ export const PremiumFeatures: React.FC = () => {
   const features = [
     {
       title: 'Comprehensive Market Analysis',
-      description: 'Get detailed insights into current market trends and how they affect your vehicle's value',
+      description: 'Get detailed insights into current market trends and how they affect your vehicle\'s value',
       icon: Check,
     },
     {
@@ -22,7 +22,7 @@ export const PremiumFeatures: React.FC = () => {
     },
     {
       title: 'Personalized Value Adjustments',
-      description: 'See exactly how each feature and factor affects your vehicle's value',
+      description: 'See exactly how each feature and factor affects your vehicle\'s value',
       icon: Check,
     },
     {
@@ -32,7 +32,7 @@ export const PremiumFeatures: React.FC = () => {
     },
     {
       title: 'Future Value Projection',
-      description: 'Understand how your vehicle's value may change in the coming months',
+      description: 'Understand how your vehicle\'s value may change in the coming months',
       icon: Check,
     },
   ];
