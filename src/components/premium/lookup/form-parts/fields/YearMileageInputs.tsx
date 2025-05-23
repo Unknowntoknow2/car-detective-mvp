@@ -8,7 +8,7 @@ import { FormValidationError } from '@/components/premium/common/FormValidationE
 
 interface YearMileageInputsProps {
   selectedYear: number | string | '';
-  setSelectedYear: (year: number | string | '') => void;
+  setSelectedYear: (year: string | number) => void;
   mileage: string;
   setMileage: (mileage: string) => void;
   isDisabled?: boolean;
@@ -30,7 +30,7 @@ export function YearMileageInputs({
     if (value === '') {
       setSelectedYear('');
     } else {
-      setSelectedYear(parseInt(value));
+      setSelectedYear(value);
     }
   };
 

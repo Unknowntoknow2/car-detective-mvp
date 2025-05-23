@@ -1,6 +1,7 @@
 
+import React from 'react';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
 
@@ -44,15 +45,9 @@ export function VinInput({
       </div>
       
       {touched && validationError ? (
-        <FormValidationError 
-          error={validationError}
-          variant="error"
-        />
+        <FormValidationError error={validationError} />
       ) : externalError ? (
-        <FormValidationError 
-          error={externalError} 
-          variant="error"
-        />
+        <FormValidationError error={externalError} />
       ) : (
         <VinInfoMessage />
       )}

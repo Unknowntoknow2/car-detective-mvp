@@ -12,7 +12,7 @@ interface BasicVehicleInfoProps {
   selectedModel: string;
   setSelectedModel: (model: string) => void;
   selectedYear: number | string | '';
-  setSelectedYear: (year: number | string | '') => void;
+  setSelectedYear: (year: string | number) => void;
   mileage: string;
   setMileage: (mileage: string) => void;
   zipCode: string;
