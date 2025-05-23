@@ -48,6 +48,12 @@ export const useVehicleSelector = ({
           console.log('Models fetched:', availableModels);
           setModels(availableModels);
           setFilteredModels(availableModels);
+          
+          // If current selected model is not in the list of available models, reset it
+          if (selectedModel && !availableModels.some(model => model.model_name === selectedModel)) {
+            console.log('Resetting model because current selection is not in models list');
+            setSelectedModel('');
+          }
         } catch (error) {
           console.error("Error fetching models:", error);
           setModels([]);
@@ -62,7 +68,7 @@ export const useVehicleSelector = ({
     }
     
     fetchModels();
-  }, [selectedMake, getModelsByMake]);
+  }, [selectedMake, getModelsByMake, selectedModel, setSelectedModel]);
 
   // Handle search terms for makes
   useEffect(() => {

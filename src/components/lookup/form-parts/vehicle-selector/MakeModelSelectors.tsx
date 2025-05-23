@@ -71,6 +71,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
               aria-expanded={makesOpen}
               className="w-full justify-between"
               disabled={disabled}
+              data-testid="make-selector-button"
             >
               {selectedMake || "Select make..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -94,8 +95,11 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                         onSelect={(currentValue) => {
                           setSelectedMake(currentValue === selectedMake ? "" : currentValue);
                           setMakesOpen(false);
-                          setSelectedModel("");
+                          if (currentValue !== selectedMake) {
+                            setSelectedModel(""); // Reset model when make changes
+                          }
                         }}
+                        data-testid={`make-option-${make}`}
                       >
                         <Check
                           className={cn(
@@ -127,6 +131,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
               aria-expanded={modelsOpen}
               className="w-full justify-between"
               disabled={disabled || !selectedMake}
+              data-testid="model-selector-button"
             >
               {selectedModel || "Select model..."}
               {loadingModels ? (
@@ -162,6 +167,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                               setSelectedModel(currentValue === selectedModel ? "" : currentValue);
                               setModelsOpen(false);
                             }}
+                            data-testid={`model-option-${model}`}
                           >
                             <Check
                               className={cn(
