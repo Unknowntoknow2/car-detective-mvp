@@ -92,12 +92,11 @@ export function EnhancedVehicleSelectorWithLogos({
     );
   }
 
-  // Map MakeData objects to ComboBox items
+  // Map MakeData objects to ComboBox items without assuming logo_url exists
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
-    // Use the logo_url property if it exists, otherwise undefined
-    icon: make.logo_url || undefined
+    // We don't expect logo_url to exist, so we won't try to use it
   })) : [];
 
   const handleMakeChange = (make: string) => {
