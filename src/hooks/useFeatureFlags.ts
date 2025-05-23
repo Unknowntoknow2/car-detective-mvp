@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 // Default feature flags
@@ -17,7 +17,8 @@ const defaultFlags = {
 export function useFeatureFlags() {
   const [flags, setFlags] = useState(defaultFlags);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
 
   useEffect(() => {
     const fetchFeatureFlags = async () => {
