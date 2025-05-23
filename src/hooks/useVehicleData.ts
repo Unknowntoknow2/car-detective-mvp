@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { VEHICLE_MAKES } from '@/data/vehicle-data';
+import { VEHICLE_MAKES, VEHICLE_MODELS } from '@/data/vehicle-data';
 
 export interface Make {
   id: string;
@@ -72,6 +72,7 @@ export function useVehicleData() {
   // Function to get models for a make
   const getModelsByMake = useCallback(async (makeName: string): Promise<Model[]> => {
     try {
+      console.log('Fetching models for make:', makeName);
       // Find the make id
       const make = makes.find(m => m.make_name === makeName);
       
@@ -85,31 +86,71 @@ export function useVehicleData() {
           
         if (error) {
           console.error('Error fetching models from Supabase:', error);
-          // Return empty array if error
-          return [];
+          // Fall back to filtered local data
+          const filteredModels = getFilteredLocalModels(makeName);
+          setModelsList(prevModels => [...prevModels, ...filteredModels]);
+          return filteredModels;
         }
         
         if (data && data.length > 0) {
           setModelsList(data); // Update the models list state
           return data;
         }
+        
+        // If no models found in Supabase, use filtered local data
+        const filteredModels = getFilteredLocalModels(makeName);
+        setModelsList(prevModels => [...prevModels, ...filteredModels]);
+        return filteredModels;
       }
       
-      // If no models found in Supabase or no make id, fallback to hard-coded logic
-      // Here we'd typically filter the models from our local data
-      // For now, just return some sample models based on make
-      const sampleModels = [
-        { id: '1', make_id: '1', model_name: 'Sample Model' },
-        { id: '2', make_id: '1', model_name: 'Another Model' }
-      ];
-      
-      setModelsList(sampleModels);
-      return sampleModels;
+      // Fallback to filtered local data if make not found
+      const filteredModels = getFilteredLocalModels(makeName);
+      setModelsList(prevModels => [...prevModels, ...filteredModels]);
+      return filteredModels;
     } catch (err) {
       console.error('Error in getModelsByMake:', err);
-      return [];
+      const filteredModels = getFilteredLocalModels(makeName);
+      return filteredModels;
     }
   }, [makes]);
+
+  // Helper function to filter local models based on make
+  const getFilteredLocalModels = (makeName: string): Model[] => {
+    // This is a simplified logic to map makes to models from our local data
+    // In a real app, this would be more sophisticated or use a proper mapping
+    const makeModelsMap: Record<string, string[]> = {
+      'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma', 'Tundra', '4Runner'],
+      'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot', 'Odyssey', 'Fit', 'HR-V'],
+      'Ford': ['F-150', 'Mustang', 'Explorer', 'Escape', 'Edge', 'Fusion', 'Ranger'],
+      'Chevrolet': ['Silverado', 'Camaro', 'Equinox', 'Malibu', 'Traverse', 'Tahoe', 'Suburban'],
+      'BMW': ['3 Series', '5 Series', 'X3', 'X5', '7 Series', 'X1', 'X7'],
+      'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'GLC', 'GLE', 'A-Class', 'GLA'],
+      'Audi': ['A4', 'Q5', 'A6', 'Q7', 'A3', 'Q3', 'A8'],
+      'Nissan': ['Altima', 'Rogue', 'Sentra', 'Pathfinder', 'Murano', 'Maxima', 'Frontier'],
+      'Hyundai': ['Elantra', 'Sonata', 'Tucson', 'Santa Fe', 'Kona', 'Palisade', 'Venue'],
+      'Kia': ['Optima', 'Sorento', 'Sportage', 'Forte', 'Telluride', 'Soul', 'Seltos']
+    };
+    
+    // If we have a mapping for this make, use it
+    const modelsForMake = makeModelsMap[makeName] || [];
+    
+    // If no specific mapping, try to find models that might match this make from our static data
+    if (modelsForMake.length === 0) {
+      const fallbackModels = VEHICLE_MODELS.slice(0, 5); // Just use the first few models as a fallback
+      return fallbackModels.map((modelName, index) => ({
+        id: `local-${index}`,
+        make_id: makes.find(m => m.make_name === makeName)?.id || 'unknown',
+        model_name: modelName
+      }));
+    }
+    
+    // Return the mapped models
+    return modelsForMake.map((modelName, index) => ({
+      id: `local-${makeName}-${index}`,
+      make_id: makes.find(m => m.make_name === makeName)?.id || 'unknown',
+      model_name: modelName
+    }));
+  };
 
   // Function to get years range
   const getYearOptions = useCallback(() => {
