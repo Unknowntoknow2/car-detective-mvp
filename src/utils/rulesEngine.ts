@@ -1,13 +1,60 @@
 
 import { RulesEngineInput, AdjustmentBreakdown, Rule } from './rules/types';
+import { calculateAccidentImpact } from './valuation/valuationEngine';
 
-const rules: Rule[] = [];
+// Define the Rule type locally if it's missing from the types file
+interface Rule {
+  name: string;
+  description: string;
+  calculate: (input: RulesEngineInput) => AdjustmentBreakdown;
+}
+
+export class RulesEngine {
+  private rules: Rule[];
+  
+  constructor(rules: Rule[]) {
+    this.rules = rules;
+  }
+  
+  // Run all rules and return the results
+  public evaluate(input: RulesEngineInput): AdjustmentBreakdown[] {
+    return this.rules.map(rule => rule.calculate(input));
+  }
+  
+  // Add a new rule to the engine
+  public addRule(rule: Rule): void {
+    this.rules.push(rule);
+  }
+  
+  // Get all rules
+  public getRules(): Rule[] {
+    return this.rules;
+  }
+}
 
 /**
  * Calculate adjustments based on rules
  */
 export async function calculateAdjustments(input: RulesEngineInput): Promise<AdjustmentBreakdown[]> {
   const adjustments: AdjustmentBreakdown[] = [];
+  
+  // Apply accident adjustment if accident data is available
+  if (input.accidentCount !== undefined) {
+    const severity = input.accidentSeverity || 'minor';
+    const { percentImpact, dollarImpact } = calculateAccidentImpact(
+      input.baseValue || 0, 
+      input.accidentCount,
+      severity
+    );
+    
+    if (dollarImpact !== 0) {
+      adjustments.push({
+        factor: 'Accident History',
+        impact: dollarImpact,
+        description: `${input.accidentCount} ${severity} accident${input.accidentCount !== 1 ? 's' : ''} reported`
+      });
+    }
+  }
   
   // For demonstration purposes, return sample adjustments
   if (input.mileage > 100000) {
