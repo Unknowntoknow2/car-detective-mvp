@@ -10,6 +10,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    storageKey: 'car-detective-auth-storage'
+    storageKey: 'car-detective-auth-storage' // Unique storage key to prevent conflicts
   }
 });

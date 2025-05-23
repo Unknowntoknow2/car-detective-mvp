@@ -1,58 +1,39 @@
 
-import { cn } from "@/lib/utils";
-
 /**
- * Car Detective™ Homepage Styles
- * Reusable, merge-safe Tailwind classes
+ * Tailwind CSS classname collections for the Valuation Homepage
  */
 
-export const container = {
-  outer: "w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
-  inner: "w-full max-w-6xl mx-auto",
-  section: "py-12 md:py-16 lg:py-24",
+const styles = {
+  container: {
+    inner: "container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl",
+    narrow: "container mx-auto px-4 md:px-6 lg:px-8 max-w-5xl"
+  },
+  
+  steps: {
+    wrapper: "py-16 bg-gray-50",
+    heading: "text-3xl font-bold text-center mb-12",
+    grid: "grid grid-cols-1 md:grid-cols-3 gap-8 mt-12",
+    stepCard: "bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-full",
+    stepTitle: "text-xl font-semibold mt-4 mb-2",
+    stepDescription: "text-gray-600",
+    icon: "inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary"
+  },
+  
+  trustLogos: {
+    wrapper: "py-12 bg-white",
+    container: "container mx-auto px-4 max-w-6xl",
+    heading: "text-center text-gray-500 mb-8 uppercase text-sm font-medium tracking-wider",
+    logoGrid: "flex flex-wrap justify-center items-center gap-8 md:gap-12",
+    logo: "h-6 md:h-8 opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+  },
+  
+  ctaFooter: {
+    wrapper: "bg-primary text-white py-16",
+    container: "container mx-auto px-4 text-center max-w-3xl",
+    heading: "text-3xl md:text-4xl font-bold mb-6",
+    ctaButton: "px-8 py-3 text-primary bg-white rounded-full shadow-lg hover:shadow-xl transition-all mb-6",
+    subtext: "text-primary-foreground/80 mt-4"
+  }
 };
 
-export const hero = {
-  wrapper: "relative min-h-[80vh] flex items-center justify-center overflow-hidden",
-  container: "relative z-10 text-center px-4 py-16 md:py-24",
-  tagline: "text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight max-w-4xl mx-auto mb-6",
-  subheading: "text-xl md:text-2xl text-neutral-darker max-w-3xl mx-auto mb-10",
-  ctaContainer: "flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6",
-  background: "absolute inset-0 bg-gradient-to-br from-neutral-lightest to-primary-light/20",
-};
-
-export const steps = {
-  wrapper: "bg-neutral-lighter py-16 md:py-24",
-  heading: "text-3xl md:text-4xl font-bold text-center mb-12",
-  grid: "grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4",
-  stepCard: "flex flex-col items-center text-center",
-  icon: "mb-4 text-primary p-4 bg-primary-light/20 rounded-full",
-  stepTitle: "text-xl font-semibold mb-2",
-  stepDescription: "text-neutral-darker",
-};
-
-export const trustLogos = {
-  wrapper: "py-12 bg-white border-y border-neutral-light",
-  container: "max-w-6xl mx-auto px-4",
-  heading: "text-sm uppercase tracking-wider text-neutral-dark text-center mb-8",
-  logoGrid: "flex flex-wrap justify-center items-center gap-8 sm:gap-12 md:gap-16",
-  logo: "h-8 md:h-10 opacity-80 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300",
-};
-
-export const ctaFooter = {
-  wrapper: "bg-primary text-white py-16 md:py-24",
-  container: "text-center max-w-4xl mx-auto px-4",
-  heading: "text-3xl md:text-4xl font-bold mb-8",
-  ctaButton: "inline-block mx-auto mb-6",
-  subtext: "text-white/80",
-};
-
-export const homeStyles = {
-  container,
-  hero,
-  steps,
-  trustLogos,
-  ctaFooter,
-};
-
-export default homeStyles;
+export default styles;
