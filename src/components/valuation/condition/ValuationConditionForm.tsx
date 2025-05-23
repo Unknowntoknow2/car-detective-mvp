@@ -58,8 +58,7 @@ export function ValuationConditionForm({
     
     // Validate ZIP code if provided
     if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode as string)) {
-      toast({
-        description: "Please enter a valid 5-digit ZIP code.",
+      toast("Please enter a valid 5-digit ZIP code.", {
         variant: "destructive"
       });
       return;
