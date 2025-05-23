@@ -3,13 +3,20 @@ import React from 'react';
 import { 
   CheckCircle, 
   ThumbsUp, 
+  CircleCheck, 
   AlertCircle, 
   AlertTriangle 
 } from 'lucide-react';
-import { Tooltip } from '@/components/ui/tooltip';
-import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+
+export enum ConditionLevel {
+  Excellent = "excellent",
+  VeryGood = "very_good",
+  Good = "good",
+  Fair = "fair",
+  Poor = "poor"
+}
 
 interface ConditionSelectorBarProps {
   value: ConditionLevel;
@@ -42,10 +49,21 @@ const conditionOptions: ConditionOption[] = [
     icon: <CheckCircle className="w-4 h-4" />,
   },
   {
+    value: ConditionLevel.VeryGood,
+    label: 'Very Good',
+    percentage: '75%',
+    description: 'Minimal wear',
+    details: 'Very minor cosmetic defects, well-maintained, clean interior and exterior.',
+    impact: 'Adds +5% over baseline',
+    color: 'bg-emerald-100 border-emerald-200',
+    activeColor: 'bg-emerald-500 text-white border-emerald-600',
+    icon: <CircleCheck className="w-4 h-4" />,
+  },
+  {
     value: ConditionLevel.Good,
     label: 'Good',
-    percentage: '75%',
-    description: 'Minor wear and tear',
+    percentage: '60%',
+    description: 'Normal wear and tear',
     details: 'Minor cosmetic issues, well-maintained mechanical components, clean interior.',
     impact: 'Baseline value',
     color: 'bg-blue-100 border-blue-200',
@@ -55,7 +73,7 @@ const conditionOptions: ConditionOption[] = [
   {
     value: ConditionLevel.Fair,
     label: 'Fair',
-    percentage: '50%',
+    percentage: '40%',
     description: 'Noticeable wear',
     details: 'Visible scratches, some mechanical issues that need attention, worn interior.',
     impact: 'Reduces value by -10%',
@@ -83,7 +101,7 @@ export const ConditionSelectorBar: React.FC<ConditionSelectorBarProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-4 gap-1 rounded-xl overflow-hidden">
+      <div className="grid grid-cols-5 gap-1 rounded-xl overflow-hidden">
         {conditionOptions.map((option) => (
           <TooltipProvider key={option.value} delayDuration={300}>
             <Tooltip>
@@ -100,6 +118,7 @@ export const ConditionSelectorBar: React.FC<ConditionSelectorBarProps> = ({
                     "hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                   )}
                   disabled={disabled}
+                  aria-label={`Select ${option.label} condition`}
                 >
                   <div className="flex items-center justify-center space-x-1.5">
                     {option.icon}

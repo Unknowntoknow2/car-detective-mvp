@@ -11,10 +11,11 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrimSelector } from '@/components/lookup/form-parts/TrimSelector';
+import ConditionSelectorBar, { ConditionLevel } from '@/components/common/ConditionSelectorBar';
 
 const detailsFormSchema = z.object({
   mileage: z.string().min(1, "Mileage is required").regex(/^\d+$/, "Mileage must be a number"),
-  condition: z.string().min(1, "Condition is required"),
+  condition: z.nativeEnum(ConditionLevel),
   zipCode: z.string().regex(/^\d{5}$/, "Enter a valid 5-digit ZIP code"),
   trim: z.string().optional(),
   drivingBehavior: z.string().optional(),
@@ -37,7 +38,7 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
     resolver: zodResolver(detailsFormSchema),
     defaultValues: {
       mileage: '',
-      condition: 'good',
+      condition: ConditionLevel.Good,
       zipCode: '',
       trim: vehicleInfo.trim || 'Standard',
       drivingBehavior: 'normal',
@@ -85,22 +86,12 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Condition</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select condition" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="excellent">Excellent</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="fair">Fair</SelectItem>
-                      <SelectItem value="poor">Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <ConditionSelectorBar
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
