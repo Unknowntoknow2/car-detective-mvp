@@ -9,24 +9,19 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Mail, KeyRound, User, Building } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
-// Define form schema
+// Define form schema with role
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  passwordConfirm: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  fullName: z.string().min(2, { message: 'Please enter your full name' }).optional(),
-  dealershipName: z.string().min(2, { message: 'Please enter your dealership name' }).optional(),
-}).refine((data) => data.password === data.passwordConfirm, {
-  message: "Passwords don't match",
-  path: ["passwordConfirm"],
+  dealershipName: z.string().optional(),
 });
 
 interface SignupFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  role?: 'individual' | 'dealer';
+  role: 'individual' | 'dealer';
   redirectPath?: string;
   showDealershipField?: boolean;
 }
@@ -34,14 +29,13 @@ interface SignupFormProps {
 export const SignupForm = ({ 
   isLoading, 
   setIsLoading, 
-  role = 'individual',
-  redirectPath = '/dashboard',
-  showDealershipField = false
+  role = 'individual', 
+  redirectPath = '/dashboard', 
+  showDealershipField = false 
 }: SignupFormProps) => {
   const { signUp } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,8 +43,6 @@ export const SignupForm = ({
     defaultValues: {
       email: '',
       password: '',
-      passwordConfirm: '',
-      fullName: '',
       dealershipName: '',
     },
   });
@@ -61,22 +53,23 @@ export const SignupForm = ({
     setIsLoading(true);
     
     try {
-      const userData = {
-        email: values.email,
-        password: values.password,
+      const { email, password, dealershipName } = values;
+      
+      // Call the signUp function with email, password, and metadata for the user role
+      const metadata = {
         role,
-        fullName: values.fullName || undefined,
-        dealershipName: values.dealershipName || undefined,
+        ...(dealershipName ? { dealershipName } : {})
       };
       
-      const result = await signUp(userData);
+      const result = await signUp(email, password, metadata);
       
-      if (!result.success) {
-        const errorMessage = result.error || 'Failed to create account';
+      if (result.error) {
+        const errorMessage = result.error || 'Error creating account';
         setFormError(errorMessage);
         setIsLoading(false);
+        
         toast({
-          title: "Signup failed",
+          title: "Sign up failed",
           description: errorMessage,
           variant: "destructive",
         });
@@ -85,18 +78,18 @@ export const SignupForm = ({
       
       // If sign-up was successful
       toast({
-        title: "Account created!",
-        description: "Your account has been successfully created.",
+        title: "Account created successfully!",
+        description: "Welcome to Car Detective!",
         variant: "success",
       });
       
-      // Redirect to appropriate dashboard
-      navigate(redirectPath, { replace: true });
+      // Redirect to the specified path
+      navigate(redirectPath);
     } catch (err: any) {
-      console.error('Signup error:', err);
+      console.error('Sign up error:', err);
       setFormError('An unexpected error occurred');
       toast({
-        title: "Signup failed",
+        title: "Sign up failed",
         description: "Please try again",
         variant: "destructive",
       });
@@ -137,55 +130,6 @@ export const SignupForm = ({
           )}
         />
         
-        {role === 'individual' && (
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      {...field}
-                      placeholder="Enter your full name"
-                      className="pl-10"
-                      disabled={isLoading}
-                      autoComplete="name"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        
-        {showDealershipField && (
-          <FormField
-            control={form.control}
-            name="dealershipName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dealership Name</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      {...field}
-                      placeholder="Enter your dealership name"
-                      className="pl-10"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        
         <FormField
           control={form.control}
           name="password"
@@ -210,29 +154,29 @@ export const SignupForm = ({
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="passwordConfirm"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    {...field}
-                    placeholder="Confirm your password" 
-                    type="password"
-                    className="pl-10"
-                    disabled={isLoading}
-                    autoComplete="new-password"
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {showDealershipField && (
+          <FormField
+            control={form.control}
+            name="dealershipName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dealership Name</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      {...field}
+                      placeholder="Enter your dealership name"
+                      className="pl-10"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <Button 
           type="submit" 
