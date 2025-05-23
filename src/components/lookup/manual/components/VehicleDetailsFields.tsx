@@ -48,7 +48,7 @@ export const VehicleDetailsFields: React.FC<VehicleDetailsFieldsProps> = ({ form
               <FormLabel>Transmission</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value}
+                defaultValue={field.value || transmissionOptions[0].value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -76,7 +76,7 @@ export const VehicleDetailsFields: React.FC<VehicleDetailsFieldsProps> = ({ form
               <FormLabel>Fuel Type</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value}
+                defaultValue={field.value || fuelTypeOptions[0].value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -104,7 +104,7 @@ export const VehicleDetailsFields: React.FC<VehicleDetailsFieldsProps> = ({ form
               <FormLabel>Body Type</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value}
+                defaultValue={field.value || bodyTypeOptions[0].value}
               >
                 <FormControl>
                   <SelectTrigger>
