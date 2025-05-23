@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +54,12 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
     });
   };
 
+  // Handle trim selection
+  const handleTrimChange = (value: string) => {
+    setSelectedTrim(value);
+    form.setValue('trim', value);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -103,10 +108,7 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
               model={vehicleInfo.model}
               year={vehicleInfo.year}
               value={selectedTrim}
-              onChange={(value) => {
-                setSelectedTrim(value);
-                form.setValue('trim', value);
-              }}
+              onChange={handleTrimChange}
             />
 
             <FormField
