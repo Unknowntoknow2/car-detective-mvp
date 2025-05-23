@@ -2,17 +2,11 @@
 import React from 'react';
 import { Toaster } from 'sonner';
 
-interface ToastProviderProps {
-  children: React.ReactNode;
-}
-
-export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <>
-      <Toaster position="top-right" />
       {children}
+      <Toaster position="top-right" richColors />
     </>
   );
 };
-
-export default ToastProvider;
