@@ -15,6 +15,10 @@ interface VehicleDetailsInputsProps {
   setTrim: (trim: string) => void;
   year: number | '';
   setYear: (year: number | '') => void;
+  mileage?: number;
+  setMileage?: (mileage: number) => void;
+  color?: string;
+  setColor?: (color: string) => void;
   isDisabled?: boolean;
 }
 
@@ -27,6 +31,10 @@ export function VehicleDetailsInputs({
   setTrim,
   year,
   setYear,
+  mileage,
+  setMileage,
+  color,
+  setColor,
   isDisabled = false
 }: VehicleDetailsInputsProps) {
   const { makes, isLoading, error, getModelsByMake, getTrimsByModel, getYearOptions } = useVehicleData();
@@ -97,6 +105,10 @@ export function VehicleDetailsInputs({
       setTrim('');
     }
   }, [model, trim, trims, setTrim]);
+
+  const handleYearChange = (value: string) => {
+    setYear(value ? parseInt(value, 10) : '');
+  };
 
   return (
     <div className="space-y-4">
@@ -187,7 +199,7 @@ export function VehicleDetailsInputs({
         <Select
           disabled={isDisabled}
           value={year ? year.toString() : ''}
-          onValueChange={(value) => setYear(value ? parseInt(value, 10) : '')}
+          onValueChange={handleYearChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select year" />
@@ -203,6 +215,36 @@ export function VehicleDetailsInputs({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Mileage Input */}
+      {setMileage && (
+        <div>
+          <Label htmlFor="mileage">Mileage</Label>
+          <Input
+            id="mileage"
+            type="number"
+            placeholder="Enter mileage"
+            value={mileage || ''}
+            onChange={(e) => setMileage(parseInt(e.target.value) || 0)}
+            disabled={isDisabled}
+          />
+        </div>
+      )}
+
+      {/* Color Input (Optional) */}
+      {setColor && (
+        <div>
+          <Label htmlFor="color">Color</Label>
+          <Input
+            id="color"
+            type="text"
+            placeholder="Enter color"
+            value={color || ''}
+            onChange={(e) => setColor(e.target.value)}
+            disabled={isDisabled}
+          />
+        </div>
+      )}
     </div>
   );
 }

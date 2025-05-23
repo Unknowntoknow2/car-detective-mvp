@@ -28,7 +28,7 @@ export function ManualLookup({
   // States for form fields
   const [make, setMake] = useState(initialData?.make || '');
   const [model, setModel] = useState(initialData?.model || '');
-  const [year, setYear] = useState<number>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
+  const [year, setYear] = useState<number | ''>(initialData?.year ? Number(initialData.year) : new Date().getFullYear());
   const [mileage, setMileage] = useState<number>(initialData?.mileage ? Number(initialData.mileage) : 0);
   const [condition, setCondition] = useState<ConditionLevel>(
     (initialData?.condition as ConditionLevel) || ConditionLevel.Good
@@ -47,11 +47,15 @@ export function ManualLookup({
     const isValidForm = Boolean(
       make.trim() !== '' && 
       model.trim() !== '' && 
-      year > 1900 && 
+      typeof year === 'number' && year > 1900 && 
       zipCode.length === 5
     );
     setIsValid(isValidForm);
   }, [make, model, year, zipCode]);
+
+  const handleYearChange = (value: number | '') => {
+    setYear(value);
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +89,7 @@ export function ManualLookup({
     const formData: ManualEntryFormData = {
       make,
       model,
-      year,
+      year: typeof year === 'number' ? year : new Date().getFullYear(),
       mileage,
       condition,
       zipCode,
@@ -106,7 +110,7 @@ export function ManualLookup({
           .insert({
             make,
             model,
-            year,
+            year: typeof year === 'number' ? year : new Date().getFullYear(),
             mileage,
             condition: condition.toString(),
             zip_code: zipCode,
@@ -156,9 +160,9 @@ export function ManualLookup({
             model={model}
             setModel={setModel}
             year={year}
-            setYear={(val: number) => setYear(val)}
+            setYear={handleYearChange}
             mileage={mileage}
-            setMileage={(val: number) => setMileage(val)}
+            setMileage={setMileage}
             trim={trim}
             setTrim={setTrim}
             color={color}
