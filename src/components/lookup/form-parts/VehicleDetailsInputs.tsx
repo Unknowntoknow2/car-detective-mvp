@@ -128,9 +128,9 @@ export function VehicleDetailsInputs({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {makes.map((makeData: MakeData) => (
-                  <SelectItem key={makeData.id} value={makeData.make_name}>
-                    {makeData.make_name}
+                {makes.map((makeItem: MakeData) => (
+                  <SelectItem key={makeItem.id} value={makeItem.make_name}>
+                    {makeItem.make_name}
                   </SelectItem>
                 ))}
               </SelectGroup>
