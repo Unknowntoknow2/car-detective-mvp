@@ -79,7 +79,7 @@ export function AiAssistantPreview() {
     // Generate response based on intent and context
     const assistantContext = {
       ...context,
-      vehicle: vehicleContext
+      vehicleContext: vehicleContext
     };
     
     try {
