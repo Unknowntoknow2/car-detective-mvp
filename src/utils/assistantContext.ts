@@ -88,7 +88,7 @@ export function generateResponse(intent: string, context: AssistantContext, user
     switch (intent) {
       case 'value_inquiry':
         if ((vehicle || vehicleContext)?.estimatedValue) {
-          response = `Based on our data, your ${vehicleInfo} has an estimated value of $${(vehicle || vehicleContext)?.estimatedValue.toLocaleString()}. This estimate takes into account the vehicle's age, condition, and mileage.`;
+          response = `Based on our data, your ${vehicleInfo} has an estimated value of $${(vehicle || vehicleContext)?.estimatedValue?.toLocaleString()}. This estimate takes into account the vehicle's age, condition, and mileage.`;
         } else {
           response = `I'd be happy to help you determine the value of ${vehicleInfo}. To provide an accurate estimate, I'll need some information like the year, make, model, mileage, and condition of your vehicle.`;
         }
