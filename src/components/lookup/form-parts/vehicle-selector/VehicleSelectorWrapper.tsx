@@ -61,6 +61,9 @@ export const VehicleSelectorWrapper = ({
 
   // Convert MakeData objects to make names (strings) for the MakeModelSelectors component
   const makeNames = filteredMakes.map(make => make.make_name);
+  
+  // Get model names for the selector
+  const modelNames = filteredModels.map(model => model.model_name);
 
   return (
     <div className="space-y-4">
@@ -74,7 +77,7 @@ export const VehicleSelectorWrapper = ({
         modelsOpen={modelsOpen}
         setModelsOpen={setModelsOpen}
         filteredMakes={makeNames}
-        filteredModels={filteredModels.map(model => model.model_name)}
+        filteredModels={modelNames}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         modelSearchTerm={modelSearchTerm}
