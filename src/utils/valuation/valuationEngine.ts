@@ -1,3 +1,4 @@
+
 import { AdjustmentBreakdown } from './rules/types';
 import { ValuationParams, ValuationResult } from './valuationCalculator';
 import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
@@ -28,6 +29,16 @@ export const calculateConfidenceScore = (
   
   if (input.features && input.features.length > 0) {
     score += 2; // Features provided
+  }
+
+  // Adjust based on driving behavior data
+  if (input.drivingScore) {
+    score += 4; // Driving behavior provided
+  }
+  
+  // Adjust based on trim specification
+  if (input.trim) {
+    score += 3; // Trim specified
   }
   
   // Cap score at 100

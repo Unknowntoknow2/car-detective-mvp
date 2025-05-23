@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +10,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrimSelector } from '@/components/lookup/form-parts/TrimSelector';
 
 const detailsFormSchema = z.object({
   mileage: z.string().min(1, "Mileage is required").regex(/^\d+$/, "Mileage must be a number"),
   condition: z.string().min(1, "Condition is required"),
   zipCode: z.string().regex(/^\d{5}$/, "Enter a valid 5-digit ZIP code"),
+  trim: z.string().optional(),
+  drivingBehavior: z.string().optional(),
 });
 
 interface ValuationDetailsFormProps {
@@ -28,12 +31,16 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
+  const [selectedTrim, setSelectedTrim] = useState(vehicleInfo.trim || 'Standard');
+
   const form = useForm({
     resolver: zodResolver(detailsFormSchema),
     defaultValues: {
       mileage: '',
       condition: 'good',
       zipCode: '',
+      trim: vehicleInfo.trim || 'Standard',
+      drivingBehavior: 'normal',
     },
   });
 
@@ -42,6 +49,8 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
       mileage: parseInt(values.mileage, 10),
       condition: values.condition,
       zipCode: values.zipCode,
+      trim: selectedTrim, // Use the trim from our selector
+      drivingBehavior: values.drivingBehavior,
     });
   };
 
@@ -90,6 +99,44 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
                       <SelectItem value="good">Good</SelectItem>
                       <SelectItem value="fair">Fair</SelectItem>
                       <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Our new Trim Selector component */}
+            <TrimSelector
+              make={vehicleInfo.make}
+              model={vehicleInfo.model}
+              year={vehicleInfo.year}
+              value={selectedTrim}
+              onChange={(value) => {
+                setSelectedTrim(value);
+                form.setValue('trim', value);
+              }}
+            />
+
+            <FormField
+              control={form.control}
+              name="drivingBehavior"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Driving Behavior</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select driving behavior" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="cautious">Cautious</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="aggressive">Aggressive</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
