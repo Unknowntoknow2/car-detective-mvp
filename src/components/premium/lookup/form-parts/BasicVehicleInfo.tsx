@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { MakeModelSelect } from '@/components/premium/lookup/form-parts/fields/MakeModelSelect';
-import { YearMileageInputs } from '@/components/premium/lookup/form-parts/fields/YearMileageInputs';
+import { MakeModelSelect } from './fields/MakeModelSelect';
+import { YearMileageInputs } from './fields/YearMileageInputs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
@@ -53,16 +53,14 @@ export function BasicVehicleInfo({
         />
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <YearMileageInputs
-          selectedYear={selectedYear}
-          setSelectedYear={setSelectedYear}
-          mileage={mileage}
-          setMileage={setMileage}
-          isDisabled={isDisabled}
-          errors={errors}
-        />
-      </div>
+      <YearMileageInputs
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        mileage={mileage}
+        setMileage={setMileage}
+        isDisabled={isDisabled}
+        errors={errors}
+      />
       
       <div className="sm:w-1/2">
         <div className="space-y-2">
