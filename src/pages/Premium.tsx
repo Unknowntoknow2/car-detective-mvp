@@ -8,7 +8,9 @@ export default function Premium() {
   return (
     <Layout>
       <SEO title="Premium Valuation" description="Get a premium valuation for your vehicle" />
-      <PremiumValuationForm />
+      <div>
+        <PremiumValuationForm />
+      </div>
     </Layout>
   );
 }

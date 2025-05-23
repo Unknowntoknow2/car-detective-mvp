@@ -33,4 +33,14 @@ export interface ValuationResponse {
   basePrice?: number;
   photoScore?: number;
   bestPhotoUrl?: string;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary?: string;
+  };
+  userId?: string;
 }
+
+// Re-export DecodedVehicleInfo from vehicle.d.ts to ensure it's available
+export type { DecodedVehicleInfo, DealerInventoryItem, VehicleValuation } from './vehicle.d';
