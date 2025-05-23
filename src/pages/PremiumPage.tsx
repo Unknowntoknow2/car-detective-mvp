@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Container } from '@/components/ui/container';
 import { Card } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { PremiumHero } from '@/components/premium/hero/PremiumHero';
 import { toast } from 'sonner';
 
 export default function PremiumPage() {
+  const formRef = useRef<HTMLDivElement>(null);
+  
   // Define a handler for plate lookup submissions
   const handlePlateLookupSubmit = (data: { plate: string; state: string; zipCode: string }) => {
     console.log('Plate lookup submitted:', data);
@@ -19,12 +21,31 @@ export default function PremiumPage() {
     // Additional processing would go here
   };
 
+  // Define a handler for VIN lookup submissions
+  const handleVinLookupSubmit = (vin: string) => {
+    console.log('VIN lookup submitted:', vin);
+    toast.success('VIN lookup submitted successfully');
+    // Additional processing would go here
+  };
+
+  // Define a handler for manual lookup submissions
+  const handleManualLookupSubmit = (data: any) => {
+    console.log('Manual lookup submitted:', data);
+    toast.success('Manual lookup submitted successfully');
+    // Additional processing would go here
+  };
+
+  // Function to scroll to the premium form
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <MainLayout>
       <Container className="py-8 px-4 md:px-6">
-        <PremiumHero />
+        <PremiumHero scrollToForm={scrollToForm} />
         
-        <div className="mt-8">
+        <div className="mt-8" ref={formRef}>
           <Card className="p-6">
             <Tabs defaultValue="vin" className="w-full">
               <TabsList className="grid grid-cols-3 md:grid-cols-4 mb-6">
@@ -35,7 +56,7 @@ export default function PremiumPage() {
               </TabsList>
               
               <TabsContent value="vin" className="space-y-4">
-                <EnhancedVinLookup />
+                <EnhancedVinLookup onSubmit={handleVinLookupSubmit} />
               </TabsContent>
               
               <TabsContent value="plate" className="space-y-4">
@@ -43,7 +64,7 @@ export default function PremiumPage() {
               </TabsContent>
               
               <TabsContent value="manual" className="space-y-4">
-                <PremiumManualLookup />
+                <PremiumManualLookup onSubmit={handleManualLookupSubmit} />
               </TabsContent>
               
               <TabsContent value="photo" className="space-y-4">
