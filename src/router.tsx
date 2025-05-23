@@ -21,6 +21,8 @@ import DashboardPage from './pages/DashboardPage';
 import DashboardRouter from './components/dashboard/DashboardRouter';
 import ResultsPage from './pages/ResultsPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import IndividualAuthPage from './pages/auth/IndividualAuthPage';
+import DealerAuthPage from './pages/auth/DealerAuthPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -49,6 +51,14 @@ const routes: RouteObject[] = [
       {
         path: 'auth/callback',
         element: <AuthCallbackPage />
+      },
+      {
+        path: 'auth/individual',
+        element: <IndividualAuthPage />
+      },
+      {
+        path: 'auth/dealer',
+        element: <DealerAuthPage />
       },
       
       // Redirect legacy auth routes to the new unified auth page

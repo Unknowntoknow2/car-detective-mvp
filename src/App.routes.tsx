@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -15,15 +16,15 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
-import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
-import DealerSignup from './pages/DealerSignup';
 import ChooseRolePage from './pages/auth/ChooseRolePage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
 import SigninPage from './pages/auth/SigninPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DealerSignupPage from './pages/auth/DealerSignupPage';
+import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 // Export routes configuration that can be used with useRoutes() hook
 export const routes = [
@@ -45,6 +46,14 @@ export const routes = [
       },
       // New auth flow routes
       {
+        path: 'auth',
+        element: <UnifiedAuthPage />
+      },
+      {
+        path: 'auth/callback',
+        element: <AuthCallbackPage />
+      },
+      {
         path: 'auth/choose',
         element: <ChooseRolePage />
       },
@@ -56,26 +65,22 @@ export const routes = [
         path: 'auth/dealer',
         element: <DealerAuthPage />
       },
-      // Legacy auth routes
-      {
-        path: 'auth',
-        element: <AuthPage />
-      },
+      // Legacy auth routes - redirect to unified auth
       {
         path: 'login',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'register',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'sign-up',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'signup',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'signup/individual',
@@ -87,7 +92,11 @@ export const routes = [
       },
       {
         path: 'sign-in',
-        element: <ChooseRolePage />
+        element: <UnifiedAuthPage />
+      },
+      {
+        path: 'signin',
+        element: <UnifiedAuthPage />
       },
       {
         path: 'signin/individual',
@@ -99,7 +108,7 @@ export const routes = [
       },
       {
         path: 'dealer-signup',
-        element: <DealerAuthPage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'dashboard',
