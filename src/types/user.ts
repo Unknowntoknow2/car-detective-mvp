@@ -13,7 +13,7 @@ export interface User {
   };
 }
 
-export interface UserProfile {
+export interface UserDetails {
   id: string;
   username?: string | null;
   full_name?: string | null;
@@ -25,4 +25,5 @@ export interface UserProfile {
   is_admin?: boolean;
   created_at?: string;
   updated_at?: string;
+  email?: string;
 }
