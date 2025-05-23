@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -63,10 +64,7 @@ export function ValuationConditionForm({
     e.preventDefault();
 
     if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode)) {
-      toast({
-        description: "Please enter a valid 5-digit ZIP code.",
-        variant: "destructive"
-      });
+      toast("Please enter a valid 5-digit ZIP code.");
       return;
     }
 
@@ -76,10 +74,7 @@ export function ValuationConditionForm({
     if (id) {
       navigate(`/result?id=${id}`);
     } else {
-      toast({ 
-        description: "Missing valuation ID. Please try again.",
-        variant: "destructive"
-      });
+      toast("Missing valuation ID. Please try again.");
     }
   };
 
