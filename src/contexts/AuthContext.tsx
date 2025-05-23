@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/utils/supabaseClient';
 import { UserRole } from '@/types/auth';
 
 interface User {
@@ -38,25 +39,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<any>(null);
   
   useEffect(() => {
-    // Check for stored user info on mount
-    const storedUser = localStorage.getItem('auth_user');
-    const storedSession = localStorage.getItem('auth_session');
-    
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setUserRole(parsedUser.user_metadata?.role as UserRole || 'individual');
-      setUserDetails({
-        role: parsedUser.user_metadata?.role || 'individual',
-        full_name: parsedUser.user_metadata?.full_name,
-      });
-    }
-    
-    if (storedSession) {
-      setSession(JSON.parse(storedSession));
-    }
-    
-    setIsLoading(false);
+    const fetchSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error fetching session:', error);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            // Get user role from metadata
+            const role = session.user.user_metadata?.role || 'individual';
+            setUserRole(role as UserRole);
+            
+            setUserDetails({
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name,
+              email: session.user.email,
+              role: role,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error in auth context:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSession();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const role = session.user.user_metadata?.role || 'individual';
+          setUserRole(role as UserRole);
+          setUserDetails({
+            id: session.user.id,
+            full_name: session.user.user_metadata?.full_name,
+            email: session.user.email,
+            role: role,
+          });
+        } else {
+          setUserRole(undefined);
+          setUserDetails(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
   
   const signIn = async (email: string, password: string): Promise<boolean> => {
@@ -64,35 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
-      // In a real app, this would call an authentication API
-      // For demo, we'll simulate a successful login
-      const mockUser = {
-        id: 'user123',
-        email,
-        name: email.split('@')[0],
-        user_metadata: {
-          role: 'individual',
-          full_name: email.split('@')[0]
-        },
-        created_at: new Date().toISOString()
-      };
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       
-      const mockSession = {
-        access_token: 'mock_token',
-        expires_at: Date.now() + 3600000, // 1 hour
-      };
-      
-      // Store user info
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-      localStorage.setItem('auth_session', JSON.stringify(mockSession));
-      
-      setUser(mockUser);
-      setSession(mockSession);
-      setUserRole(mockUser.user_metadata?.role as UserRole || 'individual');
-      setUserDetails({
-        role: mockUser.user_metadata?.role || 'individual',
-        full_name: mockUser.user_metadata?.full_name,
-      });
+      if (error) {
+        setError(error);
+        return false;
+      }
       
       return true;
     } catch (error) {
@@ -109,37 +127,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
-      // In a real app, this would call an authentication API
-      // For demo, we'll simulate a successful signup
-      const mockUser = {
-        id: 'user' + Date.now(),
+      const { data, error } = await supabase.auth.signUp({
         email,
-        name: email.split('@')[0],
-        user_metadata: {
-          role: metadata?.role || 'individual',
-          full_name: metadata?.full_name || email.split('@')[0]
+        password,
+        options: {
+          data: metadata || {},
         },
-        created_at: new Date().toISOString()
-      };
-      
-      const mockSession = {
-        access_token: 'mock_token',
-        expires_at: Date.now() + 3600000, // 1 hour
-      };
-      
-      // Store user info
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-      localStorage.setItem('auth_session', JSON.stringify(mockSession));
-      
-      setUser(mockUser);
-      setSession(mockSession);
-      setUserRole(mockUser.user_metadata?.role as UserRole || 'individual');
-      setUserDetails({
-        role: mockUser.user_metadata?.role || 'individual',
-        full_name: mockUser.user_metadata?.full_name,
       });
       
-      return { error: null, data: { user: mockUser } };
+      if (error) {
+        setError(error);
+      }
+      
+      return { error, data };
     } catch (error) {
       console.error('Signup error:', error);
       setError(error);
@@ -149,19 +149,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const signOut = () => {
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_session');
-    setUser(null);
-    setSession(null);
-    setUserDetails(null);
-    setUserRole(undefined);
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setUserDetails(null);
+      setUserRole(undefined);
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
   
   const resetPassword = async (email: string): Promise<{ error: any }> => {
-    // Simulate password reset
-    console.log('Password reset requested for:', email);
-    return { error: null };
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      return { error };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return { error };
+    }
   };
   
   return (
