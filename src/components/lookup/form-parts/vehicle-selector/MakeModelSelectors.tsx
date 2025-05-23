@@ -23,6 +23,7 @@ interface MakeModelSelectorsProps {
   disabled?: boolean;
   required?: boolean;
   loadingModels?: boolean;
+  hasModels?: boolean;
 }
 
 export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
@@ -42,7 +43,8 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
   setModelSearchTerm,
   disabled = false,
   required = false,
-  loadingModels = false
+  loadingModels = false,
+  hasModels = false
 }) => {
   return (
     <div className="flex flex-col space-y-4">
@@ -111,7 +113,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
           open={modelsOpen} 
           onOpenChange={(open) => {
             // Only allow opening if a make is selected and not in loading state
-            if (!selectedMake || loadingModels) return;
+            if (disabled || !selectedMake) return;
             setModelsOpen(open);
           }}
         >
@@ -123,7 +125,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                 "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                 (!selectedModel || !selectedMake) && "text-muted-foreground"
               )}
-              disabled={disabled || !selectedMake}
+              disabled={disabled || !selectedMake || loadingModels}
               data-testid="model-selector-button"
             >
               {selectedModel || (selectedMake ? (loadingModels ? "Loading models..." : "Select model...") : "Select make first")}
@@ -150,7 +152,13 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                   </div>
                 ) : (
                   <>
-                    <CommandEmpty>No models found.</CommandEmpty>
+                    <CommandEmpty>
+                      {filteredModels.length === 0 && hasModels 
+                        ? "No matching models found." 
+                        : (filteredModels.length === 0 
+                            ? "No models available for this make." 
+                            : "No models found.")}
+                    </CommandEmpty>
                     <CommandGroup>
                       {filteredModels.map((model) => (
                         <CommandItem

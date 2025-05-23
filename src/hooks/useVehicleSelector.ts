@@ -30,7 +30,8 @@ export const useVehicleSelector = ({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
   
-  const fetchingRef = useRef(false);
+  const modelFetchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const modelsInitialized = useRef(false);
 
   // Initialize filtered makes list
   useEffect(() => {
@@ -44,54 +45,59 @@ export const useVehicleSelector = ({
     let isMounted = true;
     
     const fetchModels = async () => {
-      if (!selectedMake || fetchingRef.current) return;
+      if (!selectedMake) {
+        if (isMounted) {
+          setModels([]);
+          setFilteredModels([]);
+          modelsInitialized.current = false;
+        }
+        return;
+      }
       
       try {
-        fetchingRef.current = true;
         setLoadingModels(true);
         
-        console.log('Fetching models for make:', selectedMake);
-        const availableModels = await getModelsByMake(selectedMake);
-        
-        if (isMounted) {
-          console.log('Models fetched:', availableModels);
-          setModels(availableModels);
-          setFilteredModels(availableModels);
-          
-          // If current selected model is not in the list of available models, reset it
-          if (selectedModel && !availableModels.some(model => model.model_name === selectedModel)) {
-            console.log('Resetting model because current selection is not in models list');
-            setSelectedModel('');
-          }
+        // Clear any existing timeout
+        if (modelFetchTimeout.current) {
+          clearTimeout(modelFetchTimeout.current);
         }
+        
+        // Set a timeout to avoid rapid repeated calls
+        modelFetchTimeout.current = setTimeout(async () => {
+          console.log('Fetching models for make:', selectedMake);
+          const availableModels = await getModelsByMake(selectedMake);
+          
+          if (isMounted) {
+            setModels(availableModels);
+            setFilteredModels(availableModels);
+            modelsInitialized.current = true;
+            
+            // If current selected model is not in the list of available models, reset it
+            if (selectedModel && !availableModels.some(model => model.model_name === selectedModel)) {
+              console.log('Resetting model because current selection is not in models list');
+              setSelectedModel('');
+            }
+          }
+          
+          setLoadingModels(false);
+        }, 200);
       } catch (error) {
         console.error("Error fetching models:", error);
         if (isMounted) {
           setModels([]);
           setFilteredModels([]);
-        }
-      } finally {
-        if (isMounted) {
           setLoadingModels(false);
         }
-        fetchingRef.current = false;
       }
     };
     
-    if (selectedMake) {
-      fetchModels();
-    } else {
-      setModels([]);
-      setFilteredModels([]);
-      
-      // Clear model when make is cleared
-      if (selectedModel) {
-        setSelectedModel('');
-      }
-    }
+    fetchModels();
     
     return () => {
       isMounted = false;
+      if (modelFetchTimeout.current) {
+        clearTimeout(modelFetchTimeout.current);
+      }
     };
   }, [selectedMake, getModelsByMake, selectedModel, setSelectedModel]);
 
@@ -151,6 +157,7 @@ export const useVehicleSelector = ({
     modelSearchTerm,
     setModelSearchTerm,
     validationError,
-    loadingModels
+    loadingModels,
+    models
   };
 };
