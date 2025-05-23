@@ -24,6 +24,7 @@ serve(async (req) => {
 
     console.log("Decoding VIN:", vin);
 
+    // Call the NHTSA API to decode the VIN
     const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`);
     const data = await response.json();
     const results = data.Results;
@@ -95,6 +96,24 @@ serve(async (req) => {
       return "Unknown";
     };
 
+    // Extract fuel type with consistent fallback
+    const getFuelType = () => {
+      const fuelFields = [
+        "Fuel Type - Primary",
+        "Fuel Type",
+        "Alternative Fuel Type"
+      ];
+      
+      for (const field of fuelFields) {
+        const value = extract(field);
+        if (value !== "Unknown") {
+          return value;
+        }
+      }
+      
+      return "Unknown";
+    };
+
     const vehicleInfo = {
       vin,
       make: extract("Make"),
@@ -105,16 +124,23 @@ serve(async (req) => {
       transmission: getTransmission(),
       drivetrain: extract("Drive Type"),
       bodyType: extract("Body Class"),
+      fueltype: getFuelType(),
+      doors: extract("Doors"),
+      seats: extract("Seats"),
+      enginecylinders: extract("Engine Number of Cylinders"),
+      displacementl: extract("Displacement (L)"),
       timestamp: new Date().toISOString(),
     };
 
     console.log("Processed vehicle info with standardized fallbacks:", vehicleInfo);
 
+    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!, 
       Deno.env.get("SUPABASE_ANON_KEY")!
     );
 
+    // Save the decoded vehicle to the database
     const { error: insertError } = await supabase
       .from("decoded_vehicles")
       .upsert([vehicleInfo], { onConflict: "vin" });
