@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FormData } from '@/types/premium-valuation';
 import { LookupTabs } from '@/components/premium/lookup/LookupTabs';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { toast } from 'sonner';
 
 interface VehicleIdentificationStepProps {
@@ -45,6 +45,23 @@ export function VehicleIdentificationStep({
     setLookup(value);
   };
 
+  // Helper function to convert ConditionLevel enum to string
+  const conditionLevelToString = (condition: ConditionLevel): "excellent" | "good" | "fair" | "poor" => {
+    switch (condition) {
+      case ConditionLevel.Excellent:
+        return "excellent";
+      case ConditionLevel.VeryGood:
+      case ConditionLevel.Good:
+        return "good";
+      case ConditionLevel.Fair:
+        return "fair";
+      case ConditionLevel.Poor:
+        return "poor";
+      default:
+        return "good";
+    }
+  };
+
   const handleManualSubmit = async (data: ManualEntryFormData) => {
     try {
       console.log("Manual submit with data:", data);
@@ -58,7 +75,7 @@ export function VehicleIdentificationStep({
           year: data.year || result.year,
           mileage: data.mileage || 0,
           zipCode: data.zipCode || '',
-          condition: (data.condition || '') as "excellent" | "good" | "fair" | "poor" || "good",
+          condition: conditionLevelToString(data.condition),
           fuelType: data.fuelType || '',
           transmission: data.transmission || '',
           trim: data.trim || result.trim || '',
@@ -80,7 +97,7 @@ export function VehicleIdentificationStep({
           year: data.year,
           mileage: data.mileage || 0,
           zipCode: data.zipCode || '',
-          condition: (data.condition || '') as "excellent" | "good" | "fair" | "poor" || "good",
+          condition: conditionLevelToString(data.condition),
           fuelType: data.fuelType || '',
           transmission: data.transmission || '',
           trim: data.trim || '',

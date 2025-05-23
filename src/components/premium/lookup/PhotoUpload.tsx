@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { ImagePlus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 
 interface PhotoUploadProps {
   onPhotoAnalysisComplete?: (vehicleData: any) => void;
@@ -43,8 +43,11 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           make: "Unknown", // Default values for required fields
           model: "Unknown",
           year: new Date().getFullYear(),
-          condition: "Unknown",
+          mileage: 0,
+          condition: ConditionLevel.Good, // Use the enum value instead of string
           zipCode: "00000",
+          fuelType: "Gasoline",
+          transmission: "Automatic",
           fileType: selectedFiles[0]?.type || "image/jpeg",
           fileName: selectedFiles[0]?.name || "photo.jpg"
         };
