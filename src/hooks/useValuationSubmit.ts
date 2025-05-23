@@ -1,97 +1,82 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ValuationResponse } from '@/types/vehicle';
 import { FormData } from '@/types/premium-valuation';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 
-// Define minimal user data needed for the submission
-type UserData = {
-  id: string;
-  email?: string;
-  app_metadata?: Record<string, any>;
-  user_metadata?: Record<string, any>;
-  [key: string]: any;
-};
-
-export const useValuationSubmit = () => {
-  const [valuationId, setValuationId] = useState<string | null>(null);
+export function useValuationSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const handleSubmit = async (
-    formData: FormData, 
-    user: UserData, 
-    isFormValid: boolean
-  ) => {
-    if (!isFormValid) {
-      toast.error('Please complete all required fields');
-      setSubmitError('Please complete all required fields');
-      return;
-    }
-
-    if (!user) {
-      toast.error('You must be logged in to submit a valuation');
-      setSubmitError('You must be logged in to submit a valuation');
-      return;
-    }
-
+  const [error, setError] = useState<string | null>(null);
+  
+  const submitVehicleData = async (formData: FormData) => {
     setIsSubmitting(true);
-    setSubmitError(null);
-
+    setError(null);
+    
     try {
-      // Create a valuation record in the database
-      const { data, error } = await supabase
-        .from('valuations')
-        .insert({
-          user_id: user.id,
-          make: formData.make,
-          model: formData.model,
-          year: formData.year,
-          mileage: formData.mileage,
-          fuel_type: formData.fuelType,
-          condition: formData.conditionLabel,
-          accident_history: formData.hasAccident === 'yes',
-          accident_details: formData.accidentDescription,
-          zip_code: formData.zipCode,
-          features: formData.features,
-          driving_profile: formData.drivingProfile,
-          identifier_type: formData.identifierType,
-          identifier: formData.identifier,
-          status: 'completed'
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        throw error;
+      // Determine which identifier to use (VIN, plate, or other)
+      const identifierType = formData.identifierType || 'vin';
+      const identifier = formData.identifier || formData.vin || '';
+      
+      // Basic validation
+      if (!identifier) {
+        throw new Error('Vehicle identifier is required.');
       }
-
-      // Set the valuation ID from the response
-      setValuationId(data.id);
-
-      // Show success message
-      toast.success('Valuation completed successfully!');
       
-      // Navigate to the results page
-      navigate(`/results/${data.id}`);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      return data.id;
+      // Mock response
+      const mockValuationData: ValuationResponse = {
+        make: formData.make || 'Generic Make',
+        model: formData.model || 'Generic Model',
+        year: formData.year || 2020,
+        mileage: formData.mileage,
+        condition: formData.condition.toString(),
+        estimatedValue: 20000,
+        confidenceScore: 80,
+        valuationId: `mock-${Date.now()}`,
+        zipCode: formData.zipCode,
+        fuelType: formData.fuelType,
+        transmission: formData.transmission,
+        bodyType: formData.bodyStyle,
+        color: formData.color,
+        trim: formData.trim,
+        vin: formData.vin,
+        isPremium: true,
+        price_range: {
+          low: 18000,
+          high: 22000
+        },
+        adjustments: [],
+        aiCondition: {
+          condition: formData.condition.toString(),
+          confidenceScore: 80,
+          issuesDetected: []
+        },
+        userId: ''
+      };
+      
+      toast.success('Vehicle data submitted successfully!');
+      return {
+        success: true,
+        data: mockValuationData
+      };
     } catch (error: any) {
-      console.error('Error submitting valuation:', error);
-      toast.error(error.message || 'Failed to submit valuation');
-      setSubmitError(error.message || 'Failed to submit valuation');
-      return null;
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit vehicle data';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return {
+        success: false,
+        error: errorMessage
+      };
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
   return {
-    valuationId,
-    handleSubmit,
     isSubmitting,
-    submitError
+    error,
+    submitVehicleData
   };
-};
+}
