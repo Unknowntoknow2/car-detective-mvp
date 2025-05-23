@@ -51,6 +51,7 @@ export function VehicleDetailsInputs({
         try {
           setLoadingModels(true);
           const modelData = await getModelsByMake(make);
+          console.log('Fetched models for make:', make, modelData);
           setModels(modelData);
         } catch (err) {
           console.error('Error fetching models:', err);
@@ -73,10 +74,13 @@ export function VehicleDetailsInputs({
         try {
           setLoadingTrims(true);
           const selectedModel = models.find(m => m.model_name === model);
+          console.log('Selected model for trims:', selectedModel);
           if (selectedModel) {
             const trimData = await getTrimsByModel(selectedModel.id);
+            console.log('Fetched trims:', trimData);
             setTrims(trimData);
           } else {
+            console.log('No matching model found in models array');
             setTrims([]);
           }
         } catch (err) {
@@ -96,12 +100,14 @@ export function VehicleDetailsInputs({
   // Reset dependent fields when parent field changes
   useEffect(() => {
     if (make && !models.some(m => m.model_name === model)) {
+      console.log('Resetting model because current selection is not in models list');
       setModel('');
     }
   }, [make, model, models, setModel]);
 
   useEffect(() => {
     if (model && !trims.some(t => t.trim_name === trim)) {
+      console.log('Resetting trim because current selection is not in trims list');
       setTrim('');
     }
   }, [model, trim, trims, setTrim]);

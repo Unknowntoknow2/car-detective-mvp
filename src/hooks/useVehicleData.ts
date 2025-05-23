@@ -44,7 +44,7 @@ export function useVehicleData() {
         // Try to fetch makes from Supabase
         const { data, error } = await supabase
           .from('makes')
-          .select('id, make_name, logo_url')
+          .select('id, make_name')
           .order('make_name');
           
         if (error) {
@@ -52,8 +52,7 @@ export function useVehicleData() {
           // Fallback to local data if there's an error
           const fallbackMakes = VEHICLE_MAKES.map((makeName, index) => ({
             id: `local-${index}`,
-            make_name: makeName,
-            logo_url: null
+            make_name: makeName
           }));
           setMakes(fallbackMakes);
           setCounts({ makes: fallbackMakes.length, models: VEHICLE_MODELS.length });
@@ -66,8 +65,7 @@ export function useVehicleData() {
             // Fallback to local data if no makes were returned
             const fallbackMakes = VEHICLE_MAKES.map((makeName, index) => ({
               id: `local-${index}`,
-              make_name: makeName,
-              logo_url: null
+              make_name: makeName
             }));
             setMakes(fallbackMakes);
             setCounts({ makes: fallbackMakes.length, models: VEHICLE_MODELS.length });
@@ -78,8 +76,7 @@ export function useVehicleData() {
         // Fallback to local data
         const fallbackMakes = VEHICLE_MAKES.map((makeName, index) => ({
           id: `local-${index}`,
-          make_name: makeName,
-          logo_url: null
+          make_name: makeName
         }));
         setMakes(fallbackMakes);
         setCounts({ makes: fallbackMakes.length, models: VEHICLE_MODELS.length });
@@ -95,62 +92,61 @@ export function useVehicleData() {
   // Function to fetch models for a specific make
   const getModelsByMake = useCallback(async (make: string): Promise<ModelData[]> => {
     try {
-      setIsLoading(true);
-      
+      console.log('Getting models for make:', make);
       // First, try to get the make_id for the selected make
-      const { data: makeData, error: makeError } = await supabase
-        .from('makes')
-        .select('id')
-        .eq('make_name', make)
-        .single();
-        
-      if (makeError) {
-        console.error('Error fetching make_id:', makeError);
-        // Fallback to local data
-        return VEHICLE_MODELS.map((model, index) => ({
-          id: `local-${index}`,
-          model_name: model
-        }));
+      const makeItem = makes.find(m => m.make_name === make);
+      
+      if (!makeItem) {
+        console.error('Make not found:', make);
+        return [];
       }
+      
+      const makeId = makeItem.id;
+      console.log('Found make ID:', makeId);
       
       // Use the make_id to get models
       const { data, error } = await supabase
         .from('models')
         .select('id, model_name')
-        .eq('make_id', makeData.id)
+        .eq('make_id', makeId)
         .order('model_name');
         
       if (error) {
-        console.error('Error fetching models:', error);
+        console.error('Error fetching models from Supabase:', error);
         // Fallback to local data
         return VEHICLE_MODELS.map((model, index) => ({
-          id: `local-${index}`,
-          model_name: model
+          id: `local-model-${index}`,
+          model_name: model,
+          make_id: makeId
         }));
       }
       
-      // Update models count
-      if (data) {
-        setCounts(prev => ({ ...prev, models: data.length }));
+      if (data && data.length > 0) {
+        console.log('Models from Supabase:', data);
+        return data;
+      } else {
+        console.log('No models found, using fallback data');
+        // Fallback to local data if no models were returned
+        return VEHICLE_MODELS.map((model, index) => ({
+          id: `local-model-${index}`,
+          model_name: model,
+          make_id: makeId
+        }));
       }
-      
-      return data || [];
     } catch (err) {
       console.error('Unexpected error fetching models:', err);
       // Fallback to local data
       return VEHICLE_MODELS.map((model, index) => ({
-        id: `local-${index}`,
+        id: `local-model-${index}`,
         model_name: model
       }));
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  }, [makes]);
   
   // Function to fetch trims for a specific model
   const getTrimsByModel = useCallback(async (modelId: string): Promise<TrimData[]> => {
     try {
-      setIsLoading(true);
+      console.log('Getting trims for model ID:', modelId);
       
       const { data, error } = await supabase
         .from('model_trims')
@@ -163,12 +159,20 @@ export function useVehicleData() {
         return [];
       }
       
-      return data || [];
+      if (data && data.length > 0) {
+        console.log('Trims from Supabase:', data);
+        return data;
+      } else {
+        // Default fallback with at least "Standard" trim
+        return [{
+          id: `default-trim-${modelId}`,
+          trim_name: 'Standard',
+          model_id: modelId
+        }];
+      }
     } catch (err) {
       console.error('Unexpected error fetching trims:', err);
       return [];
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
