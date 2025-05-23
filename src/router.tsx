@@ -23,6 +23,7 @@ import ChooseRolePage from './pages/auth/ChooseRolePage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
 import DashboardRouter from './components/dashboard/DashboardRouter';
+import ResultsPage from './pages/ResultsPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
