@@ -17,6 +17,7 @@ export interface Model {
 
 export function useVehicleData() {
   const [makes, setMakes] = useState<Make[]>([]);
+  const [modelsList, setModelsList] = useState<Model[]>([]); 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -89,6 +90,7 @@ export function useVehicleData() {
         }
         
         if (data && data.length > 0) {
+          setModelsList(data); // Update the models list state
           return data;
         }
       }
@@ -96,10 +98,13 @@ export function useVehicleData() {
       // If no models found in Supabase or no make id, fallback to hard-coded logic
       // Here we'd typically filter the models from our local data
       // For now, just return some sample models based on make
-      return [
+      const sampleModels = [
         { id: '1', make_id: '1', model_name: 'Sample Model' },
         { id: '2', make_id: '1', model_name: 'Another Model' }
       ];
+      
+      setModelsList(sampleModels);
+      return sampleModels;
     } catch (err) {
       console.error('Error in getModelsByMake:', err);
       return [];
@@ -112,11 +117,52 @@ export function useVehicleData() {
     return Array.from({ length: 50 }, (_, i) => currentYear - i);
   }, []);
 
+  // Function to refresh data
+  const refreshData = useCallback(async (forceRefresh = false) => {
+    setIsLoading(true);
+    
+    try {
+      const { data: makesData, error: makesError } = await supabase
+        .from('makes')
+        .select('id, make_name')
+        .order('make_name');
+        
+      if (makesError) {
+        throw makesError;
+      }
+      
+      if (makesData && makesData.length > 0) {
+        setMakes(makesData);
+      }
+      
+      // For demo purposes, let's just return a success message
+      return {
+        success: true,
+        makeCount: makesData?.length || 0,
+        modelCount: modelsList.length
+      };
+    } catch (error) {
+      console.error('Error refreshing vehicle data:', error);
+      return { success: false, makeCount: 0, modelCount: 0 };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [modelsList.length]);
+
+  // Calculate counts
+  const counts = {
+    makes: makes.length,
+    models: modelsList.length
+  };
+
   return {
     makes,
+    models: modelsList, // Add models to the return object
     isLoading,
     error,
     getModelsByMake,
-    getYearOptions
+    getYearOptions,
+    refreshData, // Add refreshData to the return object
+    counts // Add counts to the return object
   };
 }
