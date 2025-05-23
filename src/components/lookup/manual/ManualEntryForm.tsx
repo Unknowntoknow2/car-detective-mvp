@@ -30,6 +30,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [zipCode, setZipCode] = useState('');
   const [fuelType, setFuelType] = useState('Gasoline');
   const [transmission, setTransmission] = useState('Automatic');
+  const [trim, setTrim] = useState('');
+  const [color, setColor] = useState('');
   const [isValid, setIsValid] = useState(false);
   
   // Validate form fields
@@ -68,7 +70,9 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       condition,
       zipCode,
       fuelType,
-      transmission
+      transmission,
+      trim: trim || undefined,
+      color: color || undefined
     };
     
     onSubmit(formattedData);
@@ -88,6 +92,10 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
               setYear={setYear}
               mileage={mileage}
               setMileage={setMileage}
+              trim={isPremium ? trim : undefined}
+              setTrim={isPremium ? setTrim : undefined}
+              color={isPremium ? color : undefined}
+              setColor={isPremium ? setColor : undefined}
             />
           </div>
           
