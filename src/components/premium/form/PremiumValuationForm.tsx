@@ -1,191 +1,246 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
+import { Card, CardContent } from '@/components/ui/card';
+import { FormData } from '@/types/premium-valuation';
+import { Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { VehicleIdentificationStep } from './steps/VehicleIdentificationStep';
+import { useStepNavigation } from '@/hooks/useStepNavigation';
+import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { toast } from 'sonner';
-import { Loader2, ArrowRight } from 'lucide-react';
-import { useVehicleData } from '@/hooks/useVehicleData';
 
-interface FormDataType {
-  make: string;
-  model: string;
-  year: number | string;
-  mileage: string | number;
-  trim: string;
-  color: string;
-  zipCode: string;
-  condition: string;
-  hasAccident: boolean;
-  accidentDescription: string;
-  titleStatus: string;
+interface PremiumValuationFormProps {
+  vehicle?: any;
+  onComplete?: (valuationId: string) => void;
 }
 
-export function PremiumValuationForm() {
-  const [formData, setFormData] = useState<FormDataType>({
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    mileage: '',
-    trim: '',
-    color: '',
-    zipCode: '',
+export function PremiumValuationForm({ vehicle, onComplete }: PremiumValuationFormProps) {
+  const initialFormData: FormData = {
+    make: vehicle?.make || '',
+    model: vehicle?.model || '',
+    year: vehicle?.year || 0,
+    mileage: vehicle?.mileage || 0,
     condition: 'good',
-    hasAccident: false,
-    accidentDescription: '',
-    titleStatus: 'clean'
-  });
+    zipCode: '',
+    vin: vehicle?.vin || '',
+    bodyType: vehicle?.bodyType || '',
+    transmission: vehicle?.transmission || '',
+    fuelType: vehicle?.fuelType || '',
+    trim: vehicle?.trim || '',
+    identifierType: vehicle ? 'manual' : undefined,
+    identifier: vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : undefined
+  };
 
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const { makes, getModelsByMake } = useVehicleData();
+  const [stepValidity, setStepValidity] = useState<Record<number, boolean>>({});
+  const { isLoading, lookupVehicle } = useVehicleLookup();
+  
+  const {
+    currentStep,
+    totalSteps,
+    goToNextStep,
+    goToPreviousStep,
+    goToStep
+  } = useStepNavigation(formData);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.make) {
-      newErrors.make = 'Make is required';
-    }
-    
-    if (!formData.model) {
-      newErrors.model = 'Model is required';
-    }
-    
-    if (!formData.year) {
-      newErrors.year = 'Year is required';
-    }
-    
-    if (!formData.zipCode) {
-      newErrors.zipCode = 'ZIP code is required';
-    } else if (!/^\d{5}$/.test(formData.zipCode)) {
-      newErrors.zipCode = 'ZIP code must be 5 digits';
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    
+  const updateStepValidity = (step: number, isValid: boolean) => {
+    setStepValidity(prev => ({
+      ...prev,
+      [step]: isValid
+    }));
+  };
+
+  const isCurrentStepValid = () => {
+    return stepValidity[currentStep] || false;
+  };
+
+  const isFormValid = Object.values(stepValidity).every(Boolean) && 
+    Object.keys(stepValidity).length === totalSteps;
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    
     try {
-      // Simulate API call with a timeout
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Mock API call - in a real app, this would submit the data to your backend
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate a mock valuation ID
+      const valuationId = `prem-${Date.now()}`;
       
       toast.success('Premium valuation completed successfully!');
-      // Here you would typically redirect to a results page or show results
       
+      if (onComplete) {
+        onComplete(valuationId);
+      }
+      
+      return valuationId;
     } catch (error) {
       console.error('Error submitting valuation:', error);
-      toast.error('An error occurred while processing your valuation.');
+      toast.error('Failed to submit valuation');
+      return null;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
+  const handleReset = () => {
+    setFormData(initialFormData);
+    goToStep(1);
+    setStepValidity({});
   };
 
-  const setMake = (value: string) => {
-    setFormData(prev => ({ ...prev, make: value, model: '' }));
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <VehicleIdentificationStep
+            step={currentStep}
+            formData={formData}
+            setFormData={setFormData}
+            updateValidity={updateStepValidity}
+            lookupVehicle={lookupVehicle}
+            isLoading={isLoading}
+            goToNextStep={goToNextStep}
+          />
+        );
+      // Placeholder for other steps - in a real app, you would implement these
+      case 2:
+        return (
+          <Card className="animate-in fade-in duration-500">
+            <CardContent className="pt-6">
+              <h2 className="text-2xl font-semibold mb-4">Vehicle Details</h2>
+              <p className="text-muted-foreground mb-6">
+                Confirm and add additional details about your {formData.year} {formData.make} {formData.model}.
+              </p>
+              <Button onClick={() => {
+                updateStepValidity(currentStep, true);
+                goToNextStep();
+              }}>
+                Continue
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      case 3:
+        return (
+          <Card className="animate-in fade-in duration-500">
+            <CardContent className="pt-6">
+              <h2 className="text-2xl font-semibold mb-4">Accident History</h2>
+              <p className="text-muted-foreground mb-6">
+                Please provide information about any accidents or damage.
+              </p>
+              <Button onClick={() => {
+                updateStepValidity(currentStep, true);
+                goToNextStep();
+              }}>
+                Continue
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      case 4:
+        return (
+          <Card className="animate-in fade-in duration-500">
+            <CardContent className="pt-6">
+              <h2 className="text-2xl font-semibold mb-4">Review & Submit</h2>
+              <p className="text-muted-foreground mb-6">
+                Review your information before submitting for a premium valuation.
+              </p>
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit for Premium Valuation'
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return null;
+    }
   };
 
-  const setModel = (value: string) => {
-    setFormData(prev => ({ ...prev, model: value }));
-  };
-
-  const setYear = (value: number | string | '') => {
-    setFormData(prev => ({ ...prev, year: value }));
-  };
-
-  const setMileage = (value: number | string) => {
-    setFormData(prev => ({ ...prev, mileage: value }));
-  };
-
-  const setTrim = (value: string) => {
-    setFormData(prev => ({ ...prev, trim: value }));
-  };
-
-  const setColor = (value: string) => {
-    setFormData(prev => ({ ...prev, color: value }));
-  };
+  // If vehicle is provided, skip step 1
+  React.useEffect(() => {
+    if (vehicle && currentStep === 1) {
+      updateStepValidity(1, true);
+      goToNextStep();
+    }
+  }, [vehicle, currentStep]);
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <h3 className="text-lg font-semibold">Premium Vehicle Valuation</h3>
-        <p className="text-sm text-muted-foreground">Complete the form below to receive a detailed valuation</p>
-      </CardHeader>
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Premium Valuation</h1>
+        <div className="text-sm text-muted-foreground">
+          Step {currentStep} of {totalSteps}
+        </div>
+      </div>
       
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <h4 className="text-md font-medium">Vehicle Information</h4>
-            <VehicleDetailsInputs
-              make={formData.make}
-              setMake={setMake}
-              model={formData.model}
-              setModel={setModel}
-              year={formData.year}
-              setYear={setYear}
-              mileage={formData.mileage}
-              setMileage={setMileage}
-              trim={formData.trim}
-              setTrim={setTrim}
-              color={formData.color}
-              setColor={setColor}
-            />
-          </div>
-          
-          <div className="space-y-4">
-            <h4 className="text-md font-medium">Location</h4>
-            <div>
-              <Label htmlFor="zipCode">ZIP Code</Label>
-              <Input
-                id="zipCode"
-                name="zipCode"
-                placeholder="Enter your ZIP code"
-                value={formData.zipCode}
-                onChange={handleInputChange}
-                className={errors.zipCode ? 'border-red-500' : ''}
-                maxLength={5}
-              />
-              {errors.zipCode && (
-                <p className="mt-1 text-sm text-red-500">{errors.zipCode}</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
+      <div className="relative">
+        <div className="w-full bg-secondary h-2 rounded-full">
+          <div 
+            className="bg-primary h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          />
+        </div>
         
-        <CardFooter className="bg-gray-50 border-t">
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting}
+        <div className="flex justify-between mt-2">
+          {Array.from({ length: totalSteps }).map((_, index) => {
+            const stepNum = index + 1;
+            const isCompleted = stepValidity[stepNum] || false;
+            const isCurrent = currentStep === stepNum;
+            
+            return (
+              <button
+                key={stepNum}
+                onClick={() => goToStep(stepNum)}
+                disabled={!isCompleted && !isCurrent}
+                className={`
+                  w-8 h-8 rounded-full flex items-center justify-center text-xs
+                  ${isCompleted 
+                    ? 'bg-primary text-white' 
+                    : isCurrent 
+                      ? 'bg-primary/20 text-primary border border-primary' 
+                      : 'bg-secondary text-muted-foreground'
+                  }
+                `}
+              >
+                {stepNum}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      
+      <div className="min-h-[300px]">
+        {renderStepContent()}
+      </div>
+      
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={goToPreviousStep}
+          disabled={currentStep === 1 || isSubmitting}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        
+        {currentStep < totalSteps && (
+          <Button
+            onClick={goToNextStep}
+            disabled={!isCurrentStepValid() || isSubmitting}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                Get Premium Valuation <ArrowRight className="ml-2 h-4 w-4" />
-              </>
-            )}
+            Next
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </CardFooter>
-      </form>
-    </Card>
+        )}
+      </div>
+    </div>
   );
 }
