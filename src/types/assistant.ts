@@ -12,6 +12,7 @@ export interface AssistantContext {
     region?: string;
     zipCode?: string;
   };
+  vehicleContext?: VehicleContext;
 }
 
 export interface VehicleContext {
@@ -25,6 +26,7 @@ export interface VehicleContext {
   zipCode?: string;
   estimatedValue?: number;
   accidentCount?: number;
+  accidentHistory?: boolean;
   accidentSeverity?: string;
   bodyType?: string;
   fuelType?: string;
