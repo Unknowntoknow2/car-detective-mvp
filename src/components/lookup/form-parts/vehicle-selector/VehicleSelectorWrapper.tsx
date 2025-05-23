@@ -74,13 +74,14 @@ export const VehicleSelectorWrapper = ({
         modelsOpen={modelsOpen}
         setModelsOpen={setModelsOpen}
         filteredMakes={makeNames}
-        filteredModels={filteredModels || []}
+        filteredModels={filteredModels.map(model => model.model_name)}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         modelSearchTerm={modelSearchTerm}
         setModelSearchTerm={setModelSearchTerm}
         disabled={disabled}
         required={required}
+        loadingModels={loadingModels}
       />
       <ValidationMessage error={validationError} />
     </div>

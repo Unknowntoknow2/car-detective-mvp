@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -27,13 +27,14 @@ interface MakeModelSelectorsProps {
   modelsOpen: boolean;
   setModelsOpen: (open: boolean) => void;
   filteredMakes: string[];
-  filteredModels: any[];
+  filteredModels: string[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   modelSearchTerm: string;
   setModelSearchTerm: (term: string) => void;
   disabled?: boolean;
   required?: boolean;
+  loadingModels?: boolean;
 }
 
 export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
@@ -52,7 +53,8 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
   modelSearchTerm,
   setModelSearchTerm,
   disabled = false,
-  required = false
+  required = false,
+  loadingModels = false
 }) => {
   return (
     <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
@@ -127,7 +129,11 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
               disabled={disabled || !selectedMake}
             >
               {selectedModel || "Select model..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              {loadingModels ? (
+                <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin" />
+              ) : (
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
@@ -138,28 +144,39 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                 onValueChange={setModelSearchTerm}
               />
               <CommandList>
-                <CommandEmpty>No models found.</CommandEmpty>
-                {Array.isArray(filteredModels) && filteredModels.length > 0 && (
-                  <CommandGroup>
-                    {filteredModels.map((model) => (
-                      <CommandItem
-                        key={model.model_name}
-                        value={model.model_name}
-                        onSelect={(currentValue) => {
-                          setSelectedModel(currentValue === selectedModel ? "" : currentValue);
-                          setModelsOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedModel === model.model_name ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {model.model_name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                {loadingModels ? (
+                  <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading models...
+                  </div>
+                ) : (
+                  <>
+                    <CommandEmpty>No models found.</CommandEmpty>
+                    {Array.isArray(filteredModels) && filteredModels.length > 0 ? (
+                      <CommandGroup>
+                        {filteredModels.map((model) => (
+                          <CommandItem
+                            key={model}
+                            value={model}
+                            onSelect={(currentValue) => {
+                              setSelectedModel(currentValue === selectedModel ? "" : currentValue);
+                              setModelsOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedModel === model ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {model}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ) : (
+                      selectedMake && <CommandEmpty>No models available for this make.</CommandEmpty>
+                    )}
+                  </>
                 )}
               </CommandList>
             </Command>
