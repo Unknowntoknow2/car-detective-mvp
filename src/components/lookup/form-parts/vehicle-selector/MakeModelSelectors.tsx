@@ -1,21 +1,12 @@
 
-import React, { useRef, useEffect } from "react";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Check, ChevronDown, Search } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface MakeModelSelectorsProps {
   selectedMake: string;
@@ -34,12 +25,12 @@ interface MakeModelSelectorsProps {
   setModelSearchTerm: (term: string) => void;
   disabled?: boolean;
   required?: boolean;
-  loadingModels: boolean;
-  hasModels: boolean;
+  loadingModels?: boolean;
+  hasModels?: boolean;
   forcedRender?: number;
 }
 
-export function MakeModelSelectors({
+export const MakeModelSelectors = ({
   selectedMake,
   setSelectedMake,
   selectedModel,
@@ -56,160 +47,115 @@ export function MakeModelSelectors({
   setModelSearchTerm,
   disabled = false,
   required = false,
-  loadingModels,
-  hasModels,
+  loadingModels = false,
+  hasModels = true,
   forcedRender = 0
-}: MakeModelSelectorsProps) {
-  const modelTriggerRef = useRef<HTMLButtonElement>(null);
-  const commandInputRef = useRef<HTMLInputElement>(null);
-
-  // Auto-focus the command input when popover opens
+}: MakeModelSelectorsProps) => {
+  // Force the component to re-render when the forcedRender prop changes
   useEffect(() => {
-    if (makesOpen && commandInputRef.current) {
-      setTimeout(() => {
-        commandInputRef.current?.focus();
-      }, 100);
-    }
-  }, [makesOpen]);
-
-  // Auto-focus the command input for models when that popover opens
-  useEffect(() => {
-    if (modelsOpen && commandInputRef.current) {
-      setTimeout(() => {
-        commandInputRef.current?.focus();
-      }, 100);
-    }
-  }, [modelsOpen]);
-
-  // Special effect to force the model dropdown to open when selected make changes
-  useEffect(() => {
-    if (selectedMake && hasModels && !loadingModels && !selectedModel) {
-      const timer = setTimeout(() => {
-        setModelsOpen(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedMake, hasModels, loadingModels, selectedModel, setModelsOpen]);
-
-  // Effect for forced render (usually to recover from errors)
-  useEffect(() => {
-    if (forcedRender > 0 && selectedMake && !selectedModel && filteredModels.length > 0) {
-      const timer = setTimeout(() => {
-        setModelsOpen(true);
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [forcedRender, selectedMake, selectedModel, filteredModels.length, setModelsOpen]);
+    // This effect just uses the forcedRender prop to trigger a re-render
+  }, [forcedRender]);
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Make Selector */}
       <div className="space-y-2">
+        <label className="text-sm font-medium flex items-center">
+          Make {required && <span className="text-destructive ml-1">*</span>}
+        </label>
         <Popover open={makesOpen} onOpenChange={setMakesOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
               aria-expanded={makesOpen}
-              className={cn(
-                "w-full justify-between",
-                !selectedMake && "text-muted-foreground"
-              )}
-              onClick={() => setMakesOpen(!makesOpen)}
+              className="w-full justify-between"
               disabled={disabled}
             >
-              {selectedMake || "Select make"}
-              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              {selectedMake || "Select make..."}
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="p-0 w-full min-w-[200px] max-h-[300px]" align="start">
-            <Command>
+          <PopoverContent className="w-full p-0" align="start">
+            <Command className="w-full">
               <CommandInput 
-                placeholder="Search make..." 
-                className="h-9" 
+                placeholder="Search makes..." 
                 value={searchTerm}
                 onValueChange={setSearchTerm}
-                ref={commandInputRef}
+                className="h-9"
               />
-              <CommandEmpty>No make found.</CommandEmpty>
-              <CommandGroup className="max-h-[210px] overflow-auto">
-                {filteredMakes.map((make) => (
-                  <CommandItem
-                    key={make}
-                    value={make}
-                    onSelect={() => {
-                      setSelectedMake(make);
-                      setMakesOpen(false);
-                      setSelectedModel(''); // Reset model when make changes
-                    }}
-                  >
-                    {make}
-                    <CheckIcon
-                      className={cn(
-                        "ml-auto h-4 w-4",
-                        selectedMake === make ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              <CommandList>
+                <CommandEmpty>No makes found.</CommandEmpty>
+                <CommandGroup className="max-h-64 overflow-auto">
+                  <ScrollArea className="h-64">
+                    {filteredMakes.map((make) => (
+                      <CommandItem
+                        key={make}
+                        value={make}
+                        onSelect={() => {
+                          setSelectedMake(make);
+                          setMakesOpen(false);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Check
+                          className={cn(
+                            "h-4 w-4",
+                            selectedMake === make ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {make}
+                      </CommandItem>
+                    ))}
+                  </ScrollArea>
+                </CommandGroup>
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
-        {required && !selectedMake && (
-          <p className="text-xs text-destructive">Make is required</p>
-        )}
       </div>
 
       {/* Model Selector */}
       <div className="space-y-2">
+        <label className="text-sm font-medium flex items-center">
+          Model {required && <span className="text-destructive ml-1">*</span>}
+        </label>
         <Popover open={modelsOpen} onOpenChange={setModelsOpen}>
           <PopoverTrigger asChild>
             <Button
-              ref={modelTriggerRef}
               variant="outline"
               role="combobox"
               aria-expanded={modelsOpen}
               className={cn(
                 "w-full justify-between",
-                !selectedModel && "text-muted-foreground"
+                (!selectedMake || loadingModels) && "text-muted-foreground"
               )}
-              onClick={() => {
-                if (selectedMake) {
-                  setModelsOpen(!modelsOpen);
-                }
-              }}
-              disabled={disabled || !selectedMake || loadingModels}
+              disabled={!selectedMake || disabled}
             >
               {loadingModels ? (
-                <span className="flex items-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Loading models...
-                </span>
+                "Loading models..."
+              ) : selectedModel ? (
+                selectedModel
               ) : (
-                selectedModel || "Select model"
+                selectedMake ? "Select model..." : "Select make first"
               )}
-              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="p-0 w-full min-w-[200px] max-h-[300px]" align="start">
-            <Command>
+          <PopoverContent className="w-full p-0" align="start">
+            <Command className="w-full">
               <CommandInput 
-                placeholder="Search model..." 
-                className="h-9" 
+                placeholder="Search models..." 
                 value={modelSearchTerm}
                 onValueChange={setModelSearchTerm}
-                ref={commandInputRef}
+                className="h-9"
               />
-              {loadingModels ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <span className="ml-2">Loading models...</span>
-                </div>
-              ) : (
-                <>
-                  <CommandEmpty>No model found.</CommandEmpty>
-                  <CommandGroup className="max-h-[210px] overflow-auto">
+              <CommandList>
+                <CommandEmpty>
+                  {loadingModels ? "Loading models..." : "No models found."}
+                </CommandEmpty>
+                <CommandGroup className="max-h-64 overflow-auto">
+                  <ScrollArea className="h-64">
                     {filteredModels.map((model) => (
                       <CommandItem
                         key={model}
@@ -218,26 +164,24 @@ export function MakeModelSelectors({
                           setSelectedModel(model);
                           setModelsOpen(false);
                         }}
+                        className="flex items-center gap-2"
                       >
-                        {model}
-                        <CheckIcon
+                        <Check
                           className={cn(
-                            "ml-auto h-4 w-4",
+                            "h-4 w-4",
                             selectedModel === model ? "opacity-100" : "opacity-0"
                           )}
                         />
+                        {model}
                       </CommandItem>
                     ))}
-                  </CommandGroup>
-                </>
-              )}
+                  </ScrollArea>
+                </CommandGroup>
+              </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
-        {required && selectedMake && !selectedModel && (
-          <p className="text-xs text-destructive">Model is required</p>
-        )}
       </div>
     </div>
   );
-}
+};

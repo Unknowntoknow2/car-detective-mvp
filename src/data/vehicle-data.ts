@@ -18,7 +18,12 @@ export const VEHICLE_MODELS = [
   "Soul", "Tacoma", "Tahoe", "Taurus", "Tiguan", "Tucson", "Tundra", "Wrangler", "X5", "XC90"
 ];
 
-export const VEHICLE_MODELS_BY_MAKE = {
+// Define a type for the vehicle models by make object
+export interface VehicleModelsByMake {
+  [make: string]: string[];
+}
+
+export const VEHICLE_MODELS_BY_MAKE: VehicleModelsByMake = {
   "Acura": ["ILX", "MDX", "NSX", "RDX", "TLX", "TSX"],
   "Audi": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "R8", "TT"],
   "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4"],
