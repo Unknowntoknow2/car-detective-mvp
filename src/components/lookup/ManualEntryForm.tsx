@@ -8,7 +8,6 @@ import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
 import { ConditionAndFuelInputs } from './form-parts/ConditionAndFuelInputs';
 import { ZipCodeInput } from './form-parts/ZipCodeInput';
 import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
-import { useVehicleData } from '@/hooks/useVehicleData';
 
 export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -23,8 +22,6 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   submitButtonText = "Get Valuation",
   isPremium = false
 }) => {
-  const { makes, getModelsByMake } = useVehicleData();
-  
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState<number>(new Date().getFullYear());
@@ -33,42 +30,19 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   const [zipCode, setZipCode] = useState('');
   const [fuelType, setFuelType] = useState('Gasoline');
   const [transmission, setTransmission] = useState('Automatic');
-  const [models, setModels] = useState<string[]>([]);
+  const [trim, setTrim] = useState('');
+  const [color, setColor] = useState('');
   const [isValid, setIsValid] = useState(false);
   
-  // Fetch models when make changes
-  useEffect(() => {
-    if (make) {
-      const fetchModels = async () => {
-        try {
-          const modelData = await getModelsByMake(make);
-          if (modelData && Array.isArray(modelData)) {
-            setModels(modelData.map(m => m.model_name));
-          }
-        } catch (error) {
-          console.error('Error fetching models:', error);
-          setModels([]);
-        }
-      };
-      
-      fetchModels();
-    } else {
-      setModels([]);
-      // Clear model selection when make changes
-      if (model) setModel('');
-    }
-  }, [make, getModelsByMake]);
-  
-  // Validate form whenever key fields change
+  // Validate form fields
   useEffect(() => {
     const isValidForm = Boolean(
       make.trim() !== '' && 
       model.trim() !== '' && 
-      year > 1900 && 
       zipCode.length === 5
     );
     setIsValid(isValidForm);
-  }, [make, model, year, zipCode]);
+  }, [make, model, zipCode]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +79,9 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       condition,
       zipCode,
       fuelType,
-      transmission
+      transmission,
+      trim: trim || undefined,
+      color: color || undefined
     };
     
     onSubmit(formattedData);
@@ -125,7 +101,10 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
               setYear={setYear}
               mileage={mileage}
               setMileage={setMileage}
-              availableModels={models}
+              trim={isPremium ? trim : undefined}
+              setTrim={isPremium ? setTrim : undefined}
+              color={isPremium ? color : undefined}
+              setColor={isPremium ? setColor : undefined}
             />
           </div>
           

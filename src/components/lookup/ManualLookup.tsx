@@ -7,13 +7,17 @@ import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
 
 interface ManualLookupProps extends Omit<ManualEntryFormProps, 'onSubmit'> {
   onSubmit: (data: ManualEntryFormData) => void;
+  initialData?: Partial<ManualEntryFormData>;
+  onCancel?: () => void;
 }
 
 export function ManualLookup({ 
   onSubmit, 
   isLoading = false,
   submitButtonText,
-  isPremium
+  isPremium,
+  initialData,
+  onCancel
 }: ManualLookupProps) {
   
   const handleSubmit = async (formData: ManualEntryFormData) => {
@@ -35,6 +39,7 @@ export function ManualLookup({
             user_id: user.id,
             fuel_type: formData.fuelType,
             transmission: formData.transmission,
+            trim: formData.trim || null,
             vin: formData.vin || null,
             accident: formData.accidentDetails?.hasAccident || false,
             accident_severity: formData.accidentDetails?.severity || null,
