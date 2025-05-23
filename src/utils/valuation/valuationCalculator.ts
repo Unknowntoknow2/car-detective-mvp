@@ -5,6 +5,7 @@ import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
 // Export these type definitions for the ValuationCalculatorDemo component
 export interface ValuationParams {
   baseMarketValue?: number;
+  baseValue?: number;
   mileage?: number;
   condition?: string;
   zipCode: string;

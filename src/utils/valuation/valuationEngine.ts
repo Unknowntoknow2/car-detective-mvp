@@ -1,4 +1,3 @@
-
 import { AdjustmentBreakdown } from './rules/types';
 import { ValuationParams, ValuationResult } from './valuationCalculator';
 import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
@@ -43,10 +42,10 @@ export const calculateConfidenceScore = (
   
   // Adjust confidence based on accident data quality
   if (input.accidentCount !== undefined) {
-    if (input.accidentDetails && input.accidentDetails.length > 0) {
-      score += 2; // Detailed accident info provided
-    } else {
-      score -= 1; // Just count without details reduces confidence slightly
+    // We don't check for accidentDetails since it's not in the ValuationParams interface
+    // Just use the accidentCount for confidence adjustment
+    if (input.accidentCount > 0) {
+      score -= 1; // Accidents reduce confidence slightly
     }
   }
   

@@ -1,8 +1,8 @@
 
-import { RulesEngineInput, AdjustmentBreakdown, Rule } from './rules/types';
+import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
 import { calculateAccidentImpact } from './valuation/valuationEngine';
 
-// Define the Rule type locally if it's missing from the types file
+// Define the Rule interface here instead of importing it
 interface Rule {
   name: string;
   description: string;
@@ -40,7 +40,9 @@ export async function calculateAdjustments(input: RulesEngineInput): Promise<Adj
   
   // Apply accident adjustment if accident data is available
   if (input.accidentCount !== undefined) {
-    const severity = input.accidentSeverity || 'minor';
+    const severity = input.condition?.toLowerCase() === 'poor' ? 'severe' : 
+                    input.condition?.toLowerCase() === 'fair' ? 'moderate' : 'minor';
+    
     const { percentImpact, dollarImpact } = calculateAccidentImpact(
       input.baseValue || 0, 
       input.accidentCount,
@@ -88,18 +90,21 @@ export function calculateTotalAdjustment(adjustments: AdjustmentBreakdown[]): nu
   return adjustments.reduce((total, adjustment) => total + adjustment.impact, 0);
 }
 
+// Define an array to store rules
+const rulesList: Rule[] = [];
+
 /**
  * Add a rule to the engine
  */
 export function addRule(rule: Rule): void {
-  rules.push(rule);
+  rulesList.push(rule);
 }
 
 /**
  * Get all rules
  */
 export function getRules(): Rule[] {
-  return rules;
+  return rulesList;
 }
 
 // Default export for backward compatibility
