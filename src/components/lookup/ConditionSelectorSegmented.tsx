@@ -1,3 +1,4 @@
+
 // src/components/lookup/form-parts/ConditionSelectorSegmented.tsx
 
 import React from "react";
@@ -24,7 +25,7 @@ const CONDITION_LEVELS: { level: ConditionLevel; tip: string }[] = [
     tip: "Typical used car with minor wear. Drives fine, no major problems.",
   },
   {
-    level: ConditionLevel.VeryGood, // ✅ Corrected casing
+    level: ConditionLevel.VeryGood,
     tip: "Well maintained, clean inside and out. No real issues.",
   },
   {

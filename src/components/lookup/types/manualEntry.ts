@@ -3,6 +3,7 @@ export enum ConditionLevel {
   Poor = "Poor",
   Fair = "Fair",
   Good = "Good",
+  VeryGood = "Very Good",
   Excellent = "Excellent"
 }
 
@@ -27,6 +28,8 @@ export interface ManualEntryFormData {
   color?: string;
   bodyStyle?: string;
   vin?: string;
+  fileType?: string;
+  fileName?: string;
   selectedFeatures?: string[];
   accidentDetails?: AccidentDetails;
 }

@@ -1,4 +1,3 @@
-
 // Feature flags and configuration
 export const DEBUG_MODE = false;
 export const ENABLE_PREMIUM_FEATURES = true;
@@ -47,6 +46,7 @@ export const LOOKUP_METHODS = {
 // Vehicle condition options
 export const CONDITION_OPTIONS = [
   { value: 'excellent', label: 'Excellent', description: 'Like new with no visible defects' },
+  { value: 'very_good', label: 'Very Good', description: 'Minimal wear and well maintained' },
   { value: 'good', label: 'Good', description: 'Minor wear but well maintained' },
   { value: 'fair', label: 'Fair', description: 'Shows normal wear for age and mileage' },
   { value: 'poor', label: 'Poor', description: 'Significant wear or mechanical issues' },
