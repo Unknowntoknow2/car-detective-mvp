@@ -18,6 +18,9 @@ const DealerDashboard = lazy(() => import('@/pages/dealer/DealerDashboard'));
 const DealerLayoutPage = lazy(() => import('@/pages/dealer/DealerLayoutPage'));
 const IndividualAuthPage = lazy(() => import('@/pages/auth/IndividualAuthPage'));
 const DealerAuthPage = lazy(() => import('@/pages/auth/DealerAuthPage'));
+const AuthPage = lazy(() => import('@/pages/AuthPage'));
+const SignupPage = lazy(() => import('@/pages/auth/SignupPage'));
+const SigninPage = lazy(() => import('@/pages/auth/SigninPage'));
 
 function App() {
   return (
@@ -34,11 +37,15 @@ function App() {
             <Route path="/results" element={<ResultsPage />} />
             
             {/* Auth Routes */}
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/individual" element={<IndividualAuthPage />} />
             <Route path="/auth/dealer" element={<DealerAuthPage />} />
-            <Route path="/auth" element={<Navigate to="/auth/individual" replace />} />
-            <Route path="/sign-in" element={<Navigate to="/auth/individual" replace />} />
-            <Route path="/sign-up" element={<Navigate to="/auth/individual" replace />} />
+            <Route path="/sign-in" element={<SigninPage />} />
+            <Route path="/sign-up" element={<SignupPage />} />
+            <Route path="/signin/individual" element={<IndividualAuthPage />} />
+            <Route path="/signin/dealer" element={<DealerAuthPage />} />
+            <Route path="/signup/individual" element={<SignupPage />} />
+            <Route path="/signup/dealer" element={<DealerAuthPage />} />
             <Route path="/login" element={<Navigate to="/auth/individual" replace />} />
             <Route path="/register" element={<Navigate to="/auth/individual" replace />} />
             
