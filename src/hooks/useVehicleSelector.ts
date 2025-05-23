@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useVehicleData } from '@/hooks/useVehicleData';
+import { useVehicleData, MakeData } from '@/hooks/useVehicleData';
 
 interface UseVehicleSelectorProps {
   selectedMake: string;
@@ -22,7 +22,7 @@ export const useVehicleSelector = ({
   const { makes, getModelsByMake, isLoading, error } = useVehicleData();
   const [makesOpen, setMakesOpen] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
-  const [filteredMakes, setFilteredMakes] = useState<any[]>([]);
+  const [filteredMakes, setFilteredMakes] = useState<MakeData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modelSearchTerm, setModelSearchTerm] = useState('');
   const [models, setModels] = useState<any[]>([]);

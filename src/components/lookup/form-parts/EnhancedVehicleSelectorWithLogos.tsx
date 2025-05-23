@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useVehicleData } from '@/hooks/useVehicleData';
+import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
 import { ComboBox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocalization } from '@/i18n/useLocalization';
@@ -92,7 +92,7 @@ export function EnhancedVehicleSelectorWithLogos({
     );
   }
 
-  // Ensure makes is properly mapped to ComboBox items and filter out null icons
+  // Map MakeData objects to ComboBox items
   const makesOptions = Array.isArray(makes) ? makes.map(make => ({
     value: make.make_name,
     label: make.make_name,
