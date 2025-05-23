@@ -20,9 +20,6 @@ import DashboardPage from './pages/DashboardPage';
 import ChooseRolePage from './pages/auth/ChooseRolePage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
-import SigninPage from './pages/auth/SigninPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import DealerSignupPage from './pages/auth/DealerSignupPage';
 import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 
