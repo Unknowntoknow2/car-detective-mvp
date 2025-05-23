@@ -1,22 +1,17 @@
 
 import React from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { FormLabel } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ConditionLevel } from '../types/manualEntry';
+import ConditionSelectorBar from '@/components/common/ConditionSelectorBar';
 
 interface ConditionAndFuelInputsProps {
   condition: ConditionLevel;
-  setCondition: (value: ConditionLevel) => void;
+  setCondition: (condition: ConditionLevel) => void;
   fuelType: string;
-  setFuelType: (value: string) => void;
+  setFuelType: (fuelType: string) => void;
   transmission: string;
-  setTransmission: (value: string) => void;
+  setTransmission: (transmission: string) => void;
 }
 
 export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
@@ -27,50 +22,21 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
   transmission,
   setTransmission
 }) => {
-  const handleConditionChange = (value: string) => {
-    switch (value) {
-      case 'Excellent':
-        setCondition(ConditionLevel.Excellent);
-        break;
-      case 'Good':
-        setCondition(ConditionLevel.Good);
-        break;
-      case 'Fair':
-        setCondition(ConditionLevel.Fair);
-        break;
-      case 'Poor':
-        setCondition(ConditionLevel.Poor);
-        break;
-      default:
-        setCondition(ConditionLevel.Good);
-    }
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="condition">Condition</Label>
-          <Select
-            value={condition}
-            onValueChange={handleConditionChange}
-          >
-            <SelectTrigger id="condition">
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
-              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
-              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
-              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="fuelType">Fuel Type</Label>
-          <Select
-            value={fuelType}
+    <div className="space-y-6">
+      <div>
+        <FormLabel className="block text-gray-700 mb-2">Vehicle Condition</FormLabel>
+        <ConditionSelectorBar 
+          value={condition}
+          onChange={setCondition}
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <FormLabel htmlFor="fuelType" className="block text-gray-700 mb-2">Fuel Type</FormLabel>
+          <Select 
+            value={fuelType} 
             onValueChange={setFuelType}
           >
             <SelectTrigger id="fuelType">
@@ -79,17 +45,17 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
             <SelectContent>
               <SelectItem value="Gasoline">Gasoline</SelectItem>
               <SelectItem value="Diesel">Diesel</SelectItem>
-              <SelectItem value="Hybrid">Hybrid</SelectItem>
               <SelectItem value="Electric">Electric</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="Hybrid">Hybrid</SelectItem>
+              <SelectItem value="Plug-in Hybrid">Plug-in Hybrid</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="transmission">Transmission</Label>
-          <Select
-            value={transmission}
+        <div>
+          <FormLabel htmlFor="transmission" className="block text-gray-700 mb-2">Transmission</FormLabel>
+          <Select 
+            value={transmission} 
             onValueChange={setTransmission}
           >
             <SelectTrigger id="transmission">
@@ -107,5 +73,3 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
     </div>
   );
 };
-
-export default ConditionAndFuelInputs;

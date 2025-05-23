@@ -1,10 +1,10 @@
 
 export enum ConditionLevel {
-  Poor = "Poor",
-  Fair = "Fair",
-  Good = "Good",
-  VeryGood = "Very Good",
-  Excellent = "Excellent"
+  Poor = "poor",
+  Fair = "fair",
+  Good = "good",
+  VeryGood = "very_good",
+  Excellent = "excellent"
 }
 
 export interface AccidentDetails {
