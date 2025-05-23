@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { VehicleDetailsInputs } from '../form-parts/VehicleDetailsInputs';
-import { ConditionAndFuelInputs } from '../form-parts/ConditionAndFuelInputs';
-import { ZipCodeInput } from '../form-parts/ZipCodeInput';
-import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
+import { VehicleDetailsInputs } from './form-parts/VehicleDetailsInputs';
+import { ConditionAndFuelInputs } from './form-parts/ConditionAndFuelInputs';
+import { ZipCodeInput } from './form-parts/ZipCodeInput';
+import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
 
 export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -16,7 +15,7 @@ export interface ManualEntryFormProps {
   isPremium?: boolean;
 }
 
-export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
+export const ManualEntryFormFree: React.FC<ManualEntryFormProps> = ({
   onSubmit,
   isLoading = false,
   submitButtonText = "Get Valuation",
@@ -48,17 +47,26 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     e.preventDefault();
     
     if (!make.trim()) {
-      toast.error('Please enter the vehicle make');
+      toast({
+        title: "Please enter the vehicle make",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!model.trim()) {
-      toast.error('Please enter the vehicle model');
+      toast({
+        title: "Please enter the vehicle model",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!zipCode || zipCode.length !== 5) {
-      toast.error('Please enter a valid ZIP code');
+      toast({
+        title: "Please enter a valid ZIP code",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -150,5 +158,4 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   );
 };
 
-// Add default export to fix the import issue
-export default ManualEntryForm;
+export default ManualEntryFormFree;

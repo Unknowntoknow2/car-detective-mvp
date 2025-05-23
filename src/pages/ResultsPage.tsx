@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout';
 import { useSearchParams, useParams } from 'react-router-dom';
-import ValuationResult from '@/components/valuation/ValuationResult';
+import { ValuationResultPremium } from '@/components/valuation/result/ValuationResultPremium';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
@@ -91,7 +91,7 @@ export default function ResultsPage() {
           </div>
         ) : data ? (
           <div className="container mx-auto px-4">
-            <ValuationResult
+            <ValuationResultPremium
               valuationId={valuationId || undefined}
               data={convertToValuationResponse(data)}
               isPremium={hasPremiumAccess}

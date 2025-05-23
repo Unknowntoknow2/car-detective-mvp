@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,12 +5,12 @@ import { Share, Download, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { supabase } from '@/utils/supabaseClient';
 
-interface ValuationResultProps {
+interface ValuationResultFreeProps {
   valuationData: any;
   valuationId: string | null;
 }
 
-export function ValuationResult({ valuationData, valuationId }: ValuationResultProps) {
+export function ValuationResultFree({ valuationData, valuationId }: ValuationResultFreeProps) {
   const [makeDisplay, setMakeDisplay] = useState<string>('');
   const [modelDisplay, setModelDisplay] = useState<string>('');
   
@@ -118,3 +117,5 @@ export function ValuationResult({ valuationData, valuationId }: ValuationResultP
     </div>
   );
 }
+
+export default ValuationResultFree;
