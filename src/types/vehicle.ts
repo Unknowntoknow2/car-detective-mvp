@@ -15,4 +15,10 @@ export interface DecodedVehicleInfo {
   mpgHighway?: string;
   exteriorColor?: string;
   interiorColor?: string;
+  // Add these properties to fix type errors
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+  features?: string[];
+  valuationId?: string;
 }

@@ -1,55 +1,31 @@
 
-// Define the ValuationResult interface
 export interface ValuationResult {
-  id?: string;
-  estimatedValue: number;
-  estimated_value?: number; // For backward compatibility
-  confidenceScore?: number;
-  confidence_score?: number; // For backward compatibility
-  priceRange: [number, number] | { min: number; max: number; } | number[];
-  basePrice?: number;
-  base_price?: number; // For backward compatibility
-  baseValue?: number;
-  finalValue?: number;
-  adjustments: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
+  id: string;
   vin?: string;
-  isPremium?: boolean;
-  is_premium?: boolean; // For backward compatibility
-  premium_unlocked?: boolean; // For backward compatibility
-  features?: string[];
-  color?: string;
-  bodyStyle?: string;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
   bodyType?: string;
   fuelType?: string;
-  fuel_type?: string; // For backward compatibility
-  explanation?: string;
-  gptExplanation?: string; // For backward compatibility
+  body_type?: string;
+  fuel_type?: string;
   transmission?: string;
-  bestPhotoUrl?: string;
-  photoUrl?: string;
-  photo_url?: string; // For backward compatibility
-  photoScore?: number;
-  photoExplanation?: string;
-  pdfUrl?: string;
-  userId?: string;
+  color?: string;
+  mileage?: number;
+  condition?: string;
   zipCode?: string;
-  zip_code?: string; // For backward compatibility
-  zip?: string; // For backward compatibility
-  aiCondition?: any;
-  photoUrls?: string[];
-  trim?: string;
+  estimatedValue?: number;
+  estimated_value?: number;
+  accident_count?: number;
+  manual_entry?: boolean;
   created_at?: string;
-  // Added missing properties
-  conditionScore?: number;
-  regionName?: string;
-  conditionNotes?: string[];
+  updated_at?: string;
+}
+
+export interface ValuationResponse {
+  success: boolean;
+  data?: ValuationResult;
+  message?: string;
+  error?: any;
 }

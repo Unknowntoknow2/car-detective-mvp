@@ -1,235 +1,344 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { supabase } from '@/lib/supabaseClient';
-import { VehicleDetailsInputs } from '@/components/lookup/form-parts/VehicleDetailsInputs';
-import { ConditionAndFuelInputs } from '@/components/lookup/form-parts/ConditionAndFuelInputs';
-import { ZipCodeInput } from '@/components/lookup/form-parts/ZipCodeInput';
+import { ConditionLevel, ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import ConditionSelectorBar from '@/components/common/ConditionSelectorBar';
 
-export interface PremiumManualEntryFormProps {
-  onSubmit?: (data: ManualEntryFormData) => void;
-  isLoading?: boolean;
-  submitButtonText?: string;
-  isPremium?: boolean;
-}
+// Form schema with validation
+const formSchema = z.object({
+  make: z.string().min(1, "Make is required"),
+  model: z.string().min(1, "Model is required"),
+  year: z.coerce.number()
+    .min(1900, "Year must be at least 1900")
+    .max(new Date().getFullYear() + 1, `Year cannot exceed ${new Date().getFullYear() + 1}`),
+  mileage: z.coerce.number().min(0, "Mileage cannot be negative"),
+  condition: z.nativeEnum(ConditionLevel),
+  zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"),
+  transmission: z.string().optional(),
+  fuelType: z.string().optional(),
+  trim: z.string().optional(),
+  bodyStyle: z.string().optional(),
+  color: z.string().optional(),
+});
 
-export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
-  onSubmit,
-  isLoading = false,
-  submitButtonText = "Get Premium Valuation",
-  isPremium = true
-}) => {
+type FormValues = z.infer<typeof formSchema>;
+
+export const PremiumManualEntryForm: React.FC = () => {
   const navigate = useNavigate();
-  const [formLoading, setFormLoading] = useState(false);
-  const [make, setMake] = useState('');
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState<number | string | ''>(new Date().getFullYear());
-  const [mileage, setMileage] = useState<number | string>(0);
-  const [condition, setCondition] = useState('good');
-  const [zipCode, setZipCode] = useState('');
-  const [fuelType, setFuelType] = useState('Gasoline');
-  const [transmission, setTransmission] = useState('Automatic');
-  const [trim, setTrim] = useState('');
-  const [color, setColor] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!make.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the vehicle make",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!model.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the vehicle model",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!zipCode || zipCode.length !== 5) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid ZIP code",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const formattedData: ManualEntryFormData = {
-      make,
-      model,
-      year: typeof year === 'number' ? year : parseInt(year.toString()) || new Date().getFullYear(),
-      mileage: typeof mileage === 'number' ? mileage : parseInt(mileage.toString()) || 0,
-      condition,
-      zipCode,
-      fuelType,
-      transmission,
-      trim: trim || undefined,
-      color: color || undefined
-    };
-    
-    // If parent component provides onSubmit handler, use it
-    if (onSubmit) {
-      onSubmit(formattedData);
-      return;
-    }
-    
-    // Otherwise, handle submission internally
-    setFormLoading(true);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      make: '',
+      model: '',
+      year: new Date().getFullYear(),
+      mileage: 0,
+      condition: ConditionLevel.Good,
+      zipCode: '',
+      transmission: '',
+      fuelType: '',
+      trim: '',
+      bodyStyle: '',
+      color: '',
+    },
+  });
+
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
     
     try {
-      // Store data in Supabase
-      const { data, error } = await supabase
+      // Convert form data to the format expected by the API
+      const valuationData = {
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        zipCode: data.zipCode,
+        transmission: data.transmission || null,
+        fuelType: data.fuelType || null,
+        trim: data.trim || null,
+        bodyType: data.bodyStyle || null,
+        color: data.color || null,
+        manual_entry: true,
+        estimated_value: calculateEstimatedValue(data), // Simple placeholder calculation
+      };
+      
+      // Insert into Supabase
+      const { data: insertedData, error } = await supabase
         .from('valuations')
-        .insert({
-          make: formattedData.make,
-          model: formattedData.model,
-          year: formattedData.year,
-          mileage: formattedData.mileage,
-          condition: formattedData.condition,
-          state: formattedData.zipCode,
-          fuel_type: formattedData.fuelType,
-          transmission: formattedData.transmission,
-          color: formattedData.color,
-          body_type: 'Unknown', // Default value
-          is_vin_lookup: false,
-          estimated_value: calculateEstimatedValue(formattedData),
-          confidence_score: 75 // Manual entries get a medium confidence score
-        })
-        .select()
+        .insert(valuationData)
+        .select('id')
         .single();
       
       if (error) {
         throw error;
       }
       
-      // Navigate to the result page with the new valuation ID
-      if (data && data.id) {
-        toast({
-          title: "Valuation Created",
-          description: "Your vehicle valuation has been created successfully.",
-          variant: "success"
-        });
-        navigate(`/valuation/${data.id}`);
-      }
+      toast({
+        title: "Valuation Created",
+        description: "Your vehicle valuation is ready to view.",
+        variant: "success",
+      });
+      
+      // Navigate to the valuation result page
+      navigate(`/valuation/${insertedData.id}`);
     } catch (error: any) {
-      console.error('Error submitting form:', error);
+      console.error("Error submitting form:", error);
       toast({
         title: "Error",
-        description: error.message || "There was an error creating your valuation.",
-        variant: "destructive"
+        description: error.message || "Failed to create valuation",
+        variant: "destructive",
       });
     } finally {
-      setFormLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Helper function to calculate estimated value
-  const calculateEstimatedValue = (data: ManualEntryFormData): number => {
-    // Basic formula: base price adjusted for year, mileage, and condition
-    const basePrice = 15000;
-    const yearFactor = 1 + ((data.year - 2010) * 0.05);
-    const mileageFactor = data.mileage ? 1 - ((data.mileage / 100000) * 0.2) : 1;
+  // Simple placeholder function to calculate a basic value
+  const calculateEstimatedValue = (data: FormValues): number => {
+    // Base value determined by make/model/year
+    let baseValue = 20000;
     
-    let conditionFactor = 1;
-    switch (data.condition) {
-      case 'excellent':
-        conditionFactor = 1.2;
-        break;
-      case 'good':
-        conditionFactor = 1.0;
-        break;
-      case 'fair':
-        conditionFactor = 0.8;
-        break;
-      case 'poor':
-        conditionFactor = 0.6;
-        break;
-      default:
-        conditionFactor = 1.0;
+    // Adjust for mileage (simplified)
+    const mileageAdjustment = Math.max(0, 1 - (data.mileage / 150000));
+    
+    // Adjust for condition
+    let conditionMultiplier = 1.0;
+    if (data.condition === ConditionLevel.Excellent) {
+      conditionMultiplier = 1.1; // +10%
+    } else if (data.condition === ConditionLevel.Good) {
+      conditionMultiplier = 1.0; // baseline
+    } else if (data.condition === ConditionLevel.Fair) {
+      conditionMultiplier = 0.9; // -10%
+    } else if (data.condition === ConditionLevel.Poor) {
+      conditionMultiplier = 0.75; // -25%
     }
     
-    return Math.floor(basePrice * yearFactor * mileageFactor * conditionFactor);
+    return Math.round(baseValue * mileageAdjustment * conditionMultiplier);
   };
 
-  // Create wrapper functions to handle the type differences
-  const handleYearChange = (value: number | string | '') => {
-    setYear(value);
-  };
-
-  const handleMileageChange = (value: number | string) => {
-    setMileage(value);
-  };
-  
   return (
-    <Card>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4 pt-6">
-          <div className="space-y-4">
-            <VehicleDetailsInputs 
-              make={make}
-              setMake={setMake}
-              model={model}
-              setModel={setModel}
-              year={year}
-              setYear={handleYearChange}
-              mileage={mileage}
-              setMileage={handleMileageChange}
-              trim={trim}
-              setTrim={setTrim}
-              color={isPremium ? color : ''}
-              setColor={isPremium ? setColor : undefined}
-            />
-          </div>
-          
-          <div className="space-y-4">
-            <ConditionAndFuelInputs 
-              condition={condition}
-              setCondition={setCondition}
-              fuelType={fuelType}
-              setFuelType={setFuelType}
-              transmission={transmission}
-              setTransmission={setTransmission}
-            />
-          </div>
-          
-          <div className="space-y-4">
-            <ZipCodeInput 
-              zipCode={zipCode}
-              setZipCode={setZipCode}
-            />
-          </div>
-        </CardContent>
-        
-        <CardFooter className="border-t p-6 bg-gray-50">
-          <Button 
-            type="submit"
-            className="w-full" 
-            disabled={isLoading || formLoading}
-          >
-            {(isLoading || formLoading) ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              submitButtonText
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Make & Model Fields */}
+          <FormField
+            control={form.control}
+            name="make"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Make</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Toyota" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </Button>
-        </CardFooter>
+          />
+          
+          <FormField
+            control={form.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Camry" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Year & Mileage Fields */}
+          <FormField
+            control={form.control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="mileage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mileage</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* ZIP Code Field */}
+          <FormField
+            control={form.control}
+            name="zipCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ZIP Code</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 90210" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Fuel Type Field */}
+          <FormField
+            control={form.control}
+            name="fuelType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fuel Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select fuel type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="gasoline">Gasoline</SelectItem>
+                    <SelectItem value="diesel">Diesel</SelectItem>
+                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                    <SelectItem value="electric">Electric</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        {/* Condition Selector Field */}
+        <FormField
+          control={form.control}
+          name="condition"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Vehicle Condition</FormLabel>
+              <FormControl>
+                <ConditionSelectorBar 
+                  value={field.value} 
+                  onChange={field.onChange} 
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        {/* Additional Fields (Optional) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FormField
+            control={form.control}
+            name="trim"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Trim Level (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. SE, Limited" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="bodyStyle"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Body Style (Optional)</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select body style" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="sedan">Sedan</SelectItem>
+                    <SelectItem value="suv">SUV</SelectItem>
+                    <SelectItem value="truck">Truck</SelectItem>
+                    <SelectItem value="coupe">Coupe</SelectItem>
+                    <SelectItem value="convertible">Convertible</SelectItem>
+                    <SelectItem value="wagon">Wagon</SelectItem>
+                    <SelectItem value="van">Van</SelectItem>
+                    <SelectItem value="hatchback">Hatchback</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="transmission"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Transmission (Optional)</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select transmission" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="automatic">Automatic</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="cvt">CVT</SelectItem>
+                    <SelectItem value="dualClutch">Dual Clutch</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        {/* Submit Button */}
+        <Button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="w-full md:w-auto"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Get Valuation'
+          )}
+        </Button>
       </form>
-    </Card>
+    </Form>
   );
 };
 
