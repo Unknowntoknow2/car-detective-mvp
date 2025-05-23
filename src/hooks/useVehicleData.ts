@@ -40,7 +40,6 @@ export const useVehicleData = () => {
       setError(null);
       
       // Only select fields that actually exist in the database
-      // Note: We know logo_url doesn't exist from the error logs
       const { data, error } = await supabase
         .from('makes')
         .select('id, make_name')
@@ -48,11 +47,10 @@ export const useVehicleData = () => {
         
       if (error) throw error;
       
-      // Since we know logo_url doesn't exist in the database, we'll create objects without it
+      // Map the database results to our interface
       const makesData: MakeData[] = data?.map(make => ({
         id: make.id,
-        make_name: make.make_name,
-        // logo_url is undefined since it doesn't exist in the database
+        make_name: make.make_name
       })) || [];
       
       setMakes(makesData);
@@ -90,7 +88,7 @@ export const useVehicleData = () => {
     fetchMakes();
   }, [fetchMakes]);
 
-  // Get models by make name
+  // Get models by make ID (not make name)
   const getModelsByMake = async (makeName: string): Promise<ModelData[]> => {
     if (!makeName) return [];
     
@@ -125,6 +123,7 @@ export const useVehicleData = () => {
       }
       
       console.log(`Found ${data?.length || 0} models for make ${makeName}`);
+      console.log('Fetched models for make:', makeName, data);
       return data || [];
     } catch (err: any) {
       console.error('Error in getModelsByMake:', err);

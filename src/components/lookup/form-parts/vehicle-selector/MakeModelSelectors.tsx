@@ -133,7 +133,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
               disabled={disabled || !selectedMake}
               data-testid="model-selector-button"
             >
-              {selectedModel || "Select model..."}
+              {selectedModel || (selectedMake ? "Select model..." : "Select make first")}
               {loadingModels ? (
                 <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin" />
               ) : (
@@ -147,6 +147,7 @@ export const MakeModelSelectors: React.FC<MakeModelSelectorsProps> = ({
                 placeholder="Search model..." 
                 value={modelSearchTerm}
                 onValueChange={setModelSearchTerm}
+                disabled={loadingModels}
               />
               <CommandList>
                 {loadingModels ? (
