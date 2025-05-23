@@ -1,7 +1,7 @@
 
-// Export components from the lookup directory
-export * from './VINLookupForm';
-export { ManualEntryForm } from './manual/ManualEntryForm';
-export * from './PlateDecoderForm';
-export * from './PhotoUpload';
-export * from './VehicleInfoCard';
+// Update imports for the renamed components
+export * from './ManualEntryFormFree';
+export * from './manual/ManualEntryFormPremium';
+export * from './VinLookup';
+export * from './PlateLookup';
+export * from './types/manualEntry';
