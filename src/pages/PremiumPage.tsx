@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Container } from '@/components/ui/container';
@@ -11,6 +10,7 @@ import { PremiumManualLookup } from '@/components/premium/lookup/PremiumManualLo
 import { PremiumHero } from '@/components/premium/hero/PremiumHero';
 import { ComparisonSection } from '@/components/premium/ComparisonSection';
 import { PremiumTabs } from '@/components/premium/PremiumTabs';
+import { KeyFeatures } from '@/components/home/KeyFeatures';
 import { TabNavigation } from '@/components/premium/sections/valuation-tabs/TabNavigation';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -88,6 +88,9 @@ export default function PremiumPage() {
     <MainLayout>
       <Container className="py-8 px-4 md:px-6">
         <PremiumHero scrollToForm={scrollToForm} />
+        
+        {/* Add Key Features section */}
+        <KeyFeatures />
         
         <div className="mt-16" ref={formRef}>
           <Card className="p-6">
