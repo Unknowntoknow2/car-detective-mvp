@@ -32,7 +32,7 @@ const SettingsPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Email Address</p>
-                <p className="text-base">{user?.email}</p>
+                <p className="text-base">{user?.email || 'N/A'}</p>
               </div>
               
               <div>
