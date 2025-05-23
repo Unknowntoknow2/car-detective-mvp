@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
-interface SigninFormProps {
+export interface SigninFormProps {
   isLoading?: boolean;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   redirectPath?: string;
   role?: string;
   alternateLoginPath?: string;
   alternateLoginText?: string;
+  userType?: string; // Added userType prop
 }
 
 export const SigninForm: React.FC<SigninFormProps> = ({ 
@@ -22,7 +23,8 @@ export const SigninForm: React.FC<SigninFormProps> = ({
   redirectPath = '/dashboard',
   role,
   alternateLoginPath,
-  alternateLoginText
+  alternateLoginText,
+  userType // Accept userType prop
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

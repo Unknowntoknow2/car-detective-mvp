@@ -18,20 +18,22 @@ const formSchema = z.object({
   dealershipName: z.string().optional(),
 });
 
-interface SignupFormProps {
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
-  role: 'individual' | 'dealer';
+export interface SignupFormProps {
+  isLoading?: boolean;
+  setIsLoading?: (loading: boolean) => void;
+  role?: 'individual' | 'dealer';
   redirectPath?: string;
   showDealershipField?: boolean;
+  userType?: string; // Added userType prop
 }
 
 export const SignupForm = ({ 
-  isLoading, 
-  setIsLoading, 
+  isLoading = false, 
+  setIsLoading = () => {}, 
   role = 'individual', 
   redirectPath = '/dashboard', 
-  showDealershipField = false 
+  showDealershipField = false,
+  userType // Accept userType prop
 }: SignupFormProps) => {
   const { signUp } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
@@ -57,7 +59,7 @@ export const SignupForm = ({
       
       // Call the signUp function with email, password, and metadata for the user role
       const metadata = {
-        role,
+        role: userType || role,
         ...(dealershipName ? { dealershipName } : {})
       };
       
@@ -96,6 +98,9 @@ export const SignupForm = ({
       setIsLoading(false);
     }
   };
+
+  // Use showDealershipField or check if userType is 'dealer'
+  const shouldShowDealershipField = showDealershipField || userType === 'dealer';
 
   return (
     <Form {...form}>
@@ -154,7 +159,7 @@ export const SignupForm = ({
           )}
         />
         
-        {showDealershipField && (
+        {shouldShowDealershipField && (
           <FormField
             control={form.control}
             name="dealershipName"
