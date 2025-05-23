@@ -1,6 +1,7 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
+import { toast } from 'sonner';
 
 interface UseVehicleSelectorProps {
   selectedMake: string;
@@ -32,6 +33,8 @@ export const useVehicleSelector = ({
   
   const modelFetchTimeout = useRef<NodeJS.Timeout | null>(null);
   const modelsInitialized = useRef(false);
+  const fetchAttempts = useRef(0);
+  const maxFetchAttempts = 3;
 
   // Initialize filtered makes list
   useEffect(() => {
@@ -40,66 +43,101 @@ export const useVehicleSelector = ({
     }
   }, [makes]);
 
+  // Debounced fetch of models to prevent excessive API calls
+  const debouncedFetchModels = useCallback(async (makeName: string) => {
+    if (!makeName) {
+      setModels([]);
+      setFilteredModels([]);
+      modelsInitialized.current = false;
+      return;
+    }
+    
+    try {
+      setLoadingModels(true);
+      
+      // Clear any existing timeout
+      if (modelFetchTimeout.current) {
+        clearTimeout(modelFetchTimeout.current);
+      }
+      
+      // Set a timeout to avoid rapid repeated calls
+      modelFetchTimeout.current = setTimeout(async () => {
+        // Check if we've exceeded the maximum fetch attempts
+        if (fetchAttempts.current >= maxFetchAttempts) {
+          console.log(`Exceeded max fetch attempts (${maxFetchAttempts}) for ${makeName}`);
+          setLoadingModels(false);
+          
+          // Only show toast for first error
+          if (fetchAttempts.current === maxFetchAttempts) {
+            toast.error("Having trouble loading models. Using fallback data.", {
+              id: "model-fetch-error",
+              duration: 3000
+            });
+          }
+          
+          return;
+        }
+        
+        fetchAttempts.current++;
+        console.log(`Fetching models for make: ${makeName} (attempt ${fetchAttempts.current})`);
+        
+        const availableModels = await getModelsByMake(makeName);
+        
+        // Reset fetch attempts on success
+        if (availableModels.length > 0) {
+          fetchAttempts.current = 0;
+        }
+        
+        setModels(availableModels);
+        setFilteredModels(availableModels);
+        modelsInitialized.current = true;
+        
+        // If current selected model is not in the list of available models, reset it
+        if (selectedModel && !availableModels.some(model => model.model_name === selectedModel)) {
+          console.log('Resetting model because current selection is not in models list');
+          setSelectedModel('');
+        }
+        
+        setLoadingModels(false);
+      }, 200);
+    } catch (error) {
+      console.error("Error in debouncedFetchModels:", error);
+      setLoadingModels(false);
+      
+      // Show toast only on the first error
+      if (fetchAttempts.current <= 1) {
+        toast.error("Error loading models. Please try again.", {
+          id: "model-fetch-error",
+          duration: 3000
+        });
+      }
+      
+      setModels([]);
+      setFilteredModels([]);
+    }
+  }, [getModelsByMake, selectedModel, setSelectedModel]);
+
   // Get models for selected make
   useEffect(() => {
-    let isMounted = true;
-    
     const fetchModels = async () => {
       if (!selectedMake) {
-        if (isMounted) {
-          setModels([]);
-          setFilteredModels([]);
-          modelsInitialized.current = false;
-        }
+        setModels([]);
+        setFilteredModels([]);
+        modelsInitialized.current = false;
         return;
       }
       
-      try {
-        setLoadingModels(true);
-        
-        // Clear any existing timeout
-        if (modelFetchTimeout.current) {
-          clearTimeout(modelFetchTimeout.current);
-        }
-        
-        // Set a timeout to avoid rapid repeated calls
-        modelFetchTimeout.current = setTimeout(async () => {
-          console.log('Fetching models for make:', selectedMake);
-          const availableModels = await getModelsByMake(selectedMake);
-          
-          if (isMounted) {
-            setModels(availableModels);
-            setFilteredModels(availableModels);
-            modelsInitialized.current = true;
-            
-            // If current selected model is not in the list of available models, reset it
-            if (selectedModel && !availableModels.some(model => model.model_name === selectedModel)) {
-              console.log('Resetting model because current selection is not in models list');
-              setSelectedModel('');
-            }
-          }
-          
-          setLoadingModels(false);
-        }, 200);
-      } catch (error) {
-        console.error("Error fetching models:", error);
-        if (isMounted) {
-          setModels([]);
-          setFilteredModels([]);
-          setLoadingModels(false);
-        }
-      }
+      await debouncedFetchModels(selectedMake);
     };
     
     fetchModels();
     
     return () => {
-      isMounted = false;
       if (modelFetchTimeout.current) {
         clearTimeout(modelFetchTimeout.current);
       }
     };
-  }, [selectedMake, getModelsByMake, selectedModel, setSelectedModel]);
+  }, [selectedMake, debouncedFetchModels]);
 
   // Handle search terms for makes
   useEffect(() => {
@@ -143,6 +181,18 @@ export const useVehicleSelector = ({
     }
   }, [selectedMake, selectedModel, required, onValidationChange]);
 
+  // Open models dropdown when models are loaded and user has selected a make
+  useEffect(() => {
+    if (selectedMake && models.length > 0 && !selectedModel && !modelsOpen && !loadingModels) {
+      // Delay opening to avoid rapid UI changes
+      const timer = setTimeout(() => {
+        setModelsOpen(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [selectedMake, models.length, selectedModel, modelsOpen, loadingModels]);
+
   return {
     isLoading,
     error,
@@ -158,6 +208,7 @@ export const useVehicleSelector = ({
     setModelSearchTerm,
     validationError,
     loadingModels,
-    models
+    models,
+    fetchAttempts: fetchAttempts.current
   };
 };
