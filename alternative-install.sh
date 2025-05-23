@@ -1,37 +1,18 @@
 
 #!/bin/bash
-# Alternative installation script that tries multiple package managers
+# Alternative installation script with simplified approach
 
 echo "Starting alternative installation process..."
 
-# Try NPM first
-if command -v npm &> /dev/null; then
-  echo "Attempting installation with npm..."
-  npm install --prefer-offline --no-audit --no-fund || FAILED_NPM=true
-  if [ -z "$FAILED_NPM" ]; then
-    echo "NPM installation successful!"
-    exit 0
-  fi
-fi
+# Set memory and timeout options
+export NODE_OPTIONS="--max-old-space-size=8192"
+export NPM_CONFIG_NETWORK_TIMEOUT=600000
 
-# Try PNPM as alternative
-if command -v pnpm &> /dev/null; then
-  echo "Attempting installation with pnpm..."
-  pnpm install --prefer-offline --no-strict-peer-dependencies || FAILED_PNPM=true
-  if [ -z "$FAILED_PNPM" ]; then
-    echo "PNPM installation successful!"
-    exit 0
-  fi
-fi
+# Install only core dependencies first to reduce initial load
+echo "Installing core dependencies..."
+npm install react react-dom @supabase/supabase-js --no-fund --no-audit --loglevel=error
 
-# Try Yarn as last resort
-if command -v yarn &> /dev/null; then
-  echo "Attempting installation with yarn..."
-  yarn install --offline --prefer-offline --network-timeout 600000 && {
-    echo "Yarn installation successful!"
-    exit 0
-  }
-fi
+echo "Core dependencies installed. Installing remaining packages..."
+npm install --no-fund --no-audit --prefer-offline --loglevel=error
 
-echo "All installation attempts failed. Please try manually installing the dependencies."
-exit 1
+echo "Installation completed."
