@@ -1,20 +1,18 @@
+// src/components/layout/Layout.tsx
+
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import Header from '@/components/common/Header';
-import Footer from '@/components/common/Footer';
+import Header from './Header';
+import Footer from './Footer';
 
-const Layout: React.FC = () => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Sticky Header */}
+    <div className="min-h-screen flex flex-col">
       <Header />
-
-      {/* Main Content */}
-      <main className="flex-1">
-        <Outlet />
-      </main>
-
-      {/* Footer */}
+      <main className="flex-grow">{children}</main>
       <Footer />
     </div>
   );
