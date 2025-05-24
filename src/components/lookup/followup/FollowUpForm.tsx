@@ -53,7 +53,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ onSubmit }) => {
 
     if (!name || !email || !phone || !message) {
       toast({ 
-        title: "Missing Information", 
+        title: "Validation Error",
         description: "Please fill out all required fields." 
       });
       return;
@@ -63,7 +63,7 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ onSubmit }) => {
       setLoading(true);
       await new Promise((res) => setTimeout(res, 1000));
       toast({ 
-        title: "Message Sent", 
+        title: "Success", 
         description: "We will get back to you soon." 
       });
 
