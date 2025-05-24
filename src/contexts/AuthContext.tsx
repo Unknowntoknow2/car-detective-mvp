@@ -1,248 +1,207 @@
 
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, UserDetails } from '@/types/user';
 import { toast } from 'sonner';
 
-// Define user and user details types
-export type UserRole = 'admin' | 'dealer' | 'individual';
-
-export interface UserDetails {
-  id: string;
-  email: string;
-  role: UserRole;
-  full_name?: string;
-  avatar_url?: string;
-  dealership_name?: string;
-}
-
-interface User {
-  id: string;
-  email: string;
-  created_at?: string;
-  user_metadata?: {
-    role?: UserRole;
-    name?: string;
-    full_name?: string;
-    dealership_name?: string;
-  };
-}
-
-// Define auth context props
-interface AuthContextProps {
+interface AuthContextType {
   user: User | null;
   userDetails: UserDetails | null;
   session: any | null;
-  userRole: UserRole | null;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, options?: any) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
   error: string | null;
 }
 
-// Create context with a default value
-export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+const initialContext: AuthContextType = {
+  user: null,
+  userDetails: null,
+  session: null,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
+  isLoading: true,
+  error: null
+};
 
-// Mock authentication for development (replace with Supabase when connected)
-const mockUsers = [
-  { 
-    id: '1', 
-    email: 'user@example.com', 
-    password: 'password',
-    created_at: new Date().toISOString(),
-    user_metadata: { 
-      role: 'individual' as UserRole,
-      full_name: 'Example User',
-      name: 'Example User'
-    }
-  },
-  { 
-    id: '2', 
-    email: 'dealer@example.com', 
-    password: 'password',
-    created_at: new Date().toISOString(),
-    user_metadata: { 
-      role: 'dealer' as UserRole,
-      full_name: 'Example Dealer',
-      name: 'Example Dealer',
-      dealership_name: 'Example Dealership'
-    }
-  },
-];
+export const AuthContext = createContext<AuthContextType>(initialContext);
 
-// Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [session, setSession] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from localStorage for mock auth
   useEffect(() => {
-    setIsLoading(true);
-    
-    try {
-      const savedUser = localStorage.getItem('auth_user');
-      const savedSession = localStorage.getItem('auth_session');
+    const storedUser = localStorage.getItem('mockUser');
+    const storedSession = localStorage.getItem('mockSession');
+    const storedUserDetails = localStorage.getItem('mockUserDetails');
+
+    if (storedUser && storedSession) {
+      setUser(JSON.parse(storedUser));
+      setSession(JSON.parse(storedSession));
       
-      if (savedUser && savedSession) {
-        const parsedUser = JSON.parse(savedUser);
-        const parsedSession = JSON.parse(savedSession);
-        
-        setUser(parsedUser);
-        setSession(parsedSession);
-        
-        // Set userRole based on user metadata
-        const role = parsedUser.user_metadata?.role || 'individual';
-        setUserRole(role);
-        
-        // Set userDetails
-        setUserDetails({
-          id: parsedUser.id,
-          email: parsedUser.email,
-          role: role,
-          full_name: parsedUser.user_metadata?.full_name || parsedUser.user_metadata?.name,
-          dealership_name: parsedUser.user_metadata?.dealership_name
-        });
+      if (storedUserDetails) {
+        setUserDetails(JSON.parse(storedUserDetails));
       }
-    } catch (err) {
-      console.error('Error initializing auth state:', err);
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   }, []);
 
-  // Sign in function
   const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      setIsLoading(true);
-      
-      // Mock authentication (replace with Supabase)
-      const user = mockUsers.find(u => u.email === email && u.password === password);
-      
-      if (!user) {
-        setError('Invalid email or password');
-        return { success: false, error: 'Invalid email or password' };
-      }
-      
-      // Create session object
-      const session = {
-        access_token: 'mock_token_' + Date.now(),
-        expires_at: Date.now() + 3600 * 1000,
-        user: user
-      };
-      
-      // Save to state and localStorage
-      setUser(user);
-      setSession(session);
-      setUserRole(user.user_metadata?.role || 'individual');
-      
-      setUserDetails({
-        id: user.id,
-        email: user.email,
-        role: user.user_metadata?.role || 'individual',
-        full_name: user.user_metadata?.full_name || user.user_metadata?.name,
-        dealership_name: user.user_metadata?.dealership_name
-      });
-      
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      localStorage.setItem('auth_session', JSON.stringify(session));
-      
-      toast.success('Signed in successfully!');
-      return { success: true };
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to sign in';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Sign up function
-  const signUp = async (email: string, password: string, metadata?: any) => {
-    try {
-      setIsLoading(true);
-      
-      // Mock signup (replace with Supabase)
-      const newId = `${Date.now()}`;
-      const newUser = {
-        id: newId,
-        email,
+      // Mock authentication
+      const mockUser: User = {
+        id: '123456',
+        email: email,
         created_at: new Date().toISOString(),
-        user_metadata: metadata || { 
+        user_metadata: {
           role: 'individual',
-          full_name: email.split('@')[0],
-          name: email.split('@')[0]
+          full_name: 'Test User',
         }
       };
       
-      // Create session object
-      const session = {
-        access_token: 'mock_token_' + Date.now(),
-        expires_at: Date.now() + 3600 * 1000,
-        user: newUser
+      const mockUserDetails: UserDetails = {
+        id: '123456',
+        full_name: 'Test User',
+        role: 'individual',
+        email: email,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       
-      // Save to state and localStorage
-      setUser(newUser);
-      setSession(session);
-      setUserRole(newUser.user_metadata?.role || 'individual');
+      const mockSession = {
+        access_token: 'mock-token',
+        expires_at: Date.now() + 3600 * 1000
+      };
       
-      setUserDetails({
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.user_metadata?.role || 'individual',
-        full_name: newUser.user_metadata?.full_name || newUser.user_metadata?.name,
-        dealership_name: newUser.user_metadata?.dealership_name
-      });
+      // Save to state
+      setUser(mockUser);
+      setUserDetails(mockUserDetails);
+      setSession(mockSession);
       
-      localStorage.setItem('auth_user', JSON.stringify(newUser));
-      localStorage.setItem('auth_session', JSON.stringify(session));
+      // Save to localStorage for persistence
+      localStorage.setItem('mockUser', JSON.stringify(mockUser));
+      localStorage.setItem('mockUserDetails', JSON.stringify(mockUserDetails));
+      localStorage.setItem('mockSession', JSON.stringify(mockSession));
       
-      toast.success('Sign up successful!');
-      return { success: true };
+      toast.success('Signed in successfully!');
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to sign up';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
+      setError(err.message || 'Failed to sign in');
+      toast.error(err.message || 'Failed to sign in');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Sign out function
-  const signOut = async () => {
+  const signUp = async (email: string, password: string, options?: any) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      // Clear auth state
-      setUser(null);
-      setSession(null);
-      setUserRole(null);
-      setUserDetails(null);
+      // For mock purposes, signUp behaves the same as signIn
+      const role = options?.role || 'individual';
+      const fullName = options?.fullName || 'New User';
+      const dealershipName = options?.dealershipName;
       
-      // Remove from localStorage
-      localStorage.removeItem('auth_user');
-      localStorage.removeItem('auth_session');
+      const mockUser: User = {
+        id: '123456',
+        email: email,
+        created_at: new Date().toISOString(),
+        user_metadata: {
+          role: role,
+          full_name: fullName,
+          dealership_name: dealershipName
+        }
+      };
       
-      toast.success('You have been signed out');
+      const mockUserDetails: UserDetails = {
+        id: '123456',
+        full_name: fullName,
+        role: role,
+        dealership_name: dealershipName,
+        email: email,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const mockSession = {
+        access_token: 'mock-token',
+        expires_at: Date.now() + 3600 * 1000
+      };
+      
+      // Save to state
+      setUser(mockUser);
+      setUserDetails(mockUserDetails);
+      setSession(mockSession);
+      
+      // Save to localStorage for persistence
+      localStorage.setItem('mockUser', JSON.stringify(mockUser));
+      localStorage.setItem('mockUserDetails', JSON.stringify(mockUserDetails));
+      localStorage.setItem('mockSession', JSON.stringify(mockSession));
+      
+      toast.success('Sign up successful!');
     } catch (err: any) {
-      setError(err.message);
-      toast.error('Failed to sign out');
+      setError(err.message || 'Failed to sign up');
+      toast.error(err.message || 'Failed to sign up');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const value = {
-    user,
-    userDetails,
-    session,
-    userRole,
-    signIn,
-    signUp,
-    signOut,
-    isLoading,
-    error,
+  const signOut = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Clear state
+      setUser(null);
+      setUserDetails(null);
+      setSession(null);
+      
+      // Clear localStorage
+      localStorage.removeItem('mockUser');
+      localStorage.removeItem('mockUserDetails');
+      localStorage.removeItem('mockSession');
+      
+      toast.success('You have been signed out');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign out');
+      toast.error(err.message || 'Failed to sign out');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      userDetails, 
+      session, 
+      signIn, 
+      signUp, 
+      signOut, 
+      isLoading, 
+      error 
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  return context;
 };
