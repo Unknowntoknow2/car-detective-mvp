@@ -15,12 +15,20 @@ export async function fetchFacebookMarketplaceListings(
   const listings: any[] = [];
 
   try {
+    // In browser environments or if Puppeteer fails, return mock data
+    if (typeof window !== 'undefined') {
+      throw new Error('Puppeteer not available in browser environment');
+    }
+
+    console.log('Attempting to launch browser with Puppeteer...');
+    
     // Use a conditional import or mock when browser is not available
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       // Use installed Chromium in container if available
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      ignoreDefaultArgs: ['--disable-extensions'],
     });
 
     const page = await browser.newPage();
@@ -71,10 +79,9 @@ export async function fetchFacebookMarketplaceListings(
     await browser.close();
   } catch (error) {
     console.error('❌ Failed to initialize Puppeteer:', error);
-    // Return mock data if in a browser environment or if Puppeteer fails
     console.log('Using mock Facebook Marketplace data instead');
     
-    // Mock data in case Puppeteer isn't available
+    // Return mock data with the make/model included
     listings.push(
       {
         title: `${make} ${model} (Mock Data)`,
