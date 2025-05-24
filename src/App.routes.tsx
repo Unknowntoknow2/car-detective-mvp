@@ -81,20 +81,20 @@ export const routes = [
         element: <Navigate to="/auth" replace />
       },
       {
-        path: 'signup/individual',
-        element: <Navigate to="/auth/individual" replace />
-      },
-      {
-        path: 'signup/dealer',
-        element: <Navigate to="/auth/dealer" replace />
-      },
-      {
         path: 'sign-in',
         element: <Navigate to="/auth" replace />
       },
       {
         path: 'signin',
         element: <Navigate to="/auth" replace />
+      },
+      {
+        path: 'signup/individual',
+        element: <Navigate to="/auth/individual" replace />
+      },
+      {
+        path: 'signup/dealer',
+        element: <Navigate to="/auth/dealer" replace />
       },
       {
         path: 'signin/individual',
@@ -176,7 +176,7 @@ export const routes = [
   },
   {
     path: '/valuation/:id',
-    element: <Navigate to={params => `/valuation/result/${params.id}`} replace />
+    element: <Navigate to={({ params }) => `/valuation/result/${params?.id || ''}`} replace />
   }
 ];
 
