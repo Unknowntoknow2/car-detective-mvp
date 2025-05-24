@@ -39,6 +39,22 @@ const FormField = <
   )
 }
 
+type FormFieldState = {
+  invalid: boolean;
+  isDirty: boolean;
+  isTouched: boolean;
+  isValidating: boolean;
+  error?: {
+    type: string;
+    message: string;
+  };
+  id: string;
+  name: string;
+  formItemId: string;
+  formDescriptionId: string;
+  formMessageId: string;
+}
+
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
@@ -56,8 +72,9 @@ const useFormField = () => {
       formItemId: "",
       formDescriptionId: "",
       formMessageId: "",
-      invalid: false
-    }
+      invalid: false,
+      error: undefined
+    } as FormFieldState
   }
   
   const { getFieldState, formState } = formContext
@@ -76,7 +93,7 @@ const useFormField = () => {
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
     ...fieldState,
-  }
+  } as FormFieldState
 }
 
 type FormItemContextValue = {
