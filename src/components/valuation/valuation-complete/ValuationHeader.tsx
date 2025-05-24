@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { Valuation } from '@/types/valuation-history';
@@ -10,9 +11,11 @@ interface ValuationHeaderProps {
 }
 
 export const ValuationHeader: React.FC<ValuationHeaderProps> = ({ valuation }) => {
-  const { year, make, model, trim, valuationDate, estimatedValue } = valuation;
-  
-  const formattedDate = valuationDate ? new Date(valuationDate).toLocaleDateString() : 'N/A';
+  const { year, make, model } = valuation;
+  // Use optional chaining for properties that might not exist
+  const trim = valuation.trim || '';
+  const formattedDate = valuation.created_at ? new Date(valuation.created_at).toLocaleDateString() : 'N/A';
+  const estimatedValue = valuation.estimated_value || 0;
   
   return (
     <div className="mb-6">
@@ -40,7 +43,7 @@ export const ValuationHeader: React.FC<ValuationHeaderProps> = ({ valuation }) =
         <div className="bg-primary/10 p-3 rounded-lg">
           <div className="text-sm text-muted-foreground">Estimated Value</div>
           <div className="text-2xl font-bold text-primary">
-            {formatCurrency(estimatedValue || 0)}
+            {formatCurrency(estimatedValue)}
           </div>
         </div>
       </div>
