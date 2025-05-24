@@ -2,27 +2,35 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserDetails } from '@/types/user';
 import { toast } from 'sonner';
+import { UserRole } from '@/types/auth';
+
+interface AuthResult {
+  success: boolean;
+  error?: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
   userDetails: UserDetails | null;
   session: any | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, options?: any) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string, options?: any) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   isLoading: boolean;
   error: string | null;
+  userRole?: UserRole | string;
 }
 
 const initialContext: AuthContextType = {
   user: null,
   userDetails: null,
   session: null,
-  signIn: async () => {},
-  signUp: async () => {},
+  signIn: async () => ({ success: false }),
+  signUp: async () => ({ success: false }),
   signOut: async () => {},
   isLoading: true,
-  error: null
+  error: null,
+  userRole: undefined
 };
 
 export const AuthContext = createContext<AuthContextType>(initialContext);
@@ -33,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | string | undefined>(undefined);
 
   // Initialize auth state from localStorage for mock auth
   useEffect(() => {
@@ -41,18 +50,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUserDetails = localStorage.getItem('mockUserDetails');
 
     if (storedUser && storedSession) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       setSession(JSON.parse(storedSession));
       
+      // Set user role from user metadata
+      setUserRole(parsedUser?.user_metadata?.role || 'individual');
+      
       if (storedUserDetails) {
-        setUserDetails(JSON.parse(storedUserDetails));
+        const parsedDetails = JSON.parse(storedUserDetails);
+        setUserDetails(parsedDetails);
       }
     }
     
     setIsLoading(false);
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     setError(null);
     
@@ -86,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(mockUser);
       setUserDetails(mockUserDetails);
       setSession(mockSession);
+      setUserRole(mockUser.user_metadata?.role || 'individual');
       
       // Save to localStorage for persistence
       localStorage.setItem('mockUser', JSON.stringify(mockUser));
@@ -93,15 +108,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('mockSession', JSON.stringify(mockSession));
       
       toast.success('Signed in successfully!');
+      return { success: true };
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
-      toast.error(err.message || 'Failed to sign in');
+      const errorMessage = err.message || 'Failed to sign in';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signUp = async (email: string, password: string, options?: any) => {
+  const signUp = async (email: string, password: string, options?: any): Promise<AuthResult> => {
     setIsLoading(true);
     setError(null);
     
@@ -141,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(mockUser);
       setUserDetails(mockUserDetails);
       setSession(mockSession);
+      setUserRole(role);
       
       // Save to localStorage for persistence
       localStorage.setItem('mockUser', JSON.stringify(mockUser));
@@ -148,9 +167,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('mockSession', JSON.stringify(mockSession));
       
       toast.success('Sign up successful!');
+      return { success: true };
     } catch (err: any) {
-      setError(err.message || 'Failed to sign up');
-      toast.error(err.message || 'Failed to sign up');
+      const errorMessage = err.message || 'Failed to sign up';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -165,6 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setUserDetails(null);
       setSession(null);
+      setUserRole(undefined);
       
       // Clear localStorage
       localStorage.removeItem('mockUser');
@@ -189,7 +212,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp, 
       signOut, 
       isLoading, 
-      error 
+      error,
+      userRole
     }}>
       {children}
     </AuthContext.Provider>
