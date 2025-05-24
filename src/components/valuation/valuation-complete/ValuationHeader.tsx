@@ -13,7 +13,7 @@ interface ValuationHeaderProps {
 export const ValuationHeader: React.FC<ValuationHeaderProps> = ({ valuation }) => {
   const { year, make, model } = valuation;
   // Use optional chaining for properties that might not exist
-  const trimValue = valuation.trim || '';
+  const trimValue = valuation.trim ? valuation.trim : '';  // Safely access trim which might not exist in type
   const formattedDate = valuation.created_at ? new Date(valuation.created_at).toLocaleDateString() : 'N/A';
   const estimatedValue = valuation.estimated_value || 0;
   
