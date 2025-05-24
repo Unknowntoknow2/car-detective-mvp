@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 
 // Setup error handler for third-party tracking scripts
@@ -11,9 +12,12 @@ export const setupTrackingErrorHandler = () => {
           source.includes('analytics') || 
           source.includes('tracking') || 
           source.includes('sentry') || 
-          source.includes('gtag')
+          source.includes('gtag') ||
+          // Add more patterns for 3rd party scripts that might cause noise
+          source.includes('cdn') ||
+          message?.toString().includes('BloomFilter')
       )) {
-        console.warn('Suppressed tracking error:', message);
+        console.warn('Suppressed external script error:', message);
         return true; // Prevents the error from bubbling up
       }
       
@@ -33,8 +37,12 @@ export const enableReactDevMode = () => {
       const message = args[0]?.toString() || '';
       if (
         message.includes('Warning: ReactDOM.render is no longer supported') ||
-        message.includes('Warning: findDOMNode is deprecated')
+        message.includes('Warning: findDOMNode is deprecated') ||
+        message.includes('Multiple GoTrueClient instances detected') ||
+        message.includes('React Router Future Flag Warning') ||
+        message.includes('Warning: Importing from @/utils/formatters.ts is deprecated')
       ) {
+        // Suppress common warnings that are not critical
         return;
       }
       
