@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -17,7 +16,6 @@ import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
 import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
 import DashboardPage from './pages/DashboardPage';
-import DashboardRouter from './components/dashboard/DashboardRouter';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
@@ -41,7 +39,7 @@ const routes: RouteObject[] = [
         element: <VinLookupPage />
       },
       
-      // Core auth routes
+      // Core auth routes - keep only the canonical ones
       {
         path: 'auth',
         element: <UnifiedAuthPage />
@@ -59,7 +57,7 @@ const routes: RouteObject[] = [
         element: <AuthCallbackPage />
       },
       
-      // Redirect legacy auth routes to the new unified auth page
+      // Redirect legacy auth routes to the canonical paths
       {
         path: 'login',
         element: <Navigate to="/auth" replace />
@@ -108,7 +106,7 @@ const routes: RouteObject[] = [
       // Dashboard routes
       {
         path: 'dashboard',
-        element: <DashboardRouter />
+        element: <DashboardPage />
       },
       {
         path: 'dashboard/individual',
@@ -132,9 +130,11 @@ const routes: RouteObject[] = [
         path: 'result',
         element: <Navigate to="/valuation" replace />
       },
+      
+      // Fix redirect route to use proper pattern
       {
         path: 'valuation/:id',
-        element: <Navigate to={`/valuation/result/:id`} replace />
+        element: <Navigate to="/valuation/result/:id" replace />
       },
       
       // Profile and account routes
