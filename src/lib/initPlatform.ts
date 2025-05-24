@@ -7,6 +7,9 @@ import { setupTrackingErrorHandler, enableReactDevMode } from '../utils/errorHan
 if (typeof window !== 'undefined') {
   (window as any).PUPPETEER_SKIP_DOWNLOAD = true;
   (window as any).PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = true;
+  
+  // Prevent any Puppeteer configuration from running in the browser
+  (window as any).__PUPPETEER_DISABLED__ = true;
 }
 
 export const initPlatform = () => {

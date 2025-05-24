@@ -17,14 +17,15 @@ export NPM_CONFIG_NETWORK_TIMEOUT=300000
 # Remove any existing puppeteer cache to avoid incomplete downloads
 echo "Cleaning up any problematic Puppeteer installations..."
 rm -rf node_modules/puppeteer
+rm -rf node_modules/puppeteer-*
 rm -rf ~/.cache/puppeteer
 rm -rf ~/.cache/chromium
 
 # Install only the most essential packages first
 echo "Installing minimal dependencies..."
-npm install react react-dom @supabase/supabase-js --no-fund --no-audit --loglevel=error || {
+npm install react react-dom @supabase/supabase-js --no-fund --no-audit --loglevel=error --legacy-peer-deps || {
   echo "Minimal install failed. Trying different approach..."
-  npm install --no-package-lock --no-fund --prefer-offline --loglevel=error
+  npm install --no-package-lock --no-fund --prefer-offline --loglevel=error --legacy-peer-deps
 }
 
 echo "Installation completed."

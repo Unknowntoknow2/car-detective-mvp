@@ -1,9 +1,12 @@
 
+// Force skip all puppeteer downloads
 export default {
   skipDownload: true,
   skipChromiumDownload: true,
-  cacheDirectory: '/tmp/puppeteer-disabled',
+  cacheDirectory: '/dev/null',
   executablePath: '/bin/false',
   browserRevision: 'none',
-  product: 'none'
+  product: 'none',
+  // Prevent configuration object modifications
+  freeze: true
 };

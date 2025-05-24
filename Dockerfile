@@ -15,19 +15,21 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 COPY package*.json ./
 COPY .npmrc ./
 COPY .puppeteerrc.js ./
+COPY .npmignore ./
 
 # Set environment variables to increase memory and timeout limits
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 ENV NPM_CONFIG_NETWORK_TIMEOUT=600000
+ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 
 # Remove problematic puppeteer cache if it exists
 RUN rm -rf ~/.cache/puppeteer || true
-RUN mkdir -p ~/.cache && touch ~/.cache/.puppeteerrc.js && echo "export default { skipDownload: true };" > ~/.cache/.puppeteerrc.js
+RUN mkdir -p ~/.cache && touch ~/.cache/.puppeteerrc.js && echo "export default { skipDownload: true, skipChromiumDownload: true, cacheDirectory: '/dev/null' };" > ~/.cache/.puppeteerrc.js
 
 # Install dependencies with retries and increased timeout
-RUN npm install --no-fund --prefer-offline --loglevel=error || \
-    npm install --no-fund --prefer-offline --loglevel=error || \
-    (apk add --no-cache curl && npm cache clean --force && npm install --no-fund --prefer-offline)
+RUN npm install --no-fund --prefer-offline --loglevel=error --legacy-peer-deps || \
+    npm install --no-fund --prefer-offline --loglevel=error --legacy-peer-deps || \
+    (apk add --no-cache curl && npm cache clean --force && npm install --no-fund --prefer-offline --legacy-peer-deps)
 
 # Copy the rest of the project files
 COPY . .
