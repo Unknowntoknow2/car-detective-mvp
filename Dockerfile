@@ -5,6 +5,10 @@ FROM node:18-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Set environment variables to skip Puppeteer downloads
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # Copy package files first (for better layer caching)
 COPY package*.json ./
 COPY .npmrc ./
@@ -30,10 +34,7 @@ FROM nginx:alpine
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy custom NGINX config (if any), fallback to default
-# RUN rm /etc/nginx/conf.d/default.conf
-# COPY nginx.conf /etc/nginx/conf.d
-
 # Expose port 80 and start NGINX
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+

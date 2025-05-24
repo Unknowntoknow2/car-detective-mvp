@@ -7,6 +7,10 @@ echo "Starting enhanced installation process..."
 # Set larger Node memory allocation
 export NODE_OPTIONS="--max-old-space-size=8192"
 
+# Set environment variables to skip Puppeteer download
+export PUPPETEER_SKIP_DOWNLOAD=true
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # Create a faster .npmrc configuration
 cat > .npmrc << EOL
 fetch-timeout=600000
@@ -19,6 +23,10 @@ fund=false
 audit=false
 loglevel=error
 node-options=--max-old-space-size=8192
+puppeteer_skip_download=true
+puppeteer_skip_chromium_download=true
+PUPPETEER_SKIP_DOWNLOAD=true
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 EOL
 
 # Try NPM install first with core dependencies and longer timeout
@@ -30,21 +38,11 @@ npm install react react-dom @supabase/supabase-js --no-fund --no-audit --prefer-
   echo "Attempting yarn installation..."
   if command -v yarn &> /dev/null; then
     yarn install --network-timeout 600000 || {
-      echo "Yarn install failed. Trying bun install with limited concurrency..."
+      echo "Yarn install failed. Trying final approach with npm..."
       
-      # Try bun with limited concurrency if available
-      if command -v bun &> /dev/null; then
-        echo "Using bun for installation with limited concurrency..."
-        # Setting BUN_INSTALL_CACHE_DIR to a known location might help with permissions
-        export BUN_INSTALL_CACHE_DIR="./node_modules/.cache/bun"
-        mkdir -p $BUN_INSTALL_CACHE_DIR
-        
-        # Use --no-save to avoid lockfile issues
-        bun install --no-save
-      else
-        echo "Bun not available. Final attempt with npm and minimal dependencies..."
-        npm install react react-dom --no-package-lock --no-fund --prefer-offline
-      fi
+      # Final attempt with npm
+      echo "Final attempt with npm and minimal dependencies..."
+      npm install react react-dom --no-package-lock --no-fund --prefer-offline
     }
   else
     echo "Yarn not available. Using npm with limited concurrency..."
@@ -56,3 +54,4 @@ echo "Core dependencies installation completed. Installing remaining packages...
 npm install --prefer-offline --no-fund --loglevel=error
 
 echo "Installation process completed."
+

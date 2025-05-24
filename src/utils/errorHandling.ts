@@ -27,7 +27,12 @@ export const setupTrackingErrorHandler = () => {
       'Loading chunk',
       'Unrecognized feature',
       'ERR_INTERNET_DISCONNECTED',
-      'Failed to fetch'
+      'Failed to fetch',
+      'Puppeteer',
+      'puppeteer',
+      'chrome-headless',
+      'Chrome download failed',
+      'Chromium download failed'
     ];
     
     // Only log errors that don't match our suppress patterns
@@ -89,3 +94,4 @@ export const enableReactDevMode = () => {
     console.warn('Could not enable React dev tools integration:', e);
   }
 };
+

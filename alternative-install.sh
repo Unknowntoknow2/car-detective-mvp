@@ -4,6 +4,10 @@
 
 echo "Starting simplified installation process..."
 
+# Set environment variables to skip Puppeteer download
+export PUPPETEER_SKIP_DOWNLOAD=true
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # Set memory allocation and timeout
 export NODE_OPTIONS="--max-old-space-size=4096"
 export NPM_CONFIG_NETWORK_TIMEOUT=300000
@@ -16,3 +20,4 @@ npm install react react-dom @supabase/supabase-js --no-fund --no-audit --logleve
 }
 
 echo "Installation completed."
+
