@@ -20,4 +20,3 @@ npm install react react-dom @supabase/supabase-js --no-fund --no-audit --logleve
 }
 
 echo "Installation completed."
-

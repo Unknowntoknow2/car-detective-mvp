@@ -54,4 +54,3 @@ echo "Core dependencies installation completed. Installing remaining packages...
 npm install --prefer-offline --no-fund --loglevel=error
 
 echo "Installation process completed."
-

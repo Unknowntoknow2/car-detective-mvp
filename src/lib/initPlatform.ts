@@ -24,4 +24,3 @@ export const initPlatform = () => {
   // Enable detailed React errors in development
   enableReactDevMode();
 };
-
