@@ -1,0 +1,5 @@
+
+# Ignore puppeteer cache and downloads
+.cache/
+.cache/puppeteer/
+node_modules/puppeteer/

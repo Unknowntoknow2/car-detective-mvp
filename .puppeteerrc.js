@@ -1,5 +1,5 @@
 
-module.exports = {
+export default {
   skipDownload: true,
   skipChromiumDownload: true,
   cacheDirectory: '/tmp/puppeteer-disabled',
