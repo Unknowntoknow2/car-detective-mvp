@@ -5,7 +5,7 @@ import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
-import PremiumValuationPage from './pages/PremiumValuationPage';
+import PremiumPage from './pages/PremiumPage';
 import ValuationResultPage from './pages/ValuationResultPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
@@ -119,8 +119,8 @@ const routes: RouteObject[] = [
         element: <ValuationPage />
       },
       {
-        path: 'premium-valuation',
-        element: <PremiumValuationPage />
+        path: 'premium',
+        element: <PremiumPage />
       },
       {
         path: 'valuation/result/:id',

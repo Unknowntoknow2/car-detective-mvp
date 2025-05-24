@@ -1,6 +1,6 @@
 
 import React, { useRef } from 'react';
-import { Layout } from '@/components/layout';
+import { MainLayout } from '@/components/layout';
 import { SEO } from '@/components/layout/seo';
 import { PremiumHero } from '@/components/premium/sections/PremiumHero';
 import { PremiumFeatures } from '@/components/premium/sections/PremiumFeatures';
@@ -10,14 +10,6 @@ import { PremiumPricing } from '@/components/premium/sections/PremiumPricing';
 import { PremiumFaq } from '@/components/premium/sections/PremiumFaq';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
-
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const CustomLayout: React.FC<LayoutProps> = ({ children }) => {
-  return <div className="min-h-screen">{children}</div>;
-};
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
@@ -33,7 +25,7 @@ export default function PremiumPage() {
   };
 
   return (
-    <CustomLayout>
+    <MainLayout>
       <SEO title="Premium Valuation" description="Unlock the full potential of your vehicle's value with our premium valuation service." />
       
       <PremiumHero scrollToForm={scrollToForm} />
@@ -61,6 +53,6 @@ export default function PremiumPage() {
       <PremiumPricing onPurchaseCredit={handlePurchaseCredit} />
       
       <PremiumFaq />
-    </CustomLayout>
+    </MainLayout>
   );
 }

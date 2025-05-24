@@ -6,19 +6,16 @@ import { ValuePropositionSection } from '@/components/home/ValuePropositionSecti
 import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
 import { KeyFeatures } from '@/components/home/KeyFeatures';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
-import { ComparisonTable } from '@/components/home/ComparisonTable';
 import { FeaturesOverview } from '@/components/home/FeaturesOverview';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
 import { OnboardingTour } from '@/components/home/OnboardingTour';
 import { PdfPreview } from '@/components/home/PdfPreview';
 import { LookupTabs } from '@/components/home/LookupTabs';
 import { AiAssistantPreview } from '@/components/home/AiAssistantPreview';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { SEO } from '@/components/common/SEO';
 
 export const EnhancedHomePage: React.FC = () => {
   const navigate = useNavigate();
-  const featureFlags = useFeatureFlags();
   
   // Add diagnostic logging to confirm component is being rendered
   console.log('✅ EnhancedHomePage loaded');
@@ -88,7 +85,6 @@ export const EnhancedHomePage: React.FC = () => {
         
         <FeaturesOverview />
         <TestimonialsSection />
-        <ComparisonTable />
         
         {/* Always show onboarding tour */}
         <OnboardingTour />
