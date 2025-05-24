@@ -1,22 +1,29 @@
 
 import { AskAIRequest, AskAIResponse, AssistantContext, ChatMessage } from '@/types/assistant';
 
-const API_BASE_URL = process.env.REACT_APP_SUPABASE_URL 
-  ? `${process.env.REACT_APP_SUPABASE_URL}/functions/v1`
-  : '/api';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const askAI = async (request: AskAIRequest): Promise<AskAIResponse> => {
   try {
     console.log('🤖 Sending AI request:', { 
       question: request.question.substring(0, 50) + '...', 
-      hasContext: !!request.userContext 
+      hasContext: !!request.userContext,
+      supabaseUrl: SUPABASE_URL ? 'configured' : 'missing'
     });
 
-    const response = await fetch(`${API_BASE_URL}/ask-ai`, {
+    if (!SUPABASE_URL) {
+      throw new Error('Supabase URL not configured');
+    }
+
+    const url = `${SUPABASE_URL}/functions/v1/ask-ai`;
+    console.log('🌐 Making request to:', url);
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY || ''}`,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY || ''}`,
       },
       body: JSON.stringify(request),
     });
