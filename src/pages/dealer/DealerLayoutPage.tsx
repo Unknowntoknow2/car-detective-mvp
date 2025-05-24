@@ -18,6 +18,7 @@ const DealerLayoutPage: React.FC = () => {
     return <Navigate to="/auth/dealer" replace />;
   }
 
+  // Get the dealer name from userDetails or user metadata
   const dealerName = userDetails?.dealership_name || user?.user_metadata?.dealership_name || userDetails?.full_name || user?.user_metadata?.full_name || 'Dealer';
   
   return (
