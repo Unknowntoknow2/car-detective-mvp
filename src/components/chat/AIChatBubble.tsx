@@ -9,7 +9,7 @@ interface AIChatBubbleProps {
 }
 
 export function AIChatBubble({ valuation, position = 'bottom-right' }: AIChatBubbleProps) {
-  const [initialMessage, setInitialMessage] = useState("Tell me about my car's valuation");
+  const [content, setContent] = useState("Tell me about my car's valuation");
   
   // Generate a more specific initial message if we have valuation data
   useEffect(() => {
@@ -19,7 +19,7 @@ export function AIChatBubble({ valuation, position = 'bottom-right' }: AIChatBub
       const model = valuation.model || '';
       
       if (year && make && model) {
-        setInitialMessage(`Tell me about my ${year} ${make} ${model} valuation`);
+        setContent(`Tell me about my ${year} ${make} ${model} valuation`);
       }
     }
   }, [valuation]);
@@ -28,7 +28,9 @@ export function AIChatBubble({ valuation, position = 'bottom-right' }: AIChatBub
 
   return (
     <ChatBubble 
-      initialMessage={initialMessage}
+      content={content}
+      sender="assistant"
+      timestamp={new Date()}
       position={position}
       title="Ask about your valuation"
       valuationId={valuation.id}
