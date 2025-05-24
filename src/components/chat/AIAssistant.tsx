@@ -7,6 +7,7 @@ import { X, Send, Sparkles, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { askAI } from '@/api/askAI';
 
 interface Message {
   id: string;
@@ -56,45 +57,39 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      // Call the AI API
-      const response = await fetch('/api/ask-ai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      console.log('🤖 Sending message to AI:', currentInput);
+      
+      // Use the askAI function which calls the Supabase Edge Function
+      const response = await askAI({
+        question: currentInput,
+        userContext: {
+          isPremium,
+          hasDealerAccess: false,
+          ...(valuationId && { valuationId })
         },
-        body: JSON.stringify({
-          question: inputValue,
-          userContext: {
-            isPremium,
-            valuationId,
-          },
-          chatHistory: messages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        }),
+        chatHistory: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      console.log('🤖 AI response received:', response);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.answer || 'Sorry, I couldn\'t generate a response.',
+        content: response.answer || 'Sorry, I couldn\'t generate a response.',
         role: 'assistant',
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       toast.error('Failed to send message. Please try again.');
       
       const errorMessage: Message = {
