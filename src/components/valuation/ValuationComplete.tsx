@@ -13,7 +13,7 @@ export const ValuationComplete: React.FC<ValuationCompleteProps> = ({ valuation 
   return (
     <div className="space-y-6">
       <ValuationHeader valuation={valuation} />
-      <NextStepsCard />
+      <NextStepsCard valuationId={valuation.id} />
       
       {/* Instead of directly rendering a ChatBubble with missing props, 
           we'll render it with all required props */}
