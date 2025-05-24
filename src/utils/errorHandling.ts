@@ -26,7 +26,6 @@ export const setupTrackingErrorHandler = () => {
       'OTS parsing error',
       'Loading chunk',
       'Unrecognized feature',
-      'puppeteer',
       'ERR_INTERNET_DISCONNECTED',
       'Failed to fetch'
     ];
@@ -64,13 +63,13 @@ export const enableReactDevMode = () => {
     // Use type assertion to avoid TypeScript error
     const win = window as Window & {
       __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
-        inject: (obj: any) => void;
+        inject: (obj: Record<string, unknown>) => void;
       }
     };
     
     if (win.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
       const originalInject = win.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject;
-      win.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = function(obj: any) {
+      win.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = function(obj: Record<string, unknown>) {
         if (!obj.scheduleRefresh || !obj.setRefreshHandler) {
           // This is React 16+
           if (!obj.reconciler || !obj.scheduleRefresh) {
