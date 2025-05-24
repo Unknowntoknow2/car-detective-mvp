@@ -1,56 +1,64 @@
-// Setup error handler for third-party tracking scripts
+
+/**
+ * Error handling utilities
+ * Contains functions to manage error tracking and suppress noisy errors
+ */
+
 export const setupTrackingErrorHandler = () => {
-  // If in development or test, suppress most tracking errors
-  if (process.env.NODE_ENV !== 'production') {
-    const originalOnError = window.onerror;
-    window.onerror = (message, source, lineno, colno, error) => {
-      // Ignore tracking script errors in development
-      if (source && (
-          source.includes('analytics') || 
-          source.includes('tracking') || 
-          source.includes('sentry') || 
-          source.includes('gtag') ||
-          // Add more patterns for 3rd party scripts that might cause noise
-          source.includes('cdn') ||
-          message?.toString().includes('BloomFilter')
-      )) {
-        console.warn('Suppressed external script error:', message);
-        return true; // Prevents the error from bubbling up
-      }
-      
-      // Otherwise use the original handler
-      return originalOnError ? originalOnError(message, source, lineno, colno, error) : false;
-    };
-  }
-};
+  if (typeof window === 'undefined') return;
 
-// Enable React dev mode in development
-export const enableReactDevMode = () => {
-  if (process.env.NODE_ENV === 'development') {
-    // This helps with catching issues during development
-    const originalConsoleError = console.error;
-    console.error = (...args) => {
-      // Filter out certain known non-critical errors in development
-      const message = args[0]?.toString() || '';
-      if (
-        message.includes('Warning: ReactDOM.render is no longer supported') ||
-        message.includes('Warning: findDOMNode is deprecated') ||
-        message.includes('Multiple GoTrueClient instances detected') ||
-        message.includes('React Router Future Flag Warning') ||
-        message.includes('Warning: Importing from @/utils/formatters.ts is deprecated')
-      ) {
-        // Suppress common warnings that are not critical
-        return;
-      }
-      
+  const originalConsoleError = console.error;
+  
+  // Suppress noisy errors from tracking scripts and browser extensions
+  console.error = (...args) => {
+    const errorMessage = args.join(' ');
+    
+    // List of error patterns to suppress
+    const suppressPatterns = [
+      'Tracking Prevention',
+      'Failed to load resource',
+      'chrome-extension://',
+      'ChunkLoadError',
+      'Facebook Pixel',
+      'browser-extension',
+      'inter-var.woff2',
+      'preloaded using link preload but not used',
+      'OTS parsing error',
+      'Loading chunk',
+      'Unrecognized feature',
+      'puppeteer',
+      'ERR_INTERNET_DISCONNECTED',
+      'Failed to fetch'
+    ];
+    
+    // Only log errors that don't match our suppress patterns
+    if (!suppressPatterns.some(pattern => errorMessage.includes(pattern))) {
       originalConsoleError(...args);
-    };
-  }
+    }
+  };
 };
 
-// Helper function to convert errors to string
-export const errorToString = (error: unknown): string => {
-  if (typeof error === 'string') return error;
-  if (error instanceof Error) return error.message;
-  return 'An unknown error occurred';
+export const enableReactDevMode = () => {
+  if (typeof window === 'undefined' || import.meta.env.MODE !== 'development') return;
+  
+  // Enable React Developer Tools in development mode
+  try {
+    window.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = function(obj) {
+      if (!obj.scheduleRefresh || !obj.setRefreshHandler) {
+        // This is React 16+
+        if (!obj.reconciler || !obj.scheduleRefresh) {
+          // This is older React 16.x
+          const oldInject = this.inject;
+          oldInject.call(this, obj);
+        } else {
+          // This is React 17+
+          for (const prop in obj) {
+            this[prop] = obj[prop];
+          }
+        }
+      }
+    };
+  } catch (e) {
+    console.warn('Could not enable React dev tools integration:', e);
+  }
 };
