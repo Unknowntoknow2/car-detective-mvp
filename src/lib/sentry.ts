@@ -2,6 +2,8 @@
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 
+console.log("[✅ Sentry loaded]");
+
 const dsn = import.meta.env.VITE_SENTRY_DSN;
 const isProd = import.meta.env.MODE === "production";
 
