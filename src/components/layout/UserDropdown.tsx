@@ -37,3 +37,5 @@ export function UserDropdown() {
     </DropdownMenu>
   );
 }
+
+export default UserDropdown;
