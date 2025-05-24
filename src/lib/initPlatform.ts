@@ -67,7 +67,8 @@ const disablePuppeteerCompletely = () => {
       
       // Attempt to override any Puppeteer global with both methods
       try {
-        window.puppeteer = puppeteerShim;
+        // Fix: Use type assertion to avoid TypeScript error
+        (window as any).puppeteer = puppeteerShim;
       } catch (e) {}
       
       try {
@@ -79,14 +80,17 @@ const disablePuppeteerCompletely = () => {
       } catch (e) {}
       
       // Also trap global require attempts if in a Node.js context
-      if (typeof global !== 'undefined' && global.require) {
-        const originalRequire = global.require;
-        global.require = function(name) {
-          if (name.includes('puppeteer') || name.includes('chromium')) {
-            return puppeteerShim;
-          }
-          return originalRequire(name);
-        };
+      if (typeof global !== 'undefined') {
+        // Fix: Use proper type for require function
+        const originalRequire = (global as any).require;
+        if (originalRequire) {
+          (global as any).require = function(name: string) {
+            if (name.includes('puppeteer') || name.includes('chromium')) {
+              return puppeteerShim;
+            }
+            return originalRequire(name);
+          };
+        }
       }
     }
   } catch (e) {
