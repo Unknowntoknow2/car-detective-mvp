@@ -15,6 +15,15 @@ serve(async (req) => {
   try {
     const { question, userContext, chatHistory, systemPrompt } = await req.json();
     
+    // Handle test requests
+    if (question === 'test') {
+      console.log('AI Assistant connection test successful');
+      return new Response(
+        JSON.stringify({ answer: 'Connection successful' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     if (!question || typeof question !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Question is required' }),
@@ -27,16 +36,22 @@ serve(async (req) => {
     if (!apiKey) {
       console.error("Missing OpenAI API key");
       return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
+        JSON.stringify({ error: "AI service temporarily unavailable" }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Processing AI request:', { 
+      question: question.substring(0, 50) + '...', 
+      hasContext: !!userContext,
+      hasHistory: !!(chatHistory && chatHistory.length > 0)
+    });
 
     // Prepare messages array for OpenAI
     const messages = [
       {
         role: 'system',
-        content: systemPrompt || `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+        content: systemPrompt || `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
 
 Use the user's context (make, model, year, mileage, condition, ZIP, premium status, dealer role) to give smart, helpful answers. Always respond in a confident, conversational tone.
 
@@ -92,6 +107,8 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ''}`,
 
     const responseData = await response.json();
     const answer = responseData.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+
+    console.log('AI response generated successfully');
 
     return new Response(
       JSON.stringify({ answer }),

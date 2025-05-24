@@ -1,248 +1,248 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Car, BarChart, AlertTriangle, DollarSign, FileText } from 'lucide-react';
-import { 
-  VehicleContext,
-  AssistantContext
-} from '@/types/assistant';
-import { 
-  detectIntent, 
-  generateResponse 
-} from '@/utils/assistantContext';
-import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { X, Send, Sparkles, MessageCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface Message {
+interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  timestamp: Date;
 }
 
 interface AIAssistantProps {
-  initialContext?: Partial<AssistantContext>;
-  initialVehicleContext?: Partial<VehicleContext>;
-  onClose?: () => void;
+  onClose: () => void;
   valuationId?: string;
   isPremium?: boolean;
 }
 
-export function AIAssistant({ 
-  initialContext, 
-  initialVehicleContext,
-  onClose,
-  valuationId,
-  isPremium = false
-}: AIAssistantProps) {
-  const [message, setMessage] = useState('');
-  const [conversation, setConversation] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [context, setContext] = useState<AssistantContext>({
-    isPremium: isPremium || initialContext?.isPremium || false,
-    hasDealerAccess: initialContext?.hasDealerAccess || false,
-    userLocation: initialContext?.userLocation || { region: 'California' },
-    previousIntents: initialContext?.previousIntents || []
-  });
-  const [vehicleContext, setVehicleContext] = useState<VehicleContext>(initialVehicleContext || {});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Add welcome message on first load
+export const AIAssistant: React.FC<AIAssistantProps> = ({ 
+  onClose, 
+  valuationId, 
+  isPremium = false 
+}) => {
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Test connection on mount
   useEffect(() => {
-    if (conversation.length === 0) {
-      setIsTyping(true);
-      setTimeout(() => {
-        setConversation([{
-          role: 'assistant', 
-          content: `Hello! I'm your Car Detective AI assistant. I can help you understand your vehicle's true market value, how accidents impact pricing, selling strategies, and more. What would you like to know about ${vehicleContext?.make ? `your ${vehicleContext.year} ${vehicleContext.make} ${vehicleContext.model}` : 'your vehicle'}?`
-        }]);
-        setIsTyping(false);
-      }, 1000);
-    }
+    testConnection();
+    // Add welcome message
+    setMessages([{
+      role: 'assistant',
+      content: "Hello! I'm AIN — Auto Intelligence Network™, your AI-powered vehicle valuation assistant. I can help you with car valuations, market trends, CARFAX® insights, and premium report benefits. How can I assist you today?",
+      timestamp: new Date()
+    }]);
   }, []);
-  
-  // Scroll to bottom when new messages are added
+
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation, isTyping]);
-  
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
-    
-    // Add user message
-    const userMsg = message.trim();
-    setConversation(prev => [...prev, {role: 'user', content: userMsg}]);
-    setMessage('');
-    
-    // Detect intent
-    const intent = detectIntent(userMsg);
-    
-    // Update previous intents
-    setContext(prev => ({
-      ...prev,
-      previousIntents: [...(prev.previousIntents || []), intent]
-    }));
-    
-    // Simulate AI typing response
-    setIsTyping(true);
-    
-    // Generate response based on intent and context
-    const assistantContext = {
-      ...context,
-      vehicleContext: vehicleContext
-    };
-    
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const testConnection = async () => {
     try {
-      const response = await generateResponse(intent, assistantContext, userMsg);
-      
-      setTimeout(() => {
-        setIsTyping(false);
-        setConversation(prev => [...prev, {role: 'assistant', content: response}]);
-      }, 800 + Math.random() * 1200); // Realistic typing delay
+      const { data, error } = await supabase.functions.invoke('ask-ai', {
+        body: {
+          question: 'test',
+          userContext: {
+            isPremium,
+            hasDealerAccess: false,
+            vehicleContext: valuationId ? { valuationId } : undefined
+          }
+        }
+      });
+
+      if (!error && data) {
+        setIsConnected(true);
+        console.log('✅ AI Assistant connected successfully');
+      } else {
+        console.error('❌ AI Assistant connection failed:', error);
+        setIsConnected(false);
+      }
     } catch (error) {
-      console.error("Error generating response:", error);
-      setIsTyping(false);
-      setConversation(prev => [...prev, {
-        role: 'assistant', 
-        content: "I apologize, but I'm having trouble processing that request. Could you try again or rephrase your question?"
-      }]);
+      console.error('❌ AI Assistant connection test failed:', error);
+      setIsConnected(false);
     }
   };
 
-  // Get icon based on message content
-  const getMessageIcon = (content: string) => {
-    const lowerContent = content.toLowerCase();
-    if (lowerContent.includes('value') || lowerContent.includes('worth') || lowerContent.includes('price')) {
-      return <DollarSign className="h-4 w-4 mr-2" />;
-    } else if (lowerContent.includes('accident') || lowerContent.includes('damage')) {
-      return <AlertTriangle className="h-4 w-4 mr-2" />;
-    } else if (lowerContent.includes('market') || lowerContent.includes('trend')) {
-      return <BarChart className="h-4 w-4 mr-2" />;
-    } else if (lowerContent.includes('report') || lowerContent.includes('carfax')) {
-      return <FileText className="h-4 w-4 mr-2" />;
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: input.trim(),
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const userContext = {
+        isPremium,
+        hasDealerAccess: user?.user_metadata?.role === 'dealer',
+        vehicleContext: valuationId ? { valuationId } : undefined,
+        userLocation: user?.user_metadata?.zipCode ? { zipCode: user.user_metadata.zipCode } : undefined
+      };
+
+      const { data, error } = await supabase.functions.invoke('ask-ai', {
+        body: {
+          question: input.trim(),
+          userContext,
+          chatHistory: messages.slice(-10), // Send last 10 messages for context
+          systemPrompt: `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights.
+
+Use the user's context (make, model, year, mileage, condition, ZIP, premium status, dealer role) to give smart, helpful answers. Always respond in a confident, conversational tone.
+
+Never guess. If info is missing (e.g., no valuation), ask for it clearly.
+
+Your goal: help individuals sell smarter and help dealers make profitable decisions with speed and trust.
+
+User context: ${JSON.stringify(userContext)}`
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to get AI response');
+      }
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.answer || 'Sorry, I couldn\'t generate a response. Please try again.',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'I apologize, but I\'m having trouble connecting right now. Please try again in a moment. If the issue persists, please contact support.',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-    return <Car className="h-4 w-4 mr-2" />;
   };
-  
-  // Suggested questions based on context
-  const suggestedQuestions = [
-    vehicleContext?.make 
-      ? `What is my ${vehicleContext.year} ${vehicleContext.make} ${vehicleContext.model} worth?` 
-      : "How much is my car worth?",
-    "How do accidents affect my car's value?",
-    "What's the best way to sell my vehicle?",
-    "What's included in the premium report?",
-    "What are current market trends for my vehicle?"
-  ];
-  
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
-    <div className="bg-card rounded-lg shadow-md p-6 border">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold flex items-center">
-          <Car className="h-5 w-5 mr-2 text-primary" />
-          Car Detective AI Assistant
-        </h2>
-        {isPremium && (
-          <span className="bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 rounded">
-            Premium
-          </span>
-        )}
-      </div>
-      
-      <Separator className="mb-4" />
-      
-      <div className="space-y-4 max-h-[400px] overflow-y-auto mb-4 pr-1">
-        {conversation.map((msg, index) => (
-          <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-            {msg.role === 'assistant' && (
-              <Avatar className="h-8 w-8 mt-1">
-                <AvatarImage src="/images/ai-avatar.png" alt="AI Assistant" />
-                <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">CAR</AvatarFallback>
-              </Avatar>
-            )}
-            
-            <div className={`rounded-lg p-3 text-sm ${
-              msg.role === 'user' ? 'bg-primary text-primary-foreground ml-auto max-w-[75%]' : 'bg-muted text-foreground max-w-[85%]'
-            }`}>
-              {msg.role === 'assistant' && (
-                <div className="flex items-center mb-1 text-xs text-muted-foreground">
-                  {getMessageIcon(msg.content)}
-                  <span>Car Detective AI</span>
-                </div>
-              )}
-              <p>{msg.content}</p>
-            </div>
+    <div className="flex flex-col h-full max-h-[85vh]">
+      {/* Header */}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
-        ))}
-        
-        {isTyping && (
-          <div className="flex items-start gap-3">
-            <Avatar className="h-8 w-8 mt-1">
-              <AvatarImage src="/images/ai-avatar.png" alt="AI Assistant" />
-              <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">CAR</AvatarFallback>
-            </Avatar>
-            <div className="rounded-lg p-3 text-sm bg-muted">
-              <div className="flex space-x-1 items-center">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse"></div>
-                <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse delay-150"></div>
-                <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse delay-300"></div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Reference for auto-scrolling */}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      {conversation.length === 0 && !isTyping && (
-        <div className="text-center py-8 text-muted-foreground">
-          <Car className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-          <p>Ask me about your vehicle's value, accident impact, best time to sell, or other car-related questions.</p>
-        </div>
-      )}
-      
-      {/* Suggested questions */}
-      {conversation.length <= 2 && (
-        <div className="mb-4">
-          <p className="text-xs text-muted-foreground mb-2">Suggested questions:</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedQuestions.slice(0, 3).map((question, idx) => (
-              <Button 
-                key={idx} 
-                variant="outline" 
-                size="sm" 
-                className="text-xs"
-                onClick={() => {
-                  setMessage(question);
-                  setTimeout(() => handleSendMessage(), 100);
-                }}
-              >
-                {question}
-              </Button>
-            ))}
+          <div>
+            <CardTitle className="text-lg">AIN Assistant</CardTitle>
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+              {isConnected ? 'Connected' : 'Connecting...'}
+              {isPremium && <span className="text-primary font-medium">• Premium</span>}
+            </p>
           </div>
         </div>
-      )}
-      
-      <div className="mt-4 flex items-center gap-2">
-        <Input 
-          type="text" 
-          placeholder="Ask about your vehicle's value..." 
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' ? handleSendMessage() : null}
-          className="bg-background"
-        />
-        <Button 
-          onClick={handleSendMessage}
-          disabled={!message.trim()}
-          className="px-3"
-        >
-          <Send className="h-4 w-4" />
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          <X className="h-4 w-4" />
         </Button>
+      </CardHeader>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <div className="space-y-4">
+          <AnimatePresence initial={false}>
+            {messages.map((message, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className={`text-xs mt-1 opacity-70 ${
+                    message.role === 'user' ? 'text-primary-foreground' : 'text-muted-foreground'
+                  }`}>
+                    {formatTime(message.timestamp)}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start"
+            >
+              <div className="bg-muted rounded-lg px-3 py-2 flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">AIN is thinking...</span>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Input */}
+      <div className="border-t p-4">
+        <form onSubmit={handleSendMessage} className="flex space-x-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask about car valuations, market trends, or CARFAX® reports..."
+            disabled={isLoading || !isConnected}
+            className="flex-1"
+          />
+          <Button 
+            type="submit" 
+            disabled={isLoading || !input.trim() || !isConnected}
+            size="sm"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </form>
+        
+        {!isConnected && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Connecting to AI assistant...
+          </p>
+        )}
       </div>
     </div>
   );
-}
-
-export default AIAssistant;
+};
