@@ -25,6 +25,12 @@ export const FormSelect: React.FC<FormSelectProps> = ({
   disabled = false,
   onChange,
 }) => {
+  // Ensure form is provided before using FormField
+  if (!form) {
+    console.error('FormSelect requires a form prop to be passed');
+    return null;
+  }
+
   return (
     <FormField
       control={form.control}
