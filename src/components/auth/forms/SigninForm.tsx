@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, KeyRound } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export interface SigninFormProps {
   isLoading?: boolean;
@@ -50,8 +50,21 @@ export const SigninForm: React.FC<SigninFormProps> = ({
         const errorMessage = result.error || 'Authentication failed';
         setError(errorMessage);
         setIsLoading(false);
+        
+        toast({
+          title: "Sign in failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
         return;
       }
+      
+      // Show success toast
+      toast({
+        title: "Signed in successfully",
+        description: "Welcome back!",
+        variant: "success",
+      });
       
       // Determine where to redirect the user
       const from = location.state?.from?.pathname || 
@@ -61,6 +74,12 @@ export const SigninForm: React.FC<SigninFormProps> = ({
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setIsLoading(false);
+      
+      toast({
+        title: "Sign in failed",
+        description: err.message || 'An unexpected error occurred',
+        variant: "destructive",
+      });
     }
   };
 
