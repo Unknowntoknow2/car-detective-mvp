@@ -7,10 +7,18 @@ echo "Starting simplified installation process..."
 # Set environment variables to skip Puppeteer download
 export PUPPETEER_SKIP_DOWNLOAD=true
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+export PUPPETEER_SKIP_DOWNLOAD=1
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 
 # Set memory allocation and timeout
 export NODE_OPTIONS="--max-old-space-size=4096"
 export NPM_CONFIG_NETWORK_TIMEOUT=300000
+
+# Remove any existing puppeteer cache to avoid incomplete downloads
+echo "Cleaning up any problematic Puppeteer installations..."
+rm -rf node_modules/puppeteer
+rm -rf ~/.cache/puppeteer
+rm -rf ~/.cache/chromium
 
 # Install only the most essential packages first
 echo "Installing minimal dependencies..."

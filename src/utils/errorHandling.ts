@@ -32,7 +32,10 @@ export const setupTrackingErrorHandler = () => {
       'puppeteer',
       'chrome-headless',
       'Chrome download failed',
-      'Chromium download failed'
+      'Chromium download failed',
+      'chrome v',
+      'browser folder',
+      'headless-shell'
     ];
     
     // Only log errors that don't match our suppress patterns
