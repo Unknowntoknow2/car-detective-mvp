@@ -18,6 +18,12 @@ const SettingsPage: React.FC = () => {
     }
   };
 
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
@@ -38,7 +44,7 @@ const SettingsPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-500">Member Since</p>
                 <p className="text-base">
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  {formatDate(user?.created_at)}
                 </p>
               </div>
               
