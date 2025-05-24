@@ -44,10 +44,7 @@ const DashboardRouter: React.FC = () => {
         }
       } catch (err) {
         console.error('Error checking user role:', err);
-        toast({
-          description: "Failed to load dashboard. Please try again.",
-          variant: "destructive"
-        });
+        toast.error("Failed to load dashboard. Please try again.");
         navigate('/auth');
       } finally {
         setIsLoading(false);
