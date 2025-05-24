@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
 import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
@@ -8,7 +8,6 @@ import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import ValuationResultPage from './pages/ValuationResultPage';
-import ResultPage from './pages/ResultPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
 import DealerLayoutPage from './pages/dealer/DealerLayoutPage';
@@ -19,7 +18,6 @@ import Layout from './components/layout/Layout';
 import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
 import DashboardPage from './pages/DashboardPage';
 import DashboardRouter from './components/dashboard/DashboardRouter';
-import ResultsPage from './pages/ResultsPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
@@ -43,14 +41,10 @@ const routes: RouteObject[] = [
         element: <VinLookupPage />
       },
       
-      // Unified auth routes
+      // Core auth routes
       {
         path: 'auth',
         element: <UnifiedAuthPage />
-      },
-      {
-        path: 'auth/callback',
-        element: <AuthCallbackPage />
       },
       {
         path: 'auth/individual',
@@ -60,45 +54,68 @@ const routes: RouteObject[] = [
         path: 'auth/dealer',
         element: <DealerAuthPage />
       },
+      {
+        path: 'auth/callback',
+        element: <AuthCallbackPage />
+      },
       
       // Redirect legacy auth routes to the new unified auth page
       {
         path: 'login',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'register',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'sign-up',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signup',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'sign-in',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signin',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'dealer-signup',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth/dealer" replace />
+      },
+      {
+        path: 'signin/individual',
+        element: <Navigate to="/auth/individual" replace />
+      },
+      {
+        path: 'signin/dealer',
+        element: <Navigate to="/auth/dealer" replace />
+      },
+      {
+        path: 'signup/individual',
+        element: <Navigate to="/auth/individual" replace />
+      },
+      {
+        path: 'signup/dealer',
+        element: <Navigate to="/auth/dealer" replace />
       },
       
+      // Dashboard routes
       {
         path: 'dashboard',
         element: <DashboardRouter />
       },
       {
         path: 'dashboard/individual',
-        element: <DashboardPage />
+        element: <Navigate to="/dashboard" replace />
       },
+      
+      // Valuation routes
       {
         path: 'valuation',
         element: <ValuationPage />
@@ -113,8 +130,14 @@ const routes: RouteObject[] = [
       },
       {
         path: 'result',
-        element: <ResultPage />
+        element: <Navigate to="/valuation" replace />
       },
+      {
+        path: 'valuation/:id',
+        element: <Navigate to={params => `/valuation/result/${params.id}`} replace />
+      },
+      
+      // Profile and account routes
       {
         path: 'profile',
         element: <ProfilePage />
@@ -127,6 +150,8 @@ const routes: RouteObject[] = [
         path: 'service-history',
         element: <ServiceHistoryPage />
       },
+      
+      // Dealer routes
       {
         path: 'dealer',
         element: <DealerLayoutPage />,
@@ -145,6 +170,8 @@ const routes: RouteObject[] = [
           }
         ]
       },
+      
+      // Catch-all 404 route
       {
         path: '*',
         element: <NotFound />
