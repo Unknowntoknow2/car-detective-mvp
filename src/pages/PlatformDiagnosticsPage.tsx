@@ -35,9 +35,9 @@ export default function PlatformDiagnosticsPage() {
         const { data } = await supabase.from('_diagnose').select('project_id').limit(1).single();
         setSupabaseProject(data?.project_id || 'Connected (no project ID available)');
       } catch (error) {
-        // Extract project reference from the URL
-        const urlParts = supabase.supabaseUrl.split('.');
-        const projectRef = urlParts[0].replace('https://', '');
+        // Use environment variable instead of accessing protected property
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xltxqqzattxogxtqrggt.supabase.co';
+        const projectRef = supabaseUrl.replace('https://', '').split('.')[0];
         setSupabaseProject(`Connected to: ${projectRef}`);
       }
     };
