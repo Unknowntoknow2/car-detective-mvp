@@ -15,6 +15,10 @@ ENV NPM_CONFIG_NETWORK_TIMEOUT=600000
 # Skip Puppeteer browser download to avoid build errors
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Install chromium in the container for puppeteer to use if needed
+RUN apk add --no-cache chromium
 
 # Install dependencies with retries and increased timeout
 RUN npm install --no-fund --prefer-offline --loglevel=error || \
