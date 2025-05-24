@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Send, Bot } from 'lucide-react';
-import ChatBubble from './ChatBubble';
+import { ChatBubble } from './ChatBubble';
 
 interface Message {
   id: string;
