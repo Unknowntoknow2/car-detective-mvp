@@ -24,7 +24,7 @@ export interface SignupFormProps {
   role?: 'individual' | 'dealer';
   redirectPath?: string;
   showDealershipField?: boolean;
-  userType?: string; // Added userType prop
+  userType?: string;
 }
 
 export const SignupForm = ({ 
@@ -33,7 +33,7 @@ export const SignupForm = ({
   role = 'individual', 
   redirectPath = '/dashboard', 
   showDealershipField = false,
-  userType // Accept userType prop
+  userType
 }: SignupFormProps) => {
   const { signUp } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
